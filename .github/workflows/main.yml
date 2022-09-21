@@ -18,7 +18,9 @@ jobs:
         uses: actions/checkout@v3
       - name: Validate Docker Compose config file
         working-directory: .
-        run: docker compose config --quiet
+        run: |
+          cp .env.sample .env
+          docker compose config --quiet
 
   hasher-tests:
     runs-on: ubuntu-22.04
