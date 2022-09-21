@@ -16,7 +16,6 @@ x-proxy-common: &proxy-common
 
 x-build-args-common: &build-args-common
   <<: *proxy-common
-  PIXL_UID: ${PIXL_UID}
 
 x-pixl-common-env: &pixl-common-env
   PIXL_ENV: ${PIXL_ENV}
