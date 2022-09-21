@@ -17,4 +17,4 @@ black hasher
 
 flake8 --config ${CONF_FILE}
 
-PIXL_ENV=test pytest --ff hasher/tests
+PIXL_ENV=test pytest hasher/tests

@@ -17,3 +17,8 @@ from the _FlowEHR/PIXL/hasher/src_ directory:
 ```bash
 bin/run-tests.sh
 ```
+or
+```bash
+PIXL_ENV=test pytest --ff hasher/tests
+```
+to skip linting and run only the last failed test.
