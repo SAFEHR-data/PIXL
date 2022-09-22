@@ -1,0 +1,123 @@
+version: "3.8"
+
+################################################################################
+# Common
+
+x-http-proxy: &http-proxy ${HTTP_PROXY}
+x-https-proxy: &https-proxy ${HTTPS_PROXY}
+x-no-proxy: &no-proxy localhost,127.0.0.1,uclvlddpragae07,hasher-api,orthanc-raw
+x-proxy-common: &proxy-common
+  HTTP_PROXY: *http-proxy
+  http_proxy: *http-proxy
+  HTTPS_PROXY: *https-proxy
+  https_proxy: *https-proxy
+  NO_PROXY: *no-proxy
+  no_proxy: *no-proxy
+
+x-build-args-common: &build-args-common
+  <<: *proxy-common
+
+x-pixl-common-env: &pixl-common-env
+  PIXL_ENV: ${PIXL_ENV}
+
+x-emap-db: &emap-db
+  EMAP_UDS_HOST: ${EMAP_UDS_HOST}
+  EMAP_UDS_PORT: ${EMAP_UDS_PORT}
+  EMAP_UDS_NAME: ${EMAP_UDS_NAME}
+  EMAP_UDS_USER: ${EMAP_UDS_USER}
+  EMAP_UDS_PASSWORD: ${EMAP_UDS_PASSWORD}
+
+x-logs-volume: &logs-volume
+  type: volume
+  source: logs
+  target: /logs
+
+volumes:
+  logs:
+  orthanc-data:
+  postgres-data:
+
+networks:
+  pixl-net:
+
+################################################################################
+# Services
+services:
+
+  hasher-api:
+    build:
+      context: .
+      dockerfile: ./docker/hasher-api/Dockerfile
+      args:
+        <<: *build-args-common
+    environment:
+      <<: *proxy-common
+      <<: *pixl-common-env
+    env_file:
+      - ./docker/common.env
+    ports:
+      - "${HASHER_API_PORT}:8000"
+    volumes:
+      - *logs-volume
+    networks:
+      - pixl-net
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://hasher-api:8000/heart-beat" ]
+      interval: 10s
+      timeout: 30s
+      retries: 5
+    restart: "no"
+
+  orthanc-raw:
+    build:
+      context: .
+      dockerfile: ./docker/orthanc-raw/Dockerfile
+      args:
+        <<: *build-args-common
+    environment:
+      ORTHANC__NAME: "PIXL Orthanc Raw"
+      ORTHANC__REGISTERED_USERS: |
+        {"user": "pass"}
+      <<: *proxy-common
+      <<: *pixl-common-env
+    ports:
+      - "${ORTHANC_RAW_DICOM_PORT}:4242"
+      - "${ORTHANC_RAW_WEB_PORT}:8042"
+    volumes:
+      - type: volume
+        source: orthanc-data
+        target: /var/lib/orthanc/db
+    networks:
+      - pixl-net
+    restart: "no"
+
+
+  ################################################################################
+  # Data Stores
+  postgres:
+    build:
+      context: .
+      dockerfile: ./docker/postgres/Dockerfile
+      args:
+        <<: *build-args-common
+    environment:
+      POSTGRES_USER: ${PIXL_DB_USER}
+      POSTGRES_PASSWORD: ${PIXL_DB_PASSWORD}
+      PGTZ: Europe/London
+    env_file:
+      - ./docker/common.env
+    command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
+    volumes:
+      - type: volume
+        source: postgres-data
+        target: /var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT}:${PIXL_DB_PORT}"
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "${PIXL_DB_USER}" ]
+      interval: 10s
+      timeout: 30s
+      retries: 5
+    restart: always
+    networks:
+      - pixl-net
