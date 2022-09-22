@@ -18,7 +18,7 @@ RUN sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-COPY ./requirements.txt /sandbox/
+COPY requirements.txt /sandbox/
 RUN pip install -U pip wheel setuptools \
     && pip install --timeout 120 --retries 10 --no-cache-dir -r /sandbox/requirements.txt
 

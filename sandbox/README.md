@@ -1,8 +1,8 @@
 ## Sandbox for DICOM images/EMAP interaction
 
 Build and enter a bash shell with
-```
-docker build -t pixl-sandbox .
+```bash
+docker build -f ../docker/sandbox/Dockerfile -t pixl-sandbox .
 docker run -it pixl-sandbox /bin/bash
 ```
 
