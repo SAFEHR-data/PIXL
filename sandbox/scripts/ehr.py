@@ -16,8 +16,8 @@ from core import _env_var, QueryableDatabase, SQLQuery
 
 
 @dataclass
-class PatientStudyData:
-    """Dataclass for EHR+xray report unique to a patient and xray study"""
+class PatientEHRData:
+    """Dataclass for EHR unique to a patient and xray study"""
 
     mrn: str                # | Required identifiers
     accession_number: str   # |
@@ -52,7 +52,7 @@ class PatientStudyData:
 class Step(ABC):
 
     @abstractmethod
-    def update(self, data: PatientStudyData) -> None:
+    def update(self, data: PatientEHRData) -> None:
         """Update the data on a patient for this step"""
 
 
@@ -77,7 +77,7 @@ class SetAcquisitionTime(Step):
     _orthanc_url = f"http://{_env_var('ORTHANC_URL')}:{_env_var('ORTHANC_HTTP_PORT')}"
     _orthanc_auth = (_env_var("ORTHANC_USERNAME"), _env_var("ORTHANC_PASSWORD"))
 
-    def update(self, data: PatientStudyData) -> None:
+    def update(self, data: PatientEHRData) -> None:
         """Update the data with an acquisition time"""
 
         def mrn_matches(patient: "pyorthanc.patient.Patient") -> bool:
@@ -129,7 +129,7 @@ class EMAPStep(Step, ABC):
 
 class SetAgeSexEthnicity(EMAPStep):
 
-    def update(self, data: PatientStudyData) -> None:
+    def update(self, data: PatientEHRData) -> None:
         """Update the data with age, sex and ethnicity"""
 
         query = SQLQuery(
@@ -175,7 +175,7 @@ class SetVOT(EMAPStep, ABC):
     def emap_name(self) -> str:
         """Name of this observation type in an EMAP star schema, e.g. HEIGHT"""
 
-    def update(self, data: PatientStudyData) -> None:
+    def update(self, data: PatientEHRData) -> None:
 
         if data.acquisition_datetime is None:
             raise RuntimeError("Cannot update a height without an acquisition")
@@ -233,14 +233,14 @@ class Pipeline:
     def __init__(self, *steps: Step):
         self.steps = steps
 
-    def run(self, data: PatientStudyData) -> None:
+    def run(self, data: PatientEHRData) -> None:
 
         for step in self.steps:
 
             try:
                 step.update(data)
             except Exception as e:  # blanket except..
-                print("ERROR: " + str(e))
+                print(f"ERROR: {e}")
 
         return None
 
@@ -292,7 +292,7 @@ def main():
 
     args = parse_args()
 
-    data = PatientStudyData(
+    data = PatientEHRData(
         mrn=args.mrn,
         accession_number=args.accession_number
     )
