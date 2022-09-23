@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+
+  db:
+    image: "postgres:latest"
+    container_name: fake_uds
+    ports:
+      - ${DB_PORT}:5432
+    env_file:
+      - .env.test
+
+  # See: https://book.orthanc-server.com/users/docker.html
+  orthanc:
+    image: jodogne/orthanc-plugins:1.11.0
+    container_name: orthanc
+    command: /run/secrets/
+    env_file:
+      - .env.test
+    ports:
+      - ${ORTHANC_DICOM_PORT}:4242
+      - ${ORTHANC_HTTP_PORT}:8042
+    secrets:
+      - orthanc.json
+
+  fake_data:
+    image: pixl-sandbox
+    container_name: pixl_sandbox
+    depends_on:
+      - db
+      - orthanc
+    build:
+      context: .
+      dockerfile: docker/ehr/Dockerfile
+      args:
+        HTTP_PROXY: ${HTTP_PROXY}
+        http_proxy: ${http_proxy}
+        HTTPS_PROXY: ${HTTPS_PROXY}
+        https_proxy: ${https_proxy}
+    env_file:
+      - .env.test
+    working_dir: /sandbox/scripts
+    # sleep is to wait for orthanc to be up, if you know how to do a healthcheck
+    # that works then that would be great...
+    command: bash -c "sleep 10s; python add_fake_tables.py; python add_fake_dicom.py; sleep infinity"
+
+
+secrets:
+  orthanc.json:
+    file: orthanc.json

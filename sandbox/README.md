@@ -1,9 +1,28 @@
 ## Sandbox for DICOM images/EMAP interaction
 
-Build and enter a bash shell with
+Build and up the test environment with:
+
 ```bash
-docker build -f ../docker/sandbox/Dockerfile -t pixl-sandbox .
-docker run -it pixl-sandbox /bin/bash
+docker compose --env-file .env.test -f docker/docker-compose.test.yml up --build
+```
+
+Run an EHR query with
+
+``bash
+docker exec -it pixl_sandbox python ehr.py -m 3 -a a -w 10000 -t 10000 -g 10000
+``
+see the CLI options
+``bash
+docker exec -it pixl_sandbox python ehr.py --help
+``
+
+
+*** 
+
+To inspect DICOM images
+```
+docker build -t pixl-image-sandbox -f docker/ehr/Dockerfile .
+docker run -it pixl-image-sandbox /bin/bash
 ```
 
 > **Note**
