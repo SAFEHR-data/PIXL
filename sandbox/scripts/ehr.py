@@ -221,7 +221,7 @@ class SetGCS(SetVOT):
 
     @property
     def name(self) -> str:
-        return "glasgow_coma_score"
+        return "glasgow_coma_scale"
 
     @property
     def emap_name(self) -> str:

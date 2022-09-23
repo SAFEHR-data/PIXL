@@ -37,12 +37,22 @@ schema_structure = {
     },
     "lab_result": {
         "lab_result_id": "bigint",
-        "lab_order_id": "bigint"
+        "lab_order_id": "bigint",
+        "lab_test_definition_id": "bigint",
+        "value_as_text": "varchar"
     },
     "lab_sample": {
         "lab_sample_id": "bigint",
         "mrn_id": "bigint",
         "external_lab_number": "varchar"
+    },
+    "lab_order": {
+        "lab_order_id": "bigint",
+        "lab_sample_id": "bigint"
+    },
+    "lab_test_definition": {
+        "lab_test_definition_id": "bigint",
+        "test_lab_code": "varchar"
     },
     "mrn": {
         "mrn_id": "bigint",
@@ -149,7 +159,7 @@ def main():
               }),
         Table("core_demographic",
               data={
-                "mrn_id": [0, 1],
+                "mrn_id": [1, 2],
                 "date_of_birth": ['2022-01-01', '2022-02-01'],
                 "sex": ['F', 'M'],
                 "ethnicity": ['X', 'Y']
@@ -161,8 +171,22 @@ def main():
               }),
         Table("lab_sample",
               data={
-                  "mrn_id": list(range(len(ACCESSION_NUMBERS))),
+                  "mrn_id": [1, 1, 2],
                   "external_lab_number": ACCESSION_NUMBERS
+              }),
+        Table("lab_order",
+              data={
+                "lab_sample_id": [1, 2, 3]
+              }),
+        Table("lab_result",
+              data={
+                  "lab_order_id": [1, 2, 3],
+                  "lab_test_definition_id": [1, 1, 2],
+                  "value_as_text": ["report 1", "report 2", "other text"]
+              }),
+        Table("lab_test_definition",
+              data={
+                  "test_lab_code": ["INDICATIONS", "TEXT"]
               }),
     ]
 

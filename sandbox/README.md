@@ -6,7 +6,13 @@ Build and up the test environment with:
 docker compose --env-file .env.test -f docker/docker-compose.test.yml up --build
 ```
 
-Run an EHR query with
+Get a report query with
+
+```bash
+docker exec -it pixl_sandbox python report.py --mrn 3 --accession_number a
+```
+
+or an EHR set of data
 
 ``bash
 docker exec -it pixl_sandbox python ehr.py -m 3 -a a -w 10000 -t 10000 -g 10000
@@ -16,12 +22,11 @@ see the CLI options
 docker exec -it pixl_sandbox python ehr.py --help
 ``
 
-
 *** 
 
 To inspect DICOM images
 ```
-docker build -t pixl-image-sandbox -f docker/ehr/Dockerfile .
+docker build -t pixl-image-sandbox .
 docker run -it pixl-image-sandbox /bin/bash
 ```
 

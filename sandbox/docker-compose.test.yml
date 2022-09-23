@@ -42,7 +42,7 @@ services:
     working_dir: /sandbox/scripts
     # sleep is to wait for orthanc to be up, if you know how to do a healthcheck
     # that works then that would be great...
-    command: bash -c "sleep 5s; python add_fake_tables.py; python add_fake_dicom.py; sleep infinity"
+    command: bash -c "sleep 5s; python add_test_tables.py; python add_test_dicom.py; sleep infinity"
 
 
 secrets:

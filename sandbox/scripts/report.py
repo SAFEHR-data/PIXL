@@ -38,28 +38,6 @@ def parse_args() -> argparse.Namespace:
         required=True,
         help="Xray report identifier. aka AccessionNumber "
     )
-    parser.add_argument(
-        '-w',
-        '--weight_time_cutoff',
-        required=True,
-        help="Time cutoff in *days* for a weight observation on a patient. "
-             "i.e. a weight known 2 days before or after the xray acquisition "
-             "will be discarded"
-    )
-    parser.add_argument(
-        '-t',
-        '--height_time_cutoff',
-        required=True,
-        help="Time cutoff in *days* for a height observation on a patient"
-    )
-    parser.add_argument(
-        '-g',
-        '--gcs_time_cutoff',
-        required=True,
-        help="Time cutoff in *days* for a Glasgow coma scale observation "
-             "on a patient"
-    )
-
     return parser.parse_args()
 
 
@@ -74,7 +52,7 @@ def main():
 
     db = QueryableDatabase()
     query = SQLQuery(
-        filepath=Path('../sql/mrn_to_DOB_sex_ethnicity.sql'),
+        filepath=Path('../sql/mrn_accession_to_report.sql'),
         context={"schema_name": _env_var("SCHEMA_NAME"),
                  "mrn": data.mrn,
                  "accession_number": data.accession_number
