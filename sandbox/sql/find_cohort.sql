@@ -32,5 +32,3 @@ where
     and lo.request_datetime > '2022-04-01'
     and lo.request_datetime < '2022-08-01'
     and mrn.research_opt_out is false
-
--- TODO: opt out

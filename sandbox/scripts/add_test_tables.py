@@ -35,6 +35,10 @@ schema_structure = {
         "sex": "varchar",
         "ethnicity": "varchar"
     },
+    "lab_result": {
+        "lab_result_id": "bigint",
+        "lab_order_id": "bigint"
+    },
     "lab_sample": {
         "lab_sample_id": "bigint",
         "mrn_id": "bigint",
@@ -42,7 +46,8 @@ schema_structure = {
     },
     "mrn": {
         "mrn_id": "bigint",
-        "mrn": "varchar"
+        "mrn": "varchar",
+        "research_opt_out": "boolean"
     }
 }
 
@@ -152,6 +157,7 @@ def main():
         Table("mrn",
               data={
                   "mrn": MRNs,
+                  "research_opt_out": [False for _ in range(len(MRNs))]
               }),
         Table("lab_sample",
               data={

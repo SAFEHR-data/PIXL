@@ -15,8 +15,8 @@ from test_data import ACCESSION_NUMBERS, MRNs
 
 
 data = {
-   "accession_id": ACCESSION_NUMBERS,
-   "mrn_id": MRNs,
+   "accession_number": ACCESSION_NUMBERS,
+   "mrn": MRNs,
    "datetime": ['20220501000000.000000', '20220601000000.000000', '20220701000000.000000']
 }
 
@@ -89,8 +89,8 @@ def main():
         path = Path("tmp.cdm")
         save_random_dicom_file(
             filepath=path,
-            mrn_id=data["mrn_id"][i],
-            accession_id=data["accession_id"][i],
+            mrn_id=data["mrn"][i],
+            accession_id=data["accession_number"][i],
             datetime=data["datetime"][i]
         )
 

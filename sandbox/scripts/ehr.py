@@ -288,16 +288,6 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-"""
-    age:        
-    sex:        
-    ethnicity:  
-    height:     
-    weight:     
-    glasgow_coma_scale:
-"""
-
-
 def main():
 
     args = parse_args()
