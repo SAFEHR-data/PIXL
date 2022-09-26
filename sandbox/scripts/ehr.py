@@ -1,6 +1,6 @@
 """
 Given an MRN and accession number, defining the patient and associated
-x-ray study obtain a complete set of electronic health record (EHR) data
+x-ray study obtain electronic health record (EHR) data
 along with the corresponding report.
 """
 import argparse
