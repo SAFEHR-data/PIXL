@@ -26,10 +26,10 @@ class Database:
     def _create_connection() -> "psycopg2.connection":
 
         connection_string = (
-            f"dbname={_env_var('DB_NAME')} "
-            f"user={_env_var('POSTGRES_USER')} "
-            f"password={_env_var('POSTGRES_PASSWORD')} "
-            f"host={_env_var('POSTGRES_URL')}"
+            f"dbname={_env_var('EMAP_UDS_NAME')} "
+            f"user={_env_var('EMAP_UDS_USER')} "
+            f"password={_env_var('EMAP_UDS_PASSWORD')} "
+            f"host={_env_var('EMAP_UDS_HOST')}"
         )
         return pypg.connect(connection_string)
 

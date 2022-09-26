@@ -79,7 +79,7 @@ def save_random_dicom_file(filepath: Path,
 
 def main():
     orthanc = Orthanc(
-        url=f"http://{_env_var('ORTHANC_URL')}:{_env_var('ORTHANC_HTTP_PORT')}",
+        url=f"http://{_env_var('ORTHANC_URL')}:{_env_var('ORTHANC_RAW_WEB_PORT')}",
         username=_env_var("ORTHANC_USERNAME"),
         password=_env_var("ORTHANC_PASSWORD")
     )

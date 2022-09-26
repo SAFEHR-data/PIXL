@@ -53,7 +53,7 @@ def main():
     db = QueryableDatabase()
     query = SQLQuery(
         filepath=Path('../sql/mrn_accession_to_report.sql'),
-        context={"schema_name": _env_var("SCHEMA_NAME"),
+        context={"schema_name": _env_var("EMAP_UDS_SCHEMA_NAME"),
                  "mrn": data.mrn,
                  "accession_number": data.accession_number
                  }

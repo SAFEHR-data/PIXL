@@ -1,7 +1,7 @@
 """
 Adds fake data to a database resembling the EMAP star scheme, albeit a
 truncated version. A postgres instance should be up and running before running
-this script, which requires environment variables (e.g. POSTGRES_USER) to be
+this script, which requires environment variables (e.g. EMAP_UDS_USER) to be
 set
 """
 import pandas as pd
@@ -99,14 +99,14 @@ class FakeDatabase(Database):
 
     @property
     def schema_name(self) -> str:
-        return _env_var("SCHEMA_NAME")
+        return _env_var("EMAP_UDS_SCHEMA_NAME")
 
     def create_schema(self) -> None:
         """Create the database schema"""
 
         self._cursor.execute(f"DROP SCHEMA IF EXISTS {self.schema_name} CASCADE;")
         self._cursor.execute(f"CREATE SCHEMA {self.schema_name}"
-                             f" AUTHORIZATION {_env_var('POSTGRES_USER')};")
+                             f" AUTHORIZATION {_env_var('EMAP_UDS_USER')};")
 
     def create_empty_table_for(self, table: Table) -> None:
         """Create a table for a set of data. Drop it if it exists"""

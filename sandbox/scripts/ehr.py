@@ -74,7 +74,7 @@ class AcquisitionTimes(list):
 
 
 class SetAcquisitionTime(Step):
-    _orthanc_url = f"http://{_env_var('ORTHANC_URL')}:{_env_var('ORTHANC_HTTP_PORT')}"
+    _orthanc_url = f"http://{_env_var('ORTHANC_URL')}:{_env_var('ORTHANC_RAW_WEB_PORT')}"
     _orthanc_auth = (_env_var("ORTHANC_USERNAME"), _env_var("ORTHANC_PASSWORD"))
 
     def update(self, data: PatientEHRData) -> None:
@@ -134,7 +134,7 @@ class SetAgeSexEthnicity(EMAPStep):
 
         query = SQLQuery(
             filepath=Path('../sql/mrn_to_DOB_sex_ethnicity.sql'),
-            context={"schema_name": _env_var("SCHEMA_NAME"),
+            context={"schema_name": _env_var("EMAP_UDS_SCHEMA_NAME"),
                      "mrn": data.mrn
                      }
         )
@@ -182,7 +182,7 @@ class SetVOT(EMAPStep, ABC):
 
         query = SQLQuery(
             filepath=Path('../sql/mrn_timewindow_to_observationtype.sql'),
-            context={"schema_name": _env_var("SCHEMA_NAME"),
+            context={"schema_name": _env_var("EMAP_UDS_SCHEMA_NAME"),
                      "mrn": data.mrn,
                      "observation_type": self.emap_name,
                      "window_start": self.time_window_start(from_time=data.acquisition_datetime),

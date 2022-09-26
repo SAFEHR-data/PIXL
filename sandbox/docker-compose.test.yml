@@ -2,24 +2,27 @@ version: "3.9"
 
 services:
 
-  db:
+  fake_emap_uds:
     image: "postgres:latest"
     container_name: fake_uds
     ports:
-      - ${DB_PORT}:5432
+      - ${EMAP_UDS_PORT}:5432
     env_file:
       - .env.test
+    environment:
+      POSTGRES_USER: ${EMAP_UDS_USER}
+      POSTGRES_PASSWORD: ${EMAP_UDS_PASSWORD}
 
   # See: https://book.orthanc-server.com/users/docker.html
-  orthanc:
+  fake_raw_orthanc:
     image: jodogne/orthanc-plugins:1.11.0
     container_name: orthanc
     command: /run/secrets/
     env_file:
       - .env.test
     ports:
-      - ${ORTHANC_DICOM_PORT}:4242
-      - ${ORTHANC_HTTP_PORT}:8042
+      - ${ORTHANC_RAW_DICOM_PORT}:4242
+      - ${ORTHANC_RAW_WEB_PORT}:8042
     secrets:
       - orthanc.json
 
@@ -27,8 +30,8 @@ services:
     image: pixl-sandbox
     container_name: pixl_sandbox
     depends_on:
-      - db
-      - orthanc
+      - fake_emap_uds
+      - fake_raw_orthanc
     build:
       context: .
       dockerfile: Dockerfile

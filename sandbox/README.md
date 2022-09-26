@@ -3,7 +3,7 @@
 Build and up the test environment with:
 
 ```bash
-docker compose --env-file .env.test -f docker/docker-compose.test.yml up --build
+docker compose --env-file .env.test -f docker-compose.test.yml up --build
 ```
 
 Get a report query with
@@ -14,13 +14,13 @@ docker exec -it pixl_sandbox python report.py --mrn 3 --accession_number a
 
 or an EHR set of data
 
-``bash
+```bash
 docker exec -it pixl_sandbox python ehr.py -m 3 -a a -w 10000 -t 10000 -g 10000
-``
+```
 see the CLI options
-``bash
+```bash
 docker exec -it pixl_sandbox python ehr.py --help
-``
+```
 
 *** 
 
