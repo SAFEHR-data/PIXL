@@ -46,3 +46,9 @@ Dataset.file_meta -------------------------------
 (0002, 0000) File Meta Information Group Length  UL: 192
 ...
 ```
+
+
+*** 
+### Validation requirements
+
+- Ensure GCS is between 3 and 15, from [paper](https://www.ncbi.nlm.nih.gov/books/NBK513298/)

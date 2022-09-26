@@ -28,25 +28,7 @@ class PatientEHRData:
     ethnicity: Optional[str] = None
     height: Optional[float] = None
     weight: Optional[float] = None
-    _glasgow_coma_scale: Optional[int] = None
-
-    @property
-    def glasgow_coma_scale(self) -> Optional[int]:
-        return self._glasgow_coma_scale
-
-    @glasgow_coma_scale.setter
-    def glasgow_coma_scale(self, value: Any):
-
-        if value is None:
-            self._glasgow_coma_scale = None
-            return
-
-        if int(value) > 15 or int(value) < 3:
-            # See: https://www.ncbi.nlm.nih.gov/books/NBK513298/
-            raise ValueError("Glasgow Coma Scale score must be between "
-                             "3 and 15")
-
-        self._glasgow_coma_scale = int(value)
+    glasgow_coma_scale: Optional[int] = None
 
 
 class Step(ABC):
