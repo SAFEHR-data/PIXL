@@ -28,7 +28,7 @@ join mrn using(mrn_id)
 where
 	lb.lab_provider = 'PACS'
 	and lb.battery_name = 'XR Chest Nasogastric Tube Position'
-    and ltd.test_lab_code = 'INDICATIONS'
+    and ltd.test_lab_code = 'TEXT'
     and lo.request_datetime > '2022-04-01'
     and lo.request_datetime < '2022-08-01'
     and mrn.research_opt_out is false

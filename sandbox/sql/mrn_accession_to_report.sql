@@ -15,4 +15,4 @@ join mrn using(mrn_id)
 
 where ls.external_lab_number = :accession_number
     and mrn.mrn = :mrn
-    and ltd.test_lab_code = 'INDICATIONS'
+    and ltd.test_lab_code = 'TEXT'

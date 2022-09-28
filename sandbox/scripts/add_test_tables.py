@@ -186,7 +186,7 @@ def main():
               }),
         Table("lab_test_definition",
               data={
-                  "test_lab_code": ["INDICATIONS", "TEXT"]
+                  "test_lab_code": ["TEXT", "INDICATIONS"]
               }),
     ]
 

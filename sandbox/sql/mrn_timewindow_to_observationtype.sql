@@ -21,5 +21,5 @@ select
     and valid_from < :window_end
 
   order by greatest(vo.valid_from - :window_midpoint,
-      :window_midpoint - vo.valid_from)
+      :window_midpoint - vo.valid_from)  -- abs(time difference)
   limit 1
