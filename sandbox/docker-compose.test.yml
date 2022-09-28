@@ -15,7 +15,7 @@ services:
 
   # See: https://book.orthanc-server.com/users/docker.html
   fake_raw_orthanc:
-    image: jodogne/orthanc-plugins:1.11.0
+    image: osimis/orthanc:22.9.0-full
     container_name: orthanc
     command: /run/secrets/
     env_file:

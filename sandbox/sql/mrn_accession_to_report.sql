@@ -5,7 +5,7 @@
 set search_path to ${{ schema_name }}, public;
 
 select
-  lr.value_as_text
+  lr.value_as_text as report
 
 from lab_sample as ls
 join lab_order as lo using(lab_sample_id)
