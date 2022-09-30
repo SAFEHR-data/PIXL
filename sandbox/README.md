@@ -54,4 +54,7 @@ Dataset.file_meta -------------------------------
 *** 
 ### Validation requirements
 
+The pipelines do _not_ perform any validation of the data. Downstream 
+quality checks are required, including:
+
 - Ensure GCS is between 3 and 15, from [paper](https://www.ncbi.nlm.nih.gov/books/NBK513298/)
