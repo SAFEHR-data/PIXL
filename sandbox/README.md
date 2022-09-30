@@ -22,6 +22,9 @@ see the CLI options
 docker exec -it pixl_sandbox python ehr.py --help
 ```
 
+> **Note**
+> The EHR and report _could_ be returned together from a single call
+
 *** 
 
 To inspect DICOM images
