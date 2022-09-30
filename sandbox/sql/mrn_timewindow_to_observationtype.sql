@@ -17,8 +17,8 @@ select
     and vot.name = :observation_type
 
   where mrn.mrn = :mrn
-    and valid_from >= :window_start
-    and valid_from < :window_end
+    and vo.valid_from >= :window_start
+    and vo.valid_from < :window_end
 
   order by greatest(vo.valid_from - :window_midpoint,
       :window_midpoint - vo.valid_from) -- abs(time difference)

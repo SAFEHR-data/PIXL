@@ -117,7 +117,8 @@ class SetAgeSexEthnicity(EMAPStep):
         query = SQLQuery(
             filepath=Path('../sql/mrn_to_DOB_sex_ethnicity.sql'),
             context={"schema_name": _env_var("EMAP_UDS_SCHEMA_NAME"),
-                     "mrn": data.mrn
+                     "mrn": data.mrn,
+                     "window_midpoint": data.acquisition_datetime
                      }
         )
         result = self.db.execute_or_raise(query, "No demographic data")
@@ -196,7 +197,7 @@ class SetWeight(SetVOT):
 
     @property
     def emap_name(self) -> str:
-        return "WEIGHT"
+        return "WEIGHT/SCALE"
 
 
 class SetGCS(SetVOT):

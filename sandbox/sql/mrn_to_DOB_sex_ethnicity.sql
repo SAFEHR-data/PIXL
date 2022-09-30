@@ -12,10 +12,6 @@ select
 from core_demographic as cd
 join mrn using(mrn_id)
 where mrn.mrn = :mrn
-group by
-  cd.date_of_birth,
-  cd.sex,
-  cd.ethnicity
 
 order by greatest(cd.valid_from - :window_midpoint,
   :window_midpoint - cd.valid_from) -- abs(time difference)

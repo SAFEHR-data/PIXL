@@ -33,7 +33,8 @@ schema_structure = {
         "mrn_id": "bigint",
         "date_of_birth": "date",
         "sex": "varchar",
-        "ethnicity": "varchar"
+        "ethnicity": "varchar",
+        "valid_from": "timestamptz"
     },
     "lab_result": {
         "lab_result_id": "bigint",
@@ -155,15 +156,16 @@ def main():
                   }),
         Table("visit_observation_type",
               data={
-                  "_name": ["HEIGHT", "WEIGHT", "R GLASGOW COMA SCALE SCORE"],
+                  "_name": ["HEIGHT", "WEIGHT/SCALE", "R GLASGOW COMA SCALE SCORE"],
               }),
         Table("core_demographic",
               data={
                 "mrn_id": [1, 2],
                 "date_of_birth": ['2022-01-01', '2022-02-01'],
                 "sex": ['F', 'M'],
-                "ethnicity": ['X', 'Y']
-        }),
+                "ethnicity": ['X', 'Y'],
+                "valid_from": ["1000-01-01", "1000-01-01"]
+              }),
         Table("mrn",
               data={
                   "mrn": MRNs,
