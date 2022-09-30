@@ -1,2 +1,6 @@
+numpy
 pydicom
 psycopg2
+faker
+pandas
+pyorthanc

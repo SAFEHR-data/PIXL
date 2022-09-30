@@ -72,3 +72,12 @@ Before raising a PR, **run the full test suite** from the _PIXL_ directory with
 bin/run-all-tests.sh
 ```
 and not just the component you have been working on as this will help us catch unintentional regressions without spending GH actions minutes :-)   
+
+
+## Assumptions
+
+PIXL data extracts include the below assumptions
+
+- (MRN, Accession number) is unique identifier for a report/DICOM study pair
+- Patients have a single _relevant_ MRN
+- Observations closest to the average image acquisition time are most accurate

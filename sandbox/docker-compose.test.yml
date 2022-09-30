@@ -1,0 +1,53 @@
+version: "3.9"
+
+services:
+
+  fake_emap_uds:
+    image: "postgres:latest"
+    container_name: fake_uds
+    ports:
+      - ${EMAP_UDS_PORT}:5432
+    env_file:
+      - .env.test
+    environment:
+      POSTGRES_USER: ${EMAP_UDS_USER}
+      POSTGRES_PASSWORD: ${EMAP_UDS_PASSWORD}
+
+  # See: https://book.orthanc-server.com/users/docker.html
+  fake_raw_orthanc:
+    image: osimis/orthanc:22.9.0-full
+    container_name: orthanc
+    command: /run/secrets/
+    env_file:
+      - .env.test
+    ports:
+      - ${ORTHANC_RAW_DICOM_PORT}:4242
+      - ${ORTHANC_RAW_WEB_PORT}:8042
+    secrets:
+      - orthanc.json
+
+  fake_data:
+    image: pixl-sandbox
+    container_name: pixl_sandbox
+    depends_on:
+      - fake_emap_uds
+      - fake_raw_orthanc
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        HTTP_PROXY: ${HTTP_PROXY}
+        http_proxy: ${http_proxy}
+        HTTPS_PROXY: ${HTTPS_PROXY}
+        https_proxy: ${https_proxy}
+    env_file:
+      - .env.test
+    working_dir: /sandbox/scripts
+    # sleep is to wait for orthanc to be up, if you know how to do a healthcheck
+    # that works then that would be great...
+    command: bash -c "sleep 5s; python add_test_tables.py; python add_test_dicom.py; sleep infinity"
+
+
+secrets:
+  orthanc.json:
+    file: orthanc.json
