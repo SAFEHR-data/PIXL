@@ -27,17 +27,48 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v3
+
       - name: Init Python
         uses: actions/setup-python@v4
         with:
           python-version: 3.10.7
           cache: 'pip'
+
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r hasher/src/requirements.txt
+
       - name: Run tests
         working-directory: hasher/src
+        run: |
+          bin/run-tests.sh
+        env:
+          PIXL_ENV: test
+
+  driver-tests:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Init Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10.7
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r driver/src/requirements.txt
+
+      - name: Download presidio data
+        run: |
+          python -m spacy download en_core_web_lg
+
+      - name: Run tests
+        working-directory: driver/src
         run: |
           bin/run-tests.sh
         env:
