@@ -19,8 +19,8 @@
 set -eo pipefail
 
 BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-HASHER_DIR="${BIN_DIR%/*}"
-cd "$HASHER_DIR"
+PACKAGE_DIR="${BIN_DIR%/*}"
+cd "$PACKAGE_DIR"
 
 CONF_FILE=../../setup.cfg
 
@@ -32,5 +32,4 @@ black driver
 
 flake8 --config ${CONF_FILE}
 
-echo $HASHER_DIR
 PIXL_ENV=test pytest driver
