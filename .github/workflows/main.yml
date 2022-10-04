@@ -2,6 +2,8 @@ name: pixl-ci
 
 on:
   push:
+    branches:
+      - main
   pull_request:
     branches:
       - dev
