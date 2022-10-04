@@ -12,19 +12,21 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-import pytest
+from fastapi import APIRouter
+from starlette.responses import Response
 
-import hasher.hashing
-
-
-pytest_plugins = [
-    "hasher.tests.fixtures",
-]
+from hasher.hashing import generate_hash
 
 
-@pytest.fixture
-def dummy_key(monkeypatch):
-    """
-    Fixture to set up a dummy key to use for hashing tests
-    """
-    monkeypatch.setattr(hasher.hashing, "fetch_key_from_vault", lambda: "test-key")
+router = APIRouter()
+
+
+@router.get("/heart-beat", summary="Health Check")
+async def heart_beat() -> str:
+    return "OK"
+
+
+@router.post("/hash", summary="Securely hash a message")
+async def hash(message: str) -> Response:
+    digest = generate_hash(message)
+    return Response(content=digest, media_type="application/text")

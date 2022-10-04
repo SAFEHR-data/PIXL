@@ -17,14 +17,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from hasher import __version__, icon, settings
+from hasher.endpoints import router
 
-package = "hasher"
 
 app = FastAPI(
-    title=package,
+    title="hasher-api",
     description=f"{icon} Secure Hashing Service ",
     version=__version__,
-    debug=settings.DEBUG,  # type: ignore
+    debug=settings.DEBUG,
     default_response_class=JSONResponse,
 )
 
@@ -36,7 +36,4 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-@app.get("/heart-beat", summary="GET Health Check")
-async def heart_beat() -> str:
-    return "OK"
+app.include_router(router)

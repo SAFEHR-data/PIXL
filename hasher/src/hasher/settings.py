@@ -25,20 +25,24 @@ __all__ = [
     "ENV",
     "DEBUG",
     "LOG_ROOT_DIR",
+    "AZ_APP_ID",
+    "AZ_TENANT_ID",
+    "AZ_NAME",
+    "AZ_APP_PASSWORD"
 ]
 
 # Set env vars in docker/common.env or the docker-compose.yml
-# and override with a local .env file
+# and override with a local.env file for local development
 
 env_parser = Env()
 
-env_file = Path(__file__) / ".env"
+env_file = Path(__file__).parent / "local.env"
 if env_file.exists():
     env_parser.read_env(env_file.as_posix(), override=True, recurse=False)
 
-DEBUG = env_parser.bool("DEBUG", False)
+DEBUG = env_parser.bool("DEBUG", True)
 
-ENV = env_parser.str("PIXL_ENV")
+ENV = env_parser.str("ENV")
 if ENV not in ("dev", "test", "staging", "prod"):
     raise RuntimeError(f"Unsupported environment: {ENV}")
 
@@ -46,6 +50,11 @@ try:
     LOG_ROOT_DIR = env_parser.str("LOG_ROOT_DIR")
 except EnvError:
     LOG_ROOT_DIR = tempfile.gettempdir()
+
+AZ_APP_ID = env_parser.str("AZ_APP_ID")
+AZ_TENANT_ID = env_parser.str("AZ_TENANT_ID")
+AZ_NAME = env_parser.str("AZ_NAME")
+AZ_APP_PASSWORD = env_parser.str("AZ_APP_PASSWORD")
 
 
 def dump_settings(symbols: Dict[str, Any]) -> None:
@@ -58,3 +67,9 @@ def dump_settings(symbols: Dict[str, Any]) -> None:
     print("Settings:")
     pp = pprint.PrettyPrinter(indent=2)
     pp.pprint(dict(sorted(settings.items())))
+    if env_file.exists():
+        print(f"Included settings from {env_file}")
+
+
+if DEBUG:
+    dump_settings(globals())

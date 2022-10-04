@@ -18,7 +18,8 @@ x-build-args-common: &build-args-common
   <<: *proxy-common
 
 x-pixl-common-env: &pixl-common-env
-  PIXL_ENV: ${PIXL_ENV}
+  ENV: ${ENV}
+  DEBUG: ${DEBUG}
 
 x-emap-db: &emap-db
   EMAP_UDS_HOST: ${EMAP_UDS_HOST}
@@ -53,6 +54,10 @@ services:
     environment:
       <<: *proxy-common
       <<: *pixl-common-env
+      AZ_APP_ID: ${HASHER_API_AZ_APPID}
+      AZ_APP_NAME: ${HASHER_API_AZ_APP_NAME}
+      AZ_TENANT_ID: ${HASHER_API_AZ_TENANT_ID}
+      AZ_PASSWORD: ${HASHER_API_AZ_PASSWORD}
     env_file:
       - ./docker/common.env
     ports:
