@@ -13,16 +13,16 @@
 #  limitations under the License.
 
 import os
+
 from pathlib import Path
-from typing import Tuple
+from typing import List, Tuple
 
 from driver.report_deidentification import deidentify_text
-import pytest
 
 THIS_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
 
 
-def _patient_names_from_names_csv() -> list:
+def _patient_names_from_names_csv() -> List[Tuple[str, str]]:
     """From a csv file with a header and an index column extract name tuples"""
 
     def _tuple_from(line: str) -> Tuple[str, str]:
@@ -34,12 +34,15 @@ def _patient_names_from_names_csv() -> list:
     return [_tuple_from(line) for line in open(path, "r").readlines()[1:]]
 
 
-@pytest.mark.parametrize("full_name", _patient_names_from_names_csv())
-def test_patient_name_is_redacted(full_name: Tuple[str, str]) -> None:
+def test_patient_name_is_redacted(required_accuracy: float = 0.95) -> None:
 
-    first_name, last_name = full_name
-    report_text = f"{first_name} {last_name} was x rayed and the prognosis is X"
-    anon_text = deidentify_text(report_text)
+    results = []
 
-    for name in (first_name, last_name):
-        assert name not in anon_text
+    for first_name, last_name in _patient_names_from_names_csv():
+
+        report_text = f"{first_name} {last_name} was x-rayed and the prognosis is X"
+        anon_text = deidentify_text(report_text)
+        results.append(first_name not in anon_text and last_name not in anon_text)
+
+    accuracy_ratio = sum(results) / len(results)
+    assert accuracy_ratio > required_accuracy
