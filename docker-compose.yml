@@ -54,10 +54,11 @@ services:
     environment:
       <<: *proxy-common
       <<: *pixl-common-env
-      AZ_APP_ID: ${HASHER_API_AZ_APPID}
-      AZ_APP_NAME: ${HASHER_API_AZ_APP_NAME}
-      AZ_TENANT_ID: ${HASHER_API_AZ_TENANT_ID}
-      AZ_PASSWORD: ${HASHER_API_AZ_PASSWORD}
+      AZURE_CLIENT_ID: ${HASHER_API_AZ_CLIENT_ID}
+      AZURE_CLIENT_SECRET: ${HASHER_API_AZ_CLIENT_PASSWORD}
+      AZURE_TENANT_ID: ${HASHER_API_AZ_TENANT_ID}
+      AZURE_KEY_VAULT_NAME: ${HASHER_API_AZ_KEY_VAULT_NAME}
+      AZURE_KEY_VAULT_SECRET_NAME: ${HASHER_API_AZ_KEY_VAULT_SECRET_NAME}
     env_file:
       - ./docker/common.env
     ports:

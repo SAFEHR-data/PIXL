@@ -21,14 +21,11 @@ from environs import Env, EnvError
 
 __all__ = [
     "dump_settings",
-    "env_parser",
     "ENV",
     "DEBUG",
     "LOG_ROOT_DIR",
-    "AZ_APP_ID",
-    "AZ_TENANT_ID",
-    "AZ_NAME",
-    "AZ_APP_PASSWORD"
+    "AZURE_KEY_VAULT_NAME",
+    "AZURE_KEY_VAULT_SECRET_NAME"
 ]
 
 # Set env vars in docker/common.env or the docker-compose.yml
@@ -51,10 +48,8 @@ try:
 except EnvError:
     LOG_ROOT_DIR = tempfile.gettempdir()
 
-AZ_APP_ID = env_parser.str("AZ_APP_ID")
-AZ_TENANT_ID = env_parser.str("AZ_TENANT_ID")
-AZ_NAME = env_parser.str("AZ_NAME")
-AZ_APP_PASSWORD = env_parser.str("AZ_APP_PASSWORD")
+AZURE_KEY_VAULT_NAME = env_parser.str("AZURE_KEY_VAULT_NAME")
+AZURE_KEY_VAULT_SECRET_NAME = env_parser.str("AZURE_KEY_VAULT_SECRET_NAME")
 
 
 def dump_settings(symbols: Dict[str, Any]) -> None:

@@ -15,28 +15,35 @@
 from functools import lru_cache
 from hashlib import blake2b
 
+from azure.keyvault.secrets import SecretClient
+from azure.identity import DefaultAzureCredential
 
-# DICOM service requires identifiers to be 1-64 characters long
-# and digest is returned as hex encoded i.e. 2 characters per byte
-# so do not increase the DIGEST_SIZE
-DIGEST_SIZE = 32
+from hasher.settings import AZURE_KEY_VAULT_NAME, AZURE_KEY_VAULT_SECRET_NAME
 
 
-@lru_cache
+# @lru_cache
 def fetch_key_from_vault() -> str:
     """
-    Fetch the key to use in hashing from the Azure Key Vault instance from the env vars.
+    Fetch the key to use in hashing from the Azure Key Vault instance specified
+    in the env vars.
     Cache the results using unbounded LRU cache. Effectively means the key is
     cached for as long as the process is running so restart the app to clear the cache.
 
     :return: key
     """
-    return "vault"
+    key_vault_uri = f"https://{AZURE_KEY_VAULT_NAME}.vault.azure.net"
+    credentials = DefaultAzureCredential()
+    client = SecretClient(vault_url=key_vault_uri, credential=credentials)
+    key = client.get_secret(AZURE_KEY_VAULT_SECRET_NAME)
+    return key.value
 
 
 def generate_hash(message: str) -> str:
     """
-    Generate a keyed hash digest from the message using Blake2b
+    Generate a keyed hash digest from the message using Blake2b algorithm.
+    The Azure DICOM service requires identifiers to be 1-64 characters long
+    and digest is returned as hex encoded i.e. 2 characters per byte
+    so do not increase the DIGEST_SIZE
 
     :param message: string to hash
     :return: hashed string
@@ -44,6 +51,6 @@ def generate_hash(message: str) -> str:
     key = fetch_key_from_vault()
     return blake2b(
         message.encode("UTF-8"),
-        digest_size=DIGEST_SIZE,
+        digest_size=32,
         key=key.encode("UTF-8")
     ).hexdigest()
