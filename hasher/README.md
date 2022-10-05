@@ -4,20 +4,74 @@
 _The secure hashing service_
 
 ## Azure setup
- ***WIP***
+An Azure Key Vault is required to hold the secret key used in the
+hashing process. This Key Vault and secret must persist any infrastructure changes so 
+should be separate from disposable infrastructure services.  
+ServicePrincipal is required to connect to the Key Vault.
+
+The application uses the ServicePrincipal and password to authenticates with Azure via 
+environment variables. See [here](https://learn.microsoft.com/en-us/python/api/azure-identity/azure.identity.environmentcredential?view=azure-python) for more info.
+
+The Key Vault and ServicePrincipal have already been created for the `dev` environment and details are stored in 
+the `Hasher API dev secrets` note in the shared FlowEHR folder on LastPass.
+
+The process for doing so using the `az` CLI tool is described below.
+This can be converted into a Terraform template but given that we need a single, permanent instance of this, having a repeatable template is less useful.
+
+This process must be repeated for `staging` & `prod` environments.
+
 ### Step 1
-Create Service Principal & grant access as per
-https://learn.microsoft.com/en-gb/dotnet/api/overview/azure/Security.KeyVault.Secrets-readme
+Create the Azure Key Vault in an appropriate resource group:
+```bash
+az keyvault create --resource-group <resource-group-name> --name <key-vault-name> --location "UKSouth"
+```
 
 ### Step 2
-Set env:
-export AZURE_CLIENT_ID="<appId>"
-export AZURE_CLIENT_SECRET="<password>"
-export AZURE_TENANT_ID="<tenantID>"
+Create Service Principal & grant access as per
+```bash
+az ad sp create-for-rbac -n hasher-api --skip-assignment
+```
+This will produce the following output
+```json
+{
+    "appId": "<generated-app-ID>",
+    "displayName": "<app-name>",
+    "name": "http://<app-name>",
+    "password": "<generated-password>",
+    "tenant": "<tenant-ID>"
+}
+
+```
 
 ### Step 3
-KeyVault URI
-https://uclhdif-sandbox-vault.vault.azure.net/
+Assign correct permissions to the newly created ServicePrincipal
+```bash
+az keyvault set-policy --name <key-vault-name> --spn <generated-app-ID> --secret-permissions backup delete get list set
+```
+
+### Step 4
+Create a secret and store in the Key Vault
+
+Use Python to create a secret:
+```python
+import secrets
+secrets.token_urlsafe(32)
+```
+copy the secret and paste as <secret-value> below
+```bash
+az keyvault secret set --vault-name "<key-vault-name>" --name "<secret-name>" --value "<secret-value>"
+```
+
+### Step 5
+Save credentials in `.env` and a LastPass `Hasher API <environment> secrets` note.
+```
+HASHER_API_AZ_CLIENT_ID=<generated-app-ID>
+HASHER_API_AZ_CLIENT_PASSWORD=<generated-password>
+HASHER_API_AZ_TENANT_ID=<tenant-ID>
+HASHER_API_AZ_KEY_VAULT_NAME=<key-vault-name>
+HASHER_API_AZ_KEY_VAULT_SECRET_NAME=<secret-name>
+```
+
 
 ----
 
@@ -31,7 +85,9 @@ pip install -r requirements.txt
 ```
 
 ### Setup
-Create a _local.env_ file in _PIXL.hasher/src/hasher_ from _local.env.sample_ in the same location.
+Create a _local.env_ file in _PIXL.hasher/src/hasher_ from _local.env.sample_ in the same location.  
+Use the credentials stored in the `Hasher API dev secrets` note in LastPass to populate the environment variables.  
+Set `LOG_ROOT_DIR` to anywhere convenient.
 
 ### Run
 from the _PIXL/hasher/src_ directory:

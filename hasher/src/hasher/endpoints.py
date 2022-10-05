@@ -13,10 +13,10 @@
 #  limitations under the License.
 
 from fastapi import APIRouter
+from pydantic import BaseModel
 from starlette.responses import Response
 
 from hasher.hashing import generate_hash
-
 
 router = APIRouter()
 
@@ -26,7 +26,7 @@ async def heart_beat() -> str:
     return "OK"
 
 
-@router.post("/hash", summary="Securely hash a message")
+@router.get("/hash", summary="Securely hash a message")
 async def hash(message: str) -> Response:
     digest = generate_hash(message)
     return Response(content=digest, media_type="application/text")

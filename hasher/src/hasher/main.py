@@ -12,12 +12,16 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from hasher import __version__, icon, settings
 from hasher.endpoints import router
+
+logger = logging.getLogger(__name__)
 
 
 app = FastAPI(
@@ -37,3 +41,7 @@ app.add_middleware(
 )
 
 app.include_router(router)
+
+logger.info(f"Starting {icon} hasher-api v{__version__}...")
+if settings.DEBUG:
+    settings.dump_settings()

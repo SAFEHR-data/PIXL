@@ -12,7 +12,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from hypothesis import example, given, strategies as st
+from hypothesis import HealthCheck, example, given, settings
+from hypothesis import strategies as st
 
 from hasher.hashing import generate_hash
 
@@ -26,6 +27,7 @@ def test_generate_hash(dummy_key):
 @given(msg=st.text(min_size=0, max_size=1024))
 @example(msg="9876544321")
 @example(msg="1.2.840.10008")
-def test_digest_max_length(msg):
+@settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
+def test_digest_max_length(msg, dummy_key):
     digest = generate_hash(msg)
     assert len(digest) <= 64

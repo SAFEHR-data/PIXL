@@ -14,18 +14,24 @@
 
 from functools import lru_cache
 from hashlib import blake2b
+import logging
 
-from azure.keyvault.secrets import SecretClient
 from azure.identity import DefaultAzureCredential
+from azure.keyvault.secrets import SecretClient
 
 from hasher.settings import AZURE_KEY_VAULT_NAME, AZURE_KEY_VAULT_SECRET_NAME
 
 
-# @lru_cache
+logger = logging.getLogger(__name__)
+
+
+@lru_cache
 def fetch_key_from_vault() -> str:
     """
     Fetch the key to use in hashing from the Azure Key Vault instance specified
-    in the env vars.
+    in the environment variables.
+    Creates an EnvironmentCredential via AzureDefaultCredential to connect with a
+    ServicePrincipal and secret configured via environment variables.
     Cache the results using unbounded LRU cache. Effectively means the key is
     cached for as long as the process is running so restart the app to clear the cache.
 
@@ -35,7 +41,10 @@ def fetch_key_from_vault() -> str:
     credentials = DefaultAzureCredential()
     client = SecretClient(vault_url=key_vault_uri, credential=credentials)
     key = client.get_secret(AZURE_KEY_VAULT_SECRET_NAME)
-    return key.value
+    if key.value is None:
+        raise ValueError("Azure Key Vault secret is None")
+    else:
+        return key.value
 
 
 def generate_hash(message: str) -> str:
@@ -50,7 +59,5 @@ def generate_hash(message: str) -> str:
     """
     key = fetch_key_from_vault()
     return blake2b(
-        message.encode("UTF-8"),
-        digest_size=32,
-        key=key.encode("UTF-8")
+        message.encode("UTF-8"), digest_size=32, key=key.encode("UTF-8")
     ).hexdigest()

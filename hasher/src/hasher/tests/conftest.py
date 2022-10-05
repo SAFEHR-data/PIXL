@@ -16,7 +16,6 @@ import pytest
 
 import hasher.hashing
 
-
 pytest_plugins = [
     "hasher.tests.fixtures",
 ]
