@@ -13,7 +13,6 @@
 #  limitations under the License.
 
 from fastapi import APIRouter
-from pydantic import BaseModel
 from starlette.responses import Response
 
 from hasher.hashing import generate_hash

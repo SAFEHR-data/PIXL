@@ -42,6 +42,7 @@ app.add_middleware(
 
 app.include_router(router)
 
+
 logger.info(f"Starting {icon} hasher-api v{__version__}...")
 if settings.DEBUG:
     settings.dump_settings()

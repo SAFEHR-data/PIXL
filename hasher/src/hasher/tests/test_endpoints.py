@@ -26,7 +26,7 @@ def test_heart_beat_endpoint():
 
 
 def test_hashing_endpoint(dummy_key):
-    response = client.post("/hash", params={"message": "test"})
+    response = client.get("/hash", params={"message": "test"})
     expected = "270426312ab76c2f0df60b6cef3d14aab6bc17219f1a76e63edf88a8f705c17a"
     assert response.status_code == 200
     assert response.text == expected

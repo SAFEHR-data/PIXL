@@ -21,7 +21,6 @@ from azure.keyvault.secrets import SecretClient
 
 from hasher.settings import AZURE_KEY_VAULT_NAME, AZURE_KEY_VAULT_SECRET_NAME
 
-
 logger = logging.getLogger(__name__)
 
 

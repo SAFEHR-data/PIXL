@@ -82,10 +82,7 @@ conf = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {"standard": standard_formatter, "simple": simple_formatter},
-    "handlers": {
-        "console": console_handler,
-        "logfile": file_handler
-    },
+    "handlers": {"console": console_handler, "logfile": file_handler},
     "loggers": {
         "root": {
             "level": "INFO",
