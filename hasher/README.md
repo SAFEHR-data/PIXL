@@ -4,6 +4,8 @@
 _The secure hashing service_
 
 ## Azure setup
+_This is done for the _UCLH_DIF_ `dev` tenancy, will need to be done once in the _UCLHAZ_ `prod` tenancy when ready to deploy to production._
+
 An Azure Key Vault is required to hold the secret key used in the
 hashing process. This Key Vault and secret must persist any infrastructure changes so 
 should be separate from disposable infrastructure services.  
