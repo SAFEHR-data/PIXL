@@ -1,4 +1,8 @@
- Byte-compiled / optimized / DLL files
+# Keep out of production
+.env
+local.env
+
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
