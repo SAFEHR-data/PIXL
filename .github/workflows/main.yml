@@ -42,3 +42,5 @@ jobs:
           bin/run-tests.sh
         env:
           ENV: test
+          AZURE_KEY_VAULT_NAME: test
+          AZURE_KEY_VAULT_SECRET_NAME: test
