@@ -32,7 +32,7 @@ cp .env.sample .env
 Add the missing configuration values to the new `.env` file:
 
 #### Environment
-Set `PIXL_ENV` to `<environment>`.
+Set `ENV` to `<environment>`.
 
 #### Credentials
 - `EMAP_DB_`*  
