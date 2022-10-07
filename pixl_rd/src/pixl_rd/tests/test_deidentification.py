@@ -50,7 +50,36 @@ def test_patient_name_is_redacted(required_accuracy: float = 0.95) -> None:
 
 
 def test_signed_by_section_is_removed() -> None:
-    pass
+
+    first_name, last_name, date = info = "John", "Doe", "01/01/20"
+
+    anon_text = deidentify_text(
+        f"A xray report with information\n"
+        f"Signed by:\n{first_name} {last_name}\n{date}"
+    )
+
+    assert all(s not in anon_text for s in info)
+
+
+@pytest.mark.parametrize("id_name", ["GMC", "HCPC"])
+def test_block_with_excluded_identifiers_are_removed(id_name: str) -> None:
+
+    header, footer = "A xray report with information", "Other text"
+    first_name, last_name, num = info = "John", "Doe", "0123456"
+
+    anon_text = deidentify_text(
+        f"{header}\n"
+        "\n"
+        f"{first_name} {last_name}\n"
+        f"{id_name}: \n"
+        "University College London Hospital\n"
+        "\n"
+        f"{footer}"
+    )
+    print(anon_text)
+
+    assert all(s not in anon_text for s in info)
+    assert header in anon_text and footer in anon_text
 
 
 @pytest.mark.skip(reason="Presidio does not remove all the dates correctly")
