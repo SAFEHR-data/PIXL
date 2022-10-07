@@ -14,17 +14,13 @@
 
 from setuptools import find_packages, setup
 
-exec(open("driver/_version.py").read())
+exec(open("pixl_rd/_version.py").read())
 
 setup(
     name="driver",
     version=__version__,  # noqa: F821
     description="Patient executor",
     packages=find_packages(
-        include=[
-            "driver*",
-            "report*"
-        ],
         exclude=[
             "*tests",
             "*.tests.*",

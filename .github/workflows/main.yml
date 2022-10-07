@@ -63,14 +63,14 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r driver/src/requirements.txt
+          pip install -r pixl_rd/src/requirements.txt
 
       - name: Download presidio data
         run: |
           python -m spacy download en_core_web_lg
 
       - name: Run tests
-        working-directory: driver/src
+        working-directory: pixl_rd/src
         run: |
           bin/run-tests.sh
         env:

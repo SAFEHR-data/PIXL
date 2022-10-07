@@ -18,7 +18,7 @@ import pytest
 from pathlib import Path
 from typing import List, Tuple
 
-from driver.report_deidentification import deidentify_text
+from pixl_rd.report_deidentification import deidentify_text
 
 THIS_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
 
@@ -58,6 +58,7 @@ def test_signed_by_section_is_removed():
 def test_possible_dates_are_removed(delimiter):
 
     for day, month, year in [(1, 3, 2019)]:
+
         date_strings = [
             f"{day}{delimiter}{month}{delimiter}{year}",
             f"{month}{delimiter}{day}{delimiter}{year}",

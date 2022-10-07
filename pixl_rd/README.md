@@ -1,6 +1,5 @@
-# PIXL Driver
+# PIXL Report De-identifier
 
-Patient executor 
 
 
 ***
