@@ -12,9 +12,9 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 from pixl_rd.main import deidentify_text
+
 from ._version import __version__, __version_info__
 
 icon = "🪢"
 
 __all__ = ["deidentify_text"]
-

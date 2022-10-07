@@ -50,7 +50,7 @@ jobs:
           AZURE_KEY_VAULT_NAME: test
           AZURE_KEY_VAULT_SECRET_NAME: test
 
-  driver-tests:
+  report-de-id-tests:
     runs-on: ubuntu-22.04
     timeout-minutes: 10
     steps:
@@ -76,4 +76,4 @@ jobs:
         run: |
           bin/run-tests.sh
         env:
-          PIXL_ENV: test
+          ENV: test

@@ -13,12 +13,12 @@
 #  limitations under the License.
 
 import os
-import pytest
-
 from pathlib import Path
 from typing import List, Tuple
 
-from pixl_rd.report_deidentification import deidentify_text
+import pytest
+
+from pixl_rd import deidentify_text
 
 THIS_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
 
@@ -49,13 +49,13 @@ def test_patient_name_is_redacted(required_accuracy: float = 0.95) -> None:
     assert accuracy_ratio > required_accuracy
 
 
-def test_signed_by_section_is_removed():
+def test_signed_by_section_is_removed() -> None:
     pass
 
 
 @pytest.mark.skip(reason="Presidio does not remove all the dates correctly")
 @pytest.mark.parametrize("delimiter", ["", " ", "/", "-", ":"])
-def test_possible_dates_are_removed(delimiter):
+def test_possible_dates_are_removed(delimiter: str) -> None:
 
     for day, month, year in [(1, 3, 2019)]:
 

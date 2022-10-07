@@ -24,12 +24,12 @@ cd "$PACKAGE_DIR"
 
 CONF_FILE=../../setup.cfg
 
-mypy --config-file ${CONF_FILE} driver
+mypy --config-file ${CONF_FILE} pixl_rd
 
-isort --settings-path ${CONF_FILE} driver
+isort --settings-path ${CONF_FILE} pixl_rd
 
-black driver
+black pixl_rd
 
 flake8 --config ${CONF_FILE}
 
-PIXL_ENV=test pytest driver
+PIXL_ENV=test pytest pixl_rd

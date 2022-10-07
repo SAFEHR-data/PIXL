@@ -17,7 +17,7 @@ from setuptools import find_packages, setup
 exec(open("pixl_rd/_version.py").read())
 
 setup(
-    name="driver",
+    name="pixl_rd",
     version=__version__,  # noqa: F821
     description="Patient executor",
     packages=find_packages(
