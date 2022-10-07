@@ -1,9 +1,8 @@
 # PIXL
 PIXL Image eXtraction Laboratory
 
-PIXL is a system for UCLH to extract, link and de-identify DICOM imaging data, structured EHR data and free-text data from radiology reports.  
-PIXL is also responsible for the transfer of data to [FlowEHR](https://github.com/UCLH-DIF/Book-of-FlowEHR/blob/main/overview.md) on Azure.  
-See the [PIXL chapter](https://github.com/UCLH-DIF/Book-of-FlowEHR/tree/main/PIXL) in the [Book of FlowEHR](https://github.com/UCLH-DIF/Book-of-FlowEHR) for more information.  
+`PIXL` is a system for extracting, linking and de-identifying DICOM imaging data, structured EHR data and free-text data from radiology reports at UCLH.
+Please see the [wiki](https://github.com/UCLH-DIF/PIXL/wiki) for more details.
 
 PIXL is intended run on one of the [GAE](https://github.com/UCLH-DIF/Book-of-FlowEHR/blob/main/glossary.md#gaes)s and comprises
 several services orchestrated by [Docker Compose](https://docs.docker.com/compose/).

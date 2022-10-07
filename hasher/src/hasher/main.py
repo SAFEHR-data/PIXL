@@ -12,19 +12,23 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from hasher import __version__, icon, settings
+from hasher.endpoints import router
 
-package = "hasher"
+logger = logging.getLogger(__name__)
+
 
 app = FastAPI(
-    title=package,
+    title="hasher-api",
     description=f"{icon} Secure Hashing Service ",
     version=__version__,
-    debug=settings.DEBUG,  # type: ignore
+    debug=settings.DEBUG,
     default_response_class=JSONResponse,
 )
 
@@ -36,7 +40,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(router)
 
-@app.get("/heart-beat", summary="GET Health Check")
-async def heart_beat() -> str:
-    return "OK"
+
+logger.info(f"Starting {icon} hasher-api v{__version__}...")
+if settings.DEBUG:
+    settings.dump_settings()

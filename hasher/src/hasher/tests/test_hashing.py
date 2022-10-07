@@ -12,18 +12,22 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-import pytest
+from hypothesis import HealthCheck, example, given, settings
+from hypothesis import strategies as st
 
-import hasher.hashing
-
-pytest_plugins = [
-    "hasher.tests.fixtures",
-]
+from hasher.hashing import generate_hash
 
 
-@pytest.fixture
-def dummy_key(monkeypatch):
-    """
-    Fixture to set up a dummy key to use for hashing tests
-    """
-    monkeypatch.setattr(hasher.hashing, "fetch_key_from_vault", lambda: "test-key")
+def test_generate_hash(dummy_key):
+    msg = "test"
+    digest = generate_hash(msg)
+    assert digest == "270426312ab76c2f0df60b6cef3d14aab6bc17219f1a76e63edf88a8f705c17a"
+
+
+@given(msg=st.text(min_size=0, max_size=1024))
+@example(msg="9876544321")
+@example(msg="1.2.840.10008")
+@settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
+def test_digest_max_length(msg, dummy_key):
+    digest = generate_hash(msg)
+    assert len(digest) <= 64

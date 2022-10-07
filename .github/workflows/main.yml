@@ -46,7 +46,9 @@ jobs:
         run: |
           bin/run-tests.sh
         env:
-          PIXL_ENV: test
+          ENV: test
+          AZURE_KEY_VAULT_NAME: test
+          AZURE_KEY_VAULT_SECRET_NAME: test
 
   driver-tests:
     runs-on: ubuntu-22.04
