@@ -35,7 +35,8 @@ x-logs-volume: &logs-volume
 
 volumes:
   logs:
-  orthanc-data:
+  orthanc-anon-data:
+  orthanc-raw-data:
   postgres-data:
 
 networks:
@@ -74,16 +75,53 @@ services:
       retries: 5
     restart: "no"
 
+  orthanc-anon:
+    build:
+      context: .
+      dockerfile: ./docker/orthanc-anon/Dockerfile
+      args:
+        <<: *build-args-common
+    command: /run/secrets
+    environment:
+      ORTHANC_NAME: "PIXL: Anon"
+      ORTHANC_USERNAME: ${ORTHANC_ANON_USERNAME}
+      ORTHANC_PASSWORD: ${ORTHANC_ANON_PASSWORD}
+      ORTHANC_ANON_AE_TITLE: ${ORTHANC_ANON_AE_TITLE}
+      ORTHANC_RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
+      ORTHANC_RAW_DICOM_PORT: ${ORTHANC_RAW_DICOM_PORT}
+      ORTHANC_RAW_IP_ADDR: ${ORTHANC_RAW_IP_ADDR}
+      <<: *proxy-common
+      <<: *pixl-common-env
+    ports:
+      - "${ORTHANC_ANON_DICOM_PORT}:4242"
+      - "${ORTHANC_ANON_WEB_PORT}:8042"
+    volumes:
+      - type: volume
+        source: orthanc-anon-data
+        target: /var/lib/orthanc/db
+      - ${PWD}/orthanc/orthanc-anon/config:/run/secrets:ro
+    networks:
+      - pixl-net
+    restart: "no"
+
   orthanc-raw:
     build:
       context: .
       dockerfile: ./docker/orthanc-raw/Dockerfile
       args:
         <<: *build-args-common
+    command: /run/secrets
     environment:
-      ORTHANC__NAME: "PIXL Orthanc Raw"
-      ORTHANC__REGISTERED_USERS: |
-        {"user": "pass"}
+      ORTHANC_NAME: "PIXL: Raw"
+      ORTHANC_USERNAME: ${ORTHANC_RAW_USERNAME}
+      ORTHANC_PASSWORD: ${ORTHANC_RAW_PASSWORD}
+      ORTHANC_RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
+      VNA_AE_TITLE : ${VNA_AE_TITLE}
+      VNA_DICOM_PORT: ${VNA_DICOM_PORT}
+      VNA_IP_ADDR: ${VNA_IP_ADDR}
+      ORTHANC_ANON_AE_TITLE: ${ORTHANC_ANON_AE_TITLE}
+      ORTHANC_ANON_DICOM_PORT: ${ORTHANC_ANON_DICOM_PORT}
+      ORTHANC_ANON_IP_ADDR: ${ORTHANC_ANON_IP_ADDR}
       <<: *proxy-common
       <<: *pixl-common-env
     ports:
@@ -91,8 +129,9 @@ services:
       - "${ORTHANC_RAW_WEB_PORT}:8042"
     volumes:
       - type: volume
-        source: orthanc-data
+        source: orthanc-raw-data
         target: /var/lib/orthanc/db
+      - ${PWD}/orthanc/orthanc-raw/config:/run/secrets:ro
     networks:
       - pixl-net
     restart: "no"

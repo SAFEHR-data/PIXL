@@ -1,0 +1,75 @@
+{
+  "DicomAet" : "${ORTHANC_ANON_AE_TITLE}",
+
+  "DicomModalities" : {
+    "PIXL-Raw" : {
+      "AET" : "${ORTHANC_RAW_AE_TITLE}",
+      "Port" : "${ORTHANC_RAW_DICOM_PORT}",
+      "Host" : "${ORTHANC_RAW_IP_ADDR}",
+      "Manufacturer" : "Generic",
+      "AllowEcho" : true,
+      "AllowFind" : false,
+      "AllowFindWorklist" : false,
+      "AllowGet"  : false,
+      "AllowMove" : true,
+      "AllowStore" : true,
+      "AllowStorageCommitment" : false,
+      "AllowTranscoding" : true,
+      "UseDicomTls" : false,
+      "Timeout" : 60
+    }
+  },
+
+  // Check whether the called AET corresponds to the AET of Orthanc
+  // during an incoming DICOM SCU request
+  "DicomCheckCalledAet" : true,
+
+  // Whether Orthanc accepts to act as C-STORE SCP for unknown storage
+  // SOP classes (aka. "promiscuous mode")
+  "UnknownSopClassAccepted" : false,
+
+  // Whether the Orthanc SCP allows incoming C-ECHO requests, even
+  // from SCU modalities it does not know about (i.e. that are not
+  // listed in the "DicomModalities" option above). Orthanc 1.3.0
+  // is the only version to behave as if this argument were set to "false".
+  "DicomAlwaysAllowEcho" : false,
+
+  // Whether the Orthanc SCP allows incoming C-STORE requests, even
+  // from SCU modalities it does not know about (i.e. that are not
+  // listed in the "DicomModalities" option above)
+  "DicomAlwaysAllowStore" : false,
+
+  // Whether the Orthanc SCP allows incoming C-FIND requests, even
+  // from SCU modalities it does not know about (i.e. that are not
+  // listed in the "DicomModalities" option above). Setting this
+  // option to "true" implies security risks. (new in Orthanc 1.9.0)
+  // Note: From Orthanc 1.10.0, this option only applies to C-FIND
+  // requests for patients/studies/series/instances. Use option
+  // "DicomAlwaysAllowFindWorklist" for worklists.
+  "DicomAlwaysAllowFind" : false,
+
+  // Whether the Orthanc SCP allows incoming C-FIND requests for worklists, 
+  // even from SCU modalities it does not know about (i.e. that are not
+  // listed in the "DicomModalities" option above). Setting this
+  // option to "true" implies security risks. (new in Orthanc 1.10.0)
+  "DicomAlwaysAllowFindWorklist" : false,
+
+  // Whether the Orthanc SCP allows incoming C-GET requests, even
+  // from SCU modalities it does not know about (i.e. that are not
+  // listed in the "DicomModalities" option above). Setting this
+  // option to "true" implies security risks. (new in Orthanc 1.9.0)
+  "DicomAlwaysAllowGet" : false,
+
+  // Whether the Orthanc SCP allows incoming C-MOVE requests, even
+  // from SCU modalities it does not know about (i.e. that are not
+  // listed in the "DicomModalities" option above). Setting this
+  // option to "true" implies security risks. (new in Orthanc 1.9.7)
+  "DicomAlwaysAllowMove" : false,
+
+  // Whether Orthanc checks the IP/hostname address of the remote
+  // modality initiating a DICOM connection (as listed in the
+  // "DicomModalities" option above). If this option is set to
+  // "false", Orthanc only checks the AET of the remote modality.
+  "DicomCheckModalityHost" : false
+
+}
