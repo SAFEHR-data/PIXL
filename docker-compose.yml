@@ -127,6 +127,11 @@ services:
       ORTHANC_ANON_AE_TITLE: ${ORTHANC_ANON_AE_TITLE}
       ORTHANC_ANON_DICOM_PORT: ${ORTHANC_ANON_DICOM_PORT}
       ORTHANC_ANON_IP_ADDR: ${ORTHANC_ANON_IP_ADDR}
+      PIXL_DB_HOST: "${PIXL_DB_HOST}"
+      PIXL_DB_PORT: "${PIXL_DB_PORT}"
+      PIXL_DB_USER: "${PIXL_DB_USER}"
+      PIXL_DB_PASSWORD: "${PIXL_DB_PASSWORD}"
+      PIXL_DB_NAME: "${PIXL_DB_NAME}"
       <<: *proxy-common
       <<: *pixl-common-env
     ports:
@@ -153,6 +158,7 @@ services:
     environment:
       POSTGRES_USER: ${PIXL_DB_USER}
       POSTGRES_PASSWORD: ${PIXL_DB_PASSWORD}
+      PIXL_DB_NAME: ${PIXL_DB_NAME}
       PGTZ: Europe/London
     env_file:
       - ./docker/common.env
