@@ -32,4 +32,4 @@ black pixl_rd
 
 flake8 --config ${CONF_FILE}
 
-PIXL_ENV=test pytest pixl_rd
+ENV=test pytest pixl_rd

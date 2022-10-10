@@ -59,7 +59,7 @@ jobs:
       - name: Init Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.10.6
+          python-version: 3.10.6    # 3.10.7  fails to import numpy
           cache: 'pip'
 
       - name: Install Python dependencies
