@@ -19,7 +19,7 @@ exec(open("pixl_rd/_version.py").read())
 setup(
     name="pixl_rd",
     version=__version__,  # noqa: F821
-    description="Patient executor",
+    description="Radiology report de-identifier",
     packages=find_packages(
         exclude=[
             "*tests",
