@@ -40,7 +40,7 @@ def _remove_all_text_below_signed_by_section(text: str) -> str:
         idx_of_line_with_signed_by_in = next(
             i for i, line in enumerate(lines) if "signed by" in line.lower()
         )
-    except StopIteration:  # Found no lines with "signed by in"
+    except StopIteration:  # Found no lines with "signed by" in
         return text
 
     return "\n".join(lines[:idx_of_line_with_signed_by_in])

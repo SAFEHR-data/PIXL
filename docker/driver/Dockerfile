@@ -26,7 +26,6 @@ RUN pip install --no-cache-dir -U pip wheel setuptools \
 
 # driver package
 COPY ./driver/src/ /driver/
-RUN /bin/ls .
 RUN pip install --no-cache-dir .
 
 ENTRYPOINT ["/bin/sleep", "infinity"]
