@@ -21,7 +21,7 @@
     "PIXL-Anon" : {
       "AET" : "${ORTHANC_ANON_AE_TITLE}",
       "Port" : "${ORTHANC_ANON_DICOM_PORT}",
-      "Host" : "${ORTHANC_ANON_IP_ADDR}",
+      "Host" : "${ORTHANC_ANON_HOSTNAME}",
       "Manufacturer" : "Generic",
       "AllowEcho" : true,
       "AllowFind" : true,

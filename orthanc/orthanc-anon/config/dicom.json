@@ -5,7 +5,7 @@
     "PIXL-Raw" : {
       "AET" : "${ORTHANC_RAW_AE_TITLE}",
       "Port" : "${ORTHANC_RAW_DICOM_PORT}",
-      "Host" : "${ORTHANC_RAW_IP_ADDR}",
+      "Host" : "${ORTHANC_RAW_HOSTNAME}",
       "Manufacturer" : "Generic",
       "AllowEcho" : true,
       "AllowFind" : false,
