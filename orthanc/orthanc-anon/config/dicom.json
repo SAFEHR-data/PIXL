@@ -70,6 +70,18 @@
   // modality initiating a DICOM connection (as listed in the
   // "DicomModalities" option above). If this option is set to
   // "false", Orthanc only checks the AET of the remote modality.
-  "DicomCheckModalityHost" : false
+  "DicomCheckModalityHost" : false,
 
+  "DicomWeb" : {
+    "Ssl" : true,
+    "Servers" : {
+      "${AZ_DICOM_ENDPOINT_NAME}" : {
+        "Url" : "${AZ_DICOM_ENDPOINT_URL}",
+        "ChunkedTransfers" : false,
+        "HttpHeaders" : {
+          "Authorization" : "Bearer ${AZ_DICOM_ENDPOINT_TOKEN}"
+        }
+      }
+    }
+  }
 }
