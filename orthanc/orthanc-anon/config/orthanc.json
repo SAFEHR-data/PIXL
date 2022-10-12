@@ -1,0 +1,24 @@
+{
+  "Name" : "${ORTHANC_NAME}",
+  "RemoteAccessAllowed" : true,
+  "RegisteredUsers": {
+      "${ORTHANC_USERNAME}": "${ORTHANC_PASSWORD}"
+    },
+
+  // Path to the directory that holds the heavyweight files (i.e. the
+  // raw DICOM instances). Backslashes must be either escaped by
+  // doubling them, or replaced by forward slashes "/".
+  "StorageDirectory" : "/var/lib/orthanc/db",
+
+  // Path to the directory that holds the SQLite index (if unset, the
+  // value of StorageDirectory is used). This index could be stored on
+  // a RAM-drive or a SSD device for performance reasons.
+  "IndexDirectory" : "/var/lib/orthanc/db",
+
+  // To enable plugins:
+  "Plugins" : [ "/usr/share/orthanc/plugins" ],
+
+  // Trust CAs for DICOMweb over HTTPS
+  "HttpsCACertificates": "/etc/ssl/certs/ca-certificates.crt"
+
+}

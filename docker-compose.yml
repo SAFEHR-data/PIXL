@@ -35,7 +35,8 @@ x-logs-volume: &logs-volume
 
 volumes:
   logs:
-  orthanc-data:
+  orthanc-anon-data:
+  orthanc-raw-data:
   postgres-data:
 
 networks:
@@ -91,16 +92,63 @@ services:
       retries: 5
     restart: "no"
 
+  orthanc-anon:
+    build:
+      context: .
+      dockerfile: ./docker/orthanc/Dockerfile
+      args:
+        <<: *build-args-common
+    command: /run/secrets
+    environment:
+      ORTHANC_NAME: "PIXL: Anon"
+      ORTHANC_USERNAME: ${ORTHANC_ANON_USERNAME}
+      ORTHANC_PASSWORD: ${ORTHANC_ANON_PASSWORD}
+      ORTHANC_ANON_AE_TITLE: ${ORTHANC_ANON_AE_TITLE}
+      ORTHANC_RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
+      ORTHANC_RAW_DICOM_PORT: "4242"
+      ORTHANC_RAW_HOSTNAME: "orthanc-raw"
+      DICOM_WEB_PLUGIN_ENABLED: ${ENABLE_DICOM_WEB}
+      HTTP_TIMEOUT: ${ORTHANC_ANON_HTTP_TIMEOUT}
+      AZ_DICOM_ENDPOINT_NAME: ${AZ_DICOM_ENDPOINT_NAME}
+      AZ_DICOM_ENDPOINT_URL: ${AZ_DICOM_ENDPOINT_URL}
+      AZ_DICOM_ENDPOINT_TOKEN: ${AZ_DICOM_ENDPOINT_TOKEN}
+      <<: *proxy-common
+      <<: *pixl-common-env
+    ports:
+      - "${ORTHANC_ANON_DICOM_PORT}:4242"
+      - "${ORTHANC_ANON_WEB_PORT}:8042"
+    volumes:
+      - type: volume
+        source: orthanc-anon-data
+        target: /var/lib/orthanc/db
+      - ${PWD}/orthanc/orthanc-anon/config:/run/secrets:ro
+    networks:
+      - pixl-net
+    restart: "no"
+
   orthanc-raw:
     build:
       context: .
-      dockerfile: ./docker/orthanc-raw/Dockerfile
+      dockerfile: ./docker/orthanc/Dockerfile
       args:
         <<: *build-args-common
+    command: /run/secrets
     environment:
-      ORTHANC__NAME: "PIXL Orthanc Raw"
-      ORTHANC__REGISTERED_USERS: |
-        {"user": "pass"}
+      ORTHANC_NAME: "PIXL: Raw"
+      ORTHANC_USERNAME: ${ORTHANC_RAW_USERNAME}
+      ORTHANC_PASSWORD: ${ORTHANC_RAW_PASSWORD}
+      ORTHANC_RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
+      VNA_AE_TITLE : ${VNA_AE_TITLE}
+      VNA_DICOM_PORT: ${VNA_DICOM_PORT}
+      VNA_IP_ADDR: ${VNA_IP_ADDR}
+      ORTHANC_ANON_AE_TITLE: ${ORTHANC_ANON_AE_TITLE}
+      ORTHANC_ANON_DICOM_PORT: "4242"
+      ORTHANC_ANON_HOSTNAME: "orthanc-anon"
+      PIXL_DB_HOST: "${PIXL_DB_HOST}"
+      PIXL_DB_PORT: "${PIXL_DB_PORT}"
+      PIXL_DB_USER: "${PIXL_DB_USER}"
+      PIXL_DB_PASSWORD: "${PIXL_DB_PASSWORD}"
+      PIXL_DB_NAME: "${PIXL_DB_NAME}"
       <<: *proxy-common
       <<: *pixl-common-env
     ports:
@@ -108,8 +156,9 @@ services:
       - "${ORTHANC_RAW_WEB_PORT}:8042"
     volumes:
       - type: volume
-        source: orthanc-data
+        source: orthanc-raw-data
         target: /var/lib/orthanc/db
+      - ${PWD}/orthanc/orthanc-raw/config:/run/secrets:ro
     networks:
       - pixl-net
     restart: "no"
@@ -126,6 +175,7 @@ services:
     environment:
       POSTGRES_USER: ${PIXL_DB_USER}
       POSTGRES_PASSWORD: ${PIXL_DB_PASSWORD}
+      PIXL_DB_NAME: ${PIXL_DB_NAME}
       PGTZ: Europe/London
     env_file:
       - ./docker/common.env
