@@ -46,23 +46,6 @@ networks:
 # Services
 services:
 
-  driver:
-    build:
-      context: .
-      dockerfile: ./docker/driver/Dockerfile
-      args:
-        <<: *build-args-common
-    environment:
-      <<: *proxy-common
-      <<: *pixl-common-env
-    env_file:
-      - ./docker/common.env
-    volumes:
-      - *logs-volume
-    networks:
-      - pixl-net
-    restart: "no"
-
   hasher-api:
     build:
       context: .
