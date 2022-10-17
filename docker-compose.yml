@@ -146,6 +146,25 @@ services:
       - pixl-net
     restart: "no"
 
+  patient-queue:
+    build:
+      context: .
+      dockerfile: ./docker/patient-queue/Dockerfile
+      args:
+        <<: *build-args-common
+    environment:
+      <<: *proxy-common
+      <<: *pixl-common-env
+    env_file:
+      - ./docker/common.env
+    ports:
+      - "${PULSAR_PORT}:8080"
+    volumes:
+      - *logs-volume
+    networks:
+      - pixl-net
+    restart: "no"
+
 
   ################################################################################
   # Data Stores
