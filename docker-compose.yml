@@ -158,7 +158,9 @@ services:
     env_file:
       - ./docker/common.env
     ports:
-      - "${PULSAR_PORT}:8080"
+      - "${PULSAR_DASHBOARD}:80"
+      - "${PULSAR_HTTP_PORT}:8080"
+      - "${PULSAR_BINARY_PROTOCOL}:6650"
     volumes:
       - *logs-volume
     networks:
