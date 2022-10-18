@@ -1,4 +1,10 @@
 from enum import Enum
+from pathlib import Path
+
+
+class VarNotFound(Exception):
+    """ Customised exception for variable not found in .env file. """
+    pass
 
 
 class AvailableChannels(Enum):
@@ -9,7 +15,7 @@ class AvailableChannels(Enum):
     EHR = "ehr"
 
 
-def load_config_file() -> str:
+def load_config_file(env_var: str, filename=Path(__file__).parent.parent.parent.parent.joinpath(".env")) -> str:
     """ Reads relevant Pulsar port for Subscriber and Producer.
 
     As part of the configuration of the Pulsar Docker container, ports can be specified that are necessary for writing
@@ -19,12 +25,12 @@ def load_config_file() -> str:
     :returns: port information for PULSAR_BINARY_PROTOCOL env variable as configured in .env file
     """
     env_vars = {}
-    with open("namelist.txt") as myfile:
-        for line in myfile:
+    with open(filename) as env_file:
+        for line in env_file:
             name, var = line.partition("=")[::2]
             env_vars[name.strip()] = str(var)
 
-    if "PULSAR_BINARY_PROTOCOL" not in env_vars:
-        raise Exception("Pulsar port information not contained in .env file.")
+    if env_var not in env_vars:
+        raise VarNotFound(f"{env_var} not contained in .env file.")
 
-    return env_vars["PULSAR_BINARY_PROTOCOL"]
+    return env_vars[env_var]
