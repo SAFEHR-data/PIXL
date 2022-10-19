@@ -15,3 +15,10 @@ def test_load_config_file_var_not(env_sample_file):
     with pytest.raises(VarNotFound) as exc_info:
         load_config_file("TEST_ENV_VAR", filename=env_sample_file)
     assert exc_info.value.args[0] == 'TEST_ENV_VAR not contained in .env file.'
+
+
+def test_load_config_file_not():
+    """Checks whether exception is raised if variable is not contained in environment file."""
+    with pytest.raises(EnvFileNotFound) as exc_info:
+        load_config_file("TEST_ENV_VAR", filename="aaaa.txt")
+    assert exc_info.value.args[0] == 'Specified environment file aaaa.txt cannot be found.'
