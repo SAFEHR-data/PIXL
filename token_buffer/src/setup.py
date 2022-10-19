@@ -11,8 +11,23 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-from pixl_rd.main import deidentify_text
 
-from ._version import __version__, __version_info__
+from setuptools import find_packages, setup
 
-__all__ = ["deidentify_text"]
+exec(open("token_buffer/_version.py").read())
+
+setup(
+    name="token_buffer",
+    version=__version__,  # noqa: F821
+    description="Service to create and manage a token bucket",
+    packages=find_packages(
+        include=[
+            "token_buffer*",
+        ],
+        exclude=[
+            "*tests",
+            "*.tests.*",
+        ],
+    ),
+    python_requires=">=3.10",
+)
