@@ -42,7 +42,7 @@ jobs:
           pip install -r hasher/src/requirements.txt
 
       - name: Run tests
-        working-directory: hasher/src
+        working-directory: hasher
         run: |
           bin/run-tests.sh
         env:
@@ -72,7 +72,7 @@ jobs:
           python -m spacy download en_core_web_lg
 
       - name: Run tests
-        working-directory: pixl_rd/src
+        working-directory: pixl_rd
         run: |
           bin/run-tests.sh
         env:
@@ -96,7 +96,7 @@ jobs:
           pip install -r token_buffer/src/requirements.txt
 
       - name: Run tests
-        working-directory: token_buffer/src
+        working-directory: token_buffer
         run: |
           bin/run-tests.sh
         env:
