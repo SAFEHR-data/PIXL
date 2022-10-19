@@ -7,6 +7,11 @@ class VarNotFound(Exception):
     pass
 
 
+class EnvFileNotFound(Exception):
+    """ Customised exception for variable not found in .env file. """
+    pass
+
+
 class AvailableChannels(Enum):
     """
     There will be two different subscription streams for both images and text data. This enum
@@ -25,6 +30,10 @@ def load_config_file(env_var: str, filename=Path(__file__).parent.parent.parent.
     :returns: port information for PULSAR_BINARY_PROTOCOL env variable as configured in .env file
     """
     env_vars = {}
+
+    if not Path(filename).exists():
+        raise EnvFileNotFound(f"Specified environment file {filename} cannot be found.")
+
     with open(filename) as env_file:
         for line in env_file:
             name, var = line.partition("=")[::2]
