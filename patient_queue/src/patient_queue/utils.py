@@ -12,12 +12,13 @@ class EnvFileNotFound(Exception):
     pass
 
 
-class AvailableChannels(Enum):
+class AvailableTopics(Enum):
     """
-    There will be two different subscription streams for both images and text data. This enum
+    In Pulsar, topics are offered to consumers for subscription. This Enum provides an overview over all the topics
+    that are available as part of Pixl. At the moment, it is envisaged that it will only be one topic shared between
+    multiple consumers.
     """
-    IMAGES = "images"
-    EHR = "ehr"
+    PIXL = "pixl"
 
 
 def load_config_file(env_var: str, filename=Path(__file__).parent.parent.parent.parent.joinpath(".env")) -> str:
