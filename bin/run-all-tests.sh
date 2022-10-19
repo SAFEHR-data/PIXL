@@ -25,6 +25,6 @@ cd $PROJECT_DIR
 
 docker compose config --quiet
 
-hasher/src/bin/run-tests.sh
-driver/src/bin/run-tests.sh
+hasher/bin/run-tests.sh
+token_buffer/bin/run-tests.sh
 

@@ -18,18 +18,18 @@
 
 set -eo pipefail
 
-BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-PACKAGE_DIR="${BIN_DIR%/*}"
-cd "$PACKAGE_DIR"
+BIN_DIR=$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)
+HASHER_DIR="${BIN_DIR%/*}"
+cd $HASHER_DIR
 
-CONF_FILE=../../setup.cfg
+CONF_FILE=../setup.cfg
 
-mypy --config-file ${CONF_FILE} token_buffer
+mypy --config-file ${CONF_FILE} src/hasher
 
-isort --settings-path ${CONF_FILE} token_buffer
+isort --settings-path ${CONF_FILE} src/hasher
 
-black token_buffer
+black src/hasher
 
 flake8 --config ${CONF_FILE}
 
-ENV=test pytest token_buffer
+ENV=test pytest src/hasher/tests
