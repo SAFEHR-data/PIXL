@@ -8,6 +8,6 @@ setup(
     packages=find_packages("."),
     author="Tom Young",
     url="https://github.com/UCLH-DIF/PIXL",
-    entry_points={"console_scripts": ["pixl = pixl_driver.main:main"]},
+    entry_points={"console_scripts": ["pixl = pixl_driver.main:cli"]},
     description="Command line interaction with PIXL",
 )

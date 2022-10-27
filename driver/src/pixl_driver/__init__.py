@@ -1,3 +1,3 @@
-from pixl_driver.main import main
+from pixl_driver.main import cli
 
-__all__ = ["main"]
+__all__ = ["cli"]
