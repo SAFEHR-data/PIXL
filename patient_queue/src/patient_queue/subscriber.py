@@ -4,7 +4,7 @@ from patient_queue.utils import AvailableTopics
 from patient_queue.utils import load_config_file
 
 
-class PulsarConsumer:
+class PixlConsumer:
     """Can be used to create entries in the patient queue (i.e. in topic)."""
 
     def __int__(self, subscription: str) -> None:

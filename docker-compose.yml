@@ -147,26 +147,27 @@ services:
     restart: "no"
 
   patient-queue:
-    build:
-      context: .
-      dockerfile: ./docker/patient-queue/Dockerfile
-      args:
-        <<: *build-args-common
-    environment:
-      <<: *proxy-common
-      <<: *pixl-common-env
-    env_file:
-      - ./docker/common.env
+    image: apachepulsar/pulsar:2.6.0
+    command: bin/pulsar standalone
+    hostname: pulsar
     ports:
-      - "${PULSAR_DASHBOARD}:80"
-      - "${PULSAR_HTTP_PORT}:8080"
-      - "${PULSAR_BINARY_PROTOCOL}:6650"
+     - "8080:8080"
+     - "6650:6650"
+    restart: unless-stopped
     volumes:
-      - *logs-volume
-    networks:
-      - pixl-net
-    restart: "no"
+     - "./data/:/pulsar/data"
 
+  patient_queue_dashboard:
+    image: apachepulsar/pulsar-manager:v0.2.0
+    ports:
+     - "9527:9527"
+     - "7750:7750"
+    depends_on:
+     - patient-queue
+    links:
+     - patient-queue
+    environment:
+      SPRING_CONFIGURATION_FILE: /pulsar-manager/pulsar-manager/application.properties
 
   ################################################################################
   # Data Stores

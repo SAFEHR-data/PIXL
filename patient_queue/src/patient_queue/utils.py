@@ -15,14 +15,15 @@ class EnvFileNotFound(Exception):
 class AvailableTopics(Enum):
     """
     In Pulsar, topics are offered to consumers for subscription. This Enum provides an overview over all the topics
-    that are available as part of Pixl. At the moment, it is envisaged that it will only be one topic shared between
-    multiple consumers.
+    that are available as part of Pixl. At the moment, it is envisaged that there will be two different topics, one
+    for the image and one for the EHR demographics download.
     """
-    PIXL = "pixl"
+    DICOM = "dicom"
+    EHR = "ehr"
 
 
 def load_config_file(env_var: str, filename=Path(__file__).parent.parent.parent.parent.joinpath(".env")) -> str:
-    """ Reads relevant Pulsar port for Subscriber and Producer.
+    """ Reads relevant Pulsar configuration settings for Subscriber and Producer.
 
     As part of the configuration of the Pulsar Docker container, ports can be specified that are necessary for writing
     and receiving messages through Pulsar. This method retrieves information from the .env file wrt. which port has been
