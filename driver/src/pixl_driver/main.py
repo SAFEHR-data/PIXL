@@ -36,7 +36,7 @@ def cli(debug):
     help="Do not restart from a saved state. Otherwise will use "
     "<topic-name>.csv files if they are present to rebuild the state.",
 )
-def up(csv_filename: Path, pacs_rate: int, ehr_rate: int) -> None:
+def up(csv_filename: Path, pacs_rate: int, ehr_rate: int, no_restart: bool) -> None:
     """
     Create the PIXL driver by populating the queues and setting the rate parameters
     for the token buckets
@@ -46,11 +46,17 @@ def up(csv_filename: Path, pacs_rate: int, ehr_rate: int) -> None:
         f"and {ehr_rate} EHR queries/second"
     )
 
-    messages = messages_from_csv(csv_filename)
+    all_messages = messages_from_csv(csv_filename)
     for topic_name in (
         os.environ["PIXL_PULSAR_EHR_TOPIC_NAME"],
         os.environ["PIXL_PULSAR_PACS_TOPIC_NAME"],
     ):
+        state_filepath = state_filepath_for_topic(topic_name)
+        if state_filepath.exists() and not no_restart:
+            messages = Messages(open(state_filepath, "r").readlines())
+        else:
+            messages = all_messages
+
         messages.send(topic_name)
 
 
@@ -122,7 +128,7 @@ def consume_all_messages_and_save_csv_file(
             break
 
         try:
-            with open(csv_filepath_for_topic(topic_name), "r") as csv_file:
+            with open(state_filepath_for_topic(topic_name), "r") as csv_file:
                 print(msg.value(), file=csv_file)
 
             consumer.acknowledge(msg)
@@ -133,8 +139,8 @@ def consume_all_messages_and_save_csv_file(
     return None
 
 
-def csv_filepath_for_topic(topic_name: str) -> Path:
-    return Path(f"{topic_name}.csv")
+def state_filepath_for_topic(topic_name: str) -> Path:
+    return Path(f"{topic_name}.txt")
 
 
 class Messages(list):
@@ -157,10 +163,10 @@ def messages_from_csv(filepath: Path) -> Messages:
         "STUDY_DATE",
     ]
 
-    df = pd.read_csv(filepath, header=True)
+    df = pd.read_csv(filepath, header=1)  # First line is column names
     messages = Messages()
 
-    if not df.columns[:4] != expected_col_names:
+    if not list(df.columns[:4]) != expected_col_names:
         raise ValueError(
             f"csv file expected to have at least {expected_col_names} as "
             f"column names"

@@ -2,6 +2,9 @@
 
 ## Usage
 
+> **Note**
+> The queue must exist prior to up-ing this service
+
 Populate queue for PACS and image extraction
 ```bash
 pixl up <filename>.csv

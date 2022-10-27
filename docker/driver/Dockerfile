@@ -21,11 +21,10 @@ ENV PATH="$VIRTUAL_ENV/bin"
 # 3rd party deps
 COPY ./driver/src/requirements.txt .
 RUN pip install --no-cache-dir -U pip wheel setuptools \
-    && pip install --no-cache-dir -r requirements.txt \
-    && python -m spacy download en_core_web_lg
+    && pip install --no-cache-dir -r requirements.txt
 
 # driver package
 COPY ./driver/src/ /driver/
 RUN pip install --no-cache-dir .
 
-ENTRYPOINT ["/bin/sleep", "infinity"]
+ENTRYPOINT ["tail", "-f", "/dev/null"]
