@@ -1,13 +1,13 @@
 from setuptools import setup, find_packages
 
-exec(open("pixl_cli/_version.py").read())
+exec(open("pixl_driver/_version.py").read())
 
 setup(
-    name="pixl_cli",
+    name="pixl_driver",
     version=__version__,  # noqa: F821
     packages=find_packages("."),
     author="Tom Young",
     url="https://github.com/UCLH-DIF/PIXL",
-    entry_points={"console_scripts": ["pixl = pixl_cli.main:main"]},
+    entry_points={"console_scripts": ["pixl = pixl_driver.main:main"]},
     description="Command line interaction with PIXL",
 )
