@@ -145,6 +145,7 @@ def state_filepath_for_topic(topic_name: str) -> Path:
 
 class Messages(list):
     def send(self, topic_name: str) -> None:
+        logger.debug(f"Sending {len(self)} messages to topic {topic_name}")
         client = create_client()
         producer = client.create_producer(topic_name, block_if_queue_full=True)
 
@@ -152,6 +153,7 @@ class Messages(list):
             producer.send(message.encode("utf-8"))
 
         client.close()
+        return None
 
 
 def messages_from_csv(filepath: Path) -> Messages:
@@ -162,22 +164,28 @@ def messages_from_csv(filepath: Path) -> Messages:
         "STUDY_INSTANCE_UID",
         "STUDY_DATE",
     ]
+    logger.debug(f"Extracting messages from {filepath}. Expecting columns to include "
+                 f"{expected_col_names}")
 
-    df = pd.read_csv(filepath, header=1)  # First line is column names
+    df = pd.read_csv(filepath, header=0, dtype=str)  # First line is column names
     messages = Messages()
 
-    if not list(df.columns[:4]) != expected_col_names:
+    if list(df.columns)[:4] != expected_col_names:
         raise ValueError(
             f"csv file expected to have at least {expected_col_names} as "
             f"column names"
         )
 
     mrn_col_name, acc_num_col_name, _, datetime_col_name = expected_col_names
-    for row in df.iterrows():
+    for _, row in df.iterrows():
         messages.append(
             f"{row[mrn_col_name]},"
             f"{row[acc_num_col_name]},"
             f"{row[datetime_col_name]}"
         )
 
+    if len(messages) == 0:
+        raise ValueError(f"Failed to find any messages in {filepath}")
+
+    logger.debug(f"Created {len(messages)} messages from {filepath}")
     return messages

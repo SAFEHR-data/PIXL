@@ -17,11 +17,16 @@ services:
         source: $PWD
         target: /driver
     working_dir: /driver
-    entrypoint: ["pixl", "up", "test.csv"]
+    entrypoint: ["pixl", "--debug", "up", "test.csv"]
 
   queue:
     container_name: pixl-queue
     image: apachepulsar/pulsar:2.10.2
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 4G
     env_file:
       - .env.test
     ports:
@@ -34,19 +39,3 @@ services:
       interval: 60s
       timeout: 60s
       retries: 2
-
-  dashboard:
-    platform: linux/amd64
-    image: apachepulsar/pulsar-manager:v0.2.0
-    env_file:
-      - .env.test
-    ports:
-      - "${PIXL_PULSAR_MANAGER_FRONT_END_PORT}:9527"
-      - "${PIXL_PULSAR_MANAGER_FRONT_BACK_PORT}:7750"
-    depends_on:
-      queue:
-        condition: service_healthy
-    links:
-      - queue
-    environment:
-      SPRING_CONFIGURATION_FILE: /pulsar-manager/pulsar-manager/application.properties
