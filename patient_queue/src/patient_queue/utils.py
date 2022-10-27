@@ -38,7 +38,7 @@ def load_config_file(env_var: str, filename=Path(__file__).parent.parent.parent.
     with open(filename) as env_file:
         for line in env_file:
             name, var = line.partition("=")[::2]
-            env_vars[name.strip()] = str(var)
+            env_vars[name.strip()] = str(var).strip()
 
     if env_var not in env_vars:
         raise VarNotFound(f"{env_var} not contained in .env file.")
