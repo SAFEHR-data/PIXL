@@ -2,10 +2,26 @@
   "DicomAet" : "${ORTHANC_RAW_AE_TITLE}",
 
   "DicomModalities" : {
-    "VNA" : {
+    "UCVNA" : {
       "AET" : "${VNA_AE_TITLE}",
       "Port" : "${VNA_DICOM_PORT}",
       "Host" : "${VNA_IP_ADDR}",
+      "Manufacturer" : "Generic",
+      "AllowEcho" : true,
+      "AllowFind" : false,
+      "AllowFindWorklist" : false,
+      "AllowGet"  : false,
+      "AllowMove" : false,
+      "AllowStore" : true,
+      "AllowStorageCommitment" : false,
+      "AllowTranscoding" : true,
+      "UseDicomTls" : false,
+      "Timeout" : 60
+    },
+    "UCVNAQR" : {
+      "AET" : "${VNAQR_AE_TITLE}",
+      "Port" : "${VNAQR_DICOM_PORT}",
+      "Host" : "${VNAQR_IP_ADDR}",
       "Manufacturer" : "Generic",
       "AllowEcho" : true,
       "AllowFind" : false,
@@ -42,18 +58,18 @@
 
   // Whether Orthanc accepts to act as C-STORE SCP for unknown storage
   // SOP classes (aka. "promiscuous mode")
-  "UnknownSopClassAccepted" : false,
+  "UnknownSopClassAccepted" : true,
 
   // Whether the Orthanc SCP allows incoming C-ECHO requests, even
   // from SCU modalities it does not know about (i.e. that are not
   // listed in the "DicomModalities" option above). Orthanc 1.3.0
   // is the only version to behave as if this argument were set to "false".
-  "DicomAlwaysAllowEcho" : false,
+  "DicomAlwaysAllowEcho" : true,
 
   // Whether the Orthanc SCP allows incoming C-STORE requests, even
   // from SCU modalities it does not know about (i.e. that are not
   // listed in the "DicomModalities" option above)
-  "DicomAlwaysAllowStore" : false,
+  "DicomAlwaysAllowStore" : true,
 
   // Whether the Orthanc SCP allows incoming C-FIND requests, even
   // from SCU modalities it does not know about (i.e. that are not
