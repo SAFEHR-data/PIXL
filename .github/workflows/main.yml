@@ -12,6 +12,96 @@ on:
 
 jobs:
 
+  validate-docker-compose-config-file:
+    runs-on: uclhdif-runner
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Validate Docker Compose config file
+        working-directory: .
+        run: |
+          cp .env.sample .env
+          docker compose config --quiet
+
+  hasher-tests:
+    runs-on: uclhdif-runner
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Init Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10.6
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r hasher/src/requirements.txt
+
+      - name: Run tests
+        working-directory: hasher
+        run: |
+          bin/run-tests.sh
+        env:
+          ENV: test
+          AZURE_KEY_VAULT_NAME: test
+          AZURE_KEY_VAULT_SECRET_NAME: test
+
+  report-de-id-tests:
+    runs-on: uclhdif-runner
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Init Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10.6    # 3.10.7  fails to import numpy
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r pixl_rd/src/requirements.txt
+
+      - name: Download presidio data
+        run: |
+          python -m spacy download en_core_web_lg
+
+      - name: Run tests
+        working-directory: pixl_rd
+        run: |
+          bin/run-tests.sh
+        env:
+          ENV: test
+
+  token-buffer-tests:
+    runs-on: uclhdif-runner
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Init Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10.6
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r token_buffer/src/requirements.txt
+
+      - name: Run tests
+        working-directory: token_buffer
+        run: |
+          bin/run-tests.sh
+        env:
+          ENV: test
+
   driver-tests:
     runs-on: uclhdif-runner
     timeout-minutes: 10
@@ -21,7 +111,7 @@ jobs:
       - name: Init Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.10.7
+          python-version: 3.10.6
           cache: 'pip'
 
       - name: Install Python dependencies
