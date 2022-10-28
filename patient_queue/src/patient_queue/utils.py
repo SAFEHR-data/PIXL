@@ -20,6 +20,7 @@ class AvailableTopics(Enum):
     """
     DICOM = "dicom"
     EHR = "ehr"
+    ORTHANC = "orthanc"
 
 
 def load_config_file(env_var: str, filename=Path(__file__).parent.parent.parent.parent.joinpath(".env")) -> str:
