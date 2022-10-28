@@ -32,4 +32,4 @@ black src/pixl_rd
 
 flake8 --config ${CONF_FILE}
 
-ENV=test pytest src/pixl_rd
+ENV="test" pytest src/pixl_rd

@@ -1,15 +1,16 @@
 import os
-import click
-import pulsar
+from pathlib import Path
+
 import pandas as pd
 
-from pathlib import Path
+import click
 from pixl_driver._logging import logger, set_log_level
+import pulsar
 
 
 @click.group()
 @click.option("--debug/--no-debug", default=False)
-def cli(debug):
+def cli(debug: bool) -> None:
 
     set_log_level("INFO" if not debug else "DEBUG")
 
@@ -120,7 +121,7 @@ def consume_all_messages_and_save_csv_file(
     while True:
         try:
             msg = consumer.receive(timeout_millis=int(1000 * timeout_in_seconds))
-        except:
+        except:  # noqa
             logger.info(
                 f"Spent 1s waiting for more messages. "
                 f"Stopping subscriber for {topic_name}"
@@ -132,11 +133,10 @@ def consume_all_messages_and_save_csv_file(
                 print(msg.value(), file=csv_file)
 
             consumer.acknowledge(msg)
-        except:
+        except:  # noqa
             consumer.negative_acknowledge(msg)
 
     client.close()
-    return None
 
 
 def state_filepath_for_topic(topic_name: str) -> Path:
@@ -153,7 +153,6 @@ class Messages(list):
             producer.send(message.encode("utf-8"))
 
         client.close()
-        return None
 
 
 def messages_from_csv(filepath: Path) -> Messages:
@@ -164,8 +163,10 @@ def messages_from_csv(filepath: Path) -> Messages:
         "STUDY_INSTANCE_UID",
         "STUDY_DATE",
     ]
-    logger.debug(f"Extracting messages from {filepath}. Expecting columns to include "
-                 f"{expected_col_names}")
+    logger.debug(
+        f"Extracting messages from {filepath}. Expecting columns to include "
+        f"{expected_col_names}"
+    )
 
     df = pd.read_csv(filepath, header=0, dtype=str)  # First line is column names
     messages = Messages()
