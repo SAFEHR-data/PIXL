@@ -24,9 +24,9 @@ CONF_FILE=../setup.cfg
 mypy --config-file ${CONF_FILE} src/pixl_driver
 isort --settings-path ${CONF_FILE} src/pixl_driver
 black src/pixl_driver
-flake8 --config ${CONF_FILE}
+flake8 --config ${CONF_FILE} src/pixl_driver
 
-export ENV="test"
+cd test/
 
 docker compose --env-file .env.test up queue -d
 docker compose --env-file .env.test up driver
