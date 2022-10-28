@@ -155,7 +155,7 @@ services:
           cpus: '1'
           memory: 4G
     env_file:
-      - .env.test
+      - .env
     ports:
       - "${PIXL_PULSAR_HTTP_PORT}:8080"
       - "${PIXL_PULSAR_BINARY_PORT}:6650"
@@ -171,7 +171,7 @@ services:
     image: apachepulsar/pulsar-manager:v0.2.0
     ports:
      - "${PIXL_PULSAR_MANAGER_PORT}:9527"
-     - "${PIXL_PULSAR__PORT}:7750"
+     - "${PIXL_PULSAR_PORT}:7750"
     depends_on:
      - patient-queue
     links:
