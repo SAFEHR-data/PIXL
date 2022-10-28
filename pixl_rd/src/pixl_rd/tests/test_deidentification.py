@@ -35,7 +35,7 @@ def _patient_names_from_names_csv() -> List[Tuple[str, str]]:
     return [_tuple_from(line) for line in open(path, "r").readlines()[1:]]
 
 
-def test_patient_name_is_redacted(required_accuracy: float = 0.95) -> None:
+def test_patient_name_is_redacted(required_accuracy: float = 0.85) -> None:
 
     results = []
 
