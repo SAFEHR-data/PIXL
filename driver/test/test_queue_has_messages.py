@@ -22,8 +22,10 @@ def test_upping_driver_adds_a_single_item_to_the_queue():
 
 def _delete_all_topics():
     for topic_name in _topic_names():
-        _ = request("DELETE", f"https://pulsar.apache.org/admin/v2/persistent/"
-                              f"public/default/{topic_name}")
+        res = request("DELETE", f"http://localhost:8080/admin/v2/persistent/"
+                                f"public/default/{topic_name}")
+        # could be 204 if the topic already doesn't exist
+        assert res.status_code == 200 or res.status_code == 204
 
 
 def _topic_names():
