@@ -121,6 +121,6 @@ jobs:
           pip install -r driver/src/requirements.txt
 
       - name: Run tests
-        working-directory: driver
+        working-directory: driver/test
         run: |
-          test/run_tests.sh
+          ./run_tests.sh
