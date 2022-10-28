@@ -7,10 +7,10 @@ from patient_queue.utils import load_config_file
 class PixlConsumer:
     """Can be used to create entries in the patient queue (i.e. in topic)."""
 
-    def __int__(self, subscription: str) -> None:
+    def __int__(self, topic_name: str) -> None:
         pulsar_binary_port = load_config_file(env_var="PULSAR_BINARY_PROTOCOL")
         self.client = pulsar.Client(f"pulsar://localhost:{pulsar_binary_port}")
-        self.consumer = self.client.subscribe(AvailableTopics.PIXL, subscription_name=subscription)
+        self.consumer = self.client.subscribe(topic_name)
         self.latest_msg = None
 
     def consume_next_msg(self):
@@ -48,3 +48,19 @@ class PixlConsumer:
     def shutdown(self):
         """Shuts down client connection to Pulsar service."""
         self.client.close()
+
+
+class DicomConsumer(PixlConsumer):
+    """Can be used to create entries in the patient queue (i.e. in topic)."""
+
+    def __int__(self, topic_name: str) -> None:
+        super().__int__(AvailableTopics.DICOM.__str__())
+
+
+class EhrConsumer(PixlConsumer):
+    """Can be used to create entries in the patient queue (i.e. in topic)."""
+
+    def __int__(self, topic_name: str) -> None:
+        super().__int__(AvailableTopics.EHR.__str__())
+
+

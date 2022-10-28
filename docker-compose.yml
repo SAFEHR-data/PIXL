@@ -148,7 +148,9 @@ services:
 
   patient-queue:
     container_name: pixl-queue
-    image: apachepulsar/pulsar:2.10.2
+    build:
+      context: .
+      dockerfile: ./docker/patient-queue/Dockerfile
     deploy:
       resources:
         limits:
@@ -166,6 +168,9 @@ services:
       interval: 60s
       timeout: 60s
       retries: 2
+    networks:
+      - pixl-net
+    restart: "no"
 
   patient-queue-dashboard:
     image: apachepulsar/pulsar-manager:v0.2.0
@@ -178,6 +183,8 @@ services:
      - patient-queue
     environment:
       SPRING_CONFIGURATION_FILE: /pulsar-manager/pulsar-manager/application.properties
+    networks:
+      - pixl-net
 
   ################################################################################
   # Data Stores
