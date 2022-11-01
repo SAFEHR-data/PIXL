@@ -1,0 +1,24 @@
+{
+  "auth_policies": {
+    "namespace_auth": {},
+    "destination_auth": {}
+  },
+  "replication_clusters": [],
+  "bundles_activated": true,
+  "bundles": {
+    "boundaries": [
+      "0x00000000",
+      "0xffffffff"
+    ],
+    "numBundles": 1
+  },
+  "backlog_quota_map": {},
+  "persistence": null,
+  "latency_stats_sample_rate": {},
+  "message_ttl_in_seconds": 0,
+  "retention_policies": {
+    "retentionTimeInMinutes": 1000,
+    "retentionSizeInMB": 10000
+  },
+  "deleted": false
+}

@@ -3,8 +3,10 @@ from pathlib import Path
 
 import pulsar
 import pandas as pd
+import json
 
 import click
+from requests import request, put
 from pixl_cli._logging import logger, set_log_level
 
 
@@ -16,19 +18,34 @@ def cli(debug: bool) -> None:
 
 
 @cli.command()
+@click.argument("json_filename", type=click.Path(exists=True))
+def create_namespace(json_filename: str) -> None:
+    """Create a Pulsar namespace to use in which the topics will be created"""
+
+    if not Path(json_filename).suffix == ".json":
+        raise ValueError("Cannot create a namespace. File must be a ,json. "
+                         "See: https://pulsar.apache.org/docs/admin-api-namespaces/ ")
+
+    if not queue_is_up():
+        raise RuntimeError("Failed to create namespace. Queue admin api not up")
+
+    tenant = os.environ['PIXL_PULSAR_TENANT']
+    namespace = os.environ['PIXL_PULSAR_NAMESPACE']
+    with open(json_filename, "r") as json_file:
+        data = json.load(json_file)
+
+    res = put(
+        url=f"{base_pulsar_url()}/namespaces/{tenant}/{namespace}",
+        json=data,
+        headers={"Content-Type": "application/json"}
+    )
+
+    if res.status_code not in (200, 204):
+        raise RuntimeError(f"Failed to create namespace:\n {res} {res.text}")
+
+
+@cli.command()
 @click.argument("csv_filename", type=click.Path(exists=True))
-@click.option(
-    "--pacs-rate",
-    type=int,
-    default=5,
-    help="Rate at which images are requested from PACS in images per second",
-)
-@click.option(
-    "--ehr-rate",
-    type=int,
-    default=20,
-    help="Rate at which EHR is requested from EMAP in queries per second",
-)
 @click.option(
     "--no-restart",
     is_flag=True,
@@ -37,28 +54,54 @@ def cli(debug: bool) -> None:
     help="Do not restart from a saved state. Otherwise will use "
     "<topic-name>.csv files if they are present to rebuild the state.",
 )
-def up(csv_filename: Path, pacs_rate: int, ehr_rate: int, no_restart: bool) -> None:
+def populate(csv_filename: str, no_restart: bool) -> None:
     """
     Create the PIXL driver by populating the queues and setting the rate parameters
     for the token buckets
     """
-    logger.info(
-        f"Populating queue from {csv_filename}. Using {pacs_rate} images/s "
-        f"and {ehr_rate} EHR queries/second"
-    )
+    logger.info(f"Populating queue from {csv_filename}")
 
-    all_messages = messages_from_csv(csv_filename)
+    all_messages = messages_from_csv(Path(csv_filename))
     for topic_name in (
         os.environ["PIXL_PULSAR_EHR_TOPIC_NAME"],
         os.environ["PIXL_PULSAR_PACS_TOPIC_NAME"],
     ):
-        state_filepath = state_filepath_for_topic(topic_name)
-        if state_filepath.exists() and not no_restart:
-            messages = Messages(open(state_filepath, "r").readlines())
+        cached_state_filepath = state_filepath_for_topic(topic_name)
+        if cached_state_filepath.exists() and not no_restart:
+            messages = Messages.from_state_file(cached_state_filepath)
         else:
             messages = all_messages
 
         messages.send(topic_name)
+
+
+@cli.group()
+def start() -> None:
+    """Start a consumer"""
+
+
+@start.command()
+@click.option(
+    "--rate",
+    type=int,
+    default=5,
+    help="Rate at which images are requested from PACS in images per second",
+)
+def pacs(rate: int) -> None:
+    """Start PACS extraction"""
+    raise NotImplementedError
+
+
+@start.command()
+@click.option(
+    "--ehr-rate",
+    type=int,
+    default=20,
+    help="Rate at which EHR is requested from EMAP in queries per second",
+)
+def ehr(rate: int) -> None:
+    """Start EHR extraction"""
+    raise NotImplementedError
 
 
 @cli.command()
@@ -140,14 +183,28 @@ def consume_all_messages_and_save_csv_file(
 
 
 def state_filepath_for_topic(topic_name: str) -> Path:
-    return Path(f"{topic_name}.txt")
+    return Path(f"{topic_name}.state")
 
 
 class Messages(list):
+
+    @classmethod
+    def from_state_file(cls, filepath: Path) -> "Messages":
+
+        assert filepath.exists() and filepath.suffix == ".state"
+
+        return cls(open(filepath, "r").readlines())
+
     def send(self, topic_name: str) -> None:
         logger.debug(f"Sending {len(self)} messages to topic {topic_name}")
+
         client = create_client()
-        producer = client.create_producer(topic_name, block_if_queue_full=True)
+        tenant  = os.environ['PIXL_PULSAR_TENANT']
+        namespace = os.environ['PIXL_PULSAR_NAMESPACE']
+        producer = client.create_producer(
+            f"{tenant}/{namespace}/{topic_name}",
+            block_if_queue_full=True
+        )
 
         for message in self:
             producer.send(message.encode("utf-8"))
@@ -190,3 +247,13 @@ def messages_from_csv(filepath: Path) -> Messages:
 
     logger.debug(f"Created {len(messages)} messages from {filepath}")
     return messages
+
+
+def base_pulsar_url():
+    return (f"http://{os.environ['PIXL_PULSAR_HOST']}:"
+            f"{os.environ['PIXL_PULSAR_HTTP_PORT']}/admin/v2")
+
+
+def queue_is_up() -> bool:
+    res = request("GET", f"{base_pulsar_url()}/brokers/health")
+    return res.status_code == 200

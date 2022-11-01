@@ -2,23 +2,6 @@ version: "3.8"
 
 services:
 
-  driver:
-    container_name: pixl-driver
-    build:
-      context: ../..
-      dockerfile: ./docker/driver/Dockerfile
-    depends_on:
-      queue:
-        condition: service_healthy
-    env_file:
-      - .env.test
-    volumes:
-      - type: bind
-        source: $PWD
-        target: /driver
-    working_dir: /driver
-    entrypoint: ["pixl", "--debug", "up", "test.csv"]
-
   queue:
     container_name: pixl-queue
     image: apachepulsar/pulsar:2.10.2
