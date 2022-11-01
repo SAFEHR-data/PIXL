@@ -28,8 +28,7 @@ flake8 --config ${CONF_FILE} src/pixl_cli
 
 cd test/
 
-docker compose --env-file .env.test up queue -d
-docker compose --env-file .env.test up driver
+docker compose --env-file .env.test up
 
 set -a  # Export all the variables in .env.test
 source ./.env.test
