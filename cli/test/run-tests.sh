@@ -21,10 +21,10 @@ cd "$PACKAGE_DIR" || exit
 pip install -r src/requirements.txt
 
 CONF_FILE=../setup.cfg
-mypy --config-file ${CONF_FILE} src/pixl_driver
-isort --settings-path ${CONF_FILE} src/pixl_driver
-black src/pixl_driver
-flake8 --config ${CONF_FILE} src/pixl_driver
+mypy --config-file ${CONF_FILE} src/pixl_cli
+isort --settings-path ${CONF_FILE} src/pixl_cli
+black src/pixl_cli
+flake8 --config ${CONF_FILE} src/pixl_cli
 
 cd test/
 

@@ -1,17 +1,17 @@
 import os
 from pathlib import Path
 
+import pulsar
 import pandas as pd
 
 import click
-from pixl_driver._logging import logger, set_log_level
-import pulsar
+from pixl_cli._logging import logger, set_log_level
 
 
 @click.group()
 @click.option("--debug/--no-debug", default=False)
 def cli(debug: bool) -> None:
-
+    """Main CLI entrypoint"""
     set_log_level("INFO" if not debug else "DEBUG")
 
 
