@@ -7,10 +7,10 @@ from patient_queue.utils import load_config_file
 class PixlConsumer:
     """Can be used to create entries in the patient queue (i.e. in topic)."""
 
-    def __int__(self, topic_name: str) -> None:
+    def __int__(self, topic_name: str, namespace: str, tenant: str) -> None:
         pulsar_binary_port = load_config_file(env_var="PULSAR_BINARY_PROTOCOL")
         self.client = pulsar.Client(f"pulsar://localhost:{pulsar_binary_port}")
-        self.consumer = self.client.subscribe(topic_name)
+        self.consumer = self.client.subscribe("/".join([namespace, tenant, topic_name]))
         self.latest_msg = None
 
     def consume_next_msg(self):
@@ -53,14 +53,19 @@ class PixlConsumer:
 class DicomConsumer(PixlConsumer):
     """Can be used to create entries in the patient queue (i.e. in topic)."""
 
-    def __int__(self, topic_name: str) -> None:
-        super().__int__(AvailableTopics.DICOM.__str__())
+    def __int__(self, topic_name: str, namespace: str, tenant: str) -> None:
+        super().__int__(AvailableTopics.DICOM.value, namespace=namespace, tenant=tenant)
 
 
 class EhrConsumer(PixlConsumer):
     """Can be used to create entries in the patient queue (i.e. in topic)."""
 
-    def __int__(self, topic_name: str) -> None:
-        super().__int__(AvailableTopics.EHR.__str__())
+    def __int__(self, topic_name: str, namespace: str, tenant: str) -> None:
+        super().__int__(AvailableTopics.EHR.value, namespace=namespace, tenant=tenant)
 
 
+class OrthancConsumer(PixlConsumer):
+    """Can be used to create entries in the patient queue (i.e. in topic)."""
+
+    def __int__(self, topic_name: str, namespace: str, tenant: str) -> None:
+        super().__int__(AvailableTopics.ORTHANC, namespace=namespace, tenant=tenant)
