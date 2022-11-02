@@ -1,4 +1,5 @@
 import os
+import yaml
 from pathlib import Path
 
 import pulsar
@@ -10,6 +11,16 @@ from requests import request, put
 from pixl_cli._logging import logger, set_log_level
 
 
+def _load_config(filename: str = "pixl_config.yml") -> dict:
+    """CLI configuration generated from a .yaml"""
+    with open(filename, "r") as config_file:
+        config_dict = yaml.load(config_file, Loader=yaml.FullLoader)
+    return config_dict
+
+
+config = _load_config()
+
+
 @click.group()
 @click.option("--debug/--no-debug", default=False)
 def cli(debug: bool) -> None:
@@ -19,7 +30,21 @@ def cli(debug: bool) -> None:
 
 @cli.command()
 @click.argument("json_filename", type=click.Path(exists=True))
-def create_namespace(json_filename: str) -> None:
+@click.option(
+    "--name",
+    show_default=True,
+    default="pixl",
+    help="Apache Pulsar namespace. See: "
+         "https://pulsar.apache.org/docs/admin-api-namespaces/"
+)
+@click.option(
+    "--tenant",
+    show_default=True,
+    default="public",
+    help="Apache Pulsar tenant to create the namespace under. See: "
+         "https://pulsar.apache.org/docs/concepts-multi-tenancy/"
+)
+def create_namespace(json_filename: str, name: str, tenant: str) -> None:
     """Create a Pulsar namespace to use in which the topics will be created"""
 
     if not Path(json_filename).suffix == ".json":
@@ -29,13 +54,11 @@ def create_namespace(json_filename: str) -> None:
     if not queue_is_up():
         raise RuntimeError("Failed to create namespace. Queue admin api not up")
 
-    tenant = os.environ['PIXL_PULSAR_TENANT']
-    namespace = os.environ['PIXL_PULSAR_NAMESPACE']
     with open(json_filename, "r") as json_file:
         data = json.load(json_file)
 
     res = put(
-        url=f"{base_pulsar_url()}/namespaces/{tenant}/{namespace}",
+        url=f"{base_pulsar_admin_url()}/namespaces/{tenant}/{name}",
         json=data,
         headers={"Content-Type": "application/json"}
     )
@@ -47,6 +70,13 @@ def create_namespace(json_filename: str) -> None:
 @cli.command()
 @click.argument("csv_filename", type=click.Path(exists=True))
 @click.option(
+    "--topics",
+    default="public/pixl/ehr,public/pixl/pacs",
+    show_default=True,
+    help="Comma seperated list of topics to populate with messages generated from the "
+         ".csv file. In the format <tenant>/<namespace>/<topic>",
+)
+@click.option(
     "--no-restart",
     is_flag=True,
     show_default=True,
@@ -54,7 +84,7 @@ def create_namespace(json_filename: str) -> None:
     help="Do not restart from a saved state. Otherwise will use "
     "<topic-name>.csv files if they are present to rebuild the state.",
 )
-def populate(csv_filename: str, no_restart: bool) -> None:
+def populate(csv_filename: str, topics: str, no_restart: bool) -> None:
     """
     Create the PIXL driver by populating the queues and setting the rate parameters
     for the token buckets
@@ -62,17 +92,16 @@ def populate(csv_filename: str, no_restart: bool) -> None:
     logger.info(f"Populating queue from {csv_filename}")
 
     all_messages = messages_from_csv(Path(csv_filename))
-    for topic_name in (
-        os.environ["PIXL_PULSAR_EHR_TOPIC_NAME"],
-        os.environ["PIXL_PULSAR_PACS_TOPIC_NAME"],
-    ):
-        cached_state_filepath = state_filepath_for_topic(topic_name)
+    for topic in topics.split(","):
+
+        cached_state_filepath = state_filepath_for_topic(topic)
         if cached_state_filepath.exists() and not no_restart:
             messages = Messages.from_state_file(cached_state_filepath)
         else:
             messages = all_messages
 
-        messages.send(topic_name)
+        logger.info(f"Sending {len(messages)} messages")
+        messages.send(topic)
 
 
 @cli.group()
@@ -106,67 +135,45 @@ def ehr(rate: int) -> None:
 
 @cli.command()
 @click.option(
-    "--only-ehr",
-    is_flag=True,
+    "--topics",
+    default="public/pixl/ehr,public/pixl/pacs",
     show_default=True,
-    default=False,
-    help="Only stop running EHR queries, leaving PACS to process",
+    help="Comma seperated list of topics to consume messages from. In the format "
+         "<tenant>/<namespace>/<topic>",
 )
-@click.option(
-    "--only-pacs",
-    is_flag=True,
-    show_default=True,
-    default=False,
-    help="Only stop running PACS queries, leaving EHR to process",
-)
-def stop(only_ehr: bool, only_pacs: bool) -> None:
+def stop(topics: str) -> None:
     """
     Stop extracting images and/or EHR data. Will consume all messages present on the
-    EHR and PACS queue topics and save them to a .csv file
+    topics and save them to a file
     """
+    logger.info(f"Stopping extraction of {topics}")
 
-    if only_ehr and only_pacs:
-        raise ValueError(
-            "only-ehr and only-pacs arguments are mutually exclusive. " "Use only one"
-        )
-
-    stop_ehr_extraction = not only_pacs
-    stop_pacs_extraction = not only_ehr
-
-    logger.info(
-        f"Stopping extraction of {'EHR' if stop_ehr_extraction else ''}"
-        f" {'PACS' if stop_pacs_extraction else ''}"
-    )
-
-    for topic_name in (
-        os.environ["PIXL_PULSAR_EHR_TOPIC_NAME"],
-        os.environ["PIXL_PULSAR_PACS_TOPIC_NAME"],
-    ):
-        consume_all_messages_and_save_csv_file(topic_name)
+    for topic in topics.split(","):
+        consume_all_messages_and_save_csv_file(topic)
 
 
 def create_client() -> pulsar.Client:
     return pulsar.Client(
-        f"pulsar://{os.environ['PIXL_PULSAR_HOST']}"
-        f":{os.environ['PIXL_PULSAR_BINARY_PORT']}"
+        f"pulsar://{config['pulsar']['host']}:{config['pulsar']['binary_port']}"
     )
 
 
 def consume_all_messages_and_save_csv_file(
-    topic_name: str, timeout_in_seconds: int = 1
+    topic_name: str, timeout_in_seconds: int = 10
 ) -> None:
 
     client = create_client()
     consumer = client.subscribe(
-        topic_name, subscription_name=f"subscriber-{topic_name}"
+        f"persistent://{topic_name}", subscription_name=f"subscriber-{topic_name}"
     )
 
     while True:
         try:
             msg = consumer.receive(timeout_millis=int(1000 * timeout_in_seconds))
+            print(msg)
         except:  # noqa
             logger.info(
-                f"Spent 1s waiting for more messages. "
+                f"Spent {timeout_in_seconds}s waiting for more messages. "
                 f"Stopping subscriber for {topic_name}"
             )
             break
@@ -182,8 +189,8 @@ def consume_all_messages_and_save_csv_file(
     client.close()
 
 
-def state_filepath_for_topic(topic_name: str) -> Path:
-    return Path(f"{topic_name}.state")
+def state_filepath_for_topic(topic: str) -> Path:
+    return Path(f"{topic.replace('/', '_')}.state")
 
 
 class Messages(list):
@@ -195,21 +202,17 @@ class Messages(list):
 
         return cls(open(filepath, "r").readlines())
 
-    def send(self, topic_name: str) -> None:
-        logger.debug(f"Sending {len(self)} messages to topic {topic_name}")
+    def send(self, topic: str) -> None:
+        logger.debug(f"Sending {len(self)} messages to topic {topic}")
 
         client = create_client()
-        tenant  = os.environ['PIXL_PULSAR_TENANT']
-        namespace = os.environ['PIXL_PULSAR_NAMESPACE']
-        producer = client.create_producer(
-            f"{tenant}/{namespace}/{topic_name}",
-            block_if_queue_full=True
-        )
+        producer = client.create_producer(topic)
 
         for message in self:
             producer.send(message.encode("utf-8"))
 
         client.close()
+        logger.info(f"Sent {len(self)} messages")
 
 
 def messages_from_csv(filepath: Path) -> Messages:
@@ -249,11 +252,10 @@ def messages_from_csv(filepath: Path) -> Messages:
     return messages
 
 
-def base_pulsar_url():
-    return (f"http://{os.environ['PIXL_PULSAR_HOST']}:"
-            f"{os.environ['PIXL_PULSAR_HTTP_PORT']}/admin/v2")
+def base_pulsar_admin_url():
+    return f"http://{config['pulsar']['host']}:{config['pulsar']['admin_port']}/admin/v2"
 
 
 def queue_is_up() -> bool:
-    res = request("GET", f"{base_pulsar_url()}/brokers/health")
+    res = request("GET", f"{base_pulsar_admin_url()}/brokers/health")
     return res.status_code == 200

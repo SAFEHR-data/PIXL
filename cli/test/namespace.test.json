@@ -15,7 +15,6 @@
   "backlog_quota_map": {},
   "persistence": null,
   "latency_stats_sample_rate": {},
-  "message_ttl_in_seconds": 0,
   "retention_policies": {
     "retentionTimeInMinutes": 1000,
     "retentionSizeInMB": 10000
