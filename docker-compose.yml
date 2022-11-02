@@ -146,6 +146,29 @@ services:
       - pixl-net
     restart: "no"
 
+  patient-queue:
+    build:
+      context: .
+      dockerfile: ./docker/patient-queue/Dockerfile
+    env_file:
+      - ./docker/patient-queue/.env
+    ports:
+      - "${RABBITMQ_PORT}:5672"
+      - "${RABBITMQ_ADMIN_PORT}:15672"
+    restart: on-failure
+
+#  rabbitmq:
+#    build:
+#      context: .
+#      dockerfile: ./docker/patient-queue/Dockerfile
+#      args:
+#        <<: *build-args-common
+#    env_file:
+#      - ./docker/patient-queue/.env
+#    ports:
+#      - "${RABBITMQ_PORT}:5672"
+#      - "${RABBITMQ_ADMIN_PORT}:15672"
+#    restart: on-failure
 
   ################################################################################
   # Data Stores
