@@ -17,7 +17,7 @@ from setuptools import find_packages, setup
 exec(open("patient_queue/_version.py").read())
 
 setup(
-    name="patient-queue",
+    name="patient_queue",
     version=__version__,  # noqa: F821
     description="Service to create queues for inter-service communication",
     packages=find_packages(
