@@ -33,7 +33,7 @@ class PixlConsumer:
 
         :return:
         """
-        self.client.acknowledge(self.latest_msg)
+        self.consumer.acknowledge(self.latest_msg)
 
     def negative_acknowledge_msg(self) -> None:
         """Sends a negative acknowledgement message to server.
@@ -44,29 +44,29 @@ class PixlConsumer:
 
         :return:
         """
-        self.client.negativeAcknowledge(self.latest_msg)
+        self.consumer.negative_acknowledge(self.latest_msg)
 
     def shutdown(self):
         """Shuts down client connection to Pulsar service."""
-        self.client.close()
+        self.consumer.close()
 
 
 class DicomConsumer(PixlConsumer):
     """Can be used to create entries in the patient queue (i.e. in topic)."""
 
-    def __int__(self, topic_name: str, namespace: str, tenant: str) -> None:
-        super().__int__(AvailableTopics.DICOM.value, namespace=namespace, tenant=tenant)
+    def __init__(self, namespace: str, tenant: str) -> None:
+        super().__init__(AvailableTopics.DICOM.value, namespace=namespace, tenant=tenant)
 
 
 class EhrConsumer(PixlConsumer):
     """Can be used to create entries in the patient queue (i.e. in topic)."""
 
-    def __int__(self, topic_name: str, namespace: str, tenant: str) -> None:
-        super().__int__(AvailableTopics.EHR.value, namespace=namespace, tenant=tenant)
+    def __init__(self, namespace: str, tenant: str) -> None:
+        super().__init__(AvailableTopics.EHR.value, namespace=namespace, tenant=tenant)
 
 
 class OrthancConsumer(PixlConsumer):
     """Can be used to create entries in the patient queue (i.e. in topic)."""
 
-    def __int__(self, topic_name: str, namespace: str, tenant: str) -> None:
-        super().__int__(AvailableTopics.ORTHANC, namespace=namespace, tenant=tenant)
+    def __init__(self, namespace: str, tenant: str) -> None:
+        super().__init__(AvailableTopics.ORTHANC.value, namespace=namespace, tenant=tenant)

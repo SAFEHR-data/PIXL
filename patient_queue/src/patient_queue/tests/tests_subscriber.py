@@ -1,3 +1,6 @@
+import requests
+import json
+
 from patient_queue.subscriber import PixlConsumer
 from patient_queue.subscriber import DicomConsumer
 from patient_queue.subscriber import EhrConsumer
@@ -25,6 +28,19 @@ def test_create_orthanc_subscriber() -> None:
 
 
 def test_consume_pixl_msg(produce_sample_msg) -> None:
+    """Checks that message can be consumed from test queue."""
     subs = PixlConsumer(topic_name="test", namespace="public", tenant="default", subscription_name="test-pixl-msg")
     assert subs.consume_next_msg() is not None
+
+
+def test_consume_ack_msg(produce_sample_msg) -> None:
+    """Checks that message can be consumed from test queue."""
+    subs = PixlConsumer(topic_name="test", namespace="public", tenant="default", subscription_name="test-pixl-msg")
+    req = requests.get("http://localhost:7071/admin/v2/persistent/public/default/test/stats")
+    print(json.loads(req.text)['subscriptions']['test-pixl-msg'])
+    subs.consume_next_msg()
+    subs.negative_acknowledge_msg()
+    # req = requests.get("http://localhost:7071/admin/v2/persistent/public/default/test/stats")
+    print(json.loads(req.text)['subscriptions']['test-pixl-msg'])
+    subs.shutdown()
 
