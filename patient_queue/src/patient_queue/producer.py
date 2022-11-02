@@ -15,7 +15,7 @@ class PixlProducer:
         self.namespace = namespace
         self.tenant = tenant
         self.client = pulsar.Client(f"pulsar://localhost:{pulsar_binary_port}")
-        self.producer = self.client.create_producer(topic_name, block_if_queue_full=True)
+        self.producer = self.client.create_producer("/".join([namespace, tenant, topic_name]), block_if_queue_full=True)
 
     def create_queue_entry(self, msg: str):
         """Creates entry in queue.
