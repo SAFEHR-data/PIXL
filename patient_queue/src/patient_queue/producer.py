@@ -32,16 +32,16 @@ class PixlProducer:
 class DicomProducer(PixlProducer):
     """Producer for adding DICOM tasks into the image download queue."""
     def __init__(self):
-        super().__init__(topic_name=AvailableTopics.DICOM.__str__())
+        super().__init__(topic_name=AvailableTopics.DICOM.value)
 
 
 class EhrProducer(PixlProducer):
     """Producer for adding EHR download tasks to the respective queue."""
     def __init__(self):
-        super().__init__(topic_name=AvailableTopics.EHR.__str__())
+        super().__init__(topic_name=AvailableTopics.EHR.value)
 
 
 class OrthancProducer(PixlProducer):
     """Producer for adding EHR download tasks to the respective queue."""
     def __init__(self):
-        super().__init__(topic_name=AvailableTopics.ORTHANC.__str__())
+        super().__init__(topic_name=AvailableTopics.ORTHANC.value)
