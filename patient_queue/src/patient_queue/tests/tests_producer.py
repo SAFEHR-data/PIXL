@@ -6,22 +6,22 @@ from patient_queue.producer import OrthancProducer
 
 def test_create_pixl_producer() -> None:
     """Checks whether Producer class can be instantiated"""
-    assert PixlProducer(topic_name="test") is not None
+    assert PixlProducer(topic_name="test", namespace="test", tenant="test") is not None
 
 
 def test_create_dicom_producer() -> None:
     """Checks whether Producer class can be instantiated"""
-    assert DicomProducer is not None
+    assert DicomProducer(namespace="test", tenant="test") is not None
 
 
 def test_create_ehr_producer() -> None:
     """Checks whether Producer class can be instantiated"""
-    assert EhrProducer is not None
+    assert EhrProducer(namespace="test", tenant="test") is not None
 
 
 def test_create_orthanc_producer() -> None:
     """Checks whether Producer class can be instantiated"""
-    assert OrthancProducer is not None
+    assert OrthancProducer(namespace="test", tenant="test") is not None
 
 
 def test_create_empty_producer() -> None:
@@ -35,7 +35,7 @@ def test_create_empty_producer() -> None:
 def test_create_msg() -> None:
     """Checks whether Pulsar queue entry can be created on ."""
     try:
-        prod = PixlProducer(topic_name="test")
+        prod = PixlProducer(topic_name="test", namespace="test", tenant="test")
         prod.create_queue_entry(msg="test")
         prod.shutdown()
     except Exception as e:
@@ -45,7 +45,7 @@ def test_create_msg() -> None:
 def test_create_dicom_msg() -> None:
     """Checks whether Pulsar Dicom queue entry can be created. """
     try:
-        prod = DicomProducer()
+        prod = DicomProducer(namespace="test", tenant="test")
         prod.create_queue_entry(msg="test")
         prod.shutdown()
     except Exception as e:
@@ -55,7 +55,7 @@ def test_create_dicom_msg() -> None:
 def test_create_error_msg() -> None:
     """Checks whether Pulsar queue entry can be created on ."""
     try:
-        prod = PixlProducer(topic_name="test")
+        prod = PixlProducer(topic_name="test", namespace="test", tenant="test")
         prod.shutdown()
         prod.create_queue_entry(msg="test")
     except Exception as e:
