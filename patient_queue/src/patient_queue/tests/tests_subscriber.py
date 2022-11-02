@@ -24,3 +24,7 @@ def test_create_orthanc_subscriber() -> None:
     assert OrthancConsumer(topic_name="test", namespace="public", tenant="default", subscription_name="test-orth") is not None
 
 
+def test_consume_pixl_msg(produce_sample_msg) -> None:
+    subs = PixlConsumer(topic_name="test", namespace="public", tenant="default", subscription_name="test-pixl-msg")
+    assert subs.consume_next_msg() is not None
+

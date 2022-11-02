@@ -22,7 +22,7 @@ class PixlConsumer:
 
         :returns: a string representing the message received from the topic subscription for the consumer.
         """
-        self.latest_msg = self.client.receive()
+        self.latest_msg = self.consumer.receive()
         return self.latest_msg
 
     def acknowledge_msg(self) -> None:
