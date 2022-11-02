@@ -7,10 +7,11 @@ from patient_queue.utils import load_config_file
 class PixlConsumer:
     """Can be used to create entries in the patient queue (i.e. in topic)."""
 
-    def __int__(self, topic_name: str, namespace: str, tenant: str) -> None:
+    def __init__(self, topic_name: str, namespace: str, tenant: str, subscription_name: str) -> None:
         pulsar_binary_port = load_config_file(env_var="PULSAR_BINARY_PROTOCOL")
         self.client = pulsar.Client(f"pulsar://localhost:{pulsar_binary_port}")
-        self.consumer = self.client.subscribe("/".join([namespace, tenant, topic_name]))
+        self.consumer = self.client.subscribe("/".join([namespace, tenant, topic_name]),
+                                              subscription_name=subscription_name)
         self.latest_msg = None
 
     def consume_next_msg(self):
