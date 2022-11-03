@@ -19,10 +19,10 @@ class PixlConsumer:
     """Connector to RabbitMQ. Consumes entries from a queue."""
     def __init__(self, _queue: str):
         self.queue = _queue
-        self.connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+        self.connection = pika.SelectConnection(pika.ConnectionParameters(host='localhost'))
         self.channel = self.connection.channel()
         self.channel.queue_declare(queue=_queue)
-        self.channel.start_consuming()
+        self.connection.ioloop.start()
 
     def callback(self, ch, method, properties, body):
         ### this needs the four parameters from the tutorial
@@ -30,7 +30,8 @@ class PixlConsumer:
 
     def retrieve_msg(self):
         ### problem is that consumer needs to hang ...
-        self.channel.basic_consume(queue=self.queue, on_message_callback=self.callback, auto_ack=True)
+        method_frame, header_frame, body = self.channel.basic_get(queue=self.queue)
+        return body
 
     def shutdown(self):
         self.channel.stop_consuming()

@@ -14,9 +14,12 @@
 
 import pytest
 
+from patient_queue.producer import PixlProducer
 
 
-def dummy_key(monkeypatch):
+@pytest.fixture(scope="session")
+def dummy_producer():
     """
-    Fixture to set up a dummy key to use for hashing tests
+    Fixture to set up dummy producer for testing consumer.
     """
+    return PixlProducer(_queue="test")

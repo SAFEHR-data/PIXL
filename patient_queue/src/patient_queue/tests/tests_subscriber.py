@@ -12,6 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+from time import sleep
 from patient_queue.subscriber import PixlConsumer
 
 
@@ -22,13 +23,16 @@ def test_create() -> None:
     pc.shutdown()
 
 
-def test_create_msg() -> None:
+def test_create_msg(dummy_producer) -> None:
     """Checks that message can be produced on respective queue."""
     pc = PixlConsumer(_queue="test")
-    try:
-        msg = pc.retrieve_msg()
-        print(msg)
+    # dummy_producer.create_entry(msg="test")
+    sleep(10.0)
+    body = pc.retrieve_msg()
+
+    if body is not None:
         assert True
-    except Exception:
+    else:
         assert False
+
     pc.shutdown()
