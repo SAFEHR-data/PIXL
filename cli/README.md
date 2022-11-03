@@ -7,15 +7,6 @@
 cd src && pip install -r requirements.txt . 
 ```
 
-<details>
-    <summary>Deploying apache-manager locally on an ARM Mac</summary>
-
-    The apache-manager v0.3.0 docker container is broken, thus the dashboard UI must be 
-    deployed from the [tar-ed binary](https://github.com/apache/pulsar-manager#deploy-from-bin-package).
-    Once up, access the UI at `http://localhost:7750/ui/index.html`
-</details>
-
-
 ## Usage
 
 > **Note**

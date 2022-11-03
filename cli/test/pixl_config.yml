@@ -1,5 +1,4 @@
-
-pulsar:
+rabbitmq:
   host: localhost
-  binary_port: 6650
-  admin_port: 8080
+  port: 5672
+  admin_port: 15672

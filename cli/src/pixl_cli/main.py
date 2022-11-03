@@ -1,21 +1,26 @@
-import os
-import yaml
 from pathlib import Path
+from typing import Any
 
-import pulsar
 import pandas as pd
-import json
 
 import click
-from requests import request, put
+import pika
 from pixl_cli._logging import logger, set_log_level
+import yaml
 
 
 def _load_config(filename: str = "pixl_config.yml") -> dict:
     """CLI configuration generated from a .yaml"""
+
+    if not Path(filename).exists():
+        raise IOError(
+            f"Failed to find {filename}. It must be present "
+            f"in the current working directory"
+        )
+
     with open(filename, "r") as config_file:
         config_dict = yaml.load(config_file, Loader=yaml.FullLoader)
-    return config_dict
+    return dict(config_dict)
 
 
 config = _load_config()
@@ -29,52 +34,13 @@ def cli(debug: bool) -> None:
 
 
 @cli.command()
-@click.argument("json_filename", type=click.Path(exists=True))
-@click.option(
-    "--name",
-    show_default=True,
-    default="pixl",
-    help="Apache Pulsar namespace. See: "
-         "https://pulsar.apache.org/docs/admin-api-namespaces/"
-)
-@click.option(
-    "--tenant",
-    show_default=True,
-    default="public",
-    help="Apache Pulsar tenant to create the namespace under. See: "
-         "https://pulsar.apache.org/docs/concepts-multi-tenancy/"
-)
-def create_namespace(json_filename: str, name: str, tenant: str) -> None:
-    """Create a Pulsar namespace to use in which the topics will be created"""
-
-    if not Path(json_filename).suffix == ".json":
-        raise ValueError("Cannot create a namespace. File must be a ,json. "
-                         "See: https://pulsar.apache.org/docs/admin-api-namespaces/ ")
-
-    if not queue_is_up():
-        raise RuntimeError("Failed to create namespace. Queue admin api not up")
-
-    with open(json_filename, "r") as json_file:
-        data = json.load(json_file)
-
-    res = put(
-        url=f"{base_pulsar_admin_url()}/namespaces/{tenant}/{name}",
-        json=data,
-        headers={"Content-Type": "application/json"}
-    )
-
-    if res.status_code not in (200, 204):
-        raise RuntimeError(f"Failed to create namespace:\n {res} {res.text}")
-
-
-@cli.command()
 @click.argument("csv_filename", type=click.Path(exists=True))
 @click.option(
-    "--topics",
-    default="public/pixl/ehr,public/pixl/pacs",
+    "--queues",
+    default="ehr,pacs",
     show_default=True,
     help="Comma seperated list of topics to populate with messages generated from the "
-         ".csv file. In the format <tenant>/<namespace>/<topic>",
+    ".csv file. In the format <tenant>/<namespace>/<topic>",
 )
 @click.option(
     "--no-restart",
@@ -84,7 +50,7 @@ def create_namespace(json_filename: str, name: str, tenant: str) -> None:
     help="Do not restart from a saved state. Otherwise will use "
     "<topic-name>.csv files if they are present to rebuild the state.",
 )
-def populate(csv_filename: str, topics: str, no_restart: bool) -> None:
+def populate(csv_filename: str, queues: str, no_restart: bool) -> None:
     """
     Create the PIXL driver by populating the queues and setting the rate parameters
     for the token buckets
@@ -92,10 +58,11 @@ def populate(csv_filename: str, topics: str, no_restart: bool) -> None:
     logger.info(f"Populating queue from {csv_filename}")
 
     all_messages = messages_from_csv(Path(csv_filename))
-    for topic in topics.split(","):
+    for topic in queues.split(","):
 
-        cached_state_filepath = state_filepath_for_topic(topic)
+        cached_state_filepath = state_filepath_for_queue(topic)
         if cached_state_filepath.exists() and not no_restart:
+            inform_user_that_queue_will_be_populated_from(cached_state_filepath)
             messages = Messages.from_state_file(cached_state_filepath)
         else:
             messages = all_messages
@@ -135,83 +102,104 @@ def ehr(rate: int) -> None:
 
 @cli.command()
 @click.option(
-    "--topics",
-    default="public/pixl/ehr,public/pixl/pacs",
+    "--queues",
+    default="ehr,pacs",
     show_default=True,
-    help="Comma seperated list of topics to consume messages from. In the format "
-         "<tenant>/<namespace>/<topic>",
+    help="Comma seperated list of topics to consume messages from",
 )
-def stop(topics: str) -> None:
+def stop(queues: str) -> None:
     """
     Stop extracting images and/or EHR data. Will consume all messages present on the
     topics and save them to a file
     """
-    logger.info(f"Stopping extraction of {topics}")
+    logger.info(f"Stopping extraction of {queues}")
 
-    for topic in topics.split(","):
+    for topic in queues.split(","):
+        logger.info(f"Consuming messages on {topic}")
         consume_all_messages_and_save_csv_file(topic)
 
 
-def create_client() -> pulsar.Client:
-    return pulsar.Client(
-        f"pulsar://{config['pulsar']['host']}:{config['pulsar']['binary_port']}"
+def create_connection() -> pika.BlockingConnection:
+
+    params = pika.ConnectionParameters(
+        host=config["rabbitmq"]["host"],
+        port=config["rabbitmq"]["port"],
+        # credentials=
     )
+    return pika.BlockingConnection(params)
 
 
 def consume_all_messages_and_save_csv_file(
-    topic_name: str, timeout_in_seconds: int = 10
+    queue_name: str, timeout_in_seconds: int = 5
 ) -> None:
-
-    client = create_client()
-    consumer = client.subscribe(
-        f"persistent://{topic_name}", subscription_name=f"subscriber-{topic_name}"
+    logger.info(
+        f"Will consume all messages on {queue_name} queue and timeout after "
+        f"{timeout_in_seconds} seconds"
     )
 
-    while True:
+    connection = create_connection()
+    channel = connection.channel()
+    queue = channel.queue_declare(queue=queue_name)
+
+    if queue.method.message_count > 0:
+        logger.info("Found messages in the queue. Clearing the state file")
+        clear_file(state_filepath_for_queue(queue_name))
+
+    def callback(method: Any, properties: Any, body: Any) -> None:
+
         try:
-            msg = consumer.receive(timeout_millis=int(1000 * timeout_in_seconds))
-            print(msg)
+            with open(state_filepath_for_queue(queue_name), "a") as csv_file:
+                print(body.decode(), file=csv_file)
         except:  # noqa
-            logger.info(
-                f"Spent {timeout_in_seconds}s waiting for more messages. "
-                f"Stopping subscriber for {topic_name}"
-            )
+            logger.debug("Failed to consume")
+
+    generator = channel.consume(
+        queue=queue_name,
+        auto_ack=True,
+        inactivity_timeout=timeout_in_seconds,  # Yields (None, None, None) after this
+    )
+
+    for args in generator:
+        if all(arg is None for arg in args):
+            logger.info("Stopping")
             break
 
-        try:
-            with open(state_filepath_for_topic(topic_name), "r") as csv_file:
-                print(msg.value(), file=csv_file)
+        callback(*args)
 
-            consumer.acknowledge(msg)
-        except:  # noqa
-            consumer.negative_acknowledge(msg)
-
-    client.close()
+    connection.close()
 
 
-def state_filepath_for_topic(topic: str) -> Path:
+def state_filepath_for_queue(topic: str) -> Path:
     return Path(f"{topic.replace('/', '_')}.state")
 
 
 class Messages(list):
-
     @classmethod
     def from_state_file(cls, filepath: Path) -> "Messages":
-
+        logger.info(f"Creating messages from {filepath}")
         assert filepath.exists() and filepath.suffix == ".state"
 
-        return cls(open(filepath, "r").readlines())
+        return cls(
+            [
+                line
+                for line in open(filepath, "r").readlines()
+                if string_is_non_empty(line)
+            ]
+        )
 
-    def send(self, topic: str) -> None:
-        logger.debug(f"Sending {len(self)} messages to topic {topic}")
+    def send(self, queue_name: str) -> None:
+        logger.debug(f"Sending {len(self)} messages to topic {queue_name}")
 
-        client = create_client()
-        producer = client.create_producer(topic)
+        connection = create_connection()
+        channel = connection.channel()
+        channel.queue_declare(queue=queue_name)
 
         for message in self:
-            producer.send(message.encode("utf-8"))
+            channel.basic_publish(
+                exchange="", routing_key=queue_name, body=message.encode("utf-8")
+            )
 
-        client.close()
+        connection.close()
         logger.info(f"Sent {len(self)} messages")
 
 
@@ -252,10 +240,25 @@ def messages_from_csv(filepath: Path) -> Messages:
     return messages
 
 
-def base_pulsar_admin_url():
-    return f"http://{config['pulsar']['host']}:{config['pulsar']['admin_port']}/admin/v2"
-
-
 def queue_is_up() -> bool:
-    res = request("GET", f"{base_pulsar_admin_url()}/brokers/health")
-    return res.status_code == 200
+    connection = create_connection()
+    connection_created_successfully = bool(connection.is_open)
+    connection.close()
+    return connection_created_successfully
+
+
+def clear_file(filepath: Path) -> None:
+    open(filepath, "w").close()
+
+
+def string_is_non_empty(string: str) -> bool:
+    """Does a string have more than just spaces and newlines"""
+    return len(string.split()) > 0
+
+
+def inform_user_that_queue_will_be_populated_from(path: Path) -> None:
+    _ = input(
+        f"Found a state file *{path}*. Please use --no-restart if this and other "
+        f"state files should be ignored, or delete this file to ignore. Press "
+        f"Ctrl-C to exit and any key to continue"
+    )

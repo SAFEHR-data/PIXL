@@ -28,12 +28,11 @@ flake8 --config ${CONF_FILE} src/pixl_cli
 
 cd test/
 
-docker compose --env-file .env.test up
+docker compose up -d
+# Wait until the queue is up and healthy
+while ! docker ps | grep queue | grep -q healthy ;do
+    sleep 10
+done
 
-set -a  # Export all the variables in .env.test
-source ./.env.test
-set +a
-
-pytest
-
-docker compose --env-file .env.test down
+pytest ../src/pixl_cli
+docker compose down
