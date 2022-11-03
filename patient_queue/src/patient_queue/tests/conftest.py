@@ -12,6 +12,11 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-FROM rabbitmq:management
+import pytest
 
-SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
+
+
+def dummy_key(monkeypatch):
+    """
+    Fixture to set up a dummy key to use for hashing tests
+    """
