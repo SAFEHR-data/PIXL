@@ -15,19 +15,18 @@
 from patient_queue.producer import PixlProducer
 
 
-def test_create() -> None:
-    """Checks that PIXL producer can be instantiated."""
-    pp = PixlProducer(_queue="test")
+def test_create(dummy_url, dummy_queue) -> None:
+    """Checks that PixlProducer can be instantiated."""
+    pp = PixlProducer(_service_url=dummy_url, _queue=dummy_queue)
     assert pp is not None
-    pp.shutdown()
+    pp.stop()
 
 
-def test_create_msg() -> None:
-    """Checks that message can be produced on respective queue."""
-    pp = PixlProducer(_queue="test")
-    try:
-        pp.create_entry(msg="hello world")
-        assert True
-    except Exception:
-        assert False
-    pp.shutdown()
+def test_connection_to_service(dummy_url, dummy_queue) -> None:
+    """Checks whether connection from producer to RabbitMQ service can be established."""
+    pp = PixlProducer(_service_url=dummy_url, _queue=dummy_queue)
+    pp.establish_keep_queue_open()
+    assert True
+    # assert pp.connection is not None
+    # assert pp.stopping is False
+    # pp.stop()

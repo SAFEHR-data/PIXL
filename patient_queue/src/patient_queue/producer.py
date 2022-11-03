@@ -58,9 +58,9 @@ class PixlProducer(object):
 
         :rtype: pika.SelectConnection
         """
-        LOGGER.info('Connecting to %s', self._url)
+        LOGGER.info('Connecting to %s', self.url)
         return pika.SelectConnection(
-            pika.URLParameters(self._url),
+            pika.URLParameters(self.url),
             on_open_callback=self.on_connection_open,
             on_open_error_callback=self.on_connection_open_error,
             on_close_callback=self.on_connection_closed)
@@ -249,18 +249,17 @@ class PixlProducer(object):
         """
         Similar to original run method. Purpose is to keep a publishing queue open for when something needs to be sent, here by starting the IOLoop.
         """
-        while not self._stopping:
+        while not self.stopping:
             self.connection = None
 
-            try:
-                self.connection = self.connect()
-                self.connection.ioloop.start()
-                LOGGER.info('Opening queue and connection to RabbitMQ service for asynchronous message sending')
-            except KeyboardInterrupt:
-                self.stop()
-                if (self._connection is not None and
-                        not self._connection.is_closed):
-                    self._connection.ioloop.start()
+           # try:
+            self.connection = self.connect()
+                # self.connection.ioloop.start()
+                # LOGGER.info('Opening queue and connection to RabbitMQ service for asynchronous message sending')
+            # except KeyboardInterrupt:
+            #     self.stop()
+            #     if self.connection is not None and not self.connection.is_closed:
+            #         self.connection.ioloop.start()
 
         LOGGER.info('Queue and connection to RabbitMQ service stopped')
 
@@ -290,5 +289,3 @@ class PixlProducer(object):
         if self.connection is not None:
             LOGGER.info('Closing connection')
             self.connection.close()
-
-

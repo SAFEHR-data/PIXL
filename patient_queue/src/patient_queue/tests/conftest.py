@@ -14,12 +14,18 @@
 
 import pytest
 
-from patient_queue.producer import PixlProducer
-
 
 @pytest.fixture(scope="session")
-def dummy_producer():
+def dummy_url():
     """
     Fixture to set up dummy producer for testing consumer.
     """
-    return PixlProducer(_queue="test")
+    return 'amqp://guest:guest@localhost:5672/%2F?connection_attempts=3&heartbeat=3600'
+
+
+@pytest.fixture(scope="session")
+def dummy_queue():
+    """
+    Fixture to set up dummy producer for testing consumer.
+    """
+    return 'test_queue'
