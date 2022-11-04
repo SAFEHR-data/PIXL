@@ -5,7 +5,10 @@ import aio_pika
 from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
+from dataclasses import dataclass
 from ._version import __version__
+
+import token_bucket as tb
 
 logger = logging.getLogger(__name__)
 QUEUE_NAME = "ehr"
@@ -18,8 +21,28 @@ app = FastAPI(
 )
 
 
-class AppState(BaseModel):
-    refresh_rate: int = 0
+class PixlTokenBucket(tb.Limiter):
+    # TODO: https://github.com/UCLH-DIF/PIXL/issues/49
+
+    def __init__(self, rate: int, capacity: int, storage: tb.StorageBase):
+
+        self._zero_rate = False
+
+        if rate == 0:
+            # tb.Limiter cannot deal with zero rates, so keep track...
+            rate = 1
+            self._zero_rate = True
+
+        super().__init__(rate=rate, capacity=capacity, storage=storage)
+
+    @property
+    def has_token(self) -> bool:
+        return not self._zero_rate and bool(self.consume("pixl"))
+
+
+@dataclass
+class AppState:
+    token_bucket = PixlTokenBucket(rate=0, capacity=5, storage=tb.MemoryStorage())
 
 
 state = AppState()
@@ -37,13 +60,16 @@ async def _event_loop() -> None:
 
         async with queue.iterator() as queue_iter:
             async for message in queue_iter:
-                # Any exceptions put the message back onto the queue
+
                 try:
-                    print(message.body)
-                    print("r=", state.refresh_rate)
-                    await message.ack()
+                    if state.token_bucket.has_token:
+                        print(message.body)
+                        await message.ack()
+                    else:
+                        await message.reject(requeue=True)
                 except Exception: # noqa
-                    await message.reject(requeue=True)
+                    logger.error(f"Failed to process {message.body}. Not re-queuing")
+                    await message.reject(requeue=False)
 
 
 @app.on_event("startup")
@@ -72,5 +98,9 @@ async def update_tb_refresh_rate(item: TokenRefreshUpdate):
             detail=f"Refresh rate mush be a positive integer",
         )
 
-    state.refresh_rate = int(item.rate)
+    state.token_bucket = PixlTokenBucket(
+        rate=int(item.rate),
+        capacity=5,
+        storage=tb.MemoryStorage()
+    )
     return "Successfully updated the refresh rate"
