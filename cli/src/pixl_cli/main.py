@@ -6,9 +6,9 @@ import pandas as pd
 
 import click
 import pika
-from requests import post
 from pixl_cli._logging import logger, set_log_level
 from pixl_cli._utils import clear_file, string_is_non_empty
+from requests import post
 import yaml
 
 
@@ -142,7 +142,7 @@ def _update_ehr_extract_rate(rate: int) -> None:
     default=5,
     help="Rate at which images are requested from PACS in images per second",
 )
-def start_ehr_extraction(rate: int) -> None:
+def start_pacs_extraction(rate: int) -> None:
     """Start PACS extraction"""
     raise NotImplementedError
 
