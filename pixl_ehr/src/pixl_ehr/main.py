@@ -1,14 +1,14 @@
 import logging
 import asyncio
 
-from time import sleep
+import aio_pika
 from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
 from ._version import __version__
 
 logger = logging.getLogger(__name__)
-
+QUEUE_NAME = "ehr"
 
 app = FastAPI(
     title="ehr-api",
@@ -26,9 +26,24 @@ state = AppState()
 
 
 async def _event_loop() -> None:
-    while True:
-        print(state)
-        await asyncio.sleep(1)
+
+    connection = await aio_pika.connect(
+        "amqp://guest:guest@queue:5672/"
+    )
+
+    async with connection:
+        channel = await connection.channel()
+        queue = await channel.declare_queue(QUEUE_NAME)
+
+        async with queue.iterator() as queue_iter:
+            async for message in queue_iter:
+                # Any exceptions put the message back onto the queue
+                try:
+                    print(message.body)
+                    print("r=", state.refresh_rate)
+                    await message.ack()
+                except Exception: # noqa
+                    await message.reject(requeue=True)
 
 
 @app.on_event("startup")

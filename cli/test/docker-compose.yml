@@ -19,6 +19,9 @@ services:
     build:
       context: ../../
       dockerfile: ./docker/ehr-api/Dockerfile
+    depends_on:
+      queue:
+          condition: service_healthy
     ports:
       - "9000:8000"
     healthcheck:
