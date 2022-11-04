@@ -6,8 +6,8 @@ import pandas as pd
 
 import click
 import pika
-from requests import post
 from pixl_cli._logging import logger, set_log_level
+from pixl_cli._utils import clear_file, string_is_non_empty
 import yaml
 
 
@@ -91,73 +91,6 @@ def update() -> None:
     """Update a consumer"""
 
 
-@start.command()
-@click.option(
-    "--rate",
-    type=int,
-    default=5,
-    help="Rate at which images are requested from PACS in images per second",
-)
-def pacs(rate: int) -> None:
-    """Start PACS extraction"""
-    raise NotImplementedError
-
-
-@update.command()
-@click.option(
-    "--rate",
-    type=int,
-    required=True,
-    help="Rate at which images are requested from PACS in images per second",
-)
-def pacs(rate: int) -> None:
-    raise NotImplementedError
-
-
-@start.command()
-@click.option(
-    "--rate",
-    type=int,
-    default=20,
-    help="Rate at which EHR is requested from EMAP in queries per second",
-)
-def ehr(rate: int) -> None:
-    """Start EHR extraction"""
-
-    if rate == 0:
-        raise RuntimeError("Cannot start EHR with extract rate of 0. Must be >0")
-
-    _update_ehr_extract_rate(rate)
-
-
-@update.command()
-@click.option(
-    "--rate",
-    type=int,
-    required=True,
-    help="Rate at which EHR is requested from EMAP in queries per second",
-)
-def ehr(rate: int) -> None:
-    _update_ehr_extract_rate(rate)
-
-
-def _update_ehr_extract_rate(rate: int) -> None:
-    logger.info("Updating the EHR extraction rate")
-
-    base_url = f"http://{config['ehr_api']['host']}:{config['ehr_api']['port']}"
-    response = post(
-        url=f"{base_url}/token-bucket-refresh-rate",
-        json={"rate": rate}
-    )
-
-    if response.status_code == 200:
-        logger.info("Successfully updated EHR extraction, with a "
-                    f"rate of {rate} queries/second")
-
-    else:
-        raise RuntimeError(f"Failed to start EHR extraction: {response}")
-
-
 @cli.command()
 @click.option(
     "--queues",
@@ -177,6 +110,7 @@ def stop(queues: str) -> None:
         consume_all_messages_and_save_csv_file(topic)
 
 
+# TODO: Replace by PIXL queue package
 def create_connection() -> pika.BlockingConnection:
 
     params = pika.ConnectionParameters(
@@ -195,6 +129,7 @@ def consume_all_messages_and_save_csv_file(
         f"{timeout_in_seconds} seconds"
     )
 
+    # TODO: Replace by PIXL queue package
     connection = create_connection()
     channel = connection.channel()
     queue = channel.queue_declare(queue=queue_name)
@@ -303,15 +238,6 @@ def queue_is_up() -> bool:
     connection_created_successfully = bool(connection.is_open)
     connection.close()
     return connection_created_successfully
-
-
-def clear_file(filepath: Path) -> None:
-    open(filepath, "w").close()
-
-
-def string_is_non_empty(string: str) -> bool:
-    """Does a string have more than just spaces and newlines"""
-    return len(string.split()) > 0
 
 
 def inform_user_that_queue_will_be_populated_from(path: Path) -> None:

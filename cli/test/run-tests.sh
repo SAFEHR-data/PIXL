@@ -31,7 +31,7 @@ cd test/
 docker compose up -d
 # Wait until the queue is up and healthy
 while ! docker ps | grep queue | grep -q healthy ;do
-    sleep 10
+    sleep 40
 done
 
 pytest ../src/pixl_cli
