@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import Any
 
@@ -62,13 +63,21 @@ def populate(csv_filename: str, queues: str, no_restart: bool) -> None:
 
         cached_state_filepath = state_filepath_for_queue(topic)
         if cached_state_filepath.exists() and not no_restart:
-            inform_user_that_queue_will_be_populated_from(cached_state_filepath)
-            messages = Messages.from_state_file(cached_state_filepath)
+            messages = messages_from_state(cached_state_filepath)
         else:
             messages = all_messages
 
         logger.info(f"Sending {len(messages)} messages")
         messages.send(topic)
+
+
+def messages_from_state(filepath: Path) -> "Messages":
+    logger.info(f"Extracting messages from {filepath}")
+
+    inform_user_that_queue_will_be_populated_from(filepath)
+    messages = Messages.from_state_file(filepath)
+    os.remove(filepath)
+    return messages
 
 
 @cli.group()
