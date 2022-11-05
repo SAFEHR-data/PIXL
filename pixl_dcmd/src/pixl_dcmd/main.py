@@ -19,35 +19,32 @@ import re
 from typing import Any, BinaryIO, Union
 
 from pydicom import Dataset, dcmwrite
-from pydicom.filebase import DicomFileLike
 import requests
-
-import orthanc
 
 DicomDataSetType = Union[Union[str, bytes, PathLike[Any]], BinaryIO]
 
 
 def write_dataset_to_bytes(dataset: Dataset) -> bytes:
-    """Write pydicom DICOM dataset to byte array"""
-    # Original from:
-    # https://pydicom.github.io/pydicom/stable/auto_examples/memory_dataset.html
+    """Write pydicom DICOM dataset to byte array
+
+    Original from:
+    https://pydicom.github.io/pydicom/stable/auto_examples/memory_dataset.html
+    """
     with BytesIO() as buffer:
-        # memory_dataset = DicomFileLike(buffer)
-        # dcmwrite(memory_dataset, dataset)
         dcmwrite(buffer, dataset)
         buffer.seek(0)
         return buffer.read()
 
 
 def remove_overlays(dataset: Dataset) -> Dataset:
-    """Search for overlays planes and remove them."""
-    # Overlay planes are repeating groups in [0x6000,xxxx].
-    # Up to 16 overlays can be stored in 0x6000 to 0x601E.
-    #
-    # See:
-    # https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.9.2.html
-    # for further details.
+    """Search for overlays planes and remove them.
 
+    Overlay planes are repeating groups in [0x6000,xxxx].
+    Up to 16 overlays can be stored in 0x6000 to 0x601E.
+    See:
+    https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.9.2.html
+    for further details.
+    """
     logging.info("Starting search for overlays...")
 
     for i in range(0x6000, 0x601F, 2):
@@ -58,7 +55,7 @@ def remove_overlays(dataset: Dataset) -> Dataset:
         if overlay:
             message = "Found overlay in: [0x{grp:04x}]".format(grp=i)
             logging.info(f"\t{message}")
-            orthanc.LogWarning(message)
+            # orthanc.LogWarning(message)
             message = "Deleting overlay in: [0x{grp:04x}]".format(grp=i)
             logging.info(f"\t{message}")
             for item in overlay:
@@ -66,28 +63,30 @@ def remove_overlays(dataset: Dataset) -> Dataset:
         else:
             message = "No overlay in: [0x{grp:04x}]".format(grp=i)
             logging.info(f"\t{message}")
-            orthanc.LogWarning(message)
+            # orthanc.LogWarning(message)
 
     return dataset
 
 
 def get_encrypted_uid(uid: str, salt: bytes) -> str:
-    """Hashes the suffix of a DICOM UID with the given salt."""
-    # This function retains the prefix, while sha512-hashing the subcomponents
-    # of the suffix. The number of digits per subcomponent is retained in the
-    # encrypted UID. This also ensures that no UID is greater than 64 chars.
-    # No leading zeros are permitted in a subcomponent unless the subcomponent
-    # has a length of 1.
-    #
-    # Original UID:	    1.2.124.113532.10.122.1.203.20051130.122937.2950157
-    # Encrypted UID:	1.2.124.113532.74.696.4.703.80155569.949794.5833842
-    #
-    # Encrypting the UIDs this way ensures that no time information remains but
-    # that a input UID will always result in the same output UID, for a given salt.
-    #
-    # Note. that while no application should ever rely on the structure of a UID,
-    # there is a possibility that the were the anonyimised data to be push to the
-    # originating scanner (or scanner type), the data may not be recognised.
+    """Hashes the suffix of a DICOM UID with the given salt.
+
+    This function retains the prefix, while sha512-hashing the subcomponents
+    of the suffix. The number of digits per subcomponent is retained in the
+    encrypted UID. This also ensures that no UID is greater than 64 chars.
+    No leading zeros are permitted in a subcomponent unless the subcomponent
+    has a length of 1.
+    
+    Original UID:	    1.2.124.113532.10.122.1.203.20051130.122937.2950157
+    Encrypted UID:	1.2.124.113532.74.696.4.703.80155569.949794.5833842
+    
+    Encrypting the UIDs this way ensures that no time information remains but
+    that a input UID will always result in the same output UID, for a given salt.
+    
+    Note. that while no application should ever rely on the structure of a UID,
+    there is a possibility that the were the anonyimised data to be push to the
+    originating scanner (or scanner type), the data may not be recognised.
+    """
 
     uid_elements = uid.split(".")
 
@@ -136,15 +135,15 @@ def get_bounded_age(age: str) -> str:
 
 
 def get_shifted_time(curr_time: str, study_time: str) -> Any:
-    """Shift hour of current time relative to study time."""
+    """Shift hour of current time relative to study time.
 
-    # Time fields in DICOM are in 24-hour clock and the following format:
-    #
-    # HHMMSS.FFFFFF
-    #
-    # Only HH is required as per the standard, but typically you will see:
-    # HHMMSS, HHMMSS.FF or # HHMMSS.FFFFFF
-
+    Time fields in DICOM are in 24-hour clock and the following format:
+    
+    HHMMSS.FFFFFF
+    
+    Only HH is required as per the standard, but typically you will see:
+    HHMMSS, HHMMSS.FF or # HHMMSS.FFFFFF
+    """
     # Get HH as integer
     study_time_hr = int(study_time[0:2])
     curr_time_hr = int(curr_time[0:2])
@@ -278,7 +277,7 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
                     new_value = new_value[:16]
 
                 dataset[grp, el].value = new_value
-                
+
                 message = "Changing: {name} (0x{grp:04x},0x{el:04x})".format(
                     name=name, grp=grp, el=el
                 )

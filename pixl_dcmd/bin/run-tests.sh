@@ -34,4 +34,4 @@ black src/pixl_dcmd
 
 flake8 --config ${CONF_FILE}
 
-#ENV=test pytest src/pixl_dcmd/tests
+ENV=test pytest src/pixl_dcmd/tests
