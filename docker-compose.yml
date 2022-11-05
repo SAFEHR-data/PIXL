@@ -78,7 +78,7 @@ services:
   orthanc-anon:
     build:
       context: .
-      dockerfile: ./docker/orthanc/Dockerfile
+      dockerfile: ./docker/orthanc-anon/Dockerfile
       args:
         <<: *build-args-common
     command: /run/secrets
@@ -112,7 +112,7 @@ services:
   orthanc-raw:
     build:
       context: .
-      dockerfile: ./docker/orthanc/Dockerfile
+      dockerfile: ./docker/orthanc-raw/Dockerfile
       args:
         <<: *build-args-common
     command: /run/secrets
@@ -123,7 +123,10 @@ services:
       ORTHANC_RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
       VNA_AE_TITLE : ${VNA_AE_TITLE}
       VNA_DICOM_PORT: ${VNA_DICOM_PORT}
-      VNA_IP_ADDR: ${VNA_IP_ADDR}
+      VNA_IP_ADDR: ${VNAQR_IP_ADDR}
+      VNAQR_AE_TITLE : ${VNAQR_AE_TITLE}
+      VNAQR_DICOM_PORT: ${VNAQR_DICOM_PORT}
+      VNAQR_IP_ADDR: ${VNA_IP_ADDR}
       ORTHANC_ANON_AE_TITLE: ${ORTHANC_ANON_AE_TITLE}
       ORTHANC_ANON_DICOM_PORT: "4242"
       ORTHANC_ANON_HOSTNAME: "orthanc-anon"

@@ -18,15 +18,20 @@
 
 set -eo pipefail
 
-BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="${BIN_DIR%/*}"
+BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+PACKAGE_DIR="${BIN_DIR%/*}"
+cd "$PACKAGE_DIR"
 
-cd $PROJECT_DIR
+echo $PACKAGE_DIR
 
-docker compose config --quiet
+CONF_FILE=../setup.cfg
 
-hasher/bin/run-tests.sh
-pixl_dcmd/bin/run-tests.sh
-pixl_rd/bin/run-tests.sh
-token_buffer/bin/run-tests.sh
+mypy --config-file ${CONF_FILE} src/pixl_dcmd
 
+isort --settings-path ${CONF_FILE} src/pixl_dcmd
+
+black src/pixl_dcmd
+
+flake8 --config ${CONF_FILE}
+
+#ENV=test pytest src/pixl_dcmd/tests
