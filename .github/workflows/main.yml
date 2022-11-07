@@ -101,3 +101,27 @@ jobs:
           bin/run-tests.sh
         env:
           ENV: test
+
+  dicom-de-id-tests:
+    runs-on: uclhdif-runner
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Init Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9.2
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r pixl_dcmd/src/requirements.txt
+
+      - name: Run tests
+        working-directory: pixl_dcmd
+        run: |
+          bin/run-tests.sh
+        env:
+          ENV: test
