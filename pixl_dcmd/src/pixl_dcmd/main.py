@@ -11,6 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+from decouple import config
 import hashlib
 from io import BytesIO
 import logging
@@ -170,9 +171,15 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
     # Set salt (this should be an ENV VAR).
     salt_plaintext = "PIXL"
 
+    HASHER_API_AZ_NAME = config('HASHER_API_AZ_NAME')
+    HASHER_API_PORT = config('HASHER_API_PORT')
+
     # Use hasher API to get hash of salt.
-    api_url = "http://hasher-api:8000/hash?message=" + salt_plaintext
-    response = requests.get(api_url)
+    hasher_host_url = "http://" + HASHER_API_AZ_NAME + ":" + HASHER_API_PORT 
+    payload = "/hash?message=" + salt_plaintext
+    request_url = hasher_host_url + payload
+
+    response = requests.get(request_url)
 
     logging.info(b"SALT = %a}" % response.content)
     salt = response.content
@@ -267,8 +274,9 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
         elif op == "secure-hash":
             if [grp, el] in dataset:
                 pat_value = str(dataset[grp, el].value)
-                api_url = "http://hasher-api:8000/hash?message=" + pat_value
-                response = requests.get(api_url)
+                payload = "/hash?message=" + pat_value
+                request_url = hasher_host_url + payload
+                response = requests.get(request_url)
                 logging.info(b"RESPONSE = %a}" % response.content)
 
                 new_value = response.content
