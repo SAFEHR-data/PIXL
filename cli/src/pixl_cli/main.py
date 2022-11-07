@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Any, Optional, List
+from typing import Any, List, Optional
 
 import pandas as pd
 
@@ -88,7 +88,7 @@ def messages_from_state(filepath: Path) -> "Messages":
     type=int,
     default=None,
     help="Rate at which to process items from a queue (in items per second)."
-         "If None then will use the default rate defined in the config file",
+    "If None then will use the default rate defined in the config file",
 )
 def start(queues: str, rate: Optional[int]) -> None:
     """Start consumers from a list of queues"""
