@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, List, Optional
 
 import pandas as pd
 
@@ -42,35 +42,29 @@ def cli(debug: bool) -> None:
     "--queues",
     default="ehr,pacs",
     show_default=True,
-    help="Comma seperated list of topics to populate with messages generated from the "
-    ".csv file. In the format <tenant>/<namespace>/<topic>",
+    help="Comma seperated list of queues to populate with messages generated from the "
+    ".csv file",
 )
 @click.option(
-    "--no-restart",
-    is_flag=True,
+    "--restart/--no-restart",
     show_default=True,
-    default=False,
-    help="Do not restart from a saved state. Otherwise will use "
-    "<topic-name>.csv files if they are present to rebuild the state.",
+    default=True,
+    help="Restart from a saved state. Otherwise will use <queue-name>.csv file",
 )
-def populate(csv_filename: str, queues: str, no_restart: bool) -> None:
-    """
-    Create the PIXL driver by populating the queues and setting the rate parameters
-    for the token buckets
-    """
+def populate(csv_filename: str, queues: str, restart: bool) -> None:
     logger.info(f"Populating queue from {csv_filename}")
 
     all_messages = messages_from_csv(Path(csv_filename))
-    for topic in queues.split(","):
+    for queue in queues.split(","):
 
-        cached_state_filepath = state_filepath_for_queue(topic)
-        if cached_state_filepath.exists() and not no_restart:
+        cached_state_filepath = state_filepath_for_queue(queue)
+        if cached_state_filepath.exists() and restart:
             messages = messages_from_state(cached_state_filepath)
         else:
             messages = all_messages
 
         logger.info(f"Sending {len(messages)} messages")
-        messages.send(topic)
+        messages.send(queue)
 
 
 def messages_from_state(filepath: Path) -> "Messages":
@@ -82,45 +76,65 @@ def messages_from_state(filepath: Path) -> "Messages":
     return messages
 
 
-@cli.group()
-def start() -> None:
-    """Start a consumer"""
-
-
-@cli.group()
-def update() -> None:
-    """Update a consumer"""
-
-
-@start.command("ehr")
+@cli.command()
+@click.option(
+    "--queues",
+    default="ehr,pacs",
+    show_default=True,
+    help="Comma seperated list of queues to start consuming from",
+)
 @click.option(
     "--rate",
     type=int,
-    default=20,
-    help="Rate at which EHR is requested from EMAP in queries per second",
+    default=None,
+    help="Rate at which to process items from a queue (in items per second)."
+    "If None then will use the default rate defined in the config file",
 )
-def start_ehr_extraction(rate: int) -> None:
-    """Start EHR extraction"""
+def start(queues: str, rate: Optional[int]) -> None:
+    """Start consumers from a list of queues"""
 
     if rate == 0:
-        raise RuntimeError("Cannot start EHR with extract rate of 0. Must be >0")
+        raise RuntimeError("Cannot start extract with a rate of 0. Must be >0")
 
-    _update_ehr_extract_rate(rate)
+    _start_or_update_extract(queues=queues.split(","), rate=rate)
 
 
-@update.command("ehr")
+@cli.command()
+@click.option(
+    "--queues",
+    default="ehr,pacs",
+    show_default=True,
+    help="Comma seperated list of queues to update the consume rate of",
+)
 @click.option(
     "--rate",
     type=int,
     required=True,
-    help="Rate at which EHR is requested from EMAP in queries per second",
+    help="Rate at which to process items from a queue (in items per second)",
 )
-def update_ehr_rate(rate: int) -> None:
-    _update_ehr_extract_rate(rate)
+def update(queues: str, rate: Optional[int]) -> None:
+    """Update one or a list of consumers with a defined rate"""
+    _start_or_update_extract(queues=queues.split(","), rate=rate)
 
 
-def _update_ehr_extract_rate(rate: int) -> None:
+def _start_or_update_extract(queues: List[str], rate: Optional[int]) -> None:
+    """Start or update the rate of extraction"""
+
+    for queue in queues:
+        if queue.lower() == "ehr":
+            _update_ehr_extract_rate(rate)
+        elif queue.lower() == "pacs":
+            raise NotImplementedError
+        else:
+            raise ValueError(f"Queue name: {queue} is not supported")
+
+
+def _update_ehr_extract_rate(rate: Optional[int]) -> None:
     logger.info("Updating the EHR extraction rate")
+
+    if rate is None:
+        rate = int(config["ehr_api"]["default_rate"])
+        logger.info(f"Using the default extract rate of {rate}/second")
 
     base_url = f"http://{config['ehr_api']['host']}:{config['ehr_api']['port']}"
     response = post(url=f"{base_url}/token-bucket-refresh-rate", json={"rate": rate})
@@ -135,46 +149,23 @@ def _update_ehr_extract_rate(rate: int) -> None:
         raise RuntimeError(f"Failed to start EHR extraction: {response}")
 
 
-@start.command("pacs")
-@click.option(
-    "--rate",
-    type=int,
-    default=5,
-    help="Rate at which images are requested from PACS in images per second",
-)
-def start_pacs_extraction(rate: int) -> None:
-    """Start PACS extraction"""
-    raise NotImplementedError
-
-
-@update.command("pacs")
-@click.option(
-    "--rate",
-    type=int,
-    required=True,
-    help="Rate at which images are requested from PACS in images per second",
-)
-def update_pacs_rate(rate: int) -> None:
-    raise NotImplementedError
-
-
 @cli.command()
 @click.option(
     "--queues",
     default="ehr,pacs",
     show_default=True,
-    help="Comma seperated list of topics to consume messages from",
+    help="Comma seperated list of queues to consume messages from",
 )
 def stop(queues: str) -> None:
     """
     Stop extracting images and/or EHR data. Will consume all messages present on the
-    topics and save them to a file
+    queues and save them to a file
     """
     logger.info(f"Stopping extraction of {queues}")
 
-    for topic in queues.split(","):
-        logger.info(f"Consuming messages on {topic}")
-        consume_all_messages_and_save_csv_file(topic)
+    for queue in queues.split(","):
+        logger.info(f"Consuming messages on {queue}")
+        consume_all_messages_and_save_csv_file(queue)
 
 
 # TODO: Replace by PIXL queue package
@@ -229,8 +220,8 @@ def consume_all_messages_and_save_csv_file(
     connection.close()
 
 
-def state_filepath_for_queue(topic: str) -> Path:
-    return Path(f"{topic.replace('/', '_')}.state")
+def state_filepath_for_queue(queue: str) -> Path:
+    return Path(f"{queue.replace('/', '_')}.state")
 
 
 class Messages(list):
@@ -248,7 +239,7 @@ class Messages(list):
         )
 
     def send(self, queue_name: str) -> None:
-        logger.debug(f"Sending {len(self)} messages to topic {queue_name}")
+        logger.debug(f"Sending {len(self)} messages to queue {queue_name}")
 
         connection = create_connection()
         channel = connection.channel()

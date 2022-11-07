@@ -102,7 +102,7 @@ jobs:
         env:
           ENV: test
 
-  driver-tests:
+  cli-tests:
     runs-on: uclhdif-runner
     timeout-minutes: 10
     steps:
@@ -122,4 +122,4 @@ jobs:
       - name: Run tests
         working-directory: cli/test
         run: |
-          ${{ github.workspace }}/cli/test/run-tests.sh
+          ./run-tests.sh
