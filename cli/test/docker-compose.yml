@@ -3,7 +3,7 @@ version: "3.8"
 services:
 
   queue:
-    container_name: pixl-queue
+    container_name: pixl-test-queue
     image: rabbitmq:3.11.2-management
     ports:
       - "5672:5672"

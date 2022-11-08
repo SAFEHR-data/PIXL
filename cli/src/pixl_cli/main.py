@@ -13,7 +13,7 @@ import yaml
 
 
 def _load_config(filename: str = "pixl_config.yml") -> dict:
-    """CLI configuration generated from a .yaml"""
+    """CLI configuration generated from a .yaml file"""
 
     if not Path(filename).exists():
         raise IOError(
@@ -32,7 +32,7 @@ config = _load_config()
 @click.group()
 @click.option("--debug/--no-debug", default=False)
 def cli(debug: bool) -> None:
-    """Main CLI entrypoint"""
+    """PIXL command line interface"""
     set_log_level("WARNING" if not debug else "DEBUG")
 
 
@@ -52,7 +52,8 @@ def cli(debug: bool) -> None:
     help="Restart from a saved state. Otherwise will use <queue-name>.csv file",
 )
 def populate(csv_filename: str, queues: str, restart: bool) -> None:
-    logger.info(f"Populating queue from {csv_filename}")
+    """Populate a (set of) queue(s) from a csv file"""
+    logger.info(f"Populating queue(s) {queues} from {csv_filename}")
 
     all_messages = messages_from_csv(Path(csv_filename))
     for queue in queues.split(","):
@@ -68,11 +69,13 @@ def populate(csv_filename: str, queues: str, restart: bool) -> None:
 
 
 def messages_from_state(filepath: Path) -> "Messages":
-    logger.info(f"Extracting messages from {filepath}")
+    """Extract a set of messages from a 'state' file"""
+    logger.info(f"Extracting messages from state: {filepath}")
 
     inform_user_that_queue_will_be_populated_from(filepath)
     messages = Messages.from_state_file(filepath)
     os.remove(filepath)
+
     return messages
 
 
@@ -91,7 +94,7 @@ def messages_from_state(filepath: Path) -> "Messages":
     "If None then will use the default rate defined in the config file",
 )
 def start(queues: str, rate: Optional[int]) -> None:
-    """Start consumers from a list of queues"""
+    """Start consumers for a set of queues"""
 
     if rate == 0:
         raise RuntimeError("Cannot start extract with a rate of 0. Must be >0")
@@ -118,25 +121,30 @@ def update(queues: str, rate: Optional[int]) -> None:
 
 
 def _start_or_update_extract(queues: List[str], rate: Optional[int]) -> None:
-    """Start or update the rate of extraction"""
+    """Start or update the rate of extraction for a list of queue names"""
 
     for queue in queues:
-        if queue.lower() == "ehr":
-            _update_ehr_extract_rate(rate)
-        elif queue.lower() == "pacs":
-            raise NotImplementedError
-        else:
-            raise ValueError(f"Queue name: {queue} is not supported")
+        _update_extract_rate(queue_name=queue, rate=rate)
 
 
-def _update_ehr_extract_rate(rate: Optional[int]) -> None:
-    logger.info("Updating the EHR extraction rate")
+def _update_extract_rate(queue_name: str, rate: Optional[int]) -> None:
+    logger.info("Updating the extraction rate")
+
+    config_key = f"{queue_name}_api"
+
+    if config_key not in config:
+        raise ValueError(
+            f"Cannot update the rate for {queue_name}. It {config_key} was"
+            f" not specified in the configuration"
+        )
 
     if rate is None:
-        rate = int(config["ehr_api"]["default_rate"])
+        rate = int(config[config_key]["default_rate"])
         logger.info(f"Using the default extract rate of {rate}/second")
 
-    base_url = f"http://{config['ehr_api']['host']}:{config['ehr_api']['port']}"
+    base_url = f"http://{config[config_key]['host']}:{config[config_key]['port']}"
+    logger.debug(f"POST {rate} to {base_url}")
+
     response = post(url=f"{base_url}/token-bucket-refresh-rate", json={"rate": rate})
 
     if response.status_code == 200:
@@ -146,7 +154,9 @@ def _update_ehr_extract_rate(rate: Optional[int]) -> None:
         )
 
     else:
-        raise RuntimeError(f"Failed to start EHR extraction: {response}")
+        raise RuntimeError(
+            f"Failed to update rate on consumer for {queue_name}: {response}"
+        )
 
 
 @cli.command()
@@ -220,8 +230,8 @@ def consume_all_messages_and_save_csv_file(
     connection.close()
 
 
-def state_filepath_for_queue(queue: str) -> Path:
-    return Path(f"{queue.replace('/', '_')}.state")
+def state_filepath_for_queue(queue_name: str) -> Path:
+    return Path(f"{queue_name.replace('/', '_')}.state")
 
 
 class Messages(list):
@@ -238,8 +248,9 @@ class Messages(list):
             ]
         )
 
+    # TODO: replace by queuing package
     def send(self, queue_name: str) -> None:
-        logger.debug(f"Sending {len(self)} messages to queue {queue_name}")
+        logger.info(f"Sending {len(self)} messages to queue {queue_name}")
 
         connection = create_connection()
         channel = connection.channel()
