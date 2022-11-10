@@ -15,7 +15,7 @@ from hypothesis import HealthCheck, example, given, settings
 from hypothesis import strategies as st
 import pytest
 
-from hasher.hashing import generate_hash
+from hasher.hashing import generate_hash, generate_salt
 
 
 def test_generate_hash_of_default_length(dummy_key):
@@ -59,3 +59,33 @@ def test_generate_hash_of_specific_length(dummy_key):
 def test_generate_hash_output_length(message, length, dummy_key):
     digest = generate_hash(message, length)
     assert len(digest) <= length
+
+
+def test_generate_salt_of_default_length():
+    salt = generate_salt()
+    assert len(salt) == 16
+
+
+@given(length=st.integers(min_value=-10, max_value=1))
+def test_generate_salt_enforces_min_length(length):
+    with pytest.raises(ValueError):
+        generate_salt(length)
+
+
+@given(length=st.integers(min_value=65, max_value=100))
+@settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
+def test_generate_salt_enforces_max_length(length):
+    with pytest.raises(ValueError):
+        generate_salt(length)
+
+
+def test_generate_salt_of_specific_length(dummy_key):
+    length = 9
+    salt = generate_salt(length)
+    assert len(salt) <= length
+
+
+def test_generate_salt_produces_unique_outputs(dummy_key):
+    salt_1 = generate_salt()
+    salt_2 = generate_salt()
+    assert salt_1 != salt_2

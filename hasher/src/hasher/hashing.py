@@ -15,6 +15,7 @@
 from functools import lru_cache
 from hashlib import blake2b
 import logging
+import secrets
 
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
@@ -52,7 +53,7 @@ def generate_hash(message: str, length: int = 64) -> str:
     The Azure DICOM service requires identifiers to be less than 64 characters.
 
     :param message: string to hash
-    :param length: number of characters in the output
+    :param length: maximum number of characters in the output (2 <= length <= 64)
     :return: hashed string
     """
     if length > 64:
@@ -61,9 +62,27 @@ def generate_hash(message: str, length: int = 64) -> str:
         raise ValueError(f"Minimum hash length is 2 characters, received: {length}")
 
     # HMAC digest is returned as hex encoded i.e. 2 characters per byte
-    digest_size = length // 2
+    output_bytes = length // 2
 
     key = fetch_key_from_vault()
     return blake2b(
-        message.encode("UTF-8"), digest_size=digest_size, key=key.encode("UTF-8")
+        message.encode("UTF-8"), digest_size=output_bytes, key=key.encode("UTF-8")
     ).hexdigest()
+
+
+def generate_salt(length: int = 16) -> str:
+    """
+    Generate a random text string in hexadecimal to be used as a salt.
+
+    :param length: maximum number of characters in the output (2 <= length <= 64)
+    :return: hexadecimal string
+    """
+    if length > 64:
+        raise ValueError(f"Maximum salt length is 64 characters, received: {length}")
+    elif length < 2:
+        raise ValueError(f"Minimum salt length is 2 characters, received: {length}")
+
+    # Output is hex encoded i.e. 2 characters per byte
+    output_bytes = length // 2
+
+    return secrets.token_hex(output_bytes)

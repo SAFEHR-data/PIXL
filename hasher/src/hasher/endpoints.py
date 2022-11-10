@@ -15,7 +15,7 @@
 from fastapi import APIRouter
 from starlette.responses import Response
 
-from hasher.hashing import generate_hash
+from hasher.hashing import generate_hash, generate_salt
 
 router = APIRouter()
 
@@ -26,8 +26,15 @@ async def heart_beat() -> str:
 
 
 @router.get(
-    "/hash", summary="Securely hash a string, producing an output of specified length"
+    "/hash",
+    summary="Produce secure hash with optional max output length (2 <= length <= 64)",
 )
 async def hash(message: str, length: int = 64) -> Response:
-    digest = generate_hash(message, length)
-    return Response(content=digest, media_type="application/text")
+    output = generate_hash(message, length)
+    return Response(content=output, media_type="application/text")
+
+
+@router.get("/salt", summary="Generate a salt of length (2 <= length <= 16)")
+async def salt(length: int = 16) -> Response:
+    output = generate_salt(length)
+    return Response(content=output, media_type="application/text")
