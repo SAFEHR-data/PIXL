@@ -33,7 +33,7 @@ jobs:
       - name: Init Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.10.7
+          python-version: 3.10.6
           cache: 'pip'
 
       - name: Install Python dependencies
@@ -87,7 +87,7 @@ jobs:
       - name: Init Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.10.7
+          python-version: 3.10.6
           cache: 'pip'
 
       - name: Install Python dependencies
@@ -126,6 +126,7 @@ jobs:
         env:
           ENV: test
 
+
   cli-tests:
     runs-on: uclhdif-runner
     timeout-minutes: 10
@@ -142,8 +143,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r cli/src/requirements.txt
+
       - name: Run tests
         working-directory: cli/test
         run: |
           ./run-tests.sh
-          
+
