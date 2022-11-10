@@ -25,7 +25,9 @@ async def heart_beat() -> str:
     return "OK"
 
 
-@router.get("/hash", summary="Securely hash a message")
-async def hash(message: str) -> Response:
-    digest = generate_hash(message)
+@router.get(
+    "/hash", summary="Securely hash a string, producing an output of specified length"
+)
+async def hash(message: str, length: int = 64) -> Response:
+    digest = generate_hash(message, length)
     return Response(content=digest, media_type="application/text")
