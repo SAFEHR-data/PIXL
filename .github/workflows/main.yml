@@ -124,7 +124,6 @@ jobs:
         run: |
           ./run-tests.sh
 
-
   ehr-api-tests:
     runs-on: uclhdif-runner
     timeout-minutes: 5

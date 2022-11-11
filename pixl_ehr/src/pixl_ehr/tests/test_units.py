@@ -1,3 +1,6 @@
+"""
+This file contains unit tests that do not require any test services
+"""
 from fastapi.testclient import TestClient
 from pixl_ehr.main import AppState, app, state
 from requests import Response

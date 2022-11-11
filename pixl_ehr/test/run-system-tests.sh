@@ -14,16 +14,11 @@
 # limitations under the License.
 set -euxo pipefail
 
-BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-PACKAGE_DIR="${BIN_DIR%/*}"
+THIS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+PACKAGE_DIR="${THIS_DIR%/*}"
 cd "$PACKAGE_DIR" || exit
 
-pip install -r src/requirements.txt
-
-CONF_FILE=../setup.cfg
-mypy --config-file ${CONF_FILE} src/pixl_ehr
-isort --settings-path ${CONF_FILE} src/pixl_ehr
-black src/pixl_ehr
-flake8 --config ${CONF_FILE} src/pixl_ehr
-
-ENV="test" pytest src/pixl_ehr
+cd test/
+docker compose up -d
+docker exec pixl-test-ehr-api "pytest pixl_ehr/tests/test_system.py"
+docker compose down

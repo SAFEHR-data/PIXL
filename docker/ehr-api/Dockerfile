@@ -30,5 +30,5 @@ RUN pip install --no-cache-dir ./pixl_ehr
 
 HEALTHCHECK CMD /usr/bin/curl -f http://0.0.0.0:8000/heart-beat || exit 1
 
-WORKDIR /app/hasher
+WORKDIR /app/pixl_ehr
 ENTRYPOINT ["uvicorn", "pixl_ehr.main:app", "--host", "0.0.0.0", "--port", "8000"]
