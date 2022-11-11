@@ -17,6 +17,11 @@
 
   // To enable plugins:
   "Plugins" : [ "/usr/share/orthanc/plugins" ],
+  "PythonScript" : "/etc/orthanc/anon.py",
+  "PythonVerbose" : false,
+  "Gdcm" : {
+    "Enable" : true
+  },
 
   // Trust CAs for DICOMweb over HTTPS
   "HttpsCACertificates": "/etc/ssl/certs/ca-certificates.crt"
