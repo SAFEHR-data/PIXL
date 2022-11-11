@@ -1,21 +1,21 @@
-import logging
 import asyncio
+from dataclasses import dataclass
+import logging
 
 import aio_pika
-from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
-from dataclasses import dataclass
-from ._version import __version__
-
+from pydantic import BaseModel
 import token_bucket as tb
+
+from ._version import __version__
 
 logger = logging.getLogger(__name__)
 QUEUE_NAME = "ehr"
 
 app = FastAPI(
     title="ehr-api",
-    description=f"EHR extraction service",
+    description="EHR extraction service",
     version=__version__,
     default_response_class=JSONResponse,
 )
@@ -50,9 +50,7 @@ state = AppState()
 
 async def _event_loop() -> None:
 
-    connection = await aio_pika.connect(
-        "amqp://guest:guest@queue:5672/"
-    )
+    connection = await aio_pika.connect("amqp://guest:guest@queue:5672/")
 
     async with connection:
         channel = await connection.channel()
@@ -67,13 +65,15 @@ async def _event_loop() -> None:
                         await message.ack()
                     else:
                         await message.reject(requeue=True)
-                except Exception: # noqa
-                    logger.error(f"Failed to process {message.body}. Not re-queuing")
+                except Exception:  # noqa
+                    logger.error(
+                        f"Failed to process {message.body.decode()}. Not re-queuing"
+                    )
                     await message.reject(requeue=False)
 
 
 @app.on_event("startup")
-async def startup_event():
+async def startup_event() -> None:
     asyncio.create_task(_event_loop())
 
 
@@ -87,20 +87,17 @@ class TokenRefreshUpdate(BaseModel):
 
 
 @app.post(
-    "/token-bucket-refresh-rate",
-    summary="Update the refresh rate in items per second"
+    "/token-bucket-refresh-rate", summary="Update the refresh rate in items per second"
 )
-async def update_tb_refresh_rate(item: TokenRefreshUpdate):
+async def update_tb_refresh_rate(item: TokenRefreshUpdate) -> str:
 
-    if item.rate < 0:
+    if not isinstance(item.rate, int) or item.rate < 0:
         raise HTTPException(
             status_code=status.HTTP_406_NOT_ACCEPTABLE,
-            detail=f"Refresh rate mush be a positive integer",
+            detail=f"Refresh rate mush be a positive integer. Had {item.rate}",
         )
 
     state.token_bucket = PixlTokenBucket(
-        rate=int(item.rate),
-        capacity=5,
-        storage=tb.MemoryStorage()
+        rate=int(item.rate), capacity=5, storage=tb.MemoryStorage()
     )
     return "Successfully updated the refresh rate"
