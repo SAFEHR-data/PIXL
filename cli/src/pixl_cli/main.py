@@ -183,7 +183,7 @@ def create_connection() -> pika.BlockingConnection:
 
     params = pika.ConnectionParameters(
         host=config["rabbitmq"]["host"],
-        port=int(config["rabbitmq"]["port"]),
+        port=config["rabbitmq"]["port"],
         # credentials=
     )
     return pika.BlockingConnection(params)
