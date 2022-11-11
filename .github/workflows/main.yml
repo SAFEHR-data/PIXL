@@ -103,7 +103,7 @@ jobs:
           ENV: test
 
   dicom-de-id-tests:
-    runs-on: uclhdif-runner
+#    runs-on: uclhdif-runner
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v3
