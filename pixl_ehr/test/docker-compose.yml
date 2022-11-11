@@ -18,6 +18,10 @@ services:
       interval: 10s
       timeout: 30s
       retries: 5
+    volumes:
+      - type: bind
+        source: .
+        target: /host/
 
   queue:
     container_name: pixl-test-queue

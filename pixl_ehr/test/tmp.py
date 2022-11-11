@@ -6,6 +6,10 @@ services being up
     - emap star
 """
 import pika
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel("INFO")
 
 message_body = "a,b,01/01/2022 00:01:00".encode("utf-8")
 
@@ -23,4 +27,9 @@ def add_single_message_to_the_queue(queue_name: str = "test_queue"):
     channel = connection.channel()
     channel.queue_declare(queue="test_queue")
     channel.basic_publish(exchange="", routing_key=queue_name, body=message_body)
+    print("published")
     connection.close()
+
+
+if __name__ == '__main__':
+    add_single_message_to_the_queue()
