@@ -104,6 +104,7 @@ jobs:
 
   dicom-de-id-tests:
 #    runs-on: uclhdif-runner
+    runs-on: ubuntu-22.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v3
