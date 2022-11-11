@@ -112,7 +112,7 @@ jobs:
       - name: Init Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9.2
+          python-version: 3.9.3
           cache: 'pip'
 
       - name: Install Python dependencies
