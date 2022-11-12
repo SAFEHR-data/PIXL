@@ -20,6 +20,7 @@ from pydicom.filebase import DicomFileLike
 import hashlib
 import orthanc
 import pprint
+import requests
 import threading
 import yaml
 
@@ -38,7 +39,23 @@ def AzureDICOMTokenRefresh():
     AZ_DICOM_ENDPOINT_CLIENT_SECRET = config('AZ_DICOM_ENDPOINT_CLIENT_SECRET')
     AZ_DICOM_ENDPOINT_TENANT_ID = config('AZ_DICOM_ENDPOINT_TENANT_ID')
 
-    #res = requests.post()
+    url = "https://login.microsoft.com/" + AZ_DICOM_ENDPOINT_TENANT_ID \
+    + "/oauth2/token"
+
+    payload = {
+        'client_id': AZ_DICOM_ENDPOINT_CLIENT_ID,
+        'grant_type': 'client_credentials',
+        'client_secret': AZ_DICOM_ENDPOINT_CLIENT_SECRET,
+        'resource': 'https://dicom.healthcareapis.azure.com'
+    }
+
+    response = requests.post(url, data=payload)
+    #logging.info(f"{payload}")
+    #logging.info(f"{response.content}")
+
+    access_token = response.json()["access_token"]
+    logging.info(f"{access_token}")
+
     TIMER = threading.Timer(AZ_DICOM_TOKEN_REFRESH_SECS, AzureDICOMTokenRefresh)
     TIMER.start()
 
