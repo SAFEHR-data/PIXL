@@ -34,10 +34,16 @@ def AzureDICOMTokenRefresh():
 
     orthanc.LogWarning("Refreshing Azure DICOM token")
 
+    ORTHANC_USERNAME = config('ORTHANC_USERNAME')
+    ORTHANC_PASSWORD = config('ORTHANC_PASSWORD')
+
     AZ_DICOM_TOKEN_REFRESH_SECS = int(config('AZ_DICOM_TOKEN_REFRESH_SECS'))
     AZ_DICOM_ENDPOINT_CLIENT_ID = config('AZ_DICOM_ENDPOINT_CLIENT_ID')
     AZ_DICOM_ENDPOINT_CLIENT_SECRET = config('AZ_DICOM_ENDPOINT_CLIENT_SECRET')
+    AZ_DICOM_ENDPOINT_NAME = config('AZ_DICOM_ENDPOINT_NAME')
     AZ_DICOM_ENDPOINT_TENANT_ID = config('AZ_DICOM_ENDPOINT_TENANT_ID')
+    AZ_DICOM_ENDPOINT_URL = config('AZ_DICOM_ENDPOINT_URL')
+    AZ_DICOM_HTTP_TIMEOUT = config('HTTP_TIMEOUT')
 
     url = "https://login.microsoft.com/" + AZ_DICOM_ENDPOINT_TENANT_ID \
     + "/oauth2/token"
@@ -54,7 +60,31 @@ def AzureDICOMTokenRefresh():
     #logging.info(f"{response.content}")
 
     access_token = response.json()["access_token"]
-    logging.info(f"{access_token}")
+
+    #logging.info(f"{access_token}")
+
+    bearer_str = "Bearer " + access_token
+
+    dicomweb_config = {
+        "Url" : AZ_DICOM_ENDPOINT_URL,
+        "ChunkedTransfers" : 'false',
+        "HttpHeaders" : {
+          "Authorization" : bearer_str,
+        },
+        "Timeout" : AZ_DICOM_HTTP_TIMEOUT
+    }
+
+    #logging.info(f"{dicomweb_config}")
+
+    url = "http://localhost:8042/dicom-web/servers/" + AZ_DICOM_ENDPOINT_NAME
+
+    try:
+        requests.post(url, auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD), data=dicomweb_config)
+    except requests.exceptions.RequestException as e:
+        orthanc.LogError("Failed to update DICOMweb token")
+        raise SystemExit(e)
+
+    orthanc.LogWarning("Updated DICOMweb token")
 
     TIMER = threading.Timer(AZ_DICOM_TOKEN_REFRESH_SECS, AzureDICOMTokenRefresh)
     TIMER.start()

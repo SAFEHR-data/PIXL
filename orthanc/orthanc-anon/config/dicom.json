@@ -73,15 +73,7 @@
   "DicomCheckModalityHost" : false,
 
   "DicomWeb" : {
-    "Ssl" : true,
-    "Servers" : {
-      "${AZ_DICOM_ENDPOINT_NAME}" : {
-        "Url" : "${AZ_DICOM_ENDPOINT_URL}",
-        "ChunkedTransfers" : false,
-        "HttpHeaders" : {
-          "Authorization" : "Bearer ${AZ_DICOM_ENDPOINT_TOKEN}"
-        }
-      }
-    }
+    "ServersInDatabase" : true ,
+    "Ssl" : true
   }
 }

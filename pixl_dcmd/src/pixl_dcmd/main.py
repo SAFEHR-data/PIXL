@@ -11,7 +11,6 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-from decouple import config
 import hashlib
 from io import BytesIO
 import logging
@@ -19,6 +18,7 @@ from os import PathLike
 import re
 from typing import Any, BinaryIO, Union
 
+from decouple import config
 from pydicom import Dataset, dcmwrite
 import requests
 
@@ -77,13 +77,13 @@ def get_encrypted_uid(uid: str, salt: bytes) -> str:
     encrypted UID. This also ensures that no UID is greater than 64 chars.
     No leading zeros are permitted in a subcomponent unless the subcomponent
     has a length of 1.
-    
+
     Original UID:	    1.2.124.113532.10.122.1.203.20051130.122937.2950157
     Encrypted UID:	1.2.124.113532.74.696.4.703.80155569.949794.5833842
-    
+
     Encrypting the UIDs this way ensures that no time information remains but
     that a input UID will always result in the same output UID, for a given salt.
-    
+
     Note. that while no application should ever rely on the structure of a UID,
     there is a possibility that the were the anonyimised data to be push to the
     originating scanner (or scanner type), the data may not be recognised.
@@ -139,9 +139,9 @@ def get_shifted_time(curr_time: str, study_time: str) -> Any:
     """Shift hour of current time relative to study time.
 
     Time fields in DICOM are in 24-hour clock and the following format:
-    
+
     HHMMSS.FFFFFF
-    
+
     Only HH is required as per the standard, but typically you will see:
     HHMMSS, HHMMSS.FF or # HHMMSS.FFFFFF
     """
@@ -171,11 +171,11 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
     # Set salt (this should be an ENV VAR).
     salt_plaintext = "PIXL"
 
-    HASHER_API_AZ_NAME = config('HASHER_API_AZ_NAME')
-    HASHER_API_PORT = config('HASHER_API_PORT')
+    HASHER_API_AZ_NAME = config("HASHER_API_AZ_NAME")
+    HASHER_API_PORT = config("HASHER_API_PORT")
 
     # Use hasher API to get hash of salt.
-    hasher_host_url = "http://" + HASHER_API_AZ_NAME + ":" + HASHER_API_PORT 
+    hasher_host_url = "http://" + HASHER_API_AZ_NAME + ":" + HASHER_API_PORT
     payload = "/hash?message=" + salt_plaintext
     request_url = hasher_host_url + payload
 
