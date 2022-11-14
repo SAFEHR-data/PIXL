@@ -26,4 +26,4 @@ isort --settings-path ${CONF_FILE} src/pixl_ehr
 black src/pixl_ehr
 flake8 --config ${CONF_FILE} src/pixl_ehr
 
-ENV="test" pytest src/pixl_ehr/tests/test_units.py
+ENV="test" pytest src/pixl_ehr/tests/test_app.py

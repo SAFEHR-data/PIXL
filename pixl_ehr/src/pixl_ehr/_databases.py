@@ -1,8 +1,9 @@
-import psycopg2 as pypg
 import logging
-
-from pixl_ehr.utils import env_var
 from typing import Optional
+
+from pixl_ehr._queries import SQLQuery
+from pixl_ehr.utils import env_var
+import psycopg2 as pypg
 
 logger = logging.getLogger("uvicorn")
 
@@ -10,40 +11,33 @@ logger = logging.getLogger("uvicorn")
 class Database:
     """Fake database wrapper"""
 
-    db_name: Optional[str] = None
-    username: Optional[str] = None
-    password: Optional[str] = None
-    host: Optional[str] = None
-
-    def __init__(self):
+    def __init__(
+        self,
+        db_name: Optional[str] = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        host: Optional[str] = None,
+    ) -> None:
 
         connection_string = (
-            f"dbname={self.db_name} "
-            f"user={self.username} "
-            f"password={self.password} "
-            f"host={self.host}"
+            f"dbname={db_name} user={username} password={password} host={host}"
         )
         self._connection = pypg.connect(connection_string)
         self._cursor = self._connection.cursor()
 
 
 class QueryableDatabase(Database):
-
-    def execute(self, query: "SQLQuery") -> Optional[tuple]:
+    def execute(self, query: SQLQuery) -> Optional[tuple]:
         """Execute an sql query"""
 
-        logger.debug(f"Running query: \n"
-                     f"{self._cursor.mogrify(str(query), vars=query.values).decode()}")
+        # logger.debug(f"Running query: \n"
+        #             f"{self._cursor.mogrify(str(query), vars=query.values).decode()}")
 
-        self._cursor.execute(query=str(query),
-                             vars=query.values)
+        self._cursor.execute(query=str(query), vars=query.values)
         row = self._cursor.fetchone()
-        return row
+        return None if row is None else tuple(row)
 
-    def execute_or_raise(self,
-                         query: "SQLQuery",
-                         error_str: str = "Failed"
-                         ) -> tuple:
+    def execute_or_raise(self, query: SQLQuery, error_str: str = "Failed") -> tuple:
 
         result = self.execute(query)
 
@@ -54,8 +48,10 @@ class QueryableDatabase(Database):
 
 
 class EMAPStar(QueryableDatabase):
-
-    db_name = env_var('EMAP_UDS_NAME')
-    username = env_var('EMAP_UDS_USER')
-    password = env_var('EMAP_UDS_PASSWORD')
-    host = env_var('EMAP_UDS_HOST')
+    def __init__(self) -> None:
+        super().__init__(
+            db_name=env_var("EMAP_UDS_NAME"),
+            username=env_var("EMAP_UDS_USER"),
+            password=env_var("EMAP_UDS_PASSWORD"),
+            host=env_var("EMAP_UDS_HOST"),
+        )

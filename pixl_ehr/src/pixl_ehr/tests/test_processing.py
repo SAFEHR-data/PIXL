@@ -14,5 +14,5 @@ study_datetime = "01/01/2022 00:01:00"
 message_body = f"{mrn},{accession_number},{study_datetime}".encode("utf-8")
 
 
-def test_message_processing():
+def test_message_processing() -> None:
     process_message(message_body)
