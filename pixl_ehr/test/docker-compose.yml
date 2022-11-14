@@ -20,8 +20,24 @@ services:
       retries: 5
     volumes:
       - type: bind
-        source: .
+        source: ..
         target: /host/
+    ports: # TODO: remove
+      - "9000:8000"
+    environment:
+      LOG_LEVEL: DEBUG
+      PIXL_DB_HOST: postgres
+      PIXL_DB_PORT: 5432
+      PIXL_DB_NAME: pixl
+      PIXL_DB_USER: postgres
+      PIXL_DB_PASSWORD: postgres
+      PIXL_DB_EHR_SCHEMA_NAME: emap_data
+      EMAP_UDS_HOST: star
+      EMAP_UDS_PORT: 5433
+      EMAP_UDS_NAME: postgres  # database name
+      EMAP_UDS_USER: postgres
+      EMAP_UDS_PASSWORD: postgres
+      EMAP_UDS_SCHEMA_NAME: star
 
   queue:
     container_name: pixl-test-queue
@@ -31,6 +47,9 @@ services:
       interval: 30s
       timeout: 30s
       retries: 3
+    ports: # TODO: remove
+      - "5672:5672"
+      - "15672:15672"
 
   postgres:
     container_name: pixl-test-db
@@ -57,8 +76,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.fake_emap_star
+      args:
+        N_TABLE_ROWS: 1000
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
       interval: 10s
       timeout: 30s
       retries: 5
+    ports: # TODO: remove
+      - "5432:5432"

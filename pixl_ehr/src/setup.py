@@ -11,5 +11,8 @@ setup(
     packages=find_packages(
         exclude=["*tests", "*.tests.*"],
     ),
+    package_data={
+        "pixl_ehr": ["sql/*.sql"],
+    },
     python_requires=">=3.10",
 )

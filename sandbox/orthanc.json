@@ -1,7 +1,0 @@
-{
-  "Name" : "${ORTHANC_NAME} in Docker Compose",
-  "RemoteAccessAllowed" : true,
-  "RegisteredUsers": {
-    "${ORTHANC_USERNAME}": "${ORTHANC_PASSWORD}"
-  }
-}

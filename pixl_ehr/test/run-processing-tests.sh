@@ -20,5 +20,5 @@ cd "$PACKAGE_DIR" || exit
 
 cd test/
 docker compose up -d
-docker exec pixl-test-ehr-api "pytest pixl_ehr/tests/test_system.py"
+docker exec pixl-test-ehr-api /bin/bash -c "pytest pixl_ehr/tests/test_processing.py"
 docker compose down
