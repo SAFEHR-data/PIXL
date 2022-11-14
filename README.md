@@ -12,7 +12,7 @@ several services orchestrated by [Docker Compose](https://docs.docker.com/compos
 Primary interface to the PIXL system.
 ### [Hasher API](./hasher/README.md)
 HTTP API to securely hash an identifier using a key stored in Azure Key Vault.
-### Orthanc Raw
+### [Orthanc Raw](./orthanc/orthanc-raw/README.md)
 A DICOM node which receives images from the upstream hospital systems and acts as cache for PIXL.
 ### Orthanc Anon
 A DICOM node which wraps our de-identifcation and cloud transfer components.
