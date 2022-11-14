@@ -15,15 +15,17 @@ ENV VIRTUAL_ENV=/app/venv
 RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-COPY ./pixl_ehr/src/requirements.txt .
-RUN pip install --no-cache-dir -U pip wheel setuptools \
-    && pip install --no-cache-dir -r requirements.txt
-
 RUN mkdir local_deps
 COPY ./token_buffer/src/ local_deps/token_buffer/
 COPY ./pixl_rd/src/ local_deps/pixl_rd/
 RUN for dir in local_deps/*/; do pip install --no-cache-dir -r "${dir}requirements.txt" $dir; done
+RUN python -m spacy download en_core_web_lg  # Download presido data
 
+COPY ./pixl_ehr/src/requirements.txt .
+# patch is needed to for image to work on a M1 mac..
+RUN sed -i '/psycopg2-binary==2.9.5/c\psycopg2==2.9.3' requirements.txt && \
+     pip install --no-cache-dir -U pip wheel setuptools \
+    && pip install --no-cache-dir -r requirements.txt
 
 COPY ./pixl_ehr/src ./pixl_ehr
 RUN pip install --no-cache-dir ./pixl_ehr

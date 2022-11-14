@@ -3,10 +3,16 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 import logging
 import os
+
+from copy import deepcopy
 from pathlib import Path
 from typing import Optional
 
-from pixl_ehr._databases import EMAPStar
+import requests
+
+from pixl_rd import deidentify_text
+
+from pixl_ehr._databases import EMAPStar, PIXLDatabase
 from pixl_ehr._queries import SQLQuery
 from pixl_ehr.utils import env_var
 
@@ -19,28 +25,32 @@ _this_dir = Path(os.path.dirname(__file__))
 def process_message(message_body: bytes) -> None:
     logger.info(f"Processing: {message_body.decode()}")
 
-    data = PatientEHRData.from_message(message_body)
-    db = EMAPStar()
+    raw_data = PatientEHRData.from_message(message_body)
+    emap_star_db = EMAPStar()
 
     pipeline = ProcessingPipeline(
-        SetAgeSexEthnicity(db),
-        SetHeight(db, time_cutoff_n_days=1),
-        SetWeight(db, time_cutoff_n_days=1),
-        SetGCS(db, time_cutoff_n_days=1),
-        SetReport(db),
+        SetAgeSexEthnicity(emap_star_db),
+        SetHeight(emap_star_db, time_cutoff_n_days=1),
+        SetWeight(emap_star_db, time_cutoff_n_days=1),
+        SetGCS(emap_star_db, time_cutoff_n_days=1),
+        SetReport(emap_star_db),
     )
-    data.update_using(pipeline)
+    raw_data.update_using(pipeline)
 
-    print(vars(data))
+    pixl_db = PIXLDatabase()
+
+    raw_data.persist(pixl_db, schema_name="emap_data", table_name="ehr_raw")
+    anon_data = raw_data.anonymise()
+    anon_data.persist(pixl_db, schema_name="emap_data", table_name="ehr_anon")
 
 
 @dataclass
 class PatientEHRData:
     """Dataclass for EHR unique to a patient and xray study"""
 
-    mrn: str  # | Required identifiers
-    accession_number: str  # |
-    acquisition_datetime: Optional[datetime] = None
+    mrn: str
+    accession_number: str
+    acquisition_datetime: Optional[datetime]
 
     age: Optional[int] = None
     sex: Optional[str] = None
@@ -78,6 +88,40 @@ class PatientEHRData:
                 step.update(self)
             except Exception as e:  # no-qa
                 logger.warning(e)
+
+    def persist(self, database: PIXLDatabase, schema_name: str, table_name: str) -> None:
+        """Persist a.k.a. save some data in a database"""
+        logger.debug(f"Persisting EHR and report data into "
+                     f"{database}.{schema_name}.{table_name}")
+
+        col_names = ["mrn", "accession_number", "age", "sex", "ethnicity", "height",
+                     "weight", "gcs", "xray_report"]
+
+        cols = ",".join(col_names)
+        vals = ",".join("%s" for _ in range(len(col_names)))
+
+        database.persist(
+            f"INSERT INTO {schema_name}.{table_name} ({cols}) VALUES ({vals})",
+            [self.mrn, self.accession_number, self.age, self.sex,
+             self.ethnicity, self.height, self.weight, self.glasgow_coma_scale,
+             self.report_text],
+        )
+        logger.debug(f"Persist successful! ")
+
+    def anonymise(self) -> "PatientEHRData":
+        """Anonymise these patient data by processing text and hashing identifiers"""
+
+        if self.report_text is not None:
+            self.report_text = deidentify_text(self.report_text)
+
+        self.mrn = pixl_hash(self.mrn)
+        self.accession_number = pixl_hash(self.accession_number)
+        self.acquisition_datetime = None
+
+        return self
+
+    def copy(self) -> "PatientEHRData":
+        return deepcopy(self)
 
 
 class Step(ABC):
@@ -220,3 +264,21 @@ def deserialise(message_body: bytes) -> dict:
         "accession_number": parts[1],
         "study_datetime": datetime.strptime(parts[2], "%d/%m/%Y %H:%M:%S"),
     }
+
+
+def pixl_hash(string: str) -> str:
+    """Use the PIXL hashing API to hash a string"""
+
+    response = requests.get("http://hasher-api:8000/hash", params={"message": string})
+    print(response)
+    if response.status_code == 200:
+        logger.debug(f"Hashed to {response.text}")
+        return response.text
+
+    raise RuntimeError(f"Failed to hash {string}")
+
+
+if __name__ == '__main__':
+
+    process_message(b"834330844,b,01/01/2022 00:01:00")
+

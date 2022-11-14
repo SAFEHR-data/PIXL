@@ -9,7 +9,7 @@ client = TestClient(app)
 
 
 def _is_error(response: Response) -> bool:
-    return 400 <= response.status_code < 450
+    return bool(400 <= int(response.status_code) < 450)
 
 
 def test_heartbeat_response_is_200() -> None:

@@ -14,11 +14,13 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
+      hasher-api:
+        condition: service_healthy
     healthcheck:
       interval: 10s
       timeout: 30s
       retries: 5
-    volumes:
+    volumes:  # TODO: remove
       - type: bind
         source: ..
         target: /host/
@@ -27,13 +29,11 @@ services:
     environment:
       LOG_LEVEL: DEBUG
       PIXL_DB_HOST: postgres
-      PIXL_DB_PORT: 5432
       PIXL_DB_NAME: pixl
       PIXL_DB_USER: postgres
       PIXL_DB_PASSWORD: postgres
       PIXL_DB_EHR_SCHEMA_NAME: emap_data
       EMAP_UDS_HOST: star
-      EMAP_UDS_PORT: 5433
       EMAP_UDS_NAME: postgres  # database name
       EMAP_UDS_USER: postgres
       EMAP_UDS_PASSWORD: postgres
@@ -70,9 +70,11 @@ services:
       interval: 10s
       timeout: 30s
       retries: 5
+    ports: # TODO: remove
+      - "5433:5432"
 
   star:
-    container_name: test_fake_star_db
+    container_name: test-fake-star-db
     build:
       context: .
       dockerfile: Dockerfile.fake_emap_star
@@ -85,3 +87,16 @@ services:
       retries: 5
     ports: # TODO: remove
       - "5432:5432"
+
+  hasher-api:
+    container_name: pixl-test-hasher
+    build:
+      context: ../../
+      dockerfile: ./docker/hasher-api/Dockerfile
+    environment:
+      ENV: test
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://hasher-api:8000/heart-beat" ]
+      interval: 10s
+      timeout: 30s
+      retries: 5

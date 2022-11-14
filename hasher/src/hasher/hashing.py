@@ -11,7 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-
+import os
 from functools import lru_cache
 from hashlib import blake2b
 import logging
@@ -36,6 +36,9 @@ def fetch_key_from_vault() -> str:
 
     :return: key
     """
+    if os.environ.get('ENV', None) == "test":
+        return "test_key"
+
     key_vault_uri = f"https://{AZURE_KEY_VAULT_NAME}.vault.azure.net"
     credentials = DefaultAzureCredential()
     client = SecretClient(vault_url=key_vault_uri, credential=credentials)
