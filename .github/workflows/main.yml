@@ -13,7 +13,7 @@ on:
 jobs:
 
   validate-docker-compose-config-file:
-    runs-on: uclhdif-runner
+    runs-on: ubuntu-22.04
     timeout-minutes: 5
     steps:
       - name: Checkout
@@ -25,7 +25,7 @@ jobs:
           docker compose config --quiet
 
   hasher-tests:
-    runs-on: uclhdif-runner
+    runs-on: ubuntu-22.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v3
@@ -33,7 +33,7 @@ jobs:
       - name: Init Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.10.6
+          python-version: '3.10'
           cache: 'pip'
 
       - name: Install Python dependencies
@@ -51,7 +51,7 @@ jobs:
           AZURE_KEY_VAULT_SECRET_NAME: test
 
   report-de-id-tests:
-    runs-on: uclhdif-runner
+    runs-on: ubuntu-22.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v3
@@ -59,7 +59,7 @@ jobs:
       - name: Init Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.10.6    # 3.10.7  fails to import numpy
+          python-version: '3.10.6'  # Numpy croaks on 3.10.7+
           cache: 'pip'
 
       - name: Install Python dependencies
@@ -79,7 +79,7 @@ jobs:
           ENV: test
 
   token-buffer-tests:
-    runs-on: uclhdif-runner
+    runs-on: ubuntu-22.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v3
@@ -87,7 +87,7 @@ jobs:
       - name: Init Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.10.6
+          python-version: '3.10'
           cache: 'pip'
 
       - name: Install Python dependencies
@@ -102,8 +102,8 @@ jobs:
         env:
           ENV: test
 
-  cli-tests:
-    runs-on: uclhdif-runner
+  dicom-de-id-tests:
+    runs-on: ubuntu-22.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v3
@@ -111,7 +111,32 @@ jobs:
       - name: Init Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.10.6
+          python-version: '3.9'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r pixl_dcmd/src/requirements.txt
+
+      - name: Run tests
+        working-directory: pixl_dcmd
+        run: |
+          bin/run-tests.sh
+        env:
+          ENV: test
+
+
+  cli-tests:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Init Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
           cache: 'pip'
 
       - name: Install Python dependencies
