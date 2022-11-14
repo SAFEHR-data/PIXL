@@ -17,5 +17,5 @@ set -euxo pipefail
 BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 PACKAGE_DIR="${BIN_DIR%/*}"
 
-./"${PACKAGE_DIR}"/test/run-lint-and-unit-tests.sh
-./"${PACKAGE_DIR}"/test/run-system-tests.sh
+. "${PACKAGE_DIR}"/test/run-lint-and-api-tests.sh
+. "${PACKAGE_DIR}"/test/run-processing-tests.sh
