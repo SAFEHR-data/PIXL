@@ -1,8 +1,10 @@
 import psycopg2 as pypg
+import logging
 
 from pixl_ehr.utils import env_var
 from typing import Optional
-from fastapi.logger import logger
+
+logger = logging.getLogger("uvicorn")
 
 
 class Database:

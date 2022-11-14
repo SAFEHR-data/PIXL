@@ -1,14 +1,17 @@
 import os
+import logging
+
 from pathlib import Path
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
 from typing import Optional
-from fastapi.logger import logger
 from pixl_ehr._databases import EMAPStar
 from pixl_ehr._queries import SQLQuery
 from pixl_ehr.utils import env_var
 
+logger = logging.getLogger("uvicorn")
+logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))
 
 _this_dir = Path(os.path.dirname(__file__))
 

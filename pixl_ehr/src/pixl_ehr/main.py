@@ -1,9 +1,8 @@
 import asyncio
-
+import logging
 import aio_pika
 import token_bucket as tb
 
-from fastapi.logger import logger
 from dataclasses import dataclass
 from typing import Callable
 from fastapi import FastAPI, HTTPException, status
@@ -20,6 +19,8 @@ app = FastAPI(
     version=__version__,
     default_response_class=JSONResponse,
 )
+
+logger = logging.getLogger("uvicorn")
 
 
 class PixlTokenBucket(tb.Limiter):
@@ -77,6 +78,7 @@ async def _queue_loop(callback: Callable = process_message) -> None:
 
 @app.on_event("startup")
 async def startup_event() -> None:
+
     asyncio.create_task(_queue_loop())
 
 
