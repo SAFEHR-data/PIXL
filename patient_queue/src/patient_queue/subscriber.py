@@ -36,3 +36,5 @@ class PixlConsumer:
     def shutdown(self):
         self.channel.stop_consuming()
         self.connection.close()
+
+

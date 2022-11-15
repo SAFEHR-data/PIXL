@@ -4,7 +4,7 @@
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#  http://www.apache.org/licenses/LICENSE-2.0
 #
 #  Unless required by applicable law or agreed to in writing, software
 #  distributed under the License is distributed on an "AS IS" BASIS,
@@ -12,22 +12,15 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+import logging
 from patient_queue.producer import PixlProducer
 
+if __name__=="__main__":
+    LOG_FORMAT = ('%(levelname) -10s %(asctime)s %(name) -30s %(funcName) '
+                  '-35s %(lineno) -5d: %(message)s')
+    LOGGER = logging.getLogger(__name__)
+    logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT)
 
-def test_create(dummy_url, dummy_queue) -> None:
-    """Checks that PixlProducer can be instantiated."""
-    pp = PixlProducer(_service_url=dummy_url, _queue=dummy_queue)
-    assert pp is not None
-    pp.stop()
-
-
-def test_connection_to_service(dummy_url, dummy_queue) -> None:
-    """Checks whether connection from producer to RabbitMQ service can be established."""
-    pp = PixlProducer(_service_url=dummy_url, _queue=dummy_queue)
-    pp.establish_keep_queue_open()
-
-    ## assert True
-    # assert pp.connection is not None
-    # assert pp.stopping is False
-    # pp.stop()
+    pp = PixlProducer()
+    pp.connect()
+    pp.publish_message(msg="test")

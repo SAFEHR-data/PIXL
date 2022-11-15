@@ -12,7 +12,11 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+import logging
 from enum import Enum
+from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 
 class AvailableTopics(Enum):
@@ -24,3 +28,14 @@ class AvailableTopics(Enum):
     DICOM = "dicom"
     EHR = "ehr"
     ORTHANC = "orthanc"
+
+
+def deserialise(message_body: bytes) -> dict:
+    logger.debug(f"De-serialising: {message_body.decode()}")
+
+    parts = message_body.decode().split(",")
+    return {
+        "mrn": parts[0],
+        "accession_number": parts[1],
+        "study_datetime": datetime.strptime(parts[2], "%d/%m/%Y %H:%M:%S"),
+    }
