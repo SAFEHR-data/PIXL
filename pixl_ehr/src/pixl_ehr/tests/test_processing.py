@@ -165,5 +165,5 @@ def test_message_processing() -> None:
     anon_row = pixl_db.execute("select * from emap_data.ehr_anon where gcs = %s", [gcs])
     anon_mrn, anon_accession_number = anon_row[:2]
     assert anon_mrn != mrn
-    assert anon_accession_number != anon_accession_number
+    assert anon_accession_number != accession_number
     assert name_of_doctor not in anon_row[-1]

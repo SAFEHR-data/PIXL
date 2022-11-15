@@ -155,6 +155,36 @@ services:
       - pixl-net
     restart: "no"
 
+  queue:
+    image: rabbitmq:3.11.2-management
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+  ehr-api:
+    build:
+      context: .
+      dockerfile: ./docker/ehr-api/Dockerfile
+    environment:
+      <<: *proxy-common
+      <<: *pixl-common-env
+      <<: *emap-db
+      # TODO: rabbitMQ params
+    env_file:
+      - ./docker/common.env
+    depends_on:
+      queue:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      hasher-api:
+        condition: service_healthy
+    healthcheck:
+      interval: 10s
+      timeout: 30s
+      retries: 5
 
   ################################################################################
   # Data Stores
