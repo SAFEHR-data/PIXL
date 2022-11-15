@@ -1,20 +1,18 @@
 from abc import ABC, abstractmethod
+from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 import logging
 import os
-
-from copy import deepcopy
 from pathlib import Path
 from typing import Optional
-
-import requests
-
-from pixl_rd import deidentify_text
 
 from pixl_ehr._databases import EMAPStar, PIXLDatabase
 from pixl_ehr._queries import SQLQuery
 from pixl_ehr.utils import env_var
+import requests
+
+from pixl_rd import deidentify_text
 
 logger = logging.getLogger("uvicorn")
 logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))
@@ -89,24 +87,45 @@ class PatientEHRData:
             except Exception as e:  # no-qa
                 logger.warning(e)
 
-    def persist(self, database: PIXLDatabase, schema_name: str, table_name: str) -> None:
+    def persist(
+        self, database: PIXLDatabase, schema_name: str, table_name: str
+    ) -> None:
         """Persist a.k.a. save some data in a database"""
-        logger.debug(f"Persisting EHR and report data into "
-                     f"{database}.{schema_name}.{table_name}")
+        logger.debug(
+            f"Persisting EHR and report data into "
+            f"{database}.{schema_name}.{table_name}"
+        )
 
-        col_names = ["mrn", "accession_number", "age", "sex", "ethnicity", "height",
-                     "weight", "gcs", "xray_report"]
+        col_names = [
+            "mrn",
+            "accession_number",
+            "age",
+            "sex",
+            "ethnicity",
+            "height",
+            "weight",
+            "gcs",
+            "xray_report",
+        ]
 
         cols = ",".join(col_names)
         vals = ",".join("%s" for _ in range(len(col_names)))
 
         database.persist(
             f"INSERT INTO {schema_name}.{table_name} ({cols}) VALUES ({vals})",
-            [self.mrn, self.accession_number, self.age, self.sex,
-             self.ethnicity, self.height, self.weight, self.glasgow_coma_scale,
-             self.report_text],
+            [
+                self.mrn,
+                self.accession_number,
+                self.age,
+                self.sex,
+                self.ethnicity,
+                self.height,
+                self.weight,
+                self.glasgow_coma_scale,
+                self.report_text,
+            ],
         )
-        logger.debug(f"Persist successful! ")
+        logger.debug("Persist successful!")
 
     def anonymise(self) -> "PatientEHRData":
         """Anonymise these patient data by processing text and hashing identifiers"""
@@ -270,15 +289,9 @@ def pixl_hash(string: str) -> str:
     """Use the PIXL hashing API to hash a string"""
 
     response = requests.get("http://hasher-api:8000/hash", params={"message": string})
-    print(response)
+
     if response.status_code == 200:
         logger.debug(f"Hashed to {response.text}")
         return response.text
 
     raise RuntimeError(f"Failed to hash {string}")
-
-
-if __name__ == '__main__':
-
-    process_message(b"834330844,b,01/01/2022 00:01:00")
-

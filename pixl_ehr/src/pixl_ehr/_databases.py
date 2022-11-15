@@ -1,9 +1,8 @@
 import logging
-from typing import Optional
+from typing import List, Optional
 
 from pixl_ehr._queries import SQLQuery
 from pixl_ehr.utils import env_var
-from typing import List
 import psycopg2 as pypg
 
 logger = logging.getLogger("uvicorn")
@@ -65,7 +64,7 @@ class EMAPStar(QueryableDatabase):
             host=env_var("EMAP_UDS_HOST"),
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "EMAPStarDatabase"
 
 
@@ -78,5 +77,5 @@ class PIXLDatabase(WriteableDatabase):
             host=env_var("PIXL_DB_HOST"),
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "PIXLDatabase"

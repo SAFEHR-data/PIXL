@@ -79,7 +79,7 @@ services:
       context: .
       dockerfile: Dockerfile.fake_emap_star
       args:
-        N_TABLE_ROWS: 1000
+        N_TABLE_ROWS: 2
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
       interval: 10s
