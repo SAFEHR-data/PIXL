@@ -149,8 +149,9 @@ jobs:
         run: |
           ./run-tests.sh
 
+
   ehr-api-tests:
-    runs-on: uclhdif-runner
+    runs-on: ubuntu-22.04
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v3
@@ -165,6 +166,8 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r pixl_ehr/src/requirements.txt
+          pip install -r pixl_rd/src/requirements.txt pixl_rd/src/
+          python -m spacy download en_core_web_lg
 
       - name: Run tests
         working-directory: pixl_ehr/test

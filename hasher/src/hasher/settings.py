@@ -49,8 +49,8 @@ try:
 except EnvError:
     LOG_ROOT_DIR = tempfile.gettempdir()
 
-AZURE_KEY_VAULT_NAME = None
-AZURE_KEY_VAULT_SECRET_NAME = None
+AZURE_KEY_VAULT_NAME = ""
+AZURE_KEY_VAULT_SECRET_NAME = ""
 
 
 if ENV != "test":
