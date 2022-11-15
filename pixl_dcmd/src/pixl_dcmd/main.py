@@ -162,17 +162,47 @@ def get_shifted_time(curr_time: str, study_time: str) -> Any:
     return new_time
 
 
+def subtract_time_const(curr_time: str, time_const: int) -> Any:
+    """Shift hour of current time by constant.
+
+    Time fields in DICOM are in 24-hour clock and the following format:
+
+    HHMMSS.FFFFFF
+
+    Only HH is required as per the standard, but typically you will see:
+    HHMMSS, HHMMSS.FF or # HHMMSS.FFFFFF
+    """
+    # Get HH as integer
+    curr_time_hr = int(curr_time[0:2])
+
+    # If current time minus offset is negative, wrap around midnight.
+    if (curr_time_hr - time_const) < 0:
+        hours_offset = curr_time_hr + 24 - time_const
+    else:
+        hours_offset = curr_time_hr - time_const
+
+    # Form new time from offset and remaining parts of the current time (MMSS.FFFFFF)
+    new_time = f"{hours_offset:02d}" + curr_time[2:]
+
+    return new_time
+
+
 def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
     """Apply anoymisation operations for a given set of tags to a dataset"""
 
     # Keep the original study time before any operations are applied.
-    orig_study_time = dataset[0x0008, 0x0030].value
+    # orig_study_time = dataset[0x0008, 0x0030].value
 
     # Set salt (this should be an ENV VAR).
     salt_plaintext = "PIXL"
 
     HASHER_API_AZ_NAME = config("HASHER_API_AZ_NAME")
     HASHER_API_PORT = config("HASHER_API_PORT")
+
+    # TODO: Get offset from Hasher on study-by-study basis.
+    TIME_OFFSET = int(config("TIME_OFFSET"))
+
+    logging.info(b"TIME_OFFSET = %i}" % TIME_OFFSET)
 
     # Use hasher API to get hash of salt.
     hasher_host_url = "http://" + HASHER_API_AZ_NAME + ":" + HASHER_API_PORT
@@ -248,7 +278,7 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
 
         # Shift time relative to the original study time.
         elif op == "time-shift":
-            new_time = get_shifted_time(dataset[grp, el].value, orig_study_time)
+            new_time = subtract_time_const(dataset[grp, el].value, TIME_OFFSET)
             logging.info(f"\tChanging {name}: {dataset[grp,el].value} -> {new_time}")
             dataset[grp, el].value = new_time
 
