@@ -11,8 +11,20 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-from pixl_rd.main import deidentify_text
 
-from ._version import __version__, __version_info__
+from setuptools import find_packages, setup
 
-__all__ = ["deidentify_text"]
+exec(open("./pixl_dcmd/_version.py").read())
+
+setup(
+    name="pixl_dcmd",
+    version=__version__,  # noqa: F821
+    description="DICOM de-identifier",
+    packages=find_packages(
+        exclude=[
+            "*tests",
+            "*.tests.*",
+        ],
+    ),
+    python_requires="==3.9.2",
+)

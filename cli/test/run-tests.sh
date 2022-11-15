@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-
-#
 # Copyright (c) 2022 University College London Hospitals NHS Foundation Trust
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,23 +12,27 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+set -euxo pipefail
 
-set -eo pipefail
+THIS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+PACKAGE_DIR="${THIS_DIR%/*}"
+cd "$PACKAGE_DIR" || exit
 
-BIN_DIR=$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)
-HASHER_DIR="${BIN_DIR%/*}"
-cd $HASHER_DIR
+pip install -r src/requirements.txt
 
-CONF_FILE=../../setup.cfg
+CONF_FILE=../setup.cfg
+mypy --config-file ${CONF_FILE} src/pixl_cli
+isort --settings-path ${CONF_FILE} src/pixl_cli
+black src/pixl_cli
+flake8 --config ${CONF_FILE} src/pixl_cli
 
+cd test/
 
-mypy --config-file ${CONF_FILE} hasher
+docker compose up -d
+# Wait until the queue is up and healthy
+while ! docker ps | grep queue | grep -q healthy ;do
+    sleep 40
+done
 
-isort --settings-path ${CONF_FILE} hasher
-
-black hasher
-
-flake8 --config ${CONF_FILE}
-
-PIXL_ENV=test pytest hasher/tests
+pytest ../src/pixl_cli
+docker compose down

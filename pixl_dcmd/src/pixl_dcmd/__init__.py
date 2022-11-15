@@ -11,8 +11,13 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-from pixl_rd.main import deidentify_text
+import logging
+
+from pixl_dcmd.main import apply_tag_scheme, remove_overlays, write_dataset_to_bytes
 
 from ._version import __version__, __version_info__
 
-__all__ = ["deidentify_text"]
+__all__ = ["remove_overlays", "write_dataset_to_bytes", "apply_tag_scheme"]
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)

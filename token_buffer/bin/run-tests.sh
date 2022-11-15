@@ -22,14 +22,16 @@ BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 PACKAGE_DIR="${BIN_DIR%/*}"
 cd "$PACKAGE_DIR"
 
-CONF_FILE=../../setup.cfg
+echo $PACKAGE_DIR
 
-mypy --config-file ${CONF_FILE} pixl_rd
+CONF_FILE=../setup.cfg
 
-isort --settings-path ${CONF_FILE} pixl_rd
+mypy --config-file ${CONF_FILE} src/token_buffer
 
-black pixl_rd
+isort --settings-path ${CONF_FILE} src/token_buffer
+
+black src/token_buffer
 
 flake8 --config ${CONF_FILE}
 
-ENV=test pytest pixl_rd
+ENV=test pytest src/token_buffer/tests

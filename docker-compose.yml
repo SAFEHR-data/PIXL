@@ -78,7 +78,7 @@ services:
   orthanc-anon:
     build:
       context: .
-      dockerfile: ./docker/orthanc/Dockerfile
+      dockerfile: ./docker/orthanc-anon/Dockerfile
       args:
         <<: *build-args-common
     command: /run/secrets
@@ -91,10 +91,16 @@ services:
       ORTHANC_RAW_DICOM_PORT: "4242"
       ORTHANC_RAW_HOSTNAME: "orthanc-raw"
       DICOM_WEB_PLUGIN_ENABLED: ${ENABLE_DICOM_WEB}
+      HASHER_API_AZ_NAME: ${HASHER_API_AZ_NAME}
+      HASHER_API_PORT: 8000
       HTTP_TIMEOUT: ${ORTHANC_ANON_HTTP_TIMEOUT}
       AZ_DICOM_ENDPOINT_NAME: ${AZ_DICOM_ENDPOINT_NAME}
       AZ_DICOM_ENDPOINT_URL: ${AZ_DICOM_ENDPOINT_URL}
       AZ_DICOM_ENDPOINT_TOKEN: ${AZ_DICOM_ENDPOINT_TOKEN}
+      AZ_DICOM_ENDPOINT_CLIENT_ID: ${AZ_DICOM_ENDPOINT_CLIENT_ID}
+      AZ_DICOM_ENDPOINT_CLIENT_SECRET: ${AZ_DICOM_ENDPOINT_CLIENT_SECRET}
+      AZ_DICOM_ENDPOINT_TENANT_ID: ${AZ_DICOM_ENDPOINT_TENANT_ID}
+      AZ_DICOM_TOKEN_REFRESH_SECS: "60"
       <<: *proxy-common
       <<: *pixl-common-env
     ports:
@@ -112,7 +118,7 @@ services:
   orthanc-raw:
     build:
       context: .
-      dockerfile: ./docker/orthanc/Dockerfile
+      dockerfile: ./docker/orthanc-raw/Dockerfile
       args:
         <<: *build-args-common
     command: /run/secrets
@@ -123,7 +129,10 @@ services:
       ORTHANC_RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
       VNA_AE_TITLE : ${VNA_AE_TITLE}
       VNA_DICOM_PORT: ${VNA_DICOM_PORT}
-      VNA_IP_ADDR: ${VNA_IP_ADDR}
+      VNA_IP_ADDR: ${VNAQR_IP_ADDR}
+      VNAQR_AE_TITLE : ${VNAQR_AE_TITLE}
+      VNAQR_DICOM_PORT: ${VNAQR_DICOM_PORT}
+      VNAQR_IP_ADDR: ${VNA_IP_ADDR}
       ORTHANC_ANON_AE_TITLE: ${ORTHANC_ANON_AE_TITLE}
       ORTHANC_ANON_DICOM_PORT: "4242"
       ORTHANC_ANON_HOSTNAME: "orthanc-anon"
