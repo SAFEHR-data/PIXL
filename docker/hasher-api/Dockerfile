@@ -18,7 +18,7 @@ WORKDIR /app
 
 ENV VIRTUAL_ENV=/app/venv
 RUN python3 -m venv $VIRTUAL_ENV
-ENV PATH="$VIRTUAL_ENV/bin"
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # 3rd party deps
 COPY ./hasher/src/requirements.txt .
