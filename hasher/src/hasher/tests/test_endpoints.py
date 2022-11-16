@@ -25,8 +25,27 @@ def test_heart_beat_endpoint():
     assert response.json() == "OK"
 
 
-def test_hashing_endpoint(dummy_key):
+def test_hash_endpoint_with_default_length(dummy_key):
     response = client.get("/hash", params={"message": "test"})
     expected = "270426312ab76c2f0df60b6cef3d14aab6bc17219f1a76e63edf88a8f705c17a"
     assert response.status_code == 200
     assert response.text == expected
+
+
+def test_hash_endpoint_with_custom_length(dummy_key):
+    response = client.get("/hash", params={"message": "test", "length": 16})
+    expected = "b88ea642703eed33"
+    assert response.status_code == 200
+    assert response.text == expected
+
+
+def test_salt_endpoint_with_default_length():
+    response = client.get("/salt")
+    assert response.status_code == 200
+    assert len(response.text) == 16
+
+
+def test_salt_endpoint_with_custom_length():
+    response = client.get("/salt", params={"length": 8})
+    assert response.status_code == 200
+    assert len(response.text) == 8
