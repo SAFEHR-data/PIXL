@@ -5,9 +5,11 @@ from typing import Any, List, Optional
 import pandas as pd
 
 import click
-import pika
+
 from pixl_cli._logging import logger, set_log_level
 from pixl_cli._utils import clear_file, string_is_non_empty
+from patient_queue.producer import PixlProducer
+
 from requests import post
 import yaml
 
@@ -27,7 +29,6 @@ def _load_config(filename: str = "pixl_config.yml") -> dict:
 
 
 config = _load_config()
-
 
 @click.group()
 @click.option("--debug/--no-debug", default=False)
@@ -57,10 +58,11 @@ def populate(csv_filename: str, queues: str, restart: bool) -> None:
 
     all_messages = messages_from_csv(Path(csv_filename))
     for queue in queues.split(","):
-
+        producer = create_pixl_producer(queue=queue)
+        producer.connect()
         cached_state_filepath = state_filepath_for_queue(queue)
         if cached_state_filepath.exists() and restart:
-            messages = messages_from_state(cached_state_filepath)
+            messages = messages_from_state(cached_state_filepath, producer=producer)
         else:
             messages = all_messages
 
@@ -68,12 +70,20 @@ def populate(csv_filename: str, queues: str, restart: bool) -> None:
         messages.send(queue)
 
 
-def messages_from_state(filepath: Path) -> "Messages":
+def create_pixl_producer(queue=None):
+    """
+    Create producer with config information.
+    :param queue: Queue the producer should be created for. However, can also be none.
+    """
+    return PixlProducer(host=config["rabbitmq"]["host"], port=config["rabbitmq"]["port"], queue=queue)
+
+
+def messages_from_state(filepath: Path, producer: PixlProducer) -> "Messages":
     """Extract a set of messages from a 'state' file"""
     logger.info(f"Extracting messages from state: {filepath}")
 
     inform_user_that_queue_will_be_populated_from(filepath)
-    messages = Messages.from_state_file(filepath)
+    messages = Messages(producer=producer).from_state_file(filepath)
     os.remove(filepath)
 
     return messages
@@ -174,51 +184,34 @@ def stop(queues: str) -> None:
     logger.info(f"Stopping extraction of {queues}")
 
     for queue in queues.split(","):
+        producer = create_pixl_producer(queue=queue)
         logger.info(f"Consuming messages on {queue}")
-        consume_all_messages_and_save_csv_file(queue)
-
-
-# TODO: Replace by PIXL queue package
-def create_connection() -> pika.BlockingConnection:
-
-    params = pika.ConnectionParameters(
-        host=config["rabbitmq"]["host"],
-        port=config["rabbitmq"]["port"],
-        # credentials=
-    )
-    return pika.BlockingConnection(params)
+        consume_all_messages_and_save_csv_file(producer=producer)
 
 
 def consume_all_messages_and_save_csv_file(
-    queue_name: str, timeout_in_seconds: int = 5
+    producer: PixlProducer, timeout_in_seconds: int = 5
 ) -> None:
     logger.info(
-        f"Will consume all messages on {queue_name} queue and timeout after "
+        f"Will consume all messages on {producer.queue} queue and timeout after "
         f"{timeout_in_seconds} seconds"
     )
 
-    # TODO: Replace by PIXL queue package
-    connection = create_connection()
-    channel = connection.channel()
-    queue = channel.queue_declare(queue=queue_name)
+    producer.connect()
 
-    if queue.method.message_count > 0:
+    if producer.queue.method.message_count > 0:
         logger.info("Found messages in the queue. Clearing the state file")
-        clear_file(state_filepath_for_queue(queue_name))
+        clear_file(state_filepath_for_queue(producer.queue))
 
     def callback(method: Any, properties: Any, body: Any) -> None:
 
         try:
-            with open(state_filepath_for_queue(queue_name), "a") as csv_file:
+            with open(state_filepath_for_queue(producer.queue), "a") as csv_file:
                 print(body.decode(), file=csv_file)
         except:  # noqa
             logger.debug("Failed to consume")
 
-    generator = channel.consume(
-        queue=queue_name,
-        auto_ack=True,
-        inactivity_timeout=timeout_in_seconds,  # Yields (None, None, None) after this
-    )
+    generator = producer.consume_all()
 
     for args in generator:
         if all(arg is None for arg in args):
@@ -227,7 +220,7 @@ def consume_all_messages_and_save_csv_file(
 
         callback(*args)
 
-    connection.close()
+    pp.close()
 
 
 def state_filepath_for_queue(queue_name: str) -> Path:
@@ -235,6 +228,13 @@ def state_filepath_for_queue(queue_name: str) -> Path:
 
 
 class Messages(list):
+    def __init__(self, producer):
+        """
+        Initialisation of RabbitMQ service connection.
+        :param producer: Producer used for publishing messages.
+        """
+        self._producer = producer
+
     @classmethod
     def from_state_file(cls, filepath: Path) -> "Messages":
         logger.info(f"Creating messages from {filepath}")
@@ -248,20 +248,8 @@ class Messages(list):
             ]
         )
 
-    # TODO: replace by queuing package
-    def send(self, queue_name: str) -> None:
-        logger.info(f"Sending {len(self)} messages to queue {queue_name}")
-
-        connection = create_connection()
-        channel = connection.channel()
-        channel.queue_declare(queue=queue_name)
-
-        for message in self:
-            channel.basic_publish(
-                exchange="", routing_key=queue_name, body=message.encode("utf-8")
-            )
-
-        connection.close()
+    def send(self) -> None:
+        self._producer.publish(self)
         logger.info(f"Sent {len(self)} messages")
 
 
@@ -303,9 +291,10 @@ def messages_from_csv(filepath: Path) -> Messages:
 
 
 def queue_is_up() -> bool:
-    connection = create_connection()
-    connection_created_successfully = bool(connection.is_open)
-    connection.close()
+    producer = create_pixl_producer()
+    producer.connect()
+    connection_created_successfully = producer.connection.is_open()
+    producer.close()
     return connection_created_successfully
 
 

@@ -19,17 +19,6 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 
-class AvailableTopics(Enum):
-    """
-    In Pulsar, topics are offered to consumers for subscription. This Enum provides an overview over all the topics
-    that are available as part of Pixl. At the moment, it is envisaged that there will be two different topics, one
-    for the image and one for the EHR demographics download.
-    """
-    DICOM = "dicom"
-    EHR = "ehr"
-    ORTHANC = "orthanc"
-
-
 def deserialise(message_body: bytes) -> dict:
     logger.debug(f"De-serialising: {message_body.decode()}")
 

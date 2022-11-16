@@ -13,21 +13,28 @@
 #  limitations under the License.
 
 from patient_queue.producer import PixlProducer
+from time import sleep
+
+TEST_URL = "localhost"
+TEST_PORT = 5672
+TEST_QUEUE = "test"
 
 
-def test_create(dummy_url, dummy_queue) -> None:
+def test_create_pixl_producer() -> None:
     """Checks that PixlProducer can be instantiated."""
-    pp = PixlProducer(_service_url=dummy_url, _queue=dummy_queue)
-    assert pp is not None
-    pp.stop()
+    pp = PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE)
+    pp.connect()
+    assert pp.connection.is_open
+    pp.close()
 
 
-def test_connection_to_service(dummy_url, dummy_queue) -> None:
-    """Checks whether connection from producer to RabbitMQ service can be established."""
-    pp = PixlProducer(_service_url=dummy_url, _queue=dummy_queue)
-    pp.establish_keep_queue_open()
+def test_publish() -> None:
+    pp = PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE)
+    pp.connect()
+    pp.publish(msgs=["test"])
+    sleep(10)
+    assert pp._queue.method.message_count == 1
+    pp.clear_queue()
+    pp.close()
 
-    ## assert True
-    # assert pp.connection is not None
-    # assert pp.stopping is False
-    # pp.stop()
+

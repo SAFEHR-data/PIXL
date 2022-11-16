@@ -12,12 +12,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-import functools
 import logging
-import json
-
 import pika
-from pika.exchange_type import ExchangeType
 
 LOGGER = logging.getLogger(__name__)
 
@@ -26,73 +22,78 @@ class PixlProducer(object):
     """
     Generic publisher for RabbitMQ.
     """
-    EXCHANGE = 'message'
-    EXCHANGE_TYPE = ExchangeType.topic
-    QUEUE = 'ehr'
-    ROUTING_KEY = 'ehr'
 
-    def __init__(self):
-        """Setup the example publisher object, passing in the URL we will use
-        to connect to RabbitMQ.
-        :param str amqp_url: The URL for connecting to RabbitMQ
+    def __init__(self, host, port, queue_name):
+        """
+        Initialising RabbitMQ service configuration for connection.
+        :param str host: URL for the RabbitMQ service
+        :param int port: Port on which RabbitMQ service is running
+        :param str queue: Name of the queue this producer is to publish on
         """
         self._connection = None
         self._channel = None
+        self._queue = None
+        self.queue_name = queue_name
+        self._host = host
+        self._port = port
 
-    def connect(self):
-        """This method connects to RabbitMQ, returning the connection handle.
-        When the connection is established, the on_connection_open method
-        will be invoked by pika.
-        :rtype: pika.SelectConnection
+    def connect(self) -> None:
         """
-        LOGGER.info('Attempting to establish connection ... ')
-        params = pika.ConnectionParameters()
-        self._connection = pika.SelectConnection(params, on_open_callback=self.on_connected)
-        self._connection.ioloop.start()
+        Establishes connection to RabbitMQ service.
+        :return: Connection
+        """
+        params = pika.ConnectionParameters(
+            host=self._host,
+            port=self._port
+        )
+        if self._connection is None or self._connection.is_closed:
+            self._connection = pika.BlockingConnection(params)
 
-    def on_connected(self, new_connection):
-        """
-        :rtype: pika.SelectConnection
-        """
-        LOGGER.info('Attempting to establish channel')
-        self._connection.channel(on_open_callback=self.on_channel_open)
+            if self._channel is None or self._channel.is_closed:
+                self._channel = self._connection.channel()
+            self._queue = self._channel.queue_declare(queue=self.queue_name)
 
-    def on_channel_open(self, channel):
-        """This method is invoked by pika when the channel has been opened.
-        The channel object is passed in so we can make use of it.
-        Since the channel is now open, we'll declare the exchange to use.
-        :param pika.channel.Channel channel: The channel object
+    def publish(self, msgs: list) -> None:
         """
-        LOGGER.info('Channel opened')
-        self._channel = channel
-        self._channel.queue_declare(queue=self.QUEUE, callback=self.on_queue_declareok)
-
-    def on_queue_declareok(self, _unused_frame):
-        """Method invoked by pika when the Queue.Declare RPC call made in
-        setup_queue has completed. In this method we will bind the queue
-        and exchange together with the routing key by issuing the Queue.Bind
-        RPC command. When this command is complete, the on_bindok method will
-        be invoked by pika.
-        :param pika.frame.Method _unused_frame: The Queue.DeclareOk frame
+        Open connection to queue and send a list of message. Attempt to shutdown gracefully afterwards
+        :return:
         """
-        LOGGER.info('Binding %s to %s with %s', self.EXCHANGE, self.QUEUE,
-                    self.ROUTING_KEY)
-        self._channel.queue_bind(self.QUEUE,
-                                 self.EXCHANGE,
-                                 routing_key=self.ROUTING_KEY)
+        if msgs:
+            for msg in msgs:
+                LOGGER.debug(f"Message {msg} published to queue {self.queue_name}")
+                self._channel.basic_publish(exchange="", routing_key=self.queue_name+str("key"), body=msg.encode("utf-8"))
+        else:
+            LOGGER.debug("List of messages is empty so nothing will be published to queue.")
 
-    def publish_message(self, msg):
-        """If the class is not stopping, publish a message to RabbitMQ,
-        appending a list of deliveries with the message number that was sent.
-        This list will be used to check for delivery confirmations in the
-        on_delivery_confirmations method.
-        Once the message has been sent, schedule another message to be sent.
-        The main reason I put scheduling in was just so you can get a good idea
-        of how the process is flowing by slowing down and speeding up the
-        delivery intervals by changing the PUBLISH_INTERVAL constant in the
-        class.
+    def consume_all(self, timeout_in_seconds) -> tuple():
         """
-        self._connection.ioloop.call_later(1, self.send_message(msg=msg))
+        Retrieving all messages still on queue for save shutdown.
+        :param timeout_in_seconds: Causes shutdown after the timeout (specified in secs)
+        :return: Generator to all the messages in the queue that will be auto acknowledge, i.e. delete from queue.
+        """
+        self.connect()
+        generator = self._channel.consume(
+            queue=self.queue_name,
+            auto_ack=True,
+            inactivity_timeout=timeout_in_seconds,  # Yields (None, None, None) after this
+        )
+        return generator
 
-    def send_message(self, msg):
-        self._channel.basic_publish(msg)
+    def close(self) -> None:
+        """
+        Shutdown the connection to RabbitMQ service.
+        :return:
+        """
+        self._channel.close()
+        self._connection.close()
+
+    def clear_queue(self):
+        self._channel.queue_purge(self.queue_name)
+
+    @property
+    def connection(self):
+        return self._connection
+
+    @property
+    def channel(self):
+        return self._channel
