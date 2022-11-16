@@ -15,6 +15,7 @@ from functools import lru_cache
 from hashlib import blake2b
 import logging
 import os
+import secrets
 
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
@@ -49,17 +50,42 @@ def fetch_key_from_vault() -> str:
         return str(key.value)
 
 
-def generate_hash(message: str) -> str:
+def generate_hash(message: str, length: int = 64) -> str:
     """
     Generate a keyed hash digest from the message using Blake2b algorithm.
-    The Azure DICOM service requires identifiers to be 1-64 characters long
-    and digest is returned as hex encoded i.e. 2 characters per byte
-    so do not increase the DIGEST_SIZE
+    The Azure DICOM service requires identifiers to be less than 64 characters.
 
     :param message: string to hash
+    :param length: maximum number of characters in the output (2 <= length <= 64)
     :return: hashed string
     """
+    if length > 64:
+        raise ValueError(f"Maximum hash length is 64 characters, received: {length}")
+    elif length < 2:
+        raise ValueError(f"Minimum hash length is 2 characters, received: {length}")
+
+    # HMAC digest is returned as hex encoded i.e. 2 characters per byte
+    output_bytes = length // 2
+
     key = fetch_key_from_vault()
     return blake2b(
-        message.encode("UTF-8"), digest_size=32, key=key.encode("UTF-8")
+        message.encode("UTF-8"), digest_size=output_bytes, key=key.encode("UTF-8")
     ).hexdigest()
+
+
+def generate_salt(length: int = 16) -> str:
+    """
+    Generate a random text string in hexadecimal to be used as a salt.
+
+    :param length: maximum number of characters in the output (2 <= length <= 64)
+    :return: hexadecimal string
+    """
+    if length > 64:
+        raise ValueError(f"Maximum salt length is 64 characters, received: {length}")
+    elif length < 2:
+        raise ValueError(f"Minimum salt length is 2 characters, received: {length}")
+
+    # Output is hex encoded i.e. 2 characters per byte
+    output_bytes = length // 2
+
+    return secrets.token_hex(output_bytes)
