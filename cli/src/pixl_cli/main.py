@@ -178,6 +178,12 @@ def stop(queues: str) -> None:
         consume_all_messages_and_save_csv_file(queue)
 
 
+@cli.command()
+def kill() -> None:
+    """Stop all the PIXL services"""
+    os.system("docker compose stop")
+
+
 # TODO: Replace by PIXL queue package
 def create_connection() -> pika.BlockingConnection:
 
