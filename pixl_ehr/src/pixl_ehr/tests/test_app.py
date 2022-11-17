@@ -39,5 +39,8 @@ def test_updating_the_token_refresh_rate_updates_state() -> None:
     assert state.token_bucket.has_token
     assert response.status_code == 200
 
+    response = client.get("/token-bucket-refresh-rate")
+    assert response.text == '{"rate":1}'
+
     # This test uses shared global state, which must be reverted... not ideal.
     state.token_bucket = AppState().token_bucket

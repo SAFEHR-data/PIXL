@@ -42,6 +42,11 @@ class PixlTokenBucket(tb.Limiter):
     def has_token(self) -> bool:
         return not self._zero_rate and bool(self.consume("pixl"))
 
+    @property
+    def rate(self) -> int:
+        """Rate in items per second"""
+        return 0 if self._zero_rate else int(self._rate)
+
 
 @dataclass
 class AppState:
@@ -107,3 +112,10 @@ async def update_tb_refresh_rate(item: TokenRefreshUpdate) -> str:
         rate=int(item.rate), capacity=5, storage=tb.MemoryStorage()
     )
     return "Successfully updated the refresh rate"
+
+
+@app.get(
+    "/token-bucket-refresh-rate", summary="Get the refresh rate in items per second"
+)
+async def get_tb_refresh_rate() -> BaseModel:
+    return TokenRefreshUpdate(rate=state.token_bucket.rate)

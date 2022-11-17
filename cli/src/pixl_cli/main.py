@@ -1,3 +1,4 @@
+import json
 import os
 from pathlib import Path
 from typing import Any, List, Optional
@@ -8,7 +9,7 @@ import click
 import pika
 from pixl_cli._logging import logger, set_log_level
 from pixl_cli._utils import clear_file, string_is_non_empty
-from requests import post
+import requests
 import yaml
 
 
@@ -130,22 +131,18 @@ def _start_or_update_extract(queues: List[str], rate: Optional[int]) -> None:
 def _update_extract_rate(queue_name: str, rate: Optional[int]) -> None:
     logger.info("Updating the extraction rate")
 
-    config_key = f"{queue_name}_api"
-
-    if config_key not in config:
-        raise ValueError(
-            f"Cannot update the rate for {queue_name}. It {config_key} was"
-            f" not specified in the configuration"
-        )
+    api_config = api_config_for_queue(queue_name)
 
     if rate is None:
-        rate = int(config[config_key]["default_rate"])
+        rate = int(api_config.default_rate)
         logger.info(f"Using the default extract rate of {rate}/second")
 
-    base_url = f"http://{config[config_key]['host']}:{config[config_key]['port']}"
-    logger.debug(f"POST {rate} to {base_url}")
+    logger.debug(f"POST {rate} to {api_config.base_url}")
 
-    response = post(url=f"{base_url}/token-bucket-refresh-rate", json={"rate": rate})
+    response = requests.post(
+        url=f"{api_config.base_url}/token-bucket-refresh-rate",
+        json={"rate": rate}
+    )
 
     if response.status_code == 200:
         logger.info(
@@ -176,6 +173,35 @@ def stop(queues: str) -> None:
     for queue in queues.split(","):
         logger.info(f"Consuming messages on {queue}")
         consume_all_messages_and_save_csv_file(queue)
+
+
+@cli.command()
+@click.option(
+    "--queues",
+    default="ehr,pacs",
+    show_default=True,
+    help="Comma seperated list of queues to consume messages from",
+)
+def status(queues: str) -> None:
+    """Get the status of the PIXL consumers"""
+
+    for queue in queues.split(","):
+        print(f"[{queue:^10s}] refresh rate = ", _get_extract_rate(queue))
+
+
+def _get_extract_rate(queue_name: str) -> str:
+    """Get the extraction rate in items per second from a queue"""
+
+    api_config = api_config_for_queue(queue_name)
+
+    try:
+        response = requests.get(url=f"{api_config.base_url}/token-bucket-refresh-rate")
+        assert response.status_code == 200
+        return json.loads(response.text)["rate"]
+
+    except (AttributeError, AssertionError):
+        logger.error(f"Failed to get the extract rate for {queue_name}")
+        return "unknown"
 
 
 # TODO: Replace by PIXL queue package
@@ -315,3 +341,27 @@ def inform_user_that_queue_will_be_populated_from(path: Path) -> None:
         f"state files should be ignored, or delete this file to ignore. Press "
         f"Ctrl-C to exit and any key to continue"
     )
+
+
+class APIConfig:
+
+    def __init__(self, kwargs):
+        self.__dict__.update(kwargs)
+
+    @property
+    def base_url(self) -> str:
+        return f"http://{self.host}:{self.port}"
+
+
+def api_config_for_queue(queue_name: str) -> APIConfig:
+    """Configuration for an API associated with a queue"""
+
+    config_key = f"{queue_name}_api"
+
+    if config_key not in config:
+        raise ValueError(
+            f"Cannot update the rate for {queue_name}. {config_key} was"
+            f" not specified in the configuration"
+        )
+
+    return APIConfig(config[config_key])
