@@ -52,18 +52,22 @@ class PixlProducer(object):
             if self._channel is None or self._channel.is_closed:
                 self._channel = self._connection.channel()
             self._queue = self._channel.queue_declare(queue=self.queue_name)
+        LOGGER.info(f"Connected to {self._queue}")
 
     def publish(self, msgs: list) -> None:
         """
         Open connection to queue and send a list of message. Attempt to shutdown gracefully afterwards
         :return:
         """
+        self.connect()
         if msgs:
             for msg in msgs:
+                LOGGER.debug(f"Preparing to publish")
+                self._channel.basic_publish(exchange="", routing_key=self.queue_name, body=msg.encode("utf-8"))
                 LOGGER.debug(f"Message {msg} published to queue {self.queue_name}")
-                self._channel.basic_publish(exchange="", routing_key=self.queue_name+str("key"), body=msg.encode("utf-8"))
         else:
             LOGGER.debug("List of messages is empty so nothing will be published to queue.")
+        self.close()
 
     def consume_all(self, timeout_in_seconds) -> tuple():
         """
@@ -77,6 +81,7 @@ class PixlProducer(object):
             auto_ack=True,
             inactivity_timeout=timeout_in_seconds,  # Yields (None, None, None) after this
         )
+        LOGGER.debug(f"Returning generator {generator} containing remaining messages for shutdown.")
         return generator
 
     def close(self) -> None:
@@ -88,7 +93,7 @@ class PixlProducer(object):
         self._connection.close()
 
     def clear_queue(self):
-        self._channel.queue_purge(self.queue_name)
+        self._channel.queue_purge(queue=self.queue_name)
 
     @property
     def connection(self):
