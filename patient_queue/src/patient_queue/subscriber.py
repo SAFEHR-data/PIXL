@@ -12,29 +12,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-import pika
+import aio_pika
 
 
 class PixlConsumer:
     """Connector to RabbitMQ. Consumes entries from a queue."""
-    def __init__(self, _queue: str):
-        self.queue = _queue
-        self.connection = pika.SelectConnection(pika.ConnectionParameters(host='localhost'))
-        self.channel = self.connection.channel()
-        self.channel.queue_declare(queue=_queue)
-        self.connection.ioloop.start()
-
-    def callback(self, ch, method, properties, body):
-        ### this needs the four parameters from the tutorial
-        print(" [x] Received %r" % body)
-
-    def retrieve_msg(self):
-        ### problem is that consumer needs to hang ...
-        method_frame, header_frame, body = self.channel.basic_get(queue=self.queue)
-        return body
-
-    def shutdown(self):
-        self.channel.stop_consuming()
-        self.connection.close()
-
-
+    def __init__(self):
+        raise NotImplementedError
