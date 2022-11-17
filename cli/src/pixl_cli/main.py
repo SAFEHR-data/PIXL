@@ -176,6 +176,12 @@ def stop(queues: str) -> None:
 
 
 @cli.command()
+def kill() -> None:
+    """Stop all the PIXL services"""
+    os.system("docker compose stop")
+
+
+@cli.command()
 @click.option(
     "--queues",
     default="ehr,pacs",
