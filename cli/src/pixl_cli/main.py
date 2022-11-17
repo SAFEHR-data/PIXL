@@ -30,6 +30,7 @@ def _load_config(filename: str = "pixl_config.yml") -> dict:
 
 config = _load_config()
 
+
 @click.group()
 @click.option("--debug/--no-debug", default=False)
 def cli(debug: bool) -> None:
@@ -186,7 +187,13 @@ def stop(queues: str) -> None:
     for queue in queues.split(","):
         producer = create_pixl_producer(queue=queue)
         logger.info(f"Consuming messages on {queue}")
-        consume_all_messages_and_save_csv_file(producer=producer)
+        consume_all_messages_and_save_csv_file(queue)
+
+
+@cli.command()
+def kill() -> None:
+    """Stop all the PIXL services"""
+    os.system("docker compose stop")
 
 
 def consume_all_messages_and_save_csv_file(
@@ -220,7 +227,7 @@ def consume_all_messages_and_save_csv_file(
 
         callback(*args)
 
-    pp.close()
+    producer.close()
 
 
 def state_filepath_for_queue(queue_name: str) -> Path:

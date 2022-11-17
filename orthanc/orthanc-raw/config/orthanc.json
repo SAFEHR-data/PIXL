@@ -16,5 +16,10 @@
   //"IndexDirectory" : "/var/lib/orthanc/db"
 
   // To enable plugins:
-  "Plugins" : [ "/usr/share/orthanc/plugins" ]
+  "Plugins" : [ "/usr/share/orthanc/plugins" ],
+  "PythonScript" : "/etc/orthanc/auto-route.py",
+  "PythonVerbose" : false,
+  "Gdcm" : {
+    "Enable" : true
+  }
 }
