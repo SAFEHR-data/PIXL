@@ -134,14 +134,14 @@ def _update_extract_rate(queue_name: str, rate: Optional[int]) -> None:
     api_config = api_config_for_queue(queue_name)
 
     if rate is None:
+        assert api_config.default_rate is not None
         rate = int(api_config.default_rate)
         logger.info(f"Using the default extract rate of {rate}/second")
 
     logger.debug(f"POST {rate} to {api_config.base_url}")
 
     response = requests.post(
-        url=f"{api_config.base_url}/token-bucket-refresh-rate",
-        json={"rate": rate}
+        url=f"{api_config.base_url}/token-bucket-refresh-rate", json={"rate": rate}
     )
 
     if response.status_code == 200:
@@ -203,9 +203,9 @@ def _get_extract_rate(queue_name: str) -> str:
     try:
         response = requests.get(url=f"{api_config.base_url}/token-bucket-refresh-rate")
         assert response.status_code == 200
-        return json.loads(response.text)["rate"]
+        return str(json.loads(response.text)["rate"])
 
-    except (AttributeError, AssertionError):
+    except (ConnectionError, AssertionError):
         logger.error(f"Failed to get the extract rate for {queue_name}")
         return "unknown"
 
@@ -350,8 +350,11 @@ def inform_user_that_queue_will_be_populated_from(path: Path) -> None:
 
 
 class APIConfig:
+    def __init__(self, kwargs: dict):
+        self.host: Optional[str] = None
+        self.port: Optional[int] = None
+        self.default_rate: Optional[int] = None
 
-    def __init__(self, kwargs):
         self.__dict__.update(kwargs)
 
     @property
