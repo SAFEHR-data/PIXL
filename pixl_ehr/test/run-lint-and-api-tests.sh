@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-
-#
 # Copyright (c) 2022 University College London Hospitals NHS Foundation Trust
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,20 +12,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+set -euxo pipefail
 
-set -eo pipefail
+BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+PACKAGE_DIR="${BIN_DIR%/*}"
+cd "$PACKAGE_DIR" || exit
 
-BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="${BIN_DIR%/*}"
+pip install -r src/requirements.txt
 
-cd $PROJECT_DIR
+CONF_FILE=../setup.cfg
+mypy --config-file ${CONF_FILE} src/pixl_ehr
+isort --settings-path ${CONF_FILE} src/pixl_ehr
+black src/pixl_ehr
+flake8 --config ${CONF_FILE} src/pixl_ehr
 
-docker compose config --quiet
-
-hasher/bin/run-tests.sh
-pixl_dcmd/bin/run-tests.sh
-pixl_rd/bin/run-tests.sh
-token_buffer/bin/run-tests.sh
-cli/test/run-tests.sh
-pixl_ehr/test/run-tests.sh
+ENV="test" pytest src/pixl_ehr/tests/test_app.py

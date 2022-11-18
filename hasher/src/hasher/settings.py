@@ -49,9 +49,13 @@ try:
 except EnvError:
     LOG_ROOT_DIR = tempfile.gettempdir()
 
-AZURE_KEY_VAULT_NAME = env_parser.str("AZURE_KEY_VAULT_NAME")
-AZURE_KEY_VAULT_SECRET_NAME = env_parser.str("AZURE_KEY_VAULT_SECRET_NAME")
+AZURE_KEY_VAULT_NAME = ""
+AZURE_KEY_VAULT_SECRET_NAME = ""
 
+
+if ENV != "test":
+    AZURE_KEY_VAULT_NAME = env_parser.str("AZURE_KEY_VAULT_NAME")
+    AZURE_KEY_VAULT_SECRET_NAME = env_parser.str("AZURE_KEY_VAULT_SECRET_NAME")
 
 # Setup logging
 standard_formatter = {
