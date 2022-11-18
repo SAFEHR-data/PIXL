@@ -21,7 +21,7 @@ class TokenBucket(tb.Limiter):
     be downloaded. Should there be no more tokens inside the bucket, the request is
     added back into the queue. Note that the Limiter object can operate the rate on
     different "streams", which are specified by a string object, also called key. This
-    key has been hard coded here to "pixl" as we do not expect more than one streams at
+    key has been hard coded here to "pixl" as we do not expect the token bucket to be responsible for more than one stream at 
     this point in time.
     """
 
@@ -34,7 +34,7 @@ class TokenBucket(tb.Limiter):
         storage: tb.StorageBase = tb.MemoryStorage(),
     ):
         """
-        Uses the token bucket implementation from `Flaconry`
+        Uses the token bucket implementation from `Falconry`
         <https://github.com/falconry/token-bucket> to limit access rates for downloading
         /extracting images where throttling is required.
 
