@@ -3,11 +3,11 @@
 Mechanism that allows driver to populate queues that can then be consumed by different services, e.g. patient data
 or image download.
 
-Three queues are currently planned: 
+Two queues are currently planned: 
 1. for download and de-identification of image data
 2. for download and de-identification of EHR demographic data
-3. for de-identification of image data
 
+The image anonymisation will be triggered automatically once the image has been downloaded to the raw Orthanc server.
 
 ## RabbitMQ
 
