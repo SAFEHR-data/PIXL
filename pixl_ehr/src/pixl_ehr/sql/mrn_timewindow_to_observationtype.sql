@@ -1,6 +1,6 @@
 /*
- Given an MRN and a time-window in which to search return the value of an of
- a particular observation type for patient. For example, this observation type
+ Given an MRN and a time-window in which to search return the value of
+ a particular observation type for a patient. For example, this observation type
  could be a height, weight or GCS (Glasgow coma scale) value
  */
 set search_path to ${{ schema_name }},public;
