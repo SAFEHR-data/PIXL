@@ -21,8 +21,8 @@ class TokenBucket(tb.Limiter):
     be downloaded. Should there be no more tokens inside the bucket, the request is
     added back into the queue. Note that the Limiter object can operate the rate on
     different "streams", which are specified by a string object, also called key. This
-    key has been hard coded here to "pixl" as we do not expect the token bucket to be responsible for more than one stream at 
-    this point in time.
+    key has been hard coded here to "pixl" as we do not expect the token bucket to be
+    responsible for more than one stream at this point in time.
     """
 
     key = b"pixl"
