@@ -1,3 +1,16 @@
+#  Copyright (c) University College London Hospitals NHS Foundation Trust
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
 import asyncio
 from dataclasses import dataclass
 import logging
@@ -8,7 +21,8 @@ from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
 from pixl_ehr._processing import process_message
 from pydantic import BaseModel
-import token_bucket as tb
+
+from token_buffer import TokenBucket
 
 from ._version import __version__
 
@@ -24,33 +38,9 @@ app = FastAPI(
 logger = logging.getLogger("uvicorn")
 
 
-class PixlTokenBucket(tb.Limiter):
-    # TODO: https://github.com/UCLH-DIF/PIXL/issues/49
-
-    def __init__(self, rate: int, capacity: int, storage: tb.StorageBase):
-
-        self._zero_rate = False
-
-        if rate == 0:
-            # tb.Limiter cannot deal with zero rates, so keep track...
-            rate = 1
-            self._zero_rate = True
-
-        super().__init__(rate=rate, capacity=capacity, storage=storage)
-
-    @property
-    def has_token(self) -> bool:
-        return not self._zero_rate and bool(self.consume("pixl"))
-
-    @property
-    def rate(self) -> int:
-        """Rate in items per second"""
-        return 0 if self._zero_rate else int(self._rate)
-
-
 @dataclass
 class AppState:
-    token_bucket = PixlTokenBucket(rate=0, capacity=5, storage=tb.MemoryStorage())
+    token_bucket = TokenBucket(rate=0, capacity=5)
 
 
 state = AppState()
@@ -108,9 +98,7 @@ async def update_tb_refresh_rate(item: TokenRefreshUpdate) -> str:
             detail=f"Refresh rate mush be a positive integer. Had {item.rate}",
         )
 
-    state.token_bucket = PixlTokenBucket(
-        rate=int(item.rate), capacity=5, storage=tb.MemoryStorage()
-    )
+    state.token_bucket = TokenBucket(rate=int(item.rate), capacity=5)
     return "Successfully updated the refresh rate"
 
 

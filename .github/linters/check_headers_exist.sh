@@ -1,3 +1,4 @@
+#!/bin/bash
 #  Copyright (c) University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,16 +12,15 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-from setuptools import setup, find_packages
 
-exec(open("pixl_cli/_version.py").read())
-
-setup(
-    name="pixl_cli",
-    version=__version__,  # noqa: F821
-    packages=find_packages("."),
-    author="Tom Young",
-    url="https://github.com/UCLH-DIF/PIXL",
-    entry_points={"console_scripts": ["pixl = pixl_cli.main:cli"]},
-    description="Command line interaction with PIXL",
-)
+for ext in ".yml" ".yaml" ".sh" "Dockerfile" ".py"
+do
+    # shellcheck disable=SC2044
+    for path in $(find . -name "*$ext")
+    do
+        if ! grep -q "Copyright" "$path"; then
+            echo -e "\n\e[31m»»» ⚠️  No copyright/license header in $path"
+            exit 1
+        fi
+    done || exit 1
+done
