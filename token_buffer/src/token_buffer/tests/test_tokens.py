@@ -14,23 +14,29 @@
 
 import time
 
-from token_buffer import tokens
-
-
-def test_token_bucket_created() -> None:
-    """Checks whether token bucket can be created."""
-    assert tokens.create_token_bucket() is not None
+from token_buffer import TokenBucket
 
 
 def test_retrieve_token() -> None:
     """Checks whether token can be retrieved from created token bucket."""
-    assert tokens.get_token(tokens.create_token_bucket()) is True
+    bucket = TokenBucket()
+    assert bucket.has_token
 
 
 def test_refill_tokens() -> None:
     """Checks whether the refill happens after one second for a bucket size of 1."""
-    test_tb = tokens.create_token_bucket(_rate=1, _capacity=1)
-    assert tokens.get_token(test_tb) is True
-    assert tokens.get_token(test_tb) is False
+    bucket = TokenBucket(rate=1, capacity=1)
+
+    assert bucket.has_token
+    # Interrogating the bucket within 1 second we find that it's empty
+    assert bucket.has_token is False
+
+    # but will be refilled after 1 second
     time.sleep(1)
-    assert tokens.get_token(test_tb) is True
+    assert bucket.has_token
+
+
+def test_zero_rate() -> None:
+    """Test that the refill rate can be set to zero"""
+
+    assert TokenBucket(rate=0).rate == 0
