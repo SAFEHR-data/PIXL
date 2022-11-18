@@ -12,4 +12,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+from token_buffer.tokens import TokenBucket
+
 from ._version import __version__, __version_info__
+
+__all__ = ["TokenBucket"]
