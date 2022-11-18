@@ -2,18 +2,14 @@ import json
 import os
 from pathlib import Path
 from typing import Any, List, Optional
-
+import requests
+import yaml
 import pandas as pd
-
 import click
 
 from pixl_cli._logging import logger, set_log_level
 from pixl_cli._utils import clear_file, string_is_non_empty
 from patient_queue.producer import PixlProducer
-
-from requests import post
-import requests
-import yaml
 
 
 def _load_config(filename: str = "pixl_config.yml") -> dict:
@@ -185,7 +181,7 @@ def stop(queues: str) -> None:
     for queue in queues.split(","):
         producer = create_pixl_producer(queue=queue)
         logger.info(f"Consuming messages on {queue}")
-        consume_all_messages_and_save_csv_file(queue)
+        consume_all_messages_and_save_csv_file(producer=producer)
 
 
 @cli.command()
