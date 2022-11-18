@@ -18,6 +18,8 @@ A DICOM node which receives images from the upstream hospital systems and acts a
 A DICOM node which wraps our de-identifcation and cloud transfer components.
 ### PostgreSQL
 RDBMS which stores DICOM metadata and application data.
+### [Electronic Health Record Extractor](./pixl_ehr/README.md)
+HTTP API to process messages from the `ehr` queue and populate raw and anon tables in the PIXL postgres instance. 
 
 ## Setup
 

@@ -1,0 +1,91 @@
+version: "3.8"
+
+services:
+
+  ehr-api:
+    container_name: pixl-test-ehr-api
+    build:
+      context: ../../
+      dockerfile: ./docker/ehr-api/Dockerfile
+    depends_on:
+      queue:
+        condition: service_healthy
+      star:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      hasher-api:
+        condition: service_healthy
+    healthcheck:
+      interval: 10s
+      timeout: 30s
+      retries: 5
+    environment:
+      LOG_LEVEL: DEBUG
+      PIXL_DB_HOST: postgres
+      PIXL_DB_NAME: pixl
+      PIXL_DB_USER: postgres
+      PIXL_DB_PASSWORD: postgres
+      PIXL_DB_EHR_SCHEMA_NAME: emap_data
+      EMAP_UDS_HOST: star
+      EMAP_UDS_NAME: postgres  # database name
+      EMAP_UDS_USER: postgres
+      EMAP_UDS_PASSWORD: postgres
+      EMAP_UDS_SCHEMA_NAME: star
+    ports:
+      - "9000:8000"
+
+  queue:
+    container_name: pixl-test-queue
+    image: rabbitmq:3.11.2-management
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+  postgres:
+    container_name: pixl-test-db
+    build:
+      context: ../../
+      dockerfile: ./docker/postgres/Dockerfile
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PIXL_DB_NAME: pixl
+      PGTZ: Europe/London
+      PIXL_DB_EHR_SCHEMA_NAME: emap_data
+    env_file:
+      - ../../docker/common.env
+    command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 10s
+      timeout: 30s
+      retries: 5
+
+  star:
+    container_name: test-fake-star-db
+    build:
+      context: .
+      dockerfile: Dockerfile.fake_emap_star
+      args:
+        N_TABLE_ROWS: 2
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 30s
+      retries: 5
+
+  hasher-api:
+    container_name: pixl-test-hasher
+    build:
+      context: ../../
+      dockerfile: ./docker/hasher-api/Dockerfile
+    environment:
+      ENV: test
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://hasher-api:8000/heart-beat" ]
+      interval: 10s
+      timeout: 30s
+      retries: 5

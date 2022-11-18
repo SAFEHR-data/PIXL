@@ -28,6 +28,13 @@ x-emap-db: &emap-db
   EMAP_UDS_USER: ${EMAP_UDS_USER}
   EMAP_UDS_PASSWORD: ${EMAP_UDS_PASSWORD}
 
+x-pixl-db: &pixl-db
+  PIXL_DB_HOST: ${PIXL_DB_HOST}
+  PIXL_DB_PORT: ${PIXL_DB_PORT}
+  PIXL_DB_USER: ${PIXL_DB_USER}
+  PIXL_DB_PASSWORD: ${PIXL_DB_PASSWORD}
+  PIXL_DB_NAME: ${PIXL_DB_NAME}
+
 x-logs-volume: &logs-volume
   type: volume
   source: logs
@@ -136,11 +143,7 @@ services:
       ORTHANC_ANON_AE_TITLE: ${ORTHANC_ANON_AE_TITLE}
       ORTHANC_ANON_DICOM_PORT: "4242"
       ORTHANC_ANON_HOSTNAME: "orthanc-anon"
-      PIXL_DB_HOST: "${PIXL_DB_HOST}"
-      PIXL_DB_PORT: "${PIXL_DB_PORT}"
-      PIXL_DB_USER: "${PIXL_DB_USER}"
-      PIXL_DB_PASSWORD: "${PIXL_DB_PASSWORD}"
-      PIXL_DB_NAME: "${PIXL_DB_NAME}"
+      <<: *pixl-db
       <<: *proxy-common
       <<: *pixl-common-env
     ports:
@@ -155,29 +158,41 @@ services:
       - pixl-net
     restart: "no"
 
-  patient-queue:
+  queue:
+    image: rabbitmq:3.11.2-management
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    networks:
+      - pixl-net
+
+  ehr-api:
     build:
       context: .
-      dockerfile: ./docker/patient-queue/Dockerfile
+      dockerfile: ./docker/ehr-api/Dockerfile
+    environment:
+      <<: *pixl-db
+      <<: *emap-db
+      <<: *proxy-common
+      <<: *pixl-common-env
+      # TODO: rabbitMQ params
     env_file:
-      - ./docker/patient-queue/.env
-    ports:
-      - "${RABBITMQ_PORT}:5672"
-      - "${RABBITMQ_ADMIN_PORT}:15672"
-    restart: on-failure
-
-#  rabbitmq:
-#    build:
-#      context: .
-#      dockerfile: ./docker/patient-queue/Dockerfile
-#      args:
-#        <<: *build-args-common
-#    env_file:
-#      - ./docker/patient-queue/.env
-#    ports:
-#      - "${RABBITMQ_PORT}:5672"
-#      - "${RABBITMQ_ADMIN_PORT}:15672"
-#    restart: on-failure
+      - ./docker/common.env
+    depends_on:
+      queue:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      hasher-api:
+        condition: service_healthy
+    healthcheck:
+      interval: 10s
+      timeout: 30s
+      retries: 5
+    networks:
+      - pixl-net
 
   ################################################################################
   # Data Stores

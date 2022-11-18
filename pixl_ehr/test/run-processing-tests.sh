@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-
-#
 # Copyright (c) 2022 University College London Hospitals NHS Foundation Trust
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,20 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+set -euxo pipefail
 
-set -eo pipefail
+THIS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+PACKAGE_DIR="${THIS_DIR%/*}"
+cd "$PACKAGE_DIR" || exit
 
-BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="${BIN_DIR%/*}"
-
-cd $PROJECT_DIR
-
-docker compose config --quiet
-
-hasher/bin/run-tests.sh
-pixl_dcmd/bin/run-tests.sh
-pixl_rd/bin/run-tests.sh
-token_buffer/bin/run-tests.sh
-cli/test/run-tests.sh
-pixl_ehr/test/run-tests.sh
+cd test/
+docker compose up -d
+docker exec pixl-test-ehr-api /bin/bash -c "pytest pixl_ehr/tests/test_processing.py"
+docker compose down

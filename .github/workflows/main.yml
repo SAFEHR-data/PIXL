@@ -149,3 +149,28 @@ jobs:
         run: |
           ./run-tests.sh
 
+
+  ehr-api-tests:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Init Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10.6
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r pixl_ehr/src/requirements.txt
+          pip install -r pixl_rd/src/requirements.txt pixl_rd/src/
+          pip install -r token_buffer/src/requirements.txt token_buffer/src/
+          python -m spacy download en_core_web_lg
+
+      - name: Run tests
+        working-directory: pixl_ehr/test
+        run: |
+          ./run-tests.sh
