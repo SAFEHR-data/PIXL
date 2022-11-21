@@ -31,6 +31,7 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 RUN mkdir local_deps
 COPY ./token_buffer/src/ local_deps/token_buffer/
 COPY ./pixl_rd/src/ local_deps/pixl_rd/
+COPY ./patient_queue/src/ local_deps/patient_queue/
 RUN for dir in local_deps/*/; do pip install --no-cache-dir -r "${dir}requirements.txt" $dir; done
 RUN python -m spacy download en_core_web_lg  # Download presido data
 
