@@ -64,6 +64,7 @@ class PixlProducer(object):
                 LOGGER.debug(f"Message {msg} published to queue {self.queue_name}")
         else:
             LOGGER.debug("List of messages is empty so nothing will be published to queue.")
+        self.close()
 
     def consume_all(self, timeout_in_seconds) -> tuple():
         """
