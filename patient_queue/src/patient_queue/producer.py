@@ -37,11 +37,8 @@ class PixlProducer(object):
         self._host = host
         self._port = port
 
-    def connect(self) -> None:
-        """
-        Establishes connection to RabbitMQ service.
-        :return: Connection
-        """
+    def __enter__(self) -> None:
+        """Establishes connection to RabbitMQ service."""
         params = pika.ConnectionParameters(
             host=self._host,
             port=self._port
@@ -56,8 +53,8 @@ class PixlProducer(object):
 
     def publish(self, msgs: list) -> None:
         """
-        Open connection to queue and send a list of message. Attempt to shutdown gracefully afterwards
-        :return:
+        Opens a connection to the respective queue and sends a list of message.
+        :param msgs: list of messages to be sent to queue
         """
         self.connect()
         if msgs:
@@ -67,7 +64,6 @@ class PixlProducer(object):
                 LOGGER.debug(f"Message {msg} published to queue {self.queue_name}")
         else:
             LOGGER.debug("List of messages is empty so nothing will be published to queue.")
-        self.close()
 
     def consume_all(self, timeout_in_seconds) -> tuple():
         """
@@ -84,7 +80,7 @@ class PixlProducer(object):
         LOGGER.debug(f"Returning generator {generator} containing remaining messages for shutdown.")
         return generator
 
-    def close(self) -> None:
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         """
         Shutdown the connection to RabbitMQ service.
         :return:
