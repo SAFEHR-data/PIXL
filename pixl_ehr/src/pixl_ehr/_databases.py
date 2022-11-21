@@ -92,3 +92,13 @@ class PIXLDatabase(WriteableDatabase):
 
     def __repr__(self) -> str:
         return "PIXLDatabase"
+
+    def to_csv(self, schema_name: str, table_name: str, filename: str) -> None:
+        """Extract the content of a table into a string"""
+
+        query = (
+            f"COPY (SELECT * FROM {schema_name}.{table_name}) TO STDOUT WITH CSV HEADER"
+        )
+
+        with open(filename, "w") as file:
+            self._cursor.copy_expert(query, file)
