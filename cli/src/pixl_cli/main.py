@@ -337,7 +337,7 @@ def messages_from_csv(filepath: Path, producer: PixlProducer) -> Messages:
 
 
 def queue_is_up() -> Any:
-    producer = create_pixl_producer()
+    producer = create_pixl_producer(queue="")
     producer.connect()
     connection_created_successfully = producer.connection.is_open()
     producer.close()
