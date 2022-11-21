@@ -17,17 +17,16 @@ import logging
 from typing import Callable
 
 import aio_pika
+from azure.identity import EnvironmentCredential
+from azure.storage.blob import BlobServiceClient
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
-from pixl_ehr._processing import process_message
 from pixl_ehr._databases import PIXLDatabase
+from pixl_ehr._processing import process_message
 from pixl_ehr.utils import env_var
 from pydantic import BaseModel
 
 from token_buffer import TokenBucket
-
-from azure.identity import EnvironmentCredential
-from azure.storage.blob import BlobServiceClient
 
 from ._version import __version__
 
@@ -116,34 +115,37 @@ async def get_tb_refresh_rate() -> BaseModel:
 
 @app.get(
     "/az-copy-current",
-    summary="Copy the current state of the PIXL anon EHR schema to azure"
+    summary="Copy the current state of the PIXL anon EHR schema to azure",
 )
 async def az_copy_current(csv_filename: str = "tmp_extract.csv") -> None:
     logger.info("Copying current state of anon schema to azure")
 
     PIXLDatabase().to_csv(
-        schema_name="emap_data",
-        table_name="ehr_anon",
-        filename=csv_filename
+        schema_name="emap_data", table_name="ehr_anon", filename=csv_filename
     )
     logger.debug(f"Saved temporary .csv ({csv_filename})")
 
     blob_service_client = BlobServiceClient(
-        account_url=f"https://{env_var('AZ_STORAGE_ACCOUNT_NAME')}.blob.core.windows.net",
-        credential=EnvironmentCredential()
+        account_url=_storage_account_url(),
+        credential=EnvironmentCredential(),
     )
     logger.debug(f"Have blob client for {env_var('AZ_STORAGE_ACCOUNT_NAME')}")
 
     # Create a blob client using the local file name as the name for the blob
     blob_client = blob_service_client.get_blob_client(
-        container=env_var('AZ_STORAGE_CONTAINER_NAME'),
-        blob=csv_filename
+        container=env_var("AZ_STORAGE_CONTAINER_NAME"), blob=csv_filename
     )
 
-    logger.info(f"Uploading to Azure Storage as blob: "
-                f"{env_var('AZ_STORAGE_CONTAINER_NAME')}/{csv_filename}")
+    logger.info(
+        f"Uploading to Azure Storage as blob: "
+        f"{env_var('AZ_STORAGE_CONTAINER_NAME')}/{csv_filename}"
+    )
 
     with open(file=csv_filename, mode="rb") as data:
         blob_client.upload_blob(data)
 
     logger.info("Uploaded successfully!")
+
+
+def _storage_account_url() -> str:
+    return f"https://{env_var('AZ_STORAGE_ACCOUNT_NAME')}.blob.core.windows.net"

@@ -94,7 +94,7 @@ class PIXLDatabase(WriteableDatabase):
         return "PIXLDatabase"
 
     def to_csv(self, schema_name: str, table_name: str, filename: str) -> None:
-        """Extract the content of a table into a string"""
+        """Extract the content of a table within a schema to a csv file and save it"""
 
         query = (
             f"COPY (SELECT * FROM {schema_name}.{table_name}) TO STDOUT WITH CSV HEADER"
