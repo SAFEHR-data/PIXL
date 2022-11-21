@@ -81,10 +81,11 @@ def populate(csv_filename: str, queues: str, restart: bool) -> None:
         messages.send()
 
 
-def create_pixl_producer(queue: str = None):
+def create_pixl_producer(queue: str) -> PixlProducer:
     """
     Create producer with config information.
     :param queue: Queue the producer should be created for. However, can also be none.
+    :returns: Created producer for message publishing to RabbitMQ
     """
     return PixlProducer(host=config["rabbitmq"]["host"], port=config["rabbitmq"]["port"], queue=queue)
 
