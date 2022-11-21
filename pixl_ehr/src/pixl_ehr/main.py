@@ -14,11 +14,9 @@
 import asyncio
 from dataclasses import dataclass
 import logging
-from typing import Callable
 
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
-from pixl_ehr._processing import process_message
 from pydantic import BaseModel
 
 from token_buffer import TokenBucket
