@@ -171,7 +171,7 @@ services:
       - pixl-net
     restart: "no"
 
-  patient-queue:
+  queue:
     image: rabbitmq:3.11.2-management
     healthcheck:
       test: rabbitmq-diagnostics -q ping
@@ -197,7 +197,7 @@ services:
     env_file:
       - ./docker/common.env
     depends_on:
-      patient-queue:
+      queue:
         condition: service_healthy
       postgres:
         condition: service_healthy
@@ -224,7 +224,7 @@ services:
       PIXL_DB_NAME: ${PIXL_DB_NAME}
       PGTZ: Europe/London
     env_file:
-      - ./docker/common.env
+      - .env
     command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
     volumes:
       - type: volume
