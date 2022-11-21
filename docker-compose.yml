@@ -133,6 +133,11 @@ services:
       - ${PWD}/orthanc/orthanc-anon/config:/run/secrets:ro
     networks:
       - pixl-net
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "-u" , "${ORTHANC_ANON_USERNAME}:${ORTHANC_ANON_PASSWORD}", "http://orthanc-anon:8042/heart-beat" ]
+      interval: 10s
+      timeout: 30s
+      retries: 5
     restart: "no"
 
   orthanc-raw:
@@ -169,6 +174,11 @@ services:
       - ${PWD}/orthanc/orthanc-raw/config:/run/secrets:ro
     networks:
       - pixl-net
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "-u" , "${ORTHANC_RAW_USERNAME}:${ORTHANC_RAW_PASSWORD}", "http://orthanc-raw:8042/heart-beat" ]
+      interval: 10s
+      timeout: 30s
+      retries: 5
     restart: "no"
 
   queue:

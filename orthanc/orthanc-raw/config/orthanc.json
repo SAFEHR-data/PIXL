@@ -17,7 +17,7 @@
 
   // To enable plugins:
   "Plugins" : [ "/usr/share/orthanc/plugins" ],
-  "PythonScript" : "/etc/orthanc/auto-route.py",
+  "PythonScript" : "/etc/orthanc/pixl.py",
   "PythonVerbose" : false,
   "Gdcm" : {
     "Enable" : true

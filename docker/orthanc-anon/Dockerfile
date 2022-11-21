@@ -14,7 +14,7 @@
 FROM osimis/orthanc:22.9.0-full-stable
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 
-COPY ./orthanc/orthanc-anon/plugin/anon.py /etc/orthanc/anon.py
+COPY ./orthanc/orthanc-anon/plugin/pixl.py /etc/orthanc/pixl.py
 COPY ./orthanc/orthanc-anon/plugin/tag-operations.yaml /etc/orthanc/tag-operations.yaml
 
 COPY ./pixl_dcmd/src/requirements.txt .
