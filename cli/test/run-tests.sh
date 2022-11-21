@@ -33,6 +33,7 @@ PACKAGE_DIR="${THIS_DIR%/*}"
 cd "$PACKAGE_DIR" || exit
 
 pip install -r src/requirements.txt
+pip install -e ../patient_queue/src
 
 CONF_FILE=../setup.cfg
 mypy --config-file ${CONF_FILE} src/pixl_cli
