@@ -35,7 +35,7 @@ RUN for dir in local_deps/*/; do pip install --no-cache-dir -r "${dir}requiremen
 RUN python -m spacy download en_core_web_lg  # Download presido data
 
 COPY ./pixl_ehr/src/requirements.txt .
-# patch is needed to for image to work on a M1 mac..
+# patch is needed for image to work on a M1 mac..
 RUN sed -i '/psycopg2-binary==2.9.5/c\psycopg2==2.9.3' requirements.txt && \
      pip install --no-cache-dir -U pip wheel setuptools \
     && pip install --no-cache-dir -r requirements.txt
