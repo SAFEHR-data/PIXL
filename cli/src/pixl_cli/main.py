@@ -68,7 +68,6 @@ def populate(csv_filename: str, queues: str, restart: bool) -> None:
     """Populate a (set of) queue(s) from a csv file"""
     logger.info(f"Populating queue(s) {queues} from {csv_filename}")
 
-    all_messages = messages_from_csv(Path(csv_filename))
     for queue in queues.split(","):
         producer = create_pixl_producer(queue=queue)
         producer.connect()
@@ -76,13 +75,13 @@ def populate(csv_filename: str, queues: str, restart: bool) -> None:
         if cached_state_filepath.exists() and restart:
             messages = messages_from_state(cached_state_filepath, producer=producer)
         else:
-            messages = all_messages
+            messages = messages_from_csv(Path(csv_filename), producer=producer)
 
         logger.info(f"Sending {len(messages)} messages")
-        messages.send(queue)
+        messages.send()
 
 
-def create_pixl_producer(queue=None):
+def create_pixl_producer(queue: str = None):
     """
     Create producer with config information.
     :param queue: Queue the producer should be created for. However, can also be none.
@@ -271,7 +270,7 @@ def state_filepath_for_queue(queue_name: str) -> Path:
 
 
 class Messages(list):
-    def __init__(self, producer):
+    def __init__(self, producer: PixlProducer):
         """
         Initialisation of RabbitMQ service connection.
         :param producer: Producer used for publishing messages.
@@ -296,8 +295,11 @@ class Messages(list):
         logger.info(f"Sent {len(self)} messages")
 
 
-def messages_from_csv(filepath: Path) -> Messages:
-
+def messages_from_csv(filepath: Path, producer: PixlProducer) -> Messages:
+    """Reads patient information from CSV and transforms that into messages.
+    :param filepath: Path for CSV file to be read
+    :param producer: Producer that will be used to publish to patient queue
+    """
     expected_col_names = [
         "VAL_ID",
         "ACCESSION_NUMBER",
@@ -310,7 +312,7 @@ def messages_from_csv(filepath: Path) -> Messages:
     )
 
     df = pd.read_csv(filepath, header=0, dtype=str)  # First line is column names
-    messages = Messages()
+    messages = Messages(producer=producer)
 
     if list(df.columns)[:4] != expected_col_names:
         raise ValueError(
@@ -333,7 +335,7 @@ def messages_from_csv(filepath: Path) -> Messages:
     return messages
 
 
-def queue_is_up() -> bool:
+def queue_is_up() -> Any:
     producer = create_pixl_producer()
     producer.connect()
     connection_created_successfully = producer.connection.is_open()
