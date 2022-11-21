@@ -16,14 +16,13 @@ from dataclasses import dataclass
 import logging
 from typing import Callable
 
-import aio_pika
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
 from pixl_ehr._processing import process_message
 from pydantic import BaseModel
 
 from token_buffer import TokenBucket
-
+from patient_queue.subscriber import PixlConsumer
 from ._version import __version__
 
 QUEUE_NAME = "ehr"
@@ -46,30 +45,10 @@ class AppState:
 state = AppState()
 
 
-async def _queue_loop(callback: Callable = process_message) -> None:
-
-    # TODO: replace with RabbitMQ connection username+password+port
-    connection = await aio_pika.connect("amqp://guest:guest@queue:5672/")
-
-    async with connection:
-        channel = await connection.channel()
-        queue = await channel.declare_queue(QUEUE_NAME)
-
-        async with queue.iterator() as queue_iter:
-            async for message in queue_iter:
-
-                try:
-                    if state.token_bucket.has_token:
-                        callback(message.body)
-                        await message.ack()
-                    else:
-                        await message.reject(requeue=True)
-                except Exception as e:  # noqa
-                    logger.error(
-                        f"Failed to process {message.body.decode()} due to\n{e}\n"
-                        f"Not re-queuing message"
-                    )
-                    await message.reject(requeue=False)
+async def _queue_loop() -> None:
+    # TODO: settings would probably be best in separate env file as done elsewhere
+    consumer = PixlConsumer("ehr", 5672, "guest", "guest")
+    consumer.run(state.token_bucket)
 
 
 @app.on_event("startup")

@@ -171,13 +171,16 @@ services:
       - pixl-net
     restart: "no"
 
-  queue:
+  patient-queue:
     image: rabbitmq:3.11.2-management
     healthcheck:
       test: rabbitmq-diagnostics -q ping
       interval: 30s
       timeout: 30s
       retries: 3
+    ports:
+      - "${RABBITMQ_PORT}:5672"
+      - "${RABBITMQ_ADMIN_PORT}:15672"
     networks:
       - pixl-net
 
