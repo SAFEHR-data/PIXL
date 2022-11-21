@@ -14,7 +14,7 @@ Primary interface to the PIXL system.
 HTTP API to securely hash an identifier using a key stored in Azure Key Vault.
 ### [Orthanc Raw](./orthanc/orthanc-raw/README.md)
 A DICOM node which receives images from the upstream hospital systems and acts as cache for PIXL.
-### Orthanc Anon
+### [Orthanc Anon](./orthanc/orthanc-anon/README.md)
 A DICOM node which wraps our de-identifcation and cloud transfer components.
 ### PostgreSQL
 RDBMS which stores DICOM metadata and application data.
