@@ -197,7 +197,7 @@ services:
     env_file:
       - ./docker/common.env
     depends_on:
-      queue:
+      patient-queue:
         condition: service_healthy
       postgres:
         condition: service_healthy
