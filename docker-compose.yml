@@ -224,7 +224,7 @@ services:
       PIXL_DB_NAME: ${PIXL_DB_NAME}
       PGTZ: Europe/London
     env_file:
-      - .env
+      - ./docker/common.env
     command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
     volumes:
       - type: volume
