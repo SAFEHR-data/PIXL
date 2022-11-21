@@ -56,7 +56,7 @@ class PixlProducer(object):
 
     def publish(self, msgs: list) -> None:
         """
-        Open connection to queue and send a list of message. Attempt to shutdown gracefully afterwards
+        Open connection to queue and send a list of messages. Attempt to shutdown gracefully afterwards
         :return:
         """
         self.connect()
