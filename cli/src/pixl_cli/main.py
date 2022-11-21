@@ -87,7 +87,7 @@ def create_pixl_producer(queue: str) -> PixlProducer:
     :param queue: Queue the producer should be created for. However, can also be none.
     :returns: Created producer for message publishing to RabbitMQ
     """
-    return PixlProducer(host=config["rabbitmq"]["host"], port=config["rabbitmq"]["port"], queue=queue)
+    return PixlProducer(host=config["rabbitmq"]["host"], port=config["rabbitmq"]["port"], queue_name=queue)
 
 
 def messages_from_state(filepath: Path, producer: PixlProducer) -> "Messages":
