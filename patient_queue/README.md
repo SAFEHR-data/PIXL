@@ -4,8 +4,8 @@ Mechanism that allows driver to populate queues that can then be consumed by dif
 or image download.
 
 Two queues are currently planned: 
-1. for download and de-identification of image data
-2. for download and de-identification of EHR demographic data
+1. for download and de-identification of image data (default "pacs")
+2. for download and de-identification of EHR demographic data (default "ehr")
 
 The image anonymisation will be triggered automatically once the image has been downloaded to the raw Orthanc server.
 
