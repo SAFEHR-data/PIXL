@@ -35,8 +35,10 @@ class PixlConsumer:
         self._url = f"amqp://{user}:{password}@{queue}:{port}/"
         self._queue_name = queue
 
-    def __enter__(self):
+    def __enter__(self) -> "PixlConsumer":
+        """Establishes connection to queue."""
         self._create_connection(queue=self._queue_name)
+        return self
 
     async def _create_connection(self, queue: str):
         self._connection = await aio_pika.connect(self._url)
