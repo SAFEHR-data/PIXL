@@ -208,6 +208,17 @@ def status(queues: str) -> None:
         print(f"[{queue:^10s}] refresh rate = ", _get_extract_rate(queue))
 
 
+@cli.command()
+def az_copy_ehr() -> None:
+    """Copy the EHR data to azure"""
+
+    api_config = api_config_for_queue("ehr")
+    response = requests.get(url=f"{api_config.base_url}/az-copy-current")
+
+    if response.status_code != 200:
+        raise RuntimeError(f"Failed to run az copy due to: {response.text}")
+
+
 def _get_extract_rate(queue_name: str) -> str:
     """Get the extraction rate in items per second from a queue"""
 
