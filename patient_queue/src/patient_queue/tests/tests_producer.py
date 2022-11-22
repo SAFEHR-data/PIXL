@@ -21,34 +21,31 @@ TEST_QUEUE = "test_publish"
 
 def test_create_pixl_producer() -> None:
     """Checks that PixlProducer can be instantiated."""
-    pp = PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE)
-    pp.connect()
-    assert pp.connection.is_open
-    pp.close()
+    with PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE) as pp:
+        assert pp.connection.is_open
 
 
 def test_publish() -> None:
     """Checks that after publishing, there is one message in the queue. Will only work if nothing has been added to queue before."""
-    pp = PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE)
-    pp.publish(msgs=["test"])
-    pp.connect()
-    assert pp._queue.method.message_count == 1
-    pp.clear_queue()
-    pp.close()
+    with PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE) as pp:
+        pp.publish(msgs=["test"])
+
+    with PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE) as pp:
+        assert pp._queue.method.message_count == 1
+        pp.clear_queue()
 
 
 def test_consume_all() -> None:
     """Checks that all messages are returned that have been published before for graceful shutdown."""
-    pp = PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE)
-    pp.publish(msgs=["test", "test"])
-    msgs = pp.consume_all(timeout_in_seconds=2)
+    with PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE) as pp:
+        pp.publish(msgs=["test", "test"])
+        msgs = pp.consume_all(timeout_in_seconds=2)
 
-    counter = 0
-    for msg in msgs:
-        if all(arg is None for arg in msg):
-            break
-        else:
-            counter += 1
+        counter = 0
+        for msg in msgs:
+            if all(arg is None for arg in msg):
+                break
+            else:
+                counter += 1
 
-    assert counter == 2
-    pp.close()
+        assert counter == 2

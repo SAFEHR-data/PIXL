@@ -37,7 +37,7 @@ class PixlProducer(object):
         self._host = host
         self._port = port
 
-    def __enter__(self) -> None:
+    def __enter__(self) -> "PixlProducer":
         """Establishes connection to RabbitMQ service."""
         params = pika.ConnectionParameters(
             host=self._host,
@@ -50,13 +50,14 @@ class PixlProducer(object):
                 self._channel = self._connection.channel()
             self._queue = self._channel.queue_declare(queue=self.queue_name)
         LOGGER.info(f"Connected to {self._queue}")
+        return self
 
     def publish(self, msgs: list) -> None:
         """
-        Opens a connection to the respective queue and sends a list of message.
+        Sends a list of messages to a queue.
         :param msgs: list of messages to be sent to queue
         """
-        self.connect()
+        LOGGER.debug(f"Publishing list of messages queue {self.queue_name}")
         if msgs:
             for msg in msgs:
                 LOGGER.debug(f"Preparing to publish")
@@ -64,7 +65,6 @@ class PixlProducer(object):
                 LOGGER.debug(f"Message {msg} published to queue {self.queue_name}")
         else:
             LOGGER.debug("List of messages is empty so nothing will be published to queue.")
-        self.close()
 
     def consume_all(self, timeout_in_seconds) -> tuple():
         """
@@ -72,7 +72,6 @@ class PixlProducer(object):
         :param timeout_in_seconds: Causes shutdown after the timeout (specified in secs)
         :return: Generator to all the messages in the queue that will be auto acknowledge, i.e. delete from queue.
         """
-        self.connect()
         generator = self._channel.consume(
             queue=self.queue_name,
             auto_ack=True,
