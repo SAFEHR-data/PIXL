@@ -33,7 +33,10 @@ class PixlConsumer:
         :param password: Which password to use for the connection
         """
         self._url = f"amqp://{user}:{password}@{queue}:{port}/"
-        self._create_connection(queue=queue)
+        self._queue_name = queue
+
+    def __enter__(self):
+        self._create_connection(queue=self._queue_name)
 
     async def _create_connection(self, queue: str):
         self._connection = await aio_pika.connect(self._url)
