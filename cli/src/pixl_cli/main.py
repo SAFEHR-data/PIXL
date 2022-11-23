@@ -196,9 +196,8 @@ def stop(queues: str) -> None:
     logger.info(f"Stopping extraction of {queues}")
 
     for queue in queues.split(","):
-        with create_pixl_producer(queue=queue) as producer:
-            logger.info(f"Consuming messages on {queue}")
-            consume_all_messages_and_save_csv_file(producer=producer)
+        logger.info(f"Consuming messages on {queue}")
+        consume_all_messages_and_save_csv_file(queue_name=queue)
 
 
 @cli.command()
@@ -248,33 +247,34 @@ def _get_extract_rate(queue_name: str) -> str:
 
 
 def consume_all_messages_and_save_csv_file(
-    producer: PixlProducer, timeout_in_seconds: int = 5
+    queue_name: str, timeout_in_seconds: int = 5
 ) -> None:
     logger.info(
-        f"Will consume all messages on {producer.queue_name} queue and timeout after "
+        f"Will consume all messages on {queue_name} queue and timeout after "
         f"{timeout_in_seconds} seconds"
     )
 
-    if producer.queue.method.message_count > 0:
-        logger.info("Found messages in the queue. Clearing the state file")
-        clear_file(state_filepath_for_queue(producer.queue))
+    with create_pixl_producer(queue=queue_name) as producer:
+        if producer.queue.method.message_count > 0:
+            logger.info("Found messages in the queue. Clearing the state file")
+            clear_file(state_filepath_for_queue(queue_name))
 
-    def callback(method: Any, properties: Any, body: Any) -> None:
+        def callback(method: Any, properties: Any, body: Any) -> None:
 
-        try:
-            with open(state_filepath_for_queue(producer.queue), "a") as csv_file:
-                print(body.decode(), file=csv_file)
-        except:  # noqa
-            logger.debug("Failed to consume")
+            try:
+                with open(state_filepath_for_queue(producer.queue), "a") as csv_file:
+                    print(body.decode(), file=csv_file)
+            except:  # noqa
+                logger.debug("Failed to consume")
 
-    generator = producer.consume_all()
+        generator = producer.consume_all()
 
-    for args in generator:
-        if all(arg is None for arg in args):
-            logger.info("Stopping")
-            break
+        for args in generator:
+            if all(arg is None for arg in args):
+                logger.info("Stopping")
+                break
 
-        callback(*args)
+            callback(*args)
 
 
 def state_filepath_for_queue(queue_name: str) -> Path:

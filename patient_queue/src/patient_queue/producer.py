@@ -98,3 +98,7 @@ class PixlProducer(object):
     @property
     def channel(self):
         return self._channel
+
+    @property
+    def queue(self):
+        return self._queue
