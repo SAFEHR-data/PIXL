@@ -183,6 +183,9 @@ services:
 
   queue:
     image: rabbitmq:3.11.2-management
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
     healthcheck:
       test: rabbitmq-diagnostics -q ping
       interval: 30s
