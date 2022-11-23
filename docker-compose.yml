@@ -133,6 +133,11 @@ services:
       - ${PWD}/orthanc/orthanc-anon/config:/run/secrets:ro
     networks:
       - pixl-net
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "-u" , "${ORTHANC_ANON_USERNAME}:${ORTHANC_ANON_PASSWORD}", "http://orthanc-anon:8042/heart-beat" ]
+      interval: 10s
+      timeout: 30s
+      retries: 5
     restart: "no"
 
   orthanc-raw:
@@ -169,6 +174,11 @@ services:
       - ${PWD}/orthanc/orthanc-raw/config:/run/secrets:ro
     networks:
       - pixl-net
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "-u" , "${ORTHANC_RAW_USERNAME}:${ORTHANC_RAW_PASSWORD}", "http://orthanc-raw:8042/heart-beat" ]
+      interval: 10s
+      timeout: 30s
+      retries: 5
     restart: "no"
 
   queue:
@@ -193,6 +203,11 @@ services:
       <<: *emap-db
       <<: *proxy-common
       <<: *pixl-common-env
+      AZURE_CLIENT_ID: ${PIXL_EHR_API_AZ_CLIENT_ID}
+      AZURE_CLIENT_SECRET: ${PIXL_EHR_API_AZ_CLIENT_SECRET}
+      AZURE_TENANT_ID: ${PIXL_EHR_API_AZ_TENANT_ID}
+      AZ_STORAGE_ACCOUNT_NAME: ${PIXL_EHR_API_AZ_STORAGE_ACCOUNT_NAME}
+      AZ_STORAGE_CONTAINER_NAME: ${PIXL_EHR_API_AZ_STORAGE_CONTAINER_NAME}
       # TODO: rabbitMQ params
     env_file:
       - ./docker/common.env
@@ -203,6 +218,9 @@ services:
         condition: service_healthy
       hasher-api:
         condition: service_healthy
+    ports:
+      - "${PIXL_EHR_API_PORT}:8000"
+      - "443:443"
     healthcheck:
       interval: 10s
       timeout: 30s

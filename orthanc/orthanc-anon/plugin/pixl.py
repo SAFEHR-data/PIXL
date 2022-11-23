@@ -99,6 +99,10 @@ def OnChange(changeType, level, resource):
             orthanc.LogWarning("Stopping the scheduler")
             TIMER.cancel()
 
+def OnHeartBeat(output, uri, **request):
+    orthanc.LogWarning("OK")
+    output.AnswerBuffer('OK\n', 'text/plain')
+
 def ReceivedInstanceCallback(receivedDicom, origin):
     """Modifies a DICOM instance received by Orthanc and applies anonymisation."""
 
@@ -129,5 +133,7 @@ def ReceivedInstanceCallback(receivedDicom, origin):
     # Write anoymised instance to disk.
     return orthanc.ReceivedInstanceAction.MODIFY, pixl_dcmd.write_dataset_to_bytes(dataset)
 
-orthanc.RegisterReceivedInstanceCallback(ReceivedInstanceCallback)
+
 orthanc.RegisterOnChangeCallback(OnChange)
+orthanc.RegisterReceivedInstanceCallback(ReceivedInstanceCallback)
+orthanc.RegisterRestCallback('/heart-beat', OnHeartBeat)

@@ -47,6 +47,7 @@ services:
       EMAP_UDS_SCHEMA_NAME: star
     ports:
       - "9000:8000"
+      - "443:443"
 
   queue:
     container_name: pixl-test-queue

@@ -20,4 +20,9 @@ def OnChange(changeType, level, resourceId):
         print('Stable study: %s' % resourceId)
         orthanc.RestApiPost('/modalities/PIXL-Anon/store', resourceId)
 
+def OnHeartBeat(output, uri, **request):
+    orthanc.LogWarning("OK")
+    output.AnswerBuffer('OK\n', 'text/plain')
+
 orthanc.RegisterOnChangeCallback(OnChange)
+orthanc.RegisterRestCallback('/heart-beat', OnHeartBeat)
