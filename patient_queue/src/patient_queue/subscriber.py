@@ -12,6 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+import os
 import aio_pika
 import logging
 from typing import Callable
@@ -23,7 +24,11 @@ LOGGER = logging.getLogger(__name__)
 
 class PixlConsumer:
     """Connector to RabbitMQ. Consumes messages from a queue that specify patients for which EHR demographic data needs to be retrieved ."""
-    def __init__(self, queue: str, port: int, user: str, password: str, token_bucket: TokenBucket) -> None:
+
+    RABBIT_MQ_USER = os.environ["RABBITMQ_DEFAULT_USER"]
+    RABBIT_MQ_PASSWORD = os.environ["RABBITMQ_DEFAULT_PASS"]
+
+    def __init__(self, queue: str, port: int, token_bucket: TokenBucket) -> None:
         """
         Creating connection to RabbitMQ queue.
         :param queue: Name of the queue to connect to.
@@ -31,7 +36,7 @@ class PixlConsumer:
         :param user: Which user to use for connection
         :param password: Which password to use for the connection
         """
-        self._url = f"amqp://{user}:{password}@{queue}:{port}/"
+        self._url = f"amqp://{self.RABBIT_MQ_USER}:{self.RABBIT_MQ_PASSWORD}@{queue}:{port}/"
         self._queue_name = queue
         self._consume_token_bucket = token_bucket
 

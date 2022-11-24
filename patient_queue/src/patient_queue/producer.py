@@ -13,6 +13,8 @@
 #  limitations under the License.
 
 import logging
+from typing import Any
+
 import pika
 
 LOGGER = logging.getLogger(__name__)
@@ -23,12 +25,14 @@ class PixlProducer(object):
     Generic publisher for RabbitMQ.
     """
 
-    def __init__(self, host, port, queue_name):
+    def __init__(self, host: str, port: int, queue_name: str, user: str, password: str) -> None:
         """
         Initialising RabbitMQ service configuration for connection.
         :param str host: URL for the RabbitMQ service
         :param int port: Port on which RabbitMQ service is running
-        :param str queue: Name of the queue this producer is to publish on
+        :param str queue_name: Name of the queue this producer is to publish on
+        :param user: RabbitMQ user name as configured for queue
+        :param password: RabbitMQ user password as configured for queue
         """
         self._connection = None
         self._channel = None
@@ -36,12 +40,16 @@ class PixlProducer(object):
         self.queue_name = queue_name
         self._host = host
         self._port = port
+        self._user = user
+        self._password = password
 
     def __enter__(self) -> "PixlProducer":
         """Establishes connection to RabbitMQ service."""
+        credentials = pika.PlainCredentials(self._user, self._password)
         params = pika.ConnectionParameters(
             host=self._host,
-            port=self._port
+            port=self._port,
+            credentials=credentials
         )
         if self._connection is None or self._connection.is_closed:
             self._connection = pika.BlockingConnection(params)
@@ -66,7 +74,7 @@ class PixlProducer(object):
         else:
             LOGGER.debug("List of messages is empty so nothing will be published to queue.")
 
-    def consume_all(self, timeout_in_seconds) -> tuple():
+    def consume_all(self, timeout_in_seconds: int) -> tuple():
         """
         Retrieving all messages still on queue for save shutdown.
         :param timeout_in_seconds: Causes shutdown after the timeout (specified in secs)
@@ -80,7 +88,7 @@ class PixlProducer(object):
         LOGGER.debug(f"Returning generator {generator} containing remaining messages for shutdown.")
         return generator
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """
         Shutdown the connection to RabbitMQ service.
         :return:
@@ -88,17 +96,18 @@ class PixlProducer(object):
         self._channel.close()
         self._connection.close()
 
-    def clear_queue(self):
+    def clear_queue(self) -> None:
+        """Triggering a purge of all the messages currently in the queue. Mainly used to clean after tests."""
         self._channel.queue_purge(queue=self.queue_name)
 
     @property
-    def connection(self):
+    def connection(self) -> pika.BlockingConnection:
         return self._connection
 
     @property
-    def channel(self):
+    def channel(self) -> pika.channel.Channel:
         return self._channel
 
     @property
-    def queue(self):
+    def queue(self) -> pika.spec.Queue:
         return self._queue
