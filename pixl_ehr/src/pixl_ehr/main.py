@@ -14,19 +14,20 @@
 import asyncio
 from dataclasses import dataclass
 import logging
-
 from azure.identity import EnvironmentCredential
 from azure.storage.blob import BlobServiceClient
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
-from pixl_ehr._databases import PIXLDatabase
-from pixl_ehr._processing import process_message
-from pixl_ehr.utils import env_var
 from pydantic import BaseModel
+from pathlib import Path
+import yaml
 
 from token_buffer import TokenBucket
 from patient_queue.subscriber import PixlConsumer
 from ._version import __version__
+from pixl_ehr._databases import PIXLDatabase
+from pixl_ehr.utils import env_var
+from pixl_ehr._processing import process_message
 
 QUEUE_NAME = "ehr"
 
@@ -48,10 +49,28 @@ class AppState:
 state = AppState()
 
 
+def _load_config(filename: str = "pixl_config.yml") -> dict:
+    """CLI configuration generated from a .yaml file"""
+
+    if not Path(filename).exists():
+        raise IOError(
+            f"Failed to find {filename}. It must be present "
+            f"in the current working directory"
+        )
+
+    with open(filename, "r") as config_file:
+        config_dict = yaml.load(config_file, Loader=yaml.FullLoader)
+    return dict(config_dict)
+
+
+config = _load_config()
+
+
 async def _queue_loop() -> None:
     # TODO: settings would probably be best in separate env file as done elsewhere
-    consumer = PixlConsumer("ehr", 5672, "guest", "guest")
-    consumer.run(state.token_bucket)
+    consumer = PixlConsumer(QUEUE_NAME, config["rabbitmq"]["port"], config["rabbitmq"]["rabbit_user"], config["rabbitmq"]["rabbit_pw"],
+                            token_bucket=state.token_bucket)
+    consumer.run(process_message())
 
 
 @app.on_event("startup")
