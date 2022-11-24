@@ -47,9 +47,10 @@ class PixlProducer(object):
         """Establishes connection to RabbitMQ service."""
         credentials = pika.PlainCredentials(self._user, self._password)
         params = pika.ConnectionParameters(
-            host=self._host,
-            port=self._port,
-            credentials=credentials
+            self._host,
+            self._port,
+            "/",
+            credentials
         )
         if self._connection is None or self._connection.is_closed:
             self._connection = pika.BlockingConnection(params)
@@ -90,7 +91,7 @@ class PixlProducer(object):
         def callback(method: Any, properties: Any, body: Any) -> None:
             try:
                 with open(file_path, "a") as csv_file:
-                    print(body.decode(), file=csv_file)
+                    csv_file.write(str(body) + "\n")
             except:  # noqa
                 LOGGER.debug("Failed to consume")
 
