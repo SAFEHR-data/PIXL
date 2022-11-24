@@ -261,22 +261,7 @@ def consume_all_messages_and_save_csv_file(
             logger.info("Found messages in the queue. Clearing the state file")
             clear_file(state_filepath_for_queue(queue_name))
 
-        def callback(method: Any, properties: Any, body: Any) -> None:
-
-            try:
-                with open(state_filepath_for_queue(producer.queue), "a") as csv_file:
-                    print(body.decode(), file=csv_file)
-            except:  # noqa
-                logger.debug("Failed to consume")
-
-        generator = producer.consume_all()
-
-        for args in generator:
-            if all(arg is None for arg in args):
-                logger.info("Stopping")
-                break
-
-            callback(*args)
+        producer.consume_all(state_filepath_for_queue(producer.queue))
 
 
 def state_filepath_for_queue(queue_name: str) -> Path:

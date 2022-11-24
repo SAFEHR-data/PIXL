@@ -13,9 +13,9 @@
 #  limitations under the License.
 
 import logging
-from typing import Any
-
 import pika
+from typing import Any
+from pathlib import Path
 
 LOGGER = logging.getLogger(__name__)
 
@@ -74,10 +74,11 @@ class PixlProducer(object):
         else:
             LOGGER.debug("List of messages is empty so nothing will be published to queue.")
 
-    def consume_all(self, timeout_in_seconds: int) -> tuple():
+    def consume_all(self, file_path: Path, timeout_in_seconds: int = 5) -> None:
         """
         Retrieving all messages still on queue for save shutdown.
         :param timeout_in_seconds: Causes shutdown after the timeout (specified in secs)
+        :param file_path: path to where remaining messages should be written before shutdown
         :return: Generator to all the messages in the queue that will be auto acknowledge, i.e. delete from queue.
         """
         generator = self._channel.consume(
@@ -85,8 +86,19 @@ class PixlProducer(object):
             auto_ack=True,
             inactivity_timeout=timeout_in_seconds,  # Yields (None, None, None) after this
         )
-        LOGGER.debug(f"Returning generator {generator} containing remaining messages for shutdown.")
-        return generator
+
+        def callback(method: Any, properties: Any, body: Any) -> None:
+            try:
+                with open(file_path, "a") as csv_file:
+                    print(body.decode(), file=csv_file)
+            except:  # noqa
+                LOGGER.debug("Failed to consume")
+
+        for args in generator:
+            if all(arg is None for arg in args):
+                LOGGER.info("Stopping")
+                break
+            callback(*args)
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """
