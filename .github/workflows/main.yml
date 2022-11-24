@@ -161,7 +161,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r cli/src/requirements.txt
           pip install -r patient_queue/src/requirements.txt
-          pip install -r patient_queue/src/
+          pip install patient_queue/src/
 
       - name: Run tests
         working-directory: cli/test
