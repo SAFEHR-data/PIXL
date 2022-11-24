@@ -17,6 +17,6 @@ from patient_queue.subscriber import PixlConsumer
 
 def test_create() -> None:
     """Checks that PIXL producer can be instantiated."""
-    pc = PixlConsumer(queue="test", port=5672, user="rabbit_user", password="rabbit_pw", token_bucket=TokenBucket())
+    pc = PixlConsumer(queue="test", port=5672, token_bucket=TokenBucket())
     assert True
 
