@@ -189,8 +189,6 @@ jobs:
         run: |
           ./run-tests.sh
 
-
-
   ehr-api-tests:
     runs-on: ubuntu-22.04
     timeout-minutes: 15
@@ -216,7 +214,6 @@ jobs:
         working-directory: pixl_ehr/test
         run: |
           ./run-tests.sh
-
 
   pacs-api-tests:
     runs-on: ubuntu-22.04

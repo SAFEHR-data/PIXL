@@ -33,7 +33,9 @@ COPY ./token_buffer/src/ local_deps/token_buffer/
 RUN for dir in local_deps/*/; do pip install --no-cache-dir -r "${dir}requirements.txt" $dir; done
 
 COPY ./pixl_pacs/src ./pixl_pacs
-RUN pip install --no-cache-dir -r ./pixl_pacs/requirements.txt ./pixl_pacs
+RUN pip install --no-cache-dir -r ./pixl_pacs/requirements.txt
+RUN pip install --no-cache-dir ./pixl_pacs
+
 
 HEALTHCHECK CMD /usr/bin/curl -f http://0.0.0.0:8000/heart-beat || exit 1
 

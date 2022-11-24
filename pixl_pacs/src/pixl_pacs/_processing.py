@@ -16,7 +16,7 @@ from datetime import datetime
 import logging
 import os
 
-from pixl_pacs._orthanc import Orthanc
+from pixl_pacs._orthanc import PIXLRawOrthanc, Orthanc
 from pixl_pacs.utils import env_var
 
 logger = logging.getLogger("uvicorn")
@@ -27,14 +27,11 @@ def process_message(message_body: bytes) -> None:
     logger.info(f"Processing: {message_body.decode()}")
 
     study = ImagingStudy.from_message(message_body)
-    orthanc_raw = Orthanc(
-        url="http://orthanc-raw:8042",
-        username=env_var("ORTHANC_RAW_USERNAME"),
-        password=env_var("ORTHANC_RAW_PASSWORD"),
-    )
+    orthanc_raw = PIXLRawOrthanc()
 
     if study.exists_in(orthanc_raw):
-        return  # Nothing to do – study exists already
+        logger.info("Study exists in cache")
+        return
 
     raise NotImplementedError
 
@@ -45,7 +42,7 @@ class ImagingStudy:
 
     mrn: str
     accession_number: str
-    acquisition_datetime: datetime
+    study_datetime: datetime
 
     @classmethod
     def from_message(cls, message_body: bytes) -> "ImagingStudy":
@@ -55,7 +52,16 @@ class ImagingStudy:
     def exists_in(self, node: Orthanc) -> bool:
         """Does this study exist in an Orthanc instance/node?"""
 
-        return False
+        patients = None # TODO
+
+        data = {
+            "Level": "Study",
+            "Query": {
+                "PatientID": self.mrn,
+                "StudyID": self.study_datetime
+            }
+        }
+        return len(node.query(data, modality=node.modality)) > 0
 
 
 # TODO: move to patient queue package

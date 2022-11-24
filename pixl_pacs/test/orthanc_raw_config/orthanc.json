@@ -3,12 +3,5 @@
   "RemoteAccessAllowed" : true,
   "RegisteredUsers": {
       "${ORTHANC_USERNAME}": "${ORTHANC_PASSWORD}"
-    },
-
-  "Plugins" : [ "/usr/share/orthanc/plugins" ],
-  "PythonScript" : "/etc/orthanc/pixl.py",
-  "PythonVerbose" : false,
-  "Gdcm" : {
-    "Enable" : true
-  }
+    }
 }

@@ -39,9 +39,7 @@ services:
       LOG_LEVEL: "DEBUG"
       ORTHANC_RAW_USERNAME: "orthanc"
       ORTHANC_RAW_PASSWORD: "orthanc"
-      ORTHANC_RAW_AE_TITLE: "raw"
-      ORTHANC_VNA_USERNAME: "orthanc"
-      ORTHANC_VNA_PASSWORD: "orthanc"
+      ORTHANC_RAW_AE_TITLE: "PIXLRAW"
     ports:
       - "9001:8000"
 
@@ -51,7 +49,10 @@ services:
       ORTHANC_NAME: "VNA"
       ORTHANC_USERNAME: "orthanc"
       ORTHANC_PASSWORD: "orthanc"
-      ORTHANC_AE_TITLE: "vna"
+      ORTHANC_AE_TITLE: "VNA"
+      RAW_AE_TITLE: "PIXLRAW"
+      RAW_DICOM_PORT: "4242"
+      RAW_IP_ADDR: "orthanc-raw"  # aka. hostname
     ports:
       - "4242:4242"
       - "8042:8042"
@@ -61,10 +62,13 @@ services:
   vna-qr:
     image: osimis/orthanc:22.9.0-full-stable
     environment:
-      ORTHANC_NAME: "VNA-QR"
+      ORTHANC_NAME: "VNAQR"
       ORTHANC_USERNAME: "orthanc"
       ORTHANC_PASSWORD: "orthanc"
-      ORTHANC_AE_TITLE: "vna-qr"
+      ORTHANC_AE_TITLE: "VNAQR"
+      RAW_AE_TITLE: "PIXLRAW"
+      RAW_DICOM_PORT: "4242"
+      RAW_IP_ADDR: "orthanc-raw"  # aka. hostname
     ports:
       - "4243:4242"
       - "8043:8042"
@@ -79,11 +83,11 @@ services:
       ORTHANC_NAME: "PIXL: Raw"
       ORTHANC_USERNAME: "orthanc"
       ORTHANC_PASSWORD: "orthanc"
-      ORTHANC_AE_TITLE: "raw"
-      VNA_AE_TITLE : "vna"
+      ORTHANC_AE_TITLE: "PIXLRAW"
+      VNA_AE_TITLE : "VNA"
       VNA_DICOM_PORT: "4242"
       VNA_IP_ADDR: "vna"  # aka. hostname
-      VNAQR_AE_TITLE : "vna-qr"
+      VNAQR_AE_TITLE : "VNAQR"
       VNAQR_DICOM_PORT: "4242"
       VNAQR_IP_ADDR: "vna-qr"
       ORTHANC_ANON_AE_TITLE: "unused"
