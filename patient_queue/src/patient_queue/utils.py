@@ -14,17 +14,18 @@
 from datetime import datetime
 import logging
 import json
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
-def deserialise(message_body: bytes) -> dict:
+def deserialise(message_body: bytes) -> Any:
     """Returns the de-serialised message in JSON format."""
     logger.debug(f"De-serialising: {message_body.decode()}")
     return json.loads(message_body.decode())
 
 
-def serialise(mrn: str, acsn_no: str, date: datetime):
+def serialise(mrn: str, acsn_no: str, date: datetime) -> str:
     """Returns serialised message from patient id, accession number and date of study.
     :param mrn: patient identifier
     :param acsn_no: accession number
