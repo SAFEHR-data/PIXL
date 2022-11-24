@@ -19,6 +19,6 @@ def env_var(key: str) -> str:
 
     if (value := os.environ.get(key, None)) is None:
         raise RuntimeError(
-            f"Failed to find ${key}. Ensure it is set as an environment variable"
+            f"Failed to find ${key}. Ensure it is set as " f"an environment variable"
         )
     return value

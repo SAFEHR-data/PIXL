@@ -11,14 +11,18 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-import os
+from setuptools import setup, find_packages
 
+exec(open("pixl_pacs/_version.py").read())
 
-def env_var(key: str) -> str:
-    """Get an environment variable and raise a helpful exception if it's not set"""
-
-    if (value := os.environ.get(key, None)) is None:
-        raise RuntimeError(
-            f"Failed to find ${key}. Ensure it is set as an environment variable"
-        )
-    return value
+setup(
+    name="pixl_pacs",
+    version=__version__,  # noqa: F821
+    author="Tom Young",
+    url="https://github.com/UCLH-DIF/PIXL",
+    description="PIXL image extractor",
+    packages=find_packages(
+        exclude=["*tests", "*.tests.*"],
+    ),
+    python_requires=">=3.10",
+)

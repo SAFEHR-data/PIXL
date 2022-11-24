@@ -1,0 +1,24 @@
+{
+  "DicomAet" : "${ORTHANC_AE_TITLE}",
+
+  "DicomModalities" : {
+    "UCVNA" : {
+      "AET" : "${VNA_AE_TITLE}",
+      "Port" : "${VNA_DICOM_PORT}",
+      "Host" : "${VNA_IP_ADDR}",
+      "Manufacturer" : "Generic"
+    },
+    "UCVNAQR" : {
+      "AET" : "${VNAQR_AE_TITLE}",
+      "Port" : "${VNAQR_DICOM_PORT}",
+      "Host" : "${VNAQR_IP_ADDR}",
+      "Manufacturer" : "Generic"
+    },
+    "PIXL-Anon" : {
+      "AET" : "${ORTHANC_ANON_AE_TITLE}",
+      "Port" : "${ORTHANC_ANON_DICOM_PORT}",
+      "Host" : "${ORTHANC_ANON_HOSTNAME}",
+      "Manufacturer" : "Generic"
+    }
+  }
+}

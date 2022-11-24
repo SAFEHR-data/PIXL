@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 #  Copyright (c) University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,14 +12,10 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-import os
+set -euxo pipefail
 
+BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+PACKAGE_DIR="${BIN_DIR%/*}"
 
-def env_var(key: str) -> str:
-    """Get an environment variable and raise a helpful exception if it's not set"""
-
-    if (value := os.environ.get(key, None)) is None:
-        raise RuntimeError(
-            f"Failed to find ${key}. Ensure it is set as an environment variable"
-        )
-    return value
+. "${PACKAGE_DIR}"/test/run-lint-and-api-tests.sh
+. "${PACKAGE_DIR}"/test/run-processing-tests.sh
