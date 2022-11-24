@@ -16,7 +16,6 @@ import aio_pika
 import logging
 from typing import Callable
 
-from pixl_ehr._processing import process_message
 from token_buffer import TokenBucket
 
 LOGGER = logging.getLogger(__name__)
@@ -24,7 +23,7 @@ LOGGER = logging.getLogger(__name__)
 
 class PixlConsumer:
     """Connector to RabbitMQ. Consumes messages from a queue that specify patients for which EHR demographic data needs to be retrieved ."""
-    def __init__(self, queue: str, port: int, user: str, password: str) -> None:
+    def __init__(self, queue: str, port: int, user: str, password: str, token_bucket: TokenBucket) -> None:
         """
         Creating connection to RabbitMQ queue.
         :param queue: Name of the queue to connect to.
@@ -34,6 +33,7 @@ class PixlConsumer:
         """
         self._url = f"amqp://{user}:{password}@{queue}:{port}/"
         self._queue_name = queue
+        self._consume_token_bucket = token_bucket
 
     def __enter__(self) -> "PixlConsumer":
         """Establishes connection to queue."""
@@ -46,23 +46,31 @@ class PixlConsumer:
             self._channel = await self._connection.channel()
             self._queue = await self._channel.declare_queue(queue)
 
-    async def run(self, token_buffer: TokenBucket, callback: Callable = process_message) -> None:
+    async def run(self, callback: Callable) -> None:
         """Creates loop that waits for messages from producer and processes them as they appear.
-        :param token_buffer: token buffer for EHR queue
         :param callback: method to be called when new message arrives that needs to be processed
         """
         async with self._queue.iterator() as queue_iter:
             async for message in queue_iter:
 
                 try:
-                    if token_buffer.has_token:
-                        callback(message.body)
-                        await message.ack()
-                    else:
-                        await message.reject(requeue=True)
+                    if self._consume_token_bucket is not None:
+                        if self._consume_token_bucket.has_token:
+                            callback(message.body)
+                            await message.ack()
+                        else:
+                            await message.reject(requeue=True)
                 except Exception as e:  # noqa
                     LOGGER.error(
                         f"Failed to process {message.body.decode()} due to\n{e}\n"
                         f"Not re-queuing message"
                     )
                     await message.reject(requeue=False)
+
+    @property
+    def consume_token_bucket(self):
+        return self._consume_token_bucket
+
+    @consume_token_bucket.setter
+    def token_bucket(self, tb):
+        self._consume_token_bucket = tb
