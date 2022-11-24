@@ -41,13 +41,5 @@ def test_consume_all() -> None:
     """Checks that all messages are returned that have been published before for graceful shutdown."""
     with PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE, user=RABBIT_USER, password=RABBIT_PASSWORD) as pp:
         pp.publish(msgs=["test", "test"])
-        msgs = pp.consume_all(timeout_in_seconds=2)
-
-        counter = 0
-        for msg in msgs:
-            if all(arg is None for arg in msg):
-                break
-            else:
-                counter += 1
-
+        counter = pp.consume_all(timeout_in_seconds=2, file_path="test_producer.csv")
         assert counter == 2

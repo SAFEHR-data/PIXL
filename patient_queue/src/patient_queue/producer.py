@@ -74,12 +74,12 @@ class PixlProducer(object):
         else:
             LOGGER.debug("List of messages is empty so nothing will be published to queue.")
 
-    def consume_all(self, file_path: Path, timeout_in_seconds: int = 5) -> None:
+    def consume_all(self, file_path: Path, timeout_in_seconds: int = 5) -> int:
         """
-        Retrieving all messages still on queue for save shutdown.
+        Retrieving all messages still on queue and save them in a specified CSV file.
         :param timeout_in_seconds: Causes shutdown after the timeout (specified in secs)
         :param file_path: path to where remaining messages should be written before shutdown
-        :return: Generator to all the messages in the queue that will be auto acknowledge, i.e. delete from queue.
+        :returns: the number of messages that have been consumed and written to the specified file.
         """
         generator = self._channel.consume(
             queue=self.queue_name,
@@ -94,11 +94,14 @@ class PixlProducer(object):
             except:  # noqa
                 LOGGER.debug("Failed to consume")
 
+        counter= 0
         for args in generator:
             if all(arg is None for arg in args):
                 LOGGER.info("Stopping")
                 break
             callback(*args)
+            counter+=1
+        return counter
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """
