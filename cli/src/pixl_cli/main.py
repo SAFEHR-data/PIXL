@@ -91,6 +91,8 @@ def create_pixl_producer(queue: str) -> PixlProducer:
         host=config["rabbitmq"]["host"],
         port=config["rabbitmq"]["port"],
         queue_name=queue,
+        user=config["rabbitmq"]["rabbit_user"],
+        password=config["rabbitmq"]["rabbit_pw"]
     )
 
 

@@ -11,33 +11,35 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-
+import os
 from patient_queue.producer import PixlProducer
 
 TEST_URL = "localhost"
 TEST_PORT = 5672
 TEST_QUEUE = "test_publish"
+RABBIT_USER = os.environ["RABBITMQ_DEFAULT_USER"]
+RABBIT_PASSWORD = os.environ["RABBITMQ_DEFAULT_PASS"]
 
 
 def test_create_pixl_producer() -> None:
     """Checks that PixlProducer can be instantiated."""
-    with PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE) as pp:
+    with PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE, user=RABBIT_USER, password=RABBIT_PASSWORD) as pp:
         assert pp.connection.is_open
 
 
 def test_publish() -> None:
     """Checks that after publishing, there is one message in the queue. Will only work if nothing has been added to queue before."""
-    with PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE) as pp:
+    with PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE, user=RABBIT_USER, password=RABBIT_PASSWORD) as pp:
         pp.publish(msgs=["test"])
 
-    with PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE) as pp:
+    with PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE, user=RABBIT_USER, password=RABBIT_PASSWORD) as pp:
         assert pp._queue.method.message_count == 1
         pp.clear_queue()
 
 
 def test_consume_all() -> None:
     """Checks that all messages are returned that have been published before for graceful shutdown."""
-    with PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE) as pp:
+    with PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE, user=RABBIT_USER, password=RABBIT_PASSWORD) as pp:
         pp.publish(msgs=["test", "test"])
         msgs = pp.consume_all(timeout_in_seconds=2)
 
