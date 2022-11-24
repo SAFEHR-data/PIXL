@@ -17,23 +17,23 @@
 - name: "Study Date"
   group: 0x0008
   element: 0x0020
-  op: "keep"
+  op: "time-shift"
 - name: "Series Date"
   group: 0x0008
   element: 0x0021
-  op: "keep"
+  op: "time-shift"
 - name: "Acquisition Date"
   group: 0x0008
   element: 0x0022
-  op: "keep"
+  op: "time-shift"
 - name: "Image Date"
   group: 0x0008
   element: 0x0023
-  op: "keep"
+  op: "time-shift"
 - name: "Acquisition Date Time"
   group: 0x0008
   element: 0x002a
-  op: "delete"
+  op: "time-shift"
 - name: "Study Time"
   group: 0x0008
   element: 0x0030
