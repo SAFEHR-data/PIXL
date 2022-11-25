@@ -11,20 +11,20 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-import logging
-import os
-import requests
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+import logging
+import os
 from pathlib import Path
-from typing import Optional
-from typing import Any
+from typing import Any, Optional
 
 from pixl_ehr._databases import EMAPStar, PIXLDatabase
 from pixl_ehr._queries import SQLQuery
 from pixl_ehr.utils import env_var
+import requests
+
 from pixl_rd import deidentify_text
 
 logger = logging.getLogger("uvicorn")

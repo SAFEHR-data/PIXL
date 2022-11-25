@@ -14,20 +14,22 @@
 import asyncio
 from dataclasses import dataclass
 import logging
+from pathlib import Path
+
 from azure.identity import EnvironmentCredential
 from azure.storage.blob import BlobServiceClient
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
+from patient_queue.subscriber import PixlConsumer
+from pixl_ehr._databases import PIXLDatabase
+from pixl_ehr._processing import process_message
+from pixl_ehr.utils import env_var
 from pydantic import BaseModel
-from pathlib import Path
 import yaml
 
 from token_buffer import TokenBucket
-from patient_queue.subscriber import PixlConsumer
+
 from ._version import __version__
-from pixl_ehr._databases import PIXLDatabase
-from pixl_ehr.utils import env_var
-from pixl_ehr._processing import process_message
 
 QUEUE_NAME = "ehr"
 
@@ -67,8 +69,13 @@ config = _load_config()
 
 
 async def _queue_loop() -> None:
-    with PixlConsumer(QUEUE_NAME, config["rabbitmq"]["port"], config["rabbitmq"]["rabbit_user"], config["rabbitmq"]["rabbit_pw"],
-                      token_bucket=state.token_bucket) as consumer:
+    with PixlConsumer(
+        QUEUE_NAME,
+        config["rabbitmq"]["port"],
+        config["rabbitmq"]["rabbit_user"],
+        config["rabbitmq"]["rabbit_pw"],
+        token_bucket=state.token_bucket,
+    ) as consumer:
         consumer.run(process_message(message_body=bytearray()))
 
 
