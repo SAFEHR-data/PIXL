@@ -155,8 +155,8 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
     # Keep the original study time before any operations are applied.
     # orig_study_time = dataset[0x0008, 0x0030].value
 
-    # Set salt (this should be an ENV VAR).
-    salt_plaintext = "PIXL"
+    # Set salt based on ENV VAR
+    salt_plaintext = config("SALT_VALUE")
 
     HASHER_API_AZ_NAME = config("HASHER_API_AZ_NAME")
     HASHER_API_PORT = config("HASHER_API_PORT")
