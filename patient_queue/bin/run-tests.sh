@@ -22,15 +22,15 @@ BIN_DIR=$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)
 QUEUE_DIR="${BIN_DIR%/*}"
 cd $QUEUE_DIR
 
-CONF_FILE=../../setup.cfg
+CONF_FILE=../setup.cfg
 
 
-mypy --config-file ${CONF_FILE} patient_queue
+mypy --config-file ${CONF_FILE} src/patient_queue
 
-isort --settings-path ${CONF_FILE} patient_queue
+isort --settings-path ${CONF_FILE} src/patient_queue
 
 black patient_queue
 
 flake8 --config ${CONF_FILE}
 
-PIXL_ENV=test pytest patient_queue/tests
+ENV=test pytest src/patient_queue/tests
