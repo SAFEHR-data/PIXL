@@ -15,6 +15,7 @@
 import os
 import aio_pika
 import logging
+from typing import Any
 from typing import Callable
 
 from token_buffer import TokenBucket
@@ -57,7 +58,6 @@ class PixlConsumer:
         """
         async with self._queue.iterator() as queue_iter:
             async for message in queue_iter:
-
                 try:
                     if self._consume_token_bucket is not None:
                         if self._consume_token_bucket.has_token:
@@ -79,3 +79,6 @@ class PixlConsumer:
     @consume_token_bucket.setter
     def token_bucket(self, tb):
         self._consume_token_bucket = tb
+
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any):
+        pass
