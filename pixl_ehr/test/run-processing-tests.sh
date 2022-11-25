@@ -32,8 +32,6 @@ THIS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 PACKAGE_DIR="${THIS_DIR%/*}"
 cd "$PACKAGE_DIR" || exit
 
-pip install -e ../patient_queue/src
-
 cd test/
 docker compose up -d
 docker exec pixl-test-ehr-api /bin/bash -c "pytest pixl_ehr/tests/test_processing.py"
