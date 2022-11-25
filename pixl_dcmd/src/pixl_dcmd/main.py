@@ -161,7 +161,7 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
     HASHER_API_AZ_NAME = config("HASHER_API_AZ_NAME")
     HASHER_API_PORT = config("HASHER_API_PORT")
 
-    # TODO: Get offset from Hasher on study-by-study basis.
+    # TODO: Get offset from external source on study-by-study basis.
     TIME_OFFSET = int(config("TIME_OFFSET"))
 
     logging.info(b"TIME_OFFSET = %i}" % TIME_OFFSET)
