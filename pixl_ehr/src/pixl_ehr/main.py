@@ -67,15 +67,13 @@ config = _load_config()
 
 
 async def _queue_loop() -> None:
-    # TODO: settings would probably be best in separate env file as done elsewhere
-    consumer = PixlConsumer(QUEUE_NAME, config["rabbitmq"]["port"], config["rabbitmq"]["rabbit_user"], config["rabbitmq"]["rabbit_pw"],
-                            token_bucket=state.token_bucket)
-    consumer.run(process_message())
+    with PixlConsumer(QUEUE_NAME, config["rabbitmq"]["port"], config["rabbitmq"]["rabbit_user"], config["rabbitmq"]["rabbit_pw"],
+                      token_bucket=state.token_bucket) as consumer:
+        consumer.run(process_message(message_body=None))
 
 
 @app.on_event("startup")
 async def startup_event() -> None:
-
     asyncio.create_task(_queue_loop())
 
 
