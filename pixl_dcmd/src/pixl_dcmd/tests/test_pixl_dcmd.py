@@ -68,7 +68,9 @@ def test_age_bounding(test_ages: str, expected_ages: str) -> None:
         ("20210801", "081415.999999", "20210801 081415.999999"),
     ],
 )
-def test_date_time_combo(orig_date: str, orig_time: str, expected_date_time: str) -> None:
+def test_date_time_combo(
+    orig_date: str, orig_time: str, expected_date_time: str
+) -> None:
     """Checks that dates and times are combined correctly."""
     assert (
         combine_date_time(orig_date, orig_time).format("YYYYMMDD HHmmss.SSSSSS")
