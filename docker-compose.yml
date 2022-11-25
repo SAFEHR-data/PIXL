@@ -1,3 +1,16 @@
+#  Copyright (c) University College London Hospitals NHS Foundation Trust
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
 version: "3.8"
 
 ################################################################################
@@ -27,6 +40,13 @@ x-emap-db: &emap-db
   EMAP_UDS_NAME: ${EMAP_UDS_NAME}
   EMAP_UDS_USER: ${EMAP_UDS_USER}
   EMAP_UDS_PASSWORD: ${EMAP_UDS_PASSWORD}
+
+x-pixl-db: &pixl-db
+  PIXL_DB_HOST: ${PIXL_DB_HOST}
+  PIXL_DB_PORT: ${PIXL_DB_PORT}
+  PIXL_DB_USER: ${PIXL_DB_USER}
+  PIXL_DB_PASSWORD: ${PIXL_DB_PASSWORD}
+  PIXL_DB_NAME: ${PIXL_DB_NAME}
 
 x-logs-volume: &logs-volume
   type: volume
@@ -114,6 +134,11 @@ services:
       - ${PWD}/orthanc/orthanc-anon/config:/run/secrets:ro
     networks:
       - pixl-net
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "-u" , "${ORTHANC_ANON_USERNAME}:${ORTHANC_ANON_PASSWORD}", "http://orthanc-anon:8042/heart-beat" ]
+      interval: 10s
+      timeout: 30s
+      retries: 5
     restart: "no"
 
   orthanc-raw:
@@ -137,11 +162,7 @@ services:
       ORTHANC_ANON_AE_TITLE: ${ORTHANC_ANON_AE_TITLE}
       ORTHANC_ANON_DICOM_PORT: "4242"
       ORTHANC_ANON_HOSTNAME: "orthanc-anon"
-      PIXL_DB_HOST: "${PIXL_DB_HOST}"
-      PIXL_DB_PORT: "${PIXL_DB_PORT}"
-      PIXL_DB_USER: "${PIXL_DB_USER}"
-      PIXL_DB_PASSWORD: "${PIXL_DB_PASSWORD}"
-      PIXL_DB_NAME: "${PIXL_DB_NAME}"
+      <<: *pixl-db
       <<: *proxy-common
       <<: *pixl-common-env
     ports:
@@ -154,8 +175,56 @@ services:
       - ${PWD}/orthanc/orthanc-raw/config:/run/secrets:ro
     networks:
       - pixl-net
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "-u" , "${ORTHANC_RAW_USERNAME}:${ORTHANC_RAW_PASSWORD}", "http://orthanc-raw:8042/heart-beat" ]
+      interval: 10s
+      timeout: 30s
+      retries: 5
     restart: "no"
 
+  queue:
+    image: rabbitmq:3.11.2-management
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    networks:
+      - pixl-net
+
+  ehr-api:
+    build:
+      context: .
+      dockerfile: ./docker/ehr-api/Dockerfile
+    environment:
+      <<: *pixl-db
+      <<: *emap-db
+      <<: *proxy-common
+      <<: *pixl-common-env
+      AZURE_CLIENT_ID: ${PIXL_EHR_API_AZ_CLIENT_ID}
+      AZURE_CLIENT_SECRET: ${PIXL_EHR_API_AZ_CLIENT_SECRET}
+      AZURE_TENANT_ID: ${PIXL_EHR_API_AZ_TENANT_ID}
+      AZ_STORAGE_ACCOUNT_NAME: ${PIXL_EHR_API_AZ_STORAGE_ACCOUNT_NAME}
+      AZ_STORAGE_CONTAINER_NAME: ${PIXL_EHR_API_AZ_STORAGE_CONTAINER_NAME}
+      # TODO: rabbitMQ params
+    env_file:
+      - ./docker/common.env
+    depends_on:
+      queue:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      hasher-api:
+        condition: service_healthy
+    ports:
+      - "${PIXL_EHR_API_PORT}:8000"
+      - "443:443"
+    healthcheck:
+      interval: 10s
+      timeout: 30s
+      retries: 5
+    networks:
+      - pixl-net
 
   ################################################################################
   # Data Stores

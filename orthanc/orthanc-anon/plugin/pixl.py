@@ -99,6 +99,10 @@ def OnChange(changeType, level, resource):
             orthanc.LogWarning("Stopping the scheduler")
             TIMER.cancel()
 
+def OnHeartBeat(output, uri, **request):
+    orthanc.LogWarning("OK")
+    output.AnswerBuffer('OK\n', 'text/plain')
+
 def ReceivedInstanceCallback(receivedDicom, origin):
     """Modifies a DICOM instance received by Orthanc and applies anonymisation."""
 
@@ -129,14 +133,7 @@ def ReceivedInstanceCallback(receivedDicom, origin):
     # Write anoymised instance to disk.
     return orthanc.ReceivedInstanceAction.MODIFY, pixl_dcmd.write_dataset_to_bytes(dataset)
 
-# TODO: Get offset from Hasher on study-by-study basis.
-TIME_OFFSET = int(config("TIME_OFFSET"))
 
-logging.info(b"TIME_OFFSET = %i}" % TIME_OFFSET)
-
-if TIME_OFFSET < 1 or TIME_OFFSET > 12:
-    orthanc.LogError("Illegal TIME_OFFSET")
-    sys.exit(1)
-
-orthanc.RegisterReceivedInstanceCallback(ReceivedInstanceCallback)
 orthanc.RegisterOnChangeCallback(OnChange)
+orthanc.RegisterReceivedInstanceCallback(ReceivedInstanceCallback)
+orthanc.RegisterRestCallback('/heart-beat', OnHeartBeat)

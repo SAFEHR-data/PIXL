@@ -1,0 +1,12 @@
+rabbitmq:
+  host:
+  port:
+  admin_port:
+ehr_api:
+  host:
+  port:
+  default_rate: 5  # ~queries per second
+pacs_api:
+  host:
+  port:
+  default_rate: 5  # queries per second

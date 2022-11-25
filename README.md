@@ -14,10 +14,12 @@ Primary interface to the PIXL system.
 HTTP API to securely hash an identifier using a key stored in Azure Key Vault.
 ### [Orthanc Raw](./orthanc/orthanc-raw/README.md)
 A DICOM node which receives images from the upstream hospital systems and acts as cache for PIXL.
-### Orthanc Anon
+### [Orthanc Anon](./orthanc/orthanc-anon/README.md)
 A DICOM node which wraps our de-identifcation and cloud transfer components.
 ### PostgreSQL
 RDBMS which stores DICOM metadata and application data.
+### [Electronic Health Record Extractor](./pixl_ehr/README.md)
+HTTP API to process messages from the `ehr` queue and populate raw and anon tables in the PIXL postgres instance. 
 
 ## Setup
 
@@ -25,11 +27,11 @@ RDBMS which stores DICOM metadata and application data.
 This is one of dev|test|staging|prod and referred to as `<environment>` in the docs.
 
 ### 1. Initialise environment configuration
-Create a local `.env` file in the _PIXL_ directory:
+Create a local `.env` and `pixl_config.yml` file in the _PIXL_ directory:
 ```bash
-cp .env.sample .env
+cp .env.sample .env && cp pixl_config.yml.sample  pixl_config.yml
 ```
-Add the missing configuration values to the new `.env` file:
+Add the missing configuration values to the new files:
 
 #### Environment
 Set `ENV` to `<environment>`.
@@ -79,4 +81,3 @@ PIXL data extracts include the below assumptions
 
 - (MRN, Accession number) is unique identifier for a report/DICOM study pair
 - Patients have a single _relevant_ MRN
-- Observations closest to the average image acquisition time are most accurate
