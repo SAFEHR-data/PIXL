@@ -14,6 +14,12 @@
       "Port" : "${VNAQR_DICOM_PORT}",
       "Host" : "${VNAQR_IP_ADDR}",
       "Manufacturer" : "Generic"
+    },
+    "PIXLR" : {
+      "AET" : "${ORTHANC_AE_TITLE}",
+      "Port" : "4242",
+      "Host" : "127.0.0.1",
+      "Manufacturer" : "Generic"
     }
   }
 }

@@ -52,16 +52,14 @@ class ImagingStudy:
     def exists_in(self, node: Orthanc) -> bool:
         """Does this study exist in an Orthanc instance/node?"""
 
-        patients = None # TODO
-
         data = {
             "Level": "Study",
             "Query": {
                 "PatientID": self.mrn,
-                "StudyID": self.study_datetime
+                "AccessionNumber": self.accession_number
             }
         }
-        return len(node.query(data, modality=node.modality)) > 0
+        return len(node.query_remote(data, modality=node.modality)) > 0
 
 
 # TODO: move to patient queue package

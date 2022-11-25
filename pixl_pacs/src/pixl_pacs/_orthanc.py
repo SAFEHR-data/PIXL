@@ -32,25 +32,37 @@ class Orthanc(ABC):
     @property
     def modalities(self) -> Any:
         """Accessible modalities from this Orthanc node"""
-        return requests.get(f"{self._url}/modalities", auth=self._auth).json()
+        return self._get("/modalities")
+
+    @abstractmethod
+    @property
+    def modality(self) -> str:
+        """The modality for this orthanc instance, as defined in dicom.json"""
 
     def query_remote(self, data: dict, modality: str) -> dict:
         """Query a particular modality, available from this node"""
-        response = requests.post(
-            f"{self._url}/modalities/{modality}/query",
-            json=data,
-            auth=self._auth
-        )
 
-        if response.status_code != 200:
-            raise requests.HTTPError(f"Failed to run query. "
-                                     f"Status code: {response.status_code}"
-                                     f"Content: {response.content}")
+        query_data = self._post(f"/modalities/{modality}/query", data=data)
+        return self._get(f"/queries/{query_data['ID']}/answers")
 
-        try:
-            return response.json()
-        except JSONDecodeError:
-            raise requests.HTTPError(f"Failed to parse {response} as json")
+    def _get(self, path: str) -> Any:
+        return _decode(requests.get(f"{self._url}{path}", auth=self._auth))
+
+    def _post(self, path: str, data: dict) -> Any:
+        return _decode(requests.post(f"{self._url}{path}", json=data, auth=self._auth))
+
+
+def _decode(response: requests.Response) -> Any:
+    """Decode an Orthanc rest API reponse"""
+
+    if response.status_code != 200:
+        raise requests.HTTPError(f"Failed request. "
+                                 f"Status code: {response.status_code}"
+                                 f"Content: {response.content}")
+    try:
+        return response.json()
+    except JSONDecodeError:
+        raise requests.HTTPError(f"Failed to parse {response} as json")
 
 
 class PIXLRawOrthanc(Orthanc):
@@ -60,3 +72,7 @@ class PIXLRawOrthanc(Orthanc):
             username=env_var("ORTHANC_RAW_USERNAME"),
             password=env_var("ORTHANC_RAW_PASSWORD")
         )
+
+    @property
+    def modality(self) -> str:
+        return env_var("RAW_MODAILITY")

@@ -30,7 +30,7 @@ services:
       queue:
         condition: service_healthy
       orthanc-raw:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
       interval: 10s
       timeout: 30s
@@ -40,6 +40,10 @@ services:
       ORTHANC_RAW_USERNAME: "orthanc"
       ORTHANC_RAW_PASSWORD: "orthanc"
       ORTHANC_RAW_AE_TITLE: "PIXLRAW"
+      ORTHANC_VNA_USERNAME: "orthanc"
+      ORTHANC_VNA_PASSWORD: "orthanc"
+      ORTHANC_VNA_AE_TITLE: "VNAQR"
+      RAW_MODAILITY: "PIXLR"
     ports:
       - "9001:8000"
 
@@ -99,12 +103,6 @@ services:
       - "8044:8042"
     volumes:
       - ${PWD}/orthanc_raw_config/:/run/secrets:ro
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "-u" , "orthanc:orthanc", "http://orthanc-raw:8042/heart-beat" ]
-      interval: 10s
-      timeout: 30s
-      retries: 5
-    restart: "no"
 
   queue:
     container_name: pixl-test-queue
