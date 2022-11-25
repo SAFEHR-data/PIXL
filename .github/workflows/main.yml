@@ -17,10 +17,7 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - dev
-      - main
+  pull_request: # TODO: revert
   workflow_dispatch:
 
 jobs:

@@ -34,15 +34,12 @@ class PixlConsumer:
         Creating connection to RabbitMQ queue.
         :param queue: Name of the queue to connect to.
         :param port: Port the queue is provided through (i.e. RabbitMQ port)
-        :param user: Which user to use for connection
-        :param password: Which password to use for the connection
         """
-        RABBIT_MQ_USER = os.environ["RABBITMQ_DEFAULT_USER"]
-        RABBIT_MQ_PASSWORD = os.environ["RABBITMQ_DEFAULT_PASS"]
 
-        self._url = f"amqp://{RABBIT_MQ_USER}:{RABBIT_MQ_PASSWORD}@{queue}:{port}/"
+        self.token_bucket = token_bucket
+        self._url = (f"amqp://{os.environ['RABBITMQ_DEFAULT_USER']}" 
+                     f":{os.environ['RABBITMQ_DEFAULT_PASS']}@{queue}:{port}/")
         self._queue_name = queue
-        self._consume_token_bucket = token_bucket
 
     def __enter__(self) -> "PixlConsumer":
         """Establishes connection to queue."""
@@ -62,8 +59,8 @@ class PixlConsumer:
         async with self._queue.iterator() as queue_iter:
             async for message in queue_iter:
                 try:
-                    if self._consume_token_bucket is not None:
-                        if self._consume_token_bucket.has_token:
+                    if self.token_bucket is not None:
+                        if self.token_bucket.has_token:
                             callback(message.body)
                             await message.ack()
                         else:
@@ -74,14 +71,6 @@ class PixlConsumer:
                         f"Not re-queuing message"
                     )
                     await message.reject(requeue=False)
-
-    @property
-    def consume_token_bucket(self):
-        return self._consume_token_bucket
-
-    @consume_token_bucket.setter
-    def token_bucket(self, tb):
-        self._consume_token_bucket = tb
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any):
         pass
