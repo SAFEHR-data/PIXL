@@ -16,7 +16,7 @@ from datetime import datetime
 import logging
 import os
 
-from pixl_pacs._orthanc import PIXLRawOrthanc, Orthanc
+from pixl_pacs._orthanc import Orthanc, PIXLRawOrthanc
 from pixl_pacs.utils import env_var
 
 logger = logging.getLogger("uvicorn")
@@ -33,7 +33,16 @@ def process_message(message_body: bytes) -> None:
         logger.info("Study exists in cache")
         return
 
-    raise NotImplementedError
+    query_id = orthanc_raw.query_remote(
+        study.orthanc_query_dict, modality=env_var("VNAQR_MODALITY")
+    )
+    if query_id is None:
+        logger.error(f"Failed to find {study} in the VNA")
+        raise RuntimeError
+
+    orthanc_raw.retrieve_from_remote(query_id=query_id)  # C-Move
+
+    # poll for completion
 
 
 @dataclass
@@ -49,17 +58,16 @@ class ImagingStudy:
         data = deserialise(message_body)
         return ImagingStudy(**data)
 
+    @property
+    def orthanc_query_dict(self) -> dict:
+        return {
+            "Level": "Study",
+            "Query": {"PatientID": self.mrn, "AccessionNumber": self.accession_number},
+        }
+
     def exists_in(self, node: Orthanc) -> bool:
         """Does this study exist in an Orthanc instance/node?"""
-
-        data = {
-            "Level": "Study",
-            "Query": {
-                "PatientID": self.mrn,
-                "AccessionNumber": self.accession_number
-            }
-        }
-        return len(node.query_remote(data, modality=node.modality)) > 0
+        return len(node.query_local(self.orthanc_query_dict)) > 0
 
 
 # TODO: move to patient queue package

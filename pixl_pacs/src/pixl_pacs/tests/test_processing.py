@@ -18,19 +18,23 @@ services being up
 import os
 
 from pixl_pacs._orthanc import Orthanc, PIXLRawOrthanc
-from pixl_pacs._processing import process_message, ImagingStudy
+from pixl_pacs._processing import ImagingStudy, process_message
 from pixl_pacs.utils import env_var
 from pydicom import dcmread
 from pydicom.data import get_testdata_file
 
-STUDY_ID = "abc"
+ACCESSION_NUMBER = "abc"
 PATIENT_ID = "a_patient"
 
 # TODO: replace with serialisation function
-message_body = f"{PATIENT_ID},{STUDY_ID},01/01/1234 01:23:45".encode("utf-8")
+message_body = f"{PATIENT_ID},{ACCESSION_NUMBER},01/01/1234 01:23:45".encode("utf-8")
 
 
 class WritableOrthanc(Orthanc):
+    @property
+    def aet(self) -> str:
+        return "VNAQR"
+
     def upload(self, filename: str) -> None:
         os.system(
             f"curl -u {self._username}:{self._password} "
@@ -41,7 +45,7 @@ class WritableOrthanc(Orthanc):
 def add_image_to_vna(image_filename: str = "test.dcm") -> None:
     path = get_testdata_file("CT_small.dcm")
     ds = dcmread(path)  # type: ignore
-    ds.StudyID = STUDY_ID
+    ds.AccessionNumber = ACCESSION_NUMBER
     ds.PatientID = PATIENT_ID
     ds.save_as(image_filename)
 

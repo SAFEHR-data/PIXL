@@ -43,7 +43,8 @@ services:
       ORTHANC_VNA_USERNAME: "orthanc"
       ORTHANC_VNA_PASSWORD: "orthanc"
       ORTHANC_VNA_AE_TITLE: "VNAQR"
-      RAW_MODAILITY: "PIXLR"
+      VNAQR_MODALITY: "UCVNAQR"
+      RAW_AE_TITLE: "PIXLRAW"
     ports:
       - "9001:8000"
 
