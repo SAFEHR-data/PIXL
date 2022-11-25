@@ -307,7 +307,7 @@ def hash_endpoint_path_for_tag(group: bytes, element: bytes) -> str:
 
     if group == 0x0010 and element == 0x0020:  # Patient ID
         return "/hash-mrn"
-    if group == 0x0020 and element == 0x0010:  # Study ID
+    if group == 0x0008 and element == 0x0050:  # Accession Number
         return "/hash-accession-number"
 
     return "/hash"
