@@ -69,7 +69,7 @@ config = _load_config()
 async def _queue_loop() -> None:
     with PixlConsumer(QUEUE_NAME, config["rabbitmq"]["port"], config["rabbitmq"]["rabbit_user"], config["rabbitmq"]["rabbit_pw"],
                       token_bucket=state.token_bucket) as consumer:
-        consumer.run(process_message(message_body=None))
+        consumer.run(process_message(message_body=bytearray()))
 
 
 @app.on_event("startup")

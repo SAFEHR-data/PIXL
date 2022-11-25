@@ -11,20 +11,20 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+import logging
+import os
+import requests
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-import logging
-import os
 from pathlib import Path
 from typing import Optional
+from typing import Any
 
 from pixl_ehr._databases import EMAPStar, PIXLDatabase
 from pixl_ehr._queries import SQLQuery
 from pixl_ehr.utils import env_var
-import requests
-
 from pixl_rd import deidentify_text
 
 logger = logging.getLogger("uvicorn")
@@ -33,7 +33,7 @@ logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))
 _this_dir = Path(os.path.dirname(__file__))
 
 
-def process_message(message_body: bytes) -> None:
+def process_message(message_body: bytes) -> Any:
     logger.info(f"Processing: {message_body.decode()}")
 
     raw_data = PatientEHRData.from_message(message_body)
@@ -90,7 +90,7 @@ class PatientEHRData:
         return self
 
     def update_using(self, pipeline: "ProcessingPipeline") -> None:
-        """Update these data using a procesing pipeline"""
+        """Update these data using a processing pipeline"""
 
         for i, step in enumerate(pipeline.steps):
             logger.debug(f"Step [{i}/{len(pipeline.steps) - 1}]")
