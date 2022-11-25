@@ -12,7 +12,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-set -eo pipefail
+set -e pipefail
 
 BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="${BIN_DIR%/*}"
@@ -27,3 +27,4 @@ pixl_rd/bin/run-tests.sh
 token_buffer/bin/run-tests.sh
 cli/test/run-tests.sh
 pixl_ehr/test/run-tests.sh
+patient_queue/bin/run-tests.sh
