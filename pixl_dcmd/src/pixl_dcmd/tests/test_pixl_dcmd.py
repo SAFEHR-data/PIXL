@@ -12,7 +12,12 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from pixl_dcmd.main import get_bounded_age, get_encrypted_uid, remove_overlays
+from pixl_dcmd.main import (
+    combine_date_time,
+    get_bounded_age,
+    get_encrypted_uid,
+    remove_overlays,
+)
 import pydicom
 from pydicom.data import get_testdata_files
 import pytest
@@ -49,6 +54,26 @@ def test_encrypt_uid_2() -> None:
 def test_age_bounding(test_ages: str, expected_ages: str) -> None:
     """Checks ages are bounded between 18 >= x <= 89."""
     assert get_bounded_age(test_ages) == expected_ages
+
+
+@pytest.mark.parametrize(
+    "orig_date, orig_time, expected_date_time",
+    [
+        ("20180512", "000000", "20180512 000000.000000"),
+        ("20201202", "230000", "20201202 230000.000000"),
+        ("20151112", "021415", "20151112 021415.000000"),
+        ("20120504", "021312", "20120504 021312.000000"),
+        ("20030103", "200203", "20030103 200203.000000"),
+        ("19991212", "081415.11", "19991212 081415.110000"),
+        ("20210801", "081415.999999", "20210801 081415.999999"),
+    ],
+)
+def test_date_time_combo(orig_date: str, orig_time: str, expected_date_time: str) -> None:
+    """Checks that dates and times are combined correctly."""
+    assert (
+        combine_date_time(orig_date, orig_time).format("YYYYMMDD HHmmss.SSSSSS")
+        == expected_date_time
+    )
 
 
 # @pytest.mark.parametrize(

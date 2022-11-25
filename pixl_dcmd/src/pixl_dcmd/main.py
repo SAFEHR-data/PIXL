@@ -137,6 +137,7 @@ def get_bounded_age(age: str) -> str:
 
 
 def combine_date_time(a_date: str, a_time: str) -> Any:
+    """Turn date string and time string into arrow object."""
 
     date_time_str = "{a_date} {a_time}".format(a_date=a_date, a_time=a_time)
 
