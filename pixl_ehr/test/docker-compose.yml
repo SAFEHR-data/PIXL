@@ -34,6 +34,8 @@ services:
       timeout: 30s
       retries: 5
     environment:
+      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: guest
       LOG_LEVEL: DEBUG
       PIXL_DB_HOST: postgres
       PIXL_DB_NAME: pixl
