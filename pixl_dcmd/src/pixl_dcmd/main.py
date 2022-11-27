@@ -274,7 +274,8 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
         elif op == "secure-hash":
             if [grp, el] in dataset:
                 pat_value = str(dataset[grp, el].value)
-                payload = "/hash?message=" + pat_value
+                ep_path = hash_endpoint_path_for_tag(group=grp, element=el)
+                payload = ep_path + "?message=" + pat_value
                 request_url = hasher_host_url + payload
                 response = requests.get(request_url)
                 logging.info(b"RESPONSE = %a}" % response.content)
@@ -299,3 +300,14 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
             # orthanc.LogWarning(message)
 
     return dataset
+
+
+def hash_endpoint_path_for_tag(group: bytes, element: bytes) -> str:
+    """Call a hasher endpoint depending on the dicom tag group and emement"""
+
+    if group == 0x0010 and element == 0x0020:  # Patient ID
+        return "/hash-mrn"
+    if group == 0x0008 and element == 0x0050:  # Accession Number
+        return "/hash-accession-number"
+
+    return "/hash"

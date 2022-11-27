@@ -146,8 +146,10 @@ class PatientEHRData:
         if self.report_text is not None:
             self.report_text = deidentify_text(self.report_text)
 
-        self.mrn = pixl_hash(self.mrn)
-        self.accession_number = pixl_hash(self.accession_number)
+        self.mrn = pixl_hash(self.mrn, endpoint_path="hash-mrn")
+        self.accession_number = pixl_hash(
+            self.accession_number, endpoint_path="hash-accession-number"
+        )
         self.acquisition_datetime = None
 
         return self
@@ -298,10 +300,13 @@ def deserialise(message_body: bytes) -> dict:
     }
 
 
-def pixl_hash(string: str) -> str:
+def pixl_hash(string: str, endpoint_path: str) -> str:
     """Use the PIXL hashing API to hash a string"""
 
-    response = requests.get("http://hasher-api:8000/hash", params={"message": string})
+    response = requests.get(
+        f"http://hasher-api:8000/{endpoint_path.lstrip('/')}",
+        params={"message": string},
+    )
 
     if response.status_code == 200:
         logger.debug(f"Hashed to {response.text}")
