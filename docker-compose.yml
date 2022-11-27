@@ -121,6 +121,8 @@ services:
       AZ_DICOM_ENDPOINT_CLIENT_SECRET: ${AZ_DICOM_ENDPOINT_CLIENT_SECRET}
       AZ_DICOM_ENDPOINT_TENANT_ID: ${AZ_DICOM_ENDPOINT_TENANT_ID}
       AZ_DICOM_TOKEN_REFRESH_SECS: "600"
+      TIME_OFFSET: "${STUDY_TIME_OFFSET}"
+      SALT_VALUE: ${SALT_VALUE}"
       <<: *proxy-common
       <<: *pixl-common-env
     ports:

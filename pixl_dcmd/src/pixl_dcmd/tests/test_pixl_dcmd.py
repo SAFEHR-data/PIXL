@@ -13,9 +13,9 @@
 #  limitations under the License.
 
 from pixl_dcmd.main import (
+    combine_date_time,
     get_bounded_age,
     get_encrypted_uid,
-    get_shifted_time,
     remove_overlays,
 )
 import pydicom
@@ -57,20 +57,42 @@ def test_age_bounding(test_ages: str, expected_ages: str) -> None:
 
 
 @pytest.mark.parametrize(
-    "curr_time,study_time,expected_time",
+    "orig_date, orig_time, expected_date_time",
     [
-        ("020000", "020000", "000000"),
-        ("020000", "000000", "020000"),
-        ("131415", "131415", "001415"),
-        ("141312", "131415", "011312"),
-        ("010203", "225513", "030203"),
-        ("131415.11", "131415", "001415.11"),
-        ("131415.999999", "131415", "001415.999999"),
+        ("20180512", "000000", "20180512 000000.000000"),
+        ("20201202", "230000", "20201202 230000.000000"),
+        ("20151112", "021415", "20151112 021415.000000"),
+        ("20120504", "021312", "20120504 021312.000000"),
+        ("20030103", "200203", "20030103 200203.000000"),
+        ("19991212", "081415.11", "19991212 081415.110000"),
+        ("20210801", "081415.999999", "20210801 081415.999999"),
     ],
 )
-def test_time_shift(curr_time: str, study_time: str, expected_time: str) -> None:
-    """Checks that times are shifted relative to study time."""
-    assert get_shifted_time(curr_time, study_time) == expected_time
+def test_date_time_combo(
+    orig_date: str, orig_time: str, expected_date_time: str
+) -> None:
+    """Checks that dates and times are combined correctly."""
+    assert (
+        combine_date_time(orig_date, orig_time).format("YYYYMMDD HHmmss.SSSSSS")
+        == expected_date_time
+    )
+
+
+# @pytest.mark.parametrize(
+#     "orig_time,offset,expected_shifted_time",
+#     [
+#         ("020000", 2, "000000"),
+#         ("020000", 3, "230000"),
+#         ("131415", 11, "021415"),
+#         ("141312", 12, "021312"),
+#         ("010203", 5, "200203"),
+#         ("131415.11", 5, "081415.11"),
+#         ("131415.999999", 5, "081415.999999"),
+#     ],
+# )
+# def test_time_const(orig_time: str, offset: int, expected_shifted_time: str) -> None:
+#     """Checks that times are shifted relative to offset."""
+#     assert subtract_time_const(orig_time, offset) == expected_shifted_time
 
 
 def test_remove_overlay_plane() -> None:
