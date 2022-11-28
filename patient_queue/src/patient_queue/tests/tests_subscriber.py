@@ -36,7 +36,7 @@ def test_create() -> None:
                 global counter
                 counter += 1
 
-        pc.run(consume(msg=None))
+        pc.run(consume)
 
         with PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE, user=RABBIT_USER, password=RABBIT_PASSWORD) as pp:
             pp.publish(msgs=["test"])
