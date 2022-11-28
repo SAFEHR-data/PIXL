@@ -13,7 +13,7 @@ The image anonymisation will be triggered automatically once the image has been 
 
 After consideration, development on [Apache Pulsar](https://pulsar.apache.org/) was put on hold in favour of using RabbitMQ. The downsides to Pulsar 
 at this point in time were inferiority of the Python client and lack of suitable documentation that would reduce the burden of troubleshooting. 
-Instead, RabbitMQ is used for the queue implementation. 
+RabbitMQ is used for the queue implementation. 
 
 The client of choice for RabbitMQ at this point in time is [pika](https://pika.readthedocs.io/en/stable/), which provides both a synchronous and 
 asynchronous way of transferring messages. The former is geared towards high data throughput whereas the latter is geared towards stability. 
