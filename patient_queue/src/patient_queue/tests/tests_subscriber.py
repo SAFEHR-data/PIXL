@@ -12,6 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 import os
+import pytest
 from typing import Any
 
 from token_buffer.tokens import TokenBucket
@@ -27,13 +28,13 @@ RABBIT_PASSWORD = os.environ["RABBITMQ_DEFAULT_PASS"]
 counter = 0
 
 
-def test_create() -> None:
+@pytest.mark.asyncio
+async def test_create() -> None:
     global counter
     """Checks that PIXL producer can be instantiated."""
-    with PixlConsumer(queue=TEST_QUEUE, port=TEST_PORT, token_bucket=TokenBucket()) as pc:
-        with PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE, user=RABBIT_USER, password=RABBIT_PASSWORD) as pp:
-            pp.publish(msgs=["test"])
-
+    with PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE, user=RABBIT_USER, password=RABBIT_PASSWORD) as pp:
+        pp.publish(msgs=["test"])
+    async with PixlConsumer(queue=TEST_QUEUE, host=TEST_URL, port=TEST_PORT, token_bucket=TokenBucket()) as pc:
         def consume(msg: bytes) -> Any:
             if str(msg) is not None:
                 global counter

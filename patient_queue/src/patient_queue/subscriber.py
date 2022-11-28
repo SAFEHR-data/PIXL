@@ -29,27 +29,27 @@ class PixlConsumer:
     which EHR demographic data needs to be retrieved.
     """
 
-    def __init__(self, queue: str, port: int, token_bucket: TokenBucket) -> None:
+    def __init__(self, queue: str, host: str, port: int, token_bucket: TokenBucket) -> None:
         """
         Creating connection to RabbitMQ queue.
         :param queue: Name of the queue to connect to.
         :param port: Port the queue is provided through (i.e. RabbitMQ port)
         """
-
+        print(os.environ['RABBITMQ_DEFAULT_USER'])
         self.token_bucket = token_bucket
         self._url = (f"amqp://{os.environ['RABBITMQ_DEFAULT_USER']}" 
-                     f":{os.environ['RABBITMQ_DEFAULT_PASS']}@{queue}:{port}/")
+                     f":{os.environ['RABBITMQ_DEFAULT_PASS']}@{host}:{port}/")
         self._queue_name = queue
 
-    def __enter__(self) -> "PixlConsumer":
+    async def __aenter__(self) -> "PixlConsumer":
         """Establishes connection to queue."""
-        self._create_connection(queue=self._queue_name)
+        self._connection = await aio_pika.connect_robust(self._url)
+        self._channel = await self._connection.channel()
+        self._queue = await self._channel.declare_queue(self._queue_name)
         return self
 
-    async def _create_connection(self, queue: str):
-        self._connection = await aio_pika.connect(self._url)
-        self._channel = await self._connection.channel()
-        self._queue = await self._channel.declare_queue(queue)
+    def __await__(self):
+        return self.__aenter__()
 
     async def run(self, callback: Callable) -> None:
         """Creates loop that waits for messages from producer and processes them as they appear.
@@ -71,5 +71,5 @@ class PixlConsumer:
                     )
                     await message.reject(requeue=False)
 
-    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any):
+    def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any):
         pass
