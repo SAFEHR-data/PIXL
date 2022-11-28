@@ -67,7 +67,7 @@ class PixlProducer(object):
         :param msgs: list of messages to be sent to queue
         """
         LOGGER.debug(f"Publishing list of messages queue {self.queue_name}")
-        if msgs:
+        if len(msgs) == 0:
             for msg in msgs:
                 LOGGER.debug(f"Preparing to publish")
                 self._channel.basic_publish(exchange="", routing_key=self.queue_name, body=msg.encode("utf-8"))
@@ -117,8 +117,8 @@ class PixlProducer(object):
         self._channel.queue_purge(queue=self.queue_name)
 
     @property
-    def connection(self) -> pika.BlockingConnection:
-        return self._connection
+    def connection_open(self) -> bool:
+        return self._connection.is_open
 
     @property
     def channel(self) -> pika.channel.Channel:
