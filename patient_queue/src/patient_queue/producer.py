@@ -67,7 +67,7 @@ class PixlProducer(object):
         :param msgs: list of messages to be sent to queue
         """
         LOGGER.debug(f"Publishing list of messages queue {self.queue_name}")
-        if len(msgs) == 0:
+        if len(msgs) > 0:
             for msg in msgs:
                 LOGGER.debug(f"Preparing to publish")
                 self._channel.basic_publish(exchange="", routing_key=self.queue_name, body=msg.encode("utf-8"))

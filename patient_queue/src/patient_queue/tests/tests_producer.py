@@ -24,7 +24,7 @@ RABBIT_PASSWORD = os.environ["RABBITMQ_DEFAULT_PASS"]
 def test_create_pixl_producer() -> None:
     """Checks that PixlProducer can be instantiated."""
     with PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE, user=RABBIT_USER, password=RABBIT_PASSWORD) as pp:
-        assert pp.connection.is_open
+        assert pp.connection_open
 
 
 def test_publish() -> None:
