@@ -91,6 +91,10 @@ def AzureDICOMTokenRefresh():
     TIMER.start()
 
 def OnChange(changeType, level, resource):
+
+    if config("ENV").lower() not in ("staging", "prod"):
+        return  # Auto-routing is only enabled in staging or prod environments
+
     if changeType == orthanc.ChangeType.ORTHANC_STARTED:
         orthanc.LogWarning("Starting the scheduler")
         AzureDICOMTokenRefresh()
