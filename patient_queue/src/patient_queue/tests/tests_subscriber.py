@@ -31,15 +31,13 @@ def test_create() -> None:
     global counter
     """Checks that PIXL producer can be instantiated."""
     with PixlConsumer(queue=TEST_QUEUE, port=TEST_PORT, token_bucket=TokenBucket()) as pc:
+        with PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE, user=RABBIT_USER, password=RABBIT_PASSWORD) as pp:
+            pp.publish(msgs=["test"])
+
         def consume(msg: bytes) -> Any:
             if str(msg) is not None:
                 global counter
                 counter += 1
-
         pc.run(consume)
 
-        with PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE, user=RABBIT_USER, password=RABBIT_PASSWORD) as pp:
-            pp.publish(msgs=["test"])
-
         assert counter == 1
-

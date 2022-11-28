@@ -87,7 +87,7 @@ def create_pixl_producer(queue: str) -> PixlProducer:
     :param queue: Queue the producer should be created for. However, can also be none.
     :returns: Created producer for message publishing to RabbitMQ
     """
-    print(config)
+    logger.debug(f"Configuration details for producer: {config}")
     return PixlProducer(
         host=config["rabbitmq"]["host"],
         port=config["rabbitmq"]["port"],
@@ -262,7 +262,7 @@ def consume_all_messages_and_save_csv_file(
             logger.info("Found messages in the queue. Clearing the state file")
             clear_file(state_filepath_for_queue(queue_name))
 
-        producer.consume_all(state_filepath_for_queue(producer.queue))
+        producer.consume_all(state_filepath_for_queue(queue_name))
 
 
 def state_filepath_for_queue(queue_name: str) -> Path:

@@ -33,7 +33,7 @@ logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))
 _this_dir = Path(os.path.dirname(__file__))
 
 
-def process_message(message_body: bytes) -> Any:
+def process_message(message_body: bytes) -> None:
     logger.info(f"Processing: {message_body.decode()}")
 
     raw_data = PatientEHRData.from_message(message_body)

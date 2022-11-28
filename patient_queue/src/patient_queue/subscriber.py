@@ -48,9 +48,8 @@ class PixlConsumer:
 
     async def _create_connection(self, queue: str):
         self._connection = await aio_pika.connect(self._url)
-        async with self._connection:
-            self._channel = await self._connection.channel()
-            self._queue = await self._channel.declare_queue(queue)
+        self._channel = await self._connection.channel()
+        self._queue = await self._channel.declare_queue(queue)
 
     async def run(self, callback: Callable) -> None:
         """Creates loop that waits for messages from producer and processes them as they appear.
