@@ -158,10 +158,10 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r patient-queue/src/requirements.txt
+          pip install -r patient_queue/src/requirements.txt
 
       - name: Run tests
-        working-directory: patient-queue
+        working-directory: patient_queue
         run: |
           bin/run-tests.sh
         env:
