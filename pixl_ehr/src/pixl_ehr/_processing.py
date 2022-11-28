@@ -18,7 +18,7 @@ from datetime import datetime, timedelta
 import logging
 import os
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 from pixl_ehr._databases import EMAPStar, PIXLDatabase
 from pixl_ehr._queries import SQLQuery
