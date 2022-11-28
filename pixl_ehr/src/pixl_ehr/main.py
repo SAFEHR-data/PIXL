@@ -54,7 +54,7 @@ async def _queue_loop() -> None:
     with PixlConsumer(
         queue=QUEUE_NAME, port=QUEUE_PORT, token_bucket=state.token_bucket
     ) as consumer:
-        consumer.run(process_message(message_body=bytearray()))
+        consumer.run(callback=process_message)
 
 
 @app.on_event("startup")

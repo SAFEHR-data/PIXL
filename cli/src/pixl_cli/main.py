@@ -275,6 +275,7 @@ class Messages(list):
         Initialisation of RabbitMQ service connection.
         :param producer: Producer used for publishing messages.
         """
+        super().__init__()
         self._producer = producer
 
     @classmethod
