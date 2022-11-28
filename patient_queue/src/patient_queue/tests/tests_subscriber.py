@@ -13,7 +13,6 @@
 #  limitations under the License.
 import os
 import pytest
-from typing import Any
 
 from token_buffer.tokens import TokenBucket
 from patient_queue.subscriber import PixlConsumer
@@ -31,14 +30,16 @@ counter = 0
 @pytest.mark.asyncio
 async def test_create() -> None:
     global counter
-    """Checks that PIXL producer can be instantiated."""
     with PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE, user=RABBIT_USER, password=RABBIT_PASSWORD) as pp:
         pp.publish(msgs=["test"])
+
+    """Checks that PIXL producer can be instantiated."""
     async with PixlConsumer(queue=TEST_QUEUE, host=TEST_URL, port=TEST_PORT, token_bucket=TokenBucket()) as pc:
         def consume(msg: bytes) -> None:
-            if str(msg) is not None:
+            if str(msg) != "":
                 global counter
+                print(counter)
                 counter += 1
-        pc.run(consume)
+        pc.run(callback=consume)
 
-        assert counter == 1
+    assert counter == 1
