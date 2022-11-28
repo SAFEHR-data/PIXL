@@ -35,7 +35,7 @@ async def test_create() -> None:
     with PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE, user=RABBIT_USER, password=RABBIT_PASSWORD) as pp:
         pp.publish(msgs=["test"])
     async with PixlConsumer(queue=TEST_QUEUE, host=TEST_URL, port=TEST_PORT, token_bucket=TokenBucket()) as pc:
-        def consume(msg: bytes) -> Any:
+        def consume(msg: bytes) -> None:
             if str(msg) is not None:
                 global counter
                 counter += 1

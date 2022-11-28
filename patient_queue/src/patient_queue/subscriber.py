@@ -71,5 +71,5 @@ class PixlConsumer:
                     )
                     await message.reject(requeue=False)
 
-    def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any):
+    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any):
         pass
