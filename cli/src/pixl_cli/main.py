@@ -79,9 +79,10 @@ def populate(csv_filename: str, queues: str, restart: bool) -> None:
             else:
                 messages = messages_from_csv(Path(csv_filename), producer=producer)
 
-        remove_file_if_it_exists(cached_state_filepath)  # will be stale
-        logger.info(f"Sending {len(messages)} messages")
-        messages.send(queue)
+            remove_file_if_it_exists(cached_state_filepath)  # will be stale
+            logger.info(f"Sending {len(messages)} messages")
+            messages.send()
+
 
 def create_pixl_producer(queue: str) -> PixlProducer:
     """
@@ -94,8 +95,8 @@ def create_pixl_producer(queue: str) -> PixlProducer:
         host=config["rabbitmq"]["host"],
         port=config["rabbitmq"]["port"],
         queue_name=queue,
-        user=config["rabbitmq"]["rabbit_user"],
-        password=config["rabbitmq"]["rabbit_pw"],
+        user=config["rabbitmq"]["rabbit_username"],
+        password=config["rabbitmq"]["rabbit_password"],
     )
 
 
@@ -315,7 +316,7 @@ def messages_from_csv(filepath: Path, producer: PixlProducer) -> Messages:
     )
 
     df = pd.read_csv(filepath, header=0, dtype=str)  # First line is column names
-    messages = Messages()
+    messages = Messages(producer=producer)
 
     if list(df.columns)[:4] != expected_col_names:
         raise ValueError(

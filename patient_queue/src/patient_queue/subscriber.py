@@ -29,20 +29,22 @@ class PixlConsumer:
     which EHR demographic data needs to be retrieved.
     """
 
-    def __init__(self, queue: str, port: int, token_bucket: TokenBucket) -> None:
+    def __init__(self, queue: str, port: int, token_bucket: TokenBucket, host: str = "queue") -> None:
         """
         Creating connection to RabbitMQ queue.
         :param queue: Name of the queue to connect to.
         :param port: Port the queue is provided through (i.e. RabbitMQ port)
+        :param token_bucket: Token bucket for EHR queue
+        :param host: Name of the machine RabbitMQ is running on; cannot be hardcoded for tests. Default is name of Docker container as configured.
         """
         self.token_bucket = token_bucket
         self._url = (f"amqp://{os.environ['RABBITMQ_DEFAULT_USER']}" 
-                     f":{os.environ['RABBITMQ_DEFAULT_PASS']}@queue:{port}/")
+                     f":{os.environ['RABBITMQ_DEFAULT_PASS']}@{host}:{port}/")
         self._queue_name = queue
 
     async def __aenter__(self) -> "PixlConsumer":
         """Establishes connection to queue."""
-        self._connection = await aio_pika.connect_robust(self._url)
+        self._connection = await aio_pika.connect(self._url)
         self._channel = await self._connection.channel()
         self._queue = await self._channel.declare_queue(self._queue_name)
         return self
@@ -69,6 +71,9 @@ class PixlConsumer:
                         f"Not re-queuing message"
                     )
                     await message.reject(requeue=False)
+
+    def shutdown(self):
+        pass
 
     async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any):
         pass
