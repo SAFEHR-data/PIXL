@@ -49,7 +49,11 @@ class PixlConsumer:
         self._queue = await self._channel.declare_queue(self._queue_name)
         return self
 
-    def __await__(self):
+    def __await__(self) -> None:
+        """
+        Await redirects to entering of context.
+        :return:
+        """
         return self.__aenter__()
 
     async def run(self, callback: Callable) -> None:
@@ -72,8 +76,13 @@ class PixlConsumer:
                     )
                     await message.reject(requeue=False)
 
-    def shutdown(self):
-        pass
-
-    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any):
+    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+        """
+        At the moment only here as a requirement for the asynchronous context
+        manager.
+        :param exc_type:
+        :param exc_val:
+        :param exc_tb:
+        :return:
+        """
         pass

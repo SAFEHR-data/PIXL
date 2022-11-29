@@ -12,6 +12,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 import os
+from pathlib import Path
+
 from patient_queue.producer import PixlProducer
 
 TEST_URL = "localhost"
@@ -33,7 +35,7 @@ def test_publish() -> None:
         pp.publish(msgs=["test"])
 
     with PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE, user=RABBIT_USER, password=RABBIT_PASSWORD) as pp:
-        assert pp._queue.method.message_count == 1
+        assert pp.queue.method.message_count == 1
         pp.clear_queue()
 
 
@@ -41,5 +43,5 @@ def test_consume_all() -> None:
     """Checks that all messages are returned that have been published before for graceful shutdown."""
     with PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE, user=RABBIT_USER, password=RABBIT_PASSWORD) as pp:
         pp.publish(msgs=["test", "test"])
-        counter = pp.consume_all(timeout_in_seconds=2, file_path="test_producer.csv")
+        counter = pp.consume_all(timeout_in_seconds=2, file_path=Path("test_producer.csv"))
         assert counter == 2
