@@ -21,7 +21,7 @@ import pandas as pd
 import click
 import pika
 from pixl_cli._logging import logger, set_log_level
-from pixl_cli._utils import clear_file, string_is_non_empty
+from pixl_cli._utils import clear_file, remove_file_if_it_exists, string_is_non_empty
 import requests
 import yaml
 
@@ -63,34 +63,27 @@ def cli(debug: bool) -> None:
     "--restart/--no-restart",
     show_default=True,
     default=True,
-    help="Restart from a saved state. Otherwise will use <queue-name>.csv file",
+    help="Restart from a saved state. Otherwise will use the given .csv file",
 )
 def populate(csv_filename: str, queues: str, restart: bool) -> None:
     """Populate a (set of) queue(s) from a csv file"""
     logger.info(f"Populating queue(s) {queues} from {csv_filename}")
 
     all_messages = messages_from_csv(Path(csv_filename))
+
     for queue in queues.split(","):
 
         cached_state_filepath = state_filepath_for_queue(queue)
         if cached_state_filepath.exists() and restart:
-            messages = messages_from_state(cached_state_filepath)
+            logger.info(f"Extracting messages from state: {cached_state_filepath}")
+            inform_user_that_queue_will_be_populated_from(cached_state_filepath)
+            messages = Messages.from_state_file(cached_state_filepath)
         else:
             messages = all_messages
 
+        remove_file_if_it_exists(cached_state_filepath)  # will be stale
         logger.info(f"Sending {len(messages)} messages")
         messages.send(queue)
-
-
-def messages_from_state(filepath: Path) -> "Messages":
-    """Extract a set of messages from a 'state' file"""
-    logger.info(f"Extracting messages from state: {filepath}")
-
-    inform_user_that_queue_will_be_populated_from(filepath)
-    messages = Messages.from_state_file(filepath)
-    os.remove(filepath)
-
-    return messages
 
 
 @cli.command()
