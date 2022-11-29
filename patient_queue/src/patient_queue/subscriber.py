@@ -29,16 +29,15 @@ class PixlConsumer:
     which EHR demographic data needs to be retrieved.
     """
 
-    def __init__(self, queue: str, host: str, port: int, token_bucket: TokenBucket) -> None:
+    def __init__(self, queue: str, port: int, token_bucket: TokenBucket) -> None:
         """
         Creating connection to RabbitMQ queue.
         :param queue: Name of the queue to connect to.
         :param port: Port the queue is provided through (i.e. RabbitMQ port)
         """
-        print(os.environ['RABBITMQ_DEFAULT_USER'])
         self.token_bucket = token_bucket
         self._url = (f"amqp://{os.environ['RABBITMQ_DEFAULT_USER']}" 
-                     f":{os.environ['RABBITMQ_DEFAULT_PASS']}@{host}:{port}/")
+                     f":{os.environ['RABBITMQ_DEFAULT_PASS']}@queue:{port}/")
         self._queue_name = queue
 
     async def __aenter__(self) -> "PixlConsumer":
