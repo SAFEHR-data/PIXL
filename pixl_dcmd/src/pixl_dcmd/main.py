@@ -18,6 +18,7 @@ from os import PathLike
 import re
 from typing import Any, BinaryIO, Union
 
+import arrow
 from decouple import config
 from pydicom import Dataset, dcmwrite
 import requests
@@ -135,44 +136,35 @@ def get_bounded_age(age: str) -> str:
     return age
 
 
-def get_shifted_time(curr_time: str, study_time: str) -> Any:
-    """Shift hour of current time relative to study time.
+def combine_date_time(a_date: str, a_time: str) -> Any:
+    """Turn date string and time string into arrow object."""
 
-    Time fields in DICOM are in 24-hour clock and the following format:
+    date_time_str = "{a_date} {a_time}".format(a_date=a_date, a_time=a_time)
 
-    HHMMSS.FFFFFF
+    # logging.info(f"Date time= {date_time_str}")
 
-    Only HH is required as per the standard, but typically you will see:
-    HHMMSS, HHMMSS.FF or # HHMMSS.FFFFFF
-    """
-    # Get HH as integer
-    study_time_hr = int(study_time[0:2])
-    curr_time_hr = int(curr_time[0:2])
-
-    # If current time is greater than study time, use the difference.
-    # If negative, then we've ticked over midnight.
-    if curr_time_hr >= study_time_hr:
-        hours_offset = curr_time_hr - study_time_hr
-    else:
-        hours_offset = curr_time_hr + 24 - study_time_hr
-
-    # Form new time from offset and remaining parts of the current time (MMSS.FFFFFF)
-    new_time = f"{hours_offset:02d}" + curr_time[2:]
-
-    return new_time
+    # TODO: Should Timezone be hardcoded?
+    tz = "Europe/London"
+    new_date_time = arrow.get(date_time_str, tzinfo=tz)
+    return new_date_time
 
 
 def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
     """Apply anoymisation operations for a given set of tags to a dataset"""
 
     # Keep the original study time before any operations are applied.
-    orig_study_time = dataset[0x0008, 0x0030].value
+    # orig_study_time = dataset[0x0008, 0x0030].value
 
-    # Set salt (this should be an ENV VAR).
-    salt_plaintext = "PIXL"
+    # Set salt based on ENV VAR
+    salt_plaintext = config("SALT_VALUE")
 
     HASHER_API_AZ_NAME = config("HASHER_API_AZ_NAME")
     HASHER_API_PORT = config("HASHER_API_PORT")
+
+    # TODO: Get offset from external source on study-by-study basis.
+    TIME_OFFSET = int(config("TIME_OFFSET"))
+
+    logging.info(b"TIME_OFFSET = %i}" % TIME_OFFSET)
 
     # Use hasher API to get hash of salt.
     hasher_host_url = "http://" + HASHER_API_AZ_NAME + ":" + HASHER_API_PORT
@@ -248,9 +240,117 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
 
         # Shift time relative to the original study time.
         elif op == "time-shift":
-            new_time = get_shifted_time(dataset[grp, el].value, orig_study_time)
-            logging.info(f"\tChanging {name}: {dataset[grp,el].value} -> {new_time}")
-            dataset[grp, el].value = new_time
+            if [grp, el] in dataset:
+                # Study date
+                if grp == 0x0008 and el == 0x0020:
+                    study_date_time = combine_date_time(
+                        dataset[0x0008, 0x0020].value, dataset[0x0008, 0x0030].value
+                    )
+                    new_date = study_date_time.shift(hours=TIME_OFFSET).format(
+                        "YYYYMMDD"
+                    )
+                    logging.info(
+                        f"\tChanging {name}: {dataset[grp,el].value} -> {new_date}"
+                    )
+                    dataset[grp, el].value = new_date
+                # Series date
+                if grp == 0x0008 and el == 0x0021:
+                    series_date_time = combine_date_time(
+                        dataset[0x0008, 0x0021].value, dataset[0x0008, 0x0031].value
+                    )
+                    new_date = series_date_time.shift(hours=TIME_OFFSET).format(
+                        "YYYYMMDD"
+                    )
+                    logging.info(
+                        f"\tChanging {name}: {dataset[grp,el].value} -> {new_date}"
+                    )
+                    dataset[grp, el].value = new_date
+                # Acq date
+                if grp == 0x0008 and el == 0x0022:
+                    acq_date_time = combine_date_time(
+                        dataset[0x0008, 0x0022].value, dataset[0x0008, 0x0032].value
+                    )
+                    new_date = acq_date_time.shift(hours=TIME_OFFSET).format("YYYYMMDD")
+                    logging.info(
+                        f"\tChanging {name}: {dataset[grp,el].value} -> {new_date}"
+                    )
+                    dataset[grp, el].value = new_date
+                # Image date
+                if grp == 0x0008 and el == 0x0023:
+                    image_date_time = combine_date_time(
+                        dataset[0x0008, 0x0023].value, dataset[0x0008, 0x0033].value
+                    )
+                    new_date = image_date_time.shift(hours=TIME_OFFSET).format(
+                        "YYYYMMDD"
+                    )
+                    logging.info(
+                        f"\tChanging {name}: {dataset[grp,el].value} -> {new_date}"
+                    )
+                    dataset[grp, el].value = new_date
+
+                # Study time
+                if grp == 0x0008 and el == 0x0030:
+                    study_date_time = combine_date_time(
+                        dataset[0x0008, 0x0020].value, dataset[0x0008, 0x0030].value
+                    )
+                    new_time = study_date_time.shift(hours=TIME_OFFSET).format(
+                        "HHmmss.SSSSSS"
+                    )
+                    logging.info(
+                        f"\tChanging {name}: {dataset[grp,el].value} -> {new_time}"
+                    )
+                    dataset[grp, el].value = new_time
+                # Series time
+                if grp == 0x0008 and el == 0x0031:
+                    series_date_time = combine_date_time(
+                        dataset[0x0008, 0x0021].value, dataset[0x0008, 0x0031].value
+                    )
+                    new_time = series_date_time.shift(hours=TIME_OFFSET).format(
+                        "HHmmss.SSSSSS"
+                    )
+                    logging.info(
+                        f"\tChanging {name}: {dataset[grp,el].value} -> {new_time}"
+                    )
+                    dataset[grp, el].value = new_time
+                # Acq time
+                if grp == 0x0008 and el == 0x0032:
+                    acq_date_time = combine_date_time(
+                        dataset[0x0008, 0x0022].value, dataset[0x0008, 0x0032].value
+                    )
+                    new_time = acq_date_time.shift(hours=TIME_OFFSET).format(
+                        "HHmmss.SSSSSS"
+                    )
+                    logging.info(
+                        f"\tChanging {name}: {dataset[grp,el].value} -> {new_time}"
+                    )
+                    dataset[grp, el].value = new_time
+                # Image time
+                if grp == 0x0008 and el == 0x0033:
+                    acq_date_time = combine_date_time(
+                        dataset[0x0008, 0x0023].value, dataset[0x0008, 0x0033].value
+                    )
+                    new_time = acq_date_time.shift(hours=TIME_OFFSET).format(
+                        "HHmmss.SSSSSS"
+                    )
+                    logging.info(
+                        f"\tChanging {name}: {dataset[grp,el].value} -> {new_time}"
+                    )
+                    dataset[grp, el].value = new_time
+
+                # Acq date+time
+                if grp == 0x0008 and el == 0x002A:
+                    logging.info(f"\tChanging {name}: {dataset[grp,el].value}")
+                    # TODO: Hardcoded TZ
+                    acq_date_time = arrow.get(
+                        dataset[grp, el].value, tzinfo="Europe/London"
+                    )
+                    new_date_time = acq_date_time.shift(hours=TIME_OFFSET).format(
+                        "YYYYMMDDD HHmmss.SSSSSS"
+                    )
+                    logging.info(
+                        f"\tChanging {name}: {dataset[grp,el].value} -> {new_date_time}"
+                    )
+                    dataset[grp, el].value = new_date_time
 
         # Modify specific tags (make blank).
         elif op == "fixed":
@@ -274,7 +374,8 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
         elif op == "secure-hash":
             if [grp, el] in dataset:
                 pat_value = str(dataset[grp, el].value)
-                payload = "/hash?message=" + pat_value
+                ep_path = hash_endpoint_path_for_tag(group=grp, element=el)
+                payload = ep_path + "?message=" + pat_value
                 request_url = hasher_host_url + payload
                 response = requests.get(request_url)
                 logging.info(b"RESPONSE = %a}" % response.content)
@@ -299,3 +400,14 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
             # orthanc.LogWarning(message)
 
     return dataset
+
+
+def hash_endpoint_path_for_tag(group: bytes, element: bytes) -> str:
+    """Call a hasher endpoint depending on the dicom tag group and emement"""
+
+    if group == 0x0010 and element == 0x0020:  # Patient ID
+        return "/hash-mrn"
+    if group == 0x0008 and element == 0x0050:  # Accession Number
+        return "/hash-accession-number"
+
+    return "/hash"

@@ -21,6 +21,7 @@ import hashlib
 import orthanc
 import pprint
 import requests
+import sys
 import threading
 import yaml
 
@@ -93,7 +94,6 @@ def OnChange(changeType, level, resource):
     if changeType == orthanc.ChangeType.ORTHANC_STARTED:
         orthanc.LogWarning("Starting the scheduler")
         AzureDICOMTokenRefresh()
-
     elif changeType == orthanc.ChangeType.ORTHANC_STOPPED:
         if TIMER != None:
             orthanc.LogWarning("Stopping the scheduler")
