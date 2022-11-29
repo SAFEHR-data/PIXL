@@ -15,8 +15,8 @@ rabbitmq:
   host: localhost
   port: 5672
   admin_port: 15672
-  rabbit_user: guest
-  rabbit_pw: guest
+  rabbit_username: guest
+  rabbit_password: guest
 ehr_api:
   host: localhost
   port: 9000
