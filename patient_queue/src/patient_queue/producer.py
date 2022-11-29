@@ -95,13 +95,13 @@ class PixlProducer(object):
             except:  # noqa
                 LOGGER.debug("Failed to consume")
 
-        counter= 0
+        counter = 0
         for args in generator:
             if all(arg is None for arg in args):
                 LOGGER.info("Stopping")
                 break
             callback(*args)
-            counter+=1
+            counter += 1
         return counter
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
