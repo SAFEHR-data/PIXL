@@ -26,11 +26,13 @@ CONF_FILE=../setup.cfg
 
 
 mypy --config-file ${CONF_FILE} src/patient_queue
-
 isort --settings-path ${CONF_FILE} src/patient_queue
-
 black patient_queue
-
 flake8 --config ${CONF_FILE}
 
-ENV=test pytest src/patient_queue/tests
+
+cd test/
+docker compose up -d
+docker exec pixl-test-ehr-api /bin/bash -c "pytest patient_queue/tests/test_producer.py"
+docker exec pixl-test-ehr-api /bin/bash -c "pytest patient_queue/tests/test_subscriber.py"
+docker compose down

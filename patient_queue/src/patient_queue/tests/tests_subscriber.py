@@ -40,7 +40,6 @@ async def test_create() -> None:
                 global counter
                 print(counter)
                 counter += 1
-                pc.shutdown()
         await pc.run(callback=consume)
 
     assert counter == 1

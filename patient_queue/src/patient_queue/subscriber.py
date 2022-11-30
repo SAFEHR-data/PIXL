@@ -15,7 +15,7 @@
 import os
 import aio_pika
 import logging
-from typing import Any
+from typing import Any, Coroutine
 from typing import Callable
 
 from token_buffer import TokenBucket
@@ -49,7 +49,7 @@ class PixlConsumer:
         self._queue = await self._channel.declare_queue(self._queue_name)
         return self
 
-    def __await__(self) -> None:
+    def __await__(self) -> Coroutine[Any, Any, "PixlConsumer"]:
         """
         Await redirects to entering of context.
         :return:

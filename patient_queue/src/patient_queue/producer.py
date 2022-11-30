@@ -34,9 +34,6 @@ class PixlProducer(object):
         :param user: RabbitMQ user name as configured for queue
         :param password: RabbitMQ user password as configured for queue
         """
-        self._connection = None
-        self._channel = None
-        self._queue = None
         self.queue_name = queue_name
         self._host = host
         self._port = port
@@ -56,7 +53,7 @@ class PixlProducer(object):
             self._connection = pika.BlockingConnection(params)
 
             if self._channel is None or self._channel.is_closed:
-                self._channel = self._connection.channel()
+                self._channel = self._connection.channel() # noqa
             self._queue = self._channel.queue_declare(queue=self.queue_name)
         LOGGER.info(f"Connected to {self._queue}")
         return self
@@ -117,7 +114,7 @@ class PixlProducer(object):
         self._channel.queue_purge(queue=self.queue_name)
 
     @property
-    def connection_open(self) -> bool:
+    def connection_open(self) -> Any:
         return self._connection.is_open
 
     @property
