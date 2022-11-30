@@ -13,9 +13,10 @@
 #  limitations under the License.
 
 import logging
-import pika
-from typing import Any
 from pathlib import Path
+from typing import Any
+
+import pika
 
 LOGGER = logging.getLogger(__name__)
 
@@ -25,7 +26,9 @@ class PixlProducer(object):
     Generic publisher for RabbitMQ.
     """
 
-    def __init__(self, host: str, port: int, queue_name: str, user: str, password: str) -> None:
+    def __init__(
+        self, host: str, port: int, queue_name: str, user: str, password: str
+    ) -> None:
         """
         Initialising RabbitMQ service configuration for connection.
         :param str host: URL for the RabbitMQ service
@@ -34,6 +37,9 @@ class PixlProducer(object):
         :param user: RabbitMQ user name as configured for queue
         :param password: RabbitMQ user password as configured for queue
         """
+        self._connection = None
+        self._channel = None
+        self._queue = None
         self.queue_name = queue_name
         self._host = host
         self._port = port
@@ -43,17 +49,12 @@ class PixlProducer(object):
     def __enter__(self) -> "PixlProducer":
         """Establishes connection to RabbitMQ service."""
         credentials = pika.PlainCredentials(self._user, self._password)
-        params = pika.ConnectionParameters(
-            self._host,
-            self._port,
-            "/",
-            credentials
-        )
-        if self._connection is None or self._connection.is_closed:
+        params = pika.ConnectionParameters(self._host, self._port, "/", credentials)
+        if self._connection is None or self._connection.is_closed:  # noqa
             self._connection = pika.BlockingConnection(params)
 
             if self._channel is None or self._channel.is_closed:
-                self._channel = self._connection.channel() # noqa
+                self._channel = self._connection.channel()  # noqa
             self._queue = self._channel.queue_declare(queue=self.queue_name)
         LOGGER.info(f"Connected to {self._queue}")
         return self
@@ -66,11 +67,15 @@ class PixlProducer(object):
         LOGGER.debug(f"Publishing list of messages queue {self.queue_name}")
         if len(msgs) > 0:
             for msg in msgs:
-                LOGGER.debug(f"Preparing to publish")
-                self._channel.basic_publish(exchange="", routing_key=self.queue_name, body=msg.encode("utf-8"))
+                LOGGER.debug("Preparing to publish")
+                self._channel.basic_publish(
+                    exchange="", routing_key=self.queue_name, body=msg.encode("utf-8")
+                )
                 LOGGER.debug(f"Message {msg} published to queue {self.queue_name}")
         else:
-            LOGGER.debug("List of messages is empty so nothing will be published to queue.")
+            LOGGER.debug(
+                "List of messages is empty so nothing will be published to queue."
+            )
 
     def consume_all(self, file_path: Path, timeout_in_seconds: int = 5) -> int:
         """

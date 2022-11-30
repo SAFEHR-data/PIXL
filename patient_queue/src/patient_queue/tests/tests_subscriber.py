@@ -12,11 +12,11 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 import os
-import pytest
 
-from token_buffer.tokens import TokenBucket
-from patient_queue.subscriber import PixlConsumer
 from patient_queue.producer import PixlProducer
+from patient_queue.subscriber import PixlConsumer
+import pytest
+from token_buffer.tokens import TokenBucket
 
 TEST_URL = "localhost"
 TEST_PORT = 5672
@@ -31,15 +31,25 @@ counter = 0
 async def test_create() -> None:
     """Checks consume is working."""
     global counter
-    with PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE, user=RABBIT_USER, password=RABBIT_PASSWORD) as pp:
+    with PixlProducer(
+        host=TEST_URL,
+        port=TEST_PORT,
+        queue_name=TEST_QUEUE,
+        user=RABBIT_USER,
+        password=RABBIT_PASSWORD,
+    ) as pp:
         pp.publish(msgs=["test"])
 
-    async with PixlConsumer(queue=TEST_QUEUE, port=TEST_PORT, token_bucket=TokenBucket(), host="localhost") as pc:
+    async with PixlConsumer(
+        queue=TEST_QUEUE, port=TEST_PORT, token_bucket=TokenBucket(), host="localhost"
+    ) as pc:
+
         def consume(msg: bytes) -> None:
             if str(msg) != "":
                 global counter
                 print(counter)
                 counter += 1
+
         await pc.run(callback=consume)
 
     assert counter == 1

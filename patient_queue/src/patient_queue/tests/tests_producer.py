@@ -25,23 +25,49 @@ RABBIT_PASSWORD = os.environ["RABBITMQ_DEFAULT_PASS"]
 
 def test_create_pixl_producer() -> None:
     """Checks that PixlProducer can be instantiated."""
-    with PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE, user=RABBIT_USER, password=RABBIT_PASSWORD) as pp:
+    with PixlProducer(
+        host=TEST_URL,
+        port=TEST_PORT,
+        queue_name=TEST_QUEUE,
+        user=RABBIT_USER,
+        password=RABBIT_PASSWORD,
+    ) as pp:
         assert pp.connection_open
 
 
 def test_publish() -> None:
     """Checks that after publishing, there is one message in the queue. Will only work if nothing has been added to queue before."""
-    with PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE, user=RABBIT_USER, password=RABBIT_PASSWORD) as pp:
+    with PixlProducer(
+        host=TEST_URL,
+        port=TEST_PORT,
+        queue_name=TEST_QUEUE,
+        user=RABBIT_USER,
+        password=RABBIT_PASSWORD,
+    ) as pp:
         pp.publish(msgs=["test"])
 
-    with PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE, user=RABBIT_USER, password=RABBIT_PASSWORD) as pp:
+    with PixlProducer(
+        host=TEST_URL,
+        port=TEST_PORT,
+        queue_name=TEST_QUEUE,
+        user=RABBIT_USER,
+        password=RABBIT_PASSWORD,
+    ) as pp:
         assert pp.queue.method.message_count == 1
         pp.clear_queue()
 
 
 def test_consume_all() -> None:
     """Checks that all messages are returned that have been published before for graceful shutdown."""
-    with PixlProducer(host=TEST_URL, port=TEST_PORT, queue_name=TEST_QUEUE, user=RABBIT_USER, password=RABBIT_PASSWORD) as pp:
+    with PixlProducer(
+        host=TEST_URL,
+        port=TEST_PORT,
+        queue_name=TEST_QUEUE,
+        user=RABBIT_USER,
+        password=RABBIT_PASSWORD,
+    ) as pp:
         pp.publish(msgs=["test", "test"])
-        counter = pp.consume_all(timeout_in_seconds=2, file_path=Path("test_producer.csv"))
+        counter = pp.consume_all(
+            timeout_in_seconds=2, file_path=Path("test_producer.csv")
+        )
         assert counter == 2

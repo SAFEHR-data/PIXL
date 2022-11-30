@@ -12,8 +12,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 from datetime import datetime
-import logging
 import json
+import logging
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -31,6 +31,9 @@ def serialise(mrn: str, acsn_no: str, date: datetime) -> str:
     :param acsn_no: accession number
     :param date: date of the study
     :returns: JSON formatted message"""
-    logger.debug(f"Serialising message with patient id {mrn}, accession number: {acsn_no} and date {date}")
-    return json.dumps({'mrn': mrn, 'accession_number': acsn_no, 'date': date}, default=str)
-
+    logger.debug(
+        f"Serialising message with patient id {mrn}, accession number: {acsn_no} and date {date}"
+    )
+    return json.dumps(
+        {"mrn": mrn, "accession_number": acsn_no, "date": date}, default=str
+    )

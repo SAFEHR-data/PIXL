@@ -20,19 +20,12 @@ set -eo pipefail
 
 BIN_DIR=$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)
 QUEUE_DIR="${BIN_DIR%/*}"
-cd $QUEUE_DIR
+cd $QUEUE_DIR || exit
 
-CONF_FILE=../setup.cfg
+pip install -r src/requirements.txt
 
-
-mypy --config-file ${CONF_FILE} src/patient_queue
-isort --settings-path ${CONF_FILE} src/patient_queue
-black patient_queue
-flake8 --config ${CONF_FILE}
-
-
-cd test/
+cd bin
 docker compose up -d
-docker exec pixl-test-ehr-api /bin/bash -c "pytest patient_queue/tests/test_producer.py"
-docker exec pixl-test-ehr-api /bin/bash -c "pytest patient_queue/tests/test_subscriber.py"
+docker exec pixl-test-queue /bin/bash -c "pytest patient_queue/tests/test_producer.py"
+docker exec pixl-test-queue /bin/bash -c "pytest patient_queue/tests/test_subscriber.py"
 docker compose down

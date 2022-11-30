@@ -12,11 +12,11 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-import os
-import aio_pika
 import logging
-from typing import Any, Coroutine
-from typing import Callable
+import os
+from typing import Any, Callable, Coroutine
+
+import aio_pika
 
 from token_buffer import TokenBucket
 
@@ -29,7 +29,9 @@ class PixlConsumer:
     which EHR demographic data needs to be retrieved.
     """
 
-    def __init__(self, queue: str, port: int, token_bucket: TokenBucket, host: str = "queue") -> None:
+    def __init__(
+        self, queue: str, port: int, token_bucket: TokenBucket, host: str = "queue"
+    ) -> None:
         """
         Creating connection to RabbitMQ queue.
         :param queue: Name of the queue to connect to.
@@ -38,8 +40,10 @@ class PixlConsumer:
         :param host: Name of the machine RabbitMQ is running on; cannot be hardcoded for tests. Default is name of Docker container as configured.
         """
         self.token_bucket = token_bucket
-        self._url = (f"amqp://{os.environ['RABBITMQ_DEFAULT_USER']}" 
-                     f":{os.environ['RABBITMQ_DEFAULT_PASS']}@{host}:{port}/")
+        self._url = (
+            f"amqp://{os.environ['RABBITMQ_DEFAULT_USER']}"
+            f":{os.environ['RABBITMQ_DEFAULT_PASS']}@{host}:{port}/"
+        )
         self._queue_name = queue
 
     async def __aenter__(self) -> "PixlConsumer":
