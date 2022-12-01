@@ -13,12 +13,12 @@
 #  limitations under the License.
 import asyncio
 import os
-from unittest import TestCase
 from pathlib import Path
+from typing import Any, Coroutine, Generator
+from unittest import TestCase
 
 from patient_queue.producer import PixlProducer
-from patient_queue.subscriber import PixlConsumer
-from patient_queue.subscriber import PixlBlockingConsumer
+from patient_queue.subscriber import PixlBlockingConsumer, PixlConsumer
 import pytest
 from token_buffer.tokens import TokenBucket
 
@@ -32,8 +32,10 @@ counter = 0
 
 
 @pytest.fixture(scope="class")
-def event_loop_instance(request):
-    """ Add the event_loop as an attribute to the unittest style test class. """
+def event_loop_instance(request: Any) -> Generator:
+    """Add the event_loop as an attribute to the unittest style test class.
+    :param request: the object event loop ties to
+    :returns: a generator"""
     request.cls.event_loop = asyncio.get_event_loop_policy().new_event_loop()
     yield
     request.cls.event_loop.close()
@@ -41,9 +43,10 @@ def event_loop_instance(request):
 
 @pytest.mark.usefixtures("event_loop_instance")
 class TestConsumer(TestCase):
-    def get_async_result(self, coro):
-        """ Run a coroutine synchronously. """
-        return self.event_loop.run_until_complete(coro)
+    def get_async_result(self, coro: Coroutine) -> Any:
+        """Run a coroutine synchronously.
+        :param coro: coroutine generated from run"""
+        return self.event_loop.run_until_complete(coro)  # type: ignore
 
     async def test_create(self) -> None:
         """Checks consume is working."""
@@ -61,13 +64,19 @@ class TestConsumer(TestCase):
             queue=TEST_QUEUE, port=TEST_PORT, token_bucket=TokenBucket(), host=TEST_URL
         ) as pc:
 
-            def consume(msg: bytes) -> None:
+            def consume(msg: bytes) -> int:
+                """
+                Increases counter when message is downloaded.
+                :param msg: body of the message, though not needed
+                :returns: the increased counter, though here only once
+                """
                 if str(msg) != "":
                     global counter
                     counter += 1
                     return counter
+                return 0
 
-            result = self.get_async_result(callback=consume)
+            result = self.get_async_result(pc.run(callback=consume))
 
         assert counter == 1
 

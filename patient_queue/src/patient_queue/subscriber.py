@@ -14,11 +14,11 @@
 
 import logging
 import os
-from typing import Any, Callable, Coroutine
 from pathlib import Path
+from typing import Any, Callable, Coroutine
 
-import pika
 import aio_pika
+import pika
 
 from token_buffer import TokenBucket
 
@@ -39,7 +39,9 @@ class PixlConsumer:
         :param queue: Name of the queue to connect to.
         :param port: Port the queue is provided through (i.e. RabbitMQ port)
         :param token_bucket: Token bucket for EHR queue
-        :param host: Name of the machine RabbitMQ is running on; cannot be hardcoded for tests. Default is name of Docker container as configured.
+        :param host: Name of the machine RabbitMQ is running on; cannot be
+                     hardcoded for tests.
+                     Default is name of Docker container as configured.
         """
         self.token_bucket = token_bucket
         self._url = (
@@ -63,8 +65,10 @@ class PixlConsumer:
         return self.__aenter__()
 
     async def run(self, callback: Callable) -> None:
-        """Creates loop that waits for messages from producer and processes them as they appear.
-        :param callback: method to be called when new message arrives that needs to be processed
+        """Creates loop that waits for messages from producer and processes them as
+           they appear.
+        :param callback: method to be called when new message arrives that needs to
+                         be processed
         """
         async with self._queue.iterator() as queue_iter:
             async for message in queue_iter:
@@ -115,7 +119,7 @@ class PixlBlockingConsumer:
         self._user = user
         self._password = password
 
-    def __enter__(self) -> "PixlProducer":
+    def __enter__(self) -> "PixlBlockingConsumer":
         """Establishes connection to RabbitMQ service."""
         credentials = pika.PlainCredentials(self._user, self._password)
         params = pika.ConnectionParameters(self._host, self._port, "/", credentials)
@@ -123,8 +127,8 @@ class PixlBlockingConsumer:
             self._connection = pika.BlockingConnection(params)
 
             if self._channel is None or self._channel.is_closed:
-                self._channel = self._connection.channel()  # noqa
-            self._queue = self._channel.queue_declare(queue=self.queue_name)
+                self._channel = self._connection.channel()  # type: ignore
+            self._queue = self._channel.queue_declare(queue=self.queue_name)  # type: ignore
         LOGGER.info(f"Connected to {self._queue}")
         return self
 
@@ -132,13 +136,16 @@ class PixlBlockingConsumer:
         """
         Retrieving all messages still on queue and save them in a specified CSV file.
         :param timeout_in_seconds: Causes shutdown after the timeout (specified in secs)
-        :param file_path: path to where remaining messages should be written before shutdown
-        :returns: the number of messages that have been consumed and written to the specified file.
+        :param file_path: path to where remaining messages should be written
+                          before shutdown
+        :returns: the number of messages that have been consumed and written to the
+                  specified file.
         """
-        generator = self._channel.consume(
+        generator = self._channel.consume(  # type: ignore
             queue=self.queue_name,
             auto_ack=True,
-            inactivity_timeout=timeout_in_seconds,  # Yields (None, None, None) after this
+            inactivity_timeout=timeout_in_seconds,
+            # Yields (None, None, None) after this
         )
 
         def callback(method: Any, properties: Any, body: Any) -> None:
@@ -162,5 +169,5 @@ class PixlBlockingConsumer:
         Shutdown the connection to RabbitMQ service.
         :return:
         """
-        self._channel.close()
-        self._connection.close()
+        self._channel.close()  # type: ignore
+        self._connection.close()  # type: ignore

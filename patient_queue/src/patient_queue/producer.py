@@ -54,8 +54,8 @@ class PixlProducer(object):
             self._connection = pika.BlockingConnection(params)
 
             if self._channel is None or self._channel.is_closed:
-                self._channel = self._connection.channel()  # noqa
-            self._queue = self._channel.queue_declare(queue=self.queue_name)
+                self._channel = self._connection.channel()  # type: ignore
+            self._queue = self._channel.queue_declare(queue=self.queue_name)  # type: ignore
         LOGGER.info(f"Connected to {self._queue}")
         return self
 
@@ -68,7 +68,7 @@ class PixlProducer(object):
         if len(msgs) > 0:
             for msg in msgs:
                 LOGGER.debug("Preparing to publish")
-                self._channel.basic_publish(
+                self._channel.basic_publish(  # type: ignore
                     exchange="", routing_key=self.queue_name, body=msg.encode("utf-8")
                 )
                 LOGGER.debug(f"Message {msg} published to queue {self.queue_name}")
@@ -81,13 +81,16 @@ class PixlProducer(object):
         """
         Retrieving all messages still on queue and save them in a specified CSV file.
         :param timeout_in_seconds: Causes shutdown after the timeout (specified in secs)
-        :param file_path: path to where remaining messages should be written before shutdown
-        :returns: the number of messages that have been consumed and written to the specified file.
+        :param file_path: path to where remaining messages should be written before
+                          shutdown
+        :returns: the number of messages that have been consumed and written to the
+                  specified file.
         """
-        generator = self._channel.consume(
+        generator = self._channel.consume(  # type: ignore
             queue=self.queue_name,
             auto_ack=True,
-            inactivity_timeout=timeout_in_seconds,  # Yields (None, None, None) after this
+            inactivity_timeout=timeout_in_seconds,
+            # Yields (None, None, None) after this
         )
 
         def callback(method: Any, properties: Any, body: Any) -> None:
@@ -111,16 +114,17 @@ class PixlProducer(object):
         Shutdown the connection to RabbitMQ service.
         :return:
         """
-        self._channel.close()
-        self._connection.close()
+        self._channel.close()  # type: ignore
+        self._connection.close()  # type: ignore
 
     def clear_queue(self) -> None:
-        """Triggering a purge of all the messages currently in the queue. Mainly used to clean after tests."""
-        self._channel.queue_purge(queue=self.queue_name)
+        """Triggering a purge of all the messages currently in the queue. Mainly used to
+        clean after tests."""
+        self._channel.queue_purge(queue=self.queue_name)  # type: ignore
 
     @property
     def connection_open(self) -> Any:
-        return self._connection.is_open
+        return self._connection.is_open  # type: ignore
 
     @property
     def channel(self) -> pika.channel.Channel:

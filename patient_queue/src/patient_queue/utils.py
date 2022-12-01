@@ -32,7 +32,8 @@ def serialise(mrn: str, acsn_no: str, date: datetime) -> str:
     :param date: date of the study
     :returns: JSON formatted message"""
     logger.debug(
-        f"Serialising message with patient id {mrn}, accession number: {acsn_no} and date {date}"
+        f"Serialising message with patient id {mrn}, "
+        f"accession number: {acsn_no} and date {date}"
     )
     return json.dumps(
         {"mrn": mrn, "accession_number": acsn_no, "date": date}, default=str

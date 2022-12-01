@@ -22,7 +22,13 @@ BIN_DIR=$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)
 QUEUE_DIR="${BIN_DIR%/*}"
 cd $QUEUE_DIR/bin || exit
 
-echo $PWD
+CONF_FILE=../../setup.cfg
+
+mypy --config-file ${CONF_FILE} ../src/patient_queue
+isort --settings-path ${CONF_FILE} ../src/patient_queue
+black ../src/patient_queue
+flake8 --config ${CONF_FILE} ../src/patient_queue
+
 
 docker compose -f docker-compose.yml build
 docker compose -f docker-compose.yml up -d
