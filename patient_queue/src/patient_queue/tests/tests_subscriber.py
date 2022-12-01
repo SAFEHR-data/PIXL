@@ -18,7 +18,7 @@ from patient_queue.subscriber import PixlConsumer
 import pytest
 from token_buffer.tokens import TokenBucket
 
-TEST_URL = "localhost"
+TEST_URL = "queue"
 TEST_PORT = 5672
 TEST_QUEUE = "test_consume"
 RABBIT_USER = os.environ["RABBITMQ_DEFAULT_USER"]

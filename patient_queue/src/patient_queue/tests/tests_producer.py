@@ -16,7 +16,7 @@ from pathlib import Path
 
 from patient_queue.producer import PixlProducer
 
-TEST_URL = "localhost"
+TEST_URL = "queue"
 TEST_PORT = 5672
 TEST_QUEUE = "test_publish"
 RABBIT_USER = os.environ["RABBITMQ_DEFAULT_USER"]
