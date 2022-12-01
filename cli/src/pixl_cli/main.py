@@ -20,6 +20,7 @@ import pandas as pd
 
 import click
 from patient_queue.producer import PixlProducer
+from patient_queue.subscriber import PixlBlockingConsumer
 from pixl_cli._logging import logger, set_log_level
 from pixl_cli._utils import clear_file, remove_file_if_it_exists, string_is_non_empty
 import requests
@@ -85,6 +86,22 @@ def populate(csv_filename: str, queues: str, restart: bool) -> None:
 
 
 def create_pixl_producer(queue: str) -> PixlProducer:
+    """
+    Create producer with config information.
+    :param queue: Queue the producer should be created for. However, can also be none.
+    :returns: Created producer for message publishing to RabbitMQ
+    """
+    logger.debug(f"Configuration details for producer: {config}")
+    return PixlProducer(
+        host=config["rabbitmq"]["host"],
+        port=config["rabbitmq"]["port"],
+        queue_name=queue,
+        user=config["rabbitmq"]["rabbit_username"],
+        password=config["rabbitmq"]["rabbit_password"],
+    )
+
+
+def create_pixl_blocking_consumer(queue: str) -> PixlBlockingConsumer:
     """
     Create producer with config information.
     :param queue: Queue the producer should be created for. However, can also be none.
@@ -260,12 +277,12 @@ def consume_all_messages_and_save_csv_file(
         f"{timeout_in_seconds} seconds"
     )
 
-    with create_pixl_producer(queue=queue_name) as producer:
-        if producer.queue.method.message_count > 0:
+    with create_pixl_blocking_consumer(queue=queue_name) as blocking_consumer:
+        if blocking_consumer.queue.method.message_count > 0:
             logger.info("Found messages in the queue. Clearing the state file")
             clear_file(state_filepath_for_queue(queue_name))
 
-        producer.consume_all(state_filepath_for_queue(queue_name))
+        blocking_consumer.consume_all(state_filepath_for_queue(queue_name))
 
 
 def state_filepath_for_queue(queue_name: str) -> Path:

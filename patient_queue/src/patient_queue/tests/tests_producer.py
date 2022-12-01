@@ -55,19 +55,3 @@ def test_publish() -> None:
     ) as pp:
         assert pp.queue.method.message_count == 1
         pp.clear_queue()
-
-
-def test_consume_all() -> None:
-    """Checks that all messages are returned that have been published before for graceful shutdown."""
-    with PixlProducer(
-        host=TEST_URL,
-        port=TEST_PORT,
-        queue_name=TEST_QUEUE,
-        user=RABBIT_USER,
-        password=RABBIT_PASSWORD,
-    ) as pp:
-        pp.publish(msgs=["test", "test"])
-        counter = pp.consume_all(
-            timeout_in_seconds=2, file_path=Path("test_producer.csv")
-        )
-        assert counter == 2

@@ -15,7 +15,9 @@
 import logging
 import os
 from typing import Any, Callable, Coroutine
+from pathlib import Path
 
+import pika
 import aio_pika
 
 from token_buffer import TokenBucket
@@ -90,3 +92,75 @@ class PixlConsumer:
         :return:
         """
         pass
+
+
+class PixlBlockingConsumer:
+    def __init__(
+        self, host: str, port: int, queue_name: str, user: str, password: str
+    ) -> None:
+        """
+        Initialising RabbitMQ service configuration for connection.
+        :param str host: URL for the RabbitMQ service
+        :param int port: Port on which RabbitMQ service is running
+        :param str queue_name: Name of the queue this producer is to publish on
+        :param user: RabbitMQ user name as configured for queue
+        :param password: RabbitMQ user password as configured for queue
+        """
+        self._connection = None
+        self._channel = None
+        self._queue = None
+        self.queue_name = queue_name
+        self._host = host
+        self._port = port
+        self._user = user
+        self._password = password
+
+    def __enter__(self) -> "PixlProducer":
+        """Establishes connection to RabbitMQ service."""
+        credentials = pika.PlainCredentials(self._user, self._password)
+        params = pika.ConnectionParameters(self._host, self._port, "/", credentials)
+        if self._connection is None or self._connection.is_closed:  # noqa
+            self._connection = pika.BlockingConnection(params)
+
+            if self._channel is None or self._channel.is_closed:
+                self._channel = self._connection.channel()  # noqa
+            self._queue = self._channel.queue_declare(queue=self.queue_name)
+        LOGGER.info(f"Connected to {self._queue}")
+        return self
+
+    def consume_all(self, file_path: Path, timeout_in_seconds: int = 5) -> int:
+        """
+        Retrieving all messages still on queue and save them in a specified CSV file.
+        :param timeout_in_seconds: Causes shutdown after the timeout (specified in secs)
+        :param file_path: path to where remaining messages should be written before shutdown
+        :returns: the number of messages that have been consumed and written to the specified file.
+        """
+        generator = self._channel.consume(
+            queue=self.queue_name,
+            auto_ack=True,
+            inactivity_timeout=timeout_in_seconds,  # Yields (None, None, None) after this
+        )
+
+        def callback(method: Any, properties: Any, body: Any) -> None:
+            try:
+                with open(file_path, "a") as csv_file:
+                    csv_file.write(str(body) + "\n")
+            except:  # noqa
+                LOGGER.debug("Failed to consume")
+
+        counter = 0
+        for args in generator:
+            if all(arg is None for arg in args):
+                LOGGER.info("Stopping")
+                break
+            callback(*args)
+            counter += 1
+        return counter
+
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+        """
+        Shutdown the connection to RabbitMQ service.
+        :return:
+        """
+        self._channel.close()
+        self._connection.close()

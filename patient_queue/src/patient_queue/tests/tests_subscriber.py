@@ -14,9 +14,11 @@
 import asyncio
 import os
 from unittest import TestCase
+from pathlib import Path
 
 from patient_queue.producer import PixlProducer
 from patient_queue.subscriber import PixlConsumer
+from patient_queue.subscriber import PixlBlockingConsumer
 import pytest
 from token_buffer.tokens import TokenBucket
 
@@ -68,3 +70,28 @@ class TestConsumer(TestCase):
             result = self.get_async_result(callback=consume)
 
         assert counter == 1
+
+
+def test_consume_all() -> None:
+    """Checks that all messages are returned that have been published before for graceful shutdown."""
+    with PixlProducer(
+        host=TEST_URL,
+        port=TEST_PORT,
+        queue_name=TEST_QUEUE,
+        user=RABBIT_USER,
+        password=RABBIT_PASSWORD,
+    ) as pp:
+        pp.publish(msgs=["test", "test"])
+
+    with PixlBlockingConsumer(
+        host=TEST_URL,
+        port=TEST_PORT,
+        queue_name=TEST_QUEUE,
+        user=RABBIT_USER,
+        password=RABBIT_PASSWORD,
+    ) as bc:
+
+        counter_bc = bc.consume_all(
+            timeout_in_seconds=2, file_path=Path("test_producer.csv")
+        )
+        assert counter_bc == 2
