@@ -41,7 +41,7 @@ async def test_create() -> None:
         pp.publish(msgs=["test"])
 
     async with PixlConsumer(
-        queue=TEST_QUEUE, port=TEST_PORT, token_bucket=TokenBucket(), host="localhost"
+        queue=TEST_QUEUE, port=TEST_PORT, token_bucket=TokenBucket(), host=TEST_URL
     ) as pc:
 
         def consume(msg: bytes) -> None:

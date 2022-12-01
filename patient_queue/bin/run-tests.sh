@@ -29,5 +29,5 @@ docker compose -f docker-compose.yml up -d
 sleep 10 # to account for everything ready
 
 docker exec pixl-test-python /bin/bash -c "pytest /patient_queue/patient_queue/tests/tests_producer.py"
-# docker exec pixl-test-python /bin/bash -c "pytest /patient_queue/patient_queue/tests/tests_subscriber.py"
+docker exec pixl-test-python /bin/bash -c "pytest /patient_queue/patient_queue/tests/tests_subscriber.py"
 docker compose -f docker-compose.yml down
