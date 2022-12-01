@@ -11,7 +11,9 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+import asyncio
 import os
+from unittest import TestCase
 
 from patient_queue.producer import PixlProducer
 from patient_queue.subscriber import PixlConsumer
@@ -27,29 +29,42 @@ RABBIT_PASSWORD = os.environ["RABBITMQ_DEFAULT_PASS"]
 counter = 0
 
 
-@pytest.mark.asyncio
-async def test_create() -> None:
-    """Checks consume is working."""
-    global counter
-    with PixlProducer(
-        host=TEST_URL,
-        port=TEST_PORT,
-        queue_name=TEST_QUEUE,
-        user=RABBIT_USER,
-        password=RABBIT_PASSWORD,
-    ) as pp:
-        pp.publish(msgs=["test"])
+@pytest.fixture(scope="class")
+def event_loop_instance(request):
+    """ Add the event_loop as an attribute to the unittest style test class. """
+    request.cls.event_loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield
+    request.cls.event_loop.close()
 
-    async with PixlConsumer(
-        queue=TEST_QUEUE, port=TEST_PORT, token_bucket=TokenBucket(), host=TEST_URL
-    ) as pc:
 
-        def consume(msg: bytes) -> None:
-            if str(msg) != "":
-                global counter
-                print(counter)
-                counter += 1
+@pytest.mark.usefixtures("event_loop_instance")
+class TestConsumer(TestCase):
+    def get_async_result(self, coro):
+        """ Run a coroutine synchronously. """
+        return self.event_loop.run_until_complete(coro)
 
-        await pc.run(callback=consume)
+    async def test_create(self) -> None:
+        """Checks consume is working."""
+        global counter
+        with PixlProducer(
+            host=TEST_URL,
+            port=TEST_PORT,
+            queue_name=TEST_QUEUE,
+            user=RABBIT_USER,
+            password=RABBIT_PASSWORD,
+        ) as pp:
+            pp.publish(msgs=["test"])
 
-    assert counter == 1
+        async with PixlConsumer(
+            queue=TEST_QUEUE, port=TEST_PORT, token_bucket=TokenBucket(), host=TEST_URL
+        ) as pc:
+
+            def consume(msg: bytes) -> None:
+                if str(msg) != "":
+                    global counter
+                    counter += 1
+                    return counter
+
+            result = self.get_async_result(callback=consume)
+
+        assert counter == 1
