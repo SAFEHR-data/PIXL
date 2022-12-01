@@ -11,6 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+import os
 from decouple import config
 from io import BytesIO
 
@@ -90,7 +91,14 @@ def AzureDICOMTokenRefresh():
     TIMER = threading.Timer(AZ_DICOM_TOKEN_REFRESH_SECS, AzureDICOMTokenRefresh)
     TIMER.start()
 
+def ShouldAutoRoute():
+    return os.environ.get("ORTHANC_AUTOROUTE_ANON_TO_AZURE", "false").lower() == "true"
+
 def OnChange(changeType, level, resource):
+
+    if not ShouldAutoRoute():
+        return
+
     if changeType == orthanc.ChangeType.ORTHANC_STARTED:
         orthanc.LogWarning("Starting the scheduler")
         AzureDICOMTokenRefresh()
