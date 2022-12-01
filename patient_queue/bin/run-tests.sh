@@ -20,12 +20,14 @@ set -eo pipefail
 
 BIN_DIR=$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)
 QUEUE_DIR="${BIN_DIR%/*}"
-cd $QUEUE_DIR || exit
+cd $QUEUE_DIR/bin || exit
 
 echo $PWD
 
-docker compose -f ./bin/docker-compose.yml build
-docker compose -f ./bin/docker-compose.yml up -d
+docker compose -f docker-compose.yml build
+docker compose -f docker-compose.yml up -d
+sleep 10 # to account for everything ready
+
 docker exec pixl-test-python /bin/bash -c "pytest /patient_queue/patient_queue/tests/tests_producer.py"
 # docker exec pixl-test-python /bin/bash -c "pytest /patient_queue/patient_queue/tests/tests_subscriber.py"
-docker compose -f ./bin/docker-compose.yml down
+docker compose -f docker-compose.yml down
