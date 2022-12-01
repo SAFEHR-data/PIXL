@@ -183,6 +183,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r cli/src/requirements.txt
+          pip install -r token_buffer/src/requirements.txt token_buffer/src/
           pip install -r patient_queue/src/requirements.txt
           pip install patient_queue/src/
 
