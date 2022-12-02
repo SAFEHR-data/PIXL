@@ -24,16 +24,16 @@ def deserialise(message_body: bytes) -> dict:
     return dict(json.loads(message_body.decode()))
 
 
-def serialise(mrn: str, acsn_no: str, date: datetime) -> bytes:
+def serialise(mrn: str, acsn_no: str, timestamp: datetime) -> bytes:
     """Returns serialised message from patient id, accession number and date of study.
     :param mrn: patient identifier
     :param acsn_no: accession number
-    :param date: date of the study
+    :param timestamp: date and time of the study
     :returns: JSON formatted message"""
     logger.debug(
         f"Serialising message with patient id {mrn}, "
-        f"accession number: {acsn_no} and date {date}"
+        f"accession number: {acsn_no} and date {timestamp}"
     )
     return json.dumps(
-        {"mrn": mrn, "accession_number": acsn_no, "date": date}, default=str
+        {"mrn": mrn, "accession_number": acsn_no, "timestamp": timestamp}, default=str
     ).encode("utf-8")

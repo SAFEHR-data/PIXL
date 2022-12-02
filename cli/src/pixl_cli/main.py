@@ -21,6 +21,7 @@ import pandas as pd
 import click
 from patient_queue.producer import PixlProducer
 from patient_queue.subscriber import PixlBlockingConsumer
+from patient_queue.utils import serialise
 from pixl_cli._logging import logger, set_log_level
 from pixl_cli._utils import clear_file, remove_file_if_it_exists, string_is_non_empty
 import requests
@@ -71,61 +72,18 @@ def populate(csv_filename: str, queues: str, restart: bool) -> None:
     logger.info(f"Populating queue(s) {queues} from {csv_filename}")
 
     for queue in queues.split(","):
-        with create_pixl_producer(queue=queue) as producer:
-            cached_state_filepath = state_filepath_for_queue(queue)
-            if cached_state_filepath.exists() and restart:
-                logger.info(f"Extracting messages from state: {cached_state_filepath}")
-                inform_user_that_queue_will_be_populated_from(cached_state_filepath)
-                messages = messages_from_state(cached_state_filepath, producer=producer)
+        with PixlProducer(queue_name=queue, **config["rabbitmq"]) as producer:
+
+            state_filepath = state_filepath_for_queue(queue)
+            if state_filepath.exists() and restart:
+                logger.info(f"Extracting messages from state: {state_filepath}")
+                inform_user_that_queue_will_be_populated_from(state_filepath)
+                messages = Messages.from_state_file(state_filepath)
             else:
-                messages = messages_from_csv(Path(csv_filename), producer=producer)
+                messages = messages_from_csv(Path(csv_filename))
 
-            remove_file_if_it_exists(cached_state_filepath)  # will be stale
-            logger.info(f"Sending {len(messages)} messages")
-            messages.send()
-
-
-def create_pixl_producer(queue: str) -> PixlProducer:
-    """
-    Create producer with config information.
-    :param queue: Queue the producer should be created for. However, can also be none.
-    :returns: Created producer for message publishing to RabbitMQ
-    """
-    logger.debug(f"Configuration details for producer: {config}")
-    return PixlProducer(
-        host=config["rabbitmq"]["host"],
-        port=config["rabbitmq"]["port"],
-        queue_name=queue,
-        user=config["rabbitmq"]["username"],
-        password=config["rabbitmq"]["rabbit_password"],
-    )
-
-
-def create_pixl_blocking_consumer(queue: str) -> PixlBlockingConsumer:
-    """
-    Create producer with config information.
-    :param queue: Queue the producer should be created for. However, can also be none.
-    :returns: Created producer for message publishing to RabbitMQ
-    """
-    logger.debug(f"Configuration details for producer: {config}")
-    return PixlProducer(
-        host=config["rabbitmq"]["host"],
-        port=config["rabbitmq"]["port"],
-        queue_name=queue,
-        user=config["rabbitmq"]["username"],
-        password=config["rabbitmq"]["rabbit_password"],
-    )
-
-
-def messages_from_state(filepath: Path, producer: PixlProducer) -> "Messages":
-    """Extract a set of messages from a 'state' file"""
-    logger.info(f"Extracting messages from state: {filepath}")
-
-    inform_user_that_queue_will_be_populated_from(filepath)
-    messages = Messages(producer=producer).from_state_file(filepath)
-    os.remove(filepath)
-
-    return messages
+            remove_file_if_it_exists(state_filepath)  # will be stale
+            producer.publish(messages)
 
 
 @cli.command()
@@ -277,12 +235,13 @@ def consume_all_messages_and_save_csv_file(
         f"{timeout_in_seconds} seconds"
     )
 
-    with create_pixl_blocking_consumer(queue=queue_name) as blocking_consumer:
-        if blocking_consumer.queue.method.message_count > 0:
+    with PixlBlockingConsumer(queue_name=queue_name) as blocking_consumer:
+        state_filepath = state_filepath_for_queue(queue_name)
+        if blocking_consumer.message_count > 0:
             logger.info("Found messages in the queue. Clearing the state file")
-            clear_file(state_filepath_for_queue(queue_name))
+            clear_file(state_filepath)
 
-        blocking_consumer.consume_all(state_filepath_for_queue(queue_name))
+        blocking_consumer.consume_all(state_filepath)
 
 
 def state_filepath_for_queue(queue_name: str) -> Path:
@@ -290,14 +249,6 @@ def state_filepath_for_queue(queue_name: str) -> Path:
 
 
 class Messages(list):
-    def __init__(self, producer: PixlProducer):
-        """
-        Initialisation of RabbitMQ service connection.
-        :param producer: Producer used for publishing messages.
-        """
-        super().__init__()
-        self._producer = producer
-
     @classmethod
     def from_state_file(cls, filepath: Path) -> "Messages":
         logger.info(f"Creating messages from {filepath}")
@@ -305,21 +256,16 @@ class Messages(list):
 
         return cls(
             [
-                line
+                line.encode("utf-8")
                 for line in open(filepath, "r").readlines()
                 if string_is_non_empty(line)
             ]
         )
 
-    def send(self) -> None:
-        self._producer.publish(self)
-        logger.info(f"Sent {len(self)} messages")
 
-
-def messages_from_csv(filepath: Path, producer: PixlProducer) -> Messages:
+def messages_from_csv(filepath: Path) -> Messages:
     """Reads patient information from CSV and transforms that into messages.
     :param filepath: Path for CSV file to be read
-    :param producer: Producer that will be used to publish to patient queue
     """
     expected_col_names = [
         "VAL_ID",
@@ -333,7 +279,7 @@ def messages_from_csv(filepath: Path, producer: PixlProducer) -> Messages:
     )
 
     df = pd.read_csv(filepath, header=0, dtype=str)  # First line is column names
-    messages = Messages(producer=producer)
+    messages = Messages()
 
     if list(df.columns)[:4] != expected_col_names:
         raise ValueError(
@@ -344,9 +290,11 @@ def messages_from_csv(filepath: Path, producer: PixlProducer) -> Messages:
     mrn_col_name, acc_num_col_name, _, datetime_col_name = expected_col_names
     for _, row in df.iterrows():
         messages.append(
-            f"{row[mrn_col_name]},"
-            f"{row[acc_num_col_name]},"
-            f"{row[datetime_col_name]}"
+            serialise(
+                mrn=row[mrn_col_name],
+                acsn_no=row[acc_num_col_name],
+                timestamp=row[datetime_col_name],
+            )
         )
 
     if len(messages) == 0:
@@ -357,7 +305,7 @@ def messages_from_csv(filepath: Path, producer: PixlProducer) -> Messages:
 
 
 def queue_is_up() -> Any:
-    with create_pixl_producer(queue="") as producer:
+    with PixlProducer(queue_name="") as producer:
         return producer.connection_open
 
 

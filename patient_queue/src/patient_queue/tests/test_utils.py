@@ -21,11 +21,11 @@ def test_serialise() -> None:
     msg_body = serialise(
         mrn="111",
         acsn_no="123",
-        date=dt.strptime("Nov 22 2022 1:33PM", "%b %d %Y %I:%M%p"),
+        timestamp=dt.strptime("Nov 22 2022 1:33PM", "%b %d %Y %I:%M%p"),
     )
     assert (
         msg_body.decode()
-        == '{"mrn": "111", "accession_number": "123", "date": "2022-11-22 13:33:00"}'
+        == '{"mrn": "111", "accession_number": "123", "timestamp": "2022-11-22 13:33:00"}'
     )
 
 
