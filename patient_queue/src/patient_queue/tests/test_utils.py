@@ -24,10 +24,16 @@ def test_serialise() -> None:
         timestamp=dt.strptime("Nov 22 2022 1:33PM", "%b %d %Y %I:%M%p"),
     )
     assert (
-        msg_body.decode()
-        == '{"mrn": "111", "accession_number": "123", "timestamp": "2022-11-22 13:33:00"}'
+        msg_body.decode() ==
+        '{"mrn": "111", "accession_number": "123", "timestamp": "2022-11-22T13:33:00"}'
     )
 
 
-def test_deserialise() -> None:
+def test_simple_deserialise() -> None:
     assert deserialise((json.dumps({"key": "value"})).encode("utf-8"))["key"] == "value"
+
+
+def test_deserialise_datetime() -> None:
+    timestamp = dt.fromordinal(100012)
+    data = deserialise(serialise(mrn="", acsn_no="", timestamp=timestamp))
+    assert data["timestamp"] == timestamp

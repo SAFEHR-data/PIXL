@@ -23,6 +23,7 @@ from typing import List
 from pixl_ehr._databases import PIXLDatabase, WriteableDatabase
 from pixl_ehr._processing import process_message
 from pixl_ehr.utils import env_var
+from patient_queue.utils import serialise
 from psycopg2.errors import UniqueViolation
 
 mrn = "testmrn"
@@ -48,7 +49,8 @@ weight_vot_id, height_vot_id, gcs_vot_id = 2222222, 3333333, 4444444
 ls_id, lo_id, lr_id, ltd_id = 5555555, 6666666, 7777777, 8888888
 
 # TODO: replace with serialisation function
-message_body = f"{mrn},{accession_number},{study_datetime}".encode("utf-8")
+message_body = serialise(mrn=mrn, acsn_no=accession_number, timestamp=study_datetime)
+#f"{mrn},{accession_number},{study_datetime}".encode("utf-8")
 
 
 class WritableEMAPStar(WriteableDatabase):

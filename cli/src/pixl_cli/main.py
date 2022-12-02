@@ -14,6 +14,7 @@
 import json
 import os
 from pathlib import Path
+from datetime import datetime
 from typing import Any, List, Optional
 
 import pandas as pd
@@ -287,13 +288,13 @@ def messages_from_csv(filepath: Path) -> Messages:
             f"column names"
         )
 
-    mrn_col_name, acc_num_col_name, _, datetime_col_name = expected_col_names
+    mrn_col_name, acc_num_col_name, _, dt_col_name = expected_col_names
     for _, row in df.iterrows():
         messages.append(
             serialise(
                 mrn=row[mrn_col_name],
                 acsn_no=row[acc_num_col_name],
-                timestamp=row[datetime_col_name],
+                timestamp=datetime.strptime(row[dt_col_name], "%d/%m/%Y %H:%M:%S"),
             )
         )
 

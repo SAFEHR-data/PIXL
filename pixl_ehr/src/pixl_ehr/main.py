@@ -51,9 +51,7 @@ state = AppState()
 
 
 async def _queue_loop() -> None:
-    async with PixlConsumer(
-        queue=QUEUE_NAME, port=QUEUE_PORT, token_bucket=state.token_bucket
-    ) as consumer:
+    async with PixlConsumer(QUEUE_NAME, token_bucket=state.token_bucket) as consumer:
         await consumer.run(callback=process_message)
 
 
