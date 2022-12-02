@@ -12,7 +12,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 import asyncio
-import os
 from pathlib import Path
 from typing import Any, Coroutine, Generator
 from unittest import TestCase
@@ -22,12 +21,8 @@ from patient_queue.subscriber import PixlBlockingConsumer, PixlConsumer
 import pytest
 from token_buffer.tokens import TokenBucket
 
-TEST_URL = "queue"
-TEST_PORT = 5672
 TEST_QUEUE = "test_consume"
-RABBIT_USER = os.environ["RABBITMQ_DEFAULT_USER"]
-RABBIT_PASSWORD = os.environ["RABBITMQ_DEFAULT_PASS"]
-
+MESSAGE_BODY = "test".encode("utf-8")
 counter = 0
 
 
@@ -51,20 +46,14 @@ class TestConsumer(TestCase):
     async def test_create(self) -> None:
         """Checks consume is working."""
         global counter
-        with PixlProducer(
-            host=TEST_URL,
-            port=TEST_PORT,
-            queue_name=TEST_QUEUE,
-            user=RABBIT_USER,
-            password=RABBIT_PASSWORD,
-        ) as pp:
-            pp.publish(msgs=["test"])
+        with PixlProducer(queue_name=TEST_QUEUE) as pp:
+            pp.publish(messages=[MESSAGE_BODY])
 
         async with PixlConsumer(
-            queue=TEST_QUEUE, port=TEST_PORT, token_bucket=TokenBucket(), host=TEST_URL
+            queue_name=TEST_QUEUE, token_bucket=TokenBucket()
         ) as pc:
 
-            def consume(msg: bytes) -> int:
+            def consume(msg: bytes) -> None:
                 """
                 Increases counter when message is downloaded.
                 :param msg: body of the message, though not needed
@@ -73,33 +62,19 @@ class TestConsumer(TestCase):
                 if str(msg) != "":
                     global counter
                     counter += 1
-                    return counter
-                return 0
 
-            result = self.get_async_result(pc.run(callback=consume))
+            self.get_async_result(pc.run(callback=consume))
 
         assert counter == 1
 
 
 def test_consume_all() -> None:
-    """Checks that all messages are returned that have been published before for graceful shutdown."""
-    with PixlProducer(
-        host=TEST_URL,
-        port=TEST_PORT,
-        queue_name=TEST_QUEUE,
-        user=RABBIT_USER,
-        password=RABBIT_PASSWORD,
-    ) as pp:
-        pp.publish(msgs=["test", "test"])
+    """Checks that all messages are returned that have been published before for
+    graceful shutdown."""
+    with PixlProducer(queue_name=TEST_QUEUE) as pp:
+        pp.publish(messages=[MESSAGE_BODY, MESSAGE_BODY])
 
-    with PixlBlockingConsumer(
-        host=TEST_URL,
-        port=TEST_PORT,
-        queue_name=TEST_QUEUE,
-        user=RABBIT_USER,
-        password=RABBIT_PASSWORD,
-    ) as bc:
-
+    with PixlBlockingConsumer(queue_name=TEST_QUEUE) as bc:
         counter_bc = bc.consume_all(
             timeout_in_seconds=2, file_path=Path("test_producer.csv")
         )

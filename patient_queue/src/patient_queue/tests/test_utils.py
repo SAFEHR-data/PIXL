@@ -24,10 +24,10 @@ def test_serialise() -> None:
         date=dt.strptime("Nov 22 2022 1:33PM", "%b %d %Y %I:%M%p"),
     )
     assert (
-        msg_body
+        msg_body.decode()
         == '{"mrn": "111", "accession_number": "123", "date": "2022-11-22 13:33:00"}'
     )
 
 
 def test_deserialise() -> None:
-    assert deserialise((json.dumps({"test": "test"})).encode("utf-8"))["test"] == "test"
+    assert deserialise((json.dumps({"key": "value"})).encode("utf-8"))["key"] == "value"

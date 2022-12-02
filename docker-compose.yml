@@ -35,8 +35,10 @@ x-pixl-common-env: &pixl-common-env
   DEBUG: ${DEBUG}
 
 x-pixl-rabbit-mq: &pixl-rabbit-mq
-  RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
-  RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+  RABBITMQ_HOST: "queue"   # Name of the queue service
+  RABBITMQ_PORT: "5672"
+  RABBITMQ_USERNAME: ${RABBITMQ_USERNAME}
+  RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
 
 x-emap-db: &emap-db
   EMAP_UDS_HOST: ${EMAP_UDS_HOST}
@@ -190,7 +192,8 @@ services:
   queue:
     image: rabbitmq:3.11.2-management
     environment:
-      <<: *pixl-rabbit-mq
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
     healthcheck:
       test: rabbitmq-diagnostics -q ping
       interval: 30s

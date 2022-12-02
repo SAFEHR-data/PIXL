@@ -96,7 +96,7 @@ def create_pixl_producer(queue: str) -> PixlProducer:
         host=config["rabbitmq"]["host"],
         port=config["rabbitmq"]["port"],
         queue_name=queue,
-        user=config["rabbitmq"]["rabbit_username"],
+        user=config["rabbitmq"]["username"],
         password=config["rabbitmq"]["rabbit_password"],
     )
 
@@ -112,7 +112,7 @@ def create_pixl_blocking_consumer(queue: str) -> PixlBlockingConsumer:
         host=config["rabbitmq"]["host"],
         port=config["rabbitmq"]["port"],
         queue_name=queue,
-        user=config["rabbitmq"]["rabbit_username"],
+        user=config["rabbitmq"]["username"],
         password=config["rabbitmq"]["rabbit_password"],
     )
 

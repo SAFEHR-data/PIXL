@@ -2,8 +2,8 @@ rabbitmq:
   host:
   port:
   admin_port:
-  rabbit_user:
-  rabbit_pw:
+  username:
+  password:
 ehr_api:
   host:
   port:
