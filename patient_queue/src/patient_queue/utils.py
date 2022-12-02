@@ -22,8 +22,8 @@ def deserialise(message_body: bytes) -> dict:
     """Returns the de-serialised message in JSON format."""
     logger.debug(f"De-serialising: {message_body.decode()}")
     data = dict(json.loads(message_body.decode()))
-    if "timestamp" in data:
-        data["timestamp"] = datetime.fromisoformat(data["timestamp"])
+    if "study_datetime" in data:
+        data["study_datetime"] = datetime.fromisoformat(data["study_datetime"])
     return data
 
 
@@ -38,7 +38,9 @@ def serialise(mrn: str, accession_number: str, study_datetime: datetime) -> byte
         f"accession number: {accession_number} and timestamp {study_datetime}"
     )
     return json.dumps(
-        {"mrn": mrn,
-         "accession_number": accession_number,
-         "study_datetime": study_datetime.isoformat()}
+        {
+            "mrn": mrn,
+            "accession_number": accession_number,
+            "study_datetime": study_datetime.isoformat(),
+        }
     ).encode("utf-8")

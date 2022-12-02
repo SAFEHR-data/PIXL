@@ -11,10 +11,10 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+from datetime import datetime
 import json
 import os
 from pathlib import Path
-from datetime import datetime
 from typing import Any, List, Optional
 
 import pandas as pd
@@ -293,8 +293,8 @@ def messages_from_csv(filepath: Path) -> Messages:
         messages.append(
             serialise(
                 mrn=row[mrn_col_name],
-                acsn_no=row[acc_num_col_name],
-                timestamp=datetime.strptime(row[dt_col_name], "%d/%m/%Y %H:%M:%S"),
+                accession_number=row[acc_num_col_name],
+                study_datetime=datetime.strptime(row[dt_col_name], "%d/%m/%Y %H:%M:%S"),
             )
         )
 
