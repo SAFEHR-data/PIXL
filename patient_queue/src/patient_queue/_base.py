@@ -33,11 +33,11 @@ class PixlQueueInterface:
         Generic RabbitMQ interface. Environment variables RABBITMQ_<X> take precedence
         over arguments
 
-        :param queue_name: Name of the queue this interfaces to
+        :param queue_name: Name of the queue this interfaces to.
         :param host: Hostname of the RabbitMQ service.
         :param port: Port on which RabbitMQ service is running.
         :param username: RabbitMQ username as configured for queue.
-        :param password: RabbitMQ user password as configured for queue
+        :param password: RabbitMQ user password as configured for queue.
         """
         self.queue_name = queue_name
 

@@ -28,7 +28,7 @@ ENV VIRTUAL_ENV=/app/venv
 RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-# Download presido data. Before dependencies to cache more effectively
+# Download presido data. Before other dependencies to cache more effectively
 RUN pip install spacy && python -m spacy download en_core_web_lg
 
 RUN mkdir local_deps
