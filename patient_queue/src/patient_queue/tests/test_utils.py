@@ -20,14 +20,20 @@ from patient_queue.utils import deserialise, serialise
 def test_serialise() -> None:
     msg_body = serialise(
         mrn="111",
-        acsn_no="123",
-        date=dt.strptime("Nov 22 2022 1:33PM", "%b %d %Y %I:%M%p"),
+        accession_number="123",
+        study_datetime=dt.strptime("Nov 22 2022 1:33PM", "%b %d %Y %I:%M%p"),
     )
     assert (
-        msg_body
-        == '{"mrn": "111", "accession_number": "123", "date": "2022-11-22 13:33:00"}'
+        msg_body.decode()
+        == '{"mrn": "111", "accession_number": "123", "study_datetime": "2022-11-22T13:33:00"}'
     )
 
 
-def test_deserialise() -> None:
-    assert deserialise((json.dumps({"test": "test"})).encode("utf-8"))["test"] == "test"
+def test_simple_deserialise() -> None:
+    assert deserialise((json.dumps({"key": "value"})).encode("utf-8"))["key"] == "value"
+
+
+def test_deserialise_datetime() -> None:
+    timestamp = dt.fromordinal(100012)
+    data = deserialise(serialise(mrn="", accession_number="", study_datetime=timestamp))
+    assert data["study_datetime"] == timestamp

@@ -27,4 +27,4 @@ pixl_rd/bin/run-tests.sh
 token_buffer/bin/run-tests.sh
 cli/test/run-tests.sh
 pixl_ehr/test/run-tests.sh
-patient_queue/bin/run-tests.sh
+patient_queue/test/run-tests.sh

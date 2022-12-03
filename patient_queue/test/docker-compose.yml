@@ -34,8 +34,13 @@ services:
     container_name: pixl-test-python
     build:
       context: ../..
-      dockerfile: ./patient_queue/bin/Dockerfile.python310
+      dockerfile: patient_queue/test/Dockerfile.python310
+    depends_on:
+      queue:
+        condition: service_healthy
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+      RABBITMQ_HOST: queue
+      RABBITMQ_PORT: 5672
     entrypoint: "tail -f /dev/null"

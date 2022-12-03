@@ -11,6 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+import os
 from pathlib import Path
 
 from click.testing import CliRunner
@@ -32,6 +33,7 @@ def test_down_queue(queue_name: str = "test_down") -> None:
 
     state_path = Path(f"{queue_name}.state")
     assert state_path.exists()
+    os.remove(state_path)
 
 
 def test_queue_is_up() -> None:

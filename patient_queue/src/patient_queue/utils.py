@@ -14,27 +14,33 @@
 from datetime import datetime
 import json
 import logging
-from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
-def deserialise(message_body: bytes) -> Any:
+def deserialise(message_body: bytes) -> dict:
     """Returns the de-serialised message in JSON format."""
     logger.debug(f"De-serialising: {message_body.decode()}")
-    return json.loads(message_body.decode())
+    data = dict(json.loads(message_body.decode()))
+    if "study_datetime" in data:
+        data["study_datetime"] = datetime.fromisoformat(data["study_datetime"])
+    return data
 
 
-def serialise(mrn: str, acsn_no: str, date: datetime) -> str:
+def serialise(mrn: str, accession_number: str, study_datetime: datetime) -> bytes:
     """Returns serialised message from patient id, accession number and date of study.
     :param mrn: patient identifier
-    :param acsn_no: accession number
-    :param date: date of the study
+    :param accession_number: accession number
+    :param study_datetime: date and time of the study
     :returns: JSON formatted message"""
     logger.debug(
         f"Serialising message with patient id {mrn}, "
-        f"accession number: {acsn_no} and date {date}"
+        f"accession number: {accession_number} and timestamp {study_datetime}"
     )
     return json.dumps(
-        {"mrn": mrn, "accession_number": acsn_no, "date": date}, default=str
-    )
+        {
+            "mrn": mrn,
+            "accession_number": accession_number,
+            "study_datetime": study_datetime.isoformat(),
+        }
+    ).encode("utf-8")

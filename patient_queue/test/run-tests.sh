@@ -18,9 +18,9 @@
 
 set -eo pipefail
 
-BIN_DIR=$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)
+BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 QUEUE_DIR="${BIN_DIR%/*}"
-cd $QUEUE_DIR/bin || exit
+cd "$QUEUE_DIR/test" || exit
 
 CONF_FILE=../../setup.cfg
 
@@ -29,11 +29,6 @@ isort --settings-path ${CONF_FILE} ../src/patient_queue
 black ../src/patient_queue
 flake8 --config ${CONF_FILE} ../src/patient_queue
 
-
-docker compose -f docker-compose.yml build
-docker compose -f docker-compose.yml up -d
-sleep 10 # to account for everything ready
-
-docker exec pixl-test-python /bin/bash -c "pytest /patient_queue/patient_queue/tests/tests_producer.py"
-docker exec pixl-test-python /bin/bash -c "pytest /patient_queue/patient_queue/tests/tests_subscriber.py"
+docker compose -f docker-compose.yml up -d --build
+docker exec pixl-test-python /bin/bash -c "pytest /patient_queue/patient_queue/tests/"
 docker compose -f docker-compose.yml down

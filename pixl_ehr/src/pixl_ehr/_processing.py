@@ -20,6 +20,7 @@ import os
 from pathlib import Path
 from typing import Optional
 
+from patient_queue.utils import deserialise
 from pixl_ehr._databases import EMAPStar, PIXLDatabase
 from pixl_ehr._queries import SQLQuery
 from pixl_ehr.utils import env_var
@@ -33,7 +34,7 @@ logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))
 _this_dir = Path(os.path.dirname(__file__))
 
 
-def process_message(message_body: bytes) -> None:
+async def process_message(message_body: bytes) -> None:
     logger.info(f"Processing: {message_body.decode()}")
 
     raw_data = PatientEHRData.from_message(message_body)
@@ -286,18 +287,6 @@ class SetReport(EMAPStep):
 class ProcessingPipeline:
     def __init__(self, *steps: Step):
         self.steps = steps
-
-
-# TODO: move to patient queue package
-def deserialise(message_body: bytes) -> dict:
-    logger.debug(f"De-serialising: {message_body.decode()}")
-
-    parts = message_body.decode().split(",")
-    return {
-        "mrn": parts[0],
-        "accession_number": parts[1],
-        "study_datetime": datetime.strptime(parts[2], "%d/%m/%Y %H:%M:%S"),
-    }
 
 
 def pixl_hash(string: str, endpoint_path: str) -> str:
