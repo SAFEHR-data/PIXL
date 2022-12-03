@@ -15,11 +15,12 @@
 These tests require executing from within the PACS API container with the dependent
 services being up
 """
+from datetime import datetime
 import os
 
+from patient_queue.utils import env_var, serialise
 from pixl_pacs._orthanc import Orthanc, PIXLRawOrthanc
 from pixl_pacs._processing import ImagingStudy, process_message
-from pixl_pacs.utils import env_var
 from pydicom import dcmread
 from pydicom.data import get_testdata_file
 import pytest
@@ -28,9 +29,11 @@ pytest_plugins = ("pytest_asyncio",)
 
 ACCESSION_NUMBER = "abc"
 PATIENT_ID = "a_patient"
-
-# TODO: replace with serialisation function
-message_body = f"{PATIENT_ID},{ACCESSION_NUMBER},01/01/1234 01:23:45".encode("utf-8")
+message_body = serialise(
+    mrn=PATIENT_ID,
+    accession_number=ACCESSION_NUMBER,
+    study_datetime=datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S"),
+)
 
 
 class WritableOrthanc(Orthanc):

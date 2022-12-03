@@ -16,16 +16,15 @@ from dataclasses import dataclass
 from datetime import datetime
 import logging
 import os
-from typing import Awaitable
 
+from patient_queue.utils import deserialise, env_var
 from pixl_pacs._orthanc import Orthanc, PIXLRawOrthanc
-from pixl_pacs.utils import env_var, nothing
 
 logger = logging.getLogger("uvicorn")
 logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))
 
 
-async def process_message(message_body: bytes) -> Awaitable:
+async def process_message(message_body: bytes) -> None:
     logger.info(f"Processing: {message_body.decode()}")
 
     study = ImagingStudy.from_message(message_body)
@@ -33,7 +32,7 @@ async def process_message(message_body: bytes) -> Awaitable:
 
     if study.exists_in(orthanc_raw):
         logger.info("Study exists in cache")
-        return nothing()
+        return
 
     query_id = orthanc_raw.query_remote(
         study.orthanc_query_dict, modality=env_var("VNAQR_MODALITY")
@@ -50,7 +49,7 @@ async def process_message(message_body: bytes) -> Awaitable:
         await sleep(0.1)
         job_state = orthanc_raw.job_state(job_id=job_id)
 
-    return nothing()
+    return
 
 
 @dataclass
@@ -63,8 +62,7 @@ class ImagingStudy:
 
     @classmethod
     def from_message(cls, message_body: bytes) -> "ImagingStudy":
-        data = deserialise(message_body)
-        return ImagingStudy(**data)
+        return ImagingStudy(**deserialise(message_body))
 
     @property
     def orthanc_query_dict(self) -> dict:
@@ -76,15 +74,3 @@ class ImagingStudy:
     def exists_in(self, node: Orthanc) -> bool:
         """Does this study exist in an Orthanc instance/node?"""
         return len(node.query_local(self.orthanc_query_dict)) > 0
-
-
-# TODO: move to patient queue package
-def deserialise(message_body: bytes) -> dict:
-    logger.debug(f"De-serialising: {message_body.decode()}")
-
-    parts = message_body.decode().split(",")
-    return {
-        "mrn": parts[0],
-        "accession_number": parts[1],
-        "study_datetime": datetime.strptime(parts[2], "%d/%m/%Y %H:%M:%S"),
-    }

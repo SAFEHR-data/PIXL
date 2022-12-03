@@ -16,7 +16,7 @@ from json import JSONDecodeError
 import logging
 from typing import Any, Optional
 
-from pixl_pacs.utils import env_var
+from patient_queue.utils import env_var
 import requests
 from requests.auth import HTTPBasicAuth
 
@@ -102,4 +102,4 @@ class PIXLRawOrthanc(Orthanc):
 
     @property
     def aet(self) -> str:
-        return env_var("ORTHANC_RAW_AE_TITLE")
+        return str(env_var("ORTHANC_RAW_AE_TITLE"))

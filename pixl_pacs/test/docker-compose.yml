@@ -36,7 +36,11 @@ services:
       timeout: 30s
       retries: 5
     environment:
-      LOG_LEVEL: "DEBUG"
+      LOG_LEVEL: DEBUG
+      RABBITMQ_PASSWORD: guest
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_HOST: queue
+      RABBITMQ_PORT: 5672
       ORTHANC_RAW_USERNAME: "orthanc"
       ORTHANC_RAW_PASSWORD: "orthanc"
       ORTHANC_RAW_AE_TITLE: "PIXLRAW"
@@ -112,3 +116,6 @@ services:
       interval: 30s
       timeout: 30s
       retries: 3
+    ports:
+      - "5672:5672"
+      - "15672:15672"

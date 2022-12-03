@@ -14,11 +14,10 @@
 import asyncio
 from dataclasses import dataclass
 import logging
-from typing import Callable
 
-import aio_pika
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
+from patient_queue.subscriber import PixlConsumer
 from pixl_pacs._processing import process_message
 from pydantic import BaseModel
 
@@ -46,37 +45,10 @@ class AppState:
 state = AppState()
 
 
-# TODO: replace with queue package
-async def _queue_loop(callback: Callable = process_message) -> None:
-
-    # TODO: replace with RabbitMQ connection username+password+port
-    connection = await aio_pika.connect("amqp://guest:guest@queue:5672/")
-
-    async with connection:
-        channel = await connection.channel()
-        queue = await channel.declare_queue(QUEUE_NAME)
-
-        async with queue.iterator() as queue_iter:
-            async for message in queue_iter:
-
-                try:
-                    if state.token_bucket.has_token:
-                        await callback(message.body)
-                        await message.ack()
-                    else:
-                        await message.reject(requeue=True)
-                except Exception as e:  # noqa
-                    logger.error(
-                        f"Failed to process {message.body.decode()} due to\n{e}\n"
-                        f"Not re-queuing message"
-                    )
-                    await message.reject(requeue=False)
-
-
 @app.on_event("startup")
 async def startup_event() -> None:
-
-    asyncio.create_task(_queue_loop())
+    async with PixlConsumer(QUEUE_NAME, token_bucket=state.token_bucket) as consumer:
+        asyncio.create_task(consumer.run(callback=process_message))
 
 
 @app.get("/heart-beat", summary="Health Check")

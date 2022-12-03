@@ -20,9 +20,9 @@ from azure.storage.blob import BlobServiceClient
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
 from patient_queue.subscriber import PixlConsumer
+from patient_queue.utils import env_var
 from pixl_ehr._databases import PIXLDatabase
 from pixl_ehr._processing import process_message
-from pixl_ehr.utils import env_var
 from pydantic import BaseModel
 
 from token_buffer import TokenBucket
