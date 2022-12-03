@@ -53,7 +53,7 @@ class TestConsumer(TestCase):
             queue_name=TEST_QUEUE, token_bucket=TokenBucket()
         ) as pc:
 
-            def consume(msg: bytes) -> None:
+            async def consume(msg: bytes) -> None:
                 """
                 Increases counter when message is downloaded.
                 :param msg: body of the message, though not needed

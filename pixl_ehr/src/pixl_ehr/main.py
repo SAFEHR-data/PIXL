@@ -50,14 +50,10 @@ class AppState:
 state = AppState()
 
 
-async def _queue_loop() -> None:
-    async with PixlConsumer(QUEUE_NAME, token_bucket=state.token_bucket) as consumer:
-        await consumer.run(callback=process_message)
-
-
 @app.on_event("startup")
 async def startup_event() -> None:
-    asyncio.create_task(_queue_loop())
+    async with PixlConsumer(QUEUE_NAME, token_bucket=state.token_bucket) as consumer:
+        asyncio.create_task(consumer.run(callback=process_message))
 
 
 @app.get("/heart-beat", summary="Health Check")
@@ -80,7 +76,7 @@ async def update_tb_refresh_rate(item: TokenRefreshUpdate) -> str:
             detail=f"Refresh rate mush be a positive integer. Had {item.rate}",
         )
 
-    state.token_bucket = TokenBucket(rate=int(item.rate), capacity=5)
+    state.token_bucket.rate = int(item.rate)
     return "Successfully updated the refresh rate"
 
 

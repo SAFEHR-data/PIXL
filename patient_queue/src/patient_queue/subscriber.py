@@ -11,10 +11,10 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-
+import asyncio
 import logging
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Awaitable, Callable
 
 import aio_pika
 from patient_queue._base import PixlBlockingInterface, PixlQueueInterface
@@ -46,7 +46,7 @@ class PixlConsumer(PixlQueueInterface):
         self._queue = await self._channel.declare_queue(self.queue_name)
         return self
 
-    async def run(self, callback: Callable[[bytes], None]) -> None:
+    async def run(self, callback: Callable[[bytes], Awaitable[None]]) -> None:
         """
         Creates loop that waits for messages from producer and processes them as
         they appear.
@@ -57,7 +57,10 @@ class PixlConsumer(PixlQueueInterface):
             async for message in queue_iter:
                 try:
                     if self.token_bucket.has_token:
-                        callback(message.body)
+                        await asyncio.gather(
+                            callback(message.body),
+                            asyncio.sleep(1e-3),  # Avoid very fast callbacks
+                        )
                         await message.ack()
                     else:
                         await message.reject(requeue=True)

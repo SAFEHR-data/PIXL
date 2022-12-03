@@ -25,6 +25,10 @@ from pixl_ehr._databases import PIXLDatabase, WriteableDatabase
 from pixl_ehr._processing import process_message
 from pixl_ehr.utils import env_var
 from psycopg2.errors import UniqueViolation
+import pytest
+
+pytest_plugins = ("pytest_asyncio",)
+
 
 mrn = "testmrn"
 accession_number = "testaccessionnumber"
@@ -153,10 +157,11 @@ def insert_data_into_emap_star_schema() -> None:
     )
 
 
-def test_message_processing() -> None:
+@pytest.mark.asyncio
+async def test_message_processing() -> None:
 
     insert_data_into_emap_star_schema()
-    process_message(message_body)
+    await process_message(message_body)
 
     pixl_db = QueryablePIXLDB()
     row = pixl_db.execute("select * from emap_data.ehr_raw where mrn = %s", [mrn])

@@ -32,16 +32,22 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 RUN pip install spacy && python -m spacy download en_core_web_lg
 
 RUN mkdir local_deps
-COPY ./token_buffer/src/ local_deps/token_buffer/
-COPY ./pixl_rd/src/ local_deps/pixl_rd/
-COPY ./patient_queue/src/ local_deps/patient_queue/
-RUN for dir in local_deps/*/; do pip install --no-cache-dir -r "${dir}requirements.txt" $dir; done
+COPY ./token_buffer/src/requirements.txt local_deps/r0.txt
+COPY ./pixl_rd/src/requirements.txt local_deps/r1.txt
+COPY ./patient_queue/src/requirements.txt local_deps/r2.txt
+RUN for i in {0..2}; do pip install -r "local_deps/r${i}.txt"; done
 
 COPY ./pixl_ehr/src/requirements.txt .
 # patch is needed for image to work on a M1 mac..
 RUN sed -i '/psycopg2-binary==2.9.5/c\psycopg2==2.9.3' requirements.txt && \
      pip install --no-cache-dir -U pip wheel setuptools \
     && pip install --no-cache-dir -r requirements.txt
+
+# install the pacakges after the dependencies for better caching
+COPY ./token_buffer/src/ local_deps/token_buffer/
+COPY ./pixl_rd/src/ local_deps/pixl_rd/
+COPY ./patient_queue/src/ local_deps/patient_queue/
+RUN for dir in local_deps/*/; do pip install --no-cache-dir $dir; done
 
 COPY ./pixl_ehr/src ./pixl_ehr
 RUN pip install --no-cache-dir ./pixl_ehr
