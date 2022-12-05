@@ -17,6 +17,8 @@ volumes:
   vna-data:
   vna-qr-data:
 
+networks:
+  pixl-net:
 
 services:
 
@@ -35,6 +37,8 @@ services:
       - "8042:8042"
     volumes:
       - ${PWD}/vna_config/:/run/secrets:ro
+    networks:
+      pixl-net:
 
   vna-qr:
     image: osimis/orthanc:22.9.0-full-stable
@@ -51,6 +55,8 @@ services:
       - "8043:8042"
     volumes:
       - ${PWD}/vna_config/:/run/secrets:ro
+    networks:
+      pixl-net:
 
   star:
     container_name: test-fake-star-db
@@ -69,3 +75,5 @@ services:
       retries: 5
     ports:
       - "5432:5432"
+    networks:
+      pixl-net:

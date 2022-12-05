@@ -18,8 +18,10 @@ PACKAGE_DIR="${BIN_DIR%/*}"
 cd "${PACKAGE_DIR}/test"
 
 # Note: this doesn't work as a single command
-docker compose --env-file .env.test up -d --build
-cd .. && docker compose --env-file test/.env.test -p test up -d --build && cd -
+docker compose --env-file .env.test -p test up -d --build --remove-orphans
+cd .. && \
+  docker compose --env-file test/.env.test -p test up -d --build --remove-orphans && \
+  cd -
 
 ./scripts/insert_test_data.sh
 ./scripts/install_pixl_cli.sh
@@ -29,4 +31,5 @@ sleep 10
 ./scripts/check_entry_in_pixl_anon.sh
 ./scripts/check_entry_in_orthanc_anon.sh
 
-docker compose -f docker-compose.yml -f ../docker-compose.yml down
+docker compose -f docker-compose.yml -f ../docker-compose.yml -p test down
+docker volume rm test_postgres-data test_orthanc-raw-data test_orthanc-anon-data

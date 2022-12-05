@@ -12,12 +12,13 @@
 #  limitations under the License.
 set -eux pipefail
 
-curl -f -X POST \
+_result=$(curl -f -X POST \
   -u orthanc_anon_username:orthanc_anon_password \
   http://localhost:7003/tools/find \
   --data '{
             "Level" : "Instance",
-            "Query" : {
-              "PatientID" : "patient_identifier"
-            }
+            "Query" : {}
           }'
+  )
+# Check that result does not contain an empty list
+echo "$_result" | grep --invert-match "\[\]"
