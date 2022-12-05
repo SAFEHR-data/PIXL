@@ -71,7 +71,7 @@ async def update_tb_refresh_rate(item: TokenRefreshUpdate) -> str:
             detail=f"Refresh rate mush be a positive integer. Had {item.rate}",
         )
 
-    state.token_bucket = TokenBucket(rate=int(item.rate), capacity=5)
+    state.token_bucket.rate = int(item.rate)
     return "Successfully updated the refresh rate"
 
 
