@@ -1,3 +1,5 @@
+#!/bin/bash
+#  Copyright (c) University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -11,6 +13,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 set -eux pipefail
+
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 REPO_ROOT_DIR="${SCRIPT_DIR}/../.."
 
