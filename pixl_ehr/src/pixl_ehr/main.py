@@ -30,7 +30,6 @@ from token_buffer import TokenBucket
 from ._version import __version__
 
 QUEUE_NAME = "ehr"
-QUEUE_PORT = 5672
 
 app = FastAPI(
     title="ehr-api",
