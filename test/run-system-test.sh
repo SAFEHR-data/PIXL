@@ -20,7 +20,7 @@ cd "${PACKAGE_DIR}/test"
 # Note: this doesn't work as a single command
 docker compose --env-file .env.test -p test up -d --build --remove-orphans
 cd .. && \
-  docker compose --env-file test/.env.test -p test up -d --build --remove-orphans && \
+  docker compose --env-file test/.env.test -p test up -d --build && \
   cd -
 
 ./scripts/insert_test_data.sh
