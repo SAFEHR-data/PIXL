@@ -1,7 +1,6 @@
 rabbitmq:
   host:
   port:
-  admin_port:
   username:
   password:
 ehr_api:
