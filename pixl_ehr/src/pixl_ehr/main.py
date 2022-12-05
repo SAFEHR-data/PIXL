@@ -14,13 +14,12 @@
 import asyncio
 from dataclasses import dataclass
 import logging
-from typing import Callable
 
-import aio_pika
 from azure.identity import EnvironmentCredential
 from azure.storage.blob import BlobServiceClient
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
+from patient_queue.subscriber import PixlConsumer
 from pixl_ehr._databases import PIXLDatabase
 from pixl_ehr._processing import process_message
 from pixl_ehr.utils import env_var
@@ -50,36 +49,10 @@ class AppState:
 state = AppState()
 
 
-async def _queue_loop(callback: Callable = process_message) -> None:
-
-    # TODO: replace with RabbitMQ connection username+password+port
-    connection = await aio_pika.connect("amqp://guest:guest@queue:5672/")
-
-    async with connection:
-        channel = await connection.channel()
-        queue = await channel.declare_queue(QUEUE_NAME)
-
-        async with queue.iterator() as queue_iter:
-            async for message in queue_iter:
-
-                try:
-                    if state.token_bucket.has_token:
-                        callback(message.body)
-                        await message.ack()
-                    else:
-                        await message.reject(requeue=True)
-                except Exception as e:  # noqa
-                    logger.error(
-                        f"Failed to process {message.body.decode()} due to\n{e}\n"
-                        f"Not re-queuing message"
-                    )
-                    await message.reject(requeue=False)
-
-
 @app.on_event("startup")
 async def startup_event() -> None:
-
-    asyncio.create_task(_queue_loop())
+    async with PixlConsumer(QUEUE_NAME, token_bucket=state.token_bucket) as consumer:
+        asyncio.create_task(consumer.run(callback=process_message))
 
 
 @app.get("/heart-beat", summary="Health Check")
@@ -102,7 +75,7 @@ async def update_tb_refresh_rate(item: TokenRefreshUpdate) -> str:
             detail=f"Refresh rate mush be a positive integer. Had {item.rate}",
         )
 
-    state.token_bucket = TokenBucket(rate=int(item.rate), capacity=5)
+    state.token_bucket.rate = int(item.rate)
     return "Successfully updated the refresh rate"
 
 

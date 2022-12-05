@@ -60,3 +60,14 @@ class TokenBucket(tb.Limiter):
     def rate(self) -> int:
         """Rate in items per second"""
         return 0 if self._zero_rate else int(self._rate)
+
+    @rate.setter
+    def rate(self, value: int) -> None:
+        if not isinstance(value, int):
+            raise ValueError("Cannot set the rate with a non integer value")
+
+        if value == 0:
+            self._zero_rate = True
+        else:
+            self._zero_rate = False
+            self._rate = value

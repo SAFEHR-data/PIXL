@@ -20,14 +20,19 @@ services being up
 from datetime import datetime
 from typing import List
 
+from patient_queue.utils import serialise
 from pixl_ehr._databases import PIXLDatabase, WriteableDatabase
 from pixl_ehr._processing import process_message
 from pixl_ehr.utils import env_var
 from psycopg2.errors import UniqueViolation
+import pytest
+
+pytest_plugins = ("pytest_asyncio",)
+
 
 mrn = "testmrn"
 accession_number = "testaccessionnumber"
-study_datetime = "01/01/1234 01:23:45"
+study_datetime_str = "01/01/1234 01:23:45"
 observation_datetime = datetime.fromisoformat(
     "1234-01-01"
 )  # within hours of imaging study
@@ -47,8 +52,11 @@ hv_id = 1111111
 weight_vot_id, height_vot_id, gcs_vot_id = 2222222, 3333333, 4444444
 ls_id, lo_id, lr_id, ltd_id = 5555555, 6666666, 7777777, 8888888
 
-# TODO: replace with serialisation function
-message_body = f"{mrn},{accession_number},{study_datetime}".encode("utf-8")
+message_body = serialise(
+    mrn=mrn,
+    accession_number=accession_number,
+    study_datetime=datetime.strptime(study_datetime_str, "%d/%m/%Y %H:%M:%S"),
+)
 
 
 class WritableEMAPStar(WriteableDatabase):
@@ -149,10 +157,11 @@ def insert_data_into_emap_star_schema() -> None:
     )
 
 
-def test_message_processing() -> None:
+@pytest.mark.asyncio
+async def test_message_processing() -> None:
 
     insert_data_into_emap_star_schema()
-    process_message(message_body)
+    await process_message(message_body)
 
     pixl_db = QueryablePIXLDB()
     row = pixl_db.execute("select * from emap_data.ehr_raw where mrn = %s", [mrn])

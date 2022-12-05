@@ -1,4 +1,4 @@
-#  Copyright (c) University College London Hospitals NHS Foundation Trust
+#  Copyright (c) 2022 University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -11,14 +11,6 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-rabbitmq:
-  host: localhost
-  port: 5672
-  username: guest
-  password: guest
-ehr_api:
-  host: localhost
-  port: 9000
-  default_rate: 5  # ~queries per second
-pacs_api:
-  default_rate: 5  # queries per second
+
+__version_info__ = ("0", "0", "1")
+__version__ = ".".join(__version_info__)

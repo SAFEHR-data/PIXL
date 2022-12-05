@@ -34,6 +34,12 @@ x-pixl-common-env: &pixl-common-env
   ENV: ${ENV}
   DEBUG: ${DEBUG}
 
+x-pixl-rabbit-mq: &pixl-rabbit-mq
+  RABBITMQ_HOST: "queue"   # Name of the queue service
+  RABBITMQ_PORT: "5672"
+  RABBITMQ_USERNAME: ${RABBITMQ_USERNAME}
+  RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+
 x-emap-db: &emap-db
   EMAP_UDS_HOST: ${EMAP_UDS_HOST}
   EMAP_UDS_PORT: ${EMAP_UDS_PORT}
@@ -185,11 +191,17 @@ services:
 
   queue:
     image: rabbitmq:3.11.2-management
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
     healthcheck:
       test: rabbitmq-diagnostics -q ping
       interval: 30s
       timeout: 30s
       retries: 3
+    ports:
+      - "${RABBITMQ_PORT}:5672"
+      - "${RABBITMQ_ADMIN_PORT}:15672"
     networks:
       - pixl-net
 
@@ -202,12 +214,12 @@ services:
       <<: *emap-db
       <<: *proxy-common
       <<: *pixl-common-env
+      <<: *pixl-rabbit-mq
       AZURE_CLIENT_ID: ${PIXL_EHR_API_AZ_CLIENT_ID}
       AZURE_CLIENT_SECRET: ${PIXL_EHR_API_AZ_CLIENT_SECRET}
       AZURE_TENANT_ID: ${PIXL_EHR_API_AZ_TENANT_ID}
       AZ_STORAGE_ACCOUNT_NAME: ${PIXL_EHR_API_AZ_STORAGE_ACCOUNT_NAME}
       AZ_STORAGE_CONTAINER_NAME: ${PIXL_EHR_API_AZ_STORAGE_CONTAINER_NAME}
-      # TODO: rabbitMQ params
     env_file:
       - ./docker/common.env
     depends_on:

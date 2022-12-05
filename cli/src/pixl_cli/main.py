@@ -11,6 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+from datetime import datetime
 import json
 import os
 from pathlib import Path
@@ -19,7 +20,9 @@ from typing import Any, List, Optional
 import pandas as pd
 
 import click
-import pika
+from patient_queue.producer import PixlProducer
+from patient_queue.subscriber import PixlBlockingConsumer
+from patient_queue.utils import serialise
 from pixl_cli._logging import logger, set_log_level
 from pixl_cli._utils import clear_file, remove_file_if_it_exists, string_is_non_empty
 import requests
@@ -69,21 +72,19 @@ def populate(csv_filename: str, queues: str, restart: bool) -> None:
     """Populate a (set of) queue(s) from a csv file"""
     logger.info(f"Populating queue(s) {queues} from {csv_filename}")
 
-    all_messages = messages_from_csv(Path(csv_filename))
-
     for queue in queues.split(","):
+        with PixlProducer(queue_name=queue, **config["rabbitmq"]) as producer:
 
-        cached_state_filepath = state_filepath_for_queue(queue)
-        if cached_state_filepath.exists() and restart:
-            logger.info(f"Extracting messages from state: {cached_state_filepath}")
-            inform_user_that_queue_will_be_populated_from(cached_state_filepath)
-            messages = Messages.from_state_file(cached_state_filepath)
-        else:
-            messages = all_messages
+            state_filepath = state_filepath_for_queue(queue)
+            if state_filepath.exists() and restart:
+                logger.info(f"Extracting messages from state: {state_filepath}")
+                inform_user_that_queue_will_be_populated_from(state_filepath)
+                messages = Messages.from_state_file(state_filepath)
+            else:
+                messages = messages_from_csv(Path(csv_filename))
 
-        remove_file_if_it_exists(cached_state_filepath)  # will be stale
-        logger.info(f"Sending {len(messages)} messages")
-        messages.send(queue)
+            remove_file_if_it_exists(state_filepath)  # will be stale
+            producer.publish(messages)
 
 
 @cli.command()
@@ -178,7 +179,7 @@ def stop(queues: str) -> None:
 
     for queue in queues.split(","):
         logger.info(f"Consuming messages on {queue}")
-        consume_all_messages_and_save_csv_file(queue)
+        consume_all_messages_and_save_csv_file(queue_name=queue)
 
 
 @cli.command()
@@ -227,17 +228,6 @@ def _get_extract_rate(queue_name: str) -> str:
         return "unknown"
 
 
-# TODO: Replace by PIXL queue package
-def create_connection() -> pika.BlockingConnection:
-
-    params = pika.ConnectionParameters(
-        host=config["rabbitmq"]["host"],
-        port=config["rabbitmq"]["port"],
-        # credentials=
-    )
-    return pika.BlockingConnection(params)
-
-
 def consume_all_messages_and_save_csv_file(
     queue_name: str, timeout_in_seconds: int = 5
 ) -> None:
@@ -246,37 +236,13 @@ def consume_all_messages_and_save_csv_file(
         f"{timeout_in_seconds} seconds"
     )
 
-    # TODO: Replace by PIXL queue package
-    connection = create_connection()
-    channel = connection.channel()
-    queue = channel.queue_declare(queue=queue_name)
+    with PixlBlockingConsumer(queue_name=queue_name) as blocking_consumer:
+        state_filepath = state_filepath_for_queue(queue_name)
+        if blocking_consumer.message_count > 0:
+            logger.info("Found messages in the queue. Clearing the state file")
+            clear_file(state_filepath)
 
-    if queue.method.message_count > 0:
-        logger.info("Found messages in the queue. Clearing the state file")
-        clear_file(state_filepath_for_queue(queue_name))
-
-    def callback(method: Any, properties: Any, body: Any) -> None:
-
-        try:
-            with open(state_filepath_for_queue(queue_name), "a") as csv_file:
-                print(body.decode(), file=csv_file)
-        except:  # noqa
-            logger.debug("Failed to consume")
-
-    generator = channel.consume(
-        queue=queue_name,
-        auto_ack=True,
-        inactivity_timeout=timeout_in_seconds,  # Yields (None, None, None) after this
-    )
-
-    for args in generator:
-        if all(arg is None for arg in args):
-            logger.info("Stopping")
-            break
-
-        callback(*args)
-
-    connection.close()
+        blocking_consumer.consume_all(state_filepath)
 
 
 def state_filepath_for_queue(queue_name: str) -> Path:
@@ -291,31 +257,17 @@ class Messages(list):
 
         return cls(
             [
-                line
+                line.encode("utf-8")
                 for line in open(filepath, "r").readlines()
                 if string_is_non_empty(line)
             ]
         )
 
-    # TODO: replace by queuing package
-    def send(self, queue_name: str) -> None:
-        logger.info(f"Sending {len(self)} messages to queue {queue_name}")
-
-        connection = create_connection()
-        channel = connection.channel()
-        channel.queue_declare(queue=queue_name)
-
-        for message in self:
-            channel.basic_publish(
-                exchange="", routing_key=queue_name, body=message.encode("utf-8")
-            )
-
-        connection.close()
-        logger.info(f"Sent {len(self)} messages")
-
 
 def messages_from_csv(filepath: Path) -> Messages:
-
+    """Reads patient information from CSV and transforms that into messages.
+    :param filepath: Path for CSV file to be read
+    """
     expected_col_names = [
         "VAL_ID",
         "ACCESSION_NUMBER",
@@ -336,12 +288,14 @@ def messages_from_csv(filepath: Path) -> Messages:
             f"column names"
         )
 
-    mrn_col_name, acc_num_col_name, _, datetime_col_name = expected_col_names
+    mrn_col_name, acc_num_col_name, _, dt_col_name = expected_col_names
     for _, row in df.iterrows():
         messages.append(
-            f"{row[mrn_col_name]},"
-            f"{row[acc_num_col_name]},"
-            f"{row[datetime_col_name]}"
+            serialise(
+                mrn=row[mrn_col_name],
+                accession_number=row[acc_num_col_name],
+                study_datetime=datetime.strptime(row[dt_col_name], "%d/%m/%Y %H:%M:%S"),
+            )
         )
 
     if len(messages) == 0:
@@ -351,11 +305,9 @@ def messages_from_csv(filepath: Path) -> Messages:
     return messages
 
 
-def queue_is_up() -> bool:
-    connection = create_connection()
-    connection_created_successfully = bool(connection.is_open)
-    connection.close()
-    return connection_created_successfully
+def queue_is_up() -> Any:
+    with PixlProducer(queue_name="") as producer:
+        return producer.connection_open
 
 
 def inform_user_that_queue_will_be_populated_from(path: Path) -> None:

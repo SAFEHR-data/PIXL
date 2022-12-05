@@ -11,14 +11,13 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-rabbitmq:
-  host: localhost
-  port: 5672
-  username: guest
-  password: guest
-ehr_api:
-  host: localhost
-  port: 9000
-  default_rate: 5  # ~queries per second
-pacs_api:
-  default_rate: 5  # queries per second
+FROM python:3.10.6-slim-bullseye
+SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
+
+# source code
+COPY ./patient_queue/src ./patient_queue
+COPY ./token_buffer/src ./token_buffer
+RUN pip install -r ./patient_queue/requirements.txt
+RUN pip install -r ./token_buffer/requirements.txt
+RUN pip install --no-cache-dir ./token_buffer && \
+    pip install --no-cache-dir ./patient_queue

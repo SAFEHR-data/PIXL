@@ -8,7 +8,7 @@ PIXL is intended run on one of the [GAE](https://github.com/UCLH-DIF/Book-of-Flo
 several services orchestrated by [Docker Compose](https://docs.docker.com/compose/).
 
 ## Services
-### PIXL CLI
+### [PIXL CLI](./cli/README.md)
 Primary interface to the PIXL system.
 ### [Hasher API](./hasher/README.md)
 HTTP API to securely hash an identifier using a key stored in Azure Key Vault.
@@ -17,7 +17,7 @@ A DICOM node which receives images from the upstream hospital systems and acts a
 ### [Orthanc Anon](./orthanc/orthanc-anon/README.md)
 A DICOM node which wraps our de-identifcation and cloud transfer components.
 ### PostgreSQL
-RDBMS which stores DICOM metadata and application data.
+RDBMS which stores DICOM metadata, application data and anonymised patient record data.
 ### [Electronic Health Record Extractor](./pixl_ehr/README.md)
 HTTP API to process messages from the `ehr` queue and populate raw and anon tables in the PIXL postgres instance. 
 
