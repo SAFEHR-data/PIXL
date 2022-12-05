@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-#  Copyright (c) University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -13,22 +11,11 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 set -eux pipefail
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+REPO_ROOT_DIR="${SCRIPT_DIR}/../.."
 
-THIS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-PACKAGE_DIR="${THIS_DIR%/*}"
-cd "$PACKAGE_DIR" || exit
-
-pip install -r src/requirements.txt
-
-CONF_FILE=../setup.cfg
-mypy --config-file ${CONF_FILE} src/pixl_cli
-isort --settings-path ${CONF_FILE} src/pixl_cli
-black src/pixl_cli
-flake8 --config ${CONF_FILE} src/pixl_cli
-
-cd test/
-
-docker compose up -d
-./wait-until-service-healthy.sh queue
-pytest ../src/pixl_cli
-docker compose down
+for dir in "token_buffer" "patient_queue" "cli"
+do
+  src_path="${REPO_ROOT_DIR}/${dir}/src"
+  pip install -r "${src_path}/requirements.txt" "$src_path"
+done

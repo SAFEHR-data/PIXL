@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-#  Copyright (c) University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -14,21 +12,12 @@
 #  limitations under the License.
 set -eux pipefail
 
-THIS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-PACKAGE_DIR="${THIS_DIR%/*}"
-cd "$PACKAGE_DIR" || exit
-
-pip install -r src/requirements.txt
-
-CONF_FILE=../setup.cfg
-mypy --config-file ${CONF_FILE} src/pixl_cli
-isort --settings-path ${CONF_FILE} src/pixl_cli
-black src/pixl_cli
-flake8 --config ${CONF_FILE} src/pixl_cli
-
-cd test/
-
-docker compose up -d
-./wait-until-service-healthy.sh queue
-pytest ../src/pixl_cli
-docker compose down
+curl -f -X POST \
+  -u orthanc_anon_username:orthanc_anon_password \
+  http://localhost:7003/tools/find \
+  --data '{
+            "Level" : "Instance",
+            "Query" : {
+              "PatientID" : "patient_identifier"
+            }
+          }'

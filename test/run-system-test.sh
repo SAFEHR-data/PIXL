@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #  Copyright (c) University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,22 +13,20 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 set -eux pipefail
+BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+PACKAGE_DIR="${BIN_DIR%/*}"
+cd "${PACKAGE_DIR}/test"
 
-THIS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-PACKAGE_DIR="${THIS_DIR%/*}"
-cd "$PACKAGE_DIR" || exit
+# Note: this doesn't work as a single command
+docker compose --env-file .env.test up -d --build
+cd .. && docker compose --env-file test/.env.test -p test up -d --build && cd -
 
-pip install -r src/requirements.txt
+./scripts/insert_test_data.sh
+./scripts/install_pixl_cli.sh
+pixl populate data/test.csv
+pixl start
+sleep 10
+./scripts/check_entry_in_pixl_anon.sh
+./scripts/check_entry_in_orthanc_anon.sh
 
-CONF_FILE=../setup.cfg
-mypy --config-file ${CONF_FILE} src/pixl_cli
-isort --settings-path ${CONF_FILE} src/pixl_cli
-black src/pixl_cli
-flake8 --config ${CONF_FILE} src/pixl_cli
-
-cd test/
-
-docker compose up -d
-./wait-until-service-healthy.sh queue
-pytest ../src/pixl_cli
-docker compose down
+docker compose -f docker-compose.yml -f ../docker-compose.yml down

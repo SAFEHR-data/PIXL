@@ -12,23 +12,6 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-set -eux pipefail
-
-THIS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-PACKAGE_DIR="${THIS_DIR%/*}"
-cd "$PACKAGE_DIR" || exit
-
-pip install -r src/requirements.txt
-
-CONF_FILE=../setup.cfg
-mypy --config-file ${CONF_FILE} src/pixl_cli
-isort --settings-path ${CONF_FILE} src/pixl_cli
-black src/pixl_cli
-flake8 --config ${CONF_FILE} src/pixl_cli
-
-cd test/
-
-docker compose up -d
-./wait-until-service-healthy.sh queue
-pytest ../src/pixl_cli
-docker compose down
+while ! docker ps | grep "$1" | grep -q healthy ;do
+    sleep 5
+done

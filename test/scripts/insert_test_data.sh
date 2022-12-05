@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #  Copyright (c) University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,21 +14,14 @@
 #  limitations under the License.
 set -eux pipefail
 
-THIS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-PACKAGE_DIR="${THIS_DIR%/*}"
-cd "$PACKAGE_DIR" || exit
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-pip install -r src/requirements.txt
+_sql_command="
+insert into star.mrn(mrn_id, mrn, research_opt_out) values (1234, 'patient_identifier', false);
+insert into star.core_demographic(mrn_id, sex) values (1234, 'F');
+"
+docker exec -it test-fake-star-db /bin/bash -c "psql -U postgres -c \"$_sql_command\"" || true
 
-CONF_FILE=../setup.cfg
-mypy --config-file ${CONF_FILE} src/pixl_cli
-isort --settings-path ${CONF_FILE} src/pixl_cli
-black src/pixl_cli
-flake8 --config ${CONF_FILE} src/pixl_cli
-
-cd test/
-
-docker compose up -d
-./wait-until-service-healthy.sh queue
-pytest ../src/pixl_cli
-docker compose down
+# Uses an accession number of "123456789"
+curl -X POST -u orthanc:orthanc http://localhost:8043/instances \
+  --data-binary @"$SCRIPT_DIR/../data/test.dcm"
