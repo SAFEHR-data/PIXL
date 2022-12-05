@@ -61,7 +61,7 @@ async def _queue_loop(callback: Callable = process_message) -> None:
 
                 try:
                     if state.token_bucket.has_token:
-                        callback(message.body)
+                        await callback(message.body)
                         await message.ack()
                     else:
                         await message.reject(requeue=True)

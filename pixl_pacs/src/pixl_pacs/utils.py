@@ -11,7 +11,9 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+import asyncio
 import os
+from typing import Awaitable
 
 
 def env_var(key: str) -> str:
@@ -22,3 +24,7 @@ def env_var(key: str) -> str:
             f"Failed to find ${key}. Ensure it is set as " f"an environment variable"
         )
     return value
+
+
+async def nothing() -> Awaitable:
+    return asyncio.sleep(0)

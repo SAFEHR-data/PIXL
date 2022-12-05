@@ -57,12 +57,16 @@ class Orthanc(ABC):
         else:
             return None
 
-    def retrieve_from_remote(self, query_id: str) -> Any:
+    def retrieve_from_remote(self, query_id: str) -> str:
         response = self._post(
             f"/queries/{query_id}/retrieve",
-            data={"TargetAet": self.aet, "Synchronous": True},  # TODO: async
+            data={"TargetAet": self.aet, "Synchronous": False},
         )
-        return response
+        return str(response["ID"])
+
+    def job_state(self, job_id: str) -> str:
+        # See: https://book.orthanc-server.com/users/advanced-rest.html#jobs-monitoring
+        return str(self._get(f"/jobs/{job_id}")["State"])
 
     def _get(self, path: str) -> Any:
         return _deserialise(requests.get(f"{self._url}{path}", auth=self._auth))
@@ -83,7 +87,7 @@ def _deserialise(response: requests.Response) -> Any:
             f"Content: {response.content.decode()}"
         )
     try:
-        return dict(response.json())
+        return response.json()
     except (JSONDecodeError, ValueError):
         raise requests.HTTPError(f"Failed to parse {response} as json")
 
@@ -98,4 +102,4 @@ class PIXLRawOrthanc(Orthanc):
 
     @property
     def aet(self) -> str:
-        return env_var("RAW_AE_TITLE")
+        return env_var("ORTHANC_RAW_AE_TITLE")

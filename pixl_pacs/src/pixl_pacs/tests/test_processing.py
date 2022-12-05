@@ -22,6 +22,9 @@ from pixl_pacs._processing import ImagingStudy, process_message
 from pixl_pacs.utils import env_var
 from pydicom import dcmread
 from pydicom.data import get_testdata_file
+import pytest
+
+pytest_plugins = ("pytest_asyncio",)
 
 ACCESSION_NUMBER = "abc"
 PATIENT_ID = "a_patient"
@@ -57,15 +60,17 @@ def add_image_to_vna(image_filename: str = "test.dcm") -> None:
     vna.upload(image_filename)
 
 
-def test_image_processing() -> None:
+@pytest.mark.asyncio
+async def test_image_processing() -> None:
 
     add_image_to_vna()
     study = ImagingStudy.from_message(message_body)
     orthanc_raw = PIXLRawOrthanc()
 
     assert not study.exists_in(orthanc_raw)
-    process_message(message_body=message_body)
+    await process_message(message_body=message_body)
     assert study.exists_in(orthanc_raw)
 
     # TODO: check time last updated after processing again is not incremented
-    # process_message(message_body=message_body)
+    await process_message(message_body=message_body)
+    assert study.exists_in(orthanc_raw)

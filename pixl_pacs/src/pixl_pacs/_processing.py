@@ -11,19 +11,21 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+from asyncio import sleep
 from dataclasses import dataclass
 from datetime import datetime
 import logging
 import os
+from typing import Awaitable
 
 from pixl_pacs._orthanc import Orthanc, PIXLRawOrthanc
-from pixl_pacs.utils import env_var
+from pixl_pacs.utils import env_var, nothing
 
 logger = logging.getLogger("uvicorn")
 logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))
 
 
-def process_message(message_body: bytes) -> None:
+async def process_message(message_body: bytes) -> Awaitable:
     logger.info(f"Processing: {message_body.decode()}")
 
     study = ImagingStudy.from_message(message_body)
@@ -31,7 +33,7 @@ def process_message(message_body: bytes) -> None:
 
     if study.exists_in(orthanc_raw):
         logger.info("Study exists in cache")
-        return
+        return nothing()
 
     query_id = orthanc_raw.query_remote(
         study.orthanc_query_dict, modality=env_var("VNAQR_MODALITY")
@@ -40,9 +42,15 @@ def process_message(message_body: bytes) -> None:
         logger.error(f"Failed to find {study} in the VNA")
         raise RuntimeError
 
-    orthanc_raw.retrieve_from_remote(query_id=query_id)  # C-Move
+    job_id = orthanc_raw.retrieve_from_remote(query_id=query_id)  # C-Move
+    job_state = "Pending"
 
-    # poll for completion
+    # TODO: a timeout?
+    while job_state != "Success":
+        await sleep(0.1)
+        job_state = orthanc_raw.job_state(job_id=job_id)
+
+    return nothing()
 
 
 @dataclass

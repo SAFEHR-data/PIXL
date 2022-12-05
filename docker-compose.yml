@@ -239,6 +239,30 @@ services:
     networks:
       - pixl-net
 
+  pacs-api:
+    container_name: pixl-test-pacs-api
+    build:
+      context: .
+      dockerfile: ./docker/pacs-api/Dockerfile
+    depends_on:
+      queue:
+        condition: service_healthy
+      orthanc-raw:
+        condition: service_healthy
+    healthcheck:
+      interval: 10s
+      timeout: 30s
+      retries: 5
+    networks:
+      - pixl-net
+    environment:
+      ORTHANC_USERNAME: ${ORTHANC_RAW_USERNAME}
+      ORTHANC_PASSWORD: ${ORTHANC_RAW_PASSWORD}
+      ORTHANC_RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
+      VNAQR_MODALITY: "UCVNAQR"
+    ports:
+      - "${PIXL_PACS_API_PORT}:8000"
+
   ################################################################################
   # Data Stores
   postgres:
