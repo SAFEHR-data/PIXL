@@ -89,7 +89,7 @@ services:
     container_name: test-fake-star-db
     build:
       context: .
-      dockerfile: Dockerfile.fake_emap_star
+      dockerfile: ../../test/Dockerfile.fake_emap_star
       args:
         N_TABLE_ROWS: 2
     healthcheck:
