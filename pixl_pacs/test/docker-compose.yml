@@ -36,7 +36,12 @@ services:
       timeout: 30s
       retries: 5
     environment:
-      LOG_LEVEL: DEBUG
+      LOG_LEVEL: "DEBUG"
+      ORTHANC_RAW_USERNAME: "orthanc"
+      ORTHANC_RAW_PASSWORD: "orthanc"
+      ORTHANC_RAW_AE_TITLE: "raw"
+      ORTHANC_VNA_USERNAME: "orthanc"
+      ORTHANC_VNA_PASSWORD: "orthanc"
     ports:
       - "9001:8000"
 

@@ -35,9 +35,7 @@ cd "$PACKAGE_DIR" || exit
 pip install -r src/requirements.txt
 
 CONF_FILE=../setup.cfg
-mypy --config-file ${CONF_FILE} src/pixl_ehr
-isort --settings-path ${CONF_FILE} src/pixl_ehr
-black src/pixl_ehr
-flake8 --config ${CONF_FILE} src/pixl_ehr
-
-ENV="test" pytest src/pixl_pacs/tests/test_app.py
+mypy --config-file ${CONF_FILE} src/pixl_pacs
+isort --settings-path ${CONF_FILE} src/pixl_pacs
+black src/pixl_pacs
+flake8 --config ${CONF_FILE} src/pixl_pacs

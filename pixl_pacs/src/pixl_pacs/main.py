@@ -19,8 +19,9 @@ from typing import Callable
 import aio_pika
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
 from pixl_pacs._processing import process_message
+from pydantic import BaseModel
+
 from token_buffer import TokenBucket
 
 from ._version import __version__

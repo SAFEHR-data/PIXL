@@ -11,9 +11,13 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+from dataclasses import dataclass
+from datetime import datetime
 import logging
 import os
 
+from pixl_pacs._orthanc import Orthanc
+from pixl_pacs.utils import env_var
 
 logger = logging.getLogger("uvicorn")
 logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))
@@ -21,6 +25,46 @@ logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))
 
 def process_message(message_body: bytes) -> None:
     logger.info(f"Processing: {message_body.decode()}")
+
+    study = ImagingStudy.from_message(message_body)
+    orthanc_raw = Orthanc(
+        url="http://orthanc-raw:8042",
+        username=env_var("ORTHANC_RAW_USERNAME"),
+        password=env_var("ORTHANC_RAW_PASSWORD"),
+    )
+
+    if study.exists_in(orthanc_raw):
+        return  # Nothing to do – study exists already
+
     raise NotImplementedError
 
 
+@dataclass
+class ImagingStudy:
+    """Dataclass for EHR unique to a patient and xray study"""
+
+    mrn: str
+    accession_number: str
+    acquisition_datetime: datetime
+
+    @classmethod
+    def from_message(cls, message_body: bytes) -> "ImagingStudy":
+        data = deserialise(message_body)
+        return ImagingStudy(**data)
+
+    def exists_in(self, node: Orthanc) -> bool:
+        """Does this study exist in an Orthanc instance/node?"""
+
+        return False
+
+
+# TODO: move to patient queue package
+def deserialise(message_body: bytes) -> dict:
+    logger.debug(f"De-serialising: {message_body.decode()}")
+
+    parts = message_body.decode().split(",")
+    return {
+        "mrn": parts[0],
+        "accession_number": parts[1],
+        "study_datetime": datetime.strptime(parts[2], "%d/%m/%Y %H:%M:%S"),
+    }
