@@ -27,7 +27,7 @@ cd .. && \
 ./scripts/install_pixl_cli.sh
 pixl populate data/test.csv
 pixl start
-sleep 10
+sleep 65  # need to wait until the DICOM image is "stable" = 60s
 ./scripts/check_entry_in_pixl_anon.sh
 ./scripts/check_entry_in_orthanc_anon.sh
 
