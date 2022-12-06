@@ -259,6 +259,7 @@ services:
       - pixl-net
     environment:
       <<: *pixl-rabbit-mq
+      <<: *proxy-common
       ORTHANC_RAW_USERNAME: ${ORTHANC_RAW_USERNAME}
       ORTHANC_RAW_PASSWORD: ${ORTHANC_RAW_PASSWORD}
       ORTHANC_RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
