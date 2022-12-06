@@ -20,10 +20,9 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from patient_queue.utils import deserialise
+from patient_queue.utils import deserialise, env_var
 from pixl_ehr._databases import EMAPStar, PIXLDatabase
 from pixl_ehr._queries import SQLQuery
-from pixl_ehr.utils import env_var
 import requests
 
 from pixl_rd import deidentify_text

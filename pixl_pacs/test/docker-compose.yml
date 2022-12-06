@@ -1,0 +1,122 @@
+#  Copyright (c) University College London Hospitals NHS Foundation Trust
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+version: "3.8"
+
+volumes:
+  orthanc-raw-data:
+  vna-data:
+  vna-qr-data:
+
+
+services:
+
+  pacs-api:
+    container_name: pixl-test-pacs-api
+    build:
+      context: ../../
+      dockerfile: ./docker/pacs-api/Dockerfile
+    depends_on:
+      queue:
+        condition: service_healthy
+      orthanc-raw:
+        condition: service_started
+    healthcheck:
+      interval: 10s
+      timeout: 30s
+      retries: 5
+    environment:
+      LOG_LEVEL: DEBUG
+      RABBITMQ_PASSWORD: guest
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_HOST: queue
+      RABBITMQ_PORT: 5672
+      ORTHANC_RAW_USERNAME: "orthanc"
+      ORTHANC_RAW_PASSWORD: "orthanc"
+      ORTHANC_RAW_AE_TITLE: "PIXLRAW"
+      ORTHANC_VNA_USERNAME: "orthanc"
+      ORTHANC_VNA_PASSWORD: "orthanc"
+      ORTHANC_VNA_AE_TITLE: "VNAQR"
+      VNAQR_MODALITY: "UCVNAQR"
+      PIXL_DICOM_TRANSFER_TIMEOUT: 30
+    ports:
+      - "9001:8000"
+
+  vna:
+    image: osimis/orthanc:22.9.0-full-stable
+    environment:
+      ORTHANC_NAME: "VNA"
+      ORTHANC_USERNAME: "orthanc"
+      ORTHANC_PASSWORD: "orthanc"
+      ORTHANC_AE_TITLE: "VNA"
+      RAW_AE_TITLE: "PIXLRAW"
+      RAW_DICOM_PORT: "4242"
+      RAW_IP_ADDR: "orthanc-raw"  # aka. hostname
+    ports:
+      - "4242:4242"
+      - "8042:8042"
+    volumes:
+      - ${PWD}/vna_config/:/run/secrets:ro
+
+  vna-qr:
+    image: osimis/orthanc:22.9.0-full-stable
+    environment:
+      ORTHANC_NAME: "VNAQR"
+      ORTHANC_USERNAME: "orthanc"
+      ORTHANC_PASSWORD: "orthanc"
+      ORTHANC_AE_TITLE: "VNAQR"
+      RAW_AE_TITLE: "PIXLRAW"
+      RAW_DICOM_PORT: "4242"
+      RAW_IP_ADDR: "orthanc-raw"  # aka. hostname
+    ports:
+      - "4243:4242"
+      - "8043:8042"
+    volumes:
+      - ${PWD}/vna_config/:/run/secrets:ro
+
+  orthanc-raw:
+    build:
+      context: ../../
+      dockerfile: ./docker/orthanc-raw/Dockerfile
+    environment:
+      ORTHANC_NAME: "PIXL: Raw"
+      ORTHANC_USERNAME: "orthanc"
+      ORTHANC_PASSWORD: "orthanc"
+      ORTHANC_AE_TITLE: "PIXLRAW"
+      VNA_AE_TITLE : "VNA"
+      VNA_DICOM_PORT: "4242"
+      VNA_IP_ADDR: "vna"  # aka. hostname
+      VNAQR_AE_TITLE : "VNAQR"
+      VNAQR_DICOM_PORT: "4242"
+      VNAQR_IP_ADDR: "vna-qr"
+      ORTHANC_ANON_AE_TITLE: "unused"
+      ORTHANC_ANON_DICOM_PORT: "4242"
+      ORTHANC_ANON_HOSTNAME: "orthanc-anon"
+      ENV: "test"
+    ports:
+      - "4244:4242"
+      - "8044:8042"
+    volumes:
+      - ${PWD}/orthanc_raw_config/:/run/secrets:ro
+
+  queue:
+    container_name: pixl-test-queue
+    image: rabbitmq:3.11.2-management
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    ports:
+      - "5672:5672"
+      - "15672:15672"

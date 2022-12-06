@@ -20,10 +20,9 @@ services being up
 from datetime import datetime
 from typing import List
 
-from patient_queue.utils import serialise
+from patient_queue.utils import env_var, serialise
 from pixl_ehr._databases import PIXLDatabase, WriteableDatabase
 from pixl_ehr._processing import process_message
-from pixl_ehr.utils import env_var
 from psycopg2.errors import UniqueViolation
 import pytest
 

@@ -1,0 +1,25 @@
+{
+  "DicomAet" : "${ORTHANC_AE_TITLE}",
+  "DicomAlwaysAllowEcho" : true,
+  "DicomCheckModalityHost" : true,
+  "DicomModalities" : {
+    "UCVNA" : {
+      "AET" : "${VNA_AE_TITLE}",
+      "Port" : "${VNA_DICOM_PORT}",
+      "Host" : "${VNA_IP_ADDR}",
+      "Manufacturer" : "Generic"
+    },
+    "UCVNAQR" : {
+      "AET" : "${VNAQR_AE_TITLE}",
+      "Port" : "${VNAQR_DICOM_PORT}",
+      "Host" : "${VNAQR_IP_ADDR}",
+      "Manufacturer" : "Generic"
+    },
+    "PIXLR" : {
+      "AET" : "${ORTHANC_AE_TITLE}",
+      "Port" : "4242",
+      "Host" : "127.0.0.1",
+      "Manufacturer" : "Generic"
+    }
+  }
+}

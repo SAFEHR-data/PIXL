@@ -1,4 +1,5 @@
-#  Copyright (c) 2022 University College London Hospitals NHS Foundation Trust
+#!/usr/bin/env bash
+#  Copyright (c) University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -11,6 +12,10 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+set -euxo pipefail
 
-__version_info__ = ("0", "0", "2")
-__version__ = ".".join(__version_info__)
+BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+PACKAGE_DIR="${BIN_DIR%/*}"
+
+. "${PACKAGE_DIR}"/test/run-lint.sh
+. "${PACKAGE_DIR}"/test/run-processing-tests.sh

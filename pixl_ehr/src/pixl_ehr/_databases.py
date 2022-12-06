@@ -14,8 +14,8 @@
 import logging
 from typing import List, Optional
 
+from patient_queue.utils import env_var
 from pixl_ehr._queries import SQLQuery
-from pixl_ehr.utils import env_var
 import psycopg2 as pypg
 
 logger = logging.getLogger("uvicorn")
