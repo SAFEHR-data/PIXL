@@ -294,7 +294,7 @@ def messages_from_csv(filepath: Path) -> Messages:
             serialise(
                 mrn=row[mrn_col_name],
                 accession_number=row[acc_num_col_name],
-                study_datetime=datetime.strptime(row[dt_col_name], "%d/%m/%Y %H:%M:%S"),
+                study_datetime=datetime.strptime(row[dt_col_name], "%d/%m/%Y %H:%M"),
             )
         )
 

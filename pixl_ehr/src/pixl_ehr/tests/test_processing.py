@@ -31,7 +31,7 @@ pytest_plugins = ("pytest_asyncio",)
 
 mrn = "testmrn"
 accession_number = "testaccessionnumber"
-study_datetime_str = "01/01/1234 01:23:45"
+study_datetime_str = "01/01/1234 01:23"
 observation_datetime = datetime.fromisoformat(
     "1234-01-01"
 )  # within hours of imaging study
@@ -54,7 +54,7 @@ ls_id, lo_id, lr_id, ltd_id = 5555555, 6666666, 7777777, 8888888
 message_body = serialise(
     mrn=mrn,
     accession_number=accession_number,
-    study_datetime=datetime.strptime(study_datetime_str, "%d/%m/%Y %H:%M:%S"),
+    study_datetime=datetime.strptime(study_datetime_str, "%d/%m/%Y %H:%M"),
 )
 
 
