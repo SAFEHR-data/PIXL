@@ -20,6 +20,8 @@ A DICOM node which wraps our de-identifcation and cloud transfer components.
 RDBMS which stores DICOM metadata, application data and anonymised patient record data.
 ### [Electronic Health Record Extractor](./pixl_ehr/README.md)
 HTTP API to process messages from the `ehr` queue and populate raw and anon tables in the PIXL postgres instance. 
+### [PACS Image Extractor](./pixl_pacs/README.md)
+HTTP API to process messages from the `pacs` queue and populate the raw orthanc instance with images from PACS/VNA. 
 
 ## Setup
 
