@@ -50,6 +50,7 @@ services:
       ORTHANC_VNA_PASSWORD: "orthanc"
       ORTHANC_VNA_AE_TITLE: "VNAQR"
       VNAQR_MODALITY: "UCVNAQR"
+      PIXL_DICOM_TRANSFER_TIMEOUT: 30
     ports:
       - "9001:8000"
 

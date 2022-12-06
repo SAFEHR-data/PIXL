@@ -48,7 +48,7 @@ class WritableOrthanc(Orthanc):
         )
 
 
-def add_image_to_vna(image_filename: str = "test.dcm") -> None:
+def add_image_to_fake_vna(image_filename: str = "test.dcm") -> None:
     path = get_testdata_file("CT_small.dcm")
     ds = dcmread(path)  # type: ignore
     ds.AccessionNumber = ACCESSION_NUMBER
@@ -66,7 +66,7 @@ def add_image_to_vna(image_filename: str = "test.dcm") -> None:
 @pytest.mark.asyncio
 async def test_image_processing() -> None:
 
-    add_image_to_vna()
+    add_image_to_fake_vna()
     study = ImagingStudy.from_message(message_body)
     orthanc_raw = PIXLRawOrthanc()
 
