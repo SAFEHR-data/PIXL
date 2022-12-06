@@ -143,6 +143,9 @@ services:
       - ${PWD}/orthanc/orthanc-anon/config:/run/secrets:ro
     networks:
       - pixl-net
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
       test: [ "CMD", "curl", "-f", "-u" , "${ORTHANC_ANON_USERNAME}:${ORTHANC_ANON_PASSWORD}", "http://orthanc-anon:8042/heart-beat" ]
       interval: 10s
@@ -185,6 +188,9 @@ services:
       - ${PWD}/orthanc/orthanc-raw/config:/run/secrets:ro
     networks:
       - pixl-net
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
       test: [ "CMD", "curl", "-f", "-u" , "${ORTHANC_RAW_USERNAME}:${ORTHANC_RAW_PASSWORD}", "http://orthanc-raw:8042/heart-beat" ]
       interval: 10s
