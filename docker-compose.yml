@@ -234,7 +234,6 @@ services:
         condition: service_healthy
     ports:
       - "${PIXL_EHR_API_PORT}:8000"
-      - "443:443"
     healthcheck:
       interval: 10s
       timeout: 30s
