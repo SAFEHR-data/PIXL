@@ -212,6 +212,8 @@ services:
     build:
       context: .
       dockerfile: ./docker/ehr-api/Dockerfile
+      args:
+        <<: *build-args-common
     environment:
       <<: *pixl-db
       <<: *emap-db
@@ -246,6 +248,8 @@ services:
     build:
       context: .
       dockerfile: ./docker/pacs-api/Dockerfile
+      args:
+        <<: *build-args-common
     depends_on:
       queue:
         condition: service_healthy
