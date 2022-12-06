@@ -16,6 +16,7 @@ from dataclasses import dataclass
 from datetime import datetime
 import logging
 import os
+from time import time
 
 from patient_queue.utils import deserialise, env_var
 from pixl_pacs._orthanc import Orthanc, PIXLRawOrthanc
@@ -43,9 +44,16 @@ async def process_message(message_body: bytes) -> None:
 
     job_id = orthanc_raw.retrieve_from_remote(query_id=query_id)  # C-Move
     job_state = "Pending"
+    start_time = time()
 
-    # TODO: a timeout?
     while job_state != "Success":
+
+        if (time() - start_time) > float(env_var("PIXL_DICOM_TRANSFER_TIMEOUT")):
+            raise TimeoutError(
+                f"Failed to transfer {message_body.decode()} within "
+                f"{env_var('PIXL_PACS_TRANSFER_TIMEOUT')} secounds"
+            )
+
         await sleep(0.1)
         job_state = orthanc_raw.job_state(job_id=job_id)
 
