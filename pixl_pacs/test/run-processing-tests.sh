@@ -30,9 +30,8 @@ set -euxo pipefail
 
 THIS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 PACKAGE_DIR="${THIS_DIR%/*}"
-cd "$PACKAGE_DIR" || exit
+cd "$PACKAGE_DIR"/test || exit
 
-cd test/
 docker compose up -d --build
 docker exec pixl-test-pacs-api /bin/bash -c "pytest pixl_pacs/tests/test_processing.py"
 docker compose down
