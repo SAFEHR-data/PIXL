@@ -288,7 +288,7 @@ services:
         source: postgres-data
         target: /var/lib/postgresql/data
     ports:
-      - "${POSTGRES_PORT}:${PIXL_DB_PORT}"
+      - "${POSTGRES_PORT}:5432"
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "${PIXL_DB_USER}" ]
       interval: 10s
