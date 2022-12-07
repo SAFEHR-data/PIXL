@@ -236,13 +236,13 @@ def consume_all_messages_and_save_csv_file(
         f"{timeout_in_seconds} seconds"
     )
 
-    with PixlBlockingConsumer(queue_name=queue_name) as blocking_consumer:
+    with PixlBlockingConsumer(queue_name=queue_name, **config["rabbitmq"]) as consumer:
         state_filepath = state_filepath_for_queue(queue_name)
-        if blocking_consumer.message_count > 0:
+        if consumer.message_count > 0:
             logger.info("Found messages in the queue. Clearing the state file")
             clear_file(state_filepath)
 
-        blocking_consumer.consume_all(state_filepath)
+        consumer.consume_all(state_filepath)
 
 
 def state_filepath_for_queue(queue_name: str) -> Path:
