@@ -106,6 +106,9 @@ def _remove_excluded_identifiers(text: str) -> str:
         r"RRV(\d+)",                   # Accession numbers
         r"signed by[^.]*.+",           # Matches signed by section and after
         r"[^.]* University College London Hospitals [^.]*.+",  # Sentences after UCLH
+        r"(\d+[\s]?[:/][\s]\d+)",      # Date or time like things
+        r"(\d{4,100})",                # Remove any long numeric values (7 is GMC)
+        r"[^.]*Dr[.|\s][^.]*\."        # Remove any sentences with Dr in
     )
 
     return re.sub("|".join(patterns), repl="XXX", string=text, flags=re.IGNORECASE)
