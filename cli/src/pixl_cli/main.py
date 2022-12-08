@@ -45,6 +45,9 @@ def _load_config(filename: str = "pixl_config.yml") -> dict:
 
 config = _load_config()
 
+# localhost needs to be added to the NO_PROXY environment variables on GAEs
+os.environ["NO_PROXY"] = os.environ["no_proxy"] = "localhost"
+
 
 @click.group()
 @click.option("--debug/--no-debug", default=False)
