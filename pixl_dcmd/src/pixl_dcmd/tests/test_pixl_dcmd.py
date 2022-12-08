@@ -14,6 +14,7 @@
 
 from pixl_dcmd.main import (
     combine_date_time,
+    format_date_time,
     get_bounded_age,
     get_encrypted_uid,
     remove_overlays,
@@ -75,6 +76,21 @@ def test_date_time_combo(
     assert (
         combine_date_time(orig_date, orig_time).format("YYYYMMDD HHmmss.SSSSSS")
         == expected_date_time
+    )
+
+
+@pytest.mark.parametrize(
+    "orig_date_time, output_date_time",
+    [
+        ("20220101003557.000000", "20220101 003557.000000"),
+        ("20220101 003557.000000", "20220101 003557.000000"),
+    ],
+)
+def test_date_time_format(orig_date_time: str, output_date_time: str) -> None:
+    """Checks that dates and times are formatted correctly."""
+    assert (
+        format_date_time(orig_date_time).format("YYYYMMDD HHmmss.SSSSSS")
+        == output_date_time
     )
 
 
