@@ -18,7 +18,7 @@ version: "3.8"
 
 x-http-proxy: &http-proxy ${HTTP_PROXY}
 x-https-proxy: &https-proxy ${HTTPS_PROXY}
-x-no-proxy: &no-proxy localhost,127.0.0.1,uclvlddpragae07,hasher-api,orthanc-raw
+x-no-proxy: &no-proxy localhost,0.0.0.0,127.0.0.1,uclvlddpragae07,hasher-api,orthanc-raw
 x-proxy-common: &proxy-common
   HTTP_PROXY: *http-proxy
   http_proxy: *http-proxy
