@@ -250,7 +250,6 @@ services:
       - pixl-net
 
   pacs-api:
-    container_name: pixl-test-pacs-api
     build:
       context: .
       dockerfile: ./docker/pacs-api/Dockerfile
