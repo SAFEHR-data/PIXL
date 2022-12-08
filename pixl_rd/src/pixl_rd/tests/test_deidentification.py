@@ -19,6 +19,7 @@ from typing import List, Tuple
 import pytest
 
 from pixl_rd import deidentify_text
+from pixl_rd.main import _remove_excluded_identifiers
 
 THIS_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
 
@@ -76,14 +77,13 @@ def test_block_with_excluded_identifiers_are_removed(id_name: str) -> None:
         "\n"
         f"{footer}"
     )
-    print(anon_text)
 
     assert all(s not in anon_text for s in info)
     assert header in anon_text and footer in anon_text
 
 
-@pytest.mark.skip(reason="Presidio does not remove all the dates correctly")
-@pytest.mark.parametrize("delimiter", ["", " ", "/", "-", ":"])
+# using ":" or " " as a delimiter is not redacted by Presidio
+@pytest.mark.parametrize("delimiter", ["/", "-"])
 def test_possible_dates_are_removed(delimiter: str) -> None:
 
     for day, month, year in [(1, 3, 2019)]:
@@ -97,3 +97,21 @@ def test_possible_dates_are_removed(delimiter: str) -> None:
 
         anon_text = deidentify_text("\n".join(date_strings))
         assert not any(date_string in anon_text for date_string in date_strings)
+
+
+def test_accession_nums_gmc_nhs_email() -> None:
+
+    gmc_number = "12345"
+    email_address = "jon.smith@nhs.net"
+    accession_number = "RRV012734923"
+
+    text = (
+        f"Accession No. {accession_number}. Some other text. "
+        f"GMC: {gmc_number}. X NHS trust {email_address}"
+    )
+    re_anon_text = _remove_excluded_identifiers(text)
+
+    for identifier in (gmc_number, email_address, accession_number):
+        assert identifier not in re_anon_text
+
+    assert "Some other text" in deidentify_text(text)  # Need to retain some text..

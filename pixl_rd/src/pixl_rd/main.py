@@ -11,11 +11,16 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+import re
+import logging
+
 from presidio_analyzer import AnalyzerEngine
 from presidio_anonymizer import AnonymizerEngine
 
 _anonymizer = AnonymizerEngine()
 _analyzer = AnalyzerEngine()
+
+logger = logging.getLogger(__name__)
 
 
 def deidentify_text(text: str) -> str:
@@ -34,6 +39,7 @@ def deidentify_text(text: str) -> str:
     for anonymize_step in (
         _remove_all_text_below_signed_by_section,
         _remove_section_with_identifiable_id_numbers,
+        _remove_excluded_identifiers
     ):
         text = anonymize_step(text)
 
@@ -48,6 +54,11 @@ def deidentify_text(text: str) -> str:
 def _remove_all_text_below_signed_by_section(text: str) -> str:
 
     lines = text.split("\n")
+
+    if len(lines) < 2:
+        logger.warning("Failed to remove text below signed by section. Only had one "
+                       "line")
+        return text
 
     try:
         idx_of_line_with_signed_by_in = next(
@@ -69,8 +80,27 @@ def _remove_section_with_identifiable_id_numbers(text: str) -> str:
 
     with a newline above and below.
     """
+    if len(text.split("\n")) < 2:
+        logger.warning("Cannot remove below identifable by section. Only had one line")
+        return text
+
     exclusions = ["GMC", "HCPC"]
 
     return "\n\n".join(
         s for s in text.split("\n\n") if not any(exc in s for exc in exclusions)
     )
+
+
+def _remove_excluded_identifiers(text: str) -> str:
+    """
+    Remove any numbers/identifiers matching a pattern.
+    """
+    patterns = (
+        r"(\S+@\S+)",                # Matches any email address
+        r"GMC: (\d+)",               # Matches GMC numbers
+        r"HCPC: (\d+)",
+        r"(?<=signed by)(\S)(.*$)",  # Matches anything after a signed by section
+        r"RRV(\d+)"                  # Accession numbers
+    )
+
+    return re.sub("|".join(patterns), repl="XXX", string=text, flags=re.DOTALL)
