@@ -44,7 +44,10 @@ def deidentify_text(text: str) -> str:
         text = anonymize_step(text)
 
     results = _analyzer.analyze(
-        text=text, entities=None, language="en"  # Search for all PII
+        text=text,
+        entities=["DATE_TIME", "PERSON"],
+        language="en",
+        allow_list=["XR Skull"]
     )
 
     result = _anonymizer.anonymize(text=text, analyzer_results=results)
@@ -55,7 +58,7 @@ def _remove_all_text_below_signed_by_section(text: str) -> str:
 
     lines = text.split("\n")
 
-    if len(lines) < 2:
+    if _num_non_blank_lines(text) == 1:
         logger.warning("Failed to remove text below signed by section. Only had one "
                        "line")
         return text
@@ -80,7 +83,7 @@ def _remove_section_with_identifiable_id_numbers(text: str) -> str:
 
     with a newline above and below.
     """
-    if len(text.split("\n")) < 2:
+    if _num_non_blank_lines(text) == 1:
         logger.warning("Cannot remove below identifable by section. Only had one line")
         return text
 
@@ -95,12 +98,18 @@ def _remove_excluded_identifiers(text: str) -> str:
     """
     Remove any numbers/identifiers matching a pattern.
     """
+
     patterns = (
-        r"(\S+@\S+)",                # Matches any email address
-        r"GMC: (\d+)",               # Matches GMC numbers
+        r"(\S+@\S+)",                  # Matches any email address
+        r"GMC[\s\S]?: (\d+)",          # Matches GMC numbers
         r"HCPC: (\d+)",
-        r"(?<=signed by)(\S)(.*$)",  # Matches anything after a signed by section
-        r"RRV(\d+)"                  # Accession numbers
+        r"RRV(\d+)",                   # Accession numbers
+        r"signed by[^.]*.+",           # Matches signed by section and after
+        r"[^.]* University College London Hospitals [^.]*.+",  # Sentences after UCLH
     )
 
-    return re.sub("|".join(patterns), repl="XXX", string=text, flags=re.DOTALL)
+    return re.sub("|".join(patterns), repl="XXX", string=text, flags=re.IGNORECASE)
+
+
+def _num_non_blank_lines(text: str) -> int:
+    return sum(len(line.split()) > 0 for line in text.split("\n"))
