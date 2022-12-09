@@ -11,8 +11,8 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-import re
 import logging
+import re
 
 from presidio_analyzer import AnalyzerEngine
 from presidio_anonymizer import AnonymizerEngine
@@ -39,7 +39,7 @@ def deidentify_text(text: str) -> str:
     for anonymize_step in (
         _remove_all_text_below_signed_by_section,
         _remove_section_with_identifiable_id_numbers,
-        _remove_excluded_identifiers
+        _remove_excluded_patterns,
     ):
         text = anonymize_step(text)
 
@@ -47,7 +47,7 @@ def deidentify_text(text: str) -> str:
         text=text,
         entities=["DATE_TIME", "PERSON"],
         language="en",
-        allow_list=["XR Skull"]
+        allow_list=["XR Skull"],
     )
 
     result = _anonymizer.anonymize(text=text, analyzer_results=results)
@@ -59,8 +59,9 @@ def _remove_all_text_below_signed_by_section(text: str) -> str:
     lines = text.split("\n")
 
     if _num_non_blank_lines(text) == 1:
-        logger.warning("Failed to remove text below signed by section. Only had one "
-                       "line")
+        logger.warning(
+            "Failed to remove text below signed by section. Only had one " "line"
+        )
         return text
 
     try:
@@ -94,23 +95,20 @@ def _remove_section_with_identifiable_id_numbers(text: str) -> str:
     )
 
 
-def _remove_excluded_identifiers(text: str) -> str:
-    """
-    Remove any numbers/identifiers matching a pattern.
-    """
+def _remove_excluded_patterns(text: str) -> str:
 
     patterns = (
-        r"(\S+@\S+)",                  # Matches any email address
-        r"GMC[\s\S]?: (\d+)",          # Matches GMC numbers
-        r"HCPC: (\d+)",
-        r"RRV(\d+)",                   # Accession numbers
-        r"signed by[^.]*.+",           # Matches signed by section and after
+        r"(\S+@\S+)",  # Matches any email address
+        r"GMC[\s\S]?: (\d+)",  # Matches GMC numbers
+        r"HCPC: (\d+)",  # Matches HCPC numbers
+        r"RRV(\d+)",  # Accession numbers
+        r"signed by[^.]*.+",  # Matches signed by section and after
         r"[^.]* University College London Hospitals [^.]*.+",  # Sentences after UCLH
-        r"(\d+[\s]?[:/][\s]\d+)",      # Date or time like things
-        r"(\d{4,100})",                # Remove any long numeric values (7 is GMC)
-        r"[^.]*Dr[.|\s][^.]*\."        # Remove any sentences with Dr in
+        r"(\d+[\s]?[:/][\s]\d+)",  # Date or time like things
+        r"(\d{4,100})",  # Remove any long numeric values (7 is GMC)
+        r"[^.]*Dr[.|\s][^.]*\."  # Remove any sentences with Dr in
+        r"(\d+[\/|:]\d+)",  # Remove any partial dates seperated by : or /
     )
-
     return re.sub("|".join(patterns), repl="XXX", string=text, flags=re.IGNORECASE)
 
 
