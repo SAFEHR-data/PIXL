@@ -40,7 +40,8 @@ def deidentify_text(text: str) -> str:
         _presidio_anonymise,
         _remove_all_text_below_signed_by_section,
         _remove_section_with_identifiable_id_numbers,
-        _remove_excluded_patterns,
+        _remove_case_insensitive_patterns,
+        _remove_case_sensitive_patterns,
     ):
         text = anonymize_step(text)
 
@@ -101,7 +102,7 @@ def _remove_section_with_identifiable_id_numbers(text: str) -> str:
     )
 
 
-def _remove_excluded_patterns(text: str) -> str:
+def _remove_case_insensitive_patterns(text: str) -> str:
 
     patterns = (
         r"(\S+@\S+)",  # Matches any email address
@@ -118,5 +119,19 @@ def _remove_excluded_patterns(text: str) -> str:
     return re.sub("|".join(patterns), repl="XXX", string=text, flags=re.IGNORECASE)
 
 
+def _remove_case_sensitive_patterns(text: str) -> str:
+
+    patterns = (
+        # Remove title case words before professions
+        rf"(\b[A-Z][a-z]+(?=.*({_possible_professions()})))",
+    )
+    return re.sub("|".join(patterns), repl="XXX", string=text)
+
+
 def _num_non_blank_lines(text: str) -> int:
     return sum(len(line.split()) > 0 for line in text.split("\n"))
+
+
+def _possible_professions() -> str:
+    titlecase_professions = ["Radiologist", "Fellow", "Radiographer", "Radiologist"]
+    return "|".join(titlecase_professions + [p.lower() for p in titlecase_professions])

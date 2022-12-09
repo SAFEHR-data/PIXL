@@ -16,7 +16,7 @@ import os
 from pathlib import Path
 from typing import List, Tuple
 
-from pixl_rd.main import _remove_excluded_patterns
+from pixl_rd.main import _remove_case_insensitive_patterns
 import pytest
 
 from pixl_rd import deidentify_text
@@ -109,7 +109,7 @@ def test_accession_nums_gmc_nhs_email() -> None:
         f"Accession No. {accession_number}. Some other text. "
         f"GMC: {gmc_number}. X NHS trust {email_address}"
     )
-    re_anon_text = _remove_excluded_patterns(text)
+    re_anon_text = _remove_case_insensitive_patterns(text)
 
     for identifier in (gmc_number, email_address, accession_number):
         assert identifier not in re_anon_text
