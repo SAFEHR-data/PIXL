@@ -16,10 +16,13 @@ import os
 from pathlib import Path
 from typing import List, Tuple
 
-from pixl_rd.main import _remove_case_insensitive_patterns
+from pixl_rd.main import (
+    _remove_case_insensitive_patterns,
+    _remove_case_sensitive_patterns,
+    _remove_linebreaks_after_title_case_lines,
+    deidentify_text,
+)
 import pytest
-
-from pixl_rd import deidentify_text
 
 THIS_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
 
@@ -115,3 +118,22 @@ def test_accession_nums_gmc_nhs_email() -> None:
         assert identifier not in re_anon_text
 
     assert "Some other text" in deidentify_text(text)  # Need to retain some text
+
+
+def test_linebreaks_are_removed_from_possible_identifying_section() -> None:
+
+    text = "A report.\nJohn Smith\nReporting Radiographer\nOther text after"
+    expected_text = "A report.\nJohn Smith Reporting Radiographer Other text after"
+
+    assert _remove_linebreaks_after_title_case_lines(text) == expected_text
+
+
+@pytest.mark.parametrize("initials", ["JS", "AJ", "AO\t", "ER "])
+def test_initials_are_removed_from_end_of_string(initials: str) -> None:
+
+    text = f"Some text. {initials}"
+    assert initials.strip() not in _remove_case_sensitive_patterns(text)
+
+
+def test_allow_list_is_not_removed_from_sentence() -> None:
+    assert "NG" in deidentify_text("A thing with XR. For NG things")

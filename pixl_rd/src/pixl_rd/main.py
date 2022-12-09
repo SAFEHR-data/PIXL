@@ -38,8 +38,7 @@ def deidentify_text(text: str) -> str:
 
     for anonymize_step in (
         _presidio_anonymise,
-        _remove_all_text_below_signed_by_section,
-        _remove_section_with_identifiable_id_numbers,
+        _remove_linebreaks_after_title_case_lines,
         _remove_case_insensitive_patterns,
         _remove_case_sensitive_patterns,
     ):
@@ -54,67 +53,26 @@ def _presidio_anonymise(text: str) -> str:
         text=text,
         entities=["DATE_TIME", "PERSON"],
         language="en",
-        allow_list=["XR Skull"],
+        allow_list=["XR Skull", "nasogastric tube"],
     )
 
     result = _anonymizer.anonymize(text=text, analyzer_results=results)
     return str(result.text)
 
 
-def _remove_all_text_below_signed_by_section(text: str) -> str:
-
-    lines = text.split("\n")
-
-    if _num_non_blank_lines(text) == 1:
-        logger.warning(
-            "Failed to remove text below signed by section. Only had one " "line"
-        )
-        return text
-
-    try:
-        idx_of_line_with_signed_by_in = next(
-            i for i, line in enumerate(lines) if "signed by" in line.lower()
-        )
-    except StopIteration:  # Found no lines with "signed by" in
-        return text
-
-    return "\n".join(lines[:idx_of_line_with_signed_by_in])
-
-
-def _remove_section_with_identifiable_id_numbers(text: str) -> str:
-    """
-    Remove a section of text with the form e.g.::
-
-        John Doe
-        GMC: 0123456
-        University College London Hospital
-
-    with a newline above and below.
-    """
-    if _num_non_blank_lines(text) == 1:
-        logger.warning("Cannot remove below identifable by section. Only had one line")
-        return text
-
-    exclusions = ["GMC", "HCPC"]
-
-    return "\n\n".join(
-        s for s in text.split("\n\n") if not any(exc in s for exc in exclusions)
-    )
-
-
 def _remove_case_insensitive_patterns(text: str) -> str:
 
     patterns = (
+        r"reporting corresponds to ([^:]+)",  # Remove any words between ...to and :
         r"(\S+@\S+)",  # Matches any email address
         r"GMC[\s\S]?: (\d+)",  # Matches GMC numbers
         r"HCPC: (\d+)",  # Matches HCPC numbers
         r"RRV(\d+)",  # Accession numbers
-        r"signed by[^.]*.+",  # Matches signed by section and after
-        r"[^.]* University College London Hospitals [^.]*.+",  # Sentences after UCLH
         r"(\d+[\s]?[:/][\s]\d+)",  # Date or time like things
         r"(\d{4,100})",  # Remove any long numeric values (7 is GMC)
-        r"[^.]*Dr[.|\s][^.]*\.",  # Remove any sentences with Dr in
         r"(\d+[\/|:]\d+)",  # Remove any partial dates seperated by : or /
+        r"Signed by:?\s?\n?(\b\w+ \w+\b)",  # Remove any two words after "Signed by"
+        r"Typed by: ((?:\w+\s?){1,2})",  # Remove one or two words after Typed by
     )
     return re.sub("|".join(patterns), repl="XXX", string=text, flags=re.IGNORECASE)
 
@@ -122,8 +80,13 @@ def _remove_case_insensitive_patterns(text: str) -> str:
 def _remove_case_sensitive_patterns(text: str) -> str:
 
     patterns = (
+        r"\.\s{0,2}((?:[A-Z][a-z]+\s?){2})",  # Remove two title case after a full stop
+        r"Dr\.? ((?:\b[A-Z][a-z]+\s?){0,3})",  # Remove any names after Dr
         # Remove title case words before professions
-        rf"(\b[A-Z][a-z]+(?=.*({_possible_professions()})))",
+        r"(?:\b)((?:\b[A-Z][a-z]+ ){2,}(?=.*(?:" + _possible_professions_str() + ")))",
+        r"([A-Z]{2}\s*$)",  # Remove initials at the end of a string
+        # Any title case word directly preceding a profession
+        rf"(\b[A-Z][a-z]+)\s(?:{_possible_professions_str()})",
     )
     return re.sub("|".join(patterns), repl="XXX", string=text)
 
@@ -132,6 +95,29 @@ def _num_non_blank_lines(text: str) -> int:
     return sum(len(line.split()) > 0 for line in text.split("\n"))
 
 
-def _possible_professions() -> str:
-    titlecase_professions = ["Radiologist", "Fellow", "Radiographer", "Radiologist"]
+def _possible_professions_str() -> str:
+    titlecase_professions = [
+        "Radiologist",
+        "Fellow",
+        "Radiographer",
+        "Radiologist",
+        "Registrar",
+        "ST5",
+        "GMC",
+        "ST3",
+    ]
     return "|".join(titlecase_professions + [p.lower() for p in titlecase_professions])
+
+
+def _remove_linebreaks_after_title_case_lines(text: str) -> str:
+
+    lines = text.split("\n")
+    text = ""
+    for i, line in enumerate(lines):
+        is_final_line = i == len(lines) - 1
+        if all(word[0].isupper() for word in line.split() if len(word) > 0):
+            text += f"{line.strip()}{' ' if not is_final_line else ''}"
+        else:
+            text += line + ("\n" if not is_final_line else "")
+
+    return text
