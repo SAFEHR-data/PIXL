@@ -37,11 +37,17 @@ def deidentify_text(text: str) -> str:
     """
 
     for anonymize_step in (
+        _presidio_anonymise,
         _remove_all_text_below_signed_by_section,
         _remove_section_with_identifiable_id_numbers,
         _remove_excluded_patterns,
     ):
         text = anonymize_step(text)
+
+    return text
+
+
+def _presidio_anonymise(text: str) -> str:
 
     results = _analyzer.analyze(
         text=text,
