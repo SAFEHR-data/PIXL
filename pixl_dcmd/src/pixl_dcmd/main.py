@@ -149,6 +149,19 @@ def combine_date_time(a_date: str, a_time: str) -> Any:
     return new_date_time
 
 
+def format_date_time(a_date_time: str) -> Any:
+    """Turn date-time string into arrow object."""
+
+    if a_date_time[8] != " ":
+        a_date_time = a_date_time[0:8] + " " + a_date_time[8:]
+
+    if arrow.get(a_date_time, "YYYYMMDD HHmmss.SSSSSS"):
+        a_date = "{s}".format(s=arrow.get(a_date_time).format("YYYYMMDD"))
+        a_time = "{s}".format(s=arrow.get(a_date_time).format("HHmmss.SSSSSS"))
+
+    return combine_date_time(a_date, a_time)
+
+
 def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
     """Apply anoymisation operations for a given set of tags to a dataset"""
 
@@ -340,10 +353,8 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
                 # Acq date+time
                 if grp == 0x0008 and el == 0x002A:
                     logging.info(f"\tChanging {name}: {dataset[grp,el].value}")
-                    # TODO: Hardcoded TZ
-                    acq_date_time = arrow.get(
-                        dataset[grp, el].value, tzinfo="Europe/London"
-                    )
+
+                    acq_date_time = format_date_time(dataset[grp, el].value)
                     new_date_time = acq_date_time.shift(hours=TIME_OFFSET).format(
                         "YYYYMMDDD HHmmss.SSSSSS"
                     )
