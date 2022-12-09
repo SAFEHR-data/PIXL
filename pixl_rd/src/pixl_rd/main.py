@@ -112,7 +112,7 @@ def _remove_excluded_patterns(text: str) -> str:
         r"[^.]* University College London Hospitals [^.]*.+",  # Sentences after UCLH
         r"(\d+[\s]?[:/][\s]\d+)",  # Date or time like things
         r"(\d{4,100})",  # Remove any long numeric values (7 is GMC)
-        r"[^.]*Dr[.|\s][^.]*\."  # Remove any sentences with Dr in
+        r"[^.]*Dr[.|\s][^.]*\.",  # Remove any sentences with Dr in
         r"(\d+[\/|:]\d+)",  # Remove any partial dates seperated by : or /
     )
     return re.sub("|".join(patterns), repl="XXX", string=text, flags=re.IGNORECASE)
