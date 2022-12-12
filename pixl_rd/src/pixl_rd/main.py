@@ -14,11 +14,12 @@
 import logging
 import re
 
-from presidio_analyzer import AnalyzerEngine
+from presidio_analyzer import AnalyzerEngine, RecognizerRegistry
+from presidio_analyzer.nlp_engine import NlpEngineProvider
 from presidio_anonymizer import AnonymizerEngine
 
-_anonymizer = AnonymizerEngine()
 _analyzer = AnalyzerEngine()
+_anonymizer = AnonymizerEngine()
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +54,7 @@ def _presidio_anonymise(text: str) -> str:
         text=text,
         entities=["DATE_TIME", "PERSON"],
         language="en",
-        allow_list=["XR Skull", "nasogastric tube"],
+        allow_list=["XR Skull", "nasogastric tube", "lungs"],
     )
 
     result = _anonymizer.anonymize(text=text, analyzer_results=results)
@@ -71,7 +72,6 @@ def _remove_case_insensitive_patterns(text: str) -> str:
         r"(\d+[\s]?[:/][\s]\d+)",  # Date or time like things
         r"(\d{4,100})",  # Remove any long numeric values (7 is GMC)
         r"(\d+[\/|:]\d+)",  # Remove any partial dates seperated by : or /
-        r"Signed by:?\s?\n?(\b\w+ \w+\b)",  # Remove any two words after "Signed by"
         r"Typed by: ((?:\w+\s?){1,2})",  # Remove one or two words after Typed by
     )
     return re.sub("|".join(patterns), repl="XXX", string=text, flags=re.IGNORECASE)
@@ -80,6 +80,7 @@ def _remove_case_insensitive_patterns(text: str) -> str:
 def _remove_case_sensitive_patterns(text: str) -> str:
 
     patterns = (
+        r"((?:[A-Z][a-z]+) (?:[A-Z][a-z]+)-(?:[A-Z][a-z]+))",  # Hyphenated full names
         r"\.\s{0,2}((?:[A-Z][a-z]+\s?){2})",  # Remove two title case after a full stop
         r"Dr\.? ((?:\b[A-Z][a-z]+\s?){0,3})",  # Remove any names after Dr
         # Remove title case words before professions
@@ -87,6 +88,10 @@ def _remove_case_sensitive_patterns(text: str) -> str:
         r"([A-Z]{2}\s*$)",  # Remove initials at the end of a string
         # Any title case word directly preceding a profession
         rf"(\b[A-Z][a-z]+)\s(?:{_possible_professions_str()})",
+        r"Signed by:?\s?\n?((?:[A-Z]\w+\s?-?){2,3})",  # Any part-capitalised post SB
+        r",\s?((?:[A-Z]\w+){1,2} (?:[A-Z]{3,}))",  # Any 2-3 words with the second upper
+        r"Signed by:?\s?\n?(\S*\s?[A-Z]\w+)",  # More generic two words after signed by
+        r"signed(?: by:?)?\s?\n?((?:[A-Z]\w*\s)+)",  # Capitalised words after signed by
     )
     return re.sub("|".join(patterns), repl="XXX", string=text)
 
@@ -105,6 +110,7 @@ def _possible_professions_str() -> str:
         "ST5",
         "GMC",
         "ST3",
+        "FRCR",
     ]
     return "|".join(titlecase_professions + [p.lower() for p in titlecase_professions])
 

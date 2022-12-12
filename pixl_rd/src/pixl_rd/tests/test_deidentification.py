@@ -137,3 +137,33 @@ def test_initials_are_removed_from_end_of_string(initials: str) -> None:
 
 def test_allow_list_is_not_removed_from_sentence() -> None:
     assert "NG" in deidentify_text("A thing with XR. For NG things")
+
+
+@pytest.mark.parametrize("full_name", ["John Doe-Smith"])
+def test_full_name_with_hypens_is_removed(full_name: str) -> None:
+    _assert_neither_name_in_text(
+        full_name=full_name,
+        text=_remove_case_sensitive_patterns(f"A sentence  {full_name} registrar")
+    )
+
+
+@pytest.mark.parametrize("full_name", ["John Doe SMITH",
+                                       "<PERSON>, SMITH"])
+def test_full_name_signed_by_with_two_surnames_is_removed(full_name: str) -> None:
+    _assert_neither_name_in_text(
+        full_name=full_name,
+        text=_remove_case_sensitive_patterns(f"Things. Signed by: {full_name}")
+    )
+
+
+@pytest.mark.parametrize("full_name", ["John SMITH"])
+def test_full_name_after_comma_is_removed(full_name: str) -> None:
+    _assert_neither_name_in_text(
+        full_name=full_name,
+        text=_remove_case_sensitive_patterns(f"Things, {full_name}")
+    )
+
+
+def _assert_neither_name_in_text(full_name: str, text: str) -> None:
+    for name in full_name.split():
+        assert name not in text
