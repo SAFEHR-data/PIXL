@@ -72,6 +72,7 @@ def _remove_case_insensitive_patterns(text: str) -> str:
         r"(\d{4,100})",  # Remove any long numeric values (7 is GMC)
         r"(\d+[\/|:]\d+)",  # Remove any partial dates seperated by : or /
         r"Typed by: ((?:\w+\s?){1,2})",  # Remove one or two words after Typed by
+        r"([0-9]{1,2} (?:" + _partial_date_str() + "))",  # Remove partial dates
     )
     return re.sub("|".join(patterns), repl="XXX", string=text, flags=re.IGNORECASE)
 
@@ -131,6 +132,13 @@ def _remove_linebreaks_after_title_case_lines(text: str) -> str:
             text += line + ("\n" if not is_final_line else "")
 
     return text
+
+
+def _partial_date_str() -> str:
+    return (
+        r"Jan\w*|Feb\w*|Mar\w*|Apr\w*|May\w*|Jun\w*|"
+        r"Jul\w*|Aug\w*|Sep\w*|Oct\w*|Nov\w*|Dec\w*"
+    )
 
 
 _this_dir = Path(os.path.dirname(__file__))

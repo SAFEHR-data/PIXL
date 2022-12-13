@@ -174,3 +174,10 @@ def _assert_neither_name_in_text(full_name: str, text: str) -> None:
 def test_name_from_exclusion_list_is_removed() -> None:
     name = "Zebadiah"
     assert name not in _remove_any_excluded_words(f"Someone {name} and other")
+
+
+@pytest.mark.parametrize("date_str", ["14 Jun 2022", "1 Jan 2022", "21 March 2022"])
+def test_abbreviated_date_is_removed(date_str: str) -> None:
+
+    text = f"A sentence {date_str} then other things"
+    assert date_str not in _remove_case_insensitive_patterns(text)
