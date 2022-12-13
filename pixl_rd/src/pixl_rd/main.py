@@ -11,7 +11,6 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-import logging
 import os
 from pathlib import Path
 import re
@@ -19,10 +18,8 @@ import re
 from presidio_analyzer import AnalyzerEngine
 from presidio_anonymizer import AnonymizerEngine
 
-_analyzer = AnalyzerEngine()
 _anonymizer = AnonymizerEngine()
-
-logger = logging.getLogger(__name__)
+_analyzer = AnalyzerEngine()
 
 
 def deidentify_text(text: str) -> str:
@@ -43,6 +40,7 @@ def deidentify_text(text: str) -> str:
         _remove_linebreaks_after_title_case_lines,
         _remove_case_insensitive_patterns,
         _remove_case_sensitive_patterns,
+        _remove_any_excluded_words,
     ):
         text = anonymize_step(text)
 
@@ -65,7 +63,6 @@ def _presidio_anonymise(text: str) -> str:
 def _remove_case_insensitive_patterns(text: str) -> str:
 
     patterns = (
-        r"|".join(_exclusions),  # Any excluded word
         r"reporting corresponds to ([^:]+)",  # Remove any words between ...to and :
         r"(\S+@\S+)",  # Matches any email address
         r"GMC[\s\S]?: (\d+)",  # Matches GMC numbers
@@ -97,6 +94,10 @@ def _remove_case_sensitive_patterns(text: str) -> str:
         r"signed(?: by:?)?\s?\n?((?:[A-Z]\w*\s)+)",  # Capitalised words after signed by
     )
     return re.sub("|".join(patterns), repl="XXX", string=text)
+
+
+def _remove_any_excluded_words(text: str) -> str:
+    return re.sub("|".join(_exclusions), repl="XXX", string=text, flags=re.IGNORECASE)
 
 
 def _num_non_blank_lines(text: str) -> int:

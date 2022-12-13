@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import List, Tuple
 
 from pixl_rd.main import (
+    _remove_any_excluded_words,
     _remove_case_insensitive_patterns,
     _remove_case_sensitive_patterns,
     _remove_linebreaks_after_title_case_lines,
@@ -172,4 +173,4 @@ def _assert_neither_name_in_text(full_name: str, text: str) -> None:
 
 def test_name_from_exclusion_list_is_removed() -> None:
     name = "Zebadiah"
-    assert name not in _remove_case_insensitive_patterns(f"Someone {name} and other")
+    assert name not in _remove_any_excluded_words(f"Someone {name} and other")
