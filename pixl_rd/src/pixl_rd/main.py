@@ -135,5 +135,7 @@ def _remove_linebreaks_after_title_case_lines(text: str) -> str:
 
 _this_dir = Path(os.path.dirname(__file__))
 _exclusions = [
-    rf"[\s|,]{line.strip()}[\s|,]" for line in open(_this_dir / "exclusions.txt", "r")
+    rf"[\s|,]{line.strip()}[\s|,]"
+    for line in open(_this_dir / "exclusions.txt", "r")
+    if len(line.strip()) > 0  # skip any blank lines
 ]
