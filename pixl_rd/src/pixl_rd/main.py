@@ -12,10 +12,11 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 import logging
+import os
+from pathlib import Path
 import re
 
-from presidio_analyzer import AnalyzerEngine, RecognizerRegistry
-from presidio_analyzer.nlp_engine import NlpEngineProvider
+from presidio_analyzer import AnalyzerEngine
 from presidio_anonymizer import AnonymizerEngine
 
 _analyzer = AnalyzerEngine()
@@ -64,6 +65,7 @@ def _presidio_anonymise(text: str) -> str:
 def _remove_case_insensitive_patterns(text: str) -> str:
 
     patterns = (
+        r"|".join(_exclusions),  # Any excluded word
         r"reporting corresponds to ([^:]+)",  # Remove any words between ...to and :
         r"(\S+@\S+)",  # Matches any email address
         r"GMC[\s\S]?: (\d+)",  # Matches GMC numbers
@@ -88,6 +90,7 @@ def _remove_case_sensitive_patterns(text: str) -> str:
         r"([A-Z]{2}\s*$)",  # Remove initials at the end of a string
         # Any title case word directly preceding a profession
         rf"(\b[A-Z][a-z]+)\s(?:{_possible_professions_str()})",
+        r"Signed by:\s?([A-Z]{3,},?\s?[A-Z]\w{2,})",  # Surname,Forename after signed by
         r"Signed by:?\s?\n?((?:[A-Z]\w+\s?-?){2,3})",  # Any part-capitalised post SB
         r",\s?((?:[A-Z]\w+){1,2} (?:[A-Z]{3,}))",  # Any 2-3 words with the second upper
         r"Signed by:?\s?\n?(\S*\s?[A-Z]\w+)",  # More generic two words after signed by
@@ -127,3 +130,9 @@ def _remove_linebreaks_after_title_case_lines(text: str) -> str:
             text += line + ("\n" if not is_final_line else "")
 
     return text
+
+
+_this_dir = Path(os.path.dirname(__file__))
+_exclusions = [
+    rf"[\s|,]{line.strip()}[\s|,]" for line in open(_this_dir / "exclusions.txt", "r")
+]

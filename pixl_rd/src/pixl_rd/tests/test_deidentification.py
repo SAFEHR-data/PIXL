@@ -143,16 +143,17 @@ def test_allow_list_is_not_removed_from_sentence() -> None:
 def test_full_name_with_hypens_is_removed(full_name: str) -> None:
     _assert_neither_name_in_text(
         full_name=full_name,
-        text=_remove_case_sensitive_patterns(f"A sentence  {full_name} registrar")
+        text=_remove_case_sensitive_patterns(f"A sentence  {full_name} registrar"),
     )
 
 
-@pytest.mark.parametrize("full_name", ["John Doe SMITH",
-                                       "<PERSON>, SMITH"])
-def test_full_name_signed_by_with_two_surnames_is_removed(full_name: str) -> None:
+@pytest.mark.parametrize(
+    "full_name", ["John Doe SMITH", "<PERSON>, SMITH", "SMITH, JOHN", "SMITH, John"]
+)
+def test_full_name_after_signed_by_is_removed(full_name: str) -> None:
     _assert_neither_name_in_text(
         full_name=full_name,
-        text=_remove_case_sensitive_patterns(f"Things. Signed by: {full_name}")
+        text=_remove_case_sensitive_patterns(f"Things. Signed by: {full_name}"),
     )
 
 
@@ -160,10 +161,15 @@ def test_full_name_signed_by_with_two_surnames_is_removed(full_name: str) -> Non
 def test_full_name_after_comma_is_removed(full_name: str) -> None:
     _assert_neither_name_in_text(
         full_name=full_name,
-        text=_remove_case_sensitive_patterns(f"Things, {full_name}")
+        text=_remove_case_sensitive_patterns(f"Things, {full_name}"),
     )
 
 
 def _assert_neither_name_in_text(full_name: str, text: str) -> None:
     for name in full_name.split():
         assert name not in text
+
+
+def test_name_from_exclusion_list_is_removed() -> None:
+    name = "Zebadiah"
+    assert name not in _remove_case_insensitive_patterns(f"Someone {name} and other")
