@@ -97,7 +97,7 @@ def _remove_case_sensitive_patterns(text: str) -> str:
 
 
 def _remove_any_excluded_words(text: str) -> str:
-    return re.sub("|".join(_exclusions), repl="XXX", string=text, flags=re.IGNORECASE)
+    return re.sub("|".join(_exclusions), repl=" XXX ", string=text, flags=re.IGNORECASE)
 
 
 def _num_non_blank_lines(text: str) -> int:
