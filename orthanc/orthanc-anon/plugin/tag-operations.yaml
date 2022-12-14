@@ -150,7 +150,7 @@
 - name: "Patient ID"
   group: 0x0010
   element: 0x0020
-  op: "fixed"
+  op: "secure-hash"
 - name: "Issuer Of Patient ID"
   group: 0x0010
   element: 0x0021
@@ -166,6 +166,10 @@
 - name: "Patients Sex"
   group: 0x0010
   element: 0x0040
+  op: "delete"
+- name: "Other Patient IDs"
+  group: 0x0010
+  element: 0x1000
   op: "delete"
 - name: "Other Patient Names"
   group: 0x0010
@@ -558,4 +562,8 @@
 - name: "Study Comments [Retired]"
   group: 0x0032
   element: 0x4000
+  op: "delete"
+- name: "Ethnic Group"
+  group: 0x0010
+  element: 0x2160
   op: "delete"

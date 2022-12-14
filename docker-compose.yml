@@ -18,7 +18,7 @@ version: "3.8"
 
 x-http-proxy: &http-proxy ${HTTP_PROXY}
 x-https-proxy: &https-proxy ${HTTPS_PROXY}
-x-no-proxy: &no-proxy localhost,127.0.0.1,uclvlddpragae07,hasher-api,orthanc-raw
+x-no-proxy: &no-proxy localhost,0.0.0.0,127.0.0.1,uclvlddpragae07,hasher-api,orthanc-raw
 x-proxy-common: &proxy-common
   HTTP_PROXY: *http-proxy
   http_proxy: *http-proxy
@@ -119,7 +119,7 @@ services:
       ORTHANC_RAW_DICOM_PORT: "4242"
       ORTHANC_RAW_HOSTNAME: "orthanc-raw"
       DICOM_WEB_PLUGIN_ENABLED: ${ENABLE_DICOM_WEB}
-      HASHER_API_AZ_NAME: ${HASHER_API_AZ_NAME}
+      HASHER_API_AZ_NAME: "hasher-api"
       HASHER_API_PORT: 8000
       HTTP_TIMEOUT: ${ORTHANC_ANON_HTTP_TIMEOUT}
       AZ_DICOM_ENDPOINT_NAME: ${AZ_DICOM_ENDPOINT_NAME}
@@ -143,6 +143,9 @@ services:
       - ${PWD}/orthanc/orthanc-anon/config:/run/secrets:ro
     networks:
       - pixl-net
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
       test: [ "CMD", "curl", "-f", "-u" , "${ORTHANC_ANON_USERNAME}:${ORTHANC_ANON_PASSWORD}", "http://orthanc-anon:8042/heart-beat" ]
       interval: 10s
@@ -185,6 +188,9 @@ services:
       - ${PWD}/orthanc/orthanc-raw/config:/run/secrets:ro
     networks:
       - pixl-net
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
       test: [ "CMD", "curl", "-f", "-u" , "${ORTHANC_RAW_USERNAME}:${ORTHANC_RAW_PASSWORD}", "http://orthanc-raw:8042/heart-beat" ]
       interval: 10s
@@ -212,6 +218,8 @@ services:
     build:
       context: .
       dockerfile: ./docker/ehr-api/Dockerfile
+      args:
+        <<: *build-args-common
     environment:
       <<: *pixl-db
       <<: *emap-db
@@ -242,10 +250,11 @@ services:
       - pixl-net
 
   pacs-api:
-    container_name: pixl-test-pacs-api
     build:
       context: .
       dockerfile: ./docker/pacs-api/Dockerfile
+      args:
+        <<: *build-args-common
     depends_on:
       queue:
         condition: service_healthy
@@ -259,6 +268,7 @@ services:
       - pixl-net
     environment:
       <<: *pixl-rabbit-mq
+      <<: *proxy-common
       ORTHANC_RAW_USERNAME: ${ORTHANC_RAW_USERNAME}
       ORTHANC_RAW_PASSWORD: ${ORTHANC_RAW_PASSWORD}
       ORTHANC_RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
@@ -288,7 +298,7 @@ services:
         source: postgres-data
         target: /var/lib/postgresql/data
     ports:
-      - "${POSTGRES_PORT}:${PIXL_DB_PORT}"
+      - "${POSTGRES_PORT}:5432"
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "${PIXL_DB_USER}" ]
       interval: 10s
