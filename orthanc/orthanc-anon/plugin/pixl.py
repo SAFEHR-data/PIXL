@@ -122,6 +122,11 @@ def ReceivedInstanceCallback(receivedDicom, origin):
     # Read the bytes as DICOM/
     dataset = dcmread(BytesIO(receivedDicom))
 
+    # Drop anything that is not an X-Ray
+    if dataset.Modality != 'DX':
+        orthanc.LogWarning('Dropping DICOM that is not X-Ray')
+        return orthanc.ReceivedInstanceAction.DISCARD, None
+
     orthanc.LogWarning('***Anonymising received instance***')
     # Rip out all private tags/
     dataset.remove_private_tags()
