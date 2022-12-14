@@ -172,8 +172,8 @@ def _assert_neither_name_in_text(full_name: str, text: str) -> None:
         assert name not in text
 
 
-def test_name_from_exclusion_list_is_removed() -> None:
-    name = "Zebadiah"
+@pytest.mark.parametrize("name", ["Zebadiah", "TOM", "roger"])
+def test_name_from_exclusion_list_is_removed(name: str) -> None:
     assert name not in _remove_any_excluded_words(f"Someone {name} and other")
 
 
