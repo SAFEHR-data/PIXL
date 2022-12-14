@@ -41,6 +41,7 @@ def deidentify_text(text: str) -> str:
         _remove_case_insensitive_patterns,
         _remove_case_sensitive_patterns,
         _remove_any_excluded_words,
+        _remove_any_trailing_tags,
     ):
         text = anonymize_step(text)
 
@@ -73,6 +74,7 @@ def _remove_case_insensitive_patterns(text: str) -> str:
         r"(\d+[\/|:]\d+)",  # Remove any partial dates seperated by : or /
         r"Typed by: ((?:\w+\s?){1,2})",  # Remove one or two words after Typed by
         r"([0-9]{1,2} (?:" + _partial_date_str() + "))",  # Remove partial dates
+        r"([0-9]{1,2}) <DATE_TIME>",  # Remove digits before a Presidio anon datetime
     )
     return re.sub("|".join(patterns), repl="XXX", string=text, flags=re.IGNORECASE)
 
@@ -101,8 +103,8 @@ def _remove_any_excluded_words(text: str) -> str:
     return re.sub("|".join(_exclusions), repl=" XXX ", string=text, flags=re.IGNORECASE)
 
 
-def _num_non_blank_lines(text: str) -> int:
-    return sum(len(line.split()) > 0 for line in text.split("\n"))
+def _remove_any_trailing_tags(text: str) -> str:
+    return re.sub("XXX>", repl="XXX", string=text)
 
 
 def _possible_professions_str() -> str:

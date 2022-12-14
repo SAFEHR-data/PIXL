@@ -18,6 +18,7 @@ from typing import List, Tuple
 
 from pixl_rd.main import (
     _remove_any_excluded_words,
+    _remove_any_trailing_tags,
     _remove_case_insensitive_patterns,
     _remove_case_sensitive_patterns,
     _remove_linebreaks_after_title_case_lines,
@@ -181,3 +182,17 @@ def test_abbreviated_date_is_removed(date_str: str) -> None:
 
     text = f"A sentence {date_str} then other things"
     assert date_str not in _remove_case_insensitive_patterns(text)
+
+
+def test_remove_trailing_tags() -> None:
+
+    text = "A sentence XXX> other things"
+    expected_text = "A sentence XXX other things"
+    assert _remove_any_trailing_tags(text) == expected_text
+
+
+@pytest.mark.parametrize("digits_str", ["14", "01", "7", "31"])
+def test_remove_up_to_two_digits_before_datetime(digits_str: str) -> None:
+
+    text = f"A sentence referring to {digits_str} <DATE_TIME> then other text"
+    assert digits_str not in _remove_case_insensitive_patterns(text)
