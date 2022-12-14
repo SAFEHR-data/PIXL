@@ -26,5 +26,8 @@ setup(
             "*.tests.*",
         ],
     ),
+    package_data={
+        "pixl_rd": ["*.txt"],
+    },
     python_requires=">=3.10",
 )

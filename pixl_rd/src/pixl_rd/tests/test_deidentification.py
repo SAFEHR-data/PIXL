@@ -16,9 +16,15 @@ import os
 from pathlib import Path
 from typing import List, Tuple
 
+from pixl_rd.main import (
+    _remove_any_excluded_words,
+    _remove_any_trailing_tags,
+    _remove_case_insensitive_patterns,
+    _remove_case_sensitive_patterns,
+    _remove_linebreaks_after_title_case_lines,
+    deidentify_text,
+)
 import pytest
-
-from pixl_rd import deidentify_text
 
 THIS_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
 
@@ -76,14 +82,13 @@ def test_block_with_excluded_identifiers_are_removed(id_name: str) -> None:
         "\n"
         f"{footer}"
     )
-    print(anon_text)
 
     assert all(s not in anon_text for s in info)
     assert header in anon_text and footer in anon_text
 
 
-@pytest.mark.skip(reason="Presidio does not remove all the dates correctly")
-@pytest.mark.parametrize("delimiter", ["", " ", "/", "-", ":"])
+# using ":" or " " as a delimiter is not redacted by Presidio
+@pytest.mark.parametrize("delimiter", ["/", "-"])
 def test_possible_dates_are_removed(delimiter: str) -> None:
 
     for day, month, year in [(1, 3, 2019)]:
@@ -97,3 +102,97 @@ def test_possible_dates_are_removed(delimiter: str) -> None:
 
         anon_text = deidentify_text("\n".join(date_strings))
         assert not any(date_string in anon_text for date_string in date_strings)
+
+
+def test_accession_nums_gmc_nhs_email() -> None:
+
+    gmc_number = "12345"
+    email_address = "jon.smith@nhs.net"
+    accession_number = "RRV012734923"
+
+    text = (
+        f"Accession No. {accession_number}. Some other text. "
+        f"GMC: {gmc_number}. X NHS trust {email_address}"
+    )
+    re_anon_text = _remove_case_insensitive_patterns(text)
+
+    for identifier in (gmc_number, email_address, accession_number):
+        assert identifier not in re_anon_text
+
+    assert "Some other text" in deidentify_text(text)  # Need to retain some text
+
+
+def test_linebreaks_are_removed_from_possible_identifying_section() -> None:
+
+    text = "A report.\nJohn Smith\nReporting Radiographer\nOther text after"
+    expected_text = "A report.\nJohn Smith Reporting Radiographer Other text after"
+
+    assert _remove_linebreaks_after_title_case_lines(text) == expected_text
+
+
+@pytest.mark.parametrize("initials", ["JS", "AJ", "AO\t", "ER "])
+def test_initials_are_removed_from_end_of_string(initials: str) -> None:
+
+    text = f"Some text. {initials}"
+    assert initials.strip() not in _remove_case_sensitive_patterns(text)
+
+
+def test_allow_list_is_not_removed_from_sentence() -> None:
+    assert "NG" in deidentify_text("A thing with XR. For NG things")
+
+
+@pytest.mark.parametrize("full_name", ["John Doe-Smith"])
+def test_full_name_with_hypens_is_removed(full_name: str) -> None:
+    _assert_neither_name_in_text(
+        full_name=full_name,
+        text=_remove_case_sensitive_patterns(f"A sentence  {full_name} registrar"),
+    )
+
+
+@pytest.mark.parametrize(
+    "full_name", ["John Doe SMITH", "<PERSON>, SMITH", "SMITH, JOHN", "SMITH, John"]
+)
+def test_full_name_after_signed_by_is_removed(full_name: str) -> None:
+    _assert_neither_name_in_text(
+        full_name=full_name,
+        text=_remove_case_sensitive_patterns(f"Things. Signed by: {full_name}"),
+    )
+
+
+@pytest.mark.parametrize("full_name", ["John SMITH"])
+def test_full_name_after_comma_is_removed(full_name: str) -> None:
+    _assert_neither_name_in_text(
+        full_name=full_name,
+        text=_remove_case_sensitive_patterns(f"Things, {full_name}"),
+    )
+
+
+def _assert_neither_name_in_text(full_name: str, text: str) -> None:
+    for name in full_name.split():
+        assert name not in text
+
+
+@pytest.mark.parametrize("name", ["Zebadiah", "TOM", "roger"])
+def test_name_from_exclusion_list_is_removed(name: str) -> None:
+    assert name not in _remove_any_excluded_words(f"Someone {name} and other")
+
+
+@pytest.mark.parametrize("date_str", ["14 Jun 2022", "1 Jan 2022", "21 March 2022"])
+def test_abbreviated_date_is_removed(date_str: str) -> None:
+
+    text = f"A sentence {date_str} then other things"
+    assert date_str not in _remove_case_insensitive_patterns(text)
+
+
+def test_remove_trailing_tags() -> None:
+
+    text = "A sentence XXX> other things"
+    expected_text = "A sentence XXX other things"
+    assert _remove_any_trailing_tags(text) == expected_text
+
+
+@pytest.mark.parametrize("digits_str", ["14", "01", "7", "31"])
+def test_remove_up_to_two_digits_before_datetime(digits_str: str) -> None:
+
+    text = f"A sentence referring to {digits_str} <DATE_TIME> then other text"
+    assert digits_str not in _remove_case_insensitive_patterns(text)
