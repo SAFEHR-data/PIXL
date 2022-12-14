@@ -110,6 +110,7 @@ def _remove_any_trailing_tags(text: str) -> str:
 def _possible_professions_str() -> str:
     titlecase_professions = [
         "Radiologist",
+        "Professor",
         "Fellow",
         "Radiographer",
         "Radiologist",

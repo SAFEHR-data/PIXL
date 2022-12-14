@@ -7,8 +7,8 @@ and most dates/partial names.
 
 ### Notes
 
-- Linebreaks are not always preserved
-- Presido can identify nouns as names
+- Linebreaks are not always preserved and some partial text overlaps of masks exist
+- Presido identifies nouns as names on occasion
 
 
 ***
