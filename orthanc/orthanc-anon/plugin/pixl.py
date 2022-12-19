@@ -123,7 +123,7 @@ def ReceivedInstanceCallback(receivedDicom, origin):
     dataset = dcmread(BytesIO(receivedDicom))
 
     # Drop anything that is not an X-Ray
-    if not (dataset.Modality == 'DX' or dataset.Modality == 'MR'):
+    if not (dataset.Modality == 'DX' or dataset.Modality == 'CR'):
         orthanc.LogWarning('Dropping DICOM that is not X-Ray')
         return orthanc.ReceivedInstanceAction.DISCARD, None
 
