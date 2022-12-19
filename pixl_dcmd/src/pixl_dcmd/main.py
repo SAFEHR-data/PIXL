@@ -361,7 +361,7 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
 
                     acq_date_time = format_date_time(dataset[grp, el].value)
                     new_date_time = acq_date_time.shift(hours=TIME_OFFSET).format(
-                        "YYYYMMDDD HHmmss.SSSSSS"
+                        "YYYYMMDD HHmmss.SSSSSS"
                     )
                     logging.info(
                         f"\tChanging {name}: {dataset[grp,el].value} -> {new_date_time}"
