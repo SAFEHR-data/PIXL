@@ -99,7 +99,7 @@ def populate(csv_filename: str, queues: str, restart: bool) -> None:
 )
 @click.option(
     "--rate",
-    type=int,
+    type=float,
     default=None,
     help="Rate at which to process items from a queue (in items per second)."
     "If None then will use the default rate defined in the config file",
@@ -122,30 +122,30 @@ def start(queues: str, rate: Optional[int]) -> None:
 )
 @click.option(
     "--rate",
-    type=int,
+    type=float,
     required=True,
     help="Rate at which to process items from a queue (in items per second)",
 )
-def update(queues: str, rate: Optional[int]) -> None:
+def update(queues: str, rate: Optional[float]) -> None:
     """Update one or a list of consumers with a defined rate"""
     _start_or_update_extract(queues=queues.split(","), rate=rate)
 
 
-def _start_or_update_extract(queues: List[str], rate: Optional[int]) -> None:
+def _start_or_update_extract(queues: List[str], rate: Optional[float]) -> None:
     """Start or update the rate of extraction for a list of queue names"""
 
     for queue in queues:
         _update_extract_rate(queue_name=queue, rate=rate)
 
 
-def _update_extract_rate(queue_name: str, rate: Optional[int]) -> None:
+def _update_extract_rate(queue_name: str, rate: Optional[float]) -> None:
     logger.info("Updating the extraction rate")
 
     api_config = api_config_for_queue(queue_name)
 
     if rate is None:
         assert api_config.default_rate is not None
-        rate = int(api_config.default_rate)
+        rate = float(api_config.default_rate)
         logger.info(f"Using the default extract rate of {rate}/second")
 
     logger.debug(f"POST {rate} to {api_config.base_url}")

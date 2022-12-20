@@ -40,3 +40,11 @@ def test_zero_rate() -> None:
     """Test that the refill rate can be set to zero"""
 
     assert TokenBucket(rate=0).rate == 0
+
+
+def test_non_integer_rates_allowed() -> None:
+    assert _is_close(TokenBucket(rate=0.5).rate, 0.5)
+
+
+def _is_close(a: float, b: float) -> bool:
+    return abs(a - b) < 1e-10

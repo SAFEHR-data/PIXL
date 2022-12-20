@@ -61,7 +61,7 @@ async def heart_beat() -> str:
 
 
 class TokenRefreshUpdate(BaseModel):
-    rate: int
+    rate: float
 
 
 @app.post(
@@ -69,13 +69,13 @@ class TokenRefreshUpdate(BaseModel):
 )
 async def update_tb_refresh_rate(item: TokenRefreshUpdate) -> str:
 
-    if not isinstance(item.rate, int) or item.rate < 0:
+    if not isinstance(item.rate, float) or item.rate < 0:
         raise HTTPException(
             status_code=status.HTTP_406_NOT_ACCEPTABLE,
-            detail=f"Refresh rate mush be a positive integer. Had {item.rate}",
+            detail=f"Refresh rate mush be a positive float. Had {item.rate}",
         )
 
-    state.token_bucket.rate = int(item.rate)
+    state.token_bucket.rate = item.rate
     return "Successfully updated the refresh rate"
 
 

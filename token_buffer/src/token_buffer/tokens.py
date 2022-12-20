@@ -29,7 +29,7 @@ class TokenBucket(tb.Limiter):
 
     def __init__(
         self,
-        rate: int = 5,
+        rate: float = 5,
         capacity: int = 5,
         storage: tb.StorageBase = tb.MemoryStorage(),
     ):
@@ -57,13 +57,13 @@ class TokenBucket(tb.Limiter):
         return not self._zero_rate and bool(self.consume(self.key))
 
     @property
-    def rate(self) -> int:
+    def rate(self) -> float:
         """Rate in items per second"""
-        return 0 if self._zero_rate else int(self._rate)
+        return 0 if self._zero_rate else float(self._rate)
 
     @rate.setter
-    def rate(self, value: int) -> None:
-        if not isinstance(value, int):
+    def rate(self, value: float) -> None:
+        if not isinstance(value, float):
             raise ValueError("Cannot set the rate with a non integer value")
 
         if value == 0:
