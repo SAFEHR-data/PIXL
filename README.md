@@ -68,6 +68,22 @@ From the _PIXL_ directory:
 bin/down.sh
 ```
 
+## Analysis
+
+The number of DICOM instances in the raw Orthanc instance can be accessed from
+`http://<pixl_host>:<ORTHANC_RAW_WEB_PORT>/ui/app/#/settings` and similarly with 
+the Orthanc Anon instance, where `pixl_host` is the host of the PIXL services
+and `ORTHANC_RAW_WEB_PORT` is defined in `.env`.
+
+The number of reports and EHR can be interrogated by connecting to the PIXL 
+database with a database client (e.g. [DBeaver](https://dbeaver.io/)), using 
+the connection parameters defined in `.env`. For example, to find the number of 
+non-null reports
+
+```sql
+select count(*) from emap_data.ehr_anon where xray_report is not null;
+```
+
 
 ## Develop
 See each service's README for instructions for individual developing and testing instructions. 
