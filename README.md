@@ -45,6 +45,9 @@ You can leave them blank for other dev work.
 - `PIXL_DB_`*  
 These are credentials for the containerised PostgreSQL service and are set in the official PostgreSQL image.   
 Use a strong password for `prod` deployment but the only requirement for other environments is consistency as several services interact with the database.
+- `PIXL_EHR_API_AZ_`*
+These credentials are used for uploading a PIXL database to Azure blob storage. They should be for a service principal that has `Storage Blob Data Contributor`
+on the target storage account. The storage account must also allow network access from the PIXL host machine.
 
 #### Ports
 Most services need to expose ports that must be mapped to ports on the host. The host port is specified in `.env`  
