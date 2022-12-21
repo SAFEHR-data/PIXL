@@ -162,6 +162,38 @@ def format_date_time(a_date_time: str) -> Any:
     return combine_date_time(a_date, a_time)
 
 
+def enforce_whitelist(dataset: dict, tags: dict) -> dict:
+    """Delete any tags not in the tagging scheme."""
+
+    # For every element:
+
+    for de in dataset:
+
+        keep_el = False
+        # For every entry in the YAML:
+        for i in range(0, len(tags)):
+
+            grp = tags[i]["group"]
+            el = tags[i]["element"]
+            op = tags[i]["op"]
+
+            if de.tag.group == grp and de.tag.element == el:
+                if op != "delete":
+                    keep_el = True
+
+        if not keep_el:
+            del_grp = de.tag.group
+            del_el = de.tag.element
+
+            del dataset[del_grp, del_el]
+            message = "Whitelist - deleting: {name} (0x{grp:04x},0x{el:04x})".format(
+                name=de.keyword, grp=del_grp, el=del_el
+            )
+            logging.info(f"\t{message}")
+
+    return dataset
+
+
 def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
     """Apply anoymisation operations for a given set of tags to a dataset"""
 

@@ -587,3 +587,7 @@
   group: 0x0010
   element: 0x21c0
   op: "delete" 
+- name: "Pixel Data"
+  group: 0x7fe0
+  element: 0x0010
+  op: "keep" 
