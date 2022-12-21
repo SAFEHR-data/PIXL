@@ -142,7 +142,9 @@ def ReceivedInstanceCallback(receivedDicom, origin):
         tags = yaml.safe_load(file)
         # Apply scheme to instance
         dataset = pixl_dcmd.apply_tag_scheme(dataset,tags)
-    
+        # Apply whitelist
+        dataset = pixl_dcmd.enforce_whitelist(dataset,tags)
+
     # Write anoymised instance to disk.
     return orthanc.ReceivedInstanceAction.MODIFY, pixl_dcmd.write_dataset_to_bytes(dataset)
 
