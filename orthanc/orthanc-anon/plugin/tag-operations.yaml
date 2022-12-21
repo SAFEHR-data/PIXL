@@ -567,3 +567,23 @@
   group: 0x0010
   element: 0x2160
   op: "delete"
+- name: "Physicians Of Record"
+  group: 0x0008
+  element: 0x1048
+  op: "delete"
+- name: "Name Of Physicians Reading Study"
+  group: 0x0008
+  element: 0x1060
+  op: "delete"
+- name: "Device Serial Number"
+  group: 0x0018
+  element: 0x1000
+  op: "delete"
+- name: "Additional Patient History"
+  group: 0x0010
+  element: 0x21b0
+  op: "delete" 
+- name: "Pregnancy Status"
+  group: 0x0010
+  element: 0x21c0
+  op: "delete" 
