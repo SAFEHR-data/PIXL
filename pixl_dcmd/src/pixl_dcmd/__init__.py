@@ -13,11 +13,21 @@
 #  limitations under the License.
 import logging
 
-from pixl_dcmd.main import apply_tag_scheme, remove_overlays, write_dataset_to_bytes, enforce_whitelist
+from pixl_dcmd.main import (
+    apply_tag_scheme,
+    enforce_whitelist,
+    remove_overlays,
+    write_dataset_to_bytes,
+)
 
 from ._version import __version__, __version_info__
 
-__all__ = ["remove_overlays", "write_dataset_to_bytes", "apply_tag_scheme", "enforce_whitelist"]
+__all__ = [
+    "remove_overlays",
+    "write_dataset_to_bytes",
+    "apply_tag_scheme",
+    "enforce_whitelist",
+]
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)

@@ -173,7 +173,6 @@ def enforce_whitelist(dataset: dict, tags: dict) -> dict:
         # For every entry in the YAML:
         for i in range(0, len(tags)):
 
-            name = tags[i]["name"]
             grp = tags[i]["group"]
             el = tags[i]["element"]
             op = tags[i]["op"]
