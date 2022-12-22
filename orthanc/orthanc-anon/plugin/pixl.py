@@ -19,6 +19,7 @@ from pydicom import dcmread, dcmwrite
 from pydicom.filebase import DicomFileLike
 
 import hashlib
+import json
 import orthanc
 import pprint
 import requests
@@ -45,7 +46,7 @@ def AzureDICOMTokenRefresh():
     AZ_DICOM_ENDPOINT_NAME = config('AZ_DICOM_ENDPOINT_NAME')
     AZ_DICOM_ENDPOINT_TENANT_ID = config('AZ_DICOM_ENDPOINT_TENANT_ID')
     AZ_DICOM_ENDPOINT_URL = config('AZ_DICOM_ENDPOINT_URL')
-    AZ_DICOM_HTTP_TIMEOUT = config('HTTP_TIMEOUT')
+    AZ_DICOM_HTTP_TIMEOUT = int(config('HTTP_TIMEOUT'))
 
     url = "https://login.microsoft.com/" + AZ_DICOM_ENDPOINT_TENANT_ID \
     + "/oauth2/token"
@@ -69,7 +70,6 @@ def AzureDICOMTokenRefresh():
 
     dicomweb_config = {
         "Url" : AZ_DICOM_ENDPOINT_URL,
-        "ChunkedTransfers" : 'false',
         "HttpHeaders" : {
           "Authorization" : bearer_str,
         },
@@ -78,10 +78,12 @@ def AzureDICOMTokenRefresh():
 
     #logging.info(f"{dicomweb_config}")
 
+    headers = {'content-type': 'application/json'}
+
     url = "http://localhost:8042/dicom-web/servers/" + AZ_DICOM_ENDPOINT_NAME
 
     try:
-        requests.post(url, auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD), data=dicomweb_config)
+        requests.put(url, auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD), headers=headers, data=json.dumps(dicomweb_config))
     except requests.exceptions.RequestException as e:
         orthanc.LogError("Failed to update DICOMweb token")
         raise SystemExit(e)
