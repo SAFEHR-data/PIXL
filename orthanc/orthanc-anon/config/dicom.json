@@ -73,7 +73,7 @@
   "DicomCheckModalityHost" : false,
 
   "DicomWeb" : {
-    "ServersInDatabase" : true ,
+    //"ServersInDatabase" : true ,
     "Ssl" : true
   }
 }
