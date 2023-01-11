@@ -20,7 +20,8 @@ services being up
 from datetime import datetime
 from typing import List
 
-from patient_queue.utils import env_var, serialise
+from decouple import config
+from patient_queue.utils import serialise
 from pixl_ehr._databases import PIXLDatabase, WriteableDatabase
 from pixl_ehr._processing import process_message
 from psycopg2.errors import UniqueViolation
@@ -61,13 +62,13 @@ message_body = serialise(
 class WritableEMAPStar(WriteableDatabase):
     def __init__(self) -> None:
         super().__init__(
-            db_name=env_var("EMAP_UDS_NAME"),
-            username=env_var("EMAP_UDS_USER"),
-            password=env_var("EMAP_UDS_PASSWORD"),
-            host=env_var("EMAP_UDS_HOST"),
+            db_name=config("EMAP_UDS_NAME"),
+            username=config("EMAP_UDS_USER"),
+            password=config("EMAP_UDS_PASSWORD"),
+            host=config("EMAP_UDS_HOST"),
         )
 
-        if env_var("EMAP_UDS_HOST") != "star":
+        if config("EMAP_UDS_HOST") != "star":
             raise RuntimeError(
                 "It looks like the host was not a docker-compose "
                 "created service. Cannot create a writable EMAPStar"

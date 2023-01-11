@@ -20,7 +20,8 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from patient_queue.utils import deserialise, env_var
+from patient_queue.utils import deserialise
+from decouple import config
 from pixl_ehr._databases import EMAPStar, PIXLDatabase
 from pixl_ehr._queries import SQLQuery
 import requests
@@ -176,7 +177,7 @@ class SetAgeSexEthnicity(EMAPStep):
         query = SQLQuery(
             filepath=Path(_this_dir, "sql/mrn_to_DOB_sex_ethnicity.sql"),
             context={
-                "schema_name": env_var("EMAP_UDS_SCHEMA_NAME"),
+                "schema_name": config("EMAP_UDS_SCHEMA_NAME"),
                 "mrn": data.mrn,
                 "window_midpoint": data.acquisition_datetime,
             },
@@ -224,7 +225,7 @@ class SetVOT(EMAPStep, ABC):
         query = SQLQuery(
             filepath=Path(_this_dir, "sql/mrn_timewindow_to_observationtype.sql"),
             context={
-                "schema_name": env_var("EMAP_UDS_SCHEMA_NAME"),
+                "schema_name": config("EMAP_UDS_SCHEMA_NAME"),
                 "mrn": data.mrn,
                 "observation_type": self.emap_name,
                 "window_start": self.time_window_start(
@@ -275,7 +276,7 @@ class SetReport(EMAPStep):
         query = SQLQuery(
             filepath=Path(_this_dir, "sql/mrn_accession_to_report.sql"),
             context={
-                "schema_name": env_var("EMAP_UDS_SCHEMA_NAME"),
+                "schema_name": config("EMAP_UDS_SCHEMA_NAME"),
                 "mrn": data.mrn,
                 "accession_number": data.accession_number,
             },

@@ -18,9 +18,10 @@ services being up
 from datetime import datetime
 import os
 
-from patient_queue.utils import env_var, serialise
+from patient_queue.utils import serialise
 from pixl_pacs._orthanc import Orthanc, PIXLRawOrthanc
 from pixl_pacs._processing import ImagingStudy, process_message
+from decouple import config
 from pydicom import dcmread
 from pydicom.data import get_testdata_file
 import pytest
@@ -57,8 +58,8 @@ def add_image_to_fake_vna(image_filename: str = "test.dcm") -> None:
 
     vna = WritableOrthanc(
         url="http://vna-qr:8042",
-        username=env_var("ORTHANC_VNA_USERNAME"),
-        password=env_var("ORTHANC_VNA_PASSWORD"),
+        username=config("ORTHANC_VNA_USERNAME"),
+        password=config("ORTHANC_VNA_PASSWORD"),
     )
     vna.upload(image_filename)
 

@@ -13,8 +13,7 @@
 #  limitations under the License.
 import logging
 from typing import List, Optional
-
-from patient_queue.utils import env_var
+from decouple import config
 from pixl_ehr._queries import SQLQuery
 import psycopg2 as pypg
 
@@ -71,10 +70,10 @@ class WriteableDatabase(Database):
 class EMAPStar(QueryableDatabase):
     def __init__(self) -> None:
         super().__init__(
-            db_name=env_var("EMAP_UDS_NAME"),
-            username=env_var("EMAP_UDS_USER"),
-            password=env_var("EMAP_UDS_PASSWORD"),
-            host=env_var("EMAP_UDS_HOST"),
+            db_name=config("EMAP_UDS_NAME"),
+            username=config("EMAP_UDS_USER"),
+            password=config("EMAP_UDS_PASSWORD"),
+            host=config("EMAP_UDS_HOST"),
         )
 
     def __repr__(self) -> str:
@@ -84,10 +83,10 @@ class EMAPStar(QueryableDatabase):
 class PIXLDatabase(WriteableDatabase):
     def __init__(self) -> None:
         super().__init__(
-            db_name=env_var("PIXL_DB_NAME"),
-            username=env_var("PIXL_DB_USER"),
-            password=env_var("PIXL_DB_PASSWORD"),
-            host=env_var("PIXL_DB_HOST"),
+            db_name=config("PIXL_DB_NAME"),
+            username=config("PIXL_DB_USER"),
+            password=config("PIXL_DB_PASSWORD"),
+            host=config("PIXL_DB_HOST"),
         )
 
     def __repr__(self) -> str:
