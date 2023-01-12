@@ -14,7 +14,6 @@
 from datetime import datetime
 import json
 import logging
-import os
 
 logger = logging.getLogger(__name__)
 
@@ -45,13 +44,3 @@ def serialise(mrn: str, accession_number: str, study_datetime: datetime) -> byte
             "study_datetime": study_datetime.isoformat(),
         }
     ).encode("utf-8")
-
-
-def env_var(key: str) -> str:
-    """Get an environment variable and raise a helpful exception if it's not set"""
-
-    if (value := os.environ.get(key, None)) is None:
-        raise RuntimeError(
-            f"Failed to find ${key}. Ensure it is set as an environment variable"
-        )
-    return str(value)

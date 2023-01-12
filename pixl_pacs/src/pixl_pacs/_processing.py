@@ -18,7 +18,8 @@ import logging
 import os
 from time import time
 
-from patient_queue.utils import deserialise, env_var
+from patient_queue.utils import deserialise
+from decouple import config
 from pixl_pacs._orthanc import Orthanc, PIXLRawOrthanc
 
 logger = logging.getLogger("uvicorn")
@@ -36,7 +37,7 @@ async def process_message(message_body: bytes) -> None:
         return
 
     query_id = orthanc_raw.query_remote(
-        study.orthanc_query_dict, modality=env_var("VNAQR_MODALITY")
+        study.orthanc_query_dict, modality=config("VNAQR_MODALITY")
     )
     if query_id is None:
         logger.error(f"Failed to find {study} in the VNA")
@@ -48,10 +49,10 @@ async def process_message(message_body: bytes) -> None:
 
     while job_state != "Success":
 
-        if (time() - start_time) > float(env_var("PIXL_DICOM_TRANSFER_TIMEOUT")):
+        if (time() - start_time) > float(config("PIXL_DICOM_TRANSFER_TIMEOUT")):
             raise TimeoutError(
                 f"Failed to transfer {message_body.decode()} within "
-                f"{env_var('PIXL_PACS_TRANSFER_TIMEOUT')} secounds"
+                f"{config('PIXL_PACS_TRANSFER_TIMEOUT')} secounds"
             )
 
         await sleep(0.1)

@@ -16,8 +16,8 @@ from json import JSONDecodeError
 import logging
 from typing import Any, Optional
 
-from patient_queue.utils import env_var
 import requests
+from decouple import config
 from requests.auth import HTTPBasicAuth
 
 logger = logging.getLogger("uvicorn")
@@ -96,10 +96,10 @@ class PIXLRawOrthanc(Orthanc):
     def __init__(self) -> None:
         super().__init__(
             url="http://orthanc-raw:8042",
-            username=env_var("ORTHANC_RAW_USERNAME"),
-            password=env_var("ORTHANC_RAW_PASSWORD"),
+            username=config("ORTHANC_RAW_USERNAME"),
+            password=config("ORTHANC_RAW_PASSWORD"),
         )
 
     @property
     def aet(self) -> str:
-        return str(env_var("ORTHANC_RAW_AE_TITLE"))
+        return str(config("ORTHANC_RAW_AE_TITLE"))

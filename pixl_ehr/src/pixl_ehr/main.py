@@ -20,7 +20,7 @@ from azure.storage.blob import BlobServiceClient
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
 from patient_queue.subscriber import PixlConsumer
-from patient_queue.utils import env_var
+from decouple import config
 from pixl_ehr._databases import PIXLDatabase
 from pixl_ehr._processing import process_message
 from pydantic import BaseModel
@@ -102,16 +102,16 @@ async def az_copy_current(csv_filename: str = "tmp_extract.csv") -> None:
         account_url=_storage_account_url(),
         credential=EnvironmentCredential(),
     )
-    logger.debug(f"Have blob client for {env_var('AZ_STORAGE_ACCOUNT_NAME')}")
+    logger.debug(f"Have blob client for {config('AZ_STORAGE_ACCOUNT_NAME')}")
 
     # Create a blob client using the local file name as the name for the blob
     blob_client = blob_service_client.get_blob_client(
-        container=env_var("AZ_STORAGE_CONTAINER_NAME"), blob=csv_filename
+        container=config("AZ_STORAGE_CONTAINER_NAME"), blob=csv_filename
     )
 
     logger.info(
         f"Uploading to Azure Storage as blob: "
-        f"{env_var('AZ_STORAGE_CONTAINER_NAME')}/{csv_filename}"
+        f"{config('AZ_STORAGE_CONTAINER_NAME')}/{csv_filename}"
     )
 
     with open(file=csv_filename, mode="rb") as data:
@@ -121,4 +121,4 @@ async def az_copy_current(csv_filename: str = "tmp_extract.csv") -> None:
 
 
 def _storage_account_url() -> str:
-    return f"https://{env_var('AZ_STORAGE_ACCOUNT_NAME')}.blob.core.windows.net"
+    return f"https://{config('AZ_STORAGE_ACCOUNT_NAME')}.blob.core.windows.net"
