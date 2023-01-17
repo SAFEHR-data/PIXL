@@ -19,4 +19,7 @@ BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="${BIN_DIR%/*}"
 COMPOSE_FILE="${PROJECT_DIR}/docker-compose.yml"
 
-exec docker compose -f ${COMPOSE_FILE} down "${@}"
+PROJECT_NAME=$1
+shift;  # pop the first item from the list of arguments
+
+exec docker compose -f "${COMPOSE_FILE}" -p"${PROJECT_NAME}" down "${@}"
