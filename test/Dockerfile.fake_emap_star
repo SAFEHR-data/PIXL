@@ -35,7 +35,7 @@ RUN apt-get update && \
 RUN sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 
 # Create .sql file that will be used to initallly populate the database
-RUN git clone --depth 1 --branch ${TAG} https://github.com/UCLH-DIF/Satellite.git && \
+RUN git clone --depth 1 --branch ${TAG} https://github.com/UCLH-Foundry/Satellite.git && \
     pip install --no-cache-dir --upgrade pip==22.3.1 && \
     pip install --no-cache-dir -r Satellite/requirements.txt
 

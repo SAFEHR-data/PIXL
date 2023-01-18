@@ -19,7 +19,7 @@ setup(
     name="pixl_ehr",
     version=__version__,  # noqa: F821
     author="Tom Young",
-    url="https://github.com/UCLH-DIF/PIXL",
+    url="https://github.com/UCLH-Foundry/PIXL",
     description="PIXL electronic health record extractor",
     packages=find_packages(
         exclude=["*tests", "*.tests.*"],

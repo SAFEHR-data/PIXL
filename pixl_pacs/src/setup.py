@@ -19,7 +19,7 @@ setup(
     name="pixl_pacs",
     version=__version__,  # noqa: F821
     author="Tom Young",
-    url="https://github.com/UCLH-DIF/PIXL",
+    url="https://github.com/UCLH-Foundry/PIXL",
     description="PIXL image extractor",
     packages=find_packages(
         exclude=["*tests", "*.tests.*"],
