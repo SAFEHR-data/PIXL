@@ -20,7 +20,7 @@ setup(
     version=__version__,  # noqa: F821
     packages=find_packages("."),
     author="Tom Young",
-    url="https://github.com/UCLH-DIF/PIXL",
+    url="https://github.com/UCLH-Foundry/PIXL",
     entry_points={"console_scripts": ["pixl = pixl_cli.main:cli"]},
     description="Command line interaction with PIXL",
 )
