@@ -159,6 +159,7 @@ def ReceivedInstanceCallback(receivedDicom, origin):
         orthanc.LogWarning('Dropping DICOM that is not X-Ray')
         return orthanc.ReceivedInstanceAction.DISCARD, None
 
+    # Attempt to anonymise and drop the study if any exceptions occur
     try:
         return AnonymiseCallback(dataset)
     except:
