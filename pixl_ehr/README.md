@@ -14,7 +14,6 @@ all the associated PIXL pip packages found at the repo root.
 
 Usage should be from the CLI driver, which interacts with the endpoint.
 
-
 ## Notes
 
 - The height/weight/GCS value is extracted only within a 24 h time window
