@@ -119,7 +119,6 @@ def SendViaStow(resourceId):
     except requests.exceptions.RequestException as e:
         orthanc.LogError("Failed to send via STOW")
 
-
 def ShouldAutoRoute():
     return os.environ.get("ORTHANC_AUTOROUTE_ANON_TO_AZURE", "false").lower() == "true"
 
@@ -159,6 +158,16 @@ def ReceivedInstanceCallback(receivedDicom, origin):
     if not (dataset.Modality == 'DX' or dataset.Modality == 'CR'):
         orthanc.LogWarning('Dropping DICOM that is not X-Ray')
         return orthanc.ReceivedInstanceAction.DISCARD, None
+
+    # Attempt to anonymise and drop the study if any exceptions occur
+    try:
+        return AnonymiseCallback(dataset)
+    except:
+        orthanc.LogWarning('Failed to anonymize study')
+        return orthanc.ReceivedInstanceAction.DISCARD, None
+
+
+def AnonymiseCallback(dataset):
 
     orthanc.LogWarning('***Anonymising received instance***')
     # Rip out all private tags/

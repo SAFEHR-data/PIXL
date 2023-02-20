@@ -90,7 +90,7 @@ async def get_tb_refresh_rate() -> BaseModel:
     "/az-copy-current",
     summary="Copy the current state of the PIXL anon EHR schema to azure",
 )
-async def az_copy_current(csv_filename: str = "tmp_extract.csv") -> None:
+async def az_copy_current(csv_filename: str = "extract.csv") -> None:
     logger.info("Copying current state of anon schema to azure")
 
     PIXLDatabase().to_csv(
