@@ -17,10 +17,10 @@ import logging
 
 from azure.identity import EnvironmentCredential
 from azure.storage.blob import BlobServiceClient
+from decouple import config
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import JSONResponse
 from patient_queue.subscriber import PixlConsumer
-from decouple import config
 from pixl_ehr._databases import PIXLDatabase
 from pixl_ehr._processing import process_message
 from pydantic import BaseModel

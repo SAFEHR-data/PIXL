@@ -13,6 +13,7 @@
 #  limitations under the License.
 import logging
 from typing import List, Optional
+
 from decouple import config
 from pixl_ehr._queries import SQLQuery
 import psycopg2 as pypg
