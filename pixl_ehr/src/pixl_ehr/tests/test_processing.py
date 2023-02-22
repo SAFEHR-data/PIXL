@@ -148,7 +148,7 @@ def insert_data_into_emap_star_schema() -> None:
     insert_row_into_emap_star_schema(
         "lab_test_definition",
         ["lab_test_definition_id", "test_lab_code"],
-        [ltd_id, "TEXT"],
+        [ltd_id, "NARRATIVE"],
     )
     insert_row_into_emap_star_schema(
         "lab_sample",
