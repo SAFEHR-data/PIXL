@@ -145,12 +145,24 @@ def combine_date_time(a_date: str, a_time: str) -> Any:
 
     # TODO: Should Timezone be hardcoded?
     tz = "Europe/London"
-    new_date_time = arrow.get(date_time_str, tzinfo=tz)
+
+    try:
+        new_date_time = arrow.get(date_time_str, tzinfo=tz)
+    except arrow.parser.ParserError:
+        logging.error(
+            f"Failed to parse the datetime string '{date_time_str}'"
+            f"defaulting to the start of unix time"
+        )
+        new_date_time = arrow.get("1970-01-01T00:00:00+00:00")
+
     return new_date_time
 
 
 def format_date_time(a_date_time: str) -> Any:
     """Turn date-time string into arrow object."""
+
+    if "." not in a_date_time:
+        a_date_time += ".000000"
 
     if a_date_time[8] != " ":
         a_date_time = a_date_time[0:8] + " " + a_date_time[8:]
@@ -410,7 +422,7 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
                 dataset[grp, el].value = ""
 
         # Enforce a numerical range.
-        elif op == "num-range":
+        elif op == "num-range" and [grp, el] in dataset:
             if grp == 0x0010 and el == 0x1010:
                 new_age = get_bounded_age(dataset[grp, el].value)
                 logging.info(

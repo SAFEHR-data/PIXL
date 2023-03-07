@@ -41,7 +41,7 @@ class PixlConsumer(PixlQueueInterface):
 
     async def __aenter__(self) -> "PixlConsumer":
         """Establishes connection to queue."""
-        self._connection = await aio_pika.connect(self._url)
+        self._connection = await aio_pika.connect_robust(self._url)
         self._channel = await self._connection.channel()
         self._queue = await self._channel.declare_queue(self.queue_name)
         return self
@@ -55,21 +55,29 @@ class PixlConsumer(PixlQueueInterface):
         """
         async with self._queue.iterator() as queue_iter:
             async for message in queue_iter:
+
+                if not self.token_bucket.has_token:
+                    await asyncio.gather(
+                        message.reject(requeue=True),
+                        asyncio.sleep(1e-3),
+                    )
+                    continue
+
+                # Messages need to be acknowledged before a callback otherwise
+                # RabbitMQ can close the connection. As all messages that raise
+                # exceptions aren't returned to the queue we're safe to do this
+                await message.ack()
+
                 try:
-                    if self.token_bucket.has_token:
-                        await asyncio.gather(
-                            callback(message.body),
-                            asyncio.sleep(1e-3),  # Avoid very fast callbacks
-                        )
-                        await message.ack()
-                    else:
-                        await message.reject(requeue=True)
+                    await asyncio.gather(
+                        callback(message.body),
+                        asyncio.sleep(1e-3),  # Avoid very fast callbacks
+                    )
                 except Exception as e:  # noqa
                     LOGGER.error(
                         f"Failed to process {message.body.decode()} due to\n{e}\n"
                         f"Not re-queuing message"
                     )
-                    await message.reject(requeue=False)
 
     async def __aexit__(self, *args: Any, **kwargs: Any) -> None:
         """Requirement for the asynchronous context manager"""

@@ -12,6 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 import os
+import traceback
 from decouple import config
 from io import BytesIO
 
@@ -162,8 +163,8 @@ def ReceivedInstanceCallback(receivedDicom, origin):
     # Attempt to anonymise and drop the study if any exceptions occur
     try:
         return AnonymiseCallback(dataset)
-    except:
-        orthanc.LogWarning('Failed to anonymize study')
+    except Exception as e:
+        orthanc.LogWarning('Failed to anonymize study due to\n' + traceback.format_exc())
         return orthanc.ReceivedInstanceAction.DISCARD, None
 
 

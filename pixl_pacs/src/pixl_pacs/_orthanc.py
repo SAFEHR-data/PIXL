@@ -49,7 +49,11 @@ class Orthanc(ABC):
         """Query a particular modality, available from this node"""
         logger.debug(f"Running query on modality: {modality} with {data}")
 
-        response = self._post(f"/modalities/{modality}/query", data=data)
+        response = self._post(
+            f"/modalities/{modality}/query",
+            data=data,
+            timeout=config("PIXL_QUERY_TIMEOUT", default=10, cast=float)
+        )
         logger.debug(f"Query response: {response}")
 
         if len(self._get(f"/queries/{response['ID']}/answers")) > 0:
@@ -71,9 +75,9 @@ class Orthanc(ABC):
     def _get(self, path: str) -> Any:
         return _deserialise(requests.get(f"{self._url}{path}", auth=self._auth))
 
-    def _post(self, path: str, data: dict) -> Any:
+    def _post(self, path: str, data: dict, timeout: Optional[float] = None) -> Any:
         return _deserialise(
-            requests.post(f"{self._url}{path}", json=data, auth=self._auth)
+            requests.post(f"{self._url}{path}", json=data, auth=self._auth, timeout=timeout)
         )
 
 
