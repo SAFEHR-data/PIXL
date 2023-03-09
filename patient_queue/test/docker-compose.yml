@@ -17,6 +17,10 @@ version: "3.8"
 services:
 
   queue:
+    container_name: pixl-test-queue
+    build:
+      context: ../..
+      dockerfile: docker/queue/Dockerfile
     image: rabbitmq:3.11.2-management
     environment:
       RABBITMQ_DEFAULT_USER: guest

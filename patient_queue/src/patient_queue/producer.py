@@ -13,8 +13,8 @@
 #  limitations under the License.
 
 import logging
-from typing import List
 from time import sleep
+from typing import List
 
 from patient_queue._base import PixlBlockingInterface
 
