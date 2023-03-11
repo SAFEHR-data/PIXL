@@ -17,6 +17,7 @@ import logging
 from os import PathLike
 import re
 from typing import Any, BinaryIO, Union
+from random import randint
 
 import arrow
 from decouple import config
@@ -151,9 +152,10 @@ def combine_date_time(a_date: str, a_time: str) -> Any:
     except arrow.parser.ParserError:
         logging.error(
             f"Failed to parse the datetime string '{date_time_str}'"
-            f"defaulting to the start of unix time"
+            f"falling back to a random time in 1970"
         )
         new_date_time = arrow.get("1970-01-01T00:00:00+00:00")
+        new_date_time = new_date_time.shift(seconds=randint(10**2, 10**7))
 
     return new_date_time
 

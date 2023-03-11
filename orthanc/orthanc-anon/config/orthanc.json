@@ -6,7 +6,7 @@
     },
 
   // Limit the maximum number of instances
-  "MaximumPatientCount": "1200",
+  "MaximumPatientCount": 1200,
 
   // Path to the directory that holds the heavyweight files (i.e. the
   // raw DICOM instances). Backslashes must be either escaped by
