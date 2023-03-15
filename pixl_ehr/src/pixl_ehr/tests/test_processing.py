@@ -76,7 +76,7 @@ class WritableEMAPStar(WriteableDatabase):
 
 
 class QueryablePIXLDB(PIXLDatabase):
-    def execute(self, query: str, values: list) -> tuple:
+    def execute_query_string(self, query: str, values: list) -> tuple:
         self._cursor.execute(query=query, vars=values)
         row = self._cursor.fetchone()
         return tuple(row)
@@ -164,7 +164,9 @@ async def test_message_processing() -> None:
     await process_message(message_body)
 
     pixl_db = QueryablePIXLDB()
-    row = pixl_db.execute("select * from emap_data.ehr_raw where mrn = %s", [mrn])
+    row = pixl_db.execute_query_string(
+        "select * from emap_data.ehr_raw where mrn = %s", [mrn]
+    )
 
     expected_row = [
         mrn,
@@ -184,7 +186,9 @@ async def test_message_processing() -> None:
 
         assert value == expected_value
 
-    anon_row = pixl_db.execute("select * from emap_data.ehr_anon where gcs = %s", [gcs])
+    anon_row = pixl_db.execute_query_string(
+        "select * from emap_data.ehr_anon where gcs = %s", [gcs]
+    )
     anon_mrn, anon_accession_number = anon_row[:2]
     assert anon_mrn != mrn
     assert anon_accession_number != accession_number

@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 import logging
-from typing import List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Optional
 
 from decouple import config
 from pixl_ehr._queries import SQLQuery
@@ -110,7 +110,7 @@ class PIXLDatabase(WriteableDatabase, QueryableDatabase):
         """Does the database contain a set of data already?"""
 
         query = (
-            f"SELECT * FROM emap_data.ehr_raw WHERE mrn = %s and accession_number = %s"
+            "SELECT * FROM emap_data.ehr_raw WHERE mrn = %s and accession_number = %s"
         )
         self._cursor.execute(query=str(query), vars=[data.mrn, data.accession_number])
         return self._cursor.fetchone() is not None

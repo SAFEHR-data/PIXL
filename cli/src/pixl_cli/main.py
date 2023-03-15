@@ -349,4 +349,9 @@ def api_config_for_queue(queue_name: str) -> APIConfig:
 
 
 def study_date_from_serialised(message: bytes) -> datetime:
-    return deserialise(message)["study_datetime"]
+    try:
+        result = deserialise(message)["study_datetime"]
+        assert isinstance(result, datetime)
+        return result
+    except (AssertionError, KeyError):
+        raise AssertionError("Failed to get the study date from the message")
