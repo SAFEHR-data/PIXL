@@ -138,12 +138,12 @@ def insert_data_into_emap_star_schema() -> None:
     insert_visit_observation(type_id=gcs_vot_id, value=float(gcs))
 
     insert_row_into_emap_star_schema(
-        "lab_order", ["lab_order_id", "lab_sample_id"], [lo_id, ls_id]
+        "lab_sample",
+        ["lab_sample_id", "external_lab_number", "mrn_id"],
+        [ls_id, accession_number, mrn_id],
     )
     insert_row_into_emap_star_schema(
-        "lab_result",
-        ["lab_result_id", "lab_order_id", "lab_test_definition_id", "value_as_text"],
-        [lr_id, lo_id, ltd_id, report_text],
+        "lab_order", ["lab_order_id", "lab_sample_id"], [lo_id, ls_id]
     )
     insert_row_into_emap_star_schema(
         "lab_test_definition",
@@ -151,9 +151,9 @@ def insert_data_into_emap_star_schema() -> None:
         [ltd_id, "NARRATIVE"],
     )
     insert_row_into_emap_star_schema(
-        "lab_sample",
-        ["lab_sample_id", "external_lab_number", "mrn_id"],
-        [ls_id, accession_number, mrn_id],
+        "lab_result",
+        ["lab_result_id", "lab_order_id", "lab_test_definition_id", "value_as_text"],
+        [lr_id, lo_id, ltd_id, report_text],
     )
 
 

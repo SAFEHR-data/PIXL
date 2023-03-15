@@ -45,7 +45,7 @@ services:
       PIXL_DB_PASSWORD: postgres
       PIXL_DB_EHR_SCHEMA_NAME: emap_data
       EMAP_UDS_HOST: star
-      EMAP_UDS_NAME: postgres  # database name
+      EMAP_UDS_NAME: emap  # database name
       EMAP_UDS_USER: postgres
       EMAP_UDS_PASSWORD: postgres
       EMAP_UDS_SCHEMA_NAME: star
@@ -92,6 +92,8 @@ services:
       dockerfile: ../../test/Dockerfile.fake_emap_star
       args:
         N_TABLE_ROWS: 2
+        INFORMDB_PAT: ${INFORMDB_PAT}
+
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
       interval: 10s
