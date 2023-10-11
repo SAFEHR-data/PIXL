@@ -12,13 +12,11 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+import os
+
 import pytest
 
-import hasher.hashing
-
-pytest_plugins = [
-    "hasher.tests.fixtures",
-]
+os.environ["ENV"] = "test"
 
 
 @pytest.fixture
@@ -26,4 +24,6 @@ def dummy_key(monkeypatch):
     """
     Fixture to set up a dummy key to use for hashing tests
     """
+    import hasher.hashing
+
     monkeypatch.setattr(hasher.hashing, "fetch_key_from_vault", lambda: "test-key")
