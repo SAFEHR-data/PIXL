@@ -38,6 +38,12 @@ async def process_message(message_body: bytes) -> None:
     logger.info(f"Processing: {message_body.decode()}")
 
     raw_data = PatientEHRData.from_message(message_body)
+    pixl_db = PIXLDatabase()
+
+    if pixl_db.contains(raw_data):
+        logger.info("Messaged has already been processed")
+        return
+
     emap_star_db = EMAPStar()
 
     pipeline = ProcessingPipeline(
@@ -48,8 +54,6 @@ async def process_message(message_body: bytes) -> None:
         SetReport(emap_star_db),
     )
     raw_data.update_using(pipeline)
-
-    pixl_db = PIXLDatabase()
 
     raw_data.persist(pixl_db, schema_name="emap_data", table_name="ehr_raw")
     anon_data = raw_data.anonymise()

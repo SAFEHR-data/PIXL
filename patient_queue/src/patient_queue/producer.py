@@ -13,6 +13,7 @@
 #  limitations under the License.
 
 import logging
+from time import sleep
 from typing import List
 
 from patient_queue._base import PixlBlockingInterface
@@ -35,6 +36,8 @@ class PixlProducer(PixlBlockingInterface):
                 self._channel.basic_publish(
                     exchange="", routing_key=self.queue_name, body=msg
                 )
+                # RabbitMQ can miss-order messages if there is not a sufficient delay
+                sleep(0.1)
                 LOGGER.debug(
                     f"Message {msg.decode()} published to queue {self.queue_name}"
                 )

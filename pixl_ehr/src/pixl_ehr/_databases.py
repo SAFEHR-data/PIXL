@@ -12,13 +12,16 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 import logging
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from decouple import config
 from pixl_ehr._queries import SQLQuery
 import psycopg2 as pypg
 
 logger = logging.getLogger("uvicorn")
+
+if TYPE_CHECKING:
+    from pixl_ehr._processing import PatientEHRData
 
 
 class Database:
@@ -81,7 +84,7 @@ class EMAPStar(QueryableDatabase):
         return "EMAPStarDatabase"
 
 
-class PIXLDatabase(WriteableDatabase):
+class PIXLDatabase(WriteableDatabase, QueryableDatabase):
     def __init__(self) -> None:
         super().__init__(
             db_name=config("PIXL_DB_NAME"),
@@ -102,3 +105,12 @@ class PIXLDatabase(WriteableDatabase):
 
         with open(filename, "w") as file:
             self._cursor.copy_expert(query, file)
+
+    def contains(self, data: "PatientEHRData") -> bool:
+        """Does the database contain a set of data already?"""
+
+        query = (
+            "SELECT * FROM emap_data.ehr_raw WHERE mrn = %s and accession_number = %s"
+        )
+        self._cursor.execute(query=str(query), vars=[data.mrn, data.accession_number])
+        return self._cursor.fetchone() is not None

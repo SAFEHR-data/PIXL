@@ -22,7 +22,7 @@ import pandas as pd
 import click
 from patient_queue.producer import PixlProducer
 from patient_queue.subscriber import PixlBlockingConsumer
-from patient_queue.utils import serialise
+from patient_queue.utils import serialise, deserialise
 from pixl_cli._logging import logger, set_log_level
 from pixl_cli._utils import clear_file, remove_file_if_it_exists, string_is_non_empty
 import requests
@@ -87,7 +87,7 @@ def populate(csv_filename: str, queues: str, restart: bool) -> None:
                 messages = messages_from_csv(Path(csv_filename))
 
             remove_file_if_it_exists(state_filepath)  # will be stale
-            producer.publish(messages)
+            producer.publish(sorted(messages, key=study_date_from_serialised))
 
 
 @cli.command()
@@ -346,3 +346,12 @@ def api_config_for_queue(queue_name: str) -> APIConfig:
         )
 
     return APIConfig(config[config_key])
+
+
+def study_date_from_serialised(message: bytes) -> datetime:
+    try:
+        result = deserialise(message)["study_datetime"]
+        assert isinstance(result, datetime)
+        return result
+    except (AssertionError, KeyError):
+        raise AssertionError("Failed to get the study date from the message")

@@ -191,6 +191,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      orthanc-anon:
+        condition: service_started
     healthcheck:
       test: [ "CMD", "curl", "-f", "-u" , "${ORTHANC_RAW_USERNAME}:${ORTHANC_RAW_PASSWORD}", "http://orthanc-raw:8042/heart-beat" ]
       interval: 10s
@@ -199,7 +201,11 @@ services:
     restart: "no"
 
   queue:
-    image: rabbitmq:3.11.2-management
+    build:
+      context: .
+      dockerfile: ./docker/queue/Dockerfile
+      args:
+        <<: *build-args-common
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
@@ -274,6 +280,7 @@ services:
       ORTHANC_RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
       VNAQR_MODALITY: ${VNAQR_MODALITY}
       PIXL_DICOM_TRANSFER_TIMEOUT: ${PIXL_DICOM_TRANSFER_TIMEOUT}
+      PIXL_QUERY_TIMEOUT: ${PIXL_QUERY_TIMEOUT}
     ports:
       - "${PIXL_PACS_API_PORT}:8000"
 

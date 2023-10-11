@@ -12,9 +12,11 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 import os
+import traceback
 from decouple import config
 from io import BytesIO
 
+from time import sleep
 from pydicom import dcmread, dcmwrite
 from pydicom.filebase import DicomFileLike
 
@@ -31,22 +33,11 @@ import logging
 
 import pixl_dcmd
 
-def AzureDICOMTokenRefresh():
-    global TIMER
-    TIMER = None
+def AzureAccessToken():
 
-    orthanc.LogWarning("Refreshing Azure DICOM token")
-
-    ORTHANC_USERNAME = config('ORTHANC_USERNAME')
-    ORTHANC_PASSWORD = config('ORTHANC_PASSWORD')
-
-    AZ_DICOM_TOKEN_REFRESH_SECS = int(config('AZ_DICOM_TOKEN_REFRESH_SECS'))
     AZ_DICOM_ENDPOINT_CLIENT_ID = config('AZ_DICOM_ENDPOINT_CLIENT_ID')
     AZ_DICOM_ENDPOINT_CLIENT_SECRET = config('AZ_DICOM_ENDPOINT_CLIENT_SECRET')
-    AZ_DICOM_ENDPOINT_NAME = config('AZ_DICOM_ENDPOINT_NAME')
     AZ_DICOM_ENDPOINT_TENANT_ID = config('AZ_DICOM_ENDPOINT_TENANT_ID')
-    AZ_DICOM_ENDPOINT_URL = config('AZ_DICOM_ENDPOINT_URL')
-    AZ_DICOM_HTTP_TIMEOUT = int(config('HTTP_TIMEOUT'))
 
     url = "https://login.microsoft.com/" + AZ_DICOM_ENDPOINT_TENANT_ID \
     + "/oauth2/token"
@@ -63,8 +54,30 @@ def AzureDICOMTokenRefresh():
     #logging.info(f"{response.content}")
 
     access_token = response.json()["access_token"]
+    return access_token
 
-    #logging.info(f"{access_token}")
+def AzureDICOMTokenRefresh():
+    global TIMER
+    TIMER = None
+
+    orthanc.LogWarning("Refreshing Azure DICOM token")
+
+    ORTHANC_USERNAME = config('ORTHANC_USERNAME')
+    ORTHANC_PASSWORD = config('ORTHANC_PASSWORD')
+
+    AZ_DICOM_TOKEN_REFRESH_SECS = int(config('AZ_DICOM_TOKEN_REFRESH_SECS'))
+    AZ_DICOM_ENDPOINT_NAME = config('AZ_DICOM_ENDPOINT_NAME')
+    AZ_DICOM_ENDPOINT_URL = config('AZ_DICOM_ENDPOINT_URL')
+    AZ_DICOM_HTTP_TIMEOUT = int(config('HTTP_TIMEOUT'))
+
+    try:
+        access_token = AzureAccessToken()
+        # logging.info(f"{access_token}")
+    except Exception:
+        orthanc.LogError("Failed to get an Azure access token. Retrying in 30 seconds\n"
+                         + traceback.format_exc())
+        sleep(30)
+        return AzureDICOMTokenRefresh()
 
     bearer_str = "Bearer " + access_token
 
@@ -162,8 +175,8 @@ def ReceivedInstanceCallback(receivedDicom, origin):
     # Attempt to anonymise and drop the study if any exceptions occur
     try:
         return AnonymiseCallback(dataset)
-    except:
-        orthanc.LogWarning('Failed to anonymize study')
+    except Exception as e:
+        orthanc.LogWarning('Failed to anonymize study due to\n' + traceback.format_exc())
         return orthanc.ReceivedInstanceAction.DISCARD, None
 
 

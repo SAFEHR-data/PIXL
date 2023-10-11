@@ -52,7 +52,7 @@ async def process_message(message_body: bytes) -> None:
         if (time() - start_time) > float(config("PIXL_DICOM_TRANSFER_TIMEOUT")):
             raise TimeoutError(
                 f"Failed to transfer {message_body.decode()} within "
-                f"{config('PIXL_PACS_TRANSFER_TIMEOUT')} secounds"
+                f"{config('PIXL_DICOM_TRANSFER_TIMEOUT')} seconds"
             )
 
         await sleep(0.1)

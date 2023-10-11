@@ -76,7 +76,7 @@ class WritableEMAPStar(WriteableDatabase):
 
 
 class QueryablePIXLDB(PIXLDatabase):
-    def execute(self, query: str, values: list) -> tuple:
+    def execute_query_string(self, query: str, values: list) -> tuple:
         self._cursor.execute(query=query, vars=values)
         row = self._cursor.fetchone()
         return tuple(row)
@@ -138,12 +138,12 @@ def insert_data_into_emap_star_schema() -> None:
     insert_visit_observation(type_id=gcs_vot_id, value=float(gcs))
 
     insert_row_into_emap_star_schema(
-        "lab_order", ["lab_order_id", "lab_sample_id"], [lo_id, ls_id]
+        "lab_sample",
+        ["lab_sample_id", "external_lab_number", "mrn_id"],
+        [ls_id, accession_number, mrn_id],
     )
     insert_row_into_emap_star_schema(
-        "lab_result",
-        ["lab_result_id", "lab_order_id", "lab_test_definition_id", "value_as_text"],
-        [lr_id, lo_id, ltd_id, report_text],
+        "lab_order", ["lab_order_id", "lab_sample_id"], [lo_id, ls_id]
     )
     insert_row_into_emap_star_schema(
         "lab_test_definition",
@@ -151,9 +151,9 @@ def insert_data_into_emap_star_schema() -> None:
         [ltd_id, "NARRATIVE"],
     )
     insert_row_into_emap_star_schema(
-        "lab_sample",
-        ["lab_sample_id", "external_lab_number", "mrn_id"],
-        [ls_id, accession_number, mrn_id],
+        "lab_result",
+        ["lab_result_id", "lab_order_id", "lab_test_definition_id", "value_as_text"],
+        [lr_id, lo_id, ltd_id, report_text],
     )
 
 
@@ -164,7 +164,9 @@ async def test_message_processing() -> None:
     await process_message(message_body)
 
     pixl_db = QueryablePIXLDB()
-    row = pixl_db.execute("select * from emap_data.ehr_raw where mrn = %s", [mrn])
+    row = pixl_db.execute_query_string(
+        "select * from emap_data.ehr_raw where mrn = %s", [mrn]
+    )
 
     expected_row = [
         mrn,
@@ -184,7 +186,9 @@ async def test_message_processing() -> None:
 
         assert value == expected_value
 
-    anon_row = pixl_db.execute("select * from emap_data.ehr_anon where gcs = %s", [gcs])
+    anon_row = pixl_db.execute_query_string(
+        "select * from emap_data.ehr_anon where gcs = %s", [gcs]
+    )
     anon_mrn, anon_accession_number = anon_row[:2]
     assert anon_mrn != mrn
     assert anon_accession_number != accession_number
