@@ -64,7 +64,8 @@ services:
       context: ..
       dockerfile: test/Dockerfile.fake_emap_star
       args:
-        N_TABLE_ROWS: 1
+        N_TABLE_ROWS: 2
+        INFORMDB_PAT: ${INFORMDB_PAT}
     environment:
       POSTGRES_USER: ${EMAP_UDS_USER}
       POSTGRES_PASSWORD: ${EMAP_UDS_PASSWORD}
