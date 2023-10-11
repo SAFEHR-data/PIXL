@@ -211,7 +211,7 @@ jobs:
           python -m spacy download en_core_web_lg
 
       - name: Run tests
-        working-directory: pixl_ehr/bin
+        working-directory: pixl_ehr/test
         env:
           INFORMDB_PAT: ${{ secrets.INFORMDB_PAT }}
         run: |
