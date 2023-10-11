@@ -14,10 +14,6 @@
 FROM python:3.10.6-slim-bullseye
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 
-# source code
-COPY ./patient_queue/src ./patient_queue
-COPY ./token_buffer/src ./token_buffer
-RUN pip install -r ./patient_queue/requirements.txt
-RUN pip install -r ./token_buffer/requirements.txt
-RUN pip install --no-cache-dir ./token_buffer && \
-    pip install --no-cache-dir ./patient_queue
+WORKDIR /core
+COPY . .
+RUN pip install --no-cache-dir .[test]

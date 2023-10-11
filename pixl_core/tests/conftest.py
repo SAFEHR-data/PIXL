@@ -11,23 +11,6 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+import os
 
-from setuptools import find_packages, setup
-
-exec(open("patient_queue/_version.py").read())
-
-setup(
-    name="patient_queue",
-    version=__version__,  # noqa: F821
-    description="Service to create queues for inter-service communication",
-    packages=find_packages(
-        include=[
-            "patient_queue*",
-        ],
-        exclude=[
-            "*tests",
-            "*.tests.*",
-        ],
-    ),
-    python_requires=">=3.10",
-)
+os.environ["ENV"] = "test"

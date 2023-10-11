@@ -1,5 +1,4 @@
-#!/usr/bin/env bash
-#  Copyright (c) University College London Hospitals NHS Foundation Trust
+#  Copyright (c) 2022 University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -12,16 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-set -eo pipefail
 
-BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-PACKAGE_DIR="${BIN_DIR%/*}"
-cd "$PACKAGE_DIR"
+from .tokens import TokenBucket
 
-CONF_FILE=../setup.cfg
-mypy --config-file ${CONF_FILE} src/token_buffer
-isort --settings-path ${CONF_FILE} src/token_buffer
-black src/token_buffer
-flake8 --config ${CONF_FILE} src/token_buffer
-
-ENV=test pytest src/token_buffer/tests
+__all__ = ["TokenBucket"]

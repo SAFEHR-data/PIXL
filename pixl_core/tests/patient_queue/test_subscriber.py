@@ -16,10 +16,10 @@ from pathlib import Path
 from typing import Any, Coroutine, Generator
 from unittest import TestCase
 
-from patient_queue.producer import PixlProducer
-from patient_queue.subscriber import PixlBlockingConsumer, PixlConsumer
+from core.patient_queue.producer import PixlProducer
+from core.patient_queue.subscriber import PixlBlockingConsumer, PixlConsumer
 import pytest
-from token_buffer.tokens import TokenBucket
+from core.token_buffer.tokens import TokenBucket
 
 TEST_QUEUE = "test_consume"
 MESSAGE_BODY = "test".encode("utf-8")
@@ -68,6 +68,7 @@ class TestConsumer(TestCase):
         assert counter == 1
 
 
+@pytest.mark.pika
 def test_consume_all() -> None:
     """Checks that all messages are returned that have been published before for
     graceful shutdown."""

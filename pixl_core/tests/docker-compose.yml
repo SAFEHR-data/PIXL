@@ -34,11 +34,11 @@ services:
       timeout: 30s
       retries: 3
 
-  python310:
+  test:
     container_name: pixl-test-python
     build:
-      context: ../..
-      dockerfile: patient_queue/test/Dockerfile.python310
+      context: ..
+      dockerfile: tests/Dockerfile
     depends_on:
       queue:
         condition: service_healthy
@@ -47,4 +47,4 @@ services:
       RABBITMQ_PASSWORD: guest
       RABBITMQ_HOST: queue
       RABBITMQ_PORT: 5672
-    entrypoint: "tail -f /dev/null"
+    entrypoint: "pytest"

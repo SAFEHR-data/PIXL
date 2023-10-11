@@ -14,7 +14,7 @@
 from datetime import datetime as dt
 import json
 
-from patient_queue.utils import deserialise, serialise
+from core.patient_queue.utils import deserialise, serialise
 
 
 def test_serialise() -> None:

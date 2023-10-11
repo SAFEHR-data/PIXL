@@ -14,7 +14,7 @@
 
 import time
 
-from token_buffer import TokenBucket
+from core.token_buffer import TokenBucket
 
 
 def test_retrieve_token() -> None:

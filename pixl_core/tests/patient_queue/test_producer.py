@@ -11,17 +11,20 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-from patient_queue.producer import PixlProducer
+import pytest
+from core.patient_queue.producer import PixlProducer
 
 TEST_QUEUE = "test_publish"
 
 
+@pytest.mark.pika
 def test_create_pixl_producer() -> None:
     """Checks that PixlProducer can be instantiated."""
     with PixlProducer(queue_name=TEST_QUEUE) as pp:
         assert pp.connection_open
 
 
+@pytest.mark.pika
 def test_publish() -> None:
     """Checks that after publishing, there is one message in the queue.
     Will only work if nothing has been added to queue before."""

@@ -1,8 +1,0 @@
-black==22.8.0
-flake8==5.0.4
-flake8-return==1.1.3
-isort==5.10.1
-mypy==1.6.0
-pytest==7.4.2
-token-bucket==0.3.0
-python-decouple==3.6

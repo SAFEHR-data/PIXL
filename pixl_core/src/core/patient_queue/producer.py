@@ -16,7 +16,7 @@ import logging
 from time import sleep
 from typing import List
 
-from patient_queue._base import PixlBlockingInterface
+from ._base import PixlBlockingInterface
 
 LOGGER = logging.getLogger(__name__)
 
