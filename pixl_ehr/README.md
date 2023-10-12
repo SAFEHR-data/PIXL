@@ -7,12 +7,27 @@ postgres database.
 
 ## Installation
 
-Local installation is possible to run the api tests, but require installing 
-all the associated PIXL pip packages found at the repo root.
+```bash
+pip install ../pixl_core/ .
+```
+
+## Test
+
+```bash
+pip install -e ../pixl_core/[test] .[test]
+pytest -m "not processing"
+```
+or the full set with
+```bash
+cd tests
+docker compose up -d --build
+docker exec pixl-test-ehr-api /bin/bash -c "pytest pixl_ehr/"
+docker compose down
+```
 
 ## Usage
 
-Usage should be from the CLI driver, which interacts with the endpoint.
+Usage should be from the CLI driver, which calls the HTTP endpoints.
 
 ## Notes
 

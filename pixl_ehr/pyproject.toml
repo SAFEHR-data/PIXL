@@ -1,0 +1,37 @@
+[project]
+name = "pixl_ehr"
+version = "0.0.2"
+authors = [
+  { name="PIXL authors" },
+]
+description = "PIXL electronic health record extractor"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3"
+]
+dependencies = [
+    "core",
+    "python-decouple==3.6",
+    "psycopg2-binary==2.9.5",
+    "azure-identity==1.12.0",
+    "azure-storage-blob==12.14.1",
+    "PyYAML==6.0"
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest==7.4.2"
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+markers = [
+    "processing"
+]
+
+[tool.setuptools.package-data]
+pixl_ehr = ["sql/*.sql"]

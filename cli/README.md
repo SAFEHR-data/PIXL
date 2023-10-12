@@ -10,7 +10,7 @@ stopped cleanly.
 ## Installation
 
 ```bash
-cd src && pip install -r requirements.txt . 
+pip install ../pixl_core/ .
 ```
 
 ## Usage

@@ -14,7 +14,7 @@ pip install .
 pip install .[test]
 pytest -m "not pika"
 ```
-or
+or the full set with
 ```bash
 cd tests
 docker compose up --build --exit-code-from test

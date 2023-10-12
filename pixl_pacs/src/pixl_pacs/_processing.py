@@ -18,7 +18,7 @@ import logging
 import os
 from time import time
 
-from patient_queue.utils import deserialise
+from core.patient_queue.utils import deserialise
 from decouple import config
 from pixl_pacs._orthanc import Orthanc, PIXLRawOrthanc
 

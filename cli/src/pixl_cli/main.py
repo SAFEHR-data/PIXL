@@ -20,9 +20,9 @@ from typing import Any, List, Optional
 import pandas as pd
 
 import click
-from patient_queue.producer import PixlProducer
-from patient_queue.subscriber import PixlBlockingConsumer
-from patient_queue.utils import serialise, deserialise
+from core.patient_queue.producer import PixlProducer
+from core.patient_queue.subscriber import PixlBlockingConsumer
+from core.patient_queue.utils import deserialise, serialise
 from pixl_cli._logging import logger, set_log_level
 from pixl_cli._utils import clear_file, remove_file_if_it_exists, string_is_non_empty
 import requests

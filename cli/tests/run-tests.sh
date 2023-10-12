@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 #  Copyright (c) University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,16 +12,29 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-from setuptools import setup, find_packages
+set -eux pipefail
 
-exec(open("pixl_cli/_version.py").read())
+function wait_until_service_healthy() {
+    while ! docker ps | grep "$1" | grep -q healthy ;do
+        sleep 5
+    done
+}
 
-setup(
-    name="pixl_cli",
-    version=__version__,  # noqa: F821
-    packages=find_packages("."),
-    author="Tom Young",
-    url="https://github.com/UCLH-Foundry/PIXL",
-    entry_points={"console_scripts": ["pixl = pixl_cli.main:cli"]},
-    description="Command line interaction with PIXL",
-)
+THIS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+PACKAGE_DIR="${THIS_DIR%/*}"
+cd "$PACKAGE_DIR" || exit
+
+pip install "../pixl_core/[test]" ".[test]"
+
+CONF_FILE=../setup.cfg
+mypy --config-file ${CONF_FILE} src/pixl_cli
+isort --settings-path ${CONF_FILE} src/pixl_cli
+black src/pixl_cli
+flake8 --config ${CONF_FILE} src/pixl_cli
+
+cd tests/
+
+docker compose up -d
+wait_until_service_healthy queue
+pytest
+docker compose down

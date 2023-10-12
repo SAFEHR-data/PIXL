@@ -21,7 +21,7 @@ from datetime import datetime
 from typing import List
 
 from decouple import config
-from patient_queue.utils import serialise
+from core.patient_queue.utils import serialise
 from pixl_ehr._databases import PIXLDatabase, WriteableDatabase
 from pixl_ehr._processing import process_message
 from psycopg2.errors import UniqueViolation
@@ -157,6 +157,7 @@ def insert_data_into_emap_star_schema() -> None:
     )
 
 
+@pytest.mark.processing
 @pytest.mark.asyncio
 async def test_message_processing() -> None:
 

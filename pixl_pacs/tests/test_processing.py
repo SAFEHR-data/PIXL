@@ -18,7 +18,7 @@ services being up
 from datetime import datetime
 import os
 
-from patient_queue.utils import serialise
+from core.patient_queue.utils import serialise
 from pixl_pacs._orthanc import Orthanc, PIXLRawOrthanc
 from pixl_pacs._processing import ImagingStudy, process_message
 from decouple import config
