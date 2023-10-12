@@ -78,7 +78,6 @@ def populate(csv_filename: str, queues: str, restart: bool) -> None:
 
     for queue in queues.split(","):
         with PixlProducer(queue_name=queue, **config["rabbitmq"]) as producer:
-
             state_filepath = state_filepath_for_queue(queue)
             if state_filepath.exists() and restart:
                 logger.info(f"Extracting messages from state: {state_filepath}")

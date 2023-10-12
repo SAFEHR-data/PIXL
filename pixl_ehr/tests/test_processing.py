@@ -86,7 +86,6 @@ class QueryablePIXLDB(PIXLDatabase):
 def insert_row_into_emap_star_schema(
     table_name: str, col_names: List[str], values: List
 ) -> None:
-
     db = WritableEMAPStar()
     cols = ",".join(col_names)
     vals = ",".join("%s" for _ in range(len(col_names)))
@@ -161,7 +160,6 @@ def insert_data_into_emap_star_schema() -> None:
 @pytest.mark.processing
 @pytest.mark.asyncio
 async def test_message_processing() -> None:
-
     insert_data_into_emap_star_schema()
     await process_message(message_body)
 

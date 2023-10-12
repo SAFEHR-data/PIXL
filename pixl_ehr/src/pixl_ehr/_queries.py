@@ -17,7 +17,6 @@ from typing import List
 
 class SQLQuery:
     def __init__(self, filepath: Path, context: dict):
-
         self.values: List[str] = []
         self._filepath = filepath
         self._lines = open(filepath, "r").readlines()

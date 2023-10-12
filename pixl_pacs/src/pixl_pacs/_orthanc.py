@@ -25,7 +25,6 @@ logger = logging.getLogger("uvicorn")
 
 class Orthanc(ABC):
     def __init__(self, url: str, username: str, password: str):
-
         self._url = url.rstrip("/")
         self._username = username
         self._password = password
@@ -52,7 +51,7 @@ class Orthanc(ABC):
         response = self._post(
             f"/modalities/{modality}/query",
             data=data,
-            timeout=config("PIXL_QUERY_TIMEOUT", default=10, cast=float)
+            timeout=config("PIXL_QUERY_TIMEOUT", default=10, cast=float),
         )
         logger.debug(f"Query response: {response}")
 
@@ -77,7 +76,9 @@ class Orthanc(ABC):
 
     def _post(self, path: str, data: dict, timeout: Optional[float] = None) -> Any:
         return _deserialise(
-            requests.post(f"{self._url}{path}", json=data, auth=self._auth, timeout=timeout)
+            requests.post(
+                f"{self._url}{path}", json=data, auth=self._auth, timeout=timeout
+            )
         )
 
 

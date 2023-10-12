@@ -43,11 +43,9 @@ def _patient_names_from_names_csv() -> List[Tuple[str, str]]:
 
 
 def test_patient_name_is_redacted(required_accuracy: float = 0.85) -> None:
-
     results = []
 
     for first_name, last_name in _patient_names_from_names_csv():
-
         report_text = f"{first_name} {last_name} was x-rayed and the prognosis is X"
         anon_text = deidentify_text(report_text)
         results.append(first_name not in anon_text and last_name not in anon_text)
@@ -57,7 +55,6 @@ def test_patient_name_is_redacted(required_accuracy: float = 0.85) -> None:
 
 
 def test_signed_by_section_is_removed() -> None:
-
     first_name, last_name, date = info = "John", "Doe", "01/01/20"
 
     anon_text = deidentify_text(
@@ -70,7 +67,6 @@ def test_signed_by_section_is_removed() -> None:
 
 @pytest.mark.parametrize("id_name", ["GMC", "HCPC"])
 def test_block_with_excluded_identifiers_are_removed(id_name: str) -> None:
-
     header, footer = "A xray report with information", "Other text"
     first_name, last_name, num = info = "John", "Doe", "0123456"
 
@@ -91,9 +87,7 @@ def test_block_with_excluded_identifiers_are_removed(id_name: str) -> None:
 # using ":" or " " as a delimiter is not redacted by Presidio
 @pytest.mark.parametrize("delimiter", ["/", "-"])
 def test_possible_dates_are_removed(delimiter: str) -> None:
-
     for day, month, year in [(1, 3, 2019)]:
-
         date_strings = [
             f"{day}{delimiter}{month}{delimiter}{year}",
             f"{month}{delimiter}{day}{delimiter}{year}",
@@ -106,7 +100,6 @@ def test_possible_dates_are_removed(delimiter: str) -> None:
 
 
 def test_accession_nums_gmc_nhs_email() -> None:
-
     gmc_number = "12345"
     email_address = "jon.smith@nhs.net"
     accession_number = "RRV012734923"
@@ -124,7 +117,6 @@ def test_accession_nums_gmc_nhs_email() -> None:
 
 
 def test_linebreaks_are_removed_from_possible_identifying_section() -> None:
-
     text = "A report.\nJohn Smith\nReporting Radiographer\nOther text after"
     expected_text = "A report.\nJohn Smith Reporting Radiographer Other text after"
 
@@ -133,7 +125,6 @@ def test_linebreaks_are_removed_from_possible_identifying_section() -> None:
 
 @pytest.mark.parametrize("initials", ["JS", "AJ", "AO\t", "ER "])
 def test_initials_are_removed_from_end_of_string(initials: str) -> None:
-
     text = f"Some text. {initials}"
     assert initials.strip() not in _remove_case_sensitive_patterns(text)
 
@@ -180,13 +171,11 @@ def test_name_from_exclusion_list_is_removed(name: str) -> None:
 
 @pytest.mark.parametrize("date_str", ["14 Jun 2022", "1 Jan 2022", "21 March 2022"])
 def test_abbreviated_date_is_removed(date_str: str) -> None:
-
     text = f"A sentence {date_str} then other things"
     assert date_str not in _remove_case_insensitive_patterns(text)
 
 
 def test_remove_trailing_tags() -> None:
-
     text = "A sentence XXX> other things"
     expected_text = "A sentence XXX other things"
     assert _remove_any_trailing_tags(text) == expected_text
@@ -194,6 +183,5 @@ def test_remove_trailing_tags() -> None:
 
 @pytest.mark.parametrize("digits_str", ["14", "01", "7", "31"])
 def test_remove_up_to_two_digits_before_datetime(digits_str: str) -> None:
-
     text = f"A sentence referring to {digits_str} <DATE_TIME> then other text"
     assert digits_str not in _remove_case_insensitive_patterns(text)

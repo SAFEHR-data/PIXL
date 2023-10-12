@@ -55,7 +55,6 @@ class PixlConsumer(PixlQueueInterface):
         """
         async with self._queue.iterator() as queue_iter:
             async for message in queue_iter:
-
                 if not self.token_bucket.has_token:
                     await asyncio.gather(
                         message.reject(requeue=True),

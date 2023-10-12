@@ -132,7 +132,7 @@ jobs:
           pip install pixl_core/[test] cli/[test]
 
       - name: Run tests
-        working-directory: cli/test
+        working-directory: cli/tests
         run: |
           ./run-tests.sh
 

@@ -84,7 +84,6 @@ def _deserialise(response: requests.Response) -> Any:
 
 
 if __name__ == "__main__":
-
     filename = sys.argv[1]
     orthanc = Orthanc()
 
@@ -94,7 +93,6 @@ if __name__ == "__main__":
     with open(filename, "r") as file:
         with open(f"{filename.rstrip('.csv')}_filtered.csv", "w") as new_file:
             for line in file:
-
                 if any(a in line for a in present_accession_numbers):
                     continue
 

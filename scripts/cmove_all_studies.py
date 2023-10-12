@@ -30,7 +30,7 @@ class Orthanc:
         url=f"http://localhost:{os.environ['ORTHANC_PORT']}",
         username=os.environ["ORTHANC_USERNAME"],
         password=os.environ["ORTHANC_PASSWORD"],
-        anon_aet=os.environ["ORTHANC_ANON_AE_TITLE"]
+        anon_aet=os.environ["ORTHANC_ANON_AE_TITLE"],
     ):
         self._url = url.rstrip("/")
         self._username = username
@@ -68,17 +68,15 @@ def _deserialise(response: requests.Response) -> Any:
 
 
 def parse_args() -> argparse.Namespace:
-
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "start_date",
-        help="Date from which to trigger C-Move from in the format: YYYY-MM-DD"
+        help="Date from which to trigger C-Move from in the format: YYYY-MM-DD",
     )
     return parser.parse_args()
 
 
 if __name__ == "__main__":
-
     args = parse_args()
     orthanc = Orthanc()
 
@@ -89,8 +87,7 @@ if __name__ == "__main__":
         date = start_date + timedelta(days=i)
 
         query_id = orthanc.query_remote(
-            data={"Level": "Study",
-                  "Query": {"StudyDate": date.strftime('%Y%m%d')}}
+            data={"Level": "Study", "Query": {"StudyDate": date.strftime("%Y%m%d")}}
         )
         print(f"Driving C-Move for study {i} {query_id} on {date}")
 

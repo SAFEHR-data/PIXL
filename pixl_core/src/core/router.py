@@ -28,7 +28,6 @@ async def heart_beat() -> str:
     "/token-bucket-refresh-rate", summary="Update the refresh rate in items per second"
 )
 async def update_tb_refresh_rate(item: TokenRefreshUpdate) -> str:
-
     if not isinstance(item.rate, float) or item.rate < 0:
         raise HTTPException(
             status_code=status.HTTP_406_NOT_ACCEPTABLE,
@@ -40,7 +39,8 @@ async def update_tb_refresh_rate(item: TokenRefreshUpdate) -> str:
 
 
 @router.get(
-    "/token-bucket-refresh-rate", summary="Get the refresh rate in items per second",
+    "/token-bucket-refresh-rate",
+    summary="Get the refresh rate in items per second",
     response_model=TokenRefreshUpdate,
 )
 async def get_tb_refresh_rate() -> TokenRefreshUpdate:

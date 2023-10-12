@@ -67,10 +67,7 @@ class Orthanc:
 
     def delete(self, study: Study) -> None:
         """Delete a study from Orthanc"""
-        response = requests.delete(
-            f"{self._url}/studies/{study.uid}",
-            auth=self._auth
-        )
+        response = requests.delete(f"{self._url}/studies/{study.uid}", auth=self._auth)
 
         if response.status_code != 200:
             raise RuntimeError(f"Failed to delete: {study.uid}")
@@ -100,7 +97,6 @@ def _deserialise(response: requests.Response) -> Any:
 
 
 def parse_args() -> argparse.Namespace:
-
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "number_to_delete", type=int, help="Number of the oldest studies to delete"
@@ -112,7 +108,6 @@ def parse_args() -> argparse.Namespace:
 
 
 if __name__ == "__main__":
-
     args = parse_args()
     print(f"Deleting the oldest {args.number_to_delete} studies")
 

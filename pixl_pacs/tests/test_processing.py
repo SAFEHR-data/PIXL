@@ -68,7 +68,6 @@ def add_image_to_fake_vna(image_filename: str = "test.dcm") -> None:
 @pytest.mark.processing
 @pytest.mark.asyncio
 async def test_image_processing() -> None:
-
     add_image_to_fake_vna()
     study = ImagingStudy.from_message(message_body)
     orthanc_raw = PIXLRawOrthanc()

@@ -223,7 +223,6 @@ class SetVOT(EMAPStep, ABC):
         """Name of this observation type in an EMAP star schema, e.g. HEIGHT"""
 
     def update(self, data: PatientEHRData) -> None:
-
         if data.acquisition_datetime is None:
             raise RuntimeError("Cannot update a height without an acquisition")
 

@@ -49,7 +49,6 @@ def deidentify_text(text: str) -> str:
 
 
 def _presidio_anonymise(text: str) -> str:
-
     results = _analyzer.analyze(
         text=text,
         entities=["DATE_TIME", "PERSON"],
@@ -62,7 +61,6 @@ def _presidio_anonymise(text: str) -> str:
 
 
 def _remove_case_insensitive_patterns(text: str) -> str:
-
     patterns = (
         r"reporting corresponds to ([^:]+)",  # Remove any words between ...to and :
         r"(\S+@\S+)",  # Matches any email address
@@ -80,7 +78,6 @@ def _remove_case_insensitive_patterns(text: str) -> str:
 
 
 def _remove_case_sensitive_patterns(text: str) -> str:
-
     patterns = (
         r"((?:[A-Z][a-z]+) (?:[A-Z][a-z]+)-(?:[A-Z][a-z]+))",  # Hyphenated full names
         r"\.\s{0,2}((?:[A-Z][a-z]+\s?){2})",  # Remove two title case after a full stop
@@ -124,7 +121,6 @@ def _possible_professions_str() -> str:
 
 
 def _remove_linebreaks_after_title_case_lines(text: str) -> str:
-
     lines = text.split("\n")
     text = ""
     for i, line in enumerate(lines):

@@ -18,4 +18,4 @@ BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 PACKAGE_DIR="${BIN_DIR%/*}"
 
 pytest -m "not processing"
-. "${PACKAGE_DIR}"/test/run-processing-tests.sh
+. "${PACKAGE_DIR}"/tests/run-processing-tests.sh

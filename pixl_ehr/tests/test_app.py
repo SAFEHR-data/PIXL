@@ -32,19 +32,16 @@ def test_initial_state_has_no_token() -> None:
 
 
 def test_updating_the_token_refresh_rate_to_negative_fails() -> None:
-
     response = client.post("/token-bucket-refresh-rate", json={"rate": -1})
     assert response.is_error
 
 
 def test_updating_the_token_refresh_rate_to_string_fails() -> None:
-
     response = client.post("/token-bucket-refresh-rate", json={"rate": "a string"})
     assert response.is_error
 
 
 def test_updating_the_token_refresh_rate_updates_state() -> None:
-
     response = client.post("/token-bucket-refresh-rate", json={"rate": 1})
     assert state.token_bucket.has_token
     assert response.status_code == 200
