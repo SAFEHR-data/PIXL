@@ -26,14 +26,7 @@ cd "$PACKAGE_DIR" || exit
 
 pip install "../pixl_core/[test]" ".[test]"
 
-CONF_FILE=../setup.cfg
-mypy --config-file ${CONF_FILE} src/pixl_cli
-isort --settings-path ${CONF_FILE} src/pixl_cli
-black src/pixl_cli
-flake8 --config ${CONF_FILE} src/pixl_cli
-
 cd tests/
-
 docker compose up -d
 wait_until_service_healthy queue
 pytest

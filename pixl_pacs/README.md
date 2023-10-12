@@ -15,9 +15,8 @@ pip install ../pixl_core/ .
 ## Test
 
 ```bash
-./tests/run-processing-tests.sh
+./tests/run-tests.sh
 ```
-
 
 ## Usage
 

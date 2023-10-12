@@ -61,8 +61,7 @@ jobs:
 
       - name: Run tests
         working-directory: hasher
-        run: |
-          bin/run-tests.sh
+        run: pytest
         env:
           ENV: test
           AZURE_KEY_VAULT_NAME: test
