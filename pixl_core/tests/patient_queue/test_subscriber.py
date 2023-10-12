@@ -18,8 +18,8 @@ from unittest import TestCase
 
 from core.patient_queue.producer import PixlProducer
 from core.patient_queue.subscriber import PixlBlockingConsumer, PixlConsumer
-import pytest
 from core.token_buffer.tokens import TokenBucket
+import pytest
 
 TEST_QUEUE = "test_consume"
 MESSAGE_BODY = "test".encode("utf-8")

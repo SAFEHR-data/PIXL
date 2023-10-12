@@ -20,11 +20,12 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from decouple import config
 from core.patient_queue.utils import deserialise
+from decouple import config
+import requests
+
 from pixl_ehr._databases import EMAPStar, PIXLDatabase
 from pixl_ehr._queries import SQLQuery
-import requests
 
 from .report_deid import deidentify_text
 

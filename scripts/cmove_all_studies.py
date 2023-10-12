@@ -12,13 +12,13 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """C-Move all studies from Orthanc Raw to Anon"""
-import os
-import requests
 import argparse
-
-from json import JSONDecodeError
-from typing import Any
 from datetime import datetime, timedelta
+from json import JSONDecodeError
+import os
+from typing import Any
+
+import requests
 from requests.auth import HTTPBasicAuth
 
 os.environ["NO_PROXY"] = os.environ["no_proxy"] = "localhost"

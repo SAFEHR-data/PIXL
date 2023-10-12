@@ -12,15 +12,15 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 import asyncio
-import logging
 import importlib.metadata
+import logging
 
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse
-from ._processing import process_message
 from core.patient_queue.subscriber import PixlConsumer
 from core.router import router, state
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 
+from ._processing import process_message
 
 QUEUE_NAME = "pacs"
 

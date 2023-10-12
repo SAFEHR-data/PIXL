@@ -32,6 +32,11 @@ jobs:
       - name: Ensure copyright and license header are present
         run: ./.github/linters/check_headers_exist.sh
 
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.0
+        with:
+          extra_args: --all-files
+
       - name: Validate Docker Compose config file
         working-directory: .
         run: |

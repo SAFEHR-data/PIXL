@@ -15,9 +15,9 @@ import hashlib
 from io import BytesIO
 import logging
 from os import PathLike
+from random import randint
 import re
 from typing import Any, BinaryIO, Union
-from random import randint
 
 import arrow
 from decouple import config

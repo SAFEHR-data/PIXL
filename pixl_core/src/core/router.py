@@ -12,8 +12,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 from fastapi import APIRouter, HTTPException, status
-from .models import TokenRefreshUpdate, AppState
 
+from .models import AppState, TokenRefreshUpdate
 
 state = AppState()
 router = APIRouter()

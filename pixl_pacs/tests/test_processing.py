@@ -19,12 +19,13 @@ from datetime import datetime
 import os
 
 from core.patient_queue.utils import serialise
-from pixl_pacs._orthanc import Orthanc, PIXLRawOrthanc
-from pixl_pacs._processing import ImagingStudy, process_message
 from decouple import config
 from pydicom import dcmread
 from pydicom.data import get_testdata_file
 import pytest
+
+from pixl_pacs._orthanc import Orthanc, PIXLRawOrthanc
+from pixl_pacs._processing import ImagingStudy, process_message
 
 pytest_plugins = ("pytest_asyncio",)
 

@@ -15,8 +15,9 @@ import logging
 from typing import TYPE_CHECKING, List, Optional
 
 from decouple import config
-from pixl_ehr._queries import SQLQuery
 import psycopg2 as pypg
+
+from pixl_ehr._queries import SQLQuery
 
 logger = logging.getLogger("uvicorn")
 

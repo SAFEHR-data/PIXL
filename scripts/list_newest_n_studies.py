@@ -12,13 +12,13 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """List the newest studies"""
-import os
-import requests
 import argparse
-
-from json import JSONDecodeError
-from typing import Any, List, Optional
 from datetime import datetime
+from json import JSONDecodeError
+import os
+from typing import Any, List, Optional
+
+import requests
 from requests.auth import HTTPBasicAuth
 
 os.environ["NO_PROXY"] = os.environ["no_proxy"] = "localhost"

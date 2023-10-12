@@ -12,19 +12,19 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 import asyncio
-import logging
 import importlib.metadata
+import logging
 
 from azure.identity import EnvironmentCredential
 from azure.storage.blob import BlobServiceClient
+from core.patient_queue import PixlConsumer
+from core.router import router, state
 from decouple import config
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+
 from ._databases import PIXLDatabase
 from ._processing import process_message
-
-from core.patient_queue import PixlConsumer
-from core.router import router, state
 
 QUEUE_NAME = "ehr"
 

@@ -16,6 +16,8 @@ import os
 from pathlib import Path
 from typing import List, Tuple
 
+import pytest
+
 from pixl_ehr.report_deid.deid import (
     _remove_any_excluded_words,
     _remove_any_trailing_tags,
@@ -24,7 +26,6 @@ from pixl_ehr.report_deid.deid import (
     _remove_linebreaks_after_title_case_lines,
     deidentify_text,
 )
-import pytest
 
 THIS_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
 

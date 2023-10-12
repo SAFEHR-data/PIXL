@@ -11,27 +11,26 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-import os
-import traceback
-from decouple import config
-from io import BytesIO
-
-from time import sleep
-from pydicom import dcmread, dcmwrite
-from pydicom.filebase import DicomFileLike
-
 import hashlib
+from io import BytesIO
 import json
-import orthanc
+import logging
+import os
 import pprint
-import requests
 import sys
 import threading
+from time import sleep
+import traceback
+
+from decouple import config
+from pydicom import dcmread, dcmwrite
+from pydicom.filebase import DicomFileLike
+import requests
 import yaml
 
-import logging 
-
+import orthanc
 import pixl_dcmd
+
 
 def AzureAccessToken():
 

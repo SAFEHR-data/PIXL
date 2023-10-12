@@ -12,12 +12,12 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """Filter a cohort .csv file for those that are not present in Orthanc raw"""
-import os
-import requests
-import sys
-
 from json import JSONDecodeError
+import os
+import sys
 from typing import Any, List
+
+import requests
 from requests.auth import HTTPBasicAuth
 
 os.environ["NO_PROXY"] = os.environ["no_proxy"] = "localhost"

@@ -20,6 +20,7 @@ from time import time
 
 from core.patient_queue.utils import deserialise
 from decouple import config
+
 from pixl_pacs._orthanc import Orthanc, PIXLRawOrthanc
 
 logger = logging.getLogger("uvicorn")

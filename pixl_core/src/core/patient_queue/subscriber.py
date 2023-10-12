@@ -17,9 +17,9 @@ from pathlib import Path
 from typing import Any, Awaitable, Callable
 
 import aio_pika
-from ._base import PixlBlockingInterface, PixlQueueInterface
-
 from core.token_buffer.tokens import TokenBucket
+
+from ._base import PixlBlockingInterface, PixlQueueInterface
 
 LOGGER = logging.getLogger(__name__)
 

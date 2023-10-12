@@ -16,8 +16,8 @@ from json import JSONDecodeError
 import logging
 from typing import Any, Optional
 
-import requests
 from decouple import config
+import requests
 from requests.auth import HTTPBasicAuth
 
 logger = logging.getLogger("uvicorn")
