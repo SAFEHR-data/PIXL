@@ -28,7 +28,7 @@ x-proxy-common: &proxy-common
   no_proxy: *no-proxy
 
 x-build-args-common: &build-args-common
-  <<: *proxy-common
+  <<: [*proxy-common]
 
 x-pixl-common-env: &pixl-common-env
   ENV: ${ENV}
@@ -80,8 +80,7 @@ services:
       args:
         <<: *build-args-common
     environment:
-      <<: *proxy-common
-      <<: *pixl-common-env
+      <<: [*proxy-common, *pixl-common-env]
       AZURE_CLIENT_ID: ${HASHER_API_AZ_CLIENT_ID}
       AZURE_CLIENT_SECRET: ${HASHER_API_AZ_CLIENT_PASSWORD}
       AZURE_TENANT_ID: ${HASHER_API_AZ_TENANT_ID}
@@ -110,6 +109,7 @@ services:
         <<: *build-args-common
     command: /run/secrets
     environment:
+      <<: [*proxy-common, *pixl-common-env]
       ORTHANC_NAME: "PIXL: Anon"
       ORTHANC_USERNAME: ${ORTHANC_ANON_USERNAME}
       ORTHANC_PASSWORD: ${ORTHANC_ANON_PASSWORD}
@@ -131,8 +131,6 @@ services:
       AZ_DICOM_TOKEN_REFRESH_SECS: "600"
       TIME_OFFSET: "${STUDY_TIME_OFFSET}"
       SALT_VALUE: ${SALT_VALUE}"
-      <<: *proxy-common
-      <<: *pixl-common-env
     ports:
       - "${ORTHANC_ANON_DICOM_PORT}:4242"
       - "${ORTHANC_ANON_WEB_PORT}:8042"
@@ -161,6 +159,7 @@ services:
         <<: *build-args-common
     command: /run/secrets
     environment:
+      <<: [*pixl-db, *proxy-common, *pixl-common-env]
       ORTHANC_NAME: "PIXL: Raw"
       ORTHANC_USERNAME: ${ORTHANC_RAW_USERNAME}
       ORTHANC_PASSWORD: ${ORTHANC_RAW_PASSWORD}
@@ -175,9 +174,6 @@ services:
       ORTHANC_ANON_AE_TITLE: ${ORTHANC_ANON_AE_TITLE}
       ORTHANC_ANON_DICOM_PORT: "4242"
       ORTHANC_ANON_HOSTNAME: "orthanc-anon"
-      <<: *pixl-db
-      <<: *proxy-common
-      <<: *pixl-common-env
     ports:
       - "${ORTHANC_RAW_DICOM_PORT}:4242"
       - "${ORTHANC_RAW_WEB_PORT}:8042"
@@ -227,11 +223,7 @@ services:
       args:
         <<: *build-args-common
     environment:
-      <<: *pixl-db
-      <<: *emap-db
-      <<: *proxy-common
-      <<: *pixl-common-env
-      <<: *pixl-rabbit-mq
+      <<: [*pixl-db, *emap-db, *proxy-common, *pixl-common-env, *pixl-rabbit-mq]
       AZURE_CLIENT_ID: ${PIXL_EHR_API_AZ_CLIENT_ID}
       AZURE_CLIENT_SECRET: ${PIXL_EHR_API_AZ_CLIENT_SECRET}
       AZURE_TENANT_ID: ${PIXL_EHR_API_AZ_TENANT_ID}
@@ -273,8 +265,7 @@ services:
     networks:
       - pixl-net
     environment:
-      <<: *pixl-rabbit-mq
-      <<: *proxy-common
+      <<: [*pixl-rabbit-mq, *proxy-common]
       ORTHANC_RAW_USERNAME: ${ORTHANC_RAW_USERNAME}
       ORTHANC_RAW_PASSWORD: ${ORTHANC_RAW_PASSWORD}
       ORTHANC_RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}

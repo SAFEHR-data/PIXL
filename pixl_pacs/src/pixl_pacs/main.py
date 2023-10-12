@@ -76,7 +76,8 @@ async def update_tb_refresh_rate(item: TokenRefreshUpdate) -> str:
 
 
 @app.get(
-    "/token-bucket-refresh-rate", summary="Get the refresh rate in items per second"
+    "/token-bucket-refresh-rate", summary="Get the refresh rate in items per second",
+    response_model=TokenRefreshUpdate,
 )
 async def get_tb_refresh_rate() -> BaseModel:
     return TokenRefreshUpdate(rate=state.token_bucket.rate)
