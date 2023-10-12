@@ -129,7 +129,7 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install pixl_core/[test] .[test]
+          pip install pixl_core/[test] cli/[test]
 
       - name: Run tests
         working-directory: cli/test
@@ -154,7 +154,7 @@ jobs:
           python -m spacy download en_core_web_lg
 
       - name: Run tests
-        working-directory: pixl_ehr/test
+        working-directory: pixl_ehr/tests
         env:
           INFORMDB_PAT: ${{ secrets.INFORMDB_PAT }}
         run: |
@@ -177,6 +177,6 @@ jobs:
           pip install pixl_core/[test] pixl_pacs/[test]
 
       - name: Run tests
-        working-directory: pixl_pacs/test
+        working-directory: pixl_pacs/tests
         run: |
           ./run-tests.sh
