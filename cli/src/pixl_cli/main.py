@@ -23,8 +23,8 @@ import click
 from core.patient_queue.producer import PixlProducer
 from core.patient_queue.subscriber import PixlBlockingConsumer
 from core.patient_queue.utils import deserialise, serialise
-from pixl_cli._logging import logger, set_log_level
-from pixl_cli._utils import clear_file, remove_file_if_it_exists, string_is_non_empty
+from ._logging import logger, set_log_level
+from ._utils import clear_file, remove_file_if_it_exists, string_is_non_empty
 import requests
 import yaml
 

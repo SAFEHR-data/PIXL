@@ -13,6 +13,12 @@ stopped cleanly.
 pip install ../pixl_core/ .
 ```
 
+## Test
+```bash
+./tests/run-tests.sh
+```
+
+
 ## Usage
 
 > **Note**

@@ -32,7 +32,7 @@ BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 PACKAGE_DIR="${BIN_DIR%/*}"
 cd "$PACKAGE_DIR" || exit
 
-pip install -r src/requirements.txt
+pip install -e ../pixl_core/[test] .[test]
 
 CONF_FILE=../setup.cfg
 mypy --config-file ${CONF_FILE} src/pixl_ehr
@@ -40,4 +40,4 @@ isort --settings-path ${CONF_FILE} src/pixl_ehr
 black src/pixl_ehr
 flake8 --config ${CONF_FILE} src/pixl_ehr
 
-ENV="test" pytest src/pixl_ehr/tests/test_app.py
+pytest -m "not processing"

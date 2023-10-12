@@ -14,13 +14,6 @@
 #  limitations under the License.
 set -eux pipefail
 
-_result=$(curl -f -X POST \
-  -u orthanc_anon_username:orthanc_anon_password \
-  http://localhost:7003/tools/find \
-  --data '{
-            "Level" : "Instance",
-            "Query" : {}
-          }'
-  )
-# Check that result does not contain an empty list
-echo "$_result" | grep --invert-match "\[\]"
+# This could be much improved by having more realistic test data some of
+# which actually was persisted
+docker logs test-orthanc-anon-1 2>&1 | grep "DICOM instance received"

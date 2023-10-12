@@ -6,6 +6,18 @@ different processing to transfer DICOM studies from the VNA to the "raw"
 Orthanc instance, from which the anonymisation and push over DICOMWeb to 
 are automatic.
 
+## Installation
+
+```bash
+pip install ../pixl_core/ .
+```
+
+## Test
+
+```bash
+./tests/run-processing-tests.sh
+```
+
 
 ## Usage
 

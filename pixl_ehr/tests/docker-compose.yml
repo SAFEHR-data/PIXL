@@ -20,6 +20,8 @@ services:
     build:
       context: ../../
       dockerfile: ./docker/ehr-api/Dockerfile
+      args:
+        TEST: true
     depends_on:
       queue:
         condition: service_healthy

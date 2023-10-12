@@ -18,18 +18,20 @@ PACKAGE_DIR="${BIN_DIR%/*}"
 cd "${PACKAGE_DIR}/test"
 
 # Note: this doesn't work as a single command
-docker compose --env-file .env.test -p test up -d --build --remove-orphans
+docker compose --env-file .env.test -p test up -d  --remove-orphans
 cd .. && \
   docker compose --env-file test/.env.test -p test up -d --build && \
-  cd -
+  cd "${PACKAGE_DIR}/test"
 
 ./scripts/insert_test_data.sh
-./scripts/install_pixl_cli.sh
+
+pip install "${PACKAGE_DIR}/pixl_core" "${PACKAGE_DIR}/cli"
 pixl populate data/test.csv
 pixl start
 sleep 65  # need to wait until the DICOM image is "stable" = 60s
 ./scripts/check_entry_in_pixl_anon.sh
 ./scripts/check_entry_in_orthanc_anon.sh
 
+cd "${PACKAGE_DIR}"
 docker compose -f docker-compose.yml -f ../docker-compose.yml -p test down
 docker volume rm test_postgres-data test_orthanc-raw-data test_orthanc-anon-data

@@ -12,8 +12,9 @@ classifiers = [
 ]
 dependencies = [
     "core",
+    "uvicorn==0.23.2",
     "python-decouple==3.6",
-    "psycopg2-binary==2.9.5",
+    "psycopg2==2.9.5",
     "azure-identity==1.12.0",
     "azure-storage-blob==12.14.1",
     "PyYAML==6.0",
@@ -31,9 +32,7 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.pytest.ini_options]
-markers = [
-    "processing"
-]
+markers = ["processing"]
 
 [tool.setuptools.package-data]
 pixl_ehr = ["sql/*.sql", "report_deid/*.txt"]

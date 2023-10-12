@@ -26,6 +26,8 @@ services:
     build:
       context: ../../
       dockerfile: ./docker/pacs-api/Dockerfile
+      args:
+        TEST: true
     depends_on:
       queue:
         condition: service_healthy
@@ -113,7 +115,9 @@ services:
 
   queue:
     container_name: pixl-test-queue
-    image: rabbitmq:3.11.2-management
+    build:
+      context: ../..
+      dockerfile: docker/queue/Dockerfile
     healthcheck:
       test: rabbitmq-diagnostics -q ping
       interval: 30s

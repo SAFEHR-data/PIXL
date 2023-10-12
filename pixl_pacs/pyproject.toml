@@ -12,6 +12,7 @@ classifiers = [
 ]
 dependencies = [
     "core",
+    "uvicorn==0.23.2",
     "pydicom==2.3.0",
     "python-decouple==3.6"
 ]
@@ -19,7 +20,7 @@ dependencies = [
 [project.optional-dependencies]
 test = [
     "pytest==7.4.2",
-    "pytest-asyncio==0.20.2"
+    "pytest-asyncio==0.21.1"
 ]
 
 [build-system]
@@ -27,9 +28,4 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.pytest.ini_options]
-markers = [
-    "processing"
-]
-
-[tool.setuptools.package-data]
-pixl_ehr = ["sql/*.sql"]
+markers = ["processing"]

@@ -30,7 +30,11 @@ set -euxo pipefail
 
 THIS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 PACKAGE_DIR="${THIS_DIR%/*}"
-cd "$PACKAGE_DIR"/test || exit
+cd "$PACKAGE_DIR"/tests || exit
+
+if [ -z "${INFORMDB_PAT+x}" ]; then
+  echo "INFORMDB_PAT must be set as an environment variable" && exit 1
+fi
 
 docker compose up -d --build
 docker exec pixl-test-ehr-api /bin/bash -c "pytest -m processing"
