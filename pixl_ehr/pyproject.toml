@@ -36,4 +36,4 @@ markers = [
 ]
 
 [tool.setuptools.package-data]
-pixl_ehr = ["sql/*.sql", "*.txt"]
+pixl_ehr = ["sql/*.sql", "report_deid/*.txt"]

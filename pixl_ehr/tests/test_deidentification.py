@@ -16,7 +16,7 @@ import os
 from pathlib import Path
 from typing import List, Tuple
 
-from pixl_rd.main import (
+from pixl_ehr.report_deid.deid import (
     _remove_any_excluded_words,
     _remove_any_trailing_tags,
     _remove_case_insensitive_patterns,

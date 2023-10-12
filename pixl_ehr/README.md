@@ -18,12 +18,9 @@ python -m spacy download en_core_web_lg  # Download spacy language model for dei
 pip install -e ../pixl_core/[test] .[test]
 pytest -m "not processing"
 ```
-or the full set with
+and the processing tests with
 ```bash
-cd tests
-docker compose up -d --build
-docker exec pixl-test-ehr-api /bin/bash -c "pytest pixl_ehr/"
-docker compose down
+./tests/run-processing-tests.sh 
 ```
 
 ## Usage
