@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 #  Copyright (c) University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,20 +11,6 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-set -eo pipefail
+from .deid import deidentify_text
 
-BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-PACKAGE_DIR="${BIN_DIR%/*}"
-cd "$PACKAGE_DIR"
-
-CONF_FILE=../setup.cfg
-
-mypy --config-file ${CONF_FILE} src/pixl_rd
-
-isort --settings-path ${CONF_FILE} src/pixl_rd
-
-black src/pixl_rd
-
-flake8 --config ${CONF_FILE}
-
-ENV="test" pytest src/pixl_rd
+__all__ = ["deidentify_text"]

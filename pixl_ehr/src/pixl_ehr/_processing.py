@@ -26,7 +26,7 @@ from pixl_ehr._databases import EMAPStar, PIXLDatabase
 from pixl_ehr._queries import SQLQuery
 import requests
 
-from pixl_rd import deidentify_text
+from .report_deid import deidentify_text
 
 logger = logging.getLogger("uvicorn")
 logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))
