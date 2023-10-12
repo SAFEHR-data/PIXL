@@ -21,11 +21,7 @@ cd $HASHER_DIR
 CONF_FILE=../setup.cfg
 
 mypy --config-file ${CONF_FILE} src/hasher
-
 isort --settings-path ${CONF_FILE} src/hasher
-
 black src/hasher
-
 flake8 --config ${CONF_FILE}
-
-ENV=test pytest src/hasher/tests
+pytest

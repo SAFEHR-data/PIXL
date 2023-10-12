@@ -50,10 +50,9 @@ jobs:
           python-version: '3.10'
           cache: 'pip'
 
-      - name: Install Python dependencies
+      - name: Install package
         run: |
-          python -m pip install --upgrade pip
-          pip install -r hasher/src/requirements.txt
+          pip install hasher/[test]
 
       - name: Run tests
         working-directory: hasher
@@ -64,35 +63,7 @@ jobs:
           AZURE_KEY_VAULT_NAME: test
           AZURE_KEY_VAULT_SECRET_NAME: test
 
-  report-de-id-tests:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Init Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10.6'  # Numpy croaks on 3.10.7+
-          cache: 'pip'
-
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r pixl_rd/src/requirements.txt
-
-      - name: Download presidio data
-        run: |
-          python -m spacy download en_core_web_lg
-
-      - name: Run tests
-        working-directory: pixl_rd
-        run: |
-          bin/run-tests.sh
-        env:
-          ENV: test
-
-  token-buffer-tests:
+  core-tests:
     runs-on: ubuntu-22.04
     timeout-minutes: 10
     steps:
@@ -106,13 +77,13 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r token_buffer/src/requirements.txt
+           pip install pixl_core/[test]
 
       - name: Run tests
-        working-directory: token_buffer
+        working-directory: pixl_core/tests
         run: |
-          bin/run-tests.sh
+          docker compose up --build --exit-code-from test
+          docker compose down
         env:
           ENV: test
 
@@ -140,30 +111,6 @@ jobs:
         env:
           ENV: test
 
-  patient-queue-tests:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Init Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-          cache: 'pip'
-
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r patient_queue/src/requirements.txt
-
-      - name: Run tests
-        working-directory: patient_queue/test
-        run: |
-          ./run-tests.sh
-        env:
-          ENV: test
-
   cli-tests:
     runs-on: ubuntu-22.04
     timeout-minutes: 10
@@ -178,11 +125,7 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r cli/src/requirements.txt
-          pip install -r token_buffer/src/requirements.txt token_buffer/src/
-          pip install -r patient_queue/src/requirements.txt
-          pip install patient_queue/src/
+          pip install pixl_core/[test] .[test]
 
       - name: Run tests
         working-directory: cli/test
@@ -203,11 +146,7 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r pixl_ehr/src/requirements.txt
-          pip install -r pixl_rd/src/requirements.txt pixl_rd/src/
-          pip install -r token_buffer/src/requirements.txt token_buffer/src/
-          pip install -r patient_queue/src/requirements.txt patient_queue/src/
+          pip install pixl_core/[test] pixl_ehr/[test]
           python -m spacy download en_core_web_lg
 
       - name: Run tests
@@ -231,10 +170,7 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r pixl_pacs/src/requirements.txt
-          pip install -r token_buffer/src/requirements.txt token_buffer/src/
-          pip install -r patient_queue/src/requirements.txt patient_queue/src/
+          pip install pixl_core/[test] pixl_pacs/[test]
 
       - name: Run tests
         working-directory: pixl_pacs/test
