@@ -83,7 +83,7 @@ HASHER_API_AZ_KEY_VAULT_SECRET_NAME=<secret-name>
 It is assumed you have a Python virtual environment configured using a tool like Conda or pyenv.  
 Install the dependencies from inside the _PIXL/hasher/src_ directory:
 ```bash
-pip install .
+pip install -e .
 ```
 
 ### Setup

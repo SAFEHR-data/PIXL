@@ -8,7 +8,7 @@ postgres database.
 ## Installation
 
 ```bash
-pip install ../pixl_core/ .
+pip install -e ../pixl_core/ .
 python -m spacy download en_core_web_lg  # Download spacy language model for deidentification
 ```
 

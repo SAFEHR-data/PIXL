@@ -47,8 +47,6 @@ def AzureAccessToken():
     }
 
     response = requests.post(url, data=payload)
-    # logging.info(f"{payload}")
-    # logging.info(f"{response.content}")
 
     access_token = response.json()["access_token"]
     return access_token

@@ -5,7 +5,7 @@ interact with RabbitMQ and ensure suitable rate limiting of requests to the upst
 
 ### Install
 ```bash
-pip install .
+pip install -e .
 ```
 
 ### Test

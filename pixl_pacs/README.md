@@ -9,7 +9,7 @@ are automatic.
 ## Installation
 
 ```bash
-pip install ../pixl_core/ .
+pip install -e ../pixl_core/ .
 ```
 
 ## Test
