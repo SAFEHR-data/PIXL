@@ -12,13 +12,13 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """List the newest studies"""
-import os
-import requests
 import argparse
-
-from json import JSONDecodeError
-from typing import Any, List, Optional
 from datetime import datetime
+from json import JSONDecodeError
+import os
+from typing import Any, List, Optional
+
+import requests
 from requests.auth import HTTPBasicAuth
 
 os.environ["NO_PROXY"] = os.environ["no_proxy"] = "localhost"
@@ -94,7 +94,6 @@ def _deserialise(response: requests.Response) -> Any:
 
 
 def parse_args() -> argparse.Namespace:
-
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "number_to_list", type=int, help="Number of the newest studies to list"
@@ -103,7 +102,6 @@ def parse_args() -> argparse.Namespace:
 
 
 if __name__ == "__main__":
-
     args = parse_args()
     print(f"Listing the newest {args.number_to_list} studies")
 
@@ -114,9 +112,12 @@ if __name__ == "__main__":
     for study in studies:
         study.received_time = orthanc.received_time(study)
 
-    for i, study in enumerate(sorted(studies, key=lambda x: x.received_time, reverse=True)):
+    sorted_studies = sorted(studies, key=lambda x: x.received_time, reverse=True)
+    for i, study in enumerate(sorted_studies):
         if i == args.number_to_list:
             break
 
-        print(f"Study received at {study.received_time}."
-              f"Accession number {orthanc.accession_number(study)}")
+        print(
+            f"Study received at {study.received_time}."
+            f"Accession number {orthanc.accession_number(study)}"
+        )

@@ -20,13 +20,14 @@ from typing import Any, List, Optional
 import pandas as pd
 
 import click
-from patient_queue.producer import PixlProducer
-from patient_queue.subscriber import PixlBlockingConsumer
-from patient_queue.utils import serialise, deserialise
-from pixl_cli._logging import logger, set_log_level
-from pixl_cli._utils import clear_file, remove_file_if_it_exists, string_is_non_empty
+from core.patient_queue.producer import PixlProducer
+from core.patient_queue.subscriber import PixlBlockingConsumer
+from core.patient_queue.utils import deserialise, serialise
 import requests
 import yaml
+
+from ._logging import logger, set_log_level
+from ._utils import clear_file, remove_file_if_it_exists, string_is_non_empty
 
 
 def _load_config(filename: str = "pixl_config.yml") -> dict:
@@ -77,7 +78,6 @@ def populate(csv_filename: str, queues: str, restart: bool) -> None:
 
     for queue in queues.split(","):
         with PixlProducer(queue_name=queue, **config["rabbitmq"]) as producer:
-
             state_filepath = state_filepath_for_queue(queue)
             if state_filepath.exists() and restart:
                 logger.info(f"Extracting messages from state: {state_filepath}")

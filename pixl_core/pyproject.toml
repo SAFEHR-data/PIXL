@@ -1,0 +1,35 @@
+[project]
+name = "core"
+version = "0.0.1"
+authors = [
+  { name="PIXL core functionality" },
+]
+description = ""
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3"
+]
+dependencies = [
+    "fastapi==0.103.2",
+    "token-bucket==0.3.0",
+    "python-decouple==3.6",
+    "pika==1.3.1",
+    "aio_pika==8.2.4",
+    "environs==9.5.0",
+    "requests==2.31.0"
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest==7.4.2",
+    "pytest-asyncio==0.21.1",
+    "httpx==0.24.*"
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+markers = ["pika"]

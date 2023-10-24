@@ -83,7 +83,7 @@ HASHER_API_AZ_KEY_VAULT_SECRET_NAME=<secret-name>
 It is assumed you have a Python virtual environment configured using a tool like Conda or pyenv.  
 Install the dependencies from inside the _PIXL/hasher/src_ directory:
 ```bash
-pip install -r requirements.txt
+pip install -e .
 ```
 
 ### Setup
@@ -98,13 +98,9 @@ uvicorn hasher.main:app --host=0.0.0.0 --port=8000 --reload
 ```
 
 ### Test
-from the _PIXL/hasher/src_ directory:
+From this directory:
 ```bash
-bin/run-tests.sh
-```
-or
-```bash
-PIXL_ENV=test pytest --ff hasher/tests
+pytest
 ```
 to skip linting and run only the last failed test.
 

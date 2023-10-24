@@ -15,9 +15,9 @@ import hashlib
 from io import BytesIO
 import logging
 from os import PathLike
+from random import randint
 import re
 from typing import Any, BinaryIO, Union
-from random import randint
 
 import arrow
 from decouple import config
@@ -104,7 +104,6 @@ def get_encrypted_uid(uid: str, salt: bytes) -> str:
 
     # For each subcomponent of the suffix:
     for idx, item in enumerate(suffix_elements):
-
         h = hashlib.sha512()
         h.update(item.encode("utf-8"))  # Add subcomponent.
         h.update(salt)  # Apply salt.
@@ -182,11 +181,9 @@ def enforce_whitelist(dataset: dict, tags: dict) -> dict:
     # For every element:
 
     for de in dataset:
-
         keep_el = False
         # For every entry in the YAML:
         for i in range(0, len(tags)):
-
             grp = tags[i]["group"]
             el = tags[i]["element"]
             op = tags[i]["op"]
@@ -242,7 +239,6 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
 
     # For every entry in the YAML:
     for i in range(0, len(tags)):
-
         name = tags[i]["name"]
         grp = tags[i]["group"]
         el = tags[i]["element"]
@@ -281,9 +277,7 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
 
         # Handle UIDs that should be encrypted.
         elif op == "hash-uid":
-
             if [grp, el] in dataset:
-
                 message = "Changing: {name} (0x{grp:04x},0x{el:04x})".format(
                     name=name, grp=grp, el=el
                 )

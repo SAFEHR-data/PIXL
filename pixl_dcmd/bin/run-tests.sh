@@ -18,16 +18,4 @@ BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 PACKAGE_DIR="${BIN_DIR%/*}"
 cd "$PACKAGE_DIR"
 
-echo $PACKAGE_DIR
-
-CONF_FILE=../setup.cfg
-
-mypy --config-file ${CONF_FILE} src/pixl_dcmd
-
-isort --settings-path ${CONF_FILE} src/pixl_dcmd
-
-black src/pixl_dcmd
-
-flake8 --config ${CONF_FILE}
-
 ENV=test pytest src/pixl_dcmd/tests

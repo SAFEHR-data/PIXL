@@ -18,8 +18,9 @@ import logging
 import os
 from time import time
 
-from patient_queue.utils import deserialise
+from core.patient_queue.utils import deserialise
 from decouple import config
+
 from pixl_pacs._orthanc import Orthanc, PIXLRawOrthanc
 
 logger = logging.getLogger("uvicorn")
@@ -48,8 +49,7 @@ async def process_message(message_body: bytes) -> None:
     start_time = time()
 
     while job_state != "Success":
-
-        if (time() - start_time) > float(config("PIXL_DICOM_TRANSFER_TIMEOUT")):
+        if (time() - start_time) > config("PIXL_DICOM_TRANSFER_TIMEOUT", cast=float):
             raise TimeoutError(
                 f"Failed to transfer {message_body.decode()} within "
                 f"{config('PIXL_DICOM_TRANSFER_TIMEOUT')} seconds"

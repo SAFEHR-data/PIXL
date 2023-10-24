@@ -7,12 +7,25 @@ postgres database.
 
 ## Installation
 
-Local installation is possible to run the api tests, but require installing 
-all the associated PIXL pip packages found at the repo root.
+```bash
+pip install -e ../pixl_core/ .
+python -m spacy download en_core_web_lg  # Download spacy language model for deidentification
+```
+
+## Test
+
+```bash
+pip install -e ../pixl_core/[test] .[test]
+pytest -m "not processing"
+```
+and the processing tests with
+```bash
+./tests/run-processing-tests.sh 
+```
 
 ## Usage
 
-Usage should be from the CLI driver, which interacts with the endpoint.
+Usage should be from the CLI driver, which calls the HTTP endpoints.
 
 ## Notes
 

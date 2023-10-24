@@ -12,22 +12,26 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 import os
+
 import orthanc
 
+
 def OnChange(changeType, level, resourceId):
-    # Taken from: 
+    # Taken from:
     # https://book.orthanc-server.com/plugins/python.html#auto-routing-studies
     if changeType == orthanc.ChangeType.STABLE_STUDY and ShouldAutoRoute():
-        print('Stable study: %s' % resourceId)
-        orthanc.RestApiPost('/modalities/PIXL-Anon/store', resourceId)
+        print("Stable study: %s" % resourceId)
+        orthanc.RestApiPost("/modalities/PIXL-Anon/store", resourceId)
+
 
 def OnHeartBeat(output, uri, **request):
     orthanc.LogWarning("OK")
-    output.AnswerBuffer('OK\n', 'text/plain')
+    output.AnswerBuffer("OK\n", "text/plain")
+
 
 def ShouldAutoRoute():
     return os.environ.get("ORTHANC_AUTOROUTE_RAW_TO_ANON", "false").lower() == "true"
 
 
 orthanc.RegisterOnChangeCallback(OnChange)
-orthanc.RegisterRestCallback('/heart-beat', OnHeartBeat)
+orthanc.RegisterRestCallback("/heart-beat", OnHeartBeat)

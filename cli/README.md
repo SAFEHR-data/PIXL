@@ -10,8 +10,14 @@ stopped cleanly.
 ## Installation
 
 ```bash
-cd src && pip install -r requirements.txt . 
+pip install -e ../pixl_core/ .
 ```
+
+## Test
+```bash
+./tests/run-tests.sh
+```
+
 
 ## Usage
 

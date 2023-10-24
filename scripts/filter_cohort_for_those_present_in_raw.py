@@ -12,12 +12,12 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """Filter a cohort .csv file for those that are not present in Orthanc raw"""
-import os
-import requests
-import sys
-
 from json import JSONDecodeError
+import os
+import sys
 from typing import Any, List
+
+import requests
 from requests.auth import HTTPBasicAuth
 
 os.environ["NO_PROXY"] = os.environ["no_proxy"] = "localhost"
@@ -84,7 +84,6 @@ def _deserialise(response: requests.Response) -> Any:
 
 
 if __name__ == "__main__":
-
     filename = sys.argv[1]
     orthanc = Orthanc()
 
@@ -94,7 +93,6 @@ if __name__ == "__main__":
     with open(filename, "r") as file:
         with open(f"{filename.rstrip('.csv')}_filtered.csv", "w") as new_file:
             for line in file:
-
                 if any(a in line for a in present_accession_numbers):
                     continue
 

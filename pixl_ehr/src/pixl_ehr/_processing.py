@@ -20,13 +20,14 @@ import os
 from pathlib import Path
 from typing import Optional
 
+from core.patient_queue.utils import deserialise
 from decouple import config
-from patient_queue.utils import deserialise
-from pixl_ehr._databases import EMAPStar, PIXLDatabase
-from pixl_ehr._queries import SQLQuery
 import requests
 
-from pixl_rd import deidentify_text
+from pixl_ehr._databases import EMAPStar, PIXLDatabase
+from pixl_ehr._queries import SQLQuery
+
+from .report_deid import deidentify_text
 
 logger = logging.getLogger("uvicorn")
 logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))
@@ -222,7 +223,6 @@ class SetVOT(EMAPStep, ABC):
         """Name of this observation type in an EMAP star schema, e.g. HEIGHT"""
 
     def update(self, data: PatientEHRData) -> None:
-
         if data.acquisition_datetime is None:
             raise RuntimeError("Cannot update a height without an acquisition")
 

@@ -15,8 +15,9 @@ import logging
 from typing import TYPE_CHECKING, List, Optional
 
 from decouple import config
-from pixl_ehr._queries import SQLQuery
 import psycopg2 as pypg
+
+from pixl_ehr._queries import SQLQuery
 
 logger = logging.getLogger("uvicorn")
 
@@ -34,7 +35,6 @@ class Database:
         password: Optional[str] = None,
         host: Optional[str] = None,
     ) -> None:
-
         connection_string = (
             f"dbname={db_name} user={username} password={password} host={host}"
         )
@@ -54,7 +54,6 @@ class QueryableDatabase(Database):
         return None if row is None else tuple(row)
 
     def execute_or_raise(self, query: SQLQuery, error_str: str = "Failed") -> tuple:
-
         result = self.execute(query)
 
         if result is None:
