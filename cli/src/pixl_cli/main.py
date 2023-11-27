@@ -41,7 +41,7 @@ def _load_config(filename: str = "pixl_config.yml") -> dict:
         )
 
     with Path.open(filename) as config_file:
-        config_dict = yaml.load(config_file, Loader=yaml.FullLoader)
+        config_dict = yaml.safe_load(config_file, Loader=yaml.FullLoader)
     return dict(config_dict)
 
 
@@ -189,7 +189,7 @@ def stop(queues: str) -> None:
 @cli.command()
 def kill() -> None:
     """Stop all the PIXL services"""
-    os.system("docker compose stop")
+    os.system("docker compose stop") # noqa: S605,S607
 
 
 @cli.command()

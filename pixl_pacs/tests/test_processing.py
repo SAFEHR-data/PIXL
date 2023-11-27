@@ -45,7 +45,7 @@ class WritableOrthanc(Orthanc):
 
     def upload(self, filename: str) -> None:
         os.system(
-            f"curl -u {self._username}:{self._password} "
+            f"curl -u {self._username}:{self._password} " # noqa: S605
             f"-X POST {self._url}/instances --data-binary @{filename}"
         )
 
