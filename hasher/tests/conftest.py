@@ -19,7 +19,7 @@ import pytest
 os.environ["ENV"] = "test"
 
 
-@pytest.fixture
+@pytest.fixture()
 def dummy_key(monkeypatch):
     """
     Fixture to set up a dummy key to use for hashing tests

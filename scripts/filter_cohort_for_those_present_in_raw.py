@@ -12,10 +12,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """Filter a cohort .csv file for those that are not present in Orthanc raw"""
-from json import JSONDecodeError
 import os
 import sys
-from typing import Any, List
+from json import JSONDecodeError
+from typing import Any
 
 import requests
 from requests.auth import HTTPBasicAuth
@@ -42,7 +42,7 @@ class Orthanc:
         self._auth = HTTPBasicAuth(username=username, password=password)
 
     @property
-    def studies(self) -> List[Study]:
+    def studies(self) -> list[Study]:
         """Get all the studies in an Orthanc instance"""
         uids = self.query_local(
             {
@@ -70,7 +70,6 @@ class Orthanc:
 
 def _deserialise(response: requests.Response) -> Any:
     """Decode an Orthanc rest API response"""
-
     if response.status_code != 200:
         raise requests.HTTPError(
             f"Failed request. "
@@ -90,7 +89,7 @@ if __name__ == "__main__":
     present_accession_numbers = [orthanc.accession_number(s) for s in orthanc.studies]
     print(f"Found {len(present_accession_numbers)} total studies")
 
-    with open(filename, "r") as file:
+    with open(filename) as file:
         with open(f"{filename.rstrip('.csv')}_filtered.csv", "w") as new_file:
             for line in file:
                 if any(a in line for a in present_accession_numbers):

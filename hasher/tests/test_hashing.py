@@ -11,9 +11,9 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+import pytest
 from hypothesis import HealthCheck, example, given, settings
 from hypothesis import strategies as st
-import pytest
 
 from hasher.hashing import generate_hash, generate_salt
 

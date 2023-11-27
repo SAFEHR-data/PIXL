@@ -11,9 +11,9 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-from datetime import datetime
 import json
 import logging
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -28,11 +28,13 @@ def deserialise(message_body: bytes) -> dict:
 
 
 def serialise(mrn: str, accession_number: str, study_datetime: datetime) -> bytes:
-    """Returns serialised message from patient id, accession number and date of study.
+    """
+    Returns serialised message from patient id, accession number and date of study.
     :param mrn: patient identifier
     :param accession_number: accession number
     :param study_datetime: date and time of the study
-    :returns: JSON formatted message"""
+    :returns: JSON formatted message
+    """
     logger.debug(
         f"Serialising message with patient id {mrn}, "
         f"accession number: {accession_number} and timestamp {study_datetime}"

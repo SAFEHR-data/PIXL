@@ -42,7 +42,6 @@ class TokenBucket(tb.Limiter):
         :param capacity: The maximum number of tokens in the bucket at any point in time
         :param storage: Type of storage used to hold the tokens
         """
-
         self._zero_rate = False
 
         if rate == 0:

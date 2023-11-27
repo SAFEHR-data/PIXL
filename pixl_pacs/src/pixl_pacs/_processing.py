@@ -11,11 +11,11 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+import logging
+import os
 from asyncio import sleep
 from dataclasses import dataclass
 from datetime import datetime
-import logging
-import os
 from time import time
 
 from core.patient_queue.utils import deserialise

@@ -12,8 +12,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 import os
-from pathlib import Path
 import re
+from pathlib import Path
 
 from presidio_analyzer import AnalyzerEngine
 from presidio_anonymizer import AnonymizerEngine
@@ -34,7 +34,6 @@ def deidentify_text(text: str) -> str:
     Returns:
         De-identified text
     """
-
     for anonymize_step in (
         _presidio_anonymise,
         _remove_linebreaks_after_title_case_lines,
@@ -143,6 +142,6 @@ def _partial_date_str() -> str:
 _this_dir = Path(os.path.dirname(__file__))
 _exclusions = [
     rf"[\s|,]{line.strip()}[\s|,]"
-    for line in open(_this_dir / "exclusions.txt", "r")
+    for line in open(_this_dir / "exclusions.txt")
     if len(line.strip()) > 0  # skip any blank lines
 ]

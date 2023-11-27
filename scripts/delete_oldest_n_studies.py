@@ -13,10 +13,10 @@
 #  limitations under the License.
 """Delete a number of studies from an Orthanc instance"""
 import argparse
+import os
 from datetime import datetime
 from json import JSONDecodeError
-import os
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 import requests
 from requests.auth import HTTPBasicAuth
@@ -44,7 +44,7 @@ class Orthanc:
         self._auth = HTTPBasicAuth(username=username, password=password)
 
     @property
-    def studies(self) -> List[Study]:
+    def studies(self) -> list[Study]:
         """Get all the studies in an Orthanc instance"""
         uids = self.query_local(
             {
@@ -83,7 +83,6 @@ class Orthanc:
 
 def _deserialise(response: requests.Response) -> Any:
     """Decode an Orthanc rest API response"""
-
     if response.status_code != 200:
         raise requests.HTTPError(
             f"Failed request. "

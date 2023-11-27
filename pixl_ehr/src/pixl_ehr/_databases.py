@@ -12,10 +12,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 import logging
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Optional
 
-from decouple import config
 import psycopg2 as pypg
+from decouple import config
 
 from pixl_ehr._queries import SQLQuery
 
@@ -45,7 +45,6 @@ class Database:
 class QueryableDatabase(Database):
     def execute(self, query: SQLQuery) -> Optional[tuple]:
         """Execute an sql query"""
-
         # logger.debug(f"Running query: \n"
         #             f"{self._cursor.mogrify(str(query), vars=query.values).decode()}")
 
@@ -63,9 +62,8 @@ class QueryableDatabase(Database):
 
 
 class WriteableDatabase(Database):
-    def persist(self, template: str, values: List) -> None:
+    def persist(self, template: str, values: list) -> None:
         """Execute an sql query"""
-
         self._cursor.execute(template, vars=values)
         self._connection.commit()
 
@@ -97,7 +95,6 @@ class PIXLDatabase(WriteableDatabase, QueryableDatabase):
 
     def to_csv(self, schema_name: str, table_name: str, filename: str) -> None:
         """Extract the content of a table within a schema to a csv file and save it"""
-
         query = (
             f"COPY (SELECT * FROM {schema_name}.{table_name}) TO STDOUT WITH CSV HEADER"
         )
@@ -107,7 +104,6 @@ class PIXLDatabase(WriteableDatabase, QueryableDatabase):
 
     def contains(self, data: "PatientEHRData") -> bool:
         """Does the database contain a set of data already?"""
-
         query = (
             "SELECT * FROM emap_data.ehr_raw WHERE mrn = %s and accession_number = %s"
         )

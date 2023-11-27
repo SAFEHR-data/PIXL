@@ -15,14 +15,14 @@
 These tests require executing from within the PACS API container with the dependent
 services being up
 """
-from datetime import datetime
 import os
+from datetime import datetime
 
+import pytest
 from core.patient_queue.utils import serialise
 from decouple import config
 from pydicom import dcmread
 from pydicom.data import get_testdata_file
-import pytest
 
 from pixl_pacs._orthanc import Orthanc, PIXLRawOrthanc
 from pixl_pacs._processing import ImagingStudy, process_message
@@ -65,8 +65,8 @@ def add_image_to_fake_vna(image_filename: str = "test.dcm") -> None:
     vna.upload(image_filename)
 
 
-@pytest.mark.processing
-@pytest.mark.asyncio
+@pytest.mark.processing()
+@pytest.mark.asyncio()
 async def test_image_processing() -> None:
     add_image_to_fake_vna()
     study = ImagingStudy.from_message(message_body)

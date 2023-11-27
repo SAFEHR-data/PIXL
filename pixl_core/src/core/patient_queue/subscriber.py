@@ -13,10 +13,12 @@
 #  limitations under the License.
 import asyncio
 import logging
+from collections.abc import Awaitable, Callable
 from pathlib import Path
-from typing import Any, Awaitable, Callable
+from typing import Any
 
 import aio_pika
+
 from core.token_buffer.tokens import TokenBucket
 
 from ._base import PixlBlockingInterface, PixlQueueInterface
@@ -78,7 +80,7 @@ class PixlConsumer(PixlQueueInterface):
                         f"Not re-queuing message"
                     )
 
-    async def __aexit__(self, *args: Any, **kwargs: Any) -> None:
+    async def __aexit__(self, *args: object, **kwargs: Any) -> None:
         """Requirement for the asynchronous context manager"""
 
 

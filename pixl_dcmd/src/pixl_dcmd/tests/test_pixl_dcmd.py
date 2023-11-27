@@ -12,6 +12,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+import pydicom
+import pytest
+from pydicom.data import get_testdata_files
+
 from pixl_dcmd.main import (
     combine_date_time,
     format_date_time,
@@ -19,9 +23,6 @@ from pixl_dcmd.main import (
     get_encrypted_uid,
     remove_overlays,
 )
-import pydicom
-from pydicom.data import get_testdata_files
-import pytest
 
 
 def test_encrypt_uid_1() -> None:

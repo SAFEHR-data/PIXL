@@ -11,22 +11,18 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-import hashlib
-from io import BytesIO
 import json
 import logging
 import os
-import pprint
-import sys
 import threading
-from time import sleep
 import traceback
+from io import BytesIO
+from time import sleep
 
-from decouple import config
-from pydicom import dcmread, dcmwrite
-from pydicom.filebase import DicomFileLike
 import requests
 import yaml
+from decouple import config
+from pydicom import dcmread
 
 import orthanc
 import pixl_dcmd
@@ -132,7 +128,7 @@ def SendViaStow(resourceId):
             headers=headers,
             data=json.dumps(payload),
         )
-    except requests.exceptions.RequestException as e:
+    except requests.exceptions.RequestException:
         orthanc.LogError("Failed to send via STOW")
 
 
@@ -164,7 +160,6 @@ def OnHeartBeat(output, uri, **request):
 
 def ReceivedInstanceCallback(receivedDicom, origin):
     """Modifies a DICOM instance received by Orthanc and applies anonymisation."""
-
     if origin == orthanc.InstanceOrigin.REST_API:
         orthanc.LogWarning("DICOM instance received from the REST API")
     elif origin == orthanc.InstanceOrigin.DICOM_PROTOCOL:
@@ -181,7 +176,7 @@ def ReceivedInstanceCallback(receivedDicom, origin):
     # Attempt to anonymise and drop the study if any exceptions occur
     try:
         return AnonymiseCallback(dataset)
-    except Exception as e:
+    except Exception:
         orthanc.LogWarning(
             "Failed to anonymize study due to\n" + traceback.format_exc()
         )
@@ -199,7 +194,7 @@ def AnonymiseCallback(dataset):
     orthanc.LogWarning("Removed overlays")
 
     # Apply anonymisation.
-    with open("/etc/orthanc/tag-operations.yaml", "r") as file:
+    with open("/etc/orthanc/tag-operations.yaml") as file:
         # Load tag operations scheme from YAML.
         tags = yaml.safe_load(file)
         # Apply scheme to instance

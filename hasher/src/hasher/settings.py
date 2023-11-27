@@ -12,12 +12,12 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+import pprint
+import tempfile
 from functools import partial
 from logging.config import dictConfig
 from pathlib import Path
-import pprint
-import tempfile
-from typing import Any, Dict
+from typing import Any
 
 from environs import Env, EnvError
 
@@ -114,7 +114,7 @@ dictConfig(conf)
 
 
 # Dump settings if in DEBUG mode
-def _dump_settings(symbols: Dict[str, Any]) -> None:
+def _dump_settings(symbols: dict[str, Any]) -> None:
     settings = {}
     for k, v in symbols.items():
         if k.isupper():

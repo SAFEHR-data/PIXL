@@ -11,18 +11,18 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+import logging
+import os
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-import logging
-import os
 from pathlib import Path
 from typing import Optional
 
+import requests
 from core.patient_queue.utils import deserialise
 from decouple import config
-import requests
 
 from pixl_ehr._databases import EMAPStar, PIXLDatabase
 from pixl_ehr._queries import SQLQuery
@@ -84,7 +84,6 @@ class PatientEHRData:
         Create a minimal set of patient EHR data required to start queries from a
         queue message
         """
-
         message_data = deserialise(message_body)
         self = PatientEHRData(
             mrn=message_data["mrn"],
@@ -97,7 +96,6 @@ class PatientEHRData:
 
     def update_using(self, pipeline: "ProcessingPipeline") -> None:
         """Update these data using a processing pipeline"""
-
         for i, step in enumerate(pipeline.steps):
             logger.debug(f"Step [{i}/{len(pipeline.steps) - 1}]")
 
@@ -148,7 +146,6 @@ class PatientEHRData:
 
     def anonymise(self) -> "PatientEHRData":
         """Anonymise these patient data by processing text and hashing identifiers"""
-
         if self.report_text is not None:
             self.report_text = deidentify_text(self.report_text)
 
@@ -178,7 +175,6 @@ class EMAPStep(Step, ABC):
 class SetAgeSexEthnicity(EMAPStep):
     def update(self, data: PatientEHRData) -> None:
         """Update the data with age, sex and ethnicity"""
-
         query = SQLQuery(
             filepath=Path(_this_dir, "sql/mrn_to_DOB_sex_ethnicity.sql"),
             context={
@@ -276,7 +272,6 @@ class SetGCS(SetVOT):
 class SetReport(EMAPStep):
     def update(self, data: PatientEHRData) -> None:
         """Update the data with age, sex and ethnicity"""
-
         query = SQLQuery(
             filepath=Path(_this_dir, "sql/mrn_accession_to_report.sql"),
             context={
@@ -295,7 +290,6 @@ class ProcessingPipeline:
 
 def pixl_hash(string: str, endpoint_path: str) -> str:
     """Use the PIXL hashing API to hash a string"""
-
     response = requests.get(
         f"http://hasher-api:8000/{endpoint_path.lstrip('/')}",
         params={"message": string},

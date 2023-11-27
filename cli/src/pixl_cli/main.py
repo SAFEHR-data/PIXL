@@ -11,20 +11,19 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-from datetime import datetime
 import json
 import os
+from datetime import datetime
 from pathlib import Path
-from typing import Any, List, Optional
-
-import pandas as pd
+from typing import Any, Optional
 
 import click
+import pandas as pd
+import requests
+import yaml
 from core.patient_queue.producer import PixlProducer
 from core.patient_queue.subscriber import PixlBlockingConsumer
 from core.patient_queue.utils import deserialise, serialise
-import requests
-import yaml
 
 from ._logging import logger, set_log_level
 from ._utils import clear_file, remove_file_if_it_exists, string_is_non_empty
@@ -32,14 +31,13 @@ from ._utils import clear_file, remove_file_if_it_exists, string_is_non_empty
 
 def _load_config(filename: str = "pixl_config.yml") -> dict:
     """CLI configuration generated from a .yaml file"""
-
     if not Path(filename).exists():
-        raise IOError(
+        raise OSError(
             f"Failed to find {filename}. It must be present "
             f"in the current working directory"
         )
 
-    with open(filename, "r") as config_file:
+    with open(filename) as config_file:
         config_dict = yaml.load(config_file, Loader=yaml.FullLoader)
     return dict(config_dict)
 
@@ -106,7 +104,6 @@ def populate(csv_filename: str, queues: str, restart: bool) -> None:
 )
 def start(queues: str, rate: Optional[int]) -> None:
     """Start consumers for a set of queues"""
-
     if rate == 0:
         raise RuntimeError("Cannot start extract with a rate of 0. Must be >0")
 
@@ -131,9 +128,8 @@ def update(queues: str, rate: Optional[float]) -> None:
     _start_or_update_extract(queues=queues.split(","), rate=rate)
 
 
-def _start_or_update_extract(queues: List[str], rate: Optional[float]) -> None:
+def _start_or_update_extract(queues: list[str], rate: Optional[float]) -> None:
     """Start or update the rate of extraction for a list of queue names"""
-
     for queue in queues:
         _update_extract_rate(queue_name=queue, rate=rate)
 
@@ -200,7 +196,6 @@ def kill() -> None:
 )
 def status(queues: str) -> None:
     """Get the status of the PIXL consumers"""
-
     for queue in queues.split(","):
         print(f"[{queue:^10s}] refresh rate = ", _get_extract_rate(queue))
 
@@ -208,7 +203,6 @@ def status(queues: str) -> None:
 @cli.command()
 def az_copy_ehr() -> None:
     """Copy the EHR data to azure"""
-
     api_config = api_config_for_queue("ehr")
     response = requests.get(url=f"{api_config.base_url}/az-copy-current")
 
@@ -218,7 +212,6 @@ def az_copy_ehr() -> None:
 
 def _get_extract_rate(queue_name: str) -> str:
     """Get the extraction rate in items per second from a queue"""
-
     api_config = api_config_for_queue(queue_name)
 
     try:
@@ -261,14 +254,15 @@ class Messages(list):
         return cls(
             [
                 line.encode("utf-8")
-                for line in open(filepath, "r").readlines()
+                for line in open(filepath).readlines()
                 if string_is_non_empty(line)
             ]
         )
 
 
 def messages_from_csv(filepath: Path) -> Messages:
-    """Reads patient information from CSV and transforms that into messages.
+    """
+    Reads patient information from CSV and transforms that into messages.
     :param filepath: Path for CSV file to be read
     """
     expected_col_names = [
@@ -336,7 +330,6 @@ class APIConfig:
 
 def api_config_for_queue(queue_name: str) -> APIConfig:
     """Configuration for an API associated with a queue"""
-
     config_key = f"{queue_name}_api"
 
     if config_key not in config:

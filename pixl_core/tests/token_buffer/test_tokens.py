@@ -38,7 +38,6 @@ def test_refill_tokens() -> None:
 
 def test_zero_rate() -> None:
     """Test that the refill rate can be set to zero"""
-
     assert TokenBucket(rate=0).rate == 0
 
 

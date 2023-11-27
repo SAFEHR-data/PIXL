@@ -70,7 +70,7 @@ class PixlBlockingInterface(PixlQueueInterface):
         LOGGER.info(f"Connected to {self._queue}")
         return self
 
-    def __exit__(self, *args: Any, **kwargs: Any) -> None:
+    def __exit__(self, *args: object, **kwargs: Any) -> None:
         """Shutdown the connection to RabbitMQ service."""
         self._channel.close()
         self._connection.close()

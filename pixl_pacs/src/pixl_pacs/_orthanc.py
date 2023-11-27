@@ -11,13 +11,13 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+import logging
 from abc import ABC, abstractmethod
 from json import JSONDecodeError
-import logging
 from typing import Any, Optional
 
-from decouple import config
 import requests
+from decouple import config
 from requests.auth import HTTPBasicAuth
 
 logger = logging.getLogger("uvicorn")
@@ -84,7 +84,6 @@ class Orthanc(ABC):
 
 def _deserialise(response: requests.Response) -> Any:
     """Decode an Orthanc rest API response"""
-
     if response.status_code != 200:
         raise requests.HTTPError(
             f"Failed request. "

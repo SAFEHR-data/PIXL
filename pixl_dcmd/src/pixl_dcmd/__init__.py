@@ -20,8 +20,6 @@ from pixl_dcmd.main import (
     write_dataset_to_bytes,
 )
 
-from ._version import __version__, __version_info__
-
 __all__ = [
     "remove_overlays",
     "write_dataset_to_bytes",

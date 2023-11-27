@@ -14,7 +14,6 @@
 
 import logging
 from time import sleep
-from typing import List
 
 from ._base import PixlBlockingInterface
 
@@ -24,7 +23,7 @@ LOGGER = logging.getLogger(__name__)
 class PixlProducer(PixlBlockingInterface):
     """Generic publisher for RabbitMQ"""
 
-    def publish(self, messages: List[bytes]) -> None:
+    def publish(self, messages: list[bytes]) -> None:
         """
         Sends a list of serialised messages to a queue.
         :param messages: list of messages to be sent to queue
@@ -47,6 +46,8 @@ class PixlProducer(PixlBlockingInterface):
             )
 
     def clear_queue(self) -> None:
-        """Triggering a purge of all the messages currently in the queue. Mainly used to
-        clean after tests."""
+        """
+        Triggering a purge of all the messages currently in the queue. Mainly used to
+        clean after tests.
+        """
         self._channel.queue_purge(queue=self.queue_name)

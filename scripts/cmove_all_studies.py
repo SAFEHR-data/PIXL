@@ -13,9 +13,9 @@
 #  limitations under the License.
 """C-Move all studies from Orthanc Raw to Anon"""
 import argparse
+import os
 from datetime import datetime, timedelta
 from json import JSONDecodeError
-import os
 from typing import Any
 
 import requests
@@ -54,7 +54,6 @@ class Orthanc:
 
 def _deserialise(response: requests.Response) -> Any:
     """Decode an Orthanc rest API response"""
-
     if response.status_code != 200:
         raise requests.HTTPError(
             f"Failed request. "

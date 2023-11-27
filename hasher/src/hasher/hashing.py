@@ -11,11 +11,11 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-from functools import lru_cache
-from hashlib import blake2b
 import logging
 import os
 import secrets
+from functools import lru_cache
+from hashlib import blake2b
 
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient

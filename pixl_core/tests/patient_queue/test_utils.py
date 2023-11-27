@@ -11,8 +11,8 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-from datetime import datetime as dt
 import json
+from datetime import datetime as dt
 
 from core.patient_queue.utils import deserialise, serialise
 

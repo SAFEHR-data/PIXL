@@ -12,14 +12,13 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 from pathlib import Path
-from typing import List
 
 
 class SQLQuery:
     def __init__(self, filepath: Path, context: dict):
-        self.values: List[str] = []
+        self.values: list[str] = []
         self._filepath = filepath
-        self._lines = open(filepath, "r").readlines()
+        self._lines = open(filepath).readlines()
         self._replace_placeholders_and_populate_values(context)
 
     def __str__(self) -> str:
@@ -32,7 +31,6 @@ class SQLQuery:
         will be replaced with psycopg2 value replacement, with correct type
         casting. ${{ }} placeholders will be replaced as is string replacement
         """
-
         for i, line in enumerate(self._lines):
             if ":" not in line and "${{" not in line:
                 continue

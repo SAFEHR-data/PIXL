@@ -12,25 +12,28 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 import asyncio
+from collections.abc import Coroutine, Generator
 from pathlib import Path
-from typing import Any, Coroutine, Generator
+from typing import Any
 from unittest import TestCase
 
+import pytest
 from core.patient_queue.producer import PixlProducer
 from core.patient_queue.subscriber import PixlBlockingConsumer, PixlConsumer
 from core.token_buffer.tokens import TokenBucket
-import pytest
 
 TEST_QUEUE = "test_consume"
-MESSAGE_BODY = "test".encode("utf-8")
+MESSAGE_BODY = b"test"
 counter = 0
 
 
 @pytest.fixture(scope="class")
 def event_loop_instance(request: Any) -> Generator:
-    """Add the event_loop as an attribute to the unittest style test class.
+    """
+    Add the event_loop as an attribute to the unittest style test class.
     :param request: the object event loop ties to
-    :returns: a generator"""
+    :returns: a generator
+    """
     request.cls.event_loop = asyncio.get_event_loop_policy().new_event_loop()
     yield
     request.cls.event_loop.close()
@@ -39,8 +42,10 @@ def event_loop_instance(request: Any) -> Generator:
 @pytest.mark.usefixtures("event_loop_instance")
 class TestConsumer(TestCase):
     def get_async_result(self, coro: Coroutine) -> Any:
-        """Run a coroutine synchronously.
-        :param coro: coroutine generated from run"""
+        """
+        Run a coroutine synchronously.
+        :param coro: coroutine generated from run
+        """
         return self.event_loop.run_until_complete(coro)  # type: ignore
 
     async def test_create(self) -> None:
@@ -68,10 +73,12 @@ class TestConsumer(TestCase):
         assert counter == 1
 
 
-@pytest.mark.pika
+@pytest.mark.pika()
 def test_consume_all() -> None:
-    """Checks that all messages are returned that have been published before for
-    graceful shutdown."""
+    """
+    Checks that all messages are returned that have been published before for
+    graceful shutdown.
+    """
     with PixlProducer(queue_name=TEST_QUEUE) as pp:
         pp.publish(messages=[MESSAGE_BODY, MESSAGE_BODY])
 
