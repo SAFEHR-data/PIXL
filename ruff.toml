@@ -18,5 +18,5 @@ per-file-ignores = {"*tests*" = [
 select = [
     "ALL",
 ]
-target-version = "py39"
+target-version = "py310"
 mccabe.max-complexity = 18
