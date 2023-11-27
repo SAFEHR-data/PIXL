@@ -84,7 +84,8 @@ class Orthanc(ABC):
 
 def _deserialise(response: requests.Response) -> Any:
     """Decode an Orthanc rest API response"""
-    if response.status_code != 200:
+    success_code = 200
+    if response.status_code != success_code:
         msg = (
             f"Failed request. "
             f"Status code: {response.status_code}"
