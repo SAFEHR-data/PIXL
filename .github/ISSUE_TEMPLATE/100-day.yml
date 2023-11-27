@@ -1,0 +1,61 @@
+#  Copyright (c) University College London Hospitals NHS Foundation Trust
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+name: 100-day story
+description: Create a new story or task for 100 day plan project
+projects: ["UCLH-Foundry/13"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Let's add a new task/story to the project
+  - type: textarea
+    id: definition_of_done
+    attributes:
+      label: Definition of Done / Acceptance Criteria
+      description: What can someone see/do when this task is done.
+      placeholder: The export data is available in the xxx format, including age of the patient at the time of imaging...
+    validations:
+      required: true
+  - type: textarea
+    id: testing
+    attributes:
+      label: Testing
+      description: Specific testing considerations for this task to be done
+      placeholder: Passed integration testing that uses the correct modality...
+    validations:
+      required: false
+  - type: textarea
+    id: documentation
+    attributes:
+      label: Documentation
+      description: Documantation to be completed along with this task
+      placeholder: Update README and user guide...
+    validations:
+      required: false
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: Enter the github issue number that the requirement is dependent on, in the form `#1`
+      placeholder: "#1"
+    validations:
+      required: false
+  - type: textarea
+    id: details
+    attributes:
+      label: Details and Comments
+      description: Other details or comments
+      placeholder: The algorithm used is based on...
+    validations:
+      required: false
