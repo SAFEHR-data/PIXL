@@ -95,24 +95,6 @@ def test_date_time_format(orig_date_time: str, output_date_time: str) -> None:
         == output_date_time
     )
 
-
-# @pytest.mark.parametrize(
-#     "orig_time,offset,expected_shifted_time",
-#     [
-#         ("020000", 2, "000000"),
-#         ("020000", 3, "230000"),
-#         ("131415", 11, "021415"),
-#         ("141312", 12, "021312"),
-#         ("010203", 5, "200203"),
-#         ("131415.11", 5, "081415.11"),
-#         ("131415.999999", 5, "081415.999999"),
-#     ],
-# )
-# def test_time_const(orig_time: str, offset: int, expected_shifted_time: str) -> None:
-#     """Checks that times are shifted relative to offset."""
-#     assert subtract_time_const(orig_time, offset) == expected_shifted_time
-
-
 def test_remove_overlay_plane() -> None:
     """Checks that overlay planes are removed."""
     fpath = get_testdata_files("MR-SIEMENS-DICOM-WithOverlays.dcm")[0]

@@ -60,7 +60,7 @@ def remove_overlays(dataset: Dataset) -> Dataset:
         if overlay:
             message = f"Found overlay in: [0x{i:04x}]"
             logging.info(f"\t{message}")
-            # orthanc.LogWarning(message)
+
             message = f"Deleting overlay in: [0x{i:04x}]"
             logging.info(f"\t{message}")
             for item in overlay:
@@ -68,7 +68,7 @@ def remove_overlays(dataset: Dataset) -> Dataset:
         else:
             message = f"No overlay in: [0x{i:04x}]"
             logging.info(f"\t{message}")
-            # orthanc.LogWarning(message)
+
 
     return dataset
 
@@ -142,7 +142,7 @@ def combine_date_time(a_date: str, a_time: str) -> Any:
     """Turn date string and time string into arrow object."""
     date_time_str = f"{a_date} {a_time}"
 
-    # logging.info(f"Date time= {date_time_str}")
+
 
     # TODO: Should Timezone be hardcoded?
     tz = "Europe/London"
@@ -207,7 +207,7 @@ def enforce_whitelist(dataset: dict, tags: dict) -> dict:
 def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
     """Apply anoymisation operations for a given set of tags to a dataset"""
     # Keep the original study time before any operations are applied.
-    # orig_study_time = dataset[0x0008, 0x0030].value
+    # For example: orig_study_time = dataset[0x0008, 0x0030].value
 
     # Set salt based on ENV VAR
     salt_plaintext = config("SALT_VALUE")
@@ -252,7 +252,7 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
                 message = f"Missing: {name} (0x{grp:04x},0x{el:04x})\
                  - Operation ({op})"
                 logging.warning(f"\t{message}")
-            # orthanc.LogWarning(message)
+
 
         # If this tag should be deleted.
         elif op == "delete":
@@ -264,7 +264,7 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
                 message = f"Missing: {name} (0x{grp:04x},0x{el:04x})\
                  - Operation ({op})"
                 logging.debug(f"\t{message}")
-            # orthanc.LogWarning(message)
+
 
         # Handle UIDs that should be encrypted.
         elif op == "hash-uid":
@@ -281,7 +281,7 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
                 message = f"Missing: {name} (0x{grp:04x},0x{el:04x})\
                  - Operation ({op})"
                 logging.debug(f"\t{message}")
-            # orthanc.LogWarning(message)
+
 
         # Shift time relative to the original study time.
         elif op == "time-shift":
@@ -436,7 +436,7 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
                 message = f"Missing: {name} (0x{grp:04x},0x{el:04x})\
                  - Operation ({op})"
                 logging.warning(f"\t{message}")
-            # orthanc.LogWarning(message)
+
 
     return dataset
 

@@ -63,7 +63,6 @@ def AzureDICOMTokenRefresh():
 
     try:
         access_token = AzureAccessToken()
-        # logging.info(f"{access_token}")
     except Exception:
         orthanc.LogError(
             "Failed to get an Azure access token. Retrying in 30 seconds\n"
@@ -82,8 +81,6 @@ def AzureDICOMTokenRefresh():
         "HasDelete": True,
         "Timeout": AZ_DICOM_HTTP_TIMEOUT,
     }
-
-    # logging.info(f"{dicomweb_config}")
 
     headers = {"content-type": "application/json"}
 
