@@ -12,6 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 import logging
+from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 
 import psycopg2 as pypg

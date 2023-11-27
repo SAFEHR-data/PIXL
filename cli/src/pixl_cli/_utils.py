@@ -11,7 +11,6 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-import os
 from pathlib import Path
 
 
@@ -28,4 +27,4 @@ def string_is_non_empty(string: str) -> bool:
 def remove_file_if_it_exists(filepath: Path) -> None:
     """If a file exists remove it"""
     if filepath.exists():
-        os.remove(filepath)
+        Path.unlink(filepath)

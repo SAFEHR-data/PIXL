@@ -12,6 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+from pathlib import Path
 from setuptools import find_packages, setup
 
 exec(Path.open("./pixl_dcmd/_version.py").read())

@@ -11,7 +11,6 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-import os
 import re
 from pathlib import Path
 
@@ -139,7 +138,7 @@ def _partial_date_str() -> str:
     )
 
 
-_this_dir = Path(os.path.dirname(__file__))
+_this_dir = Path(Path.parent(__file__))
 _exclusions = [
     rf"[\s|,]{line.strip()}[\s|,]"
     for line in Path.open(_this_dir / "exclusions.txt")
