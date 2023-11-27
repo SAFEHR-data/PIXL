@@ -360,6 +360,6 @@ def study_date_from_serialised(message: bytes) -> datetime:
         result = deserialise(message)["study_datetime"]
         assert isinstance(result, datetime)
         return result
-    except (AssertionError, KeyError):
+    except (AssertionError, KeyError) as exc:
         msg = "Failed to get the study date from the message"
-        raise AssertionError(msg)
+        raise AssertionError(msg) from exc

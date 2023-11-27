@@ -220,11 +220,9 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
     # https://github.com/UCLH-Foundry/PIXL/issues/152
     try:
         TIME_OFFSET = int(config("TIME_OFFSET"))
-    except ValueError:
+    except ValueError as exc:
         msg = "Failed to set the time offset in hours from the $TIME_OFFSET env var"
-        raise RuntimeError(
-            msg
-        )
+        raise RuntimeError(msg) from exc
 
     logging.info(b"TIME_OFFSET = %i}" % TIME_OFFSET)
 

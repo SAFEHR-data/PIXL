@@ -95,9 +95,9 @@ def _deserialise(response: requests.Response) -> Any:
         )
     try:
         return response.json()
-    except (JSONDecodeError, ValueError):
+    except (JSONDecodeError, ValueError) as exc:
         msg = f"Failed to parse {response} as json"
-        raise requests.HTTPError(msg)
+        raise requests.HTTPError(msg) from exc
 
 
 class PIXLRawOrthanc(Orthanc):
