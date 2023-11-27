@@ -145,6 +145,7 @@ def combine_date_time(a_date: str, a_time: str) -> Any:
 
 
     # TODO: Should Timezone be hardcoded?
+    # https://github.com/UCLH-Foundry/PIXL/issues/151
     tz = "Europe/London"
 
     try:
@@ -216,6 +217,7 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
     HASHER_API_PORT = config("HASHER_API_PORT")
 
     # TODO: Get offset from external source on study-by-study basis.
+    # https://github.com/UCLH-Foundry/PIXL/issues/152
     try:
         TIME_OFFSET = int(config("TIME_OFFSET"))
     except ValueError:

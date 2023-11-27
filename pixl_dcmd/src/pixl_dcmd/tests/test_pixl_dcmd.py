@@ -106,3 +106,4 @@ def test_remove_overlay_plane() -> None:
 
 
 # TODO: def test_anonymisation
+# https://github.com/UCLH-Foundry/PIXL/issues/132
