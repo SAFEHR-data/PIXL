@@ -74,7 +74,7 @@ class PixlConsumer(PixlQueueInterface):
                         callback(message.body),
                         asyncio.sleep(1e-3),  # Avoid very fast callbacks
                     )
-                except Exception as e:  # noqa
+                except Exception as e:
                     LOGGER.error(
                         f"Failed to process {message.body.decode()} due to\n{e}\n"
                         f"Not re-queuing message"
@@ -104,7 +104,7 @@ class PixlBlockingConsumer(PixlBlockingInterface):
             try:
                 with Path.open(file_path, "a") as csv_file:
                     print(str(body.decode()), file=csv_file)
-            except:  # noqa
+            except:
                 LOGGER.debug("Failed to consume")
 
         counter = 0

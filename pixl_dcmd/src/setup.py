@@ -19,7 +19,7 @@ exec(Path.open("./pixl_dcmd/_version.py").read())
 
 setup(
     name="pixl_dcmd",
-    version=__version__,  # type: ignore # noqa: F821
+    version=__version__,  # type: ignore
     description="DICOM de-identifier",
     packages=find_packages(
         exclude=[
