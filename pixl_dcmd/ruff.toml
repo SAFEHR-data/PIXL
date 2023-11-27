@@ -1,0 +1,2 @@
+[extend-per-file-ignores]
+"src/pixl_dcmd/main.py" = ["PLR2004"] #  Magic value used in comparison
