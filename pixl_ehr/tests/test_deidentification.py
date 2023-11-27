@@ -38,7 +38,7 @@ def _patient_names_from_names_csv() -> list[tuple[str, str]]:
 
     path = THIS_DIR / "data" / "names.csv"
 
-    return [_tuple_from(line) for line in open(path).readlines()[1:]]
+    return [_tuple_from(line) for line in Path.open(path).readlines()[1:]]
 
 
 def test_patient_name_is_redacted(required_accuracy: float = 0.85) -> None:

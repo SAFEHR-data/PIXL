@@ -191,7 +191,7 @@ def AnonymiseCallback(dataset):
     orthanc.LogWarning("Removed overlays")
 
     # Apply anonymisation.
-    with open("/etc/orthanc/tag-operations.yaml") as file:
+    with Path.open("/etc/orthanc/tag-operations.yaml") as file:
         # Load tag operations scheme from YAML.
         tags = yaml.safe_load(file)
         # Apply scheme to instance

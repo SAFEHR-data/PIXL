@@ -40,7 +40,7 @@ def _load_config(filename: str = "pixl_config.yml") -> dict:
             msg
         )
 
-    with open(filename) as config_file:
+    with Path.open(filename) as config_file:
         config_dict = yaml.load(config_file, Loader=yaml.FullLoader)
     return dict(config_dict)
 
@@ -261,7 +261,7 @@ class Messages(list):
         return cls(
             [
                 line.encode("utf-8")
-                for line in open(filepath).readlines()
+                for line in Path.open(filepath).readlines()
                 if string_is_non_empty(line)
             ]
         )

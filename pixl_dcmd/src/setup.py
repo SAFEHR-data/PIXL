@@ -14,7 +14,7 @@
 
 from setuptools import find_packages, setup
 
-exec(open("./pixl_dcmd/_version.py").read())
+exec(Path.open("./pixl_dcmd/_version.py").read())
 
 setup(
     name="pixl_dcmd",

@@ -73,7 +73,7 @@ async def az_copy_current(csv_filename: str = "extract.csv") -> None:
         f"{config('AZ_STORAGE_CONTAINER_NAME')}/{csv_filename}"
     )
 
-    with open(file=csv_filename, mode="rb") as data:
+    with Path.open(file=csv_filename, mode="rb") as data:
         blob_client.upload_blob(data)
 
     logger.info("Uploaded successfully!")

@@ -142,6 +142,6 @@ def _partial_date_str() -> str:
 _this_dir = Path(os.path.dirname(__file__))
 _exclusions = [
     rf"[\s|,]{line.strip()}[\s|,]"
-    for line in open(_this_dir / "exclusions.txt")
+    for line in Path.open(_this_dir / "exclusions.txt")
     if len(line.strip()) > 0  # skip any blank lines
 ]
