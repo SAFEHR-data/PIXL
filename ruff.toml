@@ -3,15 +3,27 @@ force-exclude = true
 ignore = [
     "ANN001", # missing type function argument
     "ANN101", # missng type annotation for `self`
+    "ANN102", # missing type annotation in classmethods
+    "ANN201", # missing return type annotation for public function
+    "ANN401", # dynamically typed expressions
     "COM812", # trailing commas (ruff-format recommended)
+    "D205",   # 1 blank line required between summary and description
     "D400",   # first line should end with a period
+    "D401",   # first lien of docstring should be imperative mood
+    "D404",   # first word of docsctring should not be "This"
     "D415",   # first line should end with period, question mark or exclamation point
     "D203", # no-blank-line-before-class
     "D212", # multi-line-summary-first-line
     "D407", # removed dashes lines under sections
     "D417", # argument description in docstring (unreliable)
     "ISC001", # simplify implicit str concatenation (ruff-format recommended)
+    "N802",   # Function name should be lowercase
+    "N806",   # Variable should be lowercase
+    "N803",   # Variable in function should be lowercase
+    "S311",   # Standard pseudo-random generators are not suitable for cryptographic purposes
     "UP007",  # Use `X | Y` for type annotations
+    "TD002",  # missing author in #TODO
+    "TD004",  # missing colon in #TODO
 ]
 per-file-ignores = {"*tests*" = [
     "INP001",
@@ -26,3 +38,7 @@ select = [
 target-version = "py310"
 mccabe.max-complexity = 18
 exclude=["scripts"]
+
+[extend-per-file-ignores]
+"**/tests/*" = ["PLR2004"] #  Magic value used in comparison
+"hasher/tests/*" = ["ARG001"] #  unused function argument
