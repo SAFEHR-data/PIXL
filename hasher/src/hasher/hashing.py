@@ -45,7 +45,8 @@ def fetch_key_from_vault() -> str:
     client = SecretClient(vault_url=key_vault_uri, credential=credentials)
     key = client.get_secret(AZURE_KEY_VAULT_SECRET_NAME)
     if key.value is None:
-        raise ValueError("Azure Key Vault secret is None")
+        msg = "Azure Key Vault secret is None"
+        raise ValueError(msg)
     else:
         return str(key.value)
 
@@ -60,9 +61,11 @@ def generate_hash(message: str, length: int = 64) -> str:
     :return: hashed string
     """
     if length > 64:
-        raise ValueError(f"Maximum hash length is 64 characters, received: {length}")
+        msg = f"Maximum hash length is 64 characters, received: {length}"
+        raise ValueError(msg)
     elif length < 2:
-        raise ValueError(f"Minimum hash length is 2 characters, received: {length}")
+        msg = f"Minimum hash length is 2 characters, received: {length}"
+        raise ValueError(msg)
 
     # HMAC digest is returned as hex encoded i.e. 2 characters per byte
     output_bytes = length // 2
@@ -81,9 +84,11 @@ def generate_salt(length: int = 16) -> str:
     :return: hexadecimal string
     """
     if length > 64:
-        raise ValueError(f"Maximum salt length is 64 characters, received: {length}")
+        msg = f"Maximum salt length is 64 characters, received: {length}"
+        raise ValueError(msg)
     elif length < 2:
-        raise ValueError(f"Minimum salt length is 2 characters, received: {length}")
+        msg = f"Minimum salt length is 2 characters, received: {length}"
+        raise ValueError(msg)
 
     # Output is hex encoded i.e. 2 characters per byte
     output_bytes = length // 2

@@ -32,9 +32,12 @@ from ._utils import clear_file, remove_file_if_it_exists, string_is_non_empty
 def _load_config(filename: str = "pixl_config.yml") -> dict:
     """CLI configuration generated from a .yaml file"""
     if not Path(filename).exists():
-        raise OSError(
+        msg = (
             f"Failed to find {filename}. It must be present "
             f"in the current working directory"
+        )
+        raise OSError(
+            msg
         )
 
     with open(filename) as config_file:
@@ -105,7 +108,8 @@ def populate(csv_filename: str, queues: str, restart: bool) -> None:
 def start(queues: str, rate: Optional[int]) -> None:
     """Start consumers for a set of queues"""
     if rate == 0:
-        raise RuntimeError("Cannot start extract with a rate of 0. Must be >0")
+        msg = "Cannot start extract with a rate of 0. Must be >0"
+        raise RuntimeError(msg)
 
     _start_or_update_extract(queues=queues.split(","), rate=rate)
 
@@ -157,8 +161,9 @@ def _update_extract_rate(queue_name: str, rate: Optional[float]) -> None:
         )
 
     else:
+        msg = f"Failed to update rate on consumer for {queue_name}: {response}"
         raise RuntimeError(
-            f"Failed to update rate on consumer for {queue_name}: {response}"
+            msg
         )
 
 
@@ -207,7 +212,8 @@ def az_copy_ehr() -> None:
     response = requests.get(url=f"{api_config.base_url}/az-copy-current")
 
     if response.status_code != 200:
-        raise RuntimeError(f"Failed to run az copy due to: {response.text}")
+        msg = f"Failed to run az copy due to: {response.text}"
+        raise RuntimeError(msg)
 
 
 def _get_extract_rate(queue_name: str) -> str:
@@ -249,7 +255,8 @@ class Messages(list):
     @classmethod
     def from_state_file(cls, filepath: Path) -> "Messages":
         logger.info(f"Creating messages from {filepath}")
-        assert filepath.exists() and filepath.suffix == ".state"
+        assert filepath.exists()
+        assert filepath.suffix == ".state"
 
         return cls(
             [
@@ -280,9 +287,12 @@ def messages_from_csv(filepath: Path) -> Messages:
     messages = Messages()
 
     if list(df.columns)[:4] != expected_col_names:
-        raise ValueError(
+        msg = (
             f"csv file expected to have at least {expected_col_names} as "
             f"column names"
+        )
+        raise ValueError(
+            msg
         )
 
     mrn_col_name, acc_num_col_name, _, dt_col_name = expected_col_names
@@ -296,7 +306,8 @@ def messages_from_csv(filepath: Path) -> Messages:
         )
 
     if len(messages) == 0:
-        raise ValueError(f"Failed to find any messages in {filepath}")
+        msg = f"Failed to find any messages in {filepath}"
+        raise ValueError(msg)
 
     logger.debug(f"Created {len(messages)} messages from {filepath}")
     return messages
@@ -316,7 +327,7 @@ def inform_user_that_queue_will_be_populated_from(path: Path) -> None:
 
 
 class APIConfig:
-    def __init__(self, kwargs: dict):
+    def __init__(self, kwargs: dict) -> None:
         self.host: Optional[str] = None
         self.port: Optional[int] = None
         self.default_rate: Optional[int] = None
@@ -333,9 +344,12 @@ def api_config_for_queue(queue_name: str) -> APIConfig:
     config_key = f"{queue_name}_api"
 
     if config_key not in config:
-        raise ValueError(
+        msg = (
             f"Cannot update the rate for {queue_name}. {config_key} was"
             f" not specified in the configuration"
+        )
+        raise ValueError(
+            msg
         )
 
     return APIConfig(config[config_key])
@@ -347,4 +361,5 @@ def study_date_from_serialised(message: bytes) -> datetime:
         assert isinstance(result, datetime)
         return result
     except (AssertionError, KeyError):
-        raise AssertionError("Failed to get the study date from the message")
+        msg = "Failed to get the study date from the message"
+        raise AssertionError(msg)

@@ -69,9 +69,12 @@ class WritableEMAPStar(WriteableDatabase):
         )
 
         if config("EMAP_UDS_HOST") != "star":
-            raise RuntimeError(
+            msg = (
                 "It looks like the host was not a docker-compose "
                 "created service. Cannot create a writable EMAPStar"
+            )
+            raise RuntimeError(
+                msg
             )
 
 

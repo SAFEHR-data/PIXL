@@ -21,9 +21,7 @@ os.environ["ENV"] = "test"
 
 @pytest.fixture()
 def dummy_key(monkeypatch):
-    """
-    Fixture to set up a dummy key to use for hashing tests
-    """
+    """Fixture to set up a dummy key to use for hashing tests"""
     import hasher.hashing
 
     monkeypatch.setattr(hasher.hashing, "fetch_key_from_vault", lambda: "test-key")

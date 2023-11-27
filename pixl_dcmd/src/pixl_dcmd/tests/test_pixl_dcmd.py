@@ -42,7 +42,7 @@ def test_encrypt_uid_2() -> None:
 
 
 @pytest.mark.parametrize(
-    "test_ages,expected_ages",
+    ("test_ages", "expected_ages"),
     [
         ("005D", "018Y"),
         ("010M", "018Y"),
@@ -59,7 +59,7 @@ def test_age_bounding(test_ages: str, expected_ages: str) -> None:
 
 
 @pytest.mark.parametrize(
-    "orig_date, orig_time, expected_date_time",
+    ("orig_date", "orig_time", "expected_date_time"),
     [
         ("20180512", "000000", "20180512 000000.000000"),
         ("20201202", "230000", "20201202 230000.000000"),
@@ -81,7 +81,7 @@ def test_date_time_combo(
 
 
 @pytest.mark.parametrize(
-    "orig_date_time, output_date_time",
+    ("orig_date_time", "output_date_time"),
     [
         ("20220430163109", "20220430 163109.000000"),
         ("20220101003557.000000", "20220101 003557.000000"),

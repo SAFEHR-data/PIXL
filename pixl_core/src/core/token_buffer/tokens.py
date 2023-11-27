@@ -32,7 +32,7 @@ class TokenBucket(tb.Limiter):
         rate: float = 5,
         capacity: int = 5,
         storage: tb.StorageBase = tb.MemoryStorage(),
-    ):
+    ) -> None:
         """
         Uses the token bucket implementation from `Falconry`
         <https://github.com/falconry/token-bucket> to limit access rates for downloading
@@ -63,7 +63,8 @@ class TokenBucket(tb.Limiter):
     @rate.setter
     def rate(self, value: float) -> None:
         if not isinstance(value, float):
-            raise ValueError("Cannot set the rate with a non integer value")
+            msg = "Cannot set the rate with a non integer value"
+            raise ValueError(msg)
 
         if value == 0:
             self._zero_rate = True

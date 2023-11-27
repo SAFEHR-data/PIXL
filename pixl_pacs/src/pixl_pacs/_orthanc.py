@@ -24,7 +24,7 @@ logger = logging.getLogger("uvicorn")
 
 
 class Orthanc(ABC):
-    def __init__(self, url: str, username: str, password: str):
+    def __init__(self, url: str, username: str, password: str) -> None:
         self._url = url.rstrip("/")
         self._username = username
         self._password = password
@@ -85,15 +85,19 @@ class Orthanc(ABC):
 def _deserialise(response: requests.Response) -> Any:
     """Decode an Orthanc rest API response"""
     if response.status_code != 200:
-        raise requests.HTTPError(
+        msg = (
             f"Failed request. "
             f"Status code: {response.status_code}"
             f"Content: {response.content.decode()}"
         )
+        raise requests.HTTPError(
+            msg
+        )
     try:
         return response.json()
     except (JSONDecodeError, ValueError):
-        raise requests.HTTPError(f"Failed to parse {response} as json")
+        msg = f"Failed to parse {response} as json"
+        raise requests.HTTPError(msg)
 
 
 class PIXLRawOrthanc(Orthanc):

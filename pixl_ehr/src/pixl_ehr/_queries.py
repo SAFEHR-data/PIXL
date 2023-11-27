@@ -15,7 +15,7 @@ from pathlib import Path
 
 
 class SQLQuery:
-    def __init__(self, filepath: Path, context: dict):
+    def __init__(self, filepath: Path, context: dict) -> None:
         self.values: list[str] = []
         self._filepath = filepath
         self._lines = open(filepath).readlines()
@@ -43,9 +43,12 @@ class SQLQuery:
                 line = line.replace(f":{key}", "%s")
 
             if ":" in line.replace("::", "") or "${{" in line:
-                raise RuntimeError(
+                msg = (
                     "Had an insufficient context to replace "
                     f"line {i} in {self._filepath}\n"
                     f"{line}"
+                )
+                raise RuntimeError(
+                    msg
                 )
             self._lines[i] = line

@@ -42,7 +42,8 @@ DEBUG = env_parser.bool("DEBUG", True)
 
 ENV = env_parser.str("ENV")
 if ENV not in ("dev", "test", "staging", "prod"):
-    raise RuntimeError(f"Unsupported environment: {ENV}")
+    msg = f"Unsupported environment: {ENV}"
+    raise RuntimeError(msg)
 
 try:
     LOG_ROOT_DIR = env_parser.str("LOG_ROOT_DIR")

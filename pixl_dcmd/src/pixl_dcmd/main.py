@@ -219,8 +219,9 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
     try:
         TIME_OFFSET = int(config("TIME_OFFSET"))
     except ValueError:
+        msg = "Failed to set the time offset in hours from the $TIME_OFFSET env var"
         raise RuntimeError(
-            "Failed to set the time offset in hours from the $TIME_OFFSET env var"
+            msg
         )
 
     logging.info(b"TIME_OFFSET = %i}" % TIME_OFFSET)

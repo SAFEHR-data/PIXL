@@ -168,7 +168,7 @@ class Step(ABC):
 
 
 class EMAPStep(Step, ABC):
-    def __init__(self, db: EMAPStar):
+    def __init__(self, db: EMAPStar) -> None:
         self.db = db
 
 
@@ -197,7 +197,7 @@ class SetAgeSexEthnicity(EMAPStep):
 
 
 class SetVOT(EMAPStep, ABC):
-    def __init__(self, db: EMAPStar, time_cutoff_n_days: int):
+    def __init__(self, db: EMAPStar, time_cutoff_n_days: int) -> None:
         super().__init__(db=db)
 
         self.time_cutoff_n_days = int(time_cutoff_n_days)
@@ -220,7 +220,8 @@ class SetVOT(EMAPStep, ABC):
 
     def update(self, data: PatientEHRData) -> None:
         if data.acquisition_datetime is None:
-            raise RuntimeError("Cannot update a height without an acquisition")
+            msg = "Cannot update a height without an acquisition"
+            raise RuntimeError(msg)
 
         query = SQLQuery(
             filepath=Path(_this_dir, "sql/mrn_timewindow_to_observationtype.sql"),
@@ -284,7 +285,7 @@ class SetReport(EMAPStep):
 
 
 class ProcessingPipeline:
-    def __init__(self, *steps: Step):
+    def __init__(self, *steps: Step) -> None:
         self.steps = steps
 
 
@@ -299,4 +300,5 @@ def pixl_hash(string: str, endpoint_path: str) -> str:
         logger.debug(f"Hashed to {response.text}")
         return response.text
 
-    raise RuntimeError(f"Failed to hash {string}")
+    msg = f"Failed to hash {string}"
+    raise RuntimeError(msg)

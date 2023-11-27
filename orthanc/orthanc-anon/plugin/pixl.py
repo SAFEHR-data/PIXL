@@ -44,8 +44,7 @@ def AzureAccessToken():
 
     response = requests.post(url, data=payload)
 
-    access_token = response.json()["access_token"]
-    return access_token
+    return response.json()["access_token"]
 
 
 def AzureDICOMTokenRefresh():
@@ -105,6 +104,7 @@ def AzureDICOMTokenRefresh():
 
     TIMER = threading.Timer(AZ_DICOM_TOKEN_REFRESH_SECS, AzureDICOMTokenRefresh)
     TIMER.start()
+    return None
 
 
 def SendViaStow(resourceId):
@@ -136,7 +136,7 @@ def ShouldAutoRoute():
     return os.environ.get("ORTHANC_AUTOROUTE_ANON_TO_AZURE", "false").lower() == "true"
 
 
-def OnChange(changeType, level, resource):
+def OnChange(changeType, level, resource) -> None:
     if not ShouldAutoRoute():
         return
 
@@ -148,7 +148,7 @@ def OnChange(changeType, level, resource):
         orthanc.LogWarning("Starting the scheduler")
         AzureDICOMTokenRefresh()
     elif changeType == orthanc.ChangeType.ORTHANC_STOPPED:
-        if TIMER != None:
+        if TIMER is not None:
             orthanc.LogWarning("Stopping the scheduler")
             TIMER.cancel()
 
@@ -169,7 +169,7 @@ def ReceivedInstanceCallback(receivedDicom, origin):
     dataset = dcmread(BytesIO(receivedDicom))
 
     # Drop anything that is not an X-Ray
-    if not (dataset.Modality == "DX" or dataset.Modality == "CR"):
+    if dataset.Modality not in ("DX", "CR"):
         orthanc.LogWarning("Dropping DICOM that is not X-Ray")
         return orthanc.ReceivedInstanceAction.DISCARD, None
 

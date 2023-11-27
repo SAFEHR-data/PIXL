@@ -80,7 +80,8 @@ def test_block_with_excluded_identifiers_are_removed(id_name: str) -> None:
     )
 
     assert all(s not in anon_text for s in info)
-    assert header in anon_text and footer in anon_text
+    assert header in anon_text
+    assert footer in anon_text
 
 
 # using ":" or " " as a delimiter is not redacted by Presidio
