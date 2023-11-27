@@ -13,25 +13,6 @@
 #  limitations under the License.
 ---
 repos:
-  - repo: https://github.com/pycqa/isort
-    rev: 5.12.0
-    hooks:
-      - id: isort
-        name: isort (python)
-        args: ["--profile", "black", "--settings-path", "setup.cfg"]
-
-  - repo: https://github.com/ambv/black
-    rev: 23.9.1
-    hooks:
-      - id: black
-
-  - repo: https://github.com/pycqa/flake8
-    rev: 6.1.0
-    hooks:
-    - id: flake8
-      args: ["--config", "setup.cfg"]
-      exclude: "tests|orthanc"
-
   - repo: local
     hooks:
       - id: mypy  # This does not work with the official mypy hook
