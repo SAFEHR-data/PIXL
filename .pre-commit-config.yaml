@@ -13,6 +13,16 @@
 #  limitations under the License.
 ---
 repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.6
+    hooks:
+      - id: ruff
+        args:
+          - --config=ruff.toml
+      - id: ruff-format
+        args:
+          - --config=ruff.toml
+
   - repo: local
     hooks:
       - id: mypy  # This does not work with the official mypy hook
