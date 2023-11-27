@@ -2,12 +2,16 @@ fix = true
 force-exclude = true
 ignore = [
     "ANN001", # missing type function argument
+    "ANN101", # missng type annotation for `self`
     "COM812", # trailing commas (ruff-format recommended)
+    "D400",   # first line should end with a period
+    "D415",   # first line should end with period, question mark or exclamation point
     "D203", # no-blank-line-before-class
     "D212", # multi-line-summary-first-line
     "D407", # removed dashes lines under sections
     "D417", # argument description in docstring (unreliable)
     "ISC001", # simplify implicit str concatenation (ruff-format recommended)
+    "UP007",  # Use `X | Y` for type annotations
 ]
 per-file-ignores = {"*tests*" = [
     "INP001",
@@ -21,3 +25,4 @@ select = [
 ]
 target-version = "py310"
 mccabe.max-complexity = 18
+exclude=["scripts"]
