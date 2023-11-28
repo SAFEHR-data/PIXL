@@ -28,7 +28,7 @@ counter = 0
 
 
 @pytest.fixture(scope="class")
-def event_loop_instance(request: Any) -> Generator:
+def _event_loop_instance(request: Any) -> Generator:
     """
     Add the event_loop as an attribute to the unittest style test class.
     :param request: the object event loop ties to
@@ -39,7 +39,7 @@ def event_loop_instance(request: Any) -> Generator:
     request.cls.event_loop.close()
 
 
-@pytest.mark.usefixtures("event_loop_instance")
+@pytest.mark.usefixtures("_event_loop_instance")
 class TestConsumer(TestCase):
     def get_async_result(self, coro: Coroutine) -> Any:
         """
