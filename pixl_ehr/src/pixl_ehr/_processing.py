@@ -101,7 +101,7 @@ class PatientEHRData:
 
             try:
                 step.update(self)
-            except Exception as e:  # no-qa
+            except Exception as e:  # no-qa: BLE001
                 logger.warning(e)
 
     def persist(

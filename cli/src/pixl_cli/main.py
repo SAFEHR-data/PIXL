@@ -285,7 +285,8 @@ def messages_from_csv(filepath: Path) -> Messages:
         f"{expected_col_names}"
     )
 
-    messages_df = pd.read_csv(filepath, header=0, dtype=str)  # First line is column names
+    # First line is column names
+    messages_df = pd.read_csv(filepath, header=0, dtype=str)
     messages = Messages()
 
     if list(messages_df.columns)[:4] != expected_col_names:
@@ -303,7 +304,10 @@ def messages_from_csv(filepath: Path) -> Messages:
             serialise(
                 mrn=row[mrn_col_name],
                 accession_number=row[acc_num_col_name],
-                study_datetime=datetime.strptime(row[dt_col_name], "%d/%m/%Y %H:%M"),
+                study_datetime=datetime.strptime(
+                    row[dt_col_name], "%d/%m/%Y %H:%M").replace(
+                    tzinfo=datetime.timezone.utc
+                ),
             )
         )
 

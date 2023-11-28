@@ -21,7 +21,9 @@ def test_serialise() -> None:
     msg_body = serialise(
         mrn="111",
         accession_number="123",
-        study_datetime=dt.strptime("Nov 22 2022 1:33PM", "%b %d %Y %I:%M%p"),
+        study_datetime=dt.strptime("Nov 22 2022 1:33PM", "%b %d %Y %I:%M%p").replace(
+            tzinfo=dt.timezone.utc
+        ),
     )
     assert (
         msg_body.decode()
