@@ -295,8 +295,8 @@ def pixl_hash(string: str, endpoint_path: str) -> str:
         f"http://hasher-api:8000/{endpoint_path.lstrip('/')}",
         params={"message": string},
     )
-
-    if response.status_code == 200:
+    success_code = 200
+    if response.status_code == success_code:
         logger.debug(f"Hashed to {response.text}")
         return response.text
 

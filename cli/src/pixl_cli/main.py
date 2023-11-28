@@ -154,7 +154,8 @@ def _update_extract_rate(queue_name: str, rate: Optional[float]) -> None:
         url=f"{api_config.base_url}/token-bucket-refresh-rate", json={"rate": rate}
     )
 
-    if response.status_code == 200:
+    success_code = 200
+    if response.status_code == success_code:
         logger.info(
             "Successfully updated EHR extraction, with a "
             f"rate of {rate} queries/second"
@@ -211,7 +212,8 @@ def az_copy_ehr() -> None:
     api_config = api_config_for_queue("ehr")
     response = requests.get(url=f"{api_config.base_url}/az-copy-current")
 
-    if response.status_code != 200:
+    success_code = 200
+    if response.status_code != success_code:
         msg = f"Failed to run az copy due to: {response.text}"
         raise RuntimeError(msg)
 
@@ -219,10 +221,10 @@ def az_copy_ehr() -> None:
 def _get_extract_rate(queue_name: str) -> str:
     """Get the extraction rate in items per second from a queue"""
     api_config = api_config_for_queue(queue_name)
-
+    success_code = 200
     try:
         response = requests.get(url=f"{api_config.base_url}/token-bucket-refresh-rate")
-        assert response.status_code == 200
+        assert response.status_code == success_code
         return str(json.loads(response.text)["rate"])
 
     except (ConnectionError, AssertionError):

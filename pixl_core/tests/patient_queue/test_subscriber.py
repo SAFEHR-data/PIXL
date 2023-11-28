@@ -50,7 +50,7 @@ class TestConsumer(TestCase):
 
     async def test_create(self) -> None:
         """Checks consume is working."""
-        global counter
+        global counter # noqa: PLW602, PLW603
         with PixlProducer(queue_name=TEST_QUEUE) as pp:
             pp.publish(messages=[MESSAGE_BODY])
 

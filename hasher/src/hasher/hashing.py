@@ -60,10 +60,12 @@ def generate_hash(message: str, length: int = 64) -> str:
     :param length: maximum number of characters in the output (2 <= length <= 64)
     :return: hashed string
     """
-    if length > 64:
+    max_length = 64
+    min_length = 2
+    if length > max_length:
         msg = f"Maximum hash length is 64 characters, received: {length}"
         raise ValueError(msg)
-    elif length < 2:
+    elif length < min_length:
         msg = f"Minimum hash length is 2 characters, received: {length}"
         raise ValueError(msg)
 
@@ -83,10 +85,12 @@ def generate_salt(length: int = 16) -> str:
     :param length: maximum number of characters in the output (2 <= length <= 64)
     :return: hexadecimal string
     """
-    if length > 64:
+    max_length = 64
+    min_length = 2
+    if length > max_length:
         msg = f"Maximum salt length is 64 characters, received: {length}"
         raise ValueError(msg)
-    elif length < 2:
+    elif length < min_length:
         msg = f"Minimum salt length is 2 characters, received: {length}"
         raise ValueError(msg)
 

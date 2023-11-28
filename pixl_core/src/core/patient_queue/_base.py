@@ -21,7 +21,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class PixlQueueInterface:
-    def __init__(
+    def __init__( # noqa: PLR0913
         self,
         queue_name: str,
         host: str = "localhost",
