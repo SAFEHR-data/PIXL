@@ -1,5 +1,6 @@
 fix = true
 force-exclude = true
+namespace-packages = ["orthanc/orthanc-anon/plugin", "orthanc/orthanc-raw/plugin"]
 ignore = [
     "ANN001", # missing type function argument
     "ANN101", # missng type annotation for `self`
