@@ -64,7 +64,7 @@ class TokenBucket(tb.Limiter):
     def rate(self, value: float) -> None:
         if not isinstance(value, float):
             msg = "Cannot set the rate with a non integer value"
-            raise ValueError(msg)
+            raise TypeError(msg)
 
         if value == 0:
             self._zero_rate = True

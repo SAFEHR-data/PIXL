@@ -84,5 +84,5 @@ class PixlBlockingInterface(PixlQueueInterface):
         try:
             return int(self._queue.method.message_count)
         except (ValueError, TypeError):
-            LOGGER.error("Failed to determine the number of messages. Returning 0")
+            LOGGER.exception("Failed to determine the number of messages. Returning 0")
             return 0

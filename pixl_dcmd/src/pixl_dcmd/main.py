@@ -151,7 +151,7 @@ def combine_date_time(a_date: str, a_time: str) -> Any:
     try:
         new_date_time = arrow.get(date_time_str, tzinfo=tz)
     except arrow.parser.ParserError:
-        logging.error(
+        logging.exception(
             f"Failed to parse the datetime string '{date_time_str}'"
             f"falling back to a random time in 1970"
         )
