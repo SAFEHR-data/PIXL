@@ -57,8 +57,8 @@ class Orthanc(ABC):
 
         if len(self._get(f"/queries/{response['ID']}/answers")) > 0:
             return str(response["ID"])
-        else:
-            return None
+        
+        return None
 
     def retrieve_from_remote(self, query_id: str) -> str:
         response = self._post(

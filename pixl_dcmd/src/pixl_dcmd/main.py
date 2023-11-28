@@ -128,12 +128,13 @@ def get_bounded_age(age: str) -> str:
     """Bounds patient age between 18 and 89"""
     if age[3] != "Y":
         return "018Y"
-    else:
-        age_as_int = int(age[0:3])
-        if age_as_int < 18:
-            return "018Y"
-        elif age_as_int > 89:
-            return "089Y"
+    
+    age_as_int = int(age[0:3])
+    if age_as_int < 18:
+        return "018Y"
+    
+    if age_as_int > 89:
+        return "089Y"
 
     return age
 

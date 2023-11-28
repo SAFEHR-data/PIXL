@@ -47,8 +47,8 @@ def fetch_key_from_vault() -> str:
     if key.value is None:
         msg = "Azure Key Vault secret is None"
         raise ValueError(msg)
-    else:
-        return str(key.value)
+    
+    return str(key.value)
 
 
 def generate_hash(message: str, length: int = 64) -> str:
@@ -65,7 +65,8 @@ def generate_hash(message: str, length: int = 64) -> str:
     if length > max_length:
         msg = f"Maximum hash length is 64 characters, received: {length}"
         raise ValueError(msg)
-    elif length < min_length:
+    
+    if length < min_length:
         msg = f"Minimum hash length is 2 characters, received: {length}"
         raise ValueError(msg)
 
@@ -90,7 +91,8 @@ def generate_salt(length: int = 16) -> str:
     if length > max_length:
         msg = f"Maximum salt length is 64 characters, received: {length}"
         raise ValueError(msg)
-    elif length < min_length:
+    
+    if length < min_length:
         msg = f"Minimum salt length is 2 characters, received: {length}"
         raise ValueError(msg)
 
