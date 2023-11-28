@@ -17,6 +17,7 @@ import os
 import threading
 import traceback
 from io import BytesIO
+from pathlib import Path
 from time import sleep
 
 import requests

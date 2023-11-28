@@ -14,6 +14,7 @@
 import asyncio
 import importlib.metadata
 import logging
+from pathlib import Path
 
 from azure.identity import EnvironmentCredential
 from azure.storage.blob import BlobServiceClient
