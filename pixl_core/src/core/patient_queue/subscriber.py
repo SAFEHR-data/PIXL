@@ -104,7 +104,7 @@ class PixlBlockingConsumer(PixlBlockingInterface):
             try:
                 with Path.open(file_path, "a") as csv_file:
                     print(str(body.decode()), file=csv_file)
-            except:
+            except: # noqa: E722
                 LOGGER.debug("Failed to consume")
 
         counter = 0

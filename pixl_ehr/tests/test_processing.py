@@ -17,6 +17,7 @@ services being up
     - pixl postgres db
     - emap star
 """
+import contextlib
 from datetime import datetime
 
 import pytest
@@ -94,13 +95,11 @@ def insert_row_into_emap_star_schema(
     cols = ",".join(col_names)
     vals = ",".join("%s" for _ in range(len(col_names)))
 
-    try:
+    with contextlib.suppress(UniqueViolation):
         db.persist(
             f"INSERT INTO star.{table_name} ({cols}) VALUES ({vals})",
             values,
-        )
-    except UniqueViolation:
-        pass  # If it's already there then all is okay, hopefully
+        ) # If it's already there then all is okay, hopefully
 
 
 def insert_visit_observation(type_id: int, value: float) -> None:

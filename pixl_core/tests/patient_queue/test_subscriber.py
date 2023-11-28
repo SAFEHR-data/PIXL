@@ -46,7 +46,7 @@ class TestConsumer(TestCase):
         Run a coroutine synchronously.
         :param coro: coroutine generated from run
         """
-        return self.event_loop.run_until_complete(coro)  # type: ignore
+        return self.event_loop.run_until_complete(coro)
 
     async def test_create(self) -> None:
         """Checks consume is working."""

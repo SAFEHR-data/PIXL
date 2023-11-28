@@ -55,7 +55,7 @@ class WritableOrthanc(Orthanc):
 
 def add_image_to_fake_vna(image_filename: str = "test.dcm") -> None:
     path = get_testdata_file("CT_small.dcm")
-    ds = dcmread(path)  # type: ignore
+    ds = dcmread(path)
     ds.AccessionNumber = ACCESSION_NUMBER
     ds.PatientID = PATIENT_ID
     ds.save_as(image_filename)
