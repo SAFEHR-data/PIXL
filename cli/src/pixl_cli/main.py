@@ -53,7 +53,7 @@ os.environ["NO_PROXY"] = os.environ["no_proxy"] = "localhost"
 
 @click.group()
 @click.option("--debug/--no-debug", default=False)
-def cli(debug: bool) -> None:
+def cli(*, debug: bool) -> None:
     """PIXL command line interface"""
     set_log_level("WARNING" if not debug else "DEBUG")
 
@@ -73,7 +73,7 @@ def cli(debug: bool) -> None:
     default=True,
     help="Restart from a saved state. Otherwise will use the given .csv file",
 )
-def populate(csv_filename: str, queues: str, restart: bool) -> None:
+def populate(csv_filename: str, queues: str, *, restart: bool) -> None:
     """Populate a (set of) queue(s) from a csv file"""
     logger.info(f"Populating queue(s) {queues} from {csv_filename}")
 
