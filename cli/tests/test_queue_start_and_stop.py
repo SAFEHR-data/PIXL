@@ -25,7 +25,10 @@ def test_populate_queue(queue_name: str = "test_populate") -> None:
 
 
 def test_down_queue(queue_name: str = "test_down") -> None:
-    """Checks that after the queue has been sent a stop signal, the queue has been emptied."""
+    """
+    Checks that after the queue has been sent a stop signal,
+    the queue has been emptied.
+    """
     runner = CliRunner()
     _ = runner.invoke(populate, args=["test.csv", "--queues", queue_name])
     _ = runner.invoke(stop, args=["--queues", queue_name])

@@ -116,7 +116,9 @@ def insert_visit_observation(type_id: int, value: float) -> None:
 
 def insert_visit_observation_types() -> None:
     vot_names = ("HEIGHT", "WEIGHT/SCALE", "R GLASGOW COMA SCALE SCORE")
-    for name, vot_id in zip(vot_names, (height_vot_id, weight_vot_id, gcs_vot_id), strict=True):
+    for name, vot_id in zip(
+        vot_names, (height_vot_id, weight_vot_id, gcs_vot_id), strict=True
+        ):
         insert_row_into_emap_star_schema(
             "visit_observation_type",
             ["visit_observation_type_id", "name"],

@@ -95,7 +95,7 @@ def AzureDICOMTokenRefresh():
         )
     except requests.exceptions.RequestException as e:
         orthanc.LogError("Failed to update DICOMweb token")
-        raise SystemExit(e) # noqa: TRY200
+        raise SystemExit(e) # noqa: TRY200, B904
 
     orthanc.LogWarning("Updated DICOMweb token")
 

@@ -31,7 +31,7 @@ class TokenBucket(tb.Limiter):
         self,
         rate: float = 5,
         capacity: int = 5,
-        storage: tb.StorageBase = tb.MemoryStorage(),
+        storage: tb.StorageBase = None,
     ) -> None:
         """
         Uses the token bucket implementation from `Falconry`
@@ -43,6 +43,7 @@ class TokenBucket(tb.Limiter):
         :param storage: Type of storage used to hold the tokens
         """
         self._zero_rate = False
+        storage = tb.MemoryStorage()
 
         if rate == 0:
             rate = 1  # tb.Limiter does not allow zero rates, so keep track...

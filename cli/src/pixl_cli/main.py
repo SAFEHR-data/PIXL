@@ -285,10 +285,10 @@ def messages_from_csv(filepath: Path) -> Messages:
         f"{expected_col_names}"
     )
 
-    df = pd.read_csv(filepath, header=0, dtype=str)  # First line is column names
+    messages_df = pd.read_csv(filepath, header=0, dtype=str)  # First line is column names
     messages = Messages()
 
-    if list(df.columns)[:4] != expected_col_names:
+    if list(messages_df.columns)[:4] != expected_col_names:
         msg = (
             f"csv file expected to have at least {expected_col_names} as "
             f"column names"
@@ -298,7 +298,7 @@ def messages_from_csv(filepath: Path) -> Messages:
         )
 
     mrn_col_name, acc_num_col_name, _, dt_col_name = expected_col_names
-    for _, row in df.iterrows():
+    for _, row in messages_df.iterrows():
         messages.append(
             serialise(
                 mrn=row[mrn_col_name],
