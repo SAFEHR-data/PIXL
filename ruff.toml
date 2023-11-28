@@ -3,6 +3,7 @@ force-exclude = true
 namespace-packages = ["orthanc/orthanc-anon/plugin", "orthanc/orthanc-raw/plugin"]
 ignore = [
     "ANN001", # missing type function argument
+    "ANN003", # missing type annotation **
     "ANN101", # missng type annotation for `self`
     "ANN102", # missing type annotation in classmethods
     "ANN201", # missing return type annotation for public function
@@ -21,6 +22,7 @@ ignore = [
     "N802",   # Function name should be lowercase
     "N806",   # Variable should be lowercase
     "N803",   # Variable in function should be lowercase
+    "PLW0603", # Using the global statement is discouraged
     "S311",   # Standard pseudo-random generators are not suitable for cryptographic purposes
     "UP007",  # Use `X | Y` for type annotations
     "TD002",  # missing author in #TODO
