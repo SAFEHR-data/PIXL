@@ -104,7 +104,7 @@ class PixlBlockingConsumer(PixlBlockingInterface):
             inactivity_timeout=timeout_in_seconds,  # Yields (None, None, None) after
         )
 
-        def callback(method: Any, properties: Any, body: Any) -> None:
+        def callback(method: Any, properties: Any, body: Any) -> None: # noqa: ARG001
             try:
                 with Path.open(file_path, "a") as csv_file:
                     print(str(body.decode()), file=csv_file)
