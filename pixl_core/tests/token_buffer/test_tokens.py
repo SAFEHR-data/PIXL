@@ -42,6 +42,7 @@ def test_zero_rate() -> None:
 
 
 def test_non_integer_rates_allowed() -> None:
+    """Test that non-integer rates can be used"""
     assert _is_close(TokenBucket(rate=0.5).rate, 0.5)
 
 

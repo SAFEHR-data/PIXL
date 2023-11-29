@@ -18,6 +18,7 @@ from core.patient_queue.utils import deserialise, serialise
 
 
 def test_serialise() -> None:
+    """Checks that messages can be correctly serialised"""
     msg_body = serialise(
         mrn="111",
         accession_number="123",
@@ -33,10 +34,12 @@ def test_serialise() -> None:
 
 
 def test_simple_deserialise() -> None:
+    """Checks a simple JSON deserialise works"""
     assert deserialise((json.dumps({"key": "value"})).encode("utf-8"))["key"] == "value"
 
 
 def test_deserialise_datetime() -> None:
+    """Checks that datetimes can be correctly serialised"""
     timestamp = dt.fromordinal(100012)
     data = deserialise(serialise(mrn="", accession_number="", study_datetime=timestamp))
     assert data["study_datetime"] == timestamp
