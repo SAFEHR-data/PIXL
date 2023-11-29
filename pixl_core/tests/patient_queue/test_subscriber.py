@@ -40,7 +40,7 @@ def _event_loop_instance(request: Any) -> Generator:
 
 
 @pytest.mark.usefixtures("_event_loop_instance")
-class TestConsumer(TestCase):
+class TestConsumer(TestCase): # noqa: D101
     def get_async_result(self, coro: Coroutine) -> Any:
         """
         Run a coroutine synchronously.

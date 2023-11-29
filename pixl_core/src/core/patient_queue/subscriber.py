@@ -87,6 +87,8 @@ class PixlConsumer(PixlQueueInterface):
 
 
 class PixlBlockingConsumer(PixlBlockingInterface):
+    """Connector to RabbitMQ. Consumes messages from in blocks"""
+
     def consume_all(self, file_path: Path, timeout_in_seconds: int = 5) -> int:
         """
         Retrieving all messages still on queue and save them in a specified CSV file.
