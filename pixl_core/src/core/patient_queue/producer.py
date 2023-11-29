@@ -29,7 +29,8 @@ class PixlProducer(PixlBlockingInterface):
         Sends a list of serialised messages to a queue.
         :param messages: list of messages to be sent to queue
         """
-        LOGGER.debug(f"Publishing {len(messages)} messages to queue: {self.queue_name}")
+        LOGGER.debug("Publishing %i messages to queue: %s",
+                     len(messages), self.queue_name )
         if len(messages) > 0:
             for msg in messages:
                 LOGGER.debug("Preparing to publish")
@@ -39,7 +40,7 @@ class PixlProducer(PixlBlockingInterface):
                 # RabbitMQ can miss-order messages if there is not a sufficient delay
                 sleep(0.1)
                 LOGGER.debug(
-                    f"Message {msg.decode()} published to queue {self.queue_name}"
+                    "Message %s published to queue %s", msg.decode(), self.queue_name
                 )
         else:
             LOGGER.debug(

@@ -78,8 +78,9 @@ class PixlConsumer(PixlQueueInterface):
                     )
                 except Exception:
                     LOGGER.exception(
-                        f"Failed to process {message.body.decode()}"
-                        f"Not re-queuing message"
+                        "Failed to process %s"
+                        "Not re-queuing message",
+                        message.body.decode()
                     )
 
     async def __aexit__(self, *args: object, **kwargs: Any) -> None:

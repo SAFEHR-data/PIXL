@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 def deserialise(message_body: bytes) -> dict:
     """Returns the de-serialised message in JSON format."""
-    logger.debug(f"De-serialising: {message_body.decode()}")
+    logger.debug("De-serialising: %s", message_body.decode())
     data = dict(json.loads(message_body.decode()))
     if "study_datetime" in data:
         data["study_datetime"] = datetime.fromisoformat(data["study_datetime"])
@@ -39,8 +39,9 @@ def serialise(mrn: str, accession_number: str, study_datetime: datetime) -> byte
     :returns: JSON formatted message
     """
     logger.debug(
-        f"Serialising message with patient id {mrn}, "
-        f"accession number: {accession_number} and timestamp {study_datetime}"
+        "Serialising message with patient id %s, "
+        "accession number: %s and timestamp %s",
+        mrn, accession_number, study_datetime
     )
     return json.dumps(
         {
@@ -48,4 +49,4 @@ def serialise(mrn: str, accession_number: str, study_datetime: datetime) -> byte
             "accession_number": accession_number,
             "study_datetime": study_datetime.isoformat(),
         }
-    ).encode("utf-8")
+        ).encode("utf-8")
