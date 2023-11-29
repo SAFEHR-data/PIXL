@@ -11,6 +11,10 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+"""
+PIXL core models
+This module defines the data models used by the PIXL core service
+"""
 from dataclasses import dataclass
 
 from pydantic import BaseModel
@@ -20,8 +24,12 @@ from .token_buffer import TokenBucket
 
 @dataclass
 class AppState:
+    """Stores the token bucket"""
+
     token_bucket = TokenBucket(rate=0, capacity=5)
 
 
 class TokenRefreshUpdate(BaseModel):
+    """Stores the refresh rate of the token bucket"""
+
     rate: float

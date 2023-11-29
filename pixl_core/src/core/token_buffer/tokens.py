@@ -1,3 +1,5 @@
+# noqa: D100
+
 #  Copyright (c) 2022 University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");

@@ -11,6 +11,8 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+"""Router for the API endpoints"""
+
 from fastapi import APIRouter, HTTPException, status
 
 from .models import AppState, TokenRefreshUpdate
@@ -45,3 +47,4 @@ async def update_tb_refresh_rate(item: TokenRefreshUpdate) -> str:
 )
 async def get_tb_refresh_rate() -> TokenRefreshUpdate:
     return TokenRefreshUpdate(rate=state.token_bucket.rate)
+
