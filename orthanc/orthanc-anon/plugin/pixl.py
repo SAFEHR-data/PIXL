@@ -1,3 +1,11 @@
+"""
+
+Applies anonymisation scheme to datasets
+
+This module:
+-Modifies a DICOM instance received by Orthanc and applies anonymisation
+-Upload the resource to a dicom-web server
+
 #  Copyright (c) 2022 University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,6 +19,8 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+"""
+
 import json
 import logging
 import os
@@ -106,6 +116,10 @@ def AzureDICOMTokenRefresh():
 
 
 def SendViaStow(resourceId):
+    """
+    Makes a POST API call to upload the resource to a dicom-web server
+    using orthanc credentials as authorisation
+    """
     ORTHANC_USERNAME = config("ORTHANC_USERNAME")
     ORTHANC_PASSWORD = config("ORTHANC_PASSWORD")
 
@@ -117,7 +131,7 @@ def SendViaStow(resourceId):
 
     payload = {"Resources": [resourceId], "Synchronous": False}
 
-    logging.info(f"{payload}")
+    logging.info("Payload: %s", payload)
 
     try:
         requests.post(
@@ -131,10 +145,24 @@ def SendViaStow(resourceId):
 
 
 def ShouldAutoRoute():
+    """
+    Checks whether ORTHANC_AUTOROUTE_ANON_TO_AZURE environment variable is
+    set to true or false
+    """
     return os.environ.get("ORTHANC_AUTOROUTE_ANON_TO_AZURE", "false").lower() == "true"
 
 
-def OnChange(changeType, level, resource) -> None:
+def OnChange(changeType, level, resource) -> None: # noqa: ARG001
+    """
+    Three ChangeTypes included in this function:
+    - If a study if stable and if ShouldAutoRoute returns true
+    then SendViaStow is called
+    - If orthanc has started then message added to Orthanc LogWarning
+    and AzureDICOMTokenRefresh called
+    - If orthanc has stopped and TIMER is not none then message added
+    to Orthanc LogWarning and TIMER cancelled
+
+    """
     if not ShouldAutoRoute():
         return
 
@@ -151,7 +179,8 @@ def OnChange(changeType, level, resource) -> None:
             TIMER.cancel()
 
 
-def OnHeartBeat(output, uri, **request):
+def OnHeartBeat(output, uri, **request): # noqa: ARG001
+    """Extends the REST API by registering a new route in the REST API"""
     orthanc.LogWarning("OK")
     output.AnswerBuffer("OK\n", "text/plain")
 
@@ -182,6 +211,12 @@ def ReceivedInstanceCallback(receivedDicom, origin):
 
 
 def AnonymiseCallback(dataset):
+    """
+    Anonymisation of a dataset
+    Involves removing private tags and overlays and applying the
+    tag operations through functions in pixl_dcmd module
+    Returns writing anonymised dataset to disk
+    """
     orthanc.LogWarning("***Anonymising received instance***")
     # Rip out all private tags/
     dataset.remove_private_tags()
