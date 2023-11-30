@@ -12,10 +12,9 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 import pytest
+from hasher.hashing import generate_hash, generate_salt
 from hypothesis import HealthCheck, example, given, settings
 from hypothesis import strategies as st
-
-from hasher.hashing import generate_hash, generate_salt
 
 
 @pytest.mark.usefixtures("_dummy_key")
