@@ -11,9 +11,8 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-
+import pytest
 from fastapi.testclient import TestClient
-
 from hasher.main import app
 
 client = TestClient(app)
@@ -25,14 +24,16 @@ def test_heart_beat_endpoint():
     assert response.json() == "OK"
 
 
-def test_hash_endpoint_with_default_length(dummy_key):
+@pytest.mark.usefixtures("_dummy_key")
+def test_hash_endpoint_with_default_length():
     response = client.get("/hash", params={"message": "test"})
     expected = "270426312ab76c2f0df60b6cef3d14aab6bc17219f1a76e63edf88a8f705c17a"
     assert response.status_code == 200
     assert response.text == expected
 
 
-def test_hash_endpoint_with_custom_length(dummy_key):
+@pytest.mark.usefixtures("_dummy_key")
+def test_hash_endpoint_with_custom_length():
     response = client.get("/hash", params={"message": "test", "length": 16})
     expected = "b88ea642703eed33"
     assert response.status_code == 200
