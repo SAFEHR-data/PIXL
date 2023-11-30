@@ -28,7 +28,7 @@ logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))
 
 
 async def process_message(message_body: bytes) -> None:
-    logger.info(f"Processing: {message_body.decode()}")
+    logger.info("Processing: %s", message_body.decode())
 
     study = ImagingStudy.from_message(message_body)
     orthanc_raw = PIXLRawOrthanc()
@@ -41,7 +41,7 @@ async def process_message(message_body: bytes) -> None:
         study.orthanc_query_dict, modality=config("VNAQR_MODALITY")
     )
     if query_id is None:
-        logger.error(f"Failed to find {study} in the VNA")
+        logger.error("Failed to find %s in the VNA", study)
         raise RuntimeError
 
     job_id = orthanc_raw.retrieve_from_remote(query_id=query_id)  # C-Move

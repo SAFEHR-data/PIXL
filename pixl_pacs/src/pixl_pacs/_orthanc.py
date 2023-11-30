@@ -46,14 +46,14 @@ class Orthanc(ABC):
 
     def query_remote(self, data: dict, modality: str) -> Optional[str]:
         """Query a particular modality, available from this node"""
-        logger.debug(f"Running query on modality: {modality} with {data}")
+        logger.debug("Running query on modality: %s with %s", modality, data)
 
         response = self._post(
             f"/modalities/{modality}/query",
             data=data,
             timeout=config("PIXL_QUERY_TIMEOUT", default=10, cast=float),
         )
-        logger.debug(f"Query response: {response}")
+        logger.debug("Query response: %s", response)
 
         if len(self._get(f"/queries/{response['ID']}/answers")) > 0:
             return str(response["ID"])
@@ -72,7 +72,9 @@ class Orthanc(ABC):
         return str(self._get(f"/jobs/{job_id}")["State"])
 
     def _get(self, path: str) -> Any:
-        return _deserialise(requests.get(f"{self._url}{path}", auth=self._auth))
+        return _deserialise(
+            requests.get(f"{self._url}{path}", auth=self._auth, timeout=10)
+            )
 
     def _post(self, path: str, data: dict, timeout: Optional[float] = None) -> Any:
         return _deserialise(
