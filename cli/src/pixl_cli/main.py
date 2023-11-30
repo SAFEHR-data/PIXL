@@ -212,7 +212,7 @@ def kill() -> None:
 def status(queues: str) -> None:
     """Get the status of the PIXL consumers"""
     for queue in queues.split(","):
-        print(f"[{queue:^10s}] refresh rate = ", _get_extract_rate(queue))
+        logger.info(f"[{queue:^10s}] refresh rate = ", _get_extract_rate(queue))
 
 
 @cli.command()
