@@ -101,7 +101,7 @@ class PatientEHRData:
 
             try:
                 step.update(self)
-            except Exception as e:  # no-qa: BLE001
+            except Exception as e:  # noqa: BLE001
                 logger.warning(e)
 
     def persist(
@@ -187,7 +187,7 @@ class SetAgeSexEthnicity(EMAPStep):
         date_of_birth, data.sex, data.ethnicity = result
 
         if data.acquisition_datetime is None:
-            print("WARNING: Cannot set the age without an acquisition time")
+            logger.warning("WARNING: Cannot set the age without an acquisition time")
             return
 
         acquisition_date = data.acquisition_datetime.date()
@@ -294,6 +294,7 @@ def pixl_hash(string: str, endpoint_path: str) -> str:
     response = requests.get(
         f"http://hasher-api:8000/{endpoint_path.lstrip('/')}",
         params={"message": string},
+        timeout=10,
     )
     success_code = 200
     if response.status_code == success_code:
