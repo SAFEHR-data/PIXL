@@ -122,11 +122,11 @@ def _dump_settings(symbols: dict[str, Any]) -> None:
             settings[k] = v
         if "PASSWORD" in k:
             settings[k] = "********"
-    print("Settings:")
+    print("Settings:") # noqa: T201
     pp = pprint.PrettyPrinter(indent=2)
     pp.pprint(dict(sorted(settings.items())))
     if env_file.exists():
-        print(f"Included settings from {env_file}")
+        print(f"Included settings from {env_file}") # noqa: T201
 
 
 dump_settings = partial(_dump_settings, symbols=globals())
