@@ -237,6 +237,7 @@ def _get_extract_rate(queue_name: str) -> str:
 def consume_all_messages_and_save_csv_file(
     queue_name: str, timeout_in_seconds: int = 5
 ) -> None:
+    """Consume all messages and write them out to a CSV file"""
     logger.info(
         f"Will consume all messages on {queue_name} queue and timeout after "
         f"{timeout_in_seconds} seconds"
@@ -252,6 +253,7 @@ def consume_all_messages_and_save_csv_file(
 
 
 def state_filepath_for_queue(queue_name: str) -> Path:
+    """Get the filepath to the queue state"""
     return Path(f"{queue_name.replace('/', '_')}.state")
 
 
@@ -322,11 +324,12 @@ def messages_from_csv(filepath: Path) -> Messages:
 
 
 def queue_is_up() -> Any:
+    """Checks if the queue is up"""
     with PixlProducer(queue_name="") as producer:
         return producer.connection_open
 
 
-def inform_user_that_queue_will_be_populated_from(path: Path) -> None:
+def inform_user_that_queue_will_be_populated_from(path: Path) -> None: # noqa: D103
     _ = input(
         f"Found a state file *{path}*. Please use --no-restart if this and other "
         f"state files should be ignored, or delete this file to ignore. Press "
@@ -364,6 +367,7 @@ def api_config_for_queue(queue_name: str) -> APIConfig:
 
 
 def study_date_from_serialised(message: bytes) -> datetime:
+    """Get the study date from a serialised message as a datetime"""
     try:
         result = deserialise(message)["study_datetime"]
         assert isinstance(result, datetime)
