@@ -28,9 +28,11 @@ def deidentify_text(text: str) -> str:
     that this will remove all PII.
 
     Args:
+    ----
         text: Text to identify
 
     Returns:
+    -------
         De-identified text
     """
     for anonymize_step in (
