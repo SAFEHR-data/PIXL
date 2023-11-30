@@ -37,5 +37,9 @@ logger = logging.getLogger("uvicorn")
 
 @app.on_event("startup")
 async def startup_event() -> None:
+    background_tasks = set()
     async with PixlConsumer(QUEUE_NAME, token_bucket=state.token_bucket) as consumer:
-        asyncio.create_task(consumer.run(callback=process_message))
+        task = asyncio.create_task(consumer.run(callback=process_message))
+
+        background_tasks.add(task)
+        task.add_done_callback(background_tasks.discard)
