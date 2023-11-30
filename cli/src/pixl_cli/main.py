@@ -258,8 +258,23 @@ def state_filepath_for_queue(queue_name: str) -> Path:
 
 
 class Messages(list):
+    """
+    Class to represent messages
+
+    Methods
+    -------
+    from_state_file(cls, filepath)
+        Return messages from a state file path
+    """
+
     @classmethod
     def from_state_file(cls, filepath: Path) -> "Messages":
+        """
+        Return messages from a state file path
+
+        :param filepath: Path for state file to be read
+        :return: A Messages object containing all the messages from the state file
+        """
         logger.info(f"Creating messages from {filepath}")
         assert filepath.exists()
         assert filepath.suffix == ".state"
@@ -338,7 +353,26 @@ def inform_user_that_queue_will_be_populated_from(path: Path) -> None: # noqa: D
 
 
 class APIConfig:
+    """
+    Class to represent the configuration for an API
+
+    Attributes
+    ----------
+    host : str
+        Hostname for the API
+    port : int
+        Port for the API
+    default_rate : int
+        Default rate for the API
+
+    Methods
+    -------
+    base_url()
+        Return the base url for the API
+    """
+
     def __init__(self, kwargs: dict) -> None:
+        """Initialise the APIConfig class"""
         self.host: Optional[str] = None
         self.port: Optional[int] = None
         self.default_rate: Optional[int] = None
@@ -347,6 +381,7 @@ class APIConfig:
 
     @property
     def base_url(self) -> str:
+        """Return the base url for the API"""
         return f"http://{self.host}:{self.port}"
 
 
