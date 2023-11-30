@@ -40,6 +40,11 @@ import pixl_dcmd
 
 
 def AzureAccessToken():
+    """
+
+    Send payload to oath2/token url and
+    return the response
+    """
     AZ_DICOM_ENDPOINT_CLIENT_ID = config("AZ_DICOM_ENDPOINT_CLIENT_ID")
     AZ_DICOM_ENDPOINT_CLIENT_SECRET = config("AZ_DICOM_ENDPOINT_CLIENT_SECRET")
     AZ_DICOM_ENDPOINT_TENANT_ID = config("AZ_DICOM_ENDPOINT_TENANT_ID")
@@ -53,12 +58,19 @@ def AzureAccessToken():
         "resource": "https://dicom.healthcareapis.azure.com",
     }
 
-    response = requests.post(url, data=payload)
+    response = requests.post(url, data=payload, timeout=10)
 
     return response.json()["access_token"]
 
 
 def AzureDICOMTokenRefresh():
+    """
+
+    Refresh Azure DICOM token
+    If this fails then wait 30s and try again
+    If successful then access_token can be used in
+    dicomweb_config to update DICOMweb token through API call
+    """
     global TIMER
     TIMER = None
 
@@ -74,7 +86,7 @@ def AzureDICOMTokenRefresh():
 
     try:
         access_token = AzureAccessToken()
-    except Exception:
+    except Exception: # noqa: BLE001
         orthanc.LogError(
             "Failed to get an Azure access token. Retrying in 30 seconds\n"
             + traceback.format_exc()
@@ -103,6 +115,7 @@ def AzureDICOMTokenRefresh():
             auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD),
             headers=headers,
             data=json.dumps(dicomweb_config),
+            timeout=10,
         )
     except requests.exceptions.RequestException as e:
         orthanc.LogError("Failed to update DICOMweb token")
@@ -139,6 +152,7 @@ def SendViaStow(resourceId):
             auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD),
             headers=headers,
             data=json.dumps(payload),
+            timeout=10,
         )
     except requests.exceptions.RequestException:
         orthanc.LogError("Failed to send via STOW")
@@ -167,7 +181,7 @@ def OnChange(changeType, level, resource) -> None: # noqa: ARG001
         return
 
     if changeType == orthanc.ChangeType.STABLE_STUDY and ShouldAutoRoute():
-        print("Stable study: %s" % resource)
+        print("Stable study: %s" % resource) # noqa: T201
         SendViaStow(resource)
 
     if changeType == orthanc.ChangeType.ORTHANC_STARTED:
@@ -203,7 +217,7 @@ def ReceivedInstanceCallback(receivedDicom, origin):
     # Attempt to anonymise and drop the study if any exceptions occur
     try:
         return AnonymiseCallback(dataset)
-    except Exception:
+    except Exception: # noqa: BLE001
         orthanc.LogWarning(
             "Failed to anonymize study due to\n" + traceback.format_exc()
         )
