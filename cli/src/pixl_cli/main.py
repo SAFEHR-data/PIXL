@@ -13,9 +13,9 @@
 #  limitations under the License.
 """PIXL command line interface functionality"""
 
+import datetime
 import json
 import os
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
 
@@ -42,8 +42,8 @@ def _load_config(filename: str = "pixl_config.yml") -> dict:
             msg
         )
 
-    with Path.open(filename) as config_file:
-        config_dict = yaml.safe_load(config_file, Loader=yaml.FullLoader)
+    with Path(filename).open() as config_file:
+        config_dict = yaml.safe_load(config_file)
     return dict(config_dict)
 
 
@@ -323,7 +323,7 @@ def messages_from_csv(filepath: Path) -> Messages:
             serialise(
                 mrn=row[mrn_col_name],
                 accession_number=row[acc_num_col_name],
-                study_datetime=datetime.strptime(
+                study_datetime=datetime.datetime.strptime(
                     row[dt_col_name], "%d/%m/%Y %H:%M").replace(
                     tzinfo=datetime.timezone.utc
                 ),
@@ -401,11 +401,11 @@ def api_config_for_queue(queue_name: str) -> APIConfig:
     return APIConfig(config[config_key])
 
 
-def study_date_from_serialised(message: bytes) -> datetime:
+def study_date_from_serialised(message: bytes) -> datetime.datetime:
     """Get the study date from a serialised message as a datetime"""
     try:
         result = deserialise(message)["study_datetime"]
-        assert isinstance(result, datetime)
+        assert isinstance(result, datetime.datetime)
     except (AssertionError, KeyError) as exc:
         msg = "Failed to get the study date from the message"
         raise AssertionError(msg) from exc
