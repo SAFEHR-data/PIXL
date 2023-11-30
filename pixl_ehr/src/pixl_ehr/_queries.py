@@ -36,11 +36,11 @@ class SQLQuery:
                 continue
 
             for key, value in context.items():
-                line = line.replace("${{ " + str(key) + " }}", str(value))
+                line = line.replace("${{ " + str(key) + " }}", str(value)) #noqa: PLW2901
 
                 n = line.count(f":{key}")
                 self.values += n * [value]
-                line = line.replace(f":{key}", "%s")
+                line = line.replace(f":{key}", "%s") #noqa: PLW2901
 
             if ":" in line.replace("::", "") or "${{" in line:
                 msg = (
