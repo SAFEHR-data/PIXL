@@ -27,6 +27,7 @@ ignore = [
     "UP007",  # Use `X | Y` for type annotations
     "TD002",  # missing author in #TODO
     "TD004",  # missing colon in #TODO
+    "S608",   # possible SQL injection vectors (#FIXME)
 ]
 per-file-ignores = {"*tests*" = [
     "INP001",
