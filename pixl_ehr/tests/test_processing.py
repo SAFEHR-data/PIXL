@@ -18,7 +18,7 @@ services being up
     - emap star
 """
 import contextlib
-from datetime import datetime
+import datetime
 
 import pytest
 from core.patient_queue.utils import serialise
@@ -55,7 +55,7 @@ ls_id, lo_id, lr_id, ltd_id = 5555555, 6666666, 7777777, 8888888
 message_body = serialise(
     mrn=mrn,
     accession_number=accession_number,
-    study_datetime=datetime.strptime(study_datetime_str, "%d/%m/%Y %H:%M").replace(
+    study_datetime=datetime.datetime.strptime(study_datetime_str, "%d/%m/%Y %H:%M").replace(
         tzinfo=datetime.timezone.utc
     ),
 )

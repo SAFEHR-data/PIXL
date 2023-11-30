@@ -15,8 +15,8 @@
 These tests require executing from within the PACS API container with the dependent
 services being up
 """
+import datetime
 import os
-from datetime import datetime
 
 import pytest
 from core.patient_queue.utils import serialise
@@ -34,7 +34,7 @@ PATIENT_ID = "a_patient"
 message_body = serialise(
     mrn=PATIENT_ID,
     accession_number=ACCESSION_NUMBER,
-    study_datetime=datetime.strptime(
+    study_datetime=datetime.datetime.strptime(
         "01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
         tzinfo=datetime.timezone.utc
     ),
@@ -79,6 +79,8 @@ async def test_image_processing() -> None:
     await process_message(message_body=message_body)
     assert study.exists_in(orthanc_raw)
 
-    # TODO: check time last updated after processing again is not incremented
+    # TODO: check time last updated after processing again # noqa: FIX002
+    # is not incremented
+    # https://github.com/UCLH-Foundry/PIXL/issues/156
     await process_message(message_body=message_body)
     assert study.exists_in(orthanc_raw)
