@@ -31,7 +31,7 @@ def test_generate_hash_of_default_length():
 @pytest.mark.usefixtures("_dummy_key")
 def test_generate_hash_enforces_min_length(length):
     message = "test"
-    with pytest.raises(ValueError, match = "Minimum salt length is 2"):
+    with pytest.raises(ValueError, match = "Minimum hash length is 2"):
         generate_hash(message, length)
 
 
