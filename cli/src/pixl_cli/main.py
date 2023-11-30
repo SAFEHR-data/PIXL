@@ -146,7 +146,14 @@ def _update_extract_rate(queue_name: str, rate: Optional[float]) -> None:
     api_config = api_config_for_queue(queue_name)
 
     if rate is None:
-        assert api_config.default_rate is not None
+        if api_config.default_rate is None:
+            msg = (
+                "Cannot update the rate for %s. No default rate was specified.",
+                queue_name
+            )
+            raise ValueError(
+                msg
+            )
         rate = float(api_config.default_rate)
         logger.info(f"Using the default extract rate of {rate}/second")
 
@@ -221,12 +228,26 @@ def az_copy_ehr() -> None:
 
 
 def _get_extract_rate(queue_name: str) -> str:
-    """Get the extraction rate in items per second from a queue"""
+    """
+    Get the extraction rate in items per second from a queue
+
+    :param queue_name: Name of the queue to get the extract rate for (e.g. ehr)
+    :return: The extract rate in items per seconds
+
+    Throws a RuntimeError if the status code is not 200.
+    """
     api_config = api_config_for_queue(queue_name)
     success_code = 200
     try:
         response = requests.get(url=f"{api_config.base_url}/token-bucket-refresh-rate")
-        assert response.status_code == success_code
+        if response.status_code != success_code:
+            msg = (
+                "Failed to get the extract rate for %s due to: %s",
+                queue_name, response.text
+            )
+            raise RuntimeError(
+                msg
+            )
         return str(json.loads(response.text)["rate"])
 
     except (ConnectionError, AssertionError):
@@ -276,8 +297,11 @@ class Messages(list):
         :return: A Messages object containing all the messages from the state file
         """
         logger.info(f"Creating messages from {filepath}")
-        assert filepath.exists()
-        assert filepath.suffix == ".state"
+        if not filepath.exists():
+            raise FileNotFoundError
+        if filepath.suffix != ".state":
+            msg = f"Invalid file suffix for {filepath}. Expected .state"
+            raise ValueError(msg)
 
         return cls(
             [
@@ -400,12 +424,15 @@ def api_config_for_queue(queue_name: str) -> APIConfig:
 
     return APIConfig(config[config_key])
 
-
 def study_date_from_serialised(message: bytes) -> datetime.datetime:
     """Get the study date from a serialised message as a datetime"""
     try:
         result = deserialise(message)["study_datetime"]
-        assert isinstance(result, datetime.datetime)
+        if not isinstance(result, datetime.datetime):
+            msg = "Expected study date to be a datetime. Got %s"
+            raise TypeError(
+                msg, type(result)
+            )
     except (AssertionError, KeyError) as exc:
         msg = "Failed to get the study date from the message"
         raise AssertionError(msg) from exc
