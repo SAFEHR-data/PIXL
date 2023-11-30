@@ -29,7 +29,7 @@ PROJECT_DIR = os.path.dirname(BIN_DIR)
 COMPOSE_FILE = os.path.join(PROJECT_DIR, 'docker-compose.yml')
 
 # The first arg is necessary even if it looks repetitive! Equivalent to bash's $0.
-docker_args = ['docker', 'compose', '--file', COMPOSE_FILE, '--project-name', (args.project), args.command]
+docker_args = ['docker', 'compose', '--file', COMPOSE_FILE, '--project-name', args.project, args.command]
 
 # up gets these options for free
 if args.command == 'up':

@@ -59,13 +59,13 @@ Ports need to be configured such that they don't clash with any other applicatio
 ### Start
 From the _PIXL_ directory:
 ```bash
-bin/up.sh pixl_dev
+bin/pixldc pixl_dev up
 ```
 
 ### Stop
 From the _PIXL_ directory:
 ```bash
-bin/down.sh pixl_dev
+bin/pixldc pixl_dev down
 ```
 
 ## Analysis
