@@ -160,7 +160,8 @@ def _update_extract_rate(queue_name: str, rate: Optional[float]) -> None:
     logger.debug(f"POST {rate} to {api_config.base_url}")
 
     response = requests.post(
-        url=f"{api_config.base_url}/token-bucket-refresh-rate", json={"rate": rate}
+        url=f"{api_config.base_url}/token-bucket-refresh-rate", json={"rate": rate},
+        timeout=10
     )
 
     success_code = 200
@@ -219,7 +220,7 @@ def status(queues: str) -> None:
 def az_copy_ehr() -> None:
     """Copy the EHR data to azure"""
     api_config = api_config_for_queue("ehr")
-    response = requests.get(url=f"{api_config.base_url}/az-copy-current")
+    response = requests.get(url=f"{api_config.base_url}/az-copy-current", timeout=10)
 
     success_code = 200
     if response.status_code != success_code:
@@ -239,7 +240,8 @@ def _get_extract_rate(queue_name: str) -> str:
     api_config = api_config_for_queue(queue_name)
     success_code = 200
     try:
-        response = requests.get(url=f"{api_config.base_url}/token-bucket-refresh-rate")
+        response = requests.get(url=f"{api_config.base_url}/token-bucket-refresh-rate",
+                                timeout=10)
         if response.status_code != success_code:
             msg = (
                 "Failed to get the extract rate for %s due to: %s",
