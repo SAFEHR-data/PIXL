@@ -169,8 +169,12 @@ def _update_extract_rate(queue_name: str, rate: Optional[float]) -> None:
         )
 
     else:
-        msg = f"Failed to update rate on consumer for {queue_name}: {response}"
-        raise RuntimeError(msg)
+        runtime_error_msg = (
+            "Failed to update rate on consumer for %s: %s",
+            queue_name,
+            response,
+        )
+        raise RuntimeError(runtime_error_msg)
 
 
 @cli.command()
