@@ -18,7 +18,7 @@ from setuptools import find_packages, setup
 
 from pixl_dcmd._version import __version__
 
-exec(Path.open("./pixl_dcmd/_version.py").read())
+exec(Path("./pixl_dcmd/_version.py").open().read())
 
 setup(
     name="pixl_dcmd",

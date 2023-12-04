@@ -24,7 +24,7 @@ from pixl_ehr.report_deid.deid import (
     deidentify_text,
 )
 
-THIS_DIR = Path(Path.parent(Path.resolve(__file__)))
+THIS_DIR = Path(__file__).resolve().parent
 
 
 def _patient_names_from_names_csv() -> list[tuple[str, str]]:

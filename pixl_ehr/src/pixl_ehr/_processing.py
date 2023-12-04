@@ -32,7 +32,7 @@ from .report_deid import deidentify_text
 logger = logging.getLogger("uvicorn")
 logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))
 
-_this_dir = Path(Path.parent(__file__))
+_this_dir = Path(Path(__file__).parent)
 
 
 async def process_message(message_body: bytes) -> None:

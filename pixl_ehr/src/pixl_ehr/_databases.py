@@ -100,7 +100,7 @@ class PIXLDatabase(WriteableDatabase, QueryableDatabase):
             f"COPY (SELECT * FROM {schema_name}.{table_name}) TO STDOUT WITH CSV HEADER"
         )
 
-        with Path.open(filename, "w") as file:
+        with Path(filename, "w").open() as file:
             self._cursor.copy_expert(query, file)
 
     def contains(self, data: "PatientEHRData") -> bool:

@@ -140,7 +140,7 @@ def _partial_date_str() -> str:
     )
 
 
-_this_dir = Path(Path.parent(__file__))
+_this_dir = Path(Path(__file__).parent)
 _exclusions = [
     rf"[\s|,]{line.strip()}[\s|,]"
     for line in Path.open(_this_dir / "exclusions.txt")
