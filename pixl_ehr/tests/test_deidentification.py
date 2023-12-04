@@ -15,7 +15,6 @@
 from pathlib import Path
 
 import pytest
-
 from pixl_ehr.report_deid.deid import (
     _remove_any_excluded_words,
     _remove_any_trailing_tags,

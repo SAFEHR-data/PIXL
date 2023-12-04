@@ -13,7 +13,6 @@
 #  limitations under the License.
 import pytest
 from fastapi.testclient import TestClient
-
 from hasher.main import app
 
 client = TestClient(app)

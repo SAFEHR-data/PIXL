@@ -23,10 +23,9 @@ import datetime
 import pytest
 from core.patient_queue.utils import serialise
 from decouple import config
-from psycopg2.errors import UniqueViolation
-
 from pixl_ehr._databases import PIXLDatabase, WriteableDatabase
 from pixl_ehr._processing import process_message
+from psycopg2.errors import UniqueViolation
 
 pytest_plugins = ("pytest_asyncio",)
 
