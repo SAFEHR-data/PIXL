@@ -33,7 +33,7 @@ pytest_plugins = ("pytest_asyncio",)
 mrn = "testmrn"
 accession_number = "testaccessionnumber"
 study_datetime_str = "01/01/1234 01:23"
-observation_datetime = datetime.fromisoformat(
+observation_datetime = datetime.datetime.fromisoformat(
     "1234-01-01"
 )  # within hours of imaging study
 date_of_birth = "09/08/0007"
