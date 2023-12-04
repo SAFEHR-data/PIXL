@@ -13,7 +13,9 @@
 #  limitations under the License.
 
 from pathlib import Path
+
 from setuptools import find_packages, setup
+
 from pixl_dcmd._version import __version__
 
 exec(Path.open("./pixl_dcmd/_version.py").read())

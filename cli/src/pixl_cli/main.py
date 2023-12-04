@@ -38,9 +38,7 @@ def _load_config(filename: str = "pixl_config.yml") -> dict:
             f"Failed to find {filename}. It must be present "
             f"in the current working directory"
         )
-        raise OSError(
-            msg
-        )
+        raise OSError(msg)
 
     with Path(filename).open() as config_file:
         config_dict = yaml.safe_load(config_file)
@@ -149,19 +147,18 @@ def _update_extract_rate(queue_name: str, rate: Optional[float]) -> None:
         if api_config.default_rate is None:
             msg = (
                 "Cannot update the rate for %s. No default rate was specified.",
-                queue_name
+                queue_name,
             )
-            raise ValueError(
-                msg
-            )
+            raise ValueError(msg)
         rate = float(api_config.default_rate)
         logger.info(f"Using the default extract rate of {rate}/second")
 
     logger.debug(f"POST {rate} to {api_config.base_url}")
 
     response = requests.post(
-        url=f"{api_config.base_url}/token-bucket-refresh-rate", json={"rate": rate},
-        timeout=10
+        url=f"{api_config.base_url}/token-bucket-refresh-rate",
+        json={"rate": rate},
+        timeout=10,
     )
 
     success_code = 200
@@ -173,9 +170,7 @@ def _update_extract_rate(queue_name: str, rate: Optional[float]) -> None:
 
     else:
         msg = f"Failed to update rate on consumer for {queue_name}: {response}"
-        raise RuntimeError(
-            msg
-        )
+        raise RuntimeError(msg)
 
 
 @cli.command()
@@ -200,7 +195,7 @@ def stop(queues: str) -> None:
 @cli.command()
 def kill() -> None:
     """Stop all the PIXL services"""
-    os.system("docker compose stop") # noqa: S605,S607
+    os.system("docker compose stop")  # noqa: S605,S607
 
 
 @cli.command()
@@ -240,16 +235,16 @@ def _get_extract_rate(queue_name: str) -> str:
     api_config = api_config_for_queue(queue_name)
     success_code = 200
     try:
-        response = requests.get(url=f"{api_config.base_url}/token-bucket-refresh-rate",
-                                timeout=10)
+        response = requests.get(
+            url=f"{api_config.base_url}/token-bucket-refresh-rate", timeout=10
+        )
         if response.status_code != success_code:
             msg = (
                 "Failed to get the extract rate for %s due to: %s",
-                queue_name, response.text
+                queue_name,
+                response.text,
             )
-            raise RuntimeError(
-                msg
-            )
+            raise RuntimeError(msg)
         return str(json.loads(response.text)["rate"])
 
     except (ConnectionError, AssertionError):
@@ -339,9 +334,7 @@ def messages_from_csv(filepath: Path) -> Messages:
             f"csv file expected to have at least {expected_col_names} as "
             f"column names"
         )
-        raise ValueError(
-            msg
-        )
+        raise ValueError(msg)
 
     mrn_col_name, acc_num_col_name, _, dt_col_name = expected_col_names
     for _, row in messages_df.iterrows():
@@ -350,9 +343,8 @@ def messages_from_csv(filepath: Path) -> Messages:
                 mrn=row[mrn_col_name],
                 accession_number=row[acc_num_col_name],
                 study_datetime=datetime.datetime.strptime(
-                    row[dt_col_name], "%d/%m/%Y %H:%M").replace(
-                    tzinfo=datetime.timezone.utc
-                ),
+                    row[dt_col_name], "%d/%m/%Y %H:%M"
+                ).replace(tzinfo=datetime.timezone.utc),
             )
         )
 
@@ -370,7 +362,7 @@ def queue_is_up() -> Any:
         return producer.connection_open
 
 
-def inform_user_that_queue_will_be_populated_from(path: Path) -> None: # noqa: D103
+def inform_user_that_queue_will_be_populated_from(path: Path) -> None:  # noqa: D103
     _ = input(
         f"Found a state file *{path}*. Please use --no-restart if this and other "
         f"state files should be ignored, or delete this file to ignore. Press "
@@ -420,11 +412,10 @@ def api_config_for_queue(queue_name: str) -> APIConfig:
             f"Cannot update the rate for {queue_name}. {config_key} was"
             f" not specified in the configuration"
         )
-        raise ValueError(
-            msg
-        )
+        raise ValueError(msg)
 
     return APIConfig(config[config_key])
+
 
 def study_date_from_serialised(message: bytes) -> datetime.datetime:
     """Get the study date from a serialised message as a datetime"""
@@ -432,9 +423,7 @@ def study_date_from_serialised(message: bytes) -> datetime.datetime:
         result = deserialise(message)["study_datetime"]
         if not isinstance(result, datetime.datetime):
             msg = "Expected study date to be a datetime. Got %s"
-            raise TypeError(
-                msg, type(result)
-            )
+            raise TypeError(msg, type(result))
     except (AssertionError, KeyError) as exc:
         msg = "Failed to get the study date from the message"
         raise AssertionError(msg) from exc

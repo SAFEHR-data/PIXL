@@ -30,7 +30,7 @@ async def heart_beat() -> str:
     "/hash",
     summary="Produce secure hash with optional max output length (2 <= length <= 64)",
 )
-async def hash(message: str, length: int = 64) -> Response: # noqa: A001
+async def hash(message: str, length: int = 64) -> Response:  # noqa: A001
     output = generate_hash(message, length)
     return Response(content=output, media_type="application/text")
 

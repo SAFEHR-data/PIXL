@@ -40,7 +40,7 @@ def _event_loop_instance(request: Any) -> Generator:
 
 
 @pytest.mark.usefixtures("_event_loop_instance")
-class TestConsumer(TestCase): # noqa: D101
+class TestConsumer(TestCase):  # noqa: D101
     def get_async_result(self, coro: Coroutine) -> Any:
         """
         Run a coroutine synchronously.
@@ -50,7 +50,7 @@ class TestConsumer(TestCase): # noqa: D101
 
     async def test_create(self) -> None:
         """Checks consume is working."""
-        global counter # noqa: PLW0602
+        global counter  # noqa: PLW0602
         with PixlProducer(queue_name=TEST_QUEUE) as pp:
             pp.publish(messages=[MESSAGE_BODY])
 

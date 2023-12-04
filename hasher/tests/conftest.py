@@ -20,7 +20,7 @@ os.environ["ENV"] = "test"
 
 
 @pytest.fixture()
-def _dummy_key(monkeypatch): # noqa: ANN202
+def _dummy_key(monkeypatch):  # noqa: ANN202
     """Fixture to set up a dummy key to use for hashing tests"""
     import hasher.hashing
 

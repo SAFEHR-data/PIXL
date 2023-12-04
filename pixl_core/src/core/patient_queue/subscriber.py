@@ -78,9 +78,8 @@ class PixlConsumer(PixlQueueInterface):
                     )
                 except Exception:
                     LOGGER.exception(
-                        "Failed to process %s"
-                        "Not re-queuing message",
-                        message.body.decode()
+                        "Failed to process %s" "Not re-queuing message",
+                        message.body.decode(),
                     )
 
     async def __aexit__(self, *args: object, **kwargs: Any) -> None:
@@ -105,11 +104,11 @@ class PixlBlockingConsumer(PixlBlockingInterface):
             inactivity_timeout=timeout_in_seconds,  # Yields (None, None, None) after
         )
 
-        def callback(method: Any, properties: Any, body: Any) -> None: # noqa: ARG001
+        def callback(method: Any, properties: Any, body: Any) -> None:  # noqa: ARG001
             try:
                 with Path.open(file_path, "a") as csv_file:
                     print(str(body.decode()), file=csv_file)
-            except: # noqa: E722
+            except:  # noqa: E722
                 LOGGER.debug("Failed to consume")
 
         counter = 0

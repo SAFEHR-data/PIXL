@@ -54,9 +54,7 @@ async def process_message(message_body: bytes) -> None:
                 f"Failed to transfer {message_body.decode()} within "
                 f"{config('PIXL_DICOM_TRANSFER_TIMEOUT')} seconds"
             )
-            raise TimeoutError(
-                msg
-            )
+            raise TimeoutError(msg)
 
         await sleep(0.1)
         job_state = orthanc_raw.job_state(job_id=job_id)

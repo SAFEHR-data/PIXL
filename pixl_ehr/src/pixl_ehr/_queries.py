@@ -36,11 +36,11 @@ class SQLQuery:
                 continue
 
             for key, value in context.items():
-                line = line.replace("${{ " + str(key) + " }}", str(value)) #noqa: PLW2901
+                line = line.replace("${{ " + str(key) + " }}", str(value))  # noqa: PLW2901
 
                 n = line.count(f":{key}")
                 self.values += n * [value]
-                line = line.replace(f":{key}", "%s") #noqa: PLW2901
+                line = line.replace(f":{key}", "%s")  # noqa: PLW2901
 
             if ":" in line.replace("::", "") or "${{" in line:
                 msg = (
@@ -48,7 +48,5 @@ class SQLQuery:
                     f"line {i} in {self._filepath}\n"
                     f"{line}"
                 )
-                raise RuntimeError(
-                    msg
-                )
+                raise RuntimeError(msg)
             self._lines[i] = line

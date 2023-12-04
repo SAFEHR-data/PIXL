@@ -26,7 +26,7 @@ import os
 import orthanc
 
 
-def OnChange(changeType, level, resourceId): # noqa: ARG001
+def OnChange(changeType, level, resourceId):  # noqa: ARG001
     """
     # Taken from:
     # https://book.orthanc-server.com/plugins/python.html#auto-routing-studies
@@ -34,11 +34,11 @@ def OnChange(changeType, level, resourceId): # noqa: ARG001
     ShouldAutoRoute returns true
     """
     if changeType == orthanc.ChangeType.STABLE_STUDY and ShouldAutoRoute():
-        print("Stable study: %s" % resourceId) # noqa: T201
+        print("Stable study: %s" % resourceId)  # noqa: T201
         orthanc.RestApiPost("/modalities/PIXL-Anon/store", resourceId)
 
 
-def OnHeartBeat(output, uri, **request): # noqa: ARG001
+def OnHeartBeat(output, uri, **request):  # noqa: ARG001
     """Extends the REST API by registering a new route in the REST API"""
     orthanc.LogWarning("OK")
     output.AnswerBuffer("OK\n", "text/plain")

@@ -21,13 +21,13 @@ LOGGER = logging.getLogger(__name__)
 
 
 class PixlQueueInterface:
-    def __init__( # noqa: PLR0913
+    def __init__(  # noqa: PLR0913
         self,
         queue_name: str,
         host: str = "localhost",
         port: int = 5672,
         username: str = "guest",
-        password: str = "guest", # noqa: S107
+        password: str = "guest",  # noqa: S107
     ) -> None:
         """
         Generic RabbitMQ interface. Environment variables RABBITMQ_<X> take precedence

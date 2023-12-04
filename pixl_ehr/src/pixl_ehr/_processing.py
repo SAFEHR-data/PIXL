@@ -97,7 +97,7 @@ class PatientEHRData:
     def update_using(self, pipeline: "ProcessingPipeline") -> None:
         """Update these data using a processing pipeline"""
         for i, step in enumerate(pipeline.steps):
-            logger.debug("Step %s", [{i}/{len(pipeline.steps) - 1}])
+            logger.debug("Step %s", [{i} / {len(pipeline.steps) - 1}])
 
             try:
                 step.update(self)
@@ -110,7 +110,9 @@ class PatientEHRData:
         """Persist a.k.a. save some data in a database"""
         logger.debug(
             "Persisting EHR and report data into %s.%s.%s",
-            database, schema_name,table_name
+            database,
+            schema_name,
+            table_name,
         )
 
         col_names = [

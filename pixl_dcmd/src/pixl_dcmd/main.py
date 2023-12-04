@@ -69,7 +69,6 @@ def remove_overlays(dataset: Dataset) -> Dataset:
             message = f"No overlay in: [0x{i:04x}]"
             logging.info(f"\t{message}")
 
-
     return dataset
 
 
@@ -128,11 +127,11 @@ def get_bounded_age(age: str) -> str:
     """Bounds patient age between 18 and 89"""
     if age[3] != "Y":
         return "018Y"
-    
+
     age_as_int = int(age[0:3])
     if age_as_int < 18:
         return "018Y"
-    
+
     if age_as_int > 89:
         return "089Y"
 
@@ -142,8 +141,6 @@ def get_bounded_age(age: str) -> str:
 def combine_date_time(a_date: str, a_time: str) -> Any:
     """Turn date string and time string into arrow object."""
     date_time_str = f"{a_date} {a_time}"
-
-
 
     # TODO: Should Timezone be hardcoded?
     # https://github.com/UCLH-Foundry/PIXL/issues/151
@@ -254,7 +251,6 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
                  - Operation ({op})"
                 logging.warning(f"\t{message}")
 
-
         # If this tag should be deleted.
         elif op == "delete":
             if [grp, el] in dataset:
@@ -265,7 +261,6 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
                 message = f"Missing: {name} (0x{grp:04x},0x{el:04x})\
                  - Operation ({op})"
                 logging.debug(f"\t{message}")
-
 
         # Handle UIDs that should be encrypted.
         elif op == "hash-uid":
@@ -282,7 +277,6 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
                 message = f"Missing: {name} (0x{grp:04x},0x{el:04x})\
                  - Operation ({op})"
                 logging.debug(f"\t{message}")
-
 
         # Shift time relative to the original study time.
         elif op == "time-shift":
@@ -437,7 +431,6 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
                 message = f"Missing: {name} (0x{grp:04x},0x{el:04x})\
                  - Operation ({op})"
                 logging.warning(f"\t{message}")
-
 
     return dataset
 

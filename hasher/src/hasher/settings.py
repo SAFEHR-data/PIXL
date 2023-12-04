@@ -72,7 +72,7 @@ if ENV != "test":
 # Setup logging
 standard_formatter = {
     "format": "[%(asctime)s] | %(levelname)-8s | "
-     "[%(name)s %(funcName)s:%(lineno)s] %(message)s",
+    "[%(name)s %(funcName)s:%(lineno)s] %(message)s",
     "datefmt": "%Y-%m-%d %H:%M:%S",
 }
 simple_formatter = {
@@ -133,11 +133,11 @@ def _dump_settings(symbols: dict[str, Any]) -> None:
             settings[k] = v
         if "PASSWORD" in k:
             settings[k] = "********"
-    print("Settings:") # noqa: T201
+    print("Settings:")  # noqa: T201
     pp = pprint.PrettyPrinter(indent=2)
     pp.pprint(dict(sorted(settings.items())))
     if env_file.exists():
-        print(f"Included settings from {env_file}") # noqa: T201
+        print(f"Included settings from {env_file}")  # noqa: T201
 
 
 dump_settings = partial(_dump_settings, symbols=globals())

@@ -23,9 +23,10 @@ import datetime
 import pytest
 from core.patient_queue.utils import serialise
 from decouple import config
+from psycopg2.errors import UniqueViolation
+
 from pixl_ehr._databases import PIXLDatabase, WriteableDatabase
 from pixl_ehr._processing import process_message
-from psycopg2.errors import UniqueViolation
 
 pytest_plugins = ("pytest_asyncio",)
 
@@ -56,9 +57,8 @@ message_body = serialise(
     mrn=mrn,
     accession_number=accession_number,
     study_datetime=datetime.datetime.strptime(
-        study_datetime_str, "%d/%m/%Y %H:%M").replace(
-        tzinfo=datetime.timezone.utc
-    ),
+        study_datetime_str, "%d/%m/%Y %H:%M"
+    ).replace(tzinfo=datetime.timezone.utc),
 )
 
 
@@ -76,9 +76,7 @@ class WritableEMAPStar(WriteableDatabase):
                 "It looks like the host was not a docker-compose "
                 "created service. Cannot create a writable EMAPStar"
             )
-            raise RuntimeError(
-                msg
-            )
+            raise RuntimeError(msg)
 
 
 class QueryablePIXLDB(PIXLDatabase):
@@ -99,7 +97,7 @@ def insert_row_into_emap_star_schema(
         db.persist(
             f"INSERT INTO star.{table_name} ({cols}) VALUES ({vals})",
             values,
-        ) # If it's already there then all is okay, hopefully
+        )  # If it's already there then all is okay, hopefully
 
 
 def insert_visit_observation(type_id: int, value: float) -> None:
@@ -119,7 +117,7 @@ def insert_visit_observation_types() -> None:
     vot_names = ("HEIGHT", "WEIGHT/SCALE", "R GLASGOW COMA SCALE SCORE")
     for name, vot_id in zip(
         vot_names, (height_vot_id, weight_vot_id, gcs_vot_id), strict=True
-        ):
+    ):
         insert_row_into_emap_star_schema(
             "visit_observation_type",
             ["visit_observation_type_id", "name"],

@@ -12,9 +12,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 import pytest
-from hasher.hashing import generate_hash, generate_salt
 from hypothesis import HealthCheck, example, given, settings
 from hypothesis import strategies as st
+
+from hasher.hashing import generate_hash, generate_salt
 
 
 @pytest.mark.usefixtures("_dummy_key")
@@ -30,7 +31,7 @@ def test_generate_hash_of_default_length():
 @pytest.mark.usefixtures("_dummy_key")
 def test_generate_hash_enforces_min_length(length):
     message = "test"
-    with pytest.raises(ValueError, match = "Minimum hash length is 2"):
+    with pytest.raises(ValueError, match="Minimum hash length is 2"):
         generate_hash(message, length)
 
 
@@ -39,8 +40,9 @@ def test_generate_hash_enforces_min_length(length):
 @pytest.mark.usefixtures("_dummy_key")
 def test_generate_hash_enforces_max_length(length):
     message = "test"
-    with pytest.raises(ValueError, match = "Maximum hash length is 64"):
+    with pytest.raises(ValueError, match="Maximum hash length is 64"):
         generate_hash(message, length)
+
 
 @pytest.mark.usefixtures("_dummy_key")
 def test_generate_hash_of_specific_length():
@@ -71,21 +73,23 @@ def test_generate_salt_of_default_length():
 
 @given(length=st.integers(min_value=-10, max_value=1))
 def test_generate_salt_enforces_min_length(length):
-    with pytest.raises(ValueError, match = "Minimum salt length is 2"):
+    with pytest.raises(ValueError, match="Minimum salt length is 2"):
         generate_salt(length)
 
 
 @given(length=st.integers(min_value=65, max_value=100))
 @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
 def test_generate_salt_enforces_max_length(length):
-    with pytest.raises(ValueError, match = "Maximum salt length is 64"):
+    with pytest.raises(ValueError, match="Maximum salt length is 64"):
         generate_salt(length)
+
 
 @pytest.mark.usefixtures("_dummy_key")
 def test_generate_salt_of_specific_length():
     length = 9
     salt = generate_salt(length)
     assert len(salt) <= length
+
 
 @pytest.mark.usefixtures("_dummy_key")
 def test_generate_salt_produces_unique_outputs():

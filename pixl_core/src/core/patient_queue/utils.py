@@ -41,7 +41,9 @@ def serialise(mrn: str, accession_number: str, study_datetime: datetime) -> byte
     logger.debug(
         "Serialising message with patient id %s, "
         "accession number: %s and timestamp %s",
-        mrn, accession_number, study_datetime
+        mrn,
+        accession_number,
+        study_datetime,
     )
     return json.dumps(
         {
@@ -49,4 +51,4 @@ def serialise(mrn: str, accession_number: str, study_datetime: datetime) -> byte
             "accession_number": accession_number,
             "study_datetime": study_datetime.isoformat(),
         }
-        ).encode("utf-8")
+    ).encode("utf-8")

@@ -42,9 +42,9 @@ logger = logging.getLogger("uvicorn")
 
 @app.on_event("startup")
 async def startup_event() -> None:
-    background_tasks=set()
+    background_tasks = set()
     async with PixlConsumer(QUEUE_NAME, token_bucket=state.token_bucket) as consumer:
-        task=asyncio.create_task(consumer.run(callback=process_message))
+        task = asyncio.create_task(consumer.run(callback=process_message))
         background_tasks.add(task)
         task.add_done_callback(background_tasks.discard)
 
@@ -74,7 +74,8 @@ async def az_copy_current(csv_filename: str = "extract.csv") -> None:
 
     logger.info(
         "Uploading to Azure Storage as blob: %s/%s",
-        config("AZ_STORAGE_CONTAINER_NAME"), csv_filename
+        config("AZ_STORAGE_CONTAINER_NAME"),
+        csv_filename,
     )
 
     with Path.open(file=csv_filename, mode="rb") as data:

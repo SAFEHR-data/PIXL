@@ -86,7 +86,7 @@ def AzureDICOMTokenRefresh():
 
     try:
         access_token = AzureAccessToken()
-    except Exception: # noqa: BLE001
+    except Exception:  # noqa: BLE001
         orthanc.LogError(
             "Failed to get an Azure access token. Retrying in 30 seconds\n"
             + traceback.format_exc()
@@ -119,7 +119,7 @@ def AzureDICOMTokenRefresh():
         )
     except requests.exceptions.RequestException as e:
         orthanc.LogError("Failed to update DICOMweb token")
-        raise SystemExit(e) # noqa: TRY200, B904
+        raise SystemExit(e)  # noqa: TRY200, B904
 
     orthanc.LogWarning("Updated DICOMweb token")
 
@@ -166,7 +166,7 @@ def ShouldAutoRoute():
     return os.environ.get("ORTHANC_AUTOROUTE_ANON_TO_AZURE", "false").lower() == "true"
 
 
-def OnChange(changeType, level, resource) -> None: # noqa: ARG001
+def OnChange(changeType, level, resource) -> None:  # noqa: ARG001
     """
     Three ChangeTypes included in this function:
     - If a study if stable and if ShouldAutoRoute returns true
@@ -181,7 +181,7 @@ def OnChange(changeType, level, resource) -> None: # noqa: ARG001
         return
 
     if changeType == orthanc.ChangeType.STABLE_STUDY and ShouldAutoRoute():
-        print("Stable study: %s" % resource) # noqa: T201
+        print("Stable study: %s" % resource)  # noqa: T201
         SendViaStow(resource)
 
     if changeType == orthanc.ChangeType.ORTHANC_STARTED:
@@ -193,7 +193,7 @@ def OnChange(changeType, level, resource) -> None: # noqa: ARG001
             TIMER.cancel()
 
 
-def OnHeartBeat(output, uri, **request): # noqa: ARG001
+def OnHeartBeat(output, uri, **request):  # noqa: ARG001
     """Extends the REST API by registering a new route in the REST API"""
     orthanc.LogWarning("OK")
     output.AnswerBuffer("OK\n", "text/plain")
@@ -217,7 +217,7 @@ def ReceivedInstanceCallback(receivedDicom, origin):
     # Attempt to anonymise and drop the study if any exceptions occur
     try:
         return AnonymiseCallback(dataset)
-    except Exception: # noqa: BLE001
+    except Exception:  # noqa: BLE001
         orthanc.LogWarning(
             "Failed to anonymize study due to\n" + traceback.format_exc()
         )

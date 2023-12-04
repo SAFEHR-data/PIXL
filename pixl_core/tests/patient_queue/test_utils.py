@@ -28,7 +28,7 @@ def test_serialise() -> None:
     )
     assert (
         msg_body.decode() == '{"mrn": "111", "accession_number": "123", '
-            '"study_datetime": "2022-11-22T13:33:00+00:00"}'
+        '"study_datetime": "2022-11-22T13:33:00+00:00"}'
     )
 
 

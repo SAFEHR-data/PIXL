@@ -74,7 +74,7 @@ class Orthanc(ABC):
     def _get(self, path: str) -> Any:
         return _deserialise(
             requests.get(f"{self._url}{path}", auth=self._auth, timeout=10)
-            )
+        )
 
     def _post(self, path: str, data: dict, timeout: Optional[float] = None) -> Any:
         return _deserialise(
@@ -93,9 +93,7 @@ def _deserialise(response: requests.Response) -> Any:
             f"Status code: {response.status_code}"
             f"Content: {response.content.decode()}"
         )
-        raise requests.HTTPError(
-            msg
-        )
+        raise requests.HTTPError(msg)
     try:
         return response.json()
     except (JSONDecodeError, ValueError) as exc:

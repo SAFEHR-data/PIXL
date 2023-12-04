@@ -21,10 +21,11 @@ import os
 import pytest
 from core.patient_queue.utils import serialise
 from decouple import config
-from pixl_pacs._orthanc import Orthanc, PIXLRawOrthanc
-from pixl_pacs._processing import ImagingStudy, process_message
 from pydicom import dcmread
 from pydicom.data import get_testdata_file
+
+from pixl_pacs._orthanc import Orthanc, PIXLRawOrthanc
+from pixl_pacs._processing import ImagingStudy, process_message
 
 pytest_plugins = ("pytest_asyncio",)
 
@@ -34,9 +35,8 @@ message_body = serialise(
     mrn=PATIENT_ID,
     accession_number=ACCESSION_NUMBER,
     study_datetime=datetime.datetime.strptime(
-        "01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
-        tzinfo=datetime.timezone.utc
-    ),
+        "01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S"
+    ).replace(tzinfo=datetime.timezone.utc),
 )
 
 
@@ -47,7 +47,7 @@ class WritableOrthanc(Orthanc):
 
     def upload(self, filename: str) -> None:
         os.system(
-            f"curl -u {self._username}:{self._password} " # noqa: S605
+            f"curl -u {self._username}:{self._password} "  # noqa: S605
             f"-X POST {self._url}/instances --data-binary @{filename}"
         )
 

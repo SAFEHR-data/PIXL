@@ -95,6 +95,7 @@ def test_date_time_format(orig_date_time: str, output_date_time: str) -> None:
         == output_date_time
     )
 
+
 def test_remove_overlay_plane() -> None:
     """Checks that overlay planes are removed."""
     fpath = get_testdata_files("MR-SIEMENS-DICOM-WithOverlays.dcm")[0]
