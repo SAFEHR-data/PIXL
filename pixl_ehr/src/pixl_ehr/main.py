@@ -1,3 +1,5 @@
+"""
+pixl_ehr module is an EHR extraction service app
 #  Copyright (c) University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,6 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+"""
 import asyncio
 import importlib.metadata
 import logging
@@ -42,6 +45,12 @@ logger = logging.getLogger("uvicorn")
 
 @app.on_event("startup")
 async def startup_event() -> None:
+    """
+    task create: the coroutine submitted to run "in the background",
+    i.e. concurrently with the current task and all other tasks,
+    switching between them at await points
+    the task is consumer.run and the callback is _processing.process_message
+    """
     background_tasks = set()
     async with PixlConsumer(QUEUE_NAME, token_bucket=state.token_bucket) as consumer:
         task = asyncio.create_task(consumer.run(callback=process_message))
@@ -54,6 +63,11 @@ async def startup_event() -> None:
     summary="Copy the current state of the PIXL anon EHR schema to azure",
 )
 async def az_copy_current(csv_filename: str = "extract.csv") -> None:
+    """
+    Copy the current state of the PIXL anon EHR schema to azure
+    Args:
+        csv_filename (str, optional): _description_. Defaults to "extract.csv".
+    """
     logger.info("Copying current state of anon schema to azure")
 
     PIXLDatabase().to_csv(
@@ -78,11 +92,12 @@ async def az_copy_current(csv_filename: str = "extract.csv") -> None:
         csv_filename,
     )
 
-    with Path.open(file=csv_filename, mode="rb") as data:
+    with Path(file=csv_filename, mode="rb").open() as data:
         blob_client.upload_blob(data)
 
     logger.info("Uploaded successfully!")
 
 
 def _storage_account_url() -> str:
+    """Provides the storage account url"""
     return f"https://{config('AZ_STORAGE_ACCOUNT_NAME')}.blob.core.windows.net"
