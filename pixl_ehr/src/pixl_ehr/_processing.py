@@ -36,7 +36,7 @@ _this_dir = Path(Path.parent(__file__))
 
 
 async def process_message(message_body: bytes) -> None:
-    logger.info(f"Processing: {message_body.decode()}")
+    logger.info("Processing: %s", message_body.decode())
 
     raw_data = PatientEHRData.from_message(message_body)
     pixl_db = PIXLDatabase()
@@ -91,13 +91,13 @@ class PatientEHRData:
             acquisition_datetime=message_data["study_datetime"],
         )
 
-        logger.debug(f"Created {self} from message data")
+        logger.debug("Created %s from message data", self)
         return self
 
     def update_using(self, pipeline: "ProcessingPipeline") -> None:
         """Update these data using a processing pipeline"""
         for i, step in enumerate(pipeline.steps):
-            logger.debug(f"Step [{i}/{len(pipeline.steps) - 1}]")
+            logger.debug("Step %s", [{i}/{len(pipeline.steps) - 1}])
 
             try:
                 step.update(self)
@@ -109,8 +109,8 @@ class PatientEHRData:
     ) -> None:
         """Persist a.k.a. save some data in a database"""
         logger.debug(
-            f"Persisting EHR and report data into "
-            f"{database}.{schema_name}.{table_name}"
+            "Persisting EHR and report data into %s.%s.%s",
+            database, schema_name,table_name
         )
 
         col_names = [
@@ -298,7 +298,7 @@ def pixl_hash(string: str, endpoint_path: str) -> str:
     )
     success_code = 200
     if response.status_code == success_code:
-        logger.debug(f"Hashed to {response.text}")
+        logger.debug("Hashed to %s", response.text)
         return response.text
 
     msg = f"Failed to hash {string}"

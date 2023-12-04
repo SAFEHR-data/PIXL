@@ -59,13 +59,13 @@ async def az_copy_current(csv_filename: str = "extract.csv") -> None:
     PIXLDatabase().to_csv(
         schema_name="emap_data", table_name="ehr_anon", filename=csv_filename
     )
-    logger.debug(f"Saved temporary .csv ({csv_filename})")
+    logger.debug("Saved temporary .csv (%s)", csv_filename)
 
     blob_service_client = BlobServiceClient(
         account_url=_storage_account_url(),
         credential=EnvironmentCredential(),
     )
-    logger.debug(f"Have blob client for {config('AZ_STORAGE_ACCOUNT_NAME')}")
+    logger.debug("Have blob client for %s", config("AZ_STORAGE_ACCOUNT_NAME"))
 
     # Create a blob client using the local file name as the name for the blob
     blob_client = blob_service_client.get_blob_client(
@@ -73,8 +73,8 @@ async def az_copy_current(csv_filename: str = "extract.csv") -> None:
     )
 
     logger.info(
-        f"Uploading to Azure Storage as blob: "
-        f"{config('AZ_STORAGE_CONTAINER_NAME')}/{csv_filename}"
+        "Uploading to Azure Storage as blob: %s/%s",
+        config("AZ_STORAGE_CONTAINER_NAME"), csv_filename
     )
 
     with Path.open(file=csv_filename, mode="rb") as data:
