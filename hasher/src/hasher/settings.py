@@ -11,6 +11,17 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+"""
+Defines settings for the hasher API
+
+The following settings are defined:
+
+- ENV: the environment (dev, test, staging, prod)
+- DEBUG: whether to run in debug mode
+- LOG_ROOT_DIR: directory to store logs
+- "AZURE_KEY_VAULT_NAME"
+- "AZURE_KEY_VAULT_SECRET_NAME"
+"""
 
 import pprint
 import tempfile

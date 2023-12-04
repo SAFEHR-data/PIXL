@@ -11,6 +11,16 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+"""
+The main hashing functionality
+
+This module provides:
+- fetch_key_from_vault: fetch the hashing key from the Azure Key Vault instance
+- generate_hash: generate a keyed hash digest using the Blake2b algorithm
+- generate_salt: generate a random text string in hexadecimal to be used as a salt
+
+"""
+
 import logging
 import os
 import secrets
