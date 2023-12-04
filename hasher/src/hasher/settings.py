@@ -11,13 +11,24 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+"""
+Defines settings for the hasher API
 
+The following settings are defined:
+
+- ENV: the environment (dev, test, staging, prod)
+- DEBUG: whether to run in debug mode
+- LOG_ROOT_DIR: directory to store logs
+- "AZURE_KEY_VAULT_NAME"
+- "AZURE_KEY_VAULT_SECRET_NAME"
+"""
+
+import pprint
+import tempfile
 from functools import partial
 from logging.config import dictConfig
 from pathlib import Path
-import pprint
-import tempfile
-from typing import Any, Dict
+from typing import Any
 
 from environs import Env, EnvError
 
@@ -42,7 +53,8 @@ DEBUG = env_parser.bool("DEBUG", True)
 
 ENV = env_parser.str("ENV")
 if ENV not in ("dev", "test", "staging", "prod"):
-    raise RuntimeError(f"Unsupported environment: {ENV}")
+    msg = f"Unsupported environment: {ENV}"
+    raise RuntimeError(msg)
 
 try:
     LOG_ROOT_DIR = env_parser.str("LOG_ROOT_DIR")
@@ -60,7 +72,7 @@ if ENV != "test":
 # Setup logging
 standard_formatter = {
     "format": "[%(asctime)s] | %(levelname)-8s | "
-    + "[%(name)s %(funcName)s:%(lineno)s] %(message)s",
+    "[%(name)s %(funcName)s:%(lineno)s] %(message)s",
     "datefmt": "%Y-%m-%d %H:%M:%S",
 }
 simple_formatter = {
@@ -114,18 +126,18 @@ dictConfig(conf)
 
 
 # Dump settings if in DEBUG mode
-def _dump_settings(symbols: Dict[str, Any]) -> None:
+def _dump_settings(symbols: dict[str, Any]) -> None:
     settings = {}
     for k, v in symbols.items():
         if k.isupper():
             settings[k] = v
         if "PASSWORD" in k:
             settings[k] = "********"
-    print("Settings:")
+    print("Settings:")  # noqa: T201
     pp = pprint.PrettyPrinter(indent=2)
     pp.pprint(dict(sorted(settings.items())))
     if env_file.exists():
-        print(f"Included settings from {env_file}")
+        print(f"Included settings from {env_file}")  # noqa: T201
 
 
 dump_settings = partial(_dump_settings, symbols=globals())

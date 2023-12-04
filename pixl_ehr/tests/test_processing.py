@@ -17,16 +17,15 @@ services being up
     - pixl postgres db
     - emap star
 """
-from datetime import datetime
-from typing import List
+import contextlib
+import datetime
 
+import pytest
 from core.patient_queue.utils import serialise
 from decouple import config
-from psycopg2.errors import UniqueViolation
-import pytest
-
 from pixl_ehr._databases import PIXLDatabase, WriteableDatabase
 from pixl_ehr._processing import process_message
+from psycopg2.errors import UniqueViolation
 
 pytest_plugins = ("pytest_asyncio",)
 
@@ -34,7 +33,7 @@ pytest_plugins = ("pytest_asyncio",)
 mrn = "testmrn"
 accession_number = "testaccessionnumber"
 study_datetime_str = "01/01/1234 01:23"
-observation_datetime = datetime.fromisoformat(
+observation_datetime = datetime.datetime.fromisoformat(
     "1234-01-01"
 )  # within hours of imaging study
 date_of_birth = "09/08/0007"
@@ -56,7 +55,9 @@ ls_id, lo_id, lr_id, ltd_id = 5555555, 6666666, 7777777, 8888888
 message_body = serialise(
     mrn=mrn,
     accession_number=accession_number,
-    study_datetime=datetime.strptime(study_datetime_str, "%d/%m/%Y %H:%M"),
+    study_datetime=datetime.datetime.strptime(
+        study_datetime_str, "%d/%m/%Y %H:%M"
+    ).replace(tzinfo=datetime.timezone.utc),
 )
 
 
@@ -70,10 +71,11 @@ class WritableEMAPStar(WriteableDatabase):
         )
 
         if config("EMAP_UDS_HOST") != "star":
-            raise RuntimeError(
+            msg = (
                 "It looks like the host was not a docker-compose "
                 "created service. Cannot create a writable EMAPStar"
             )
+            raise RuntimeError(msg)
 
 
 class QueryablePIXLDB(PIXLDatabase):
@@ -84,19 +86,17 @@ class QueryablePIXLDB(PIXLDatabase):
 
 
 def insert_row_into_emap_star_schema(
-    table_name: str, col_names: List[str], values: List
+    table_name: str, col_names: list[str], values: list
 ) -> None:
     db = WritableEMAPStar()
     cols = ",".join(col_names)
     vals = ",".join("%s" for _ in range(len(col_names)))
 
-    try:
+    with contextlib.suppress(UniqueViolation):
         db.persist(
             f"INSERT INTO star.{table_name} ({cols}) VALUES ({vals})",
             values,
-        )
-    except UniqueViolation:
-        pass  # If it's already there then all is okay, hopefully
+        )  # If it's already there then all is okay, hopefully
 
 
 def insert_visit_observation(type_id: int, value: float) -> None:
@@ -114,7 +114,9 @@ def insert_visit_observation(type_id: int, value: float) -> None:
 
 def insert_visit_observation_types() -> None:
     vot_names = ("HEIGHT", "WEIGHT/SCALE", "R GLASGOW COMA SCALE SCORE")
-    for name, vot_id in zip(vot_names, (height_vot_id, weight_vot_id, gcs_vot_id)):
+    for name, vot_id in zip(
+        vot_names, (height_vot_id, weight_vot_id, gcs_vot_id), strict=True
+    ):
         insert_row_into_emap_star_schema(
             "visit_observation_type",
             ["visit_observation_type_id", "name"],
@@ -157,8 +159,8 @@ def insert_data_into_emap_star_schema() -> None:
     )
 
 
-@pytest.mark.processing
-@pytest.mark.asyncio
+@pytest.mark.processing()
+@pytest.mark.asyncio()
 async def test_message_processing() -> None:
     insert_data_into_emap_star_schema()
     await process_message(message_body)
@@ -180,7 +182,7 @@ async def test_message_processing() -> None:
         report_text,
     ]
 
-    for value, expected_value in zip(row, expected_row):
+    for value, expected_value in zip(row, expected_row, strict=True):
         if expected_value == "any":
             continue  # Skip the age, because that depends on the current date...
 

@@ -12,12 +12,9 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-import os
 from pathlib import Path
-from typing import List, Tuple
 
 import pytest
-
 from pixl_ehr.report_deid.deid import (
     _remove_any_excluded_words,
     _remove_any_trailing_tags,
@@ -27,19 +24,19 @@ from pixl_ehr.report_deid.deid import (
     deidentify_text,
 )
 
-THIS_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
+THIS_DIR = Path(__file__).resolve().parent
 
 
-def _patient_names_from_names_csv() -> List[Tuple[str, str]]:
+def _patient_names_from_names_csv() -> list[tuple[str, str]]:
     """From a csv file with a header and an index column extract name tuples"""
 
-    def _tuple_from(line: str) -> Tuple[str, str]:
+    def _tuple_from(line: str) -> tuple[str, str]:
         items = line.split(",")
         return items[1], items[2]
 
     path = THIS_DIR / "data" / "names.csv"
 
-    return [_tuple_from(line) for line in open(path, "r").readlines()[1:]]
+    return [_tuple_from(line) for line in Path.open(path).readlines()[1:]]
 
 
 def test_patient_name_is_redacted(required_accuracy: float = 0.85) -> None:
@@ -81,7 +78,8 @@ def test_block_with_excluded_identifiers_are_removed(id_name: str) -> None:
     )
 
     assert all(s not in anon_text for s in info)
-    assert header in anon_text and footer in anon_text
+    assert header in anon_text
+    assert footer in anon_text
 
 
 # using ":" or " " as a delimiter is not redacted by Presidio

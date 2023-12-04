@@ -15,17 +15,16 @@
 These tests require executing from within the PACS API container with the dependent
 services being up
 """
-from datetime import datetime
+import datetime
 import os
 
+import pytest
 from core.patient_queue.utils import serialise
 from decouple import config
-from pydicom import dcmread
-from pydicom.data import get_testdata_file
-import pytest
-
 from pixl_pacs._orthanc import Orthanc, PIXLRawOrthanc
 from pixl_pacs._processing import ImagingStudy, process_message
+from pydicom import dcmread
+from pydicom.data import get_testdata_file
 
 pytest_plugins = ("pytest_asyncio",)
 
@@ -34,7 +33,9 @@ PATIENT_ID = "a_patient"
 message_body = serialise(
     mrn=PATIENT_ID,
     accession_number=ACCESSION_NUMBER,
-    study_datetime=datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S"),
+    study_datetime=datetime.datetime.strptime(
+        "01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S"
+    ).replace(tzinfo=datetime.timezone.utc),
 )
 
 
@@ -45,14 +46,14 @@ class WritableOrthanc(Orthanc):
 
     def upload(self, filename: str) -> None:
         os.system(
-            f"curl -u {self._username}:{self._password} "
+            f"curl -u {self._username}:{self._password} "  # noqa: S605
             f"-X POST {self._url}/instances --data-binary @{filename}"
         )
 
 
 def add_image_to_fake_vna(image_filename: str = "test.dcm") -> None:
     path = get_testdata_file("CT_small.dcm")
-    ds = dcmread(path)  # type: ignore
+    ds = dcmread(path)
     ds.AccessionNumber = ACCESSION_NUMBER
     ds.PatientID = PATIENT_ID
     ds.save_as(image_filename)
@@ -65,8 +66,8 @@ def add_image_to_fake_vna(image_filename: str = "test.dcm") -> None:
     vna.upload(image_filename)
 
 
-@pytest.mark.processing
-@pytest.mark.asyncio
+@pytest.mark.processing()
+@pytest.mark.asyncio()
 async def test_image_processing() -> None:
     add_image_to_fake_vna()
     study = ImagingStudy.from_message(message_body)
@@ -76,6 +77,8 @@ async def test_image_processing() -> None:
     await process_message(message_body=message_body)
     assert study.exists_in(orthanc_raw)
 
-    # TODO: check time last updated after processing again is not incremented
+    # TODO: check time last updated after processing again # noqa: FIX002
+    # is not incremented
+    # https://github.com/UCLH-Foundry/PIXL/issues/156
     await process_message(message_body=message_body)
     assert study.exists_in(orthanc_raw)

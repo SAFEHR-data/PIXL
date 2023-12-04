@@ -1,0 +1,2 @@
+[extend-per-file-ignores]
+"src/pixl_dcmd/main.py" = ["PLR2004", "PLR0912", "PLR0915"] #  Magic value used in comparison, Too many branches, Too many statements

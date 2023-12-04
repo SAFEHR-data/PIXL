@@ -21,13 +21,13 @@ LOGGER = logging.getLogger(__name__)
 
 
 class PixlQueueInterface:
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         queue_name: str,
         host: str = "localhost",
         port: int = 5672,
         username: str = "guest",
-        password: str = "guest",
+        password: str = "guest",  # noqa: S107
     ) -> None:
         """
         Generic RabbitMQ interface. Environment variables RABBITMQ_<X> take precedence
@@ -67,10 +67,10 @@ class PixlBlockingInterface(PixlQueueInterface):
                 self._channel = self._connection.channel()
             self._queue = self._channel.queue_declare(queue=self.queue_name)
 
-        LOGGER.info(f"Connected to {self._queue}")
+        LOGGER.info("Connected to %s", self._queue)
         return self
 
-    def __exit__(self, *args: Any, **kwargs: Any) -> None:
+    def __exit__(self, *args: object, **kwargs: Any) -> None:
         """Shutdown the connection to RabbitMQ service."""
         self._channel.close()
         self._connection.close()
@@ -84,5 +84,5 @@ class PixlBlockingInterface(PixlQueueInterface):
         try:
             return int(self._queue.method.message_count)
         except (ValueError, TypeError):
-            LOGGER.error("Failed to determine the number of messages. Returning 0")
+            LOGGER.exception("Failed to determine the number of messages. Returning 0")
             return 0

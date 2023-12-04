@@ -22,6 +22,11 @@ dependencies = [
 test = [
     "pytest==7.4.*"
 ]
+dev = [
+    "mypy",
+    "pre-commit",
+    "ruff",
+]
 
 [project.scripts]
 pixl = "pixl_cli.main:cli"

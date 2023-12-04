@@ -1,0 +1,5 @@
+extend = "../ruff.toml"
+
+[extend-per-file-ignores]
+"./tests/**" = ["D1"]
+"./src/hasher/endpoints.py" = ["D103"]

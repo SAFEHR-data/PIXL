@@ -11,6 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+"""Sets up endpoints for the hasher-api"""
 
 from fastapi import APIRouter
 from starlette.responses import Response
@@ -29,7 +30,7 @@ async def heart_beat() -> str:
     "/hash",
     summary="Produce secure hash with optional max output length (2 <= length <= 64)",
 )
-async def hash(message: str, length: int = 64) -> Response:
+async def hash(message: str, length: int = 64) -> Response:  # noqa: A001
     output = generate_hash(message, length)
     return Response(content=output, media_type="application/text")
 

@@ -11,12 +11,16 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+"""Subscriber for RabbitMQ"""
+
 import asyncio
 import logging
+from collections.abc import Awaitable, Callable
 from pathlib import Path
-from typing import Any, Awaitable, Callable
+from typing import Any
 
 import aio_pika
+
 from core.token_buffer.tokens import TokenBucket
 
 from ._base import PixlBlockingInterface, PixlQueueInterface
@@ -72,17 +76,19 @@ class PixlConsumer(PixlQueueInterface):
                         callback(message.body),
                         asyncio.sleep(1e-3),  # Avoid very fast callbacks
                     )
-                except Exception as e:  # noqa
-                    LOGGER.error(
-                        f"Failed to process {message.body.decode()} due to\n{e}\n"
-                        f"Not re-queuing message"
+                except Exception:
+                    LOGGER.exception(
+                        "Failed to process %s" "Not re-queuing message",
+                        message.body.decode(),
                     )
 
-    async def __aexit__(self, *args: Any, **kwargs: Any) -> None:
+    async def __aexit__(self, *args: object, **kwargs: Any) -> None:
         """Requirement for the asynchronous context manager"""
 
 
 class PixlBlockingConsumer(PixlBlockingInterface):
+    """Connector to RabbitMQ. Consumes messages from in blocks"""
+
     def consume_all(self, file_path: Path, timeout_in_seconds: int = 5) -> int:
         """
         Retrieving all messages still on queue and save them in a specified CSV file.
@@ -98,11 +104,11 @@ class PixlBlockingConsumer(PixlBlockingInterface):
             inactivity_timeout=timeout_in_seconds,  # Yields (None, None, None) after
         )
 
-        def callback(method: Any, properties: Any, body: Any) -> None:
+        def callback(method: Any, properties: Any, body: Any) -> None:  # noqa: ARG001
             try:
-                with open(file_path, "a") as csv_file:
+                with Path.open(file_path, "a") as csv_file:
                     print(str(body.decode()), file=csv_file)
-            except:  # noqa
+            except:  # noqa: E722
                 LOGGER.debug("Failed to consume")
 
         counter = 0

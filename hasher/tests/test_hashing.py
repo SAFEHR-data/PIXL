@@ -11,14 +11,14 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+import pytest
+from hasher.hashing import generate_hash, generate_salt
 from hypothesis import HealthCheck, example, given, settings
 from hypothesis import strategies as st
-import pytest
-
-from hasher.hashing import generate_hash, generate_salt
 
 
-def test_generate_hash_of_default_length(dummy_key):
+@pytest.mark.usefixtures("_dummy_key")
+def test_generate_hash_of_default_length():
     message = "test"
     digest = generate_hash(message)
     assert len(digest) == 64
@@ -27,21 +27,24 @@ def test_generate_hash_of_default_length(dummy_key):
 
 @given(length=st.integers(min_value=-10, max_value=1))
 @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
-def test_generate_hash_enforces_min_length(length, dummy_key):
+@pytest.mark.usefixtures("_dummy_key")
+def test_generate_hash_enforces_min_length(length):
     message = "test"
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Minimum hash length is 2"):
         generate_hash(message, length)
 
 
 @given(length=st.integers(min_value=65, max_value=100))
 @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
-def test_generate_hash_enforces_max_length(length, dummy_key):
+@pytest.mark.usefixtures("_dummy_key")
+def test_generate_hash_enforces_max_length(length):
     message = "test"
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Maximum hash length is 64"):
         generate_hash(message, length)
 
 
-def test_generate_hash_of_specific_length(dummy_key):
+@pytest.mark.usefixtures("_dummy_key")
+def test_generate_hash_of_specific_length():
     message = "test"
     length = 16
     digest = generate_hash(message, length)
@@ -56,7 +59,8 @@ def test_generate_hash_of_specific_length(dummy_key):
 @example(message="9876544321", length=12)
 @example(message="1.2.840.10008", length=48)
 @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
-def test_generate_hash_output_length(message, length, dummy_key):
+@pytest.mark.usefixtures("_dummy_key")
+def test_generate_hash_output_length(message, length):
     digest = generate_hash(message, length)
     assert len(digest) <= length
 
@@ -68,24 +72,26 @@ def test_generate_salt_of_default_length():
 
 @given(length=st.integers(min_value=-10, max_value=1))
 def test_generate_salt_enforces_min_length(length):
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Minimum salt length is 2"):
         generate_salt(length)
 
 
 @given(length=st.integers(min_value=65, max_value=100))
 @settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
 def test_generate_salt_enforces_max_length(length):
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Maximum salt length is 64"):
         generate_salt(length)
 
 
-def test_generate_salt_of_specific_length(dummy_key):
+@pytest.mark.usefixtures("_dummy_key")
+def test_generate_salt_of_specific_length():
     length = 9
     salt = generate_salt(length)
     assert len(salt) <= length
 
 
-def test_generate_salt_produces_unique_outputs(dummy_key):
+@pytest.mark.usefixtures("_dummy_key")
+def test_generate_salt_produces_unique_outputs():
     salt_1 = generate_salt()
     salt_2 = generate_salt()
     assert salt_1 != salt_2

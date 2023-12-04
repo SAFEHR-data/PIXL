@@ -12,23 +12,24 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 import hashlib
-from io import BytesIO
 import logging
+import re
+from io import BytesIO
 from os import PathLike
 from random import randint
-import re
 from typing import Any, BinaryIO, Union
 
 import arrow
+import requests
 from decouple import config
 from pydicom import Dataset, dcmwrite
-import requests
 
 DicomDataSetType = Union[Union[str, bytes, PathLike[Any]], BinaryIO]
 
 
 def write_dataset_to_bytes(dataset: Dataset) -> bytes:
-    """Write pydicom DICOM dataset to byte array
+    """
+    Write pydicom DICOM dataset to byte array
 
     Original from:
     https://pydicom.github.io/pydicom/stable/auto_examples/memory_dataset.html
@@ -40,7 +41,8 @@ def write_dataset_to_bytes(dataset: Dataset) -> bytes:
 
 
 def remove_overlays(dataset: Dataset) -> Dataset:
-    """Search for overlays planes and remove them.
+    """
+    Search for overlays planes and remove them.
 
     Overlay planes are repeating groups in [0x6000,xxxx].
     Up to 16 overlays can be stored in 0x6000 to 0x601E.
@@ -52,27 +54,27 @@ def remove_overlays(dataset: Dataset) -> Dataset:
 
     for i in range(0x6000, 0x601F, 2):
         overlay = dataset.group_dataset(i)
-        message = "Checking for overlay in: [0x{grp:04x}]".format(grp=i)
+        message = f"Checking for overlay in: [0x{i:04x}]"
         logging.info(f"\t{message}")
 
         if overlay:
-            message = "Found overlay in: [0x{grp:04x}]".format(grp=i)
+            message = f"Found overlay in: [0x{i:04x}]"
             logging.info(f"\t{message}")
-            # orthanc.LogWarning(message)
-            message = "Deleting overlay in: [0x{grp:04x}]".format(grp=i)
+
+            message = f"Deleting overlay in: [0x{i:04x}]"
             logging.info(f"\t{message}")
             for item in overlay:
                 del dataset[item.tag]
         else:
-            message = "No overlay in: [0x{grp:04x}]".format(grp=i)
+            message = f"No overlay in: [0x{i:04x}]"
             logging.info(f"\t{message}")
-            # orthanc.LogWarning(message)
 
     return dataset
 
 
 def get_encrypted_uid(uid: str, salt: bytes) -> str:
-    """Hashes the suffix of a DICOM UID with the given salt.
+    """
+    Hashes the suffix of a DICOM UID with the given salt.
 
     This function retains the prefix, while sha512-hashing the subcomponents
     of the suffix. The number of digits per subcomponent is retained in the
@@ -90,7 +92,6 @@ def get_encrypted_uid(uid: str, salt: bytes) -> str:
     there is a possibility that the were the anonyimised data to be push to the
     originating scanner (or scanner type), the data may not be recognised.
     """
-
     uid_elements = uid.split(".")
 
     prefix = ".".join(uid_elements[:4])
@@ -126,30 +127,29 @@ def get_bounded_age(age: str) -> str:
     """Bounds patient age between 18 and 89"""
     if age[3] != "Y":
         return "018Y"
-    else:
-        age_as_int = int(age[0:3])
-        if age_as_int < 18:
-            return "018Y"
-        elif age_as_int > 89:
-            return "089Y"
+
+    age_as_int = int(age[0:3])
+    if age_as_int < 18:
+        return "018Y"
+
+    if age_as_int > 89:
+        return "089Y"
 
     return age
 
 
 def combine_date_time(a_date: str, a_time: str) -> Any:
     """Turn date string and time string into arrow object."""
-
-    date_time_str = "{a_date} {a_time}".format(a_date=a_date, a_time=a_time)
-
-    # logging.info(f"Date time= {date_time_str}")
+    date_time_str = f"{a_date} {a_time}"
 
     # TODO: Should Timezone be hardcoded?
+    # https://github.com/UCLH-Foundry/PIXL/issues/151
     tz = "Europe/London"
 
     try:
         new_date_time = arrow.get(date_time_str, tzinfo=tz)
     except arrow.parser.ParserError:
-        logging.error(
+        logging.exception(
             f"Failed to parse the datetime string '{date_time_str}'"
             f"falling back to a random time in 1970"
         )
@@ -161,7 +161,6 @@ def combine_date_time(a_date: str, a_time: str) -> Any:
 
 def format_date_time(a_date_time: str) -> Any:
     """Turn date-time string into arrow object."""
-
     if "." not in a_date_time:
         a_date_time += ".000000"
 
@@ -177,13 +176,12 @@ def format_date_time(a_date_time: str) -> Any:
 
 def enforce_whitelist(dataset: dict, tags: dict) -> dict:
     """Delete any tags not in the tagging scheme."""
-
     # For every element:
 
     for de in dataset:
         keep_el = False
         # For every entry in the YAML:
-        for i in range(0, len(tags)):
+        for i in range(len(tags)):
             grp = tags[i]["group"]
             el = tags[i]["element"]
             op = tags[i]["op"]
@@ -207,9 +205,8 @@ def enforce_whitelist(dataset: dict, tags: dict) -> dict:
 
 def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
     """Apply anoymisation operations for a given set of tags to a dataset"""
-
     # Keep the original study time before any operations are applied.
-    # orig_study_time = dataset[0x0008, 0x0030].value
+    # For example: orig_study_time = dataset[0x0008, 0x0030].value
 
     # Set salt based on ENV VAR
     salt_plaintext = config("SALT_VALUE")
@@ -218,12 +215,12 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
     HASHER_API_PORT = config("HASHER_API_PORT")
 
     # TODO: Get offset from external source on study-by-study basis.
+    # https://github.com/UCLH-Foundry/PIXL/issues/152
     try:
         TIME_OFFSET = int(config("TIME_OFFSET"))
-    except ValueError:
-        raise RuntimeError(
-            "Failed to set the time offset in hours from the $TIME_OFFSET env var"
-        )
+    except ValueError as exc:
+        msg = "Failed to set the time offset in hours from the $TIME_OFFSET env var"
+        raise RuntimeError(msg) from exc
 
     logging.info(b"TIME_OFFSET = %i}" % TIME_OFFSET)
 
@@ -238,7 +235,7 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
     salt = response.content
 
     # For every entry in the YAML:
-    for i in range(0, len(tags)):
+    for i in range(len(tags)):
         name = tags[i]["name"]
         grp = tags[i]["group"]
         el = tags[i]["element"]
@@ -247,40 +244,28 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
         # If this tag should be kept.
         if op == "keep":
             if [grp, el] in dataset:
-                message = "Keeping: {name} (0x{grp:04x},0x{el:04x})".format(
-                    name=name, grp=grp, el=el
-                )
+                message = f"Keeping: {name} (0x{grp:04x},0x{el:04x})"
                 logging.info(f"\t{message}")
             else:
-                message = "Missing: {name} (0x{grp:04x},0x{el:04x})\
-                 - Operation ({op})".format(
-                    name=name, grp=grp, el=el, op=op
-                )
-                logging.warn(f"\t{message}")
-            # orthanc.LogWarning(message)
+                message = f"Missing: {name} (0x{grp:04x},0x{el:04x})\
+                 - Operation ({op})"
+                logging.warning(f"\t{message}")
 
         # If this tag should be deleted.
         elif op == "delete":
             if [grp, el] in dataset:
                 del dataset[grp, el]
-                message = "Deleting: {name} (0x{grp:04x},0x{el:04x})".format(
-                    name=name, grp=grp, el=el
-                )
+                message = f"Deleting: {name} (0x{grp:04x},0x{el:04x})"
                 logging.info(f"\t{message}")
             else:
-                message = "Missing: {name} (0x{grp:04x},0x{el:04x})\
-                 - Operation ({op})".format(
-                    name=name, grp=grp, el=el, op=op
-                )
+                message = f"Missing: {name} (0x{grp:04x},0x{el:04x})\
+                 - Operation ({op})"
                 logging.debug(f"\t{message}")
-            # orthanc.LogWarning(message)
 
         # Handle UIDs that should be encrypted.
         elif op == "hash-uid":
             if [grp, el] in dataset:
-                message = "Changing: {name} (0x{grp:04x},0x{el:04x})".format(
-                    name=name, grp=grp, el=el
-                )
+                message = f"Changing: {name} (0x{grp:04x},0x{el:04x})"
                 logging.info(f"\t{message}")
 
                 logging.info(f"\t\tCurrent UID:\t{dataset[grp,el].value}")
@@ -289,12 +274,9 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
                 logging.info(f"\t\tEncrypted UID:\t{new_uid}")
 
             else:
-                message = "Missing: {name} (0x{grp:04x},0x{el:04x})\
-                 - Operation ({op})".format(
-                    name=name, grp=grp, el=el, op=op
-                )
+                message = f"Missing: {name} (0x{grp:04x},0x{el:04x})\
+                 - Operation ({op})"
                 logging.debug(f"\t{message}")
-            # orthanc.LogWarning(message)
 
         # Shift time relative to the original study time.
         elif op == "time-shift":
@@ -443,24 +425,18 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
 
                 dataset[grp, el].value = new_value
 
-                message = "Changing: {name} (0x{grp:04x},0x{el:04x})".format(
-                    name=name, grp=grp, el=el
-                )
+                message = f"Changing: {name} (0x{grp:04x},0x{el:04x})"
                 logging.info(f"\t{message}")
             else:
-                message = "Missing: {name} (0x{grp:04x},0x{el:04x})\
-                 - Operation ({op})".format(
-                    name=name, grp=grp, el=el, op=op
-                )
-                logging.warn(f"\t{message}")
-            # orthanc.LogWarning(message)
+                message = f"Missing: {name} (0x{grp:04x},0x{el:04x})\
+                 - Operation ({op})"
+                logging.warning(f"\t{message}")
 
     return dataset
 
 
 def hash_endpoint_path_for_tag(group: bytes, element: bytes) -> str:
     """Call a hasher endpoint depending on the dicom tag group and emement"""
-
     if group == 0x0010 and element == 0x0020:  # Patient ID
         return "/hash-mrn"
     if group == 0x0008 and element == 0x0050:  # Accession Number

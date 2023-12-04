@@ -11,18 +11,18 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+import logging
+import os
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-import logging
-import os
 from pathlib import Path
 from typing import Optional
 
+import requests
 from core.patient_queue.utils import deserialise
 from decouple import config
-import requests
 
 from pixl_ehr._databases import EMAPStar, PIXLDatabase
 from pixl_ehr._queries import SQLQuery
@@ -32,11 +32,11 @@ from .report_deid import deidentify_text
 logger = logging.getLogger("uvicorn")
 logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))
 
-_this_dir = Path(os.path.dirname(__file__))
+_this_dir = Path(Path(__file__).parent)
 
 
 async def process_message(message_body: bytes) -> None:
-    logger.info(f"Processing: {message_body.decode()}")
+    logger.info("Processing: %s", message_body.decode())
 
     raw_data = PatientEHRData.from_message(message_body)
     pixl_db = PIXLDatabase()
@@ -84,7 +84,6 @@ class PatientEHRData:
         Create a minimal set of patient EHR data required to start queries from a
         queue message
         """
-
         message_data = deserialise(message_body)
         self = PatientEHRData(
             mrn=message_data["mrn"],
@@ -92,18 +91,17 @@ class PatientEHRData:
             acquisition_datetime=message_data["study_datetime"],
         )
 
-        logger.debug(f"Created {self} from message data")
+        logger.debug("Created %s from message data", self)
         return self
 
     def update_using(self, pipeline: "ProcessingPipeline") -> None:
         """Update these data using a processing pipeline"""
-
         for i, step in enumerate(pipeline.steps):
-            logger.debug(f"Step [{i}/{len(pipeline.steps) - 1}]")
+            logger.debug("Step %s", [i / len(pipeline.steps) - 1])
 
             try:
                 step.update(self)
-            except Exception as e:  # no-qa
+            except Exception as e:  # noqa: BLE001
                 logger.warning(e)
 
     def persist(
@@ -111,8 +109,10 @@ class PatientEHRData:
     ) -> None:
         """Persist a.k.a. save some data in a database"""
         logger.debug(
-            f"Persisting EHR and report data into "
-            f"{database}.{schema_name}.{table_name}"
+            "Persisting EHR and report data into %s.%s.%s",
+            database,
+            schema_name,
+            table_name,
         )
 
         col_names = [
@@ -148,7 +148,6 @@ class PatientEHRData:
 
     def anonymise(self) -> "PatientEHRData":
         """Anonymise these patient data by processing text and hashing identifiers"""
-
         if self.report_text is not None:
             self.report_text = deidentify_text(self.report_text)
 
@@ -171,14 +170,13 @@ class Step(ABC):
 
 
 class EMAPStep(Step, ABC):
-    def __init__(self, db: EMAPStar):
+    def __init__(self, db: EMAPStar) -> None:
         self.db = db
 
 
 class SetAgeSexEthnicity(EMAPStep):
     def update(self, data: PatientEHRData) -> None:
         """Update the data with age, sex and ethnicity"""
-
         query = SQLQuery(
             filepath=Path(_this_dir, "sql/mrn_to_DOB_sex_ethnicity.sql"),
             context={
@@ -191,7 +189,7 @@ class SetAgeSexEthnicity(EMAPStep):
         date_of_birth, data.sex, data.ethnicity = result
 
         if data.acquisition_datetime is None:
-            print("WARNING: Cannot set the age without an acquisition time")
+            logger.warning("WARNING: Cannot set the age without an acquisition time")
             return
 
         acquisition_date = data.acquisition_datetime.date()
@@ -201,7 +199,7 @@ class SetAgeSexEthnicity(EMAPStep):
 
 
 class SetVOT(EMAPStep, ABC):
-    def __init__(self, db: EMAPStar, time_cutoff_n_days: int):
+    def __init__(self, db: EMAPStar, time_cutoff_n_days: int) -> None:
         super().__init__(db=db)
 
         self.time_cutoff_n_days = int(time_cutoff_n_days)
@@ -224,7 +222,8 @@ class SetVOT(EMAPStep, ABC):
 
     def update(self, data: PatientEHRData) -> None:
         if data.acquisition_datetime is None:
-            raise RuntimeError("Cannot update a height without an acquisition")
+            msg = "Cannot update a height without an acquisition"
+            raise RuntimeError(msg)
 
         query = SQLQuery(
             filepath=Path(_this_dir, "sql/mrn_timewindow_to_observationtype.sql"),
@@ -276,7 +275,6 @@ class SetGCS(SetVOT):
 class SetReport(EMAPStep):
     def update(self, data: PatientEHRData) -> None:
         """Update the data with age, sex and ethnicity"""
-
         query = SQLQuery(
             filepath=Path(_this_dir, "sql/mrn_accession_to_report.sql"),
             context={
@@ -289,20 +287,21 @@ class SetReport(EMAPStep):
 
 
 class ProcessingPipeline:
-    def __init__(self, *steps: Step):
+    def __init__(self, *steps: Step) -> None:
         self.steps = steps
 
 
 def pixl_hash(string: str, endpoint_path: str) -> str:
     """Use the PIXL hashing API to hash a string"""
-
     response = requests.get(
         f"http://hasher-api:8000/{endpoint_path.lstrip('/')}",
         params={"message": string},
+        timeout=10,
     )
-
-    if response.status_code == 200:
-        logger.debug(f"Hashed to {response.text}")
+    success_code = 200
+    if response.status_code == success_code:
+        logger.debug("Hashed to %s", response.text)
         return response.text
 
-    raise RuntimeError(f"Failed to hash {string}")
+    msg = f"Failed to hash {string}"
+    raise RuntimeError(msg)

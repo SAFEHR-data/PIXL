@@ -11,6 +11,16 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+"""
+Implements the secure hashing component as a FastAPI application, to be consumed by
+the DICOM, EHR & report de-identification components.
+
+The app has a /hash endpoint which expects a message. It uses the Blake2 algorithm to
+generate a 64-charcter digest in keyed hashing mode from the message.
+The key is stored as a secret in an Azure Key Vault.
+The Azure infrastructure (Key Vault, ServicePrincipal & permissions) must be persistent
+and instructions are provided for creating these with the az CLI tool.
+"""
 
 import importlib.metadata
 

@@ -11,6 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+"""Defines the FastAPI app for the hasher"""
 
 import logging
 
@@ -43,6 +44,6 @@ app.add_middleware(
 app.include_router(router)
 
 
-logger.info(f"Starting {icon} hasher-api v{__version__}...")
+logger.info("Starting %s hasher-api %i...", icon, __version__)
 if settings.DEBUG:
     settings.dump_settings()

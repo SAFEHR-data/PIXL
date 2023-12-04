@@ -12,13 +12,17 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+from pathlib import Path
+
 from setuptools import find_packages, setup
 
-exec(open("./pixl_dcmd/_version.py").read())
+from pixl_dcmd._version import __version__
+
+exec(Path("./pixl_dcmd/_version.py").open().read())
 
 setup(
     name="pixl_dcmd",
-    version=__version__,  # type: ignore # noqa: F821
+    version=__version__,  # type: ignore
     description="DICOM de-identifier",
     packages=find_packages(
         exclude=[

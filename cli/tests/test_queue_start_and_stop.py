@@ -11,7 +11,8 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-import os
+"""Patient queue tests"""
+
 from pathlib import Path
 
 from click.testing import CliRunner
@@ -26,14 +27,17 @@ def test_populate_queue(queue_name: str = "test_populate") -> None:
 
 
 def test_down_queue(queue_name: str = "test_down") -> None:
-    """Checks that after the queue has been sent a stop signal, the queue has been emptied."""
+    """
+    Checks that after the queue has been sent a stop signal,
+    the queue has been emptied.
+    """
     runner = CliRunner()
     _ = runner.invoke(populate, args=["test.csv", "--queues", queue_name])
     _ = runner.invoke(stop, args=["--queues", queue_name])
 
     state_path = Path(f"{queue_name}.state")
     assert state_path.exists()
-    os.remove(state_path)
+    Path.unlink(state_path)
 
 
 def test_queue_is_up() -> None:

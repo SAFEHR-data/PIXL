@@ -11,11 +11,21 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-from functools import lru_cache
-from hashlib import blake2b
+"""
+The main hashing functionality
+
+This module provides:
+- fetch_key_from_vault: fetch the hashing key from the Azure Key Vault instance
+- generate_hash: generate a keyed hash digest using the Blake2b algorithm
+- generate_salt: generate a random text string in hexadecimal to be used as a salt
+
+"""
+
 import logging
 import os
 import secrets
+from functools import lru_cache
+from hashlib import blake2b
 
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
@@ -45,9 +55,10 @@ def fetch_key_from_vault() -> str:
     client = SecretClient(vault_url=key_vault_uri, credential=credentials)
     key = client.get_secret(AZURE_KEY_VAULT_SECRET_NAME)
     if key.value is None:
-        raise ValueError("Azure Key Vault secret is None")
-    else:
-        return str(key.value)
+        msg = "Azure Key Vault secret is None"
+        raise ValueError(msg)
+
+    return str(key.value)
 
 
 def generate_hash(message: str, length: int = 64) -> str:
@@ -59,10 +70,15 @@ def generate_hash(message: str, length: int = 64) -> str:
     :param length: maximum number of characters in the output (2 <= length <= 64)
     :return: hashed string
     """
-    if length > 64:
-        raise ValueError(f"Maximum hash length is 64 characters, received: {length}")
-    elif length < 2:
-        raise ValueError(f"Minimum hash length is 2 characters, received: {length}")
+    max_length = 64
+    min_length = 2
+    if length > max_length:
+        msg = f"Maximum hash length is 64 characters, received: {length}"
+        raise ValueError(msg)
+
+    if length < min_length:
+        msg = f"Minimum hash length is 2 characters, received: {length}"
+        raise ValueError(msg)
 
     # HMAC digest is returned as hex encoded i.e. 2 characters per byte
     output_bytes = length // 2
@@ -80,10 +96,15 @@ def generate_salt(length: int = 16) -> str:
     :param length: maximum number of characters in the output (2 <= length <= 64)
     :return: hexadecimal string
     """
-    if length > 64:
-        raise ValueError(f"Maximum salt length is 64 characters, received: {length}")
-    elif length < 2:
-        raise ValueError(f"Minimum salt length is 2 characters, received: {length}")
+    max_length = 64
+    min_length = 2
+    if length > max_length:
+        msg = f"Maximum salt length is 64 characters, received: {length}"
+        raise ValueError(msg)
+
+    if length < min_length:
+        msg = f"Minimum salt length is 2 characters, received: {length}"
+        raise ValueError(msg)
 
     # Output is hex encoded i.e. 2 characters per byte
     output_bytes = length // 2

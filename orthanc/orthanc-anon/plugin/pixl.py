@@ -1,3 +1,11 @@
+"""
+
+Applies anonymisation scheme to datasets
+
+This module:
+-Modifies a DICOM instance received by Orthanc and applies anonymisation
+-Upload the resource to a dicom-web server
+
 #  Copyright (c) 2022 University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,28 +19,32 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-import hashlib
-from io import BytesIO
+"""
+
 import json
 import logging
 import os
-import pprint
-import sys
 import threading
-from time import sleep
 import traceback
+from io import BytesIO
+from pathlib import Path
+from time import sleep
 
-from decouple import config
-from pydicom import dcmread, dcmwrite
-from pydicom.filebase import DicomFileLike
 import requests
 import yaml
+from decouple import config
+from pydicom import dcmread
 
 import orthanc
 import pixl_dcmd
 
 
 def AzureAccessToken():
+    """
+
+    Send payload to oath2/token url and
+    return the response
+    """
     AZ_DICOM_ENDPOINT_CLIENT_ID = config("AZ_DICOM_ENDPOINT_CLIENT_ID")
     AZ_DICOM_ENDPOINT_CLIENT_SECRET = config("AZ_DICOM_ENDPOINT_CLIENT_SECRET")
     AZ_DICOM_ENDPOINT_TENANT_ID = config("AZ_DICOM_ENDPOINT_TENANT_ID")
@@ -46,13 +58,19 @@ def AzureAccessToken():
         "resource": "https://dicom.healthcareapis.azure.com",
     }
 
-    response = requests.post(url, data=payload)
+    response = requests.post(url, data=payload, timeout=10)
 
-    access_token = response.json()["access_token"]
-    return access_token
+    return response.json()["access_token"]
 
 
 def AzureDICOMTokenRefresh():
+    """
+
+    Refresh Azure DICOM token
+    If this fails then wait 30s and try again
+    If successful then access_token can be used in
+    dicomweb_config to update DICOMweb token through API call
+    """
     global TIMER
     TIMER = None
 
@@ -68,8 +86,7 @@ def AzureDICOMTokenRefresh():
 
     try:
         access_token = AzureAccessToken()
-        # logging.info(f"{access_token}")
-    except Exception:
+    except Exception:  # noqa: BLE001
         orthanc.LogError(
             "Failed to get an Azure access token. Retrying in 30 seconds\n"
             + traceback.format_exc()
@@ -88,8 +105,6 @@ def AzureDICOMTokenRefresh():
         "Timeout": AZ_DICOM_HTTP_TIMEOUT,
     }
 
-    # logging.info(f"{dicomweb_config}")
-
     headers = {"content-type": "application/json"}
 
     url = "http://localhost:8042/dicom-web/servers/" + AZ_DICOM_ENDPOINT_NAME
@@ -100,18 +115,24 @@ def AzureDICOMTokenRefresh():
             auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD),
             headers=headers,
             data=json.dumps(dicomweb_config),
+            timeout=10,
         )
     except requests.exceptions.RequestException as e:
         orthanc.LogError("Failed to update DICOMweb token")
-        raise SystemExit(e)
+        raise SystemExit(e)  # noqa: TRY200, B904
 
     orthanc.LogWarning("Updated DICOMweb token")
 
     TIMER = threading.Timer(AZ_DICOM_TOKEN_REFRESH_SECS, AzureDICOMTokenRefresh)
     TIMER.start()
+    return None
 
 
 def SendViaStow(resourceId):
+    """
+    Makes a POST API call to upload the resource to a dicom-web server
+    using orthanc credentials as authorisation
+    """
     ORTHANC_USERNAME = config("ORTHANC_USERNAME")
     ORTHANC_PASSWORD = config("ORTHANC_PASSWORD")
 
@@ -123,7 +144,7 @@ def SendViaStow(resourceId):
 
     payload = {"Resources": [resourceId], "Synchronous": False}
 
-    logging.info(f"{payload}")
+    logging.info("Payload: %s", payload)
 
     try:
         requests.post(
@@ -131,40 +152,55 @@ def SendViaStow(resourceId):
             auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD),
             headers=headers,
             data=json.dumps(payload),
+            timeout=10,
         )
-    except requests.exceptions.RequestException as e:
+    except requests.exceptions.RequestException:
         orthanc.LogError("Failed to send via STOW")
 
 
 def ShouldAutoRoute():
+    """
+    Checks whether ORTHANC_AUTOROUTE_ANON_TO_AZURE environment variable is
+    set to true or false
+    """
     return os.environ.get("ORTHANC_AUTOROUTE_ANON_TO_AZURE", "false").lower() == "true"
 
 
-def OnChange(changeType, level, resource):
+def OnChange(changeType, level, resource) -> None:  # noqa: ARG001
+    """
+    Three ChangeTypes included in this function:
+    - If a study if stable and if ShouldAutoRoute returns true
+    then SendViaStow is called
+    - If orthanc has started then message added to Orthanc LogWarning
+    and AzureDICOMTokenRefresh called
+    - If orthanc has stopped and TIMER is not none then message added
+    to Orthanc LogWarning and TIMER cancelled
+
+    """
     if not ShouldAutoRoute():
         return
 
     if changeType == orthanc.ChangeType.STABLE_STUDY and ShouldAutoRoute():
-        print("Stable study: %s" % resource)
+        print("Stable study: %s" % resource)  # noqa: T201
         SendViaStow(resource)
 
     if changeType == orthanc.ChangeType.ORTHANC_STARTED:
         orthanc.LogWarning("Starting the scheduler")
         AzureDICOMTokenRefresh()
     elif changeType == orthanc.ChangeType.ORTHANC_STOPPED:
-        if TIMER != None:
+        if TIMER is not None:
             orthanc.LogWarning("Stopping the scheduler")
             TIMER.cancel()
 
 
-def OnHeartBeat(output, uri, **request):
+def OnHeartBeat(output, uri, **request):  # noqa: ARG001
+    """Extends the REST API by registering a new route in the REST API"""
     orthanc.LogWarning("OK")
     output.AnswerBuffer("OK\n", "text/plain")
 
 
 def ReceivedInstanceCallback(receivedDicom, origin):
     """Modifies a DICOM instance received by Orthanc and applies anonymisation."""
-
     if origin == orthanc.InstanceOrigin.REST_API:
         orthanc.LogWarning("DICOM instance received from the REST API")
     elif origin == orthanc.InstanceOrigin.DICOM_PROTOCOL:
@@ -174,14 +210,14 @@ def ReceivedInstanceCallback(receivedDicom, origin):
     dataset = dcmread(BytesIO(receivedDicom))
 
     # Drop anything that is not an X-Ray
-    if not (dataset.Modality == "DX" or dataset.Modality == "CR"):
+    if dataset.Modality not in ("DX", "CR"):
         orthanc.LogWarning("Dropping DICOM that is not X-Ray")
         return orthanc.ReceivedInstanceAction.DISCARD, None
 
     # Attempt to anonymise and drop the study if any exceptions occur
     try:
         return AnonymiseCallback(dataset)
-    except Exception as e:
+    except Exception:  # noqa: BLE001
         orthanc.LogWarning(
             "Failed to anonymize study due to\n" + traceback.format_exc()
         )
@@ -189,6 +225,12 @@ def ReceivedInstanceCallback(receivedDicom, origin):
 
 
 def AnonymiseCallback(dataset):
+    """
+    Anonymisation of a dataset
+    Involves removing private tags and overlays and applying the
+    tag operations through functions in pixl_dcmd module
+    Returns writing anonymised dataset to disk
+    """
     orthanc.LogWarning("***Anonymising received instance***")
     # Rip out all private tags/
     dataset.remove_private_tags()
@@ -199,7 +241,7 @@ def AnonymiseCallback(dataset):
     orthanc.LogWarning("Removed overlays")
 
     # Apply anonymisation.
-    with open("/etc/orthanc/tag-operations.yaml", "r") as file:
+    with Path.open("/etc/orthanc/tag-operations.yaml") as file:
         # Load tag operations scheme from YAML.
         tags = yaml.safe_load(file)
         # Apply scheme to instance

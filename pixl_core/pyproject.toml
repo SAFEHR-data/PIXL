@@ -26,6 +26,11 @@ test = [
     "pytest-asyncio==0.21.1",
     "httpx==0.24.*"
 ]
+dev = [
+    "mypy",
+    "pre-commit",
+    "ruff",
+]
 
 [build-system]
 requires = ["setuptools>=61.0"]

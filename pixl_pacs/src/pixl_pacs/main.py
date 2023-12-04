@@ -1,3 +1,5 @@
+"""
+pixl_pacs module queries the VNA to check if a dataset exists
 #  Copyright (c) University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,6 +13,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+"""
 import asyncio
 import importlib.metadata
 import logging
@@ -37,5 +40,15 @@ logger = logging.getLogger("uvicorn")
 
 @app.on_event("startup")
 async def startup_event() -> None:
+    """
+    task create: the coroutine submitted to run "in the background",
+    i.e. concurrently with the current task and all other tasks,
+    switching between them at await points
+    the task is consumer.run and the callback is _processing.process_message
+    """
+    background_tasks = set()
     async with PixlConsumer(QUEUE_NAME, token_bucket=state.token_bucket) as consumer:
-        asyncio.create_task(consumer.run(callback=process_message))
+        task = asyncio.create_task(consumer.run(callback=process_message))
+
+        background_tasks.add(task)
+        task.add_done_callback(background_tasks.discard)

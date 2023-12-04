@@ -12,14 +12,13 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 from pathlib import Path
-from typing import List
 
 
 class SQLQuery:
-    def __init__(self, filepath: Path, context: dict):
-        self.values: List[str] = []
+    def __init__(self, filepath: Path, context: dict) -> None:
+        self.values: list[str] = []
         self._filepath = filepath
-        self._lines = open(filepath, "r").readlines()
+        self._lines = Path.open(filepath).readlines()
         self._replace_placeholders_and_populate_values(context)
 
     def __str__(self) -> str:
@@ -32,22 +31,22 @@ class SQLQuery:
         will be replaced with psycopg2 value replacement, with correct type
         casting. ${{ }} placeholders will be replaced as is string replacement
         """
-
         for i, line in enumerate(self._lines):
             if ":" not in line and "${{" not in line:
                 continue
 
             for key, value in context.items():
-                line = line.replace("${{ " + str(key) + " }}", str(value))
+                line = line.replace("${{ " + str(key) + " }}", str(value))  # noqa: PLW2901
 
                 n = line.count(f":{key}")
                 self.values += n * [value]
-                line = line.replace(f":{key}", "%s")
+                line = line.replace(f":{key}", "%s")  # noqa: PLW2901
 
             if ":" in line.replace("::", "") or "${{" in line:
-                raise RuntimeError(
+                msg = (
                     "Had an insufficient context to replace "
                     f"line {i} in {self._filepath}\n"
                     f"{line}"
                 )
+                raise RuntimeError(msg)
             self._lines[i] = line

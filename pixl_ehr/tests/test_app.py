@@ -11,11 +11,8 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-"""
-This file contains unit tests for the API that do not require any test services
-"""
+"""This file contains unit tests for the API that do not require any test services"""
 from fastapi.testclient import TestClient
-
 from pixl_ehr.main import app, state
 
 AppState = state.__class__

@@ -11,20 +11,21 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-from datetime import datetime
+"""PIXL command line interface functionality"""
+
+import datetime
 import json
 import os
 from pathlib import Path
-from typing import Any, List, Optional
-
-import pandas as pd
+from typing import Any, Optional
 
 import click
+import pandas as pd
+import requests
+import yaml
 from core.patient_queue.producer import PixlProducer
 from core.patient_queue.subscriber import PixlBlockingConsumer
 from core.patient_queue.utils import deserialise, serialise
-import requests
-import yaml
 
 from ._logging import logger, set_log_level
 from ._utils import clear_file, remove_file_if_it_exists, string_is_non_empty
@@ -32,15 +33,15 @@ from ._utils import clear_file, remove_file_if_it_exists, string_is_non_empty
 
 def _load_config(filename: str = "pixl_config.yml") -> dict:
     """CLI configuration generated from a .yaml file"""
-
     if not Path(filename).exists():
-        raise IOError(
+        msg = (
             f"Failed to find {filename}. It must be present "
             f"in the current working directory"
         )
+        raise OSError(msg)
 
-    with open(filename, "r") as config_file:
-        config_dict = yaml.load(config_file, Loader=yaml.FullLoader)
+    with Path(filename).open() as config_file:
+        config_dict = yaml.safe_load(config_file)
     return dict(config_dict)
 
 
@@ -52,7 +53,7 @@ os.environ["NO_PROXY"] = os.environ["no_proxy"] = "localhost"
 
 @click.group()
 @click.option("--debug/--no-debug", default=False)
-def cli(debug: bool) -> None:
+def cli(*, debug: bool) -> None:
     """PIXL command line interface"""
     set_log_level("WARNING" if not debug else "DEBUG")
 
@@ -72,7 +73,7 @@ def cli(debug: bool) -> None:
     default=True,
     help="Restart from a saved state. Otherwise will use the given .csv file",
 )
-def populate(csv_filename: str, queues: str, restart: bool) -> None:
+def populate(csv_filename: str, queues: str, *, restart: bool) -> None:
     """Populate a (set of) queue(s) from a csv file"""
     logger.info(f"Populating queue(s) {queues} from {csv_filename}")
 
@@ -106,9 +107,9 @@ def populate(csv_filename: str, queues: str, restart: bool) -> None:
 )
 def start(queues: str, rate: Optional[int]) -> None:
     """Start consumers for a set of queues"""
-
     if rate == 0:
-        raise RuntimeError("Cannot start extract with a rate of 0. Must be >0")
+        msg = "Cannot start extract with a rate of 0. Must be >0"
+        raise RuntimeError(msg)
 
     _start_or_update_extract(queues=queues.split(","), rate=rate)
 
@@ -131,9 +132,8 @@ def update(queues: str, rate: Optional[float]) -> None:
     _start_or_update_extract(queues=queues.split(","), rate=rate)
 
 
-def _start_or_update_extract(queues: List[str], rate: Optional[float]) -> None:
+def _start_or_update_extract(queues: list[str], rate: Optional[float]) -> None:
     """Start or update the rate of extraction for a list of queue names"""
-
     for queue in queues:
         _update_extract_rate(queue_name=queue, rate=rate)
 
@@ -144,26 +144,37 @@ def _update_extract_rate(queue_name: str, rate: Optional[float]) -> None:
     api_config = api_config_for_queue(queue_name)
 
     if rate is None:
-        assert api_config.default_rate is not None
+        if api_config.default_rate is None:
+            msg = (
+                "Cannot update the rate for %s. No default rate was specified.",
+                queue_name,
+            )
+            raise ValueError(msg)
         rate = float(api_config.default_rate)
         logger.info(f"Using the default extract rate of {rate}/second")
 
     logger.debug(f"POST {rate} to {api_config.base_url}")
 
     response = requests.post(
-        url=f"{api_config.base_url}/token-bucket-refresh-rate", json={"rate": rate}
+        url=f"{api_config.base_url}/token-bucket-refresh-rate",
+        json={"rate": rate},
+        timeout=10,
     )
 
-    if response.status_code == 200:
+    success_code = 200
+    if response.status_code == success_code:
         logger.info(
             "Successfully updated EHR extraction, with a "
             f"rate of {rate} queries/second"
         )
 
     else:
-        raise RuntimeError(
-            f"Failed to update rate on consumer for {queue_name}: {response}"
+        runtime_error_msg = (
+            "Failed to update rate on consumer for %s: %s",
+            queue_name,
+            response,
         )
+        raise RuntimeError(runtime_error_msg)
 
 
 @cli.command()
@@ -188,7 +199,7 @@ def stop(queues: str) -> None:
 @cli.command()
 def kill() -> None:
     """Stop all the PIXL services"""
-    os.system("docker compose stop")
+    os.system("docker compose stop")  # noqa: S605,S607
 
 
 @cli.command()
@@ -200,30 +211,44 @@ def kill() -> None:
 )
 def status(queues: str) -> None:
     """Get the status of the PIXL consumers"""
-
     for queue in queues.split(","):
-        print(f"[{queue:^10s}] refresh rate = ", _get_extract_rate(queue))
+        logger.info(f"[{queue:^10s}] refresh rate = ", _get_extract_rate(queue))
 
 
 @cli.command()
 def az_copy_ehr() -> None:
     """Copy the EHR data to azure"""
-
     api_config = api_config_for_queue("ehr")
-    response = requests.get(url=f"{api_config.base_url}/az-copy-current")
+    response = requests.get(url=f"{api_config.base_url}/az-copy-current", timeout=10)
 
-    if response.status_code != 200:
-        raise RuntimeError(f"Failed to run az copy due to: {response.text}")
+    success_code = 200
+    if response.status_code != success_code:
+        msg = f"Failed to run az copy due to: {response.text}"
+        raise RuntimeError(msg)
 
 
 def _get_extract_rate(queue_name: str) -> str:
-    """Get the extraction rate in items per second from a queue"""
+    """
+    Get the extraction rate in items per second from a queue
 
+    :param queue_name: Name of the queue to get the extract rate for (e.g. ehr)
+    :return: The extract rate in items per seconds
+
+    Throws a RuntimeError if the status code is not 200.
+    """
     api_config = api_config_for_queue(queue_name)
-
+    success_code = 200
     try:
-        response = requests.get(url=f"{api_config.base_url}/token-bucket-refresh-rate")
-        assert response.status_code == 200
+        response = requests.get(
+            url=f"{api_config.base_url}/token-bucket-refresh-rate", timeout=10
+        )
+        if response.status_code != success_code:
+            msg = (
+                "Failed to get the extract rate for %s due to: %s",
+                queue_name,
+                response.text,
+            )
+            raise RuntimeError(msg)
         return str(json.loads(response.text)["rate"])
 
     except (ConnectionError, AssertionError):
@@ -234,6 +259,7 @@ def _get_extract_rate(queue_name: str) -> str:
 def consume_all_messages_and_save_csv_file(
     queue_name: str, timeout_in_seconds: int = 5
 ) -> None:
+    """Consume all messages and write them out to a CSV file"""
     logger.info(
         f"Will consume all messages on {queue_name} queue and timeout after "
         f"{timeout_in_seconds} seconds"
@@ -249,26 +275,47 @@ def consume_all_messages_and_save_csv_file(
 
 
 def state_filepath_for_queue(queue_name: str) -> Path:
+    """Get the filepath to the queue state"""
     return Path(f"{queue_name.replace('/', '_')}.state")
 
 
 class Messages(list):
+    """
+    Class to represent messages
+
+    Methods
+    -------
+    from_state_file(cls, filepath)
+        Return messages from a state file path
+    """
+
     @classmethod
     def from_state_file(cls, filepath: Path) -> "Messages":
+        """
+        Return messages from a state file path
+
+        :param filepath: Path for state file to be read
+        :return: A Messages object containing all the messages from the state file
+        """
         logger.info(f"Creating messages from {filepath}")
-        assert filepath.exists() and filepath.suffix == ".state"
+        if not filepath.exists():
+            raise FileNotFoundError
+        if filepath.suffix != ".state":
+            msg = f"Invalid file suffix for {filepath}. Expected .state"
+            raise ValueError(msg)
 
         return cls(
             [
                 line.encode("utf-8")
-                for line in open(filepath, "r").readlines()
+                for line in Path.open(filepath).readlines()
                 if string_is_non_empty(line)
             ]
         )
 
 
 def messages_from_csv(filepath: Path) -> Messages:
-    """Reads patient information from CSV and transforms that into messages.
+    """
+    Reads patient information from CSV and transforms that into messages.
     :param filepath: Path for CSV file to be read
     """
     expected_col_names = [
@@ -282,38 +329,44 @@ def messages_from_csv(filepath: Path) -> Messages:
         f"{expected_col_names}"
     )
 
-    df = pd.read_csv(filepath, header=0, dtype=str)  # First line is column names
+    # First line is column names
+    messages_df = pd.read_csv(filepath, header=0, dtype=str)
     messages = Messages()
 
-    if list(df.columns)[:4] != expected_col_names:
-        raise ValueError(
+    if list(messages_df.columns)[:4] != expected_col_names:
+        msg = (
             f"csv file expected to have at least {expected_col_names} as "
             f"column names"
         )
+        raise ValueError(msg)
 
     mrn_col_name, acc_num_col_name, _, dt_col_name = expected_col_names
-    for _, row in df.iterrows():
+    for _, row in messages_df.iterrows():
         messages.append(
             serialise(
                 mrn=row[mrn_col_name],
                 accession_number=row[acc_num_col_name],
-                study_datetime=datetime.strptime(row[dt_col_name], "%d/%m/%Y %H:%M"),
+                study_datetime=datetime.datetime.strptime(
+                    row[dt_col_name], "%d/%m/%Y %H:%M"
+                ).replace(tzinfo=datetime.timezone.utc),
             )
         )
 
     if len(messages) == 0:
-        raise ValueError(f"Failed to find any messages in {filepath}")
+        msg = f"Failed to find any messages in {filepath}"
+        raise ValueError(msg)
 
     logger.debug(f"Created {len(messages)} messages from {filepath}")
     return messages
 
 
 def queue_is_up() -> Any:
+    """Checks if the queue is up"""
     with PixlProducer(queue_name="") as producer:
         return producer.connection_open
 
 
-def inform_user_that_queue_will_be_populated_from(path: Path) -> None:
+def inform_user_that_queue_will_be_populated_from(path: Path) -> None:  # noqa: D103
     _ = input(
         f"Found a state file *{path}*. Please use --no-restart if this and other "
         f"state files should be ignored, or delete this file to ignore. Press "
@@ -322,7 +375,26 @@ def inform_user_that_queue_will_be_populated_from(path: Path) -> None:
 
 
 class APIConfig:
-    def __init__(self, kwargs: dict):
+    """
+    Class to represent the configuration for an API
+
+    Attributes
+    ----------
+    host : str
+        Hostname for the API
+    port : int
+        Port for the API
+    default_rate : int
+        Default rate for the API
+
+    Methods
+    -------
+    base_url()
+        Return the base url for the API
+    """
+
+    def __init__(self, kwargs: dict) -> None:
+        """Initialise the APIConfig class"""
         self.host: Optional[str] = None
         self.port: Optional[int] = None
         self.default_rate: Optional[int] = None
@@ -331,27 +403,33 @@ class APIConfig:
 
     @property
     def base_url(self) -> str:
+        """Return the base url for the API"""
         return f"http://{self.host}:{self.port}"
 
 
 def api_config_for_queue(queue_name: str) -> APIConfig:
     """Configuration for an API associated with a queue"""
-
     config_key = f"{queue_name}_api"
 
     if config_key not in config:
-        raise ValueError(
+        msg = (
             f"Cannot update the rate for {queue_name}. {config_key} was"
             f" not specified in the configuration"
         )
+        raise ValueError(msg)
 
     return APIConfig(config[config_key])
 
 
-def study_date_from_serialised(message: bytes) -> datetime:
+def study_date_from_serialised(message: bytes) -> datetime.datetime:
+    """Get the study date from a serialised message as a datetime"""
     try:
         result = deserialise(message)["study_datetime"]
-        assert isinstance(result, datetime)
+        if not isinstance(result, datetime.datetime):
+            msg = "Expected study date to be a datetime. Got %s"
+            raise TypeError(msg, type(result))
+    except (AssertionError, KeyError) as exc:
+        msg = "Failed to get the study date from the message"
+        raise AssertionError(msg) from exc
+    else:
         return result
-    except (AssertionError, KeyError):
-        raise AssertionError("Failed to get the study date from the message")

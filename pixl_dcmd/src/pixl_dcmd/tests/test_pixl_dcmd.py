@@ -12,6 +12,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+import pydicom
+import pytest
+from pydicom.data import get_testdata_files
+
 from pixl_dcmd.main import (
     combine_date_time,
     format_date_time,
@@ -19,9 +23,6 @@ from pixl_dcmd.main import (
     get_encrypted_uid,
     remove_overlays,
 )
-import pydicom
-from pydicom.data import get_testdata_files
-import pytest
 
 
 def test_encrypt_uid_1() -> None:
@@ -41,7 +42,7 @@ def test_encrypt_uid_2() -> None:
 
 
 @pytest.mark.parametrize(
-    "test_ages,expected_ages",
+    ("test_ages", "expected_ages"),
     [
         ("005D", "018Y"),
         ("010M", "018Y"),
@@ -58,7 +59,7 @@ def test_age_bounding(test_ages: str, expected_ages: str) -> None:
 
 
 @pytest.mark.parametrize(
-    "orig_date, orig_time, expected_date_time",
+    ("orig_date", "orig_time", "expected_date_time"),
     [
         ("20180512", "000000", "20180512 000000.000000"),
         ("20201202", "230000", "20201202 230000.000000"),
@@ -80,7 +81,7 @@ def test_date_time_combo(
 
 
 @pytest.mark.parametrize(
-    "orig_date_time, output_date_time",
+    ("orig_date_time", "output_date_time"),
     [
         ("20220430163109", "20220430 163109.000000"),
         ("20220101003557.000000", "20220101 003557.000000"),
@@ -95,23 +96,6 @@ def test_date_time_format(orig_date_time: str, output_date_time: str) -> None:
     )
 
 
-# @pytest.mark.parametrize(
-#     "orig_time,offset,expected_shifted_time",
-#     [
-#         ("020000", 2, "000000"),
-#         ("020000", 3, "230000"),
-#         ("131415", 11, "021415"),
-#         ("141312", 12, "021312"),
-#         ("010203", 5, "200203"),
-#         ("131415.11", 5, "081415.11"),
-#         ("131415.999999", 5, "081415.999999"),
-#     ],
-# )
-# def test_time_const(orig_time: str, offset: int, expected_shifted_time: str) -> None:
-#     """Checks that times are shifted relative to offset."""
-#     assert subtract_time_const(orig_time, offset) == expected_shifted_time
-
-
 def test_remove_overlay_plane() -> None:
     """Checks that overlay planes are removed."""
     fpath = get_testdata_files("MR-SIEMENS-DICOM-WithOverlays.dcm")[0]
@@ -122,5 +106,5 @@ def test_remove_overlay_plane() -> None:
     assert (0x6000, 0x3000) not in ds_minus_overlays
 
 
-# TODO
-# def test_anonymisation
+# TODO: def test_anonymisation
+# https://github.com/UCLH-Foundry/PIXL/issues/132

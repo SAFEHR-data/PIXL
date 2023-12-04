@@ -11,11 +11,11 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+import logging
+import os
 from asyncio import sleep
 from dataclasses import dataclass
 from datetime import datetime
-import logging
-import os
 from time import time
 
 from core.patient_queue.utils import deserialise
@@ -28,7 +28,7 @@ logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))
 
 
 async def process_message(message_body: bytes) -> None:
-    logger.info(f"Processing: {message_body.decode()}")
+    logger.info("Processing: %s", message_body.decode())
 
     study = ImagingStudy.from_message(message_body)
     orthanc_raw = PIXLRawOrthanc()
@@ -41,7 +41,7 @@ async def process_message(message_body: bytes) -> None:
         study.orthanc_query_dict, modality=config("VNAQR_MODALITY")
     )
     if query_id is None:
-        logger.error(f"Failed to find {study} in the VNA")
+        logger.error("Failed to find %s in the VNA", study)
         raise RuntimeError
 
     job_id = orthanc_raw.retrieve_from_remote(query_id=query_id)  # C-Move
@@ -50,10 +50,11 @@ async def process_message(message_body: bytes) -> None:
 
     while job_state != "Success":
         if (time() - start_time) > config("PIXL_DICOM_TRANSFER_TIMEOUT", cast=float):
-            raise TimeoutError(
+            msg = (
                 f"Failed to transfer {message_body.decode()} within "
                 f"{config('PIXL_DICOM_TRANSFER_TIMEOUT')} seconds"
             )
+            raise TimeoutError(msg)
 
         await sleep(0.1)
         job_state = orthanc_raw.job_state(job_id=job_id)

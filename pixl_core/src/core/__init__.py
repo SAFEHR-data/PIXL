@@ -11,3 +11,9 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+"""
+PIXL core module
+This module contains the core PIXL functionality utilised by both the EHR and PACS APIs
+to interact with RabbitMQ and ensure suitable rate limiting of requests to the upstream
+services.
+"""

@@ -26,6 +26,11 @@ dependencies = [
 test = [
     "pytest==7.4.2"
 ]
+dev = [
+    "mypy",
+    "pre-commit",
+    "ruff",
+]
 
 [build-system]
 requires = ["setuptools>=61.0"]
