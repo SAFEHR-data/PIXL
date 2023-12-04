@@ -128,7 +128,7 @@ services:
       AZ_DICOM_ENDPOINT_CLIENT_ID: ${AZ_DICOM_ENDPOINT_CLIENT_ID}
       AZ_DICOM_ENDPOINT_CLIENT_SECRET: ${AZ_DICOM_ENDPOINT_CLIENT_SECRET}
       AZ_DICOM_ENDPOINT_TENANT_ID: ${AZ_DICOM_ENDPOINT_TENANT_ID}
-      AZ_DICOM_TOKEN_REFRESH_SECS: "600"
+      AZ_DICOM_TOKEN_REFRESH_SECS: "1200"
       TIME_OFFSET: "${STUDY_TIME_OFFSET}"
       SALT_VALUE: ${SALT_VALUE}"
     ports:
@@ -201,7 +201,7 @@ services:
       context: .
       dockerfile: ./docker/queue/Dockerfile
       args:
-        <<: *build-args-common
+        <<: *build-args-common    
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
