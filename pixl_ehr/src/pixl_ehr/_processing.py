@@ -97,7 +97,7 @@ class PatientEHRData:
     def update_using(self, pipeline: "ProcessingPipeline") -> None:
         """Update these data using a processing pipeline"""
         for i, step in enumerate(pipeline.steps):
-            logger.debug("Step %s", [{i} / {len(pipeline.steps) - 1}])
+            logger.debug("Step %s", [i / len(pipeline.steps) - 1])
 
             try:
                 step.update(self)
