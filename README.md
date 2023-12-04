@@ -95,6 +95,14 @@ bin/run-all-tests.sh
 ```
 and not just the component you have been working on as this will help us catch unintentional regressions without spending GH actions minutes :-)   
 
+We run [pre-commit](https://pre-commit.com/) as part of the GitHub Actions CI. To install and run it locally, do:
+
+```sh
+pip install pre-commit
+pre-commit install
+```
+
+The configuration can be found in [`.pre-commit-config.yml`](./.pre-commit-config.yaml)
 
 ## Assumptions
 
