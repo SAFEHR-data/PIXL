@@ -60,10 +60,8 @@ class PixlConsumer(PixlQueueInterface):
         async with self._queue.iterator() as queue_iter:
             async for message in queue_iter:
                 if not self.token_bucket.has_token:
-                    await asyncio.gather(
-                        message.reject(requeue=True),
-                        asyncio.sleep(1e-3),
-                    )
+                    await asyncio.sleep(0.01)
+                    await message.reject(requeue=True)
                     continue
 
                 # Messages need to be acknowledged before a callback otherwise
@@ -72,10 +70,8 @@ class PixlConsumer(PixlQueueInterface):
                 await message.ack()
 
                 try:
-                    await asyncio.gather(
-                        callback(message.body),
-                        asyncio.sleep(1e-3),  # Avoid very fast callbacks
-                    )
+                    await asyncio.sleep(0.01)  # Avoid very fast callbacks
+                    callback(message.body)
                 except Exception:
                     LOGGER.exception(
                         "Failed to process %s" "Not re-queuing message",
