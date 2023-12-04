@@ -71,7 +71,7 @@ class PixlConsumer(PixlQueueInterface):
 
                 try:
                     await asyncio.sleep(0.01)  # Avoid very fast callbacks
-                    callback(message.body)
+                    await callback(message.body)
                 except Exception:
                     LOGGER.exception(
                         "Failed to process %s" "Not re-queuing message",
