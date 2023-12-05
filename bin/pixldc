@@ -57,8 +57,8 @@ if args.command == "up":
 # add on the user's extra args
 docker_args.extend(unknown_args)
 
-logging.debug(f"args = {args}")
-logging.debug(f"extra args = {unknown_args}")
-logging.debug(f"about to run with docker: {docker_args}")
+logging.debug("args = %s", args)
+logging.debug("extra args = %s", unknown_args)
+logging.debug("about to run with docker: %s", docker_args)
 
 os.execvp("docker", docker_args)  # noqa: S606, S607 this is what the previous script was doing
