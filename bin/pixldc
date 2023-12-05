@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+#  Copyright (c) University College London Hospitals NHS Foundation Trust
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+import argparse
+import os
+
+# A wrapper around docker compose that sets the correct directory and environment
+ALLOWED_PROJECT_NAMES = ["pixl_dev", "pixl_test", "pixl_prod"]
+parser = argparse.ArgumentParser(description="Wrapper around docker compose for pixl")
+parser.add_argument(
+    "--debug", action="store_true", help="print debugging for this wrapper"
+)
+parser.add_argument(
+    "project",
+    choices=ALLOWED_PROJECT_NAMES,
+    help="Which project to run this docker compose command on",
+)
+parser.add_argument("command", help="Which docker compose command to run")
+args, unknown_args = parser.parse_known_args()
+
+BIN_DIR = os.path.dirname(__file__)
+os.chdir(BIN_DIR)
+PROJECT_DIR = os.path.dirname(BIN_DIR)
+COMPOSE_FILE = os.path.join(PROJECT_DIR, "docker-compose.yml")
+
+# The first arg is necessary even if it looks repetitive! Equivalent to bash's $0.
+docker_args = [
+    "docker",
+    "compose",
+    "--file",
+    COMPOSE_FILE,
+    "--project-name",
+    args.project,
+    args.command,
+]
+
+# up gets these options for free
+if args.command == "up":
+    docker_args.extend(["--remove-orphans", "--abort-on-container-exit", "--build"])
+
+# add on the user's extra args
+docker_args.extend(unknown_args)
+
+if args.debug:
+    print(f"args = {args}")
+    print(f"extra args = {unknown_args}")
+    print(f"about to run with docker: {docker_args}")
+
+os.execvp("docker", docker_args)
