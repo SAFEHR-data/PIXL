@@ -12,10 +12,12 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+"""A wrapper around docker compose that sets the correct directory and environment"""
 import argparse
+import logging
 import os
+from pathlib import Path
 
-# A wrapper around docker compose that sets the correct directory and environment
 ALLOWED_PROJECT_NAMES = ["pixl_dev", "pixl_test", "pixl_prod"]
 parser = argparse.ArgumentParser(description="Wrapper around docker compose for pixl")
 parser.add_argument(
@@ -29,10 +31,13 @@ parser.add_argument(
 parser.add_argument("command", help="Which docker compose command to run")
 args, unknown_args = parser.parse_known_args()
 
-BIN_DIR = os.path.dirname(__file__)
+if args.debug:
+    logging.basicConfig(level=logging.DEBUG)
+
+BIN_DIR = Path(__file__).parent.absolute()
 os.chdir(BIN_DIR)
-PROJECT_DIR = os.path.dirname(BIN_DIR)
-COMPOSE_FILE = os.path.join(PROJECT_DIR, "docker-compose.yml")
+PROJECT_DIR = BIN_DIR.parent.absolute()
+COMPOSE_FILE = PROJECT_DIR / "docker-compose.yml"
 
 # The first arg is necessary even if it looks repetitive! Equivalent to bash's $0.
 docker_args = [
@@ -52,9 +57,8 @@ if args.command == "up":
 # add on the user's extra args
 docker_args.extend(unknown_args)
 
-if args.debug:
-    print(f"args = {args}")
-    print(f"extra args = {unknown_args}")
-    print(f"about to run with docker: {docker_args}")
+logging.debug("args = %s", args)
+logging.debug("extra args = %s", unknown_args)
+logging.debug("about to run with docker: %s", docker_args)
 
-os.execvp("docker", docker_args)
+os.execvp("docker", docker_args)  # noqa: S606, S607 this is what the previous script was doing
