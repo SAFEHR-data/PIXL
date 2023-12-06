@@ -10,8 +10,11 @@
   // doubling them, or replaced by forward slashes "/".
   "StorageDirectory" : "/var/lib/orthanc/db",
 
-  // Limit the maximum number of instances
-  "MaximumPatientCount": 20000,
+  // Limit the maximum storage size
+  "MaximumPatientCount" : 0, // no limit
+  "MaximumStorageSize" : "${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE}", // MB
+  "MaximumStorageMode" : "Recycle",
+
 
   // Path to the directory that holds the SQLite index (if unset, the
   // value of StorageDirectory is used). This index could be stored on
