@@ -28,11 +28,11 @@ HTTP API to process messages from the `pacs` queue and populate the raw orthanc 
 ### 0. UCLH infrastructure setup
 
 <details>
-  <summary>
+<summary>
 
-  1. Install shared miniforge installation if it doesn't exist
+1. Install shared miniforge installation if it doesn't exist
 
-  </summary>
+</summary>
 
   Follow the suggestion for installing a central [miniforge](https://github.com/conda-forge/miniforge)
   installation to allow all users to be able to run modern python without having admin permissions.
@@ -67,11 +67,11 @@ HTTP API to process messages from the `pacs` queue and populate the raw orthanc 
 </details>
 <details>
 
-  <summary>
+<summary>
   
-  2. If you haven't just installed the miniforge yourself, update your configuration
+2. If you haven't just installed the miniforge yourself, update your configuration
   
-  </summary>
+</summary>
   Edit `~/.bash_profile` to add `/gae/miniforge3/bin` to the PATH. for example
   
   ```
@@ -103,11 +103,11 @@ HTTP API to process messages from the `pacs` queue and populate the raw orthanc 
   ```
 </details>
 <details>
-  <summary>
+<summary>
 
-  3. Create an instance for the GAE if it doesn't already exist
+3. Create an instance for the GAE if it doesn't already exist
 
-  </summary>
+</summary>
   Select a place for the deployment. On UCLH infrastructure this will be in `/gae`, so `/gae/pixl-dev` for example.
   
   ```shell
