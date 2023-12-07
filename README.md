@@ -30,6 +30,7 @@ HTTP API to process messages from the `pacs` queue and populate the raw orthanc 
 1. <details><summary>Install shared miniforge installation if it doesn't exist</summary>
   Follow the suggestion for installing a central [miniforge](https://github.com/conda-forge/miniforge)
   installation to allow all users to be able to run modern python without having admin permissions.
+
   ```shell
   # Create directory with correct structure
   mkdir /gae/miniforge3
@@ -42,7 +43,9 @@ HTTP API to process messages from the `pacs` queue and populate the raw orthanc 
   conda update -n base -c conda-forge conda
   conda create -n pixl_dev python=3.10.*
   ```
+
   The directory should now have these permissions
+
   ```
   > ls -lah /gae/miniforge3/
   total 88K
@@ -57,26 +60,26 @@ HTTP API to process messages from the `pacs` queue and populate the raw orthanc 
   ```
 </details>
 2. <details><summary>If you haven't just installed the miniforge yourself, update your configuration</summary>
-  - Edit `~/.bash_profile` to add `/gae/miniforge3/bin` to the PATH. for example
-    ```
-    PATH=$PATH:$HOME/.local/bin:$HOME/bin:/gae/miniforge3/bin
-    ```
-  - Run the updated profile (or reconnect to the GAE) so that conda is in your PATH
-    ```shell
-    source ~/.bash_profile
-    ```
-  - Initialise conda
-    ```shell
-    conda init bash
-    ```
-  - Run the updated profile (or reconnect to the GAE) so that conda is in your PATH
-    ```shell
-    source ~/.bash_profile
-    ```
-  - Activate the `pixl_dev` environment
-    ```shell
-    conda activate pixl_dev
-    ```
+  Edit `~/.bash_profile` to add `/gae/miniforge3/bin` to the PATH. for example
+  ```
+  PATH=$PATH:$HOME/.local/bin:$HOME/bin:/gae/miniforge3/bin
+  ```
+  Run the updated profile (or reconnect to the GAE) so that conda is in your PATH
+  ```shell
+  source ~/.bash_profile
+  ```
+  Initialise conda
+  ```shell
+  conda init bash
+  ```
+  Run the updated profile (or reconnect to the GAE) so that conda is in your PATH
+  ```shell
+  source ~/.bash_profile
+  ```
+  Activate an existing pixl enviroment
+  ```shell
+  conda activate pixl_dev
+  ```
 </details>
 3. <details><summary>Create an instance for the GAE if it doesn't already exist </summary>
   Select a place for the deployment. On UCLH infrastructure this will be in `/gae`, so `/gae/pixl-dev` for example.
@@ -86,7 +89,7 @@ HTTP API to process messages from the `pacs` queue and populate the raw orthanc 
   chgrp -R docker /gae/pixl_dev
   chmod -R g+rwxs /gae/pixl_dev  # inherit group when new directories or files are created
   setfacl -R -m d:g::rwX /gae/pixl_dev
-  # now clone the repository
+  # now clone the repository or copy an existing deployment
   ```
 </details>
 
