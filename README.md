@@ -61,27 +61,36 @@ HTTP API to process messages from the `pacs` queue and populate the raw orthanc 
 </details>
 2. <details><summary>If you haven't just installed the miniforge yourself, update your configuration</summary>
   Edit `~/.bash_profile` to add `/gae/miniforge3/bin` to the PATH. for example
+  
   ```
   PATH=$PATH:$HOME/.local/bin:$HOME/bin:/gae/miniforge3/bin
   ```
+  
   Run the updated profile (or reconnect to the GAE) so that conda is in your PATH
+  
   ```shell
   source ~/.bash_profile
   ```
+  
   Initialise conda
+  
   ```shell
   conda init bash
   ```
+  
   Run the updated profile (or reconnect to the GAE) so that conda is in your PATH
+  
   ```shell
   source ~/.bash_profile
   ```
-  Activate an existing pixl enviroment
+  
+  Activate an existing pixl environment
+  
   ```shell
   conda activate pixl_dev
   ```
 </details>
-3. <details><summary>Create an instance for the GAE if it doesn't already exist </summary>
+3. <details><summary>Create an instance for the GAE if it doesn't already exist</summary>
   Select a place for the deployment. On UCLH infrastructure this will be in `/gae`, so `/gae/pixl-dev` for example.
   
   ```shell
