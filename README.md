@@ -96,7 +96,7 @@ HTTP API to process messages from the `pacs` queue and populate the raw orthanc 
 </details>
 <details>
 <summary>Create an instance for the GAE if it doesn't already exist</summary>
-    Select a place for the deployment. On UCLH infrastructure this will be in `/gae`, so `/gae/pixl-dev` for example.
+    Select a place for the deployment. On UCLH infrastructure this will be in `/gae`, so `/gae/pixl_dev` for example.
     
     ```shell
     mkdir /gae/pixl_dev
