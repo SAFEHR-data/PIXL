@@ -30,7 +30,7 @@ HTTP API to process messages from the `pacs` queue and populate the raw orthanc 
 1. <details><summary>Install shared miniforge installation if it doesn't exist</summary>
   Follow the suggestion for installing a central [miniforge](https://github.com/conda-forge/miniforge)
   installation to allow all users to be able to run modern python without having admin permissions.
-
+  
   ```shell
   # Create directory with correct structure
   mkdir /gae/miniforge3
@@ -43,9 +43,9 @@ HTTP API to process messages from the `pacs` queue and populate the raw orthanc 
   conda update -n base -c conda-forge conda
   conda create -n pixl_dev python=3.10.*
   ```
-
+  
   The directory should now have these permissions
-
+  
   ```
   > ls -lah /gae/miniforge3/
   total 88K
