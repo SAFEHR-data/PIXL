@@ -33,9 +33,9 @@ class Study:
 class Orthanc:
     def __init__(
         self,
-        url=f"http://localhost:{os.environ['ORTHANC_RAW_WEB_PORT']}",
-        username=os.environ["ORTHANC_RAW_USERNAME"],
-        password=os.environ["ORTHANC_RAW_PASSWORD"],
+        url=f"http://localhost:{os.environ['ORTHANC_PORT']}",
+        username=os.environ["ORTHANC_USERNAME"],
+        password=os.environ["ORTHANC_PASSWORD"],
     ):
         self._url = url.rstrip("/")
         self._username = username
