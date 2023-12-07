@@ -49,7 +49,7 @@ Follow the suggestion for installing a central [miniforge](https://github.com/co
 installation to allow all users to be able to run modern python without having admin permissions.
 
 ```shell
-# Create directory with correct structure
+# Create directory with correct structure (only if it doesn't exist yet)
 mkdir /gae/miniforge3
 chgrp -R docker /gae/miniforge3
 chmod -R g+rwxs /gae/miniforge3  # inherit group when new directories or files are created
