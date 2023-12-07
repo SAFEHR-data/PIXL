@@ -27,10 +27,10 @@ HTTP API to process messages from the `pacs` queue and populate the raw orthanc 
 
 ### 0. UCLH infrastructure setup
 
-1. <details>
+<details>
   <summary>
 
-    Install shared miniforge installation if it doesn't exist
+    1. Install shared miniforge installation if it doesn't exist
 
   </summary>
 
@@ -65,7 +65,13 @@ HTTP API to process messages from the `pacs` queue and populate the raw orthanc 
   ...
   ```
 </details>
-2. <details><summary>If you haven't just installed the miniforge yourself, update your configuration</summary>
+<details>
+
+  <summary>
+  
+  2. If you haven't just installed the miniforge yourself, update your configuration
+  
+  </summary>
   Edit `~/.bash_profile` to add `/gae/miniforge3/bin` to the PATH. for example
   
   ```
@@ -96,7 +102,12 @@ HTTP API to process messages from the `pacs` queue and populate the raw orthanc 
   conda activate pixl_dev
   ```
 </details>
-3. <details><summary>Create an instance for the GAE if it doesn't already exist</summary>
+<details>
+  <summary>
+
+  3. Create an instance for the GAE if it doesn't already exist
+
+  </summary>
   Select a place for the deployment. On UCLH infrastructure this will be in `/gae`, so `/gae/pixl-dev` for example.
   
   ```shell
