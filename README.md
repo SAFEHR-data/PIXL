@@ -27,7 +27,13 @@ HTTP API to process messages from the `pacs` queue and populate the raw orthanc 
 
 ### 0. UCLH infrastructure setup
 
-1. <details><summary>Install shared miniforge installation if it doesn't exist</summary>
+1. <details>
+  <summary>
+
+    Install shared miniforge installation if it doesn't exist
+
+  </summary>
+
   Follow the suggestion for installing a central [miniforge](https://github.com/conda-forge/miniforge)
   installation to allow all users to be able to run modern python without having admin permissions.
   
