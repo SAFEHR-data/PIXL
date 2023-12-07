@@ -30,7 +30,7 @@ HTTP API to process messages from the `pacs` queue and populate the raw orthanc 
 <details>
   <summary>
 
-    1. Install shared miniforge installation if it doesn't exist
+  1. Install shared miniforge installation if it doesn't exist
 
   </summary>
 
