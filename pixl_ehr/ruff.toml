@@ -1,4 +1,0 @@
-extend = "../ruff.toml"
-
-[extend-per-file-ignores]
-"./tests/**" = ["D1"]
