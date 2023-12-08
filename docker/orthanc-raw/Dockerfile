@@ -14,4 +14,9 @@
 FROM osimis/orthanc:22.9.0-full-stable
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 
+ARG ORTHANC_RAW_MAXIMUM_STORAGE_SIZE
+
 COPY ./orthanc/orthanc-raw/plugin/pixl.py /etc/orthanc/pixl.py
+# Orthanc can't substitute environment veriables as integers so copy and replace before running
+COPY ./orthanc/orthanc-raw/config /run/secrets
+RUN sed -i "s/\${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE}/${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE}/g" /run/secrets/orthanc.json
