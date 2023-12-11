@@ -197,11 +197,7 @@ services:
     restart: "no"
 
   queue:
-    build:
-      context: .
-      dockerfile: ./docker/queue/Dockerfile
-      args:
-        <<: *build-args-common
+    image: rabbitmq:3.11.2-management
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
