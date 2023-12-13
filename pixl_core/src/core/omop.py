@@ -26,7 +26,7 @@ class OmopExtract:
     """Processing Omop extracts on the filesystem."""
 
     def __init__(self, root_dir: pathlib.Path = root_from_install) -> None:
-        """Create instance of OMOP file helper."""
+        """Create instance of OMOPExtract helper."""
         self.export_dir = root_dir / "exports"
 
     @staticmethod

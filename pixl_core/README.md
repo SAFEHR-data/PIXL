@@ -58,7 +58,7 @@ The asynchronous mode of transferring messages is a lot more complex as it is ba
 Public parquet exports from OMOP ES that should be transferred outside the hospital are copied to the `exports` directory at the repository base.
 
 Within this directory each project has a directory, with all extracts run stored in `all_extracts` and the `latest` directory
-contains a symlink to the most extract. This symlinking means that during the export stage it is clear which export should be sent.
+contains a symlink to the most recent extract. This symlinking means that during the export stage it is clear which export should be sent.
 
 ```
 └── project-1
