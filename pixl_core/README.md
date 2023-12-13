@@ -51,3 +51,32 @@ The client of choice for RabbitMQ at this point in time is [pika](https://pika.r
 asynchronous way of transferring messages. The former is geared towards high data throughput whereas the latter is geared towards stability. 
 The asynchronous mode of transferring messages is a lot more complex as it is based on the 
 [asyncio event loop](https://docs.python.org/3/library/asyncio-eventloop.html).
+
+
+### OMOP ES files
+
+Public parquet exports from OMOP ES that should be transferred outside the hospital are copied to the `exports` directory at the repository base.
+
+Within this directory each project has a directory, with all extracts run stored in `all_extracts` and the `latest` directory
+contains a symlink to the most recent extract. This symlinking means that during the export stage it is clear which export should be sent.
+
+```
+└── project-1
+    ├── all_extracts
+    │     └── omop
+    │         ├── 2020-06-10t18-00-00
+    │         │   └── public
+    │         └── 2020-07-10t18-00-00
+    │             └── public
+    └── latest
+        └── omop
+            └── public -> ../../../ all_extracts / omop / 2020-07-10t18-00-00 / public
+└── project-2
+    ├── all_extracts
+    │     └── omop
+    │         └── 2023-12-13t16-22-40
+    │             └── public
+    └── latest
+        └── omop
+            └── public -> ../../../ all_extracts / omop / 2023-12-13t16-22-40 / public
+```

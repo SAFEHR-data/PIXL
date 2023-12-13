@@ -143,3 +143,6 @@ dmypy.json
 
 # VS Code
 .vscode
+
+# project specific files
+/exports/

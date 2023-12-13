@@ -11,22 +11,22 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
----
-repos:
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.6
-    hooks:
-      - id: ruff-format
-      - id: ruff
-        args:
-          - --fix
 
-  - repo: local
-    hooks:
-      - id: mypy  # This does not work with the official mypy hook
-        name: mypy
-        language: python
-        pass_filenames: false
-        entry: mypy
-        args: ['--config-file=setup.cfg']
-        additional_dependencies: ['mypy', 'types-PyYAML', 'types-requests', 'types-python-slugify']
+"""CLI testing fixtures."""
+import pathlib
+
+import pytest
+from core.omop import OmopExtract
+
+
+@pytest.fixture()
+def omop_files(tmp_path_factory: pytest.TempPathFactory) -> OmopExtract:
+    """Create an OmopExtract instance using a temporary directory"""
+    export_dir = tmp_path_factory.mktemp("repo_base")
+    return OmopExtract(export_dir)
+
+
+@pytest.fixture()
+def resources() -> pathlib.Path:
+    """Test resources directory path."""
+    return pathlib.Path(__file__).parent / "resources"

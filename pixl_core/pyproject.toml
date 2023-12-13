@@ -14,6 +14,7 @@ dependencies = [
     "fastapi==0.103.2",
     "token-bucket==0.3.0",
     "python-decouple==3.6",
+    "python-slugify==8.0.1",
     "pika==1.3.1",
     "aio_pika==8.2.4",
     "environs==9.5.0",
