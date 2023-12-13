@@ -12,7 +12,7 @@
 
   // Limit the maximum storage size
   "MaximumPatientCount" : 0, // no limit
-  "MaximumStorageSize" : ${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE}, // MB
+  "MaximumStorageSize" : ${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE}, // MB, replaced in Dockerfile because its an integer
   "MaximumStorageMode" : "Recycle",
 
 

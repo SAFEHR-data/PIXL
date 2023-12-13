@@ -1,3 +1,4 @@
+#!/bin/bash
 #  Copyright (c) University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,12 +12,10 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-FROM osimis/orthanc:22.9.0-full-stable
-SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
+set -eux pipefail
 
-ARG ORTHANC_RAW_MAXIMUM_STORAGE_SIZE
+# This could be much improved by having more realistic test data some of
+# which actually was persisted
+source ./.env.test
+docker logs test-orthanc-raw-1 2>&1 | grep "At most ${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE}MB will be used for the storage area"
 
-COPY ./orthanc/orthanc-raw/plugin/pixl.py /etc/orthanc/pixl.py
-# Orthanc can't substitute environment veriables as integers so copy and replace before running
-COPY ./orthanc/orthanc-raw/config /run/secrets
-RUN sed -i "s/\${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE}/${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE:-0}/g" /run/secrets/orthanc.json

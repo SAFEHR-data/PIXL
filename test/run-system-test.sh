@@ -31,6 +31,7 @@ pixl start
 sleep 65  # need to wait until the DICOM image is "stable" = 60s
 ./scripts/check_entry_in_pixl_anon.sh
 ./scripts/check_entry_in_orthanc_anon.sh
+./scripts/check_max_storage_in_orthanc_raw.sh
 
 cd "${PACKAGE_DIR}"
 docker compose -f docker-compose.yml -f ../docker-compose.yml -p test down
