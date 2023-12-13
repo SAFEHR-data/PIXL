@@ -157,6 +157,7 @@ services:
       dockerfile: ./docker/orthanc-raw/Dockerfile
       args:
         <<: *build-args-common
+        ORTHANC_RAW_MAXIMUM_STORAGE_SIZE: ${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE}
     command: /run/secrets
     environment:
       <<: [*pixl-db, *proxy-common, *pixl-common-env]
@@ -165,6 +166,7 @@ services:
       ORTHANC_PASSWORD: ${ORTHANC_RAW_PASSWORD}
       ORTHANC_RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
       ORTHANC_AUTOROUTE_RAW_TO_ANON: ${ORTHANC_AUTOROUTE_RAW_TO_ANON}
+      ORTHANC_RAW_MAXIMUM_STORAGE_SIZE: ${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE}
       VNA_AE_TITLE : ${VNA_AE_TITLE}
       VNA_DICOM_PORT: ${VNA_DICOM_PORT}
       VNA_IP_ADDR: ${VNA_IP_ADDR}
@@ -181,7 +183,6 @@ services:
       - type: volume
         source: orthanc-raw-data
         target: /var/lib/orthanc/db
-      - ${PWD}/orthanc/orthanc-raw/config:/run/secrets:ro
     networks:
       - pixl-net
     depends_on:
