@@ -12,7 +12,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-set -eux pipefail
+set -euxo pipefail
 
 _sql_command="select * from emap_data.ehr_anon"
 _result=$(docker exec -it test-postgres-1 /bin/bash -c \
