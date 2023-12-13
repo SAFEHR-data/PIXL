@@ -47,6 +47,8 @@ class PixlConsumer(PixlQueueInterface):
         """Establishes connection to queue."""
         self._connection = await aio_pika.connect_robust(self._url)
         self._channel = await self._connection.channel()
+        # Don't prefetch messages
+        await self._channel.set_qos(prefetch_count=1)
         self._queue = await self._channel.declare_queue(self.queue_name)
         return self
 
