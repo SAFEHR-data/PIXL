@@ -16,12 +16,10 @@ repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.1.6
     hooks:
+      - id: ruff-format
       - id: ruff
         args:
           - --fix
-      - id: ruff-format
-        args:
-          - --config=ruff.toml
 
   - repo: local
     hooks:
