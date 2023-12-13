@@ -13,7 +13,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-set -euxo pipefail
+set -u
 
 psql -U "${POSTGRES_USER}" -tc "SELECT 1 FROM pg_database WHERE datname = '${PIXL_DB_NAME}'" |\
     grep -q 1 | \
