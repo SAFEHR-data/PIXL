@@ -43,11 +43,6 @@ ORTHANC_RAW_AE_TITLE=
 # PIXL Orthanc anon instance   
 ORTHANC_ANON_AE_TITLE=
 
-# UCVNA DICOM node information  
-VNA_AE_TITLE=
-VNA_DICOM_PORT=
-VNA_IP_ADDR=
-
 # UCVNAQR DICOM node information  
 VNAQR_AE_TITLE=
 VNAQR_DICOM_PORT=
