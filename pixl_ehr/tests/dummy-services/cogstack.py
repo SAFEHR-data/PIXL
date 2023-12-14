@@ -1,15 +1,9 @@
 import asyncio
 
 import fastapi
-from pydantic import BaseModel
+from starlette.responses import PlainTextResponse
 
 app = fastapi.FastAPI()
-
-
-class Request(BaseModel):
-    """Stores the request as a string"""
-
-    query: str
 
 
 @app.get("/heart-beat", summary="Health Check")
@@ -18,6 +12,7 @@ async def heart_beat() -> str:
 
 
 @app.post("/redact")
-async def redact(request: fastapi.Request) -> str:
+async def redact(request: fastapi.Request) -> PlainTextResponse:
     await asyncio.sleep(2)
-    return await request.body()
+    body = await request.body()
+    return PlainTextResponse(body.decode("utf-8"))
