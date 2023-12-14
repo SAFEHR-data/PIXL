@@ -283,7 +283,7 @@ services:
     environment:
       POSTGRES_USER: ${PIXL_DB_USER}
       POSTGRES_PASSWORD: ${PIXL_DB_PASSWORD}
-      PIXL_DB_NAME: ${PIXL_DB_NAME}
+      POSTGRES_DB: ${PIXL_DB_NAME}
       PGTZ: Europe/London
     env_file:
       - ./docker/common.env

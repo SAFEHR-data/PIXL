@@ -75,7 +75,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      PIXL_DB_NAME: pixl
+      POSTGRES_DB: pixl
       PGTZ: Europe/London
       PIXL_DB_EHR_SCHEMA_NAME: emap_data
     env_file:
