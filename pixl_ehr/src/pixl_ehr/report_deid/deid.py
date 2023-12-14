@@ -17,6 +17,7 @@ Collection of functions for deidentifaction of text
 import re
 from pathlib import Path
 
+import requests
 from presidio_analyzer import AnalyzerEngine
 from presidio_anonymizer import AnonymizerEngine
 
@@ -25,30 +26,12 @@ _analyzer = AnalyzerEngine()
 
 
 def deidentify_text(text: str) -> str:
-    """
-    Given a string of text use presidio (https://github.com/microsoft/presidio)
-    to remove patient identifiable information (PII). There is no guarantee
-    that this will remove all PII.
-
-    Args:
-    ----
-        text: Text to identify
-
-    Returns:
-    -------
-        De-identified text
-    """
-    for anonymize_step in (
-        _presidio_anonymise,
-        _remove_linebreaks_after_title_case_lines,
-        _remove_case_insensitive_patterns,
-        _remove_case_sensitive_patterns,
-        _remove_any_excluded_words,
-        _remove_any_trailing_tags,
-    ):
-        text = anonymize_step(text)
-
-    return text
+    """Query the cogstack redact API to deidentify input text."""
+    url = "http://cogstack-api:8000/redact"
+    response = requests.post(
+        url, data=text, headers={"Content-Type": "text/plain"}, timeout=10
+    )
+    return response.text
 
 
 def _presidio_anonymise(text: str) -> str:
