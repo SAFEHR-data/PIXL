@@ -35,10 +35,15 @@ pip install -e ../pixl_core/ .
 pip install -e ../pixl_core/[test] .[test]
 pytest -m "not processing"
 ```
+
 and the processing tests with
+
 ```bash
 ./tests/run-processing-tests.sh
 ```
+
+To test the availability of a CogStack instance, we mock up a *FastAPI* server which simply takes in
+some input text and returns the same text. The configuration of this mock instance is defined in [`tests/dummy-services`](./tests/dummy-services/).
 
 ## Usage
 
