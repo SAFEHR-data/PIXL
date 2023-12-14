@@ -13,10 +13,11 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-set -u
+set -euxo pipefail
 
+# postgresql doesn't support CREATE DATABASE IF NOT EXISTS
 psql -U "${POSTGRES_USER}" -tc "SELECT 1 FROM pg_database WHERE datname = '${PIXL_DB_NAME}'" |\
-    grep -q 1 | \
+    grep -q 1 || \
     psql -U "${POSTGRES_USER}" -c "CREATE DATABASE ${PIXL_DB_NAME}"
 
 # Create the EHR schema and associated tables
