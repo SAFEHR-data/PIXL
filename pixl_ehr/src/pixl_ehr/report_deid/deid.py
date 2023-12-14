@@ -14,6 +14,7 @@ Collection of functions for deidentifaction of text
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """
+import os
 import re
 from pathlib import Path
 
@@ -24,12 +25,13 @@ from presidio_anonymizer import AnonymizerEngine
 _anonymizer = AnonymizerEngine()
 _analyzer = AnalyzerEngine()
 
+COGSTACK_URL = os.environ["COGSTACK_REDACT_URL"]
+
 
 def deidentify_text(text: str) -> str:
     """Query the cogstack redact API to deidentify input text."""
-    url = "http://cogstack-api:8000/redact"
     response = requests.post(
-        url, data=text, headers={"Content-Type": "text/plain"}, timeout=10
+        COGSTACK_URL, data=text, headers={"Content-Type": "text/plain"}, timeout=10
     )
     return response.text
 

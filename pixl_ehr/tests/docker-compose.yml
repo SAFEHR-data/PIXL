@@ -53,6 +53,7 @@ services:
       EMAP_UDS_USER: postgres
       EMAP_UDS_PASSWORD: postgres
       EMAP_UDS_SCHEMA_NAME: star
+      COGSTACK_REDACT_URL: http://cogstack-api:8000/redact
     ports:
       - "9000:8000"
       - "443:443"
