@@ -15,15 +15,10 @@
 
 set -euxo pipefail
 
-# postgresql doesn't support CREATE DATABASE IF NOT EXISTS
-psql -U "${POSTGRES_USER}" -tc "SELECT 1 FROM pg_database WHERE datname = '${PIXL_DB_NAME}'" |\
-    grep -q 1 || \
-    psql -U "${POSTGRES_USER}" -c "CREATE DATABASE ${PIXL_DB_NAME}"
-
 # Create the EHR schema and associated tables
 columns_and_types="mrn text, accession_number text, age integer, sex text, ethnicity text, height real, weight real, gcs integer, xray_report text"
 ehr_create_command="CREATE SCHEMA emap_data AUTHORIZATION ${POSTGRES_USER}
     CREATE TABLE ehr_raw ($columns_and_types)
     CREATE TABLE ehr_anon ($columns_and_types)
 "
-psql -U "${POSTGRES_USER}" --dbname "${PIXL_DB_NAME}" -c "$ehr_create_command"
+psql -U "${POSTGRES_USER}" --dbname "${POSTGRES_DB}" -c "$ehr_create_command"
