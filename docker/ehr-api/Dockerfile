@@ -25,9 +25,6 @@ RUN  apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Download presido data. Before other dependencies to cache more effectively
-RUN pip install spacy && python -m spacy download en_core_web_lg
-
 COPY ./pixl_core/ core/
 COPY ./pixl_ehr/ .
 RUN --mount=type=cache,target=/root/.cache \
