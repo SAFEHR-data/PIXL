@@ -33,6 +33,16 @@ def deidentify_text(text: str) -> str:
     response = requests.post(
         COGSTACK_URL, data=text, headers={"Content-Type": "text/plain"}, timeout=10
     )
+    success_code = 200
+
+    if response.status_code != success_code:
+        msg = (
+            f"Failed request. "
+            f"Status code: {response.status_code}"
+            f"Content: {response.content.decode()}"
+        )
+        raise requests.HTTPError(msg)
+
     return response.text
 
 
