@@ -14,8 +14,6 @@
 
 import os
 
-os.environ["ENV"] = "test"
-
 cogstack_url = os.environ.get("COGSTACK_REDACT_URL")
 if not cogstack_url:
     os.environ["COGSTACK_REDACT_URL"] = "test"
