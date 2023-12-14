@@ -73,8 +73,14 @@ def cli(*, debug: bool) -> None:
     default=True,
     help="Restart from a saved state. Otherwise will use the given .csv file",
 )
-def populate(csv_filename: str, queues: str, *, restart: bool) -> None:
-    """Populate a (set of) queue(s) from a csv file"""
+@click.option(
+    "--csv_file",
+    show_default=True,
+    default=True,
+    help="The input is a csv file rather than a parquet dir",
+)
+def populate(csv_filename: str, queues: str, *, restart: bool, csv_file: bool) -> None:
+    """Populate a (set of) queue(s) from a csv file or a parquet directory"""
     logger.info(f"Populating queue(s) {queues} from {csv_filename}")
 
     for queue in queues.split(","):
@@ -84,7 +90,9 @@ def populate(csv_filename: str, queues: str, *, restart: bool) -> None:
                 logger.info(f"Extracting messages from state: {state_filepath}")
                 inform_user_that_queue_will_be_populated_from(state_filepath)
                 messages = Messages.from_state_file(state_filepath)
-            else:
+            elif csv_file is True:  # noqa: SIM114
+                messages = messages_from_csv(Path(csv_filename))
+            elif csv_file is False:
                 messages = messages_from_csv(Path(csv_filename))
 
             remove_file_if_it_exists(state_filepath)  # will be stale
@@ -358,6 +366,16 @@ def messages_from_csv(filepath: Path) -> Messages:
 
     logger.debug(f"Created {len(messages)} messages from {filepath}")
     return messages
+
+
+# def messages_from_parquet(dirpath: Path) -> Messages:
+#     """
+#     Reads patient information from parquet files within directory structure
+#     and transforms that into messages.
+#     :param filepath: Path for parquet directory containing private and public
+#     files
+#     """
+#     return messages # noqa: ERA001
 
 
 def queue_is_up() -> Any:
