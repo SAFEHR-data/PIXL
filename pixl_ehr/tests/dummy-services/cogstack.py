@@ -26,6 +26,7 @@ async def heart_beat() -> str:
 
 @app.post("/redact")
 async def redact(request: fastapi.Request) -> PlainTextResponse:
+    """Mocked Cogstack redact endpoint, used for integration testing."""
     await asyncio.sleep(2)
     body = await request.body()
     return PlainTextResponse(body.decode("utf-8"))
