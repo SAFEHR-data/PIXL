@@ -90,10 +90,10 @@ def populate(csv_filename: str, queues: str, *, restart: bool, csv_file: bool) -
                 logger.info(f"Extracting messages from state: {state_filepath}")
                 inform_user_that_queue_will_be_populated_from(state_filepath)
                 messages = Messages.from_state_file(state_filepath)
-            elif csv_file is True:  # noqa: SIM114
+            elif csv_file is True:
                 messages = messages_from_csv(Path(csv_filename))
             elif csv_file is False:
-                messages = messages_from_csv(Path(csv_filename))
+                messages = messages_from_parquet(Path(csv_filename))
 
             remove_file_if_it_exists(state_filepath)  # will be stale
             producer.publish(sorted(messages, key=study_date_from_serialised))
@@ -368,14 +368,68 @@ def messages_from_csv(filepath: Path) -> Messages:
     return messages
 
 
-# def messages_from_parquet(dirpath: Path) -> Messages:
-#     """
-#     Reads patient information from parquet files within directory structure
-#     and transforms that into messages.
-#     :param filepath: Path for parquet directory containing private and public
-#     files
-#     """
-#     return messages # noqa: ERA001
+def messages_from_parquet(dirpath: Path) -> Messages:
+    """
+    Reads patient information from parquet files within directory structure
+    and transforms that into messages.
+    :param filepath: Path for parquet directory containing private and public
+    files
+    """
+    # TODO: Check if directory exists # noqa: TD003, FIX002
+    public_dir = dirpath / "public"
+    private_dir = dirpath / "private"
+
+    # MRN in people.PrimaryMrn:
+    people = pd.read_parquet(private_dir / "PERSON_LINKS.parquet")
+    # accession number in accessions.AccesionNumber
+    accessions = pd.read_parquet(private_dir / "PROCEDURE_OCCURRENCE_LINKS.parquet")
+    # study_date is in procedure.procdure_date
+    procedure = pd.read_parquet(public_dir / "PROCEDURE_OCCURRENCE.parquet")
+    # joining data together
+    people_procedures = people.join(procedure, on="person_id", lsuffix="_people")
+    joined = people_procedures.join(
+        accessions, on="procedure_occurrence_id", rsuffix="_links"
+    )
+
+    expected_col_names = [
+        "PrimaryMrn",
+        "AccessionNumber",
+        "person_id",
+        "procedure_date",
+    ]
+    logger.debug(
+        f"Extracting messages from {dirpath}. Expecting columns to include "
+        f"{expected_col_names}"
+    )
+
+    # First line is column names
+    messages_df = joined
+    messages = Messages()
+
+    for col in expected_col_names:
+        if col not in list(messages_df.columns):
+            msg = (
+                f"csv file expected to have at least {expected_col_names} as "
+                f"column names"
+            )
+            raise ValueError(msg)
+
+    mrn_col_name, acc_num_col_name, _, dt_col_name = expected_col_names
+    for _, row in messages_df.iterrows():
+        messages.append(
+            serialise(
+                mrn=row[mrn_col_name],
+                accession_number=row[acc_num_col_name],
+                study_datetime=row[dt_col_name],
+            )
+        )
+
+    if len(messages) == 0:
+        msg = f"Failed to find any messages in {dirpath}"
+        raise ValueError(msg)
+
+    logger.debug(f"Created {len(messages)} messages from {dirpath}")
+    return messages
 
 
 def queue_is_up() -> Any:
