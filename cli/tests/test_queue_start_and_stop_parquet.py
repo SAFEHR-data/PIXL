@@ -19,23 +19,25 @@ from click.testing import CliRunner
 from pixl_cli.main import populate, queue_is_up, stop
 
 
-def test_populate_queue_parquet(queue_name: str = "test_populate") -> None:
+def test_populate_queue_parquet(resources, queue_name: str = "test_populate") -> None:
     """Checks that patient queue can be populated without error."""
+    omop_parquet_dir = resources / "omop"
     runner = CliRunner()
     result = runner.invoke(
-        populate, args=["~/resources", "--queues", queue_name, "--csv_file", False]
+        populate, args=["--queues", queue_name, "--parquet-dir", omop_parquet_dir]
     )
     assert result.exit_code == 0
 
 
-def test_down_queue_parquet(queue_name: str = "test_down") -> None:
+def test_down_queue_parquet(resources, queue_name: str = "test_down") -> None:
     """
     Checks that after the queue has been sent a stop signal,
     the queue has been emptied.
     """
+    omop_parquet_dir = resources / "omop"
     runner = CliRunner()
     _ = runner.invoke(
-        populate, args=["~/resources", "--queues", queue_name, "--csv_file", False]
+        populate, args=["--queues", queue_name, "--parquet-dir", omop_parquet_dir]
     )
     _ = runner.invoke(stop, args=["--queues", queue_name])
 

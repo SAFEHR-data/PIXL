@@ -59,30 +59,36 @@ def cli(*, debug: bool) -> None:
 
 
 @cli.command()
-@click.argument("csv_filename", type=click.Path(exists=True))
 @click.option(
     "--queues",
     default="ehr,pacs",
     show_default=True,
     help="Comma seperated list of queues to populate with messages generated from the "
-    ".csv file",
+    "input file(s)",
 )
 @click.option(
     "--restart/--no-restart",
     show_default=True,
     default=True,
-    help="Restart from a saved state. Otherwise will use the given .csv file",
+    help="Restart from a saved state. Otherwise will use the given input file(s)",
 )
 @click.option(
-    "--csv_file",
-    show_default=True,
-    default=True,
-    help="The input is a csv file rather than a parquet dir",
+    "--csv-file",
+    type=click.Path(path_type=Path, exists=True, dir_okay=False),
+    help="Give a csv file as input",
 )
-def populate(csv_filename: str, queues: str, *, restart: bool, csv_file: bool) -> None:
+@click.option(
+    "--parquet-dir",
+    type=click.Path(path_type=Path, exists=True, file_okay=False),
+    help="Give a directory containing parquet input files",
+)
+def populate(queues: str, *, restart: bool, csv_file: Path, parquet_dir: Path) -> None:
     """Populate a (set of) queue(s) from a csv file or a parquet directory"""
-    logger.info(f"Populating queue(s) {queues} from {csv_filename}")
-
+    if (csv_file is None) == (parquet_dir is None):
+        err_str = "must specify --parquet-dir or --csv-file, but not both"
+        raise ValueError(err_str)
+    inp_source = parquet_dir if parquet_dir is not None else csv_file
+    logger.info(f"Populating queue(s) {queues} from {inp_source}")
     for queue in queues.split(","):
         with PixlProducer(queue_name=queue, **config["rabbitmq"]) as producer:
             state_filepath = state_filepath_for_queue(queue)
@@ -90,10 +96,10 @@ def populate(csv_filename: str, queues: str, *, restart: bool, csv_file: bool) -
                 logger.info(f"Extracting messages from state: {state_filepath}")
                 inform_user_that_queue_will_be_populated_from(state_filepath)
                 messages = Messages.from_state_file(state_filepath)
-            elif csv_file is True:
-                messages = messages_from_csv(Path(csv_filename))
-            elif csv_file is False:
-                messages = messages_from_parquet(Path(csv_filename))
+            elif csv_file is not None:
+                messages = messages_from_csv(csv_file)
+            elif parquet_dir is not None:
+                messages = messages_from_parquet(parquet_dir)
 
             remove_file_if_it_exists(state_filepath)  # will be stale
             producer.publish(sorted(messages, key=study_date_from_serialised))
@@ -368,16 +374,19 @@ def messages_from_csv(filepath: Path) -> Messages:
     return messages
 
 
-def messages_from_parquet(dirpath: Path) -> Messages:
+def messages_from_parquet(dir_path: Path) -> Messages:
     """
     Reads patient information from parquet files within directory structure
     and transforms that into messages.
-    :param filepath: Path for parquet directory containing private and public
+    :param dir_path: Path for parquet directory containing private and public
     files
     """
-    # TODO: Check if directory exists # noqa: TD003, FIX002
-    public_dir = dirpath / "public"
-    private_dir = dirpath / "private"
+    public_dir = dir_path / "public"
+    private_dir = dir_path / "private"
+    for d in [public_dir, private_dir]:
+        if not d.is_dir():
+            err_str = f"{d} must exist and be a directory"
+            raise ValueError(err_str)
 
     # MRN in people.PrimaryMrn:
     people = pd.read_parquet(private_dir / "PERSON_LINKS.parquet")
@@ -398,7 +407,7 @@ def messages_from_parquet(dirpath: Path) -> Messages:
         "procedure_date",
     ]
     logger.debug(
-        f"Extracting messages from {dirpath}. Expecting columns to include "
+        f"Extracting messages from {dir_path}. Expecting columns to include "
         f"{expected_col_names}"
     )
 
@@ -425,10 +434,10 @@ def messages_from_parquet(dirpath: Path) -> Messages:
         )
 
     if len(messages) == 0:
-        msg = f"Failed to find any messages in {dirpath}"
+        msg = f"Failed to find any messages in {dir_path}"
         raise ValueError(msg)
 
-    logger.debug(f"Created {len(messages)} messages from {dirpath}")
+    logger.debug(f"Created {len(messages)} messages from {dir_path}")
     return messages
 
 

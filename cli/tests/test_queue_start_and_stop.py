@@ -23,7 +23,7 @@ def test_populate_queue(queue_name: str = "test_populate") -> None:
     """Checks that patient queue can be populated without error."""
     runner = CliRunner()
     result = runner.invoke(
-        populate, args=["test.csv", "--queues", queue_name, "--csv_file", True]
+        populate, args=["--queues", queue_name, "--csv-file", "test.csv"]
     )
     assert result.exit_code == 0
 
@@ -34,9 +34,7 @@ def test_down_queue(queue_name: str = "test_down") -> None:
     the queue has been emptied.
     """
     runner = CliRunner()
-    _ = runner.invoke(
-        populate, args=["test.csv", "--queues", queue_name, "--csv_file", True]
-    )
+    _ = runner.invoke(populate, args=["--queues", queue_name, "--csv-file", "test.csv"])
     _ = runner.invoke(stop, args=["--queues", queue_name])
 
     state_path = Path(f"{queue_name}.state")
