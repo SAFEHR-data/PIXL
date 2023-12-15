@@ -21,8 +21,6 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
     rm -rf /var/lib/apt/lists/*
 RUN sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 
-COPY ./postgres/postgres.conf /etc/postgresql/postgresql.conf
-RUN chmod a+r /etc/postgresql/postgresql.conf
+COPY --chmod=0755 ./postgres/postgres.conf /etc/postgresql/postgresql.conf
 
-COPY ./postgres/pixl-db_init.sh /docker-entrypoint-initdb.d/pixl-db_init.sh
-RUN chmod +x /docker-entrypoint-initdb.d/pixl-db_init.sh
+COPY --chmod=0777 ./postgres/pixl-db_init.sh /docker-entrypoint-initdb.d/pixl-db_init.sh
