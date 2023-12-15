@@ -12,7 +12,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-set -eux pipefail
+set -euxo pipefail
 
 function wait_until_service_healthy() {
     while ! docker ps | grep "$1" | grep -q healthy ;do
