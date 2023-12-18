@@ -30,9 +30,7 @@ class OmopExtract:
         self.export_dir = root_dir / "exports"
 
     @staticmethod
-    def _get_slugs(
-        project_name: str, extract_datetime: datetime.datetime
-    ) -> tuple[str, str]:
+    def _get_slugs(project_name: str, extract_datetime: datetime.datetime) -> tuple[str, str]:
         """Convert project name and datetime to slugs for writing to filesystem."""
         project_slug = slugify.slugify(project_name)
         extract_time_slug = slugify.slugify(extract_datetime.isoformat())
@@ -60,9 +58,7 @@ class OmopExtract:
             raise FileNotFoundError(msg)
 
         # Make directory for exports if they don't exist
-        project_slug, extract_time_slug = self._get_slugs(
-            project_name, extract_datetime
-        )
+        project_slug, extract_time_slug = self._get_slugs(project_name, extract_datetime)
         export_base = self.export_dir / project_slug
         public_output = OmopExtract._mkdir(
             export_base / "all_extracts" / "omop" / extract_time_slug / "public"

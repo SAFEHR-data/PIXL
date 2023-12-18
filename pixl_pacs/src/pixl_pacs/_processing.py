@@ -37,9 +37,7 @@ async def process_message(message_body: bytes) -> None:
         logger.info("Study exists in cache")
         return
 
-    query_id = orthanc_raw.query_remote(
-        study.orthanc_query_dict, modality=config("VNAQR_MODALITY")
-    )
+    query_id = orthanc_raw.query_remote(study.orthanc_query_dict, modality=config("VNAQR_MODALITY"))
     if query_id is None:
         logger.error("Failed to find %s in the VNA", study)
         raise RuntimeError

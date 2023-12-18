@@ -104,9 +104,7 @@ class PatientEHRData:
             except Exception as e:  # noqa: BLE001
                 logger.warning(e)
 
-    def persist(
-        self, database: PIXLDatabase, schema_name: str, table_name: str
-    ) -> None:
+    def persist(self, database: PIXLDatabase, schema_name: str, table_name: str) -> None:
         """Persist a.k.a. save some data in a database"""
         logger.debug(
             "Persisting EHR and report data into %s.%s.%s",
@@ -231,9 +229,7 @@ class SetVOT(EMAPStep, ABC):
                 "schema_name": config("EMAP_UDS_SCHEMA_NAME"),
                 "mrn": data.mrn,
                 "observation_type": self.emap_name,
-                "window_start": self.time_window_start(
-                    from_time=data.acquisition_datetime
-                ),
+                "window_start": self.time_window_start(from_time=data.acquisition_datetime),
                 "window_end": self.time_window_end(from_time=data.acquisition_datetime),
                 "window_midpoint": data.acquisition_datetime,
             },

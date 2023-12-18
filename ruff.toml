@@ -1,3 +1,4 @@
+line-length = 100
 fix = true
 force-exclude = true
 namespace-packages = ["orthanc/orthanc-anon/plugin", "orthanc/orthanc-raw/plugin"]
