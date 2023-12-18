@@ -194,4 +194,5 @@ async def test_message_processing() -> None:
     anon_mrn, anon_accession_number = anon_row[:2]
     assert anon_mrn != mrn
     assert anon_accession_number != accession_number
-    assert name_of_doctor not in anon_row[-1]
+
+    assert report_text == anon_row[-1]

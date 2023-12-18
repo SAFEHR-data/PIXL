@@ -1,4 +1,4 @@
-#  Copyright (c) University College London Hospitals NHS Foundation Trust
+#  Copyright (c) 2022 University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -11,16 +11,9 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-FROM postgres:14-bullseye
 
-# OS setup
-RUN export DEBIAN_FRONTEND=noninteractive && \
-    apt-get update && \
-    apt-get install --yes --no-install-recommends procps ca-certificates locales && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-RUN sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
+import os
 
-COPY --chmod=0755 ./postgres/postgres.conf /etc/postgresql/postgresql.conf
-
-COPY --chmod=0777 ./postgres/pixl-db_init.sh /docker-entrypoint-initdb.d/pixl-db_init.sh
+cogstack_url = os.environ.get("COGSTACK_REDACT_URL")
+if not cogstack_url:
+    os.environ["COGSTACK_REDACT_URL"] = "test"

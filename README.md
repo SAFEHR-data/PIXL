@@ -159,14 +159,21 @@ on the target storage account. The storage account must also allow network acces
 
 #### Ports
 
-Most services need to expose ports that must be mapped to ports on the host. The host port is specified in `.env`  
-Ports need to be configured such that they don't clash with any other application running on that GAE.  
+Most services need to expose ports that must be mapped to ports on the host. The host port is specified in `.env`
+Ports need to be configured such that they don't clash with any other application running on that GAE.
 
 #### Storage size
 
-The maximum storage size of the `orthanc-raw` instance can be configured through the `ORTHANC_RAW_MAXIMUM_STORAGE_SIZE`
-environment variable in `.env`. This limits the storage size to the specified value (in MB). When the storage is full
-[Orthanc will automatically recycle older studies in favour of new ones](https://orthanc.uclouvain.be/book/faq/features.html#id8).
+The maximum storage size of the `orthanc-raw` instance can be configured through the
+`ORTHANC_RAW_MAXIMUM_STORAGE_SIZE` environment variable in `.env`. This limits the storage size to
+the specified value (in MB). When the storage is full [Orthanc will automatically recycle older
+studies in favour of new ones](https://orthanc.uclouvain.be/book/faq/features.html#id8).
+
+#### CogStack URL
+
+For the deidentification of the EHR extracts, we rely on an instance running the
+[CogStack API](https://cogstack.org/) with a `/redact` endpoint. The URL of this instance should be
+set in `.env` as `COGSTACK_REDACT_URL`.
 
 ## Run
 
