@@ -73,22 +73,14 @@ def cli(*, debug: bool) -> None:
     help="Restart from a saved state. Otherwise will use the given input file(s)",
 )
 @click.option(
-    "--csv-file",
-    type=click.Path(path_type=Path, exists=True, dir_okay=False),
-    help="Give a csv file as input",
-)
-@click.option(
     "--parquet-dir",
+    required=True,
     type=click.Path(path_type=Path, exists=True, file_okay=False),
     help="Give a directory containing parquet input files",
 )
-def populate(queues: str, *, restart: bool, csv_file: Path, parquet_dir: Path) -> None:
-    """Populate a (set of) queue(s) from a csv file or a parquet directory"""
-    if (csv_file is None) == (parquet_dir is None):
-        err_str = "must specify --parquet-dir or --csv-file, but not both"
-        raise ValueError(err_str)
-    inp_source = parquet_dir if parquet_dir is not None else csv_file
-    logger.info(f"Populating queue(s) {queues} from {inp_source}")
+def populate(queues: str, *, restart: bool, parquet_dir: Path) -> None:
+    """Populate a (set of) queue(s) from a parquet file directory"""
+    logger.info(f"Populating queue(s) {queues} from {parquet_dir}")
     for queue in queues.split(","):
         with PixlProducer(queue_name=queue, **config["rabbitmq"]) as producer:
             state_filepath = state_filepath_for_queue(queue)
@@ -96,8 +88,6 @@ def populate(queues: str, *, restart: bool, csv_file: Path, parquet_dir: Path) -
                 logger.info(f"Extracting messages from state: {state_filepath}")
                 inform_user_that_queue_will_be_populated_from(state_filepath)
                 messages = Messages.from_state_file(state_filepath)
-            elif csv_file is not None:
-                messages = messages_from_csv(csv_file)
             elif parquet_dir is not None:
                 messages = messages_from_parquet(parquet_dir)
 
@@ -325,53 +315,6 @@ class Messages(list):
                 if string_is_non_empty(line)
             ]
         )
-
-
-def messages_from_csv(filepath: Path) -> Messages:
-    """
-    Reads patient information from CSV and transforms that into messages.
-    :param filepath: Path for CSV file to be read
-    """
-    expected_col_names = [
-        "VAL_ID",
-        "ACCESSION_NUMBER",
-        "STUDY_INSTANCE_UID",
-        "STUDY_DATE",
-    ]
-    logger.debug(
-        f"Extracting messages from {filepath}. Expecting columns to include "
-        f"{expected_col_names}"
-    )
-
-    # First line is column names
-    messages_df = pd.read_csv(filepath, header=0, dtype=str)
-    messages = Messages()
-
-    if list(messages_df.columns)[:4] != expected_col_names:
-        msg = (
-            f"csv file expected to have at least {expected_col_names} as "
-            f"column names"
-        )
-        raise ValueError(msg)
-
-    mrn_col_name, acc_num_col_name, _, dt_col_name = expected_col_names
-    for _, row in messages_df.iterrows():
-        messages.append(
-            serialise(
-                mrn=row[mrn_col_name],
-                accession_number=row[acc_num_col_name],
-                study_datetime=datetime.datetime.strptime(
-                    row[dt_col_name], "%d/%m/%Y %H:%M"
-                ).replace(tzinfo=datetime.timezone.utc),
-            )
-        )
-
-    if len(messages) == 0:
-        msg = f"Failed to find any messages in {filepath}"
-        raise ValueError(msg)
-
-    logger.debug(f"Created {len(messages)} messages from {filepath}")
-    return messages
 
 
 def messages_from_parquet(dir_path: Path) -> Messages:
