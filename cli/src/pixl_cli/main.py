@@ -316,7 +316,9 @@ def messages_from_parquet(dir_path: Path) -> Messages:
     """
     public_dir = dir_path / "public"
     private_dir = dir_path / "private"
-    for d in [public_dir, private_dir]:
+    log_dir = dir_path / "log"
+
+    for d in [public_dir, private_dir, log_dir]:
         if not d.is_dir():
             err_str = f"{d} must exist and be a directory"
             raise ValueError(err_str)
@@ -351,7 +353,20 @@ def messages_from_parquet(dir_path: Path) -> Messages:
             msg = f"csv file expected to have at least {expected_col_names} as " f"column names"
             raise ValueError(msg)
 
-    mrn_col_name, acc_num_col_name, _, dt_col_name, procedure_occurrence_id = expected_col_names
+    (
+        mrn_col_name,
+        acc_num_col_name,
+        _,
+        dt_col_name,
+        procedure_occurrence_id,
+    ) = expected_col_names
+
+    # Get project name and OMOP ES timestamp from log file
+    log_file = log_dir / "extract_summary.json"
+    logs = json.load(log_file.open())
+    project_name = logs["settings"]["cdm_source_name"]
+    omop_es_timestamp = datetime.datetime.fromisoformat(logs["datetime"])
+
     for _, row in cohort_data.iterrows():
         messages.append(
             serialise(
@@ -359,6 +374,8 @@ def messages_from_parquet(dir_path: Path) -> Messages:
                 accession_number=row[acc_num_col_name],
                 study_datetime=row[dt_col_name],
                 procedure_occurrence_id=row[procedure_occurrence_id],
+                project_name=project_name,
+                omop_es_timestamp=omop_es_timestamp,
             )
         )
 

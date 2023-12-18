@@ -31,7 +31,12 @@ def deserialise(message_body: bytes) -> dict:
 
 
 def serialise(
-    mrn: str, accession_number: str, study_datetime: datetime, procedure_occurrence_id: str
+    mrn: str,
+    accession_number: str,
+    study_datetime: datetime,
+    procedure_occurrence_id: str,
+    project_name: str,
+    omop_es_timestamp: datetime,
 ) -> bytes:
     """
     Returns serialised message from the given parameters.
@@ -44,11 +49,14 @@ def serialise(
     logger.debug(
         "Serialising message with patient id %s, "
         "accession number: %s and timestamp %s "
-        "procedure_occurrence_id %s",
+        "procedure_occurrence_id %s, ",
+        "project_name %s, omop_es_timestamp %s",
         mrn,
         accession_number,
         study_datetime,
         procedure_occurrence_id,
+        project_name,
+        omop_es_timestamp,
     )
     return json.dumps(
         {
@@ -56,5 +64,7 @@ def serialise(
             "accession_number": accession_number,
             "study_datetime": study_datetime.isoformat(),
             "procedure_occurrence_id": procedure_occurrence_id,
+            "project_name": project_name,
+            "omop_es_timestamp": omop_es_timestamp.isoformat(),
         }
     ).encode("utf-8")
