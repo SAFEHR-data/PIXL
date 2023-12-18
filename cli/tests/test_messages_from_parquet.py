@@ -12,10 +12,13 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """Unit tests for reading cohorts from parquet files."""
+
+from pathlib import Path
+
 from pixl_cli.main import messages_from_parquet
 
 
-def test_messages_from_parquet(resources):
+def test_messages_from_parquet(resources: Path) -> None:
     """
     Test that the messages are as expected, given the test parquet files.
     The test data doesn't have any "difficult" cases in it, eg. people without procedures.
