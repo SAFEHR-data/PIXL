@@ -36,6 +36,7 @@ study_datetime_str = "01/01/1234 01:23"
 observation_datetime = datetime.datetime.fromisoformat(
     "1234-01-01"
 )  # within hours of imaging study
+procedure_occurrence_id = "123"
 date_of_birth = "09/08/0007"
 sex = "testsexvalue"
 ethnicity = "testethnicity"
@@ -58,6 +59,7 @@ message_body = serialise(
     study_datetime=datetime.datetime.strptime(study_datetime_str, "%d/%m/%Y %H:%M").replace(
         tzinfo=datetime.timezone.utc
     ),
+    procedure_occurrence_id=procedure_occurrence_id,
 )
 
 

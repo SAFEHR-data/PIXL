@@ -34,7 +34,7 @@ def serialise(
     mrn: str, accession_number: str, study_datetime: datetime, procedure_occurrence_id: str
 ) -> bytes:
     """
-    Returns serialised message from patient id, accession number and date of study.
+    Returns serialised message from the given parameters.
     :param mrn: patient identifier
     :param accession_number: accession number
     :param study_datetime: date and time of the study

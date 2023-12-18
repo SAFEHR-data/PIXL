@@ -25,10 +25,12 @@ def test_serialise() -> None:
         study_datetime=datetime.datetime.strptime("Nov 22 2022 1:33PM", "%b %d %Y %I:%M%p").replace(
             tzinfo=datetime.timezone.utc
         ),
+        procedure_occurrence_id="234",
     )
     assert (
         msg_body.decode() == '{"mrn": "111", "accession_number": "123", '
-        '"study_datetime": "2022-11-22T13:33:00+00:00"}'
+        '"study_datetime": "2022-11-22T13:33:00+00:00", '
+        '"procedure_occurrence_id": "234"}'
     )
 
 
@@ -40,5 +42,5 @@ def test_simple_deserialise() -> None:
 def test_deserialise_datetime() -> None:
     """Checks that datetimes can be correctly serialised"""
     timestamp = datetime.datetime.fromordinal(100012)
-    data = deserialise(serialise(mrn="", accession_number="", study_datetime=timestamp))
+    data = deserialise(serialise(mrn="", accession_number="", study_datetime=timestamp, procedure_occurrence_id=""))
     assert data["study_datetime"] == timestamp
