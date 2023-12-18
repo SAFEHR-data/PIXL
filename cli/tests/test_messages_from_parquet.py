@@ -1,7 +1,25 @@
+#  Copyright (c) University College London Hospitals NHS Foundation Trust
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+"""Unit tests for reading cohorts from parquet files."""
 from pixl_cli.main import messages_from_parquet
 
 
 def test_messages_from_parquet(resources):
+    """
+    Test that the messages are as expected, given the test parquet files.
+    The test data doesn't have any "difficult" cases in it, eg. people without procedures.
+    """
     omop_parquet_dir = resources / "omop"
     messages = messages_from_parquet(omop_parquet_dir)
     expected_messages = [
