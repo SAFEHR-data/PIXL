@@ -30,7 +30,9 @@ def deserialise(message_body: bytes) -> dict:
     return data
 
 
-def serialise(mrn: str, accession_number: str, study_datetime: datetime, procedure_occurrence_id: str) -> bytes:
+def serialise(
+    mrn: str, accession_number: str, study_datetime: datetime, procedure_occurrence_id: str
+) -> bytes:
     """
     Returns serialised message from patient id, accession number and date of study.
     :param mrn: patient identifier
@@ -40,8 +42,7 @@ def serialise(mrn: str, accession_number: str, study_datetime: datetime, procedu
     :returns: JSON formatted message
     """
     logger.debug(
-        "Serialising message with patient id %s, "
-        "accession number: %s and timestamp %s",
+        "Serialising message with patient id %s, " "accession number: %s and timestamp %s",
         "procedure_occurrence_id %s",
         mrn,
         accession_number,

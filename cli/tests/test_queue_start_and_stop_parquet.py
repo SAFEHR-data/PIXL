@@ -36,9 +36,7 @@ def test_down_queue_parquet(resources, queue_name: str = "test_down") -> None:
     """
     omop_parquet_dir = resources / "omop"
     runner = CliRunner()
-    _ = runner.invoke(
-        populate, args=["--queues", queue_name, "--parquet-dir", omop_parquet_dir]
-    )
+    _ = runner.invoke(populate, args=["--queues", queue_name, "--parquet-dir", omop_parquet_dir])
     _ = runner.invoke(stop, args=["--queues", queue_name])
 
     state_path = Path(f"{queue_name}.state")
