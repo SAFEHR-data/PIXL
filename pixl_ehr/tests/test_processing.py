@@ -37,6 +37,8 @@ observation_datetime = datetime.datetime.fromisoformat(
     "1234-01-01"
 )  # within hours of imaging study
 procedure_occurrence_id = "123"
+project_name = "test project"
+omop_es_timestamp = datetime.datetime.fromisoformat("1234-01-01 00:00:00")
 date_of_birth = "09/08/0007"
 sex = "testsexvalue"
 ethnicity = "testethnicity"
@@ -60,6 +62,8 @@ message_body = serialise(
         tzinfo=datetime.timezone.utc
     ),
     procedure_occurrence_id=procedure_occurrence_id,
+    project_name=project_name,
+    omop_es_timestamp=omop_es_timestamp,
 )
 
 

@@ -26,11 +26,17 @@ def test_serialise() -> None:
             tzinfo=datetime.timezone.utc
         ),
         procedure_occurrence_id="234",
+        project_name="test project",
+        omop_es_timestamp=datetime.datetime.strptime(
+            "Dec 7 2023 2:08PM", "%b %d %Y %I:%M%p"
+        ).replace(tzinfo=datetime.timezone.utc),
     )
     assert (
         msg_body.decode() == '{"mrn": "111", "accession_number": "123", '
         '"study_datetime": "2022-11-22T13:33:00+00:00", '
-        '"procedure_occurrence_id": "234"}'
+        '"procedure_occurrence_id": "234", '
+        '"project_name": "test project", '
+        '"omop_es_timestamp": "2023-12-07T14:08:00+00:00"}'
     )
 
 
@@ -43,6 +49,13 @@ def test_deserialise_datetime() -> None:
     """Checks that datetimes can be correctly serialised"""
     timestamp = datetime.datetime.fromordinal(100012)
     data = deserialise(
-        serialise(mrn="", accession_number="", study_datetime=timestamp, procedure_occurrence_id="")
+        serialise(
+            mrn="",
+            accession_number="",
+            study_datetime=timestamp,
+            procedure_occurrence_id="",
+            project_name="",
+            omop_es_timestamp=datetime.datetime.now(),  # noqa: DTZ005
+        )
     )
     assert data["study_datetime"] == timestamp

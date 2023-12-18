@@ -37,6 +37,8 @@ message_body = serialise(
         tzinfo=datetime.timezone.utc
     ),
     procedure_occurrence_id="234",
+    project_name="test project",
+    omop_es_timestamp=datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
 )
 
 
