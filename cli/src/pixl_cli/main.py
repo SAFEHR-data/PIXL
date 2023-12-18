@@ -34,10 +34,7 @@ from ._utils import clear_file, remove_file_if_it_exists, string_is_non_empty
 def _load_config(filename: str = "pixl_config.yml") -> dict:
     """CLI configuration generated from a .yaml file"""
     if not Path(filename).exists():
-        msg = (
-            f"Failed to find {filename}. It must be present "
-            f"in the current working directory"
-        )
+        msg = f"Failed to find {filename}. It must be present " f"in the current working directory"
         raise OSError(msg)
 
     with Path(filename).open() as config_file:
@@ -64,8 +61,7 @@ def cli(*, debug: bool) -> None:
     "--queues",
     default="ehr,pacs",
     show_default=True,
-    help="Comma seperated list of queues to populate with messages generated from the "
-    ".csv file",
+    help="Comma seperated list of queues to populate with messages generated from the " ".csv file",
 )
 @click.option(
     "--restart/--no-restart",
@@ -163,10 +159,7 @@ def _update_extract_rate(queue_name: str, rate: Optional[float]) -> None:
 
     success_code = 200
     if response.status_code == success_code:
-        logger.info(
-            "Successfully updated EHR extraction, with a "
-            f"rate of {rate} queries/second"
-        )
+        logger.info("Successfully updated EHR extraction, with a " f"rate of {rate} queries/second")
 
     else:
         runtime_error_msg = (
@@ -239,9 +232,7 @@ def _get_extract_rate(queue_name: str) -> str:
     api_config = api_config_for_queue(queue_name)
     success_code = 200
     try:
-        response = requests.get(
-            url=f"{api_config.base_url}/token-bucket-refresh-rate", timeout=10
-        )
+        response = requests.get(url=f"{api_config.base_url}/token-bucket-refresh-rate", timeout=10)
         if response.status_code != success_code:
             msg = (
                 "Failed to get the extract rate for %s due to: %s",
@@ -256,9 +247,7 @@ def _get_extract_rate(queue_name: str) -> str:
         return "unknown"
 
 
-def consume_all_messages_and_save_csv_file(
-    queue_name: str, timeout_in_seconds: int = 5
-) -> None:
+def consume_all_messages_and_save_csv_file(queue_name: str, timeout_in_seconds: int = 5) -> None:
     """Consume all messages and write them out to a CSV file"""
     logger.info(
         f"Will consume all messages on {queue_name} queue and timeout after "
@@ -334,10 +323,7 @@ def messages_from_csv(filepath: Path) -> Messages:
     messages = Messages()
 
     if list(messages_df.columns)[:4] != expected_col_names:
-        msg = (
-            f"csv file expected to have at least {expected_col_names} as "
-            f"column names"
-        )
+        msg = f"csv file expected to have at least {expected_col_names} as " f"column names"
         raise ValueError(msg)
 
     mrn_col_name, acc_num_col_name, _, dt_col_name = expected_col_names

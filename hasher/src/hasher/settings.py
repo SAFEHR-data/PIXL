@@ -71,8 +71,7 @@ if ENV != "test":
 
 # Setup logging
 standard_formatter = {
-    "format": "[%(asctime)s] | %(levelname)-8s | "
-    "[%(name)s %(funcName)s:%(lineno)s] %(message)s",
+    "format": "[%(asctime)s] | %(levelname)-8s | " "[%(name)s %(funcName)s:%(lineno)s] %(message)s",
     "datefmt": "%Y-%m-%d %H:%M:%S",
 }
 simple_formatter = {

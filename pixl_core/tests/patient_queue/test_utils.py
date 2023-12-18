@@ -22,9 +22,9 @@ def test_serialise() -> None:
     msg_body = serialise(
         mrn="111",
         accession_number="123",
-        study_datetime=datetime.datetime.strptime(
-            "Nov 22 2022 1:33PM", "%b %d %Y %I:%M%p"
-        ).replace(tzinfo=datetime.timezone.utc),
+        study_datetime=datetime.datetime.strptime("Nov 22 2022 1:33PM", "%b %d %Y %I:%M%p").replace(
+            tzinfo=datetime.timezone.utc
+        ),
     )
     assert (
         msg_body.decode() == '{"mrn": "111", "accession_number": "123", '

@@ -33,9 +33,9 @@ PATIENT_ID = "a_patient"
 message_body = serialise(
     mrn=PATIENT_ID,
     accession_number=ACCESSION_NUMBER,
-    study_datetime=datetime.datetime.strptime(
-        "01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S"
-    ).replace(tzinfo=datetime.timezone.utc),
+    study_datetime=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
+        tzinfo=datetime.timezone.utc
+    ),
 )
 
 

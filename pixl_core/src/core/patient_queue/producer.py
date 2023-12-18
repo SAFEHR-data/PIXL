@@ -29,24 +29,16 @@ class PixlProducer(PixlBlockingInterface):
         Sends a list of serialised messages to a queue.
         :param messages: list of messages to be sent to queue
         """
-        LOGGER.debug(
-            "Publishing %i messages to queue: %s", len(messages), self.queue_name
-        )
+        LOGGER.debug("Publishing %i messages to queue: %s", len(messages), self.queue_name)
         if len(messages) > 0:
             for msg in messages:
                 LOGGER.debug("Preparing to publish")
-                self._channel.basic_publish(
-                    exchange="", routing_key=self.queue_name, body=msg
-                )
+                self._channel.basic_publish(exchange="", routing_key=self.queue_name, body=msg)
                 # RabbitMQ can miss-order messages if there is not a sufficient delay
                 sleep(0.1)
-                LOGGER.debug(
-                    "Message %s published to queue %s", msg.decode(), self.queue_name
-                )
+                LOGGER.debug("Message %s published to queue %s", msg.decode(), self.queue_name)
         else:
-            LOGGER.debug(
-                "List of messages is empty so nothing will be published to queue."
-            )
+            LOGGER.debug("List of messages is empty so nothing will be published to queue.")
 
     def clear_queue(self) -> None:
         """

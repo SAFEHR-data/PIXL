@@ -39,8 +39,7 @@ def serialise(mrn: str, accession_number: str, study_datetime: datetime) -> byte
     :returns: JSON formatted message
     """
     logger.debug(
-        "Serialising message with patient id %s, "
-        "accession number: %s and timestamp %s",
+        "Serialising message with patient id %s, " "accession number: %s and timestamp %s",
         mrn,
         accession_number,
         study_datetime,

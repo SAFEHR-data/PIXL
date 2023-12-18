@@ -70,9 +70,7 @@ async def az_copy_current(csv_filename: str = "extract.csv") -> None:
     """
     logger.info("Copying current state of anon schema to azure")
 
-    PIXLDatabase().to_csv(
-        schema_name="emap_data", table_name="ehr_anon", filename=csv_filename
-    )
+    PIXLDatabase().to_csv(schema_name="emap_data", table_name="ehr_anon", filename=csv_filename)
     logger.debug("Saved temporary .csv (%s)", csv_filename)
 
     blob_service_client = BlobServiceClient(

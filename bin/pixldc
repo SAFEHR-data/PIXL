@@ -20,9 +20,7 @@ from pathlib import Path
 
 ALLOWED_PROJECT_NAMES = ["pixl_dev", "pixl_test", "pixl_prod"]
 parser = argparse.ArgumentParser(description="Wrapper around docker compose for pixl")
-parser.add_argument(
-    "--debug", action="store_true", help="print debugging for this wrapper"
-)
+parser.add_argument("--debug", action="store_true", help="print debugging for this wrapper")
 parser.add_argument(
     "project",
     choices=ALLOWED_PROJECT_NAMES,
