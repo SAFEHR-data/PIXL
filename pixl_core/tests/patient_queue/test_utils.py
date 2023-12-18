@@ -42,5 +42,7 @@ def test_simple_deserialise() -> None:
 def test_deserialise_datetime() -> None:
     """Checks that datetimes can be correctly serialised"""
     timestamp = datetime.datetime.fromordinal(100012)
-    data = deserialise(serialise(mrn="", accession_number="", study_datetime=timestamp, procedure_occurrence_id=""))
+    data = deserialise(
+        serialise(mrn="", accession_number="", study_datetime=timestamp, procedure_occurrence_id="")
+    )
     assert data["study_datetime"] == timestamp
