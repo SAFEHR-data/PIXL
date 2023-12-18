@@ -54,9 +54,7 @@ class TestConsumer(TestCase):  # noqa: D101
         with PixlProducer(queue_name=TEST_QUEUE) as pp:
             pp.publish(messages=[MESSAGE_BODY])
 
-        async with PixlConsumer(
-            queue_name=TEST_QUEUE, token_bucket=TokenBucket()
-        ) as pc:
+        async with PixlConsumer(queue_name=TEST_QUEUE, token_bucket=TokenBucket()) as pc:
 
             async def consume(msg: bytes) -> None:
                 """
@@ -83,7 +81,5 @@ def test_consume_all() -> None:
         pp.publish(messages=[MESSAGE_BODY, MESSAGE_BODY])
 
     with PixlBlockingConsumer(queue_name=TEST_QUEUE) as bc:
-        counter_bc = bc.consume_all(
-            timeout_in_seconds=2, file_path=Path("test_producer.csv")
-        )
+        counter_bc = bc.consume_all(timeout_in_seconds=2, file_path=Path("test_producer.csv"))
         assert counter_bc == 2

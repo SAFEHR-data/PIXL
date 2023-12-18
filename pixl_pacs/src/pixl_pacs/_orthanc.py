@@ -72,15 +72,11 @@ class Orthanc(ABC):
         return str(self._get(f"/jobs/{job_id}")["State"])
 
     def _get(self, path: str) -> Any:
-        return _deserialise(
-            requests.get(f"{self._url}{path}", auth=self._auth, timeout=10)
-        )
+        return _deserialise(requests.get(f"{self._url}{path}", auth=self._auth, timeout=10))
 
     def _post(self, path: str, data: dict, timeout: Optional[float] = None) -> Any:
         return _deserialise(
-            requests.post(
-                f"{self._url}{path}", json=data, auth=self._auth, timeout=timeout
-            )
+            requests.post(f"{self._url}{path}", json=data, auth=self._auth, timeout=timeout)
         )
 
 

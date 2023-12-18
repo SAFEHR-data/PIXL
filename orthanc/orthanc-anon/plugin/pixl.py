@@ -88,8 +88,7 @@ def AzureDICOMTokenRefresh():
         access_token = AzureAccessToken()
     except Exception:  # noqa: BLE001
         orthanc.LogError(
-            "Failed to get an Azure access token. Retrying in 30 seconds\n"
-            + traceback.format_exc()
+            "Failed to get an Azure access token. Retrying in 30 seconds\n" + traceback.format_exc()
         )
         sleep(30)
         return AzureDICOMTokenRefresh()
@@ -218,9 +217,7 @@ def ReceivedInstanceCallback(receivedDicom, origin):
     try:
         return AnonymiseCallback(dataset)
     except Exception:  # noqa: BLE001
-        orthanc.LogWarning(
-            "Failed to anonymize study due to\n" + traceback.format_exc()
-        )
+        orthanc.LogWarning("Failed to anonymize study due to\n" + traceback.format_exc())
         return orthanc.ReceivedInstanceAction.DISCARD, None
 
 
@@ -250,9 +247,7 @@ def AnonymiseCallback(dataset):
         dataset = pixl_dcmd.enforce_whitelist(dataset, tags)
 
     # Write anoymised instance to disk.
-    return orthanc.ReceivedInstanceAction.MODIFY, pixl_dcmd.write_dataset_to_bytes(
-        dataset
-    )
+    return orthanc.ReceivedInstanceAction.MODIFY, pixl_dcmd.write_dataset_to_bytes(dataset)
 
 
 orthanc.RegisterOnChangeCallback(OnChange)

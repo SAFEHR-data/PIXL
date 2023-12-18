@@ -31,6 +31,8 @@ services:
         condition: service_healthy
       hasher-api:
         condition: service_healthy
+      cogstack-api:
+        condition: service_healthy
     healthcheck:
       interval: 10s
       timeout: 30s
@@ -51,6 +53,7 @@ services:
       EMAP_UDS_USER: postgres
       EMAP_UDS_PASSWORD: postgres
       EMAP_UDS_SCHEMA_NAME: star
+      COGSTACK_REDACT_URL: http://cogstack-api:8000/redact
     ports:
       - "9000:8000"
       - "443:443"
@@ -75,7 +78,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      PIXL_DB_NAME: pixl
+      POSTGRES_DB: pixl
       PGTZ: Europe/London
       PIXL_DB_EHR_SCHEMA_NAME: emap_data
     env_file:
@@ -98,6 +101,7 @@ services:
 
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
+      start_period: 30s
       interval: 10s
       timeout: 30s
       retries: 5
@@ -114,3 +118,15 @@ services:
       interval: 10s
       timeout: 30s
       retries: 5
+
+  cogstack-api:
+    container_name: pixl-test-cogstack
+    build:
+      context: ./dummy-services/
+      dockerfile: ./Dockerfile
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/heart-beat" ]
+      interval: 10s
+      timeout: 30s
+      retries: 5
+

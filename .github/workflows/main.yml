@@ -151,7 +151,6 @@ jobs:
       - name: Install Python dependencies
         run: |
           pip install pixl_core/[test] pixl_ehr/[test]
-          python -m spacy download en_core_web_lg
 
       - name: Run tests
         working-directory: pixl_ehr/tests

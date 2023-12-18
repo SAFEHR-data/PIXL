@@ -1,4 +1,3 @@
-#!/bin/bash
 #  Copyright (c) University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,9 +11,18 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-set -euxo pipefail
+FROM python:3.10.6-slim-bullseye
 
-_sql_command="select * from emap_data.ehr_anon"
-_result=$(docker exec -it test-postgres-1 /bin/bash -c \
-  "PGPASSWORD=pixl_db_password psql -U pixl_db_username -d pixl -c \"$_sql_command\"")
-echo "$_result" | grep -q "1 row"
+RUN export DEBIAN_FRONTEND=noninteractive && \
+    apt-get update && \
+    apt-get install --yes --no-install-recommends procps ca-certificates \
+    iproute2 git curl libpq-dev curl gnupg g++ locales
+
+WORKDIR /app
+
+COPY cogstack.py .
+COPY pyproject.toml .
+
+RUN pip install -e .
+
+ENTRYPOINT ["uvicorn", "cogstack:app", "--host", "0.0.0.0", "--port", "8000"]

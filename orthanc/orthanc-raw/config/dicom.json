@@ -2,22 +2,6 @@
   "DicomAet" : "${ORTHANC_RAW_AE_TITLE}",
 
   "DicomModalities" : {
-    "UCVNA" : {
-      "AET" : "${VNA_AE_TITLE}",
-      "Port" : "${VNA_DICOM_PORT}",
-      "Host" : "${VNA_IP_ADDR}",
-      "Manufacturer" : "Generic",
-      "AllowEcho" : true,
-      "AllowFind" : false,
-      "AllowFindWorklist" : false,
-      "AllowGet"  : false,
-      "AllowMove" : false,
-      "AllowStore" : true,
-      "AllowStorageCommitment" : false,
-      "AllowTranscoding" : true,
-      "UseDicomTls" : false,
-      "Timeout" : 60
-    },
     "UCVNAQR" : {
       "AET" : "${VNAQR_AE_TITLE}",
       "Port" : "${VNAQR_DICOM_PORT}",

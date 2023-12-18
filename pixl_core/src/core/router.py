@@ -26,9 +26,7 @@ async def heart_beat() -> str:  # noqa: D103
     return "OK"
 
 
-@router.post(
-    "/token-bucket-refresh-rate", summary="Update the refresh rate in items per second"
-)
+@router.post("/token-bucket-refresh-rate", summary="Update the refresh rate in items per second")
 async def update_tb_refresh_rate(item: TokenRefreshUpdate) -> str:  # noqa: D103
     if not isinstance(item.rate, float) or item.rate < 0:
         raise HTTPException(

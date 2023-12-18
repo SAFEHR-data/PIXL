@@ -36,9 +36,7 @@ class Database:
         password: Optional[str] = None,
         host: Optional[str] = None,
     ) -> None:
-        connection_string = (
-            f"dbname={db_name} user={username} password={password} host={host}"
-        )
+        connection_string = f"dbname={db_name} user={username} password={password} host={host}"
         self._connection = pypg.connect(connection_string)
         self._cursor = self._connection.cursor()
 
@@ -96,17 +94,13 @@ class PIXLDatabase(WriteableDatabase, QueryableDatabase):
 
     def to_csv(self, schema_name: str, table_name: str, filename: str) -> None:
         """Extract the content of a table within a schema to a csv file and save it"""
-        query = (
-            f"COPY (SELECT * FROM {schema_name}.{table_name}) TO STDOUT WITH CSV HEADER"
-        )
+        query = f"COPY (SELECT * FROM {schema_name}.{table_name}) TO STDOUT WITH CSV HEADER"
 
         with Path(filename, "w").open() as file:
             self._cursor.copy_expert(query, file)
 
     def contains(self, data: "PatientEHRData") -> bool:
         """Does the database contain a set of data already?"""
-        query = (
-            "SELECT * FROM emap_data.ehr_raw WHERE mrn = %s and accession_number = %s"
-        )
+        query = "SELECT * FROM emap_data.ehr_raw WHERE mrn = %s and accession_number = %s"
         self._cursor.execute(query=str(query), vars=[data.mrn, data.accession_number])
         return self._cursor.fetchone() is not None

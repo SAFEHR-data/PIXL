@@ -58,9 +58,7 @@ def test_accession_number_endpoint_returns_dicom_compatible_hash():
     https://dicom.innolitics.com/ciods/12-lead-ecg/general-study/00200010
     https://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html
     """
-    response = client.get(
-        "/hash-accession-number", params={"message": "test_accession_number"}
-    )
+    response = client.get("/hash-accession-number", params={"message": "test_accession_number"})
     assert len(response.text) <= 16
 
 
