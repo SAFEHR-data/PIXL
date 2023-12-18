@@ -395,16 +395,15 @@ def messages_from_parquet(dir_path: Path) -> Messages:
     # study_date is in procedure.procdure_date
     procedure = pd.read_parquet(public_dir / "PROCEDURE_OCCURRENCE.parquet")
     # joining data together
-    people_procedures = people.join(procedure, on="person_id", lsuffix="_people")
-    joined = people_procedures.join(
-        accessions, on="procedure_occurrence_id", rsuffix="_links"
-    )
+    people_procedures = people.merge(procedure, on="person_id")
+    cohort_data = people_procedures.merge(accessions, on="procedure_occurrence_id")
 
     expected_col_names = [
         "PrimaryMrn",
         "AccessionNumber",
         "person_id",
         "procedure_date",
+        "procedure_occurrence_id",
     ]
     logger.debug(
         f"Extracting messages from {dir_path}. Expecting columns to include "
@@ -412,24 +411,24 @@ def messages_from_parquet(dir_path: Path) -> Messages:
     )
 
     # First line is column names
-    messages_df = joined
     messages = Messages()
 
     for col in expected_col_names:
-        if col not in list(messages_df.columns):
+        if col not in list(cohort_data.columns):
             msg = (
                 f"csv file expected to have at least {expected_col_names} as "
                 f"column names"
             )
             raise ValueError(msg)
 
-    mrn_col_name, acc_num_col_name, _, dt_col_name = expected_col_names
-    for _, row in messages_df.iterrows():
+    mrn_col_name, acc_num_col_name, _, dt_col_name, procedure_occurrence_id = expected_col_names
+    for _, row in cohort_data.iterrows():
         messages.append(
             serialise(
                 mrn=row[mrn_col_name],
                 accession_number=row[acc_num_col_name],
                 study_datetime=row[dt_col_name],
+                procedure_occurrence_id=row[procedure_occurrence_id],
             )
         )
 
