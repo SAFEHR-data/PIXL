@@ -67,6 +67,7 @@ class ImagingStudy:
     mrn: str
     accession_number: str
     study_datetime: datetime
+    procedure_occurrence_id: str
 
     @classmethod
     def from_message(cls, message_body: bytes) -> "ImagingStudy":
