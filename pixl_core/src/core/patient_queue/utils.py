@@ -21,50 +21,73 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 
-def deserialise(message_body: bytes) -> dict:
-    """Returns the de-serialised message in JSON format."""
-    logger.debug("De-serialising: %s", message_body.decode())
-    data = dict(json.loads(message_body.decode()))
-    if "study_datetime" in data:
-        data["study_datetime"] = datetime.fromisoformat(data["study_datetime"])
-    return data
+class SerialisedMessage:
+    """Class to represent a serialised message."""
+
+    body: bytes
+
+    def __init__(self, body: bytes) -> None:
+        """Initialise the serialised message from JSON dump."""
+        self.body = body
+
+    def deserialise(self) -> dict:
+        """Returns the de-serialised message in JSON format."""
+        logger.debug("De-serialising: %s", self.body.decode())
+        data = dict(json.loads(self.body.decode()))
+        if "study_datetime" in data:
+            data["study_datetime"] = datetime.fromisoformat(data["study_datetime"])
+        if "omop_es_timestamp" in data:
+            data["omop_es_timestamp"] = datetime.fromisoformat(data["omop_es_timestamp"])
+
+        return data
 
 
-def serialise(
-    mrn: str,
-    accession_number: str,
-    study_datetime: datetime,
-    procedure_occurrence_id: str,
-    project_name: str,
-    omop_es_timestamp: datetime,
-) -> bytes:
-    """
-    Returns serialised message from the given parameters.
-    :param mrn: patient identifier
-    :param accession_number: accession number
-    :param study_datetime: date and time of the study
-    :param procedure_occurrence_id: the OMOP ID of the procedure
-    :returns: JSON formatted message
-    """
-    logger.debug(
-        "Serialising message with patient id %s, "
-        "accession number: %s and timestamp %s "
-        "procedure_occurrence_id %s, ",
-        "project_name %s, omop_es_timestamp %s",
-        mrn,
-        accession_number,
-        study_datetime,
-        procedure_occurrence_id,
-        project_name,
-        omop_es_timestamp,
-    )
-    return json.dumps(
-        {
-            "mrn": mrn,
-            "accession_number": accession_number,
-            "study_datetime": study_datetime.isoformat(),
-            "procedure_occurrence_id": procedure_occurrence_id,
-            "project_name": project_name,
-            "omop_es_timestamp": omop_es_timestamp.isoformat(),
-        }
-    ).encode("utf-8")
+class Message:
+    """Class to represent a message containing the relevant information for a study."""
+
+    mrn: str
+    accession_number: str
+    study_datetime: datetime
+    procedure_occurrence_id: str
+    project_name: str
+    omop_es_timestamp: datetime
+
+    def __init__(self, message_fields: dict) -> None:
+        """Initialise the message."""
+        self.mrn = message_fields["mrn"]
+        self.accession_number = message_fields["accession_number"]
+        self.study_datetime = message_fields["study_datetime"]
+        self.procedure_occurrence_id = message_fields["procedure_occurrence_id"]
+        self.project_name = message_fields["project_name"]
+        self.omop_es_timestamp = message_fields["omop_es_timestamp"]
+
+    def serialise(self) -> "SerialisedMessage":
+        """Serialise the message into JSON format."""
+        msg = (
+            "Serialising message with\n"
+            " * patient id: %s\n"
+            " * accession number: %s\n"
+            " * timestamp: %s\n"
+            " * procedure_occurrence_id: %s\n",
+            " * project_name: %s\n * omop_es_timestamp: %s",
+            self.mrn,
+            self.accession_number,
+            self.study_datetime,
+            self.procedure_occurrence_id,
+            self.project_name,
+            self.omop_es_timestamp,
+        )
+        logger.debug(msg)
+
+        body = json.dumps(
+            {
+                "mrn": self.mrn,
+                "accession_number": self.accession_number,
+                "study_datetime": self.study_datetime.isoformat(),
+                "procedure_occurrence_id": self.procedure_occurrence_id,
+                "project_name": self.project_name,
+                "omop_es_timestamp": self.omop_es_timestamp.isoformat(),
+            }
+        ).encode("utf-8")
+
+        return SerialisedMessage(body=body)
