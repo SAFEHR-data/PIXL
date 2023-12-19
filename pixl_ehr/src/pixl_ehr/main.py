@@ -21,7 +21,7 @@ from pathlib import Path
 
 from azure.identity import EnvironmentCredential
 from azure.storage.blob import BlobServiceClient
-from core.patient_queue.message import PixlConsumer
+from core.patient_queue import PixlConsumer
 from core.router import router, state
 from decouple import config
 from fastapi import FastAPI

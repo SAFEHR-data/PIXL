@@ -23,7 +23,7 @@ import click
 import pandas as pd
 import requests
 import yaml
-from core.patient_queue.message import Message
+from core.patient_queue.message import Message, SerialisedMessage
 from core.patient_queue.producer import PixlProducer
 from core.patient_queue.subscriber import PixlBlockingConsumer
 
@@ -376,7 +376,7 @@ def messages_from_parquet(dir_path: Path) -> Messages:
             project_name=project_name,
             omop_es_timestamp=omop_es_timestamp,
         )
-        messages.append(message.serialise())
+        messages.append(message.serialise().body)
 
     if len(messages) == 0:
         msg = f"Failed to find any messages in {dir_path}"
@@ -447,9 +447,11 @@ def api_config_for_queue(queue_name: str) -> APIConfig:
     return APIConfig(config[config_key])
 
 
-def study_date_from_serialised(message: Message) -> datetime.datetime:
+def study_date_from_serialised(message: bytes) -> datetime.datetime:
     """Get the study date from a serialised message as a datetime"""
-    result = message.deserialise()["study_datetime"]
+    # FIXME: turn study_datetime into a @property of Message
+    # Hack to get the study date from a serialised message and get the tests passing
+    result = SerialisedMessage(message.decode()).deserialise()["study_datetime"]
     if not isinstance(result, datetime.datetime):
         msg = "Expected study date to be a datetime. Got %s"
         raise TypeError(msg, type(result))

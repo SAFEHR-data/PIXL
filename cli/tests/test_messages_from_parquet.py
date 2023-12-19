@@ -24,8 +24,7 @@ def test_messages_from_parquet(resources: Path) -> None:
     The test data doesn't have any "difficult" cases in it, eg. people without procedures.
     """
     omop_parquet_dir = resources / "omop"
-    serialised_messages = messages_from_parquet(omop_parquet_dir)
-    message_bodies = [msg.body() for msg in serialised_messages]
+    message_bodies = messages_from_parquet(omop_parquet_dir)
     expected_messages = [
         b'{"mrn": "12345678", "accession_number": "12345678", "study_datetime": "2021-07-01", '
         b'"procedure_occurrence_id": 1, "project_name": "Test Extract - UCLH OMOP CDM", '
