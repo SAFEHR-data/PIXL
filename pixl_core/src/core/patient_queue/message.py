@@ -26,20 +26,24 @@ class SerialisedMessage:
 
     body: bytes
 
-    def __init__(self, body: bytes) -> None:
+    def __init__(self, body: str) -> None:
         """Initialise the serialised message from JSON dump."""
-        self.body = body
+        self.body = body.encode("utf-8")
 
     def deserialise(self) -> dict:
         """Returns the de-serialised message in JSON format."""
-        logger.debug("De-serialising: %s", self.body.decode())
-        data = dict(json.loads(self.body.decode()))
+        logger.debug("De-serialising: %s", self.decode())
+        data = dict(json.loads(self.decode()))
         if "study_datetime" in data:
             data["study_datetime"] = datetime.fromisoformat(data["study_datetime"])
         if "omop_es_timestamp" in data:
             data["omop_es_timestamp"] = datetime.fromisoformat(data["omop_es_timestamp"])
 
         return data
+
+    def decode(self) -> str:
+        """Returns the serialised message in string format."""
+        return self.body.decode()
 
 
 class Message:
@@ -88,6 +92,6 @@ class Message:
                 "project_name": self.project_name,
                 "omop_es_timestamp": self.omop_es_timestamp.isoformat(),
             }
-        ).encode("utf-8")
+        )
 
         return SerialisedMessage(body=body)
