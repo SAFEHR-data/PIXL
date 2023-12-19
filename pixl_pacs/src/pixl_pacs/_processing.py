@@ -68,6 +68,8 @@ class ImagingStudy:
     accession_number: str
     study_datetime: datetime
     procedure_occurrence_id: str
+    project_name: str
+    omop_es_timestamp: datetime
 
     @classmethod
     def from_message(cls, message_body: bytes) -> "ImagingStudy":
