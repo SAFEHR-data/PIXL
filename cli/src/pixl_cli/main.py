@@ -23,7 +23,7 @@ import click
 import pandas as pd
 import requests
 import yaml
-from core.patient_queue.message import deserialise, serialise
+from core.patient_queue.message import Message
 from core.patient_queue.producer import PixlProducer
 from core.patient_queue.subscriber import PixlBlockingConsumer
 
@@ -345,9 +345,6 @@ def messages_from_parquet(dir_path: Path) -> Messages:
         f"{expected_col_names}"
     )
 
-    # First line is column names
-    messages = Messages()
-
     for col in expected_col_names:
         if col not in list(cohort_data.columns):
             msg = f"csv file expected to have at least {expected_col_names} as " f"column names"
@@ -367,17 +364,20 @@ def messages_from_parquet(dir_path: Path) -> Messages:
     project_name = logs["settings"]["cdm_source_name"]
     omop_es_timestamp = datetime.datetime.fromisoformat(logs["datetime"])
 
+    messages = Messages()
+
     for _, row in cohort_data.iterrows():
-        messages.append(
-            serialise(
-                mrn=row[mrn_col_name],
-                accession_number=row[acc_num_col_name],
-                study_datetime=row[dt_col_name],
-                procedure_occurrence_id=row[procedure_occurrence_id],
-                project_name=project_name,
-                omop_es_timestamp=omop_es_timestamp,
-            )
-        )
+        # Create new dict to initialise message
+        message_fields = {
+            "mrn": row[mrn_col_name],
+            "accession_number": row[acc_num_col_name],
+            "study_datetime": row[dt_col_name],
+            "procedure_occurrence_id": row[procedure_occurrence_id],
+            "project_name": project_name,
+            "omop_es_timestamp": omop_es_timestamp,
+        }
+        message = Message(message_fields)
+        messages.append(message.serialise())
 
     if len(messages) == 0:
         msg = f"Failed to find any messages in {dir_path}"
@@ -448,9 +448,9 @@ def api_config_for_queue(queue_name: str) -> APIConfig:
     return APIConfig(config[config_key])
 
 
-def study_date_from_serialised(message: bytes) -> datetime.datetime:
+def study_date_from_serialised(message: Message) -> datetime.datetime:
     """Get the study date from a serialised message as a datetime"""
-    result = deserialise(message)["study_datetime"]
+    result = message.deserialise()["study_datetime"]
     if not isinstance(result, datetime.datetime):
         msg = "Expected study date to be a datetime. Got %s"
         raise TypeError(msg, type(result))
