@@ -18,7 +18,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from time import time
 
-from core.patient_queue.utils import deserialise
+from core.patient_queue.message import deserialise
 from decouple import config
 
 from pixl_pacs._orthanc import Orthanc, PIXLRawOrthanc

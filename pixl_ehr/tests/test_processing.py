@@ -21,7 +21,7 @@ import contextlib
 import datetime
 
 import pytest
-from core.patient_queue.utils import serialise
+from core.patient_queue.message import serialise
 from decouple import config
 from pixl_ehr._databases import PIXLDatabase, WriteableDatabase
 from pixl_ehr._processing import process_message

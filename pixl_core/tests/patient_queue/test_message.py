@@ -14,7 +14,7 @@
 import datetime
 import json
 
-from core.patient_queue.utils import deserialise, serialise
+from core.patient_queue.message import deserialise, serialise
 
 
 def test_serialise() -> None:
