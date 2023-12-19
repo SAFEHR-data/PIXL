@@ -19,7 +19,7 @@ import datetime
 import os
 
 import pytest
-from core.patient_queue import Message
+from core.patient_queue.message import Message
 from decouple import config
 from pixl_pacs._orthanc import Orthanc, PIXLRawOrthanc
 from pixl_pacs._processing import ImagingStudy, process_message
