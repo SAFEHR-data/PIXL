@@ -67,7 +67,7 @@ class ImagingStudy:
 
     @classmethod
     def from_message(cls, serialised_message: SerialisedMessage) -> "ImagingStudy":
-        return ImagingStudy(message=Message(serialised_message.deserialise()))
+        return ImagingStudy(message=Message(**serialised_message.deserialise()))
 
     @property
     def orthanc_query_dict(self) -> dict:

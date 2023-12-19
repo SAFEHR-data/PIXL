@@ -273,7 +273,7 @@ def state_filepath_for_queue(queue_name: str) -> Path:
     return Path(f"{queue_name.replace('/', '_')}.state")
 
 
-class Messages(list):
+class Messages(list[bytes]):
     """
     Class to represent messages
 
@@ -368,15 +368,14 @@ def messages_from_parquet(dir_path: Path) -> Messages:
 
     for _, row in cohort_data.iterrows():
         # Create new dict to initialise message
-        message_fields = {
-            "mrn": row[mrn_col_name],
-            "accession_number": row[acc_num_col_name],
-            "study_datetime": row[dt_col_name],
-            "procedure_occurrence_id": row[procedure_occurrence_id],
-            "project_name": project_name,
-            "omop_es_timestamp": omop_es_timestamp,
-        }
-        message = Message(message_fields)
+        message = Message(
+            mrn=row[mrn_col_name],
+            accession_number=row[acc_num_col_name],
+            study_datetime=row[dt_col_name],
+            procedure_occurrence_id=row[procedure_occurrence_id],
+            project_name=project_name,
+            omop_es_timestamp=omop_es_timestamp,
+        )
         messages.append(message.serialise())
 
     if len(messages) == 0:

@@ -56,16 +56,14 @@ weight_vot_id, height_vot_id, gcs_vot_id = 2222222, 3333333, 4444444
 ls_id, lo_id, lr_id, ltd_id = 5555555, 6666666, 7777777, 8888888
 
 message = Message(
-    {
-        "mrn": mrn,
-        "accession_number": accession_number,
-        "study_datetime": datetime.datetime.strptime(study_datetime_str, "%d/%m/%Y %H:%M").replace(
-            tzinfo=datetime.timezone.utc
-        ),
-        "procedure_occurrence_id": procedure_occurrence_id,
-        "project_name": project_name,
-        "omop_es_timestamp": omop_es_timestamp,
-    }
+    mrn=mrn,
+    accession_number=accession_number,
+    study_datetime=datetime.datetime.strptime(study_datetime_str, "%d/%m/%Y %H:%M").replace(
+        tzinfo=datetime.timezone.utc
+    ),
+    procedure_occurrence_id=procedure_occurrence_id,
+    project_name=project_name,
+    omop_es_timestamp=omop_es_timestamp,
 )
 serialised_message = message.serialise()
 

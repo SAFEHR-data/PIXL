@@ -31,16 +31,14 @@ pytest_plugins = ("pytest_asyncio",)
 ACCESSION_NUMBER = "abc"
 PATIENT_ID = "a_patient"
 message = Message(
-    {
-        "mrn": PATIENT_ID,
-        "accession_number": ACCESSION_NUMBER,
-        "study_datetime": datetime.datetime.strptime(
-            "01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S"
-        ).replace(tzinfo=datetime.timezone.utc),
-        "procedure_occurrence_id": "234",
-        "project_name": "test project",
-        "omop_es_timestamp": datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
-    }
+    mrn=PATIENT_ID,
+    accession_number=ACCESSION_NUMBER,
+    study_datetime=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
+        tzinfo=datetime.timezone.utc
+    ),
+    procedure_occurrence_id="234",
+    project_name="test project",
+    omop_es_timestamp=datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
 )
 serialised_message = message.serialise()
 

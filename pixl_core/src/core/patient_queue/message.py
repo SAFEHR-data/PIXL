@@ -16,6 +16,7 @@
 
 import json
 import logging
+from dataclasses import dataclass
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
@@ -46,6 +47,7 @@ class SerialisedMessage:
         return self.body.decode()
 
 
+@dataclass
 class Message:
     """Class to represent a message containing the relevant information for a study."""
 
@@ -55,15 +57,6 @@ class Message:
     procedure_occurrence_id: str
     project_name: str
     omop_es_timestamp: datetime
-
-    def __init__(self, message_fields: dict) -> None:
-        """Initialise the message."""
-        self.mrn = message_fields["mrn"]
-        self.accession_number = message_fields["accession_number"]
-        self.study_datetime = message_fields["study_datetime"]
-        self.procedure_occurrence_id = message_fields["procedure_occurrence_id"]
-        self.project_name = message_fields["project_name"]
-        self.omop_es_timestamp = message_fields["omop_es_timestamp"]
 
     def serialise(self) -> "SerialisedMessage":
         """Serialise the message into JSON format."""
