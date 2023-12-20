@@ -65,7 +65,6 @@ message = Message(
     project_name=project_name,
     omop_es_timestamp=omop_es_timestamp,
 )
-serialised_message = message.serialise()
 
 
 class WritableEMAPStar(WriteableDatabase):
@@ -164,7 +163,7 @@ def insert_data_into_emap_star_schema() -> None:
 @pytest.mark.asyncio()
 async def test_message_processing() -> None:
     insert_data_into_emap_star_schema()
-    await process_message(serialised_message)
+    await process_message(message)
 
     pixl_db = QueryablePIXLDB()
     row = pixl_db.execute_query_string("select * from emap_data.ehr_raw where mrn = %s", [mrn])
