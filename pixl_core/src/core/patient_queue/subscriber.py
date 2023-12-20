@@ -21,6 +21,7 @@ from typing import Any
 
 import aio_pika
 
+from core.patient_queue.message import Message, deserialise
 from core.token_buffer.tokens import TokenBucket
 
 from ._base import PixlBlockingInterface, PixlQueueInterface
@@ -52,7 +53,7 @@ class PixlConsumer(PixlQueueInterface):
         self._queue = await self._channel.declare_queue(self.queue_name)
         return self
 
-    async def run(self, callback: Callable[[bytes], Awaitable[None]]) -> None:
+    async def run(self, callback: Callable[[Message], Awaitable[None]]) -> None:
         """
         Creates loop that waits for messages from producer and processes them as
         they appear.
@@ -73,7 +74,7 @@ class PixlConsumer(PixlQueueInterface):
 
                 try:
                     await asyncio.sleep(0.01)  # Avoid very fast callbacks
-                    await callback(message.body)
+                    await callback(deserialise(message.body))
                 except Exception:
                     LOGGER.exception(
                         "Failed to process %s" "Not re-queuing message",
