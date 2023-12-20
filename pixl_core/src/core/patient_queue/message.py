@@ -37,7 +37,7 @@ class Message:
 
     def serialise(self, deserialisable: bool = True) -> Any:  # noqa: FBT001, FBT002
         """
-        Serialise the message into a JSON string.
+        Serialise the message into a JSON string and convert to bytes.
 
         :param deserialisable: If True, the serialised message will be deserialisable, by setting
             the unpicklable flag to False in jsonpickle.encode(), meaning that the original Message
@@ -60,7 +60,7 @@ class Message:
         )
         logger.debug(msg)
 
-        return encode(self, unpicklable=deserialisable)
+        return str.encode(encode(self, unpicklable=deserialisable))
 
 
 def deserialise(serialised_msg: str) -> Any:
