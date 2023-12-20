@@ -16,6 +16,8 @@
 import logging
 from time import sleep
 
+from core.patient_queue.message import Message
+
 from ._base import PixlBlockingInterface
 
 LOGGER = logging.getLogger(__name__)
@@ -24,7 +26,7 @@ LOGGER = logging.getLogger(__name__)
 class PixlProducer(PixlBlockingInterface):
     """Generic publisher for RabbitMQ"""
 
-    def publish(self, messages: list[bytes]) -> None:
+    def publish(self, messages: list[Message]) -> None:
         """
         Sends a list of serialised messages to a queue.
         :param messages: list of messages to be sent to queue
@@ -32,11 +34,15 @@ class PixlProducer(PixlBlockingInterface):
         LOGGER.debug("Publishing %i messages to queue: %s", len(messages), self.queue_name)
         if len(messages) > 0:
             for msg in messages:
+                LOGGER.debug("Serialising message")
+                serialised_msg = msg.serialise()
                 LOGGER.debug("Preparing to publish")
-                self._channel.basic_publish(exchange="", routing_key=self.queue_name, body=msg)
+                self._channel.basic_publish(
+                    exchange="", routing_key=self.queue_name, body=serialised_msg
+                )
                 # RabbitMQ can miss-order messages if there is not a sufficient delay
                 sleep(0.1)
-                LOGGER.debug("Message %s published to queue %s", msg.decode(), self.queue_name)
+                LOGGER.debug("Message %s published to queue %s", serialised_msg, self.queue_name)
         else:
             LOGGER.debug("List of messages is empty so nothing will be published to queue.")
 
