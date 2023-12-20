@@ -26,7 +26,7 @@ cd .. && \
 ./scripts/insert_test_data.sh
 
 pip install "${PACKAGE_DIR}/pixl_core" "${PACKAGE_DIR}/cli"
-pixl populate data/test.csv
+pixl populate --parquet-dir "${PACKAGE_DIR}/test/data/resources/omop"
 pixl start
 sleep 65  # need to wait until the DICOM image is "stable" = 60s
 ./scripts/check_entry_in_pixl_anon.sh
