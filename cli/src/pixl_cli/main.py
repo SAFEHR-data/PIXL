@@ -89,7 +89,7 @@ def populate(queues: str, *, restart: bool, parquet_dir: Path) -> None:
                 messages = messages_from_parquet(parquet_dir)
 
             remove_file_if_it_exists(state_filepath)  # will be stale
-            producer.publish(sorted(messages, key=study_date_from_serialised))
+            producer.publish(sorted(messages, key=attrgetter("study_datetime")))
 
 
 @cli.command()
@@ -445,14 +445,3 @@ def api_config_for_queue(queue_name: str) -> APIConfig:
         raise ValueError(msg)
 
     return APIConfig(config[config_key])
-
-
-def study_date_from_serialised(message: bytes) -> datetime.datetime:
-    """Get the study date from a serialised message as a datetime"""
-    # FIXME: turn study_datetime into a @property of Message
-    # Hack to get the study date from a serialised message and get the tests passing
-    result = SerialisedMessage(message.decode()).deserialise()["study_datetime"]
-    if not isinstance(result, datetime.datetime):
-        msg = "Expected study date to be a datetime. Got %s"
-        raise TypeError(msg, type(result))
-    return result
