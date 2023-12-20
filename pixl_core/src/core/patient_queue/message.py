@@ -30,7 +30,7 @@ class Message:
 
     mrn: str
     accession_number: str
-    _study_datetime: datetime
+    study_datetime: datetime
     procedure_occurrence_id: str
     project_name: str
     omop_es_timestamp: datetime
@@ -61,11 +61,6 @@ class Message:
         logger.debug(msg)
 
         return encode(self, unpicklable=deserialisable)
-
-    @property
-    def study_datetime(self) -> datetime:
-        """Return the study datetime as a datetime object."""
-        return self._study_datetime
 
 
 def deserialise(serialised_msg: str) -> Any:
