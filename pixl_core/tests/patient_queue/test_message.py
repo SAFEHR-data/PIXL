@@ -33,11 +33,11 @@ def test_serialise() -> None:
     """Checks that messages can be correctly serialised"""
     msg_body = msg.serialise(deserialisable=False)
     assert (
-        msg_body == '{"mrn": "111", "accession_number": "123", '
-        '"study_datetime": "2022-11-22T13:33:00+00:00", '
-        '"procedure_occurrence_id": "234", '
-        '"project_name": "test project", '
-        '"omop_es_timestamp": "2023-12-07T14:08:00+00:00"}'
+        msg_body == b'{"mrn": "111", "accession_number": "123", '
+        b'"study_datetime": "2022-11-22T13:33:00+00:00", '
+        b'"procedure_occurrence_id": "234", '
+        b'"project_name": "test project", '
+        b'"omop_es_timestamp": "2023-12-07T14:08:00+00:00"}'
     )
 
 
