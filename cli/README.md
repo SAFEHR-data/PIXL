@@ -32,14 +32,22 @@ pixl --help
 Populate queue for PACS and EHR extraction
 
 ```bash
-pixl populate <filename>.csv
+pixl populate --parquet-dir </path/to/parquet_dir>
 ```
 
-where the csv file contains MRN, accession numbers and timestamps in the format:
+where `parquet_dir` contains at least the following files:
 
-| VAL_ID | ACCESSION_NUMBER | STUDY_INSTANCE_UID | STUDY_DATE       | ... |
-|--------|------------------|--------------------|------------------|-----|
-| X      | Y                | Z                  | 29/02/2010 05:12 |     |
+```sh
+resources
+└── omop
+    ├── log
+    │   └── extract_summary.json
+    ├── private
+    │   ├── PERSON_LINKS.parquet
+    │   └── PROCEDURE_OCCURRENCE_LINKS.parquet
+    └── public
+        └── PROCEDURE_OCCURRENCE.parquet
+```
 
 Start the PACS extraction
 
