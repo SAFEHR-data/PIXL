@@ -36,7 +36,7 @@ _this_dir = Path(Path(__file__).parent)
 
 
 async def process_message(message: Message) -> None:
-    logger.info("Processing: %s", message.serialise(deserialisable=False))
+    logger.info("Processing: %s", message)
 
     raw_data = PatientEHRData.from_message(message)
     pixl_db = PIXLDatabase()

@@ -42,7 +42,7 @@ class PixlProducer(PixlBlockingInterface):
                 )
                 # RabbitMQ can miss-order messages if there is not a sufficient delay
                 sleep(0.1)
-                LOGGER.debug("Message %s published to queue %s", serialised_msg, self.queue_name)
+                LOGGER.debug("Message %s published to queue %s", msg, self.queue_name)
         else:
             LOGGER.debug("List of messages is empty so nothing will be published to queue.")
 
