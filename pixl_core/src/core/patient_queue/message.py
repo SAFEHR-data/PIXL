@@ -14,37 +14,14 @@
 
 """Classes to represent messages in the patient queue."""
 
-import json
 import logging
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
+
+from jsonpickle import decode, encode
 
 logger = logging.getLogger(__name__)
-
-
-class SerialisedMessage:
-    """Class to represent a serialised message."""
-
-    body: bytes
-
-    def __init__(self, body: str) -> None:
-        """Initialise the serialised message from JSON dump."""
-        self.body = body.encode("utf-8")
-
-    def deserialise(self) -> dict:
-        """Returns the de-serialised message in JSON format."""
-        logger.debug("De-serialising: %s", self.decode())
-        data = dict(json.loads(self.decode()))
-        if "study_datetime" in data:
-            data["study_datetime"] = datetime.fromisoformat(data["study_datetime"])
-        if "omop_es_timestamp" in data:
-            data["omop_es_timestamp"] = datetime.fromisoformat(data["omop_es_timestamp"])
-
-        return data
-
-    def decode(self) -> str:
-        """Returns the serialised message in string format."""
-        return self.body.decode()
 
 
 @dataclass
@@ -58,8 +35,15 @@ class Message:
     project_name: str
     omop_es_timestamp: datetime
 
-    def serialise(self) -> "SerialisedMessage":
-        """Serialise the message into JSON format."""
+    def serialise(self, deserialisable: bool = True) -> Any:  # noqa: FBT001, FBT002
+        """
+        Serialise the message into a JSON string.
+
+        :param deserialisable: If True, the serialised message will be deserialisable, by setting
+            the unpicklable flag to False in jsonpickle.encode(), meaning that the original Message
+            object can be recovered by `deserialise()`. If False, calling `deserialise()` on the
+            serialised message will return a dictionary.
+        """
         msg = (
             "Serialising message with\n"
             " * patient id: %s\n"
@@ -76,15 +60,15 @@ class Message:
         )
         logger.debug(msg)
 
-        body = json.dumps(
-            {
-                "mrn": self.mrn,
-                "accession_number": self.accession_number,
-                "study_datetime": self.study_datetime.isoformat(),
-                "procedure_occurrence_id": self.procedure_occurrence_id,
-                "project_name": self.project_name,
-                "omop_es_timestamp": self.omop_es_timestamp.isoformat(),
-            }
-        )
+        return encode(self, unpicklable=deserialisable)
 
-        return SerialisedMessage(body=body)
+
+def deserialise(serialised_msg: str) -> Any:
+    """
+    Deserialise a message from a JSON string.
+    If the message was serialised with `deserialisable=True`, the original Message object will be
+    returned. Otherwise, a dictionary will be returned.
+
+    :param serialised_msg: The serialised message.
+    """
+    return decode(serialised_msg)  # noqa: S301

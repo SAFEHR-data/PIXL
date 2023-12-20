@@ -18,7 +18,8 @@ dependencies = [
     "pika==1.3.1",
     "aio_pika==8.2.4",
     "environs==9.5.0",
-    "requests==2.31.0"
+    "requests==2.31.0",
+    "jsonpickle==3.0.2"
 ]
 
 [project.optional-dependencies]

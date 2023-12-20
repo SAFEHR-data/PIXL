@@ -12,28 +12,28 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 import datetime
-import json
 
-from core.patient_queue.message import Message, SerialisedMessage
+from core.patient_queue.message import Message, deserialise
+
+msg = Message(
+    mrn="111",
+    accession_number="123",
+    study_datetime=datetime.datetime.strptime("Nov 22 2022 1:33PM", "%b %d %Y %I:%M%p").replace(
+        tzinfo=datetime.timezone.utc
+    ),
+    procedure_occurrence_id="234",
+    project_name="test project",
+    omop_es_timestamp=datetime.datetime.strptime("Dec 7 2023 2:08PM", "%b %d %Y %I:%M%p").replace(
+        tzinfo=datetime.timezone.utc
+    ),
+)
 
 
 def test_serialise() -> None:
     """Checks that messages can be correctly serialised"""
-    msg = Message(
-        mrn="111",
-        accession_number="123",
-        study_datetime=datetime.datetime.strptime("Nov 22 2022 1:33PM", "%b %d %Y %I:%M%p").replace(
-            tzinfo=datetime.timezone.utc
-        ),
-        procedure_occurrence_id="234",
-        project_name="test project",
-        omop_es_timestamp=datetime.datetime.strptime(
-            "Dec 7 2023 2:08PM", "%b %d %Y %I:%M%p"
-        ).replace(tzinfo=datetime.timezone.utc),
-    )
-    msg_body = msg.serialise()
+    msg_body = msg.serialise(deserialisable=False)
     assert (
-        msg_body.decode() == '{"mrn": "111", "accession_number": "123", '
+        msg_body == '{"mrn": "111", "accession_number": "123", '
         '"study_datetime": "2022-11-22T13:33:00+00:00", '
         '"procedure_occurrence_id": "234", '
         '"project_name": "test project", '
@@ -41,23 +41,15 @@ def test_serialise() -> None:
     )
 
 
-def test_simple_deserialise() -> None:
-    """Checks a simple JSON deserialise works"""
-    serialised_msg = SerialisedMessage(json.dumps({"key": "value"}))
-    assert serialised_msg.deserialise()["key"] == "value"
+def test_deserialise() -> None:
+    """Checks if deserialised messages are the same as the original"""
+    serialised_msg = msg.serialise()
+    assert deserialise(serialised_msg) == msg
 
 
 def test_deserialise_datetime() -> None:
     """Checks that datetimes can be correctly serialised"""
-    timestamp = datetime.datetime.fromordinal(100012)
-    msg = Message(
-        mrn="",
-        accession_number="",
-        study_datetime=timestamp,
-        procedure_occurrence_id="",
-        project_name="",
-        omop_es_timestamp=datetime.datetime.now(),  # noqa: DTZ005
-    )
-    serialised_msg = msg.serialise()
-    data = serialised_msg.deserialise()
+    timestamp = datetime.datetime.fromisoformat("2022-11-22T13:33:00+00:00")
+    msg.study_datetime = timestamp
+    data = deserialise(msg.serialise(deserialisable=False))
     assert data["study_datetime"] == timestamp
