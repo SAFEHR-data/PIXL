@@ -71,4 +71,4 @@ def deserialise(serialised_msg: bytes) -> Any:
 
     :param serialised_msg: The serialised message.
     """
-    return decode(serialised_msg.decode("utf-8"))  # noqa: S301
+    return decode(serialised_msg)  # noqa: S301, since we control the input, so no security risks
