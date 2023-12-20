@@ -17,7 +17,7 @@ from asyncio import sleep
 from dataclasses import dataclass
 from time import time
 
-from core.patient_queue.message import Message, SerialisedMessage
+from core.patient_queue.message import Message
 from decouple import config
 
 from pixl_pacs._orthanc import Orthanc, PIXLRawOrthanc
@@ -26,10 +26,10 @@ logger = logging.getLogger("uvicorn")
 logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))
 
 
-async def process_message(serialised_message: SerialisedMessage) -> None:
-    logger.info("Processing: %s", serialised_message.decode())
+async def process_message(message: Message) -> None:
+    logger.info("Processing: %s", message.serialise(deserialisable=False))
 
-    study = ImagingStudy.from_message(serialised_message)
+    study = ImagingStudy.from_message(message)
     orthanc_raw = PIXLRawOrthanc()
 
     if study.exists_in(orthanc_raw):
@@ -48,7 +48,7 @@ async def process_message(serialised_message: SerialisedMessage) -> None:
     while job_state != "Success":
         if (time() - start_time) > config("PIXL_DICOM_TRANSFER_TIMEOUT", cast=float):
             msg = (
-                f"Failed to transfer {serialised_message.decode()} within "
+                f"Failed to transfer {message.decode()} within "
                 f"{config('PIXL_DICOM_TRANSFER_TIMEOUT')} seconds"
             )
             raise TimeoutError(msg)
@@ -66,8 +66,8 @@ class ImagingStudy:
     message: Message
 
     @classmethod
-    def from_message(cls, serialised_message: SerialisedMessage) -> "ImagingStudy":
-        return ImagingStudy(message=Message(**serialised_message.deserialise()))
+    def from_message(cls, message: Message) -> "ImagingStudy":
+        return ImagingStudy(message=message)
 
     @property
     def orthanc_query_dict(self) -> dict:

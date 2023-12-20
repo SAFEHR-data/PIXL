@@ -40,7 +40,6 @@ message = Message(
     project_name="test project",
     omop_es_timestamp=datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
 )
-serialised_message = message.serialise()
 
 
 class WritableOrthanc(Orthanc):
@@ -74,15 +73,15 @@ def add_image_to_fake_vna(image_filename: str = "test.dcm") -> None:
 @pytest.mark.asyncio()
 async def test_image_processing() -> None:
     add_image_to_fake_vna()
-    study = ImagingStudy.from_message(serialised_message)
+    study = ImagingStudy.from_message(message)
     orthanc_raw = PIXLRawOrthanc()
 
     assert not study.exists_in(orthanc_raw)
-    await process_message(serialised_message)
+    await process_message(message)
     assert study.exists_in(orthanc_raw)
 
     # TODO: check time last updated after processing again # noqa: FIX002
     # is not incremented
     # https://github.com/UCLH-Foundry/PIXL/issues/156
-    await process_message(serialised_message)
+    await process_message(message)
     assert study.exists_in(orthanc_raw)
