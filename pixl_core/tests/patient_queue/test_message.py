@@ -48,8 +48,8 @@ def test_deserialise() -> None:
 
 
 def test_deserialise_datetime() -> None:
-    """Checks that datetimes can be correctly serialised"""
+    """Checks that datetimes can be correctly deserialised"""
     timestamp = datetime.datetime.fromisoformat("2022-11-22T13:33:00+00:00")
     msg.study_datetime = timestamp
-    data = deserialise(msg.serialise(deserialisable=False))
-    assert data["study_datetime"] == timestamp
+    data = deserialise(msg.serialise())
+    assert data.study_datetime == timestamp
