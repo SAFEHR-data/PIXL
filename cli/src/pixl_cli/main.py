@@ -16,6 +16,7 @@
 import datetime
 import json
 import os
+from operator import attrgetter
 from pathlib import Path
 from typing import Any, Optional
 
@@ -23,9 +24,9 @@ import click
 import pandas as pd
 import requests
 import yaml
+from core.patient_queue.message import Message, deserialise
 from core.patient_queue.producer import PixlProducer
 from core.patient_queue.subscriber import PixlBlockingConsumer
-from core.patient_queue.utils import deserialise, serialise
 
 from ._logging import logger, set_log_level
 from ._utils import clear_file, remove_file_if_it_exists, string_is_non_empty
@@ -84,12 +85,12 @@ def populate(queues: str, *, restart: bool, parquet_dir: Path) -> None:
             if state_filepath.exists() and restart:
                 logger.info(f"Extracting messages from state: {state_filepath}")
                 inform_user_that_queue_will_be_populated_from(state_filepath)
-                messages = Messages.from_state_file(state_filepath)
+                messages = messages_from_state_file(state_filepath)
             elif parquet_dir is not None:
                 messages = messages_from_parquet(parquet_dir)
 
             remove_file_if_it_exists(state_filepath)  # will be stale
-            producer.publish(sorted(messages, key=study_date_from_serialised))
+            producer.publish(sorted(messages, key=attrgetter("study_datetime")))
 
 
 @cli.command()
@@ -273,41 +274,26 @@ def state_filepath_for_queue(queue_name: str) -> Path:
     return Path(f"{queue_name.replace('/', '_')}.state")
 
 
-class Messages(list):
+def messages_from_state_file(filepath: Path) -> list[Message]:
     """
-    Class to represent messages
+    Return messages from a state file path
 
-    Methods
-    -------
-    from_state_file(cls, filepath)
-        Return messages from a state file path
+    :param filepath: Path for state file to be read
+    :return: A list of Message objects containing all the messages from the state file
     """
+    logger.info(f"Creating messages from {filepath}")
+    if not filepath.exists():
+        raise FileNotFoundError
+    if filepath.suffix != ".state":
+        msg = f"Invalid file suffix for {filepath}. Expected .state"
+        raise ValueError(msg)
 
-    @classmethod
-    def from_state_file(cls, filepath: Path) -> "Messages":
-        """
-        Return messages from a state file path
-
-        :param filepath: Path for state file to be read
-        :return: A Messages object containing all the messages from the state file
-        """
-        logger.info(f"Creating messages from {filepath}")
-        if not filepath.exists():
-            raise FileNotFoundError
-        if filepath.suffix != ".state":
-            msg = f"Invalid file suffix for {filepath}. Expected .state"
-            raise ValueError(msg)
-
-        return cls(
-            [
-                line.encode("utf-8")
-                for line in Path.open(filepath).readlines()
-                if string_is_non_empty(line)
-            ]
-        )
+    return [
+        deserialise(line) for line in Path.open(filepath).readlines() if string_is_non_empty(line)
+    ]
 
 
-def messages_from_parquet(dir_path: Path) -> Messages:
+def messages_from_parquet(dir_path: Path) -> list[Message]:
     """
     Reads patient information from parquet files within directory structure
     and transforms that into messages.
@@ -345,9 +331,6 @@ def messages_from_parquet(dir_path: Path) -> Messages:
         f"{expected_col_names}"
     )
 
-    # First line is column names
-    messages = Messages()
-
     for col in expected_col_names:
         if col not in list(cohort_data.columns):
             msg = f"csv file expected to have at least {expected_col_names} as " f"column names"
@@ -367,17 +350,19 @@ def messages_from_parquet(dir_path: Path) -> Messages:
     project_name = logs["settings"]["cdm_source_name"]
     omop_es_timestamp = datetime.datetime.fromisoformat(logs["datetime"])
 
+    messages = []
+
     for _, row in cohort_data.iterrows():
-        messages.append(
-            serialise(
-                mrn=row[mrn_col_name],
-                accession_number=row[acc_num_col_name],
-                study_datetime=row[dt_col_name],
-                procedure_occurrence_id=row[procedure_occurrence_id],
-                project_name=project_name,
-                omop_es_timestamp=omop_es_timestamp,
-            )
+        # Create new dict to initialise message
+        message = Message(
+            mrn=row[mrn_col_name],
+            accession_number=row[acc_num_col_name],
+            study_datetime=row[dt_col_name],
+            procedure_occurrence_id=row[procedure_occurrence_id],
+            project_name=project_name,
+            omop_es_timestamp=omop_es_timestamp,
         )
+        messages.append(message)
 
     if len(messages) == 0:
         msg = f"Failed to find any messages in {dir_path}"
@@ -446,12 +431,3 @@ def api_config_for_queue(queue_name: str) -> APIConfig:
         raise ValueError(msg)
 
     return APIConfig(config[config_key])
-
-
-def study_date_from_serialised(message: bytes) -> datetime.datetime:
-    """Get the study date from a serialised message as a datetime"""
-    result = deserialise(message)["study_datetime"]
-    if not isinstance(result, datetime.datetime):
-        msg = "Expected study date to be a datetime. Got %s"
-        raise TypeError(msg, type(result))
-    return result

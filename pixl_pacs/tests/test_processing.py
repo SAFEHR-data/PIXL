@@ -19,7 +19,7 @@ import datetime
 import os
 
 import pytest
-from core.patient_queue.utils import serialise
+from core.patient_queue.message import Message
 from decouple import config
 from pixl_pacs._orthanc import Orthanc, PIXLRawOrthanc
 from pixl_pacs._processing import ImagingStudy, process_message
@@ -30,7 +30,7 @@ pytest_plugins = ("pytest_asyncio",)
 
 ACCESSION_NUMBER = "abc"
 PATIENT_ID = "a_patient"
-message_body = serialise(
+message = Message(
     mrn=PATIENT_ID,
     accession_number=ACCESSION_NUMBER,
     study_datetime=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
@@ -73,15 +73,15 @@ def add_image_to_fake_vna(image_filename: str = "test.dcm") -> None:
 @pytest.mark.asyncio()
 async def test_image_processing() -> None:
     add_image_to_fake_vna()
-    study = ImagingStudy.from_message(message_body)
+    study = ImagingStudy.from_message(message)
     orthanc_raw = PIXLRawOrthanc()
 
     assert not study.exists_in(orthanc_raw)
-    await process_message(message_body=message_body)
+    await process_message(message)
     assert study.exists_in(orthanc_raw)
 
     # TODO: check time last updated after processing again # noqa: FIX002
     # is not incremented
     # https://github.com/UCLH-Foundry/PIXL/issues/156
-    await process_message(message_body=message_body)
+    await process_message(message)
     assert study.exists_in(orthanc_raw)
