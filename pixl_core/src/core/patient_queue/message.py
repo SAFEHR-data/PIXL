@@ -35,7 +35,7 @@ class Message:
     project_name: str
     omop_es_timestamp: datetime
 
-    def serialise(self, deserialisable: bool = True) -> Any:  # noqa: FBT001, FBT002
+    def serialise(self, *, deserialisable: bool = True) -> bytes:
         """
         Serialise the message into a JSON string and convert to bytes.
 
