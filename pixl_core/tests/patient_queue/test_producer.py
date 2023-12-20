@@ -12,9 +12,18 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 import pytest
+from core.patient_queue.message import Message
 from core.patient_queue.producer import PixlProducer
 
 TEST_QUEUE = "test_publish"
+TEST_MESSAGE = Message(
+    mrn="111",
+    accession_number="123",
+    study_datetime="2022-11-22T13:33:00+00:00",
+    procedure_occurrence_id="234",
+    project_name="test project",
+    omop_es_timestamp="2023-12-07T14:08:00+00:00",
+)
 
 
 @pytest.mark.pika()
@@ -32,7 +41,7 @@ def test_publish() -> None:
     """
     with PixlProducer(queue_name=TEST_QUEUE) as pp:
         pp.clear_queue()
-        pp.publish(messages=[b"test"])
+        pp.publish(messages=[TEST_MESSAGE])
 
     with PixlProducer(queue_name=TEST_QUEUE) as pp:
         assert pp.message_count == 1
