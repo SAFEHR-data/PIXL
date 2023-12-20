@@ -63,12 +63,12 @@ class Message:
         return str.encode(encode(self, unpicklable=deserialisable))
 
 
-def deserialise(serialised_msg: str) -> Any:
+def deserialise(serialised_msg: bytes) -> Any:
     """
-    Deserialise a message from a JSON string.
+    Deserialise a message from a bytes-encoded JSON string.
     If the message was serialised with `deserialisable=True`, the original Message object will be
     returned. Otherwise, a dictionary will be returned.
 
     :param serialised_msg: The serialised message.
     """
-    return decode(serialised_msg)  # noqa: S301
+    return decode(serialised_msg.decode("utf-8"))  # noqa: S301
