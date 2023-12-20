@@ -30,18 +30,18 @@ def test_messages_from_parquet(resources: Path) -> None:
 
     message_bodies = [msg.serialise(deserialisable=False) for msg in messages]
     expected_messages = [
-        b'{"mrn": "12345678", "accession_number": "12345678", "study_datetime": "2021-07-01", '
-        b'"procedure_occurrence_id": 1, "project_name": "Test Extract - UCLH OMOP CDM", '
-        b'"omop_es_timestamp": "2023-12-07T14:08:58"}',
-        b'{"mrn": "12345678", "accession_number": "ABC1234567", "study_datetime": "2021-07-01", '
-        b'"procedure_occurrence_id": 2, "project_name": "Test Extract - UCLH OMOP CDM", '
-        b'"omop_es_timestamp": "2023-12-07T14:08:58"}',
-        b'{"mrn": "987654321", "accession_number": "ABC1234560", "study_datetime": "2020-05-01", '
-        b'"procedure_occurrence_id": 3, "project_name": "Test Extract - UCLH OMOP CDM", '
-        b'"omop_es_timestamp": "2023-12-07T14:08:58"}',
-        b'{"mrn": "5020765", "accession_number": "MIG0234560", "study_datetime": "2015-05-01", '
-        b'"procedure_occurrence_id": 4, "project_name": "Test Extract - UCLH OMOP CDM", '
-        b'"omop_es_timestamp": "2023-12-07T14:08:58"}',
+        '{"mrn": "12345678", "accession_number": "12345678", "study_datetime": "2021-07-01", '
+        '"procedure_occurrence_id": 1, "project_name": "Test Extract - UCLH OMOP CDM", '
+        '"omop_es_timestamp": "2023-12-07T14:08:58"}',
+        '{"mrn": "12345678", "accession_number": "ABC1234567", "study_datetime": "2021-07-01", '
+        '"procedure_occurrence_id": 2, "project_name": "Test Extract - UCLH OMOP CDM", '
+        '"omop_es_timestamp": "2023-12-07T14:08:58"}',
+        '{"mrn": "987654321", "accession_number": "ABC1234560", "study_datetime": "2020-05-01", '
+        '"procedure_occurrence_id": 3, "project_name": "Test Extract - UCLH OMOP CDM", '
+        '"omop_es_timestamp": "2023-12-07T14:08:58"}',
+        '{"mrn": "5020765", "accession_number": "MIG0234560", "study_datetime": "2015-05-01", '
+        '"procedure_occurrence_id": 4, "project_name": "Test Extract - UCLH OMOP CDM", '
+        '"omop_es_timestamp": "2023-12-07T14:08:58"}',
     ]
 
     assert message_bodies == expected_messages
