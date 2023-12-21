@@ -17,9 +17,11 @@ BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 PACKAGE_DIR="${BIN_DIR%/*}"
 cd "${PACKAGE_DIR}/test"
 
-# Note: this doesn't work as a single command
 docker compose --env-file .env.test -p system-test down --volumes
+#
+# Note: cannot run as single docker compose command due to different build contexts
 docker compose --env-file .env.test -p system-test up -d --build --remove-orphans
+# Warning: Requires to be run from the project root
 cd .. && \
   docker compose --env-file test/.env.test -p system-test up -d --build && \
   cd "${PACKAGE_DIR}/test"
