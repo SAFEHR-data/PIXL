@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Optional
 
 import requests
-from core.patient_queue.utils import deserialise
+from core.patient_queue.message import Message
 from decouple import config
 
 from pixl_ehr._databases import EMAPStar, PIXLDatabase
@@ -35,14 +35,14 @@ logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))
 _this_dir = Path(Path(__file__).parent)
 
 
-async def process_message(message_body: bytes) -> None:
-    logger.info("Processing: %s", message_body.decode())
+async def process_message(message: Message) -> None:
+    logger.info("Processing: %s", message)
 
-    raw_data = PatientEHRData.from_message(message_body)
+    raw_data = PatientEHRData.from_message(message)
     pixl_db = PIXLDatabase()
 
     if pixl_db.contains(raw_data):
-        logger.info("Messaged has already been processed")
+        logger.info("Message has already been processed")
         return
 
     emap_star_db = EMAPStar()
@@ -79,16 +79,15 @@ class PatientEHRData:
     report_text: Optional[str] = None
 
     @classmethod
-    def from_message(cls, message_body: bytes) -> "PatientEHRData":
+    def from_message(cls, message: Message) -> "PatientEHRData":
         """
         Create a minimal set of patient EHR data required to start queries from a
         queue message
         """
-        message_data = deserialise(message_body)
         self = PatientEHRData(
-            mrn=message_data["mrn"],
-            accession_number=message_data["accession_number"],
-            acquisition_datetime=message_data["study_datetime"],
+            mrn=message.mrn,
+            accession_number=message.accession_number,
+            acquisition_datetime=message.study_datetime,
         )
 
         logger.debug("Created %s from message data", self)

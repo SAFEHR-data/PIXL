@@ -15,10 +15,9 @@ import logging
 import os
 from asyncio import sleep
 from dataclasses import dataclass
-from datetime import datetime
 from time import time
 
-from core.patient_queue.utils import deserialise
+from core.patient_queue.message import Message
 from decouple import config
 
 from pixl_pacs._orthanc import Orthanc, PIXLRawOrthanc
@@ -27,10 +26,10 @@ logger = logging.getLogger("uvicorn")
 logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))
 
 
-async def process_message(message_body: bytes) -> None:
-    logger.info("Processing: %s", message_body.decode())
+async def process_message(message: Message) -> None:
+    logger.info("Processing: %s", message)
 
-    study = ImagingStudy.from_message(message_body)
+    study = ImagingStudy.from_message(message)
     orthanc_raw = PIXLRawOrthanc()
 
     if study.exists_in(orthanc_raw):
@@ -49,7 +48,7 @@ async def process_message(message_body: bytes) -> None:
     while job_state != "Success":
         if (time() - start_time) > config("PIXL_DICOM_TRANSFER_TIMEOUT", cast=float):
             msg = (
-                f"Failed to transfer {message_body.decode()} within "
+                f"Failed to transfer {message.decode()} within "
                 f"{config('PIXL_DICOM_TRANSFER_TIMEOUT')} seconds"
             )
             raise TimeoutError(msg)
@@ -64,19 +63,20 @@ async def process_message(message_body: bytes) -> None:
 class ImagingStudy:
     """Dataclass for EHR unique to a patient and xray study"""
 
-    mrn: str
-    accession_number: str
-    study_datetime: datetime
+    message: Message
 
     @classmethod
-    def from_message(cls, message_body: bytes) -> "ImagingStudy":
-        return ImagingStudy(**deserialise(message_body))
+    def from_message(cls, message: Message) -> "ImagingStudy":
+        return ImagingStudy(message=message)
 
     @property
     def orthanc_query_dict(self) -> dict:
         return {
             "Level": "Study",
-            "Query": {"PatientID": self.mrn, "AccessionNumber": self.accession_number},
+            "Query": {
+                "PatientID": self.message.mrn,
+                "AccessionNumber": self.message.accession_number,
+            },
         }
 
     def exists_in(self, node: Orthanc) -> bool:

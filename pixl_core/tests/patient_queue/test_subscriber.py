@@ -18,12 +18,21 @@ from typing import Any
 from unittest import TestCase
 
 import pytest
+from core.patient_queue.message import Message
 from core.patient_queue.producer import PixlProducer
 from core.patient_queue.subscriber import PixlBlockingConsumer, PixlConsumer
 from core.token_buffer.tokens import TokenBucket
 
 TEST_QUEUE = "test_consume"
-MESSAGE_BODY = b"test"
+TEST_MESSAGE = Message(
+    mrn="111",
+    accession_number="123",
+    study_datetime="2022-11-22T13:33:00+00:00",
+    procedure_occurrence_id="234",
+    project_name="test project",
+    omop_es_timestamp="2023-12-07T14:08:00+00:00",
+)
+
 counter = 0
 
 
@@ -52,17 +61,17 @@ class TestConsumer(TestCase):  # noqa: D101
         """Checks consume is working."""
         global counter  # noqa: PLW0602
         with PixlProducer(queue_name=TEST_QUEUE) as pp:
-            pp.publish(messages=[MESSAGE_BODY])
+            pp.publish(messages=[TEST_MESSAGE])
 
         async with PixlConsumer(queue_name=TEST_QUEUE, token_bucket=TokenBucket()) as pc:
 
-            async def consume(msg: bytes) -> None:
+            async def consume(msg: Message) -> None:
                 """
                 Increases counter when message is downloaded.
                 :param msg: body of the message, though not needed
                 :returns: the increased counter, though here only once
                 """
-                if str(msg) != "":
+                if str(msg.serialise()) != "":
                     global counter
                     counter += 1
 
@@ -78,7 +87,7 @@ def test_consume_all() -> None:
     graceful shutdown.
     """
     with PixlProducer(queue_name=TEST_QUEUE) as pp:
-        pp.publish(messages=[MESSAGE_BODY, MESSAGE_BODY])
+        pp.publish(messages=[TEST_MESSAGE, TEST_MESSAGE])
 
     with PixlBlockingConsumer(queue_name=TEST_QUEUE) as bc:
         counter_bc = bc.consume_all(timeout_in_seconds=2, file_path=Path("test_producer.csv"))

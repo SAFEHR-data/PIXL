@@ -24,7 +24,7 @@ THIS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 PACKAGE_DIR="${THIS_DIR%/*}"
 cd "$PACKAGE_DIR" || exit
 
-pip install "../pixl_core/[test]" ".[test]"
+pip install -e "../pixl_core/[test]" ".[test]"
 
 cd tests/
 docker compose up -d

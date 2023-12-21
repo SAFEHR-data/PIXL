@@ -21,7 +21,7 @@ import contextlib
 import datetime
 
 import pytest
-from core.patient_queue.utils import serialise
+from core.patient_queue.message import Message
 from decouple import config
 from pixl_ehr._databases import PIXLDatabase, WriteableDatabase
 from pixl_ehr._processing import process_message
@@ -36,6 +36,9 @@ study_datetime_str = "01/01/1234 01:23"
 observation_datetime = datetime.datetime.fromisoformat(
     "1234-01-01"
 )  # within hours of imaging study
+procedure_occurrence_id = "123"
+project_name = "test project"
+omop_es_timestamp = datetime.datetime.fromisoformat("1234-01-01 00:00:00")
 date_of_birth = "09/08/0007"
 sex = "testsexvalue"
 ethnicity = "testethnicity"
@@ -52,12 +55,15 @@ hv_id = 1111111
 weight_vot_id, height_vot_id, gcs_vot_id = 2222222, 3333333, 4444444
 ls_id, lo_id, lr_id, ltd_id = 5555555, 6666666, 7777777, 8888888
 
-message_body = serialise(
+message = Message(
     mrn=mrn,
     accession_number=accession_number,
     study_datetime=datetime.datetime.strptime(study_datetime_str, "%d/%m/%Y %H:%M").replace(
         tzinfo=datetime.timezone.utc
     ),
+    procedure_occurrence_id=procedure_occurrence_id,
+    project_name=project_name,
+    omop_es_timestamp=omop_es_timestamp,
 )
 
 
@@ -157,7 +163,7 @@ def insert_data_into_emap_star_schema() -> None:
 @pytest.mark.asyncio()
 async def test_message_processing() -> None:
     insert_data_into_emap_star_schema()
-    await process_message(message_body)
+    await process_message(message)
 
     pixl_db = QueryablePIXLDB()
     row = pixl_db.execute_query_string("select * from emap_data.ehr_raw where mrn = %s", [mrn])
