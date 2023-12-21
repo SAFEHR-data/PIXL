@@ -382,7 +382,7 @@ def messages_from_parquet(dir_path: Path) -> list[Message]:
         msg = f"Failed to find any messages in {dir_path}"
         raise ValueError(msg)
 
-    logger.debug(f"Created {len(messages)} messages from {dir_path}")
+    logger.info(f"Created {len(messages)} messages from {dir_path}")
     return messages
 
 
