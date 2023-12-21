@@ -17,8 +17,7 @@ import datetime
 from pathlib import Path
 
 from core.patient_queue.message import Message
-
-from cli.build.lib.pixl_cli.main import messages_from_parquet
+from pixl_cli._io import copy_public_parquet_and_build_messages
 
 
 def test_messages_from_parquet(resources: Path) -> None:
@@ -27,7 +26,7 @@ def test_messages_from_parquet(resources: Path) -> None:
     The test data doesn't have any "difficult" cases in it, eg. people without procedures.
     """
     omop_parquet_dir = resources / "omop"
-    messages = messages_from_parquet(omop_parquet_dir)
+    messages = copy_public_parquet_and_build_messages(omop_parquet_dir)
     assert all(isinstance(msg, Message) for msg in messages)
 
     expected_messages = [

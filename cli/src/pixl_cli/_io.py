@@ -33,10 +33,11 @@ def messages_from_state_file(filepath: Path) -> list[Message]:
     ]
 
 
-def messages_from_parquet(dir_path: Path) -> list[Message]:
+def copy_public_parquet_and_build_messages(dir_path: Path) -> list[Message]:
     """
     Reads patient information from parquet files within directory structure
-    and transforms that into messages.
+    and transforms that into messages. Copies the public parquet files to extracts.
+
     :param dir_path: Path for parquet directory containing private and public
     files
     """
