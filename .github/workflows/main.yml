@@ -20,6 +20,11 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Only run actions on the most recent push to a branch
+concurrency:
+  group: "${{ github.workflow }}-${{ github.head_ref }}"
+  cancel-in-progress: true
+
 jobs:
 
   lint:
