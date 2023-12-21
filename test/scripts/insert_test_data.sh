@@ -20,7 +20,7 @@ _sql_command="
 insert into star.mrn(mrn_id, mrn, research_opt_out) values (1234, 'patient_identifier', false);
 insert into star.core_demographic(mrn_id, sex) values (1234, 'F');
 "
-docker exec -it test-fake-star-db /bin/bash -c "psql -U postgres -d emap -c \"$_sql_command\"" || true
+docker exec -it system-test-fake-star-db /bin/bash -c "psql -U postgres -d emap -c \"$_sql_command\"" || true
 
 # Uses an accession number of "123456789"
 curl -X POST -u orthanc:orthanc http://localhost:8043/instances \
