@@ -40,6 +40,7 @@ RUN apt-get update && \
 # Download the tagged version of the Satellite repo if it is set otherwise use the current dir
 COPY . /Satellite
 
+# TODO: revert back to TAG
 RUN if [ "$TAG" != "" ] ; then \
       echo "Cloning Satellite repo on: $TAG" && \
       rm -rf /Satellite && \
