@@ -21,7 +21,7 @@ cd "${PACKAGE_DIR}/test"
 docker compose --env-file .env.test -p system-test down --volumes
 docker compose --env-file .env.test -p system-test up -d --build --remove-orphans
 cd .. && \
-  docker compose --env-file test/.env.test -p system-test up -d --build && \
+  docker compose --env-file test/.env.test -p system-test up -d --build --remove-orphans && \
   cd "${PACKAGE_DIR}/test"
 
 ./scripts/insert_test_data.sh
