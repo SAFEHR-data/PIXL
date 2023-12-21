@@ -17,4 +17,4 @@ set -euxo pipefail
 _sql_command="select * from emap_data.ehr_anon"
 _result=$(docker exec system-test-postgres-1 /bin/bash -c \
   "PGPASSWORD=pixl_db_password psql -U pixl_db_username -d pixl -c \"$_sql_command\"")
-echo "$_result" | grep -q "4 row"
+echo "$_result" | grep -q "3 row"

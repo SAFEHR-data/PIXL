@@ -22,6 +22,9 @@ insert into star.core_demographic(mrn_id, sex) values (1234, 'F');
 "
 docker exec -it system-test-fake-star-db /bin/bash -c "psql -U postgres -d emap -c \"$_sql_command\"" || true
 
-# Uses an accession number of "123456789"
+# Uses an accession number of "AA12345601" for MRN 987654321
 curl -X POST -u "orthanc:orthanc" "http://localhost:8043/instances" \
-  --data-binary @"$SCRIPT_DIR/../data/test.dcm"
+  --data-binary @"$SCRIPT_DIR/../resources/Dicom1.dcm"
+# Uses an accession number of "AA12345605"  for MRN 5020765
+curl -X POST -u "orthanc:orthanc" "http://localhost:8043/instances" \
+  --data-binary @"$SCRIPT_DIR/../resources/Dicom2.dcm"
