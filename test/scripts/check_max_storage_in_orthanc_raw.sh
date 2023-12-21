@@ -17,5 +17,5 @@ set -euxo pipefail
 # This could be much improved by having more realistic test data some of
 # which actually was persisted
 source ./.env.test
-docker logs test-orthanc-raw-1 2>&1 | grep "At most ${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE}MB will be used for the storage area"
+docker logs system-test-orthanc-raw-1 2>&1 | grep "At most ${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE}MB will be used for the storage area"
 

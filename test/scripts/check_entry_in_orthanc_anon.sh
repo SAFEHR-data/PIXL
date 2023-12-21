@@ -16,4 +16,4 @@ set -euxo pipefail
 
 # This could be much improved by having more realistic test data some of
 # which actually was persisted
-docker logs test-orthanc-anon-1 2>&1 | grep "DICOM instance received"
+docker logs system-test-orthanc-anon-1 2>&1 | grep "DICOM instance received"

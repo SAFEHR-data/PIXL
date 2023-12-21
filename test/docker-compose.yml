@@ -36,17 +36,21 @@ services:
       - "8043:8042"
     volumes:
       - ${PWD}/vna_config/:/run/secrets:ro
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "-u" , "orthanc:orthanc", "http://vna-qr:8042/patients" ]
+      interval: 10s
+      timeout: 30s
+      retries: 5
     networks:
       pixl-net:
 
   star:
-    container_name: test-fake-star-db
+    container_name: system-test-fake-star-db
     build:
       context: ..
       dockerfile: test/Dockerfile.fake_emap_star
       args:
         N_TABLE_ROWS: 2
-        INFORMDB_PAT: ${INFORMDB_PAT}
     environment:
       POSTGRES_USER: ${EMAP_UDS_USER}
       POSTGRES_PASSWORD: ${EMAP_UDS_PASSWORD}

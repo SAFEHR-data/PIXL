@@ -20,6 +20,11 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Only run actions on the most recent push to a branch
+concurrency:
+  group: "${{ github.workflow }}-${{ github.head_ref }}"
+  cancel-in-progress: true
+
 jobs:
 
   lint:
@@ -154,8 +159,6 @@ jobs:
 
       - name: Run tests
         working-directory: pixl_ehr/tests
-        env:
-          INFORMDB_PAT: ${{ secrets.INFORMDB_PAT }}
         run: |
           ./run-tests.sh
 
@@ -179,3 +182,20 @@ jobs:
         working-directory: pixl_pacs/tests
         run: |
           ./run-tests.sh
+
+  system-test:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Init Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10.6
+          cache: 'pip'
+
+      - name: Run tests
+        working-directory: test
+        run: |
+          ./run-system-test.sh
