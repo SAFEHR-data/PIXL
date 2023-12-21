@@ -17,7 +17,8 @@ import datetime
 from pathlib import Path
 
 from core.patient_queue.message import Message
-from pixl_cli.main import messages_from_parquet
+
+from cli.build.lib.pixl_cli.main import messages_from_parquet
 
 
 def test_messages_from_parquet(resources: Path) -> None:
@@ -35,7 +36,7 @@ def test_messages_from_parquet(resources: Path) -> None:
             accession_number="12345678",
             study_datetime=datetime.date.fromisoformat("2021-07-01"),
             procedure_occurrence_id=1,
-            project_name="Test Extract - UCLH OMOP CDM",
+            project_name="test-extract-uclh-omop-cdm",
             omop_es_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
         ),
         Message(
@@ -43,7 +44,7 @@ def test_messages_from_parquet(resources: Path) -> None:
             accession_number="ABC1234567",
             study_datetime=datetime.date.fromisoformat("2021-07-01"),
             procedure_occurrence_id=2,
-            project_name="Test Extract - UCLH OMOP CDM",
+            project_name="test-extract-uclh-omop-cdm",
             omop_es_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
         ),
         Message(
@@ -51,7 +52,7 @@ def test_messages_from_parquet(resources: Path) -> None:
             accession_number="ABC1234560",
             study_datetime=datetime.date.fromisoformat("2020-05-01"),
             procedure_occurrence_id=3,
-            project_name="Test Extract - UCLH OMOP CDM",
+            project_name="test-extract-uclh-omop-cdm",
             omop_es_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
         ),
         Message(
@@ -59,7 +60,7 @@ def test_messages_from_parquet(resources: Path) -> None:
             accession_number="MIG0234560",
             study_datetime=datetime.date.fromisoformat("2015-05-01"),
             procedure_occurrence_id=4,
-            project_name="Test Extract - UCLH OMOP CDM",
+            project_name="test-extract-uclh-omop-cdm",
             omop_es_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
         ),
     ]
