@@ -40,7 +40,7 @@ services:
       pixl-net:
 
   star:
-    container_name: test-fake-star-db
+    container_name: system-test-fake-star-db
     build:
       context: ..
       dockerfile: test/Dockerfile.fake_emap_star
