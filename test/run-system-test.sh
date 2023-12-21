@@ -35,4 +35,4 @@ sleep 65  # need to wait until the DICOM image is "stable" = 60s
 ./scripts/check_max_storage_in_orthanc_raw.sh
 
 cd "${PACKAGE_DIR}"
-docker compose -f docker-compose.yml -f ../docker-compose.yml -p system-test down --volumes
+docker compose -f docker-compose.yml -f test/docker-compose.yml -p system-test down --volumes
