@@ -17,8 +17,12 @@ set -euxo pipefail
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 _sql_command="
-insert into star.mrn(mrn_id, mrn, research_opt_out) values (1234, 'patient_identifier', false);
+insert into star.mrn(mrn_id, mrn, research_opt_out) values (1234, '12345678', false);
+insert into star.mrn(mrn_id, mrn, research_opt_out) values (2345, '987654321', false);
+insert into star.mrn(mrn_id, mrn, research_opt_out) values (3456, '5020765', false);
 insert into star.core_demographic(mrn_id, sex) values (1234, 'F');
+insert into star.core_demographic(mrn_id, sex) values (2345, 'F');
+insert into star.core_demographic(mrn_id, sex) values (3456, 'F');
 "
 docker exec -it system-test-fake-star-db /bin/bash -c "psql -U postgres -d emap -c \"$_sql_command\"" || true
 
