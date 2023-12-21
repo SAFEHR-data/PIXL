@@ -302,12 +302,16 @@ def messages_from_parquet(dir_path: Path) -> list[Message]:
     """
     public_dir = dir_path / "public"
     private_dir = dir_path / "private"
-    log_dir = dir_path / "log"
+    log_file = dir_path / "extract_summary.json"
 
-    for d in [public_dir, private_dir, log_dir]:
+    for d in [public_dir, private_dir]:
         if not d.is_dir():
             err_str = f"{d} must exist and be a directory"
             raise ValueError(err_str)
+
+    if not log_file.is_file():
+        err_str = f"{log_file} must exist and be a file"
+        raise ValueError(err_str)
 
     # MRN in people.PrimaryMrn:
     people = pd.read_parquet(private_dir / "PERSON_LINKS.parquet")
@@ -345,7 +349,6 @@ def messages_from_parquet(dir_path: Path) -> list[Message]:
     ) = expected_col_names
 
     # Get project name and OMOP ES timestamp from log file
-    log_file = log_dir / "extract_summary.json"
     logs = json.load(log_file.open())
     project_name = logs["settings"]["cdm_source_name"]
     omop_es_timestamp = datetime.datetime.fromisoformat(logs["datetime"])

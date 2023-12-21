@@ -38,15 +38,13 @@ pixl populate --parquet-dir </path/to/parquet_dir>
 where `parquet_dir` contains at least the following files:
 
 ```sh
-resources
-└── omop
-    ├── log
-    │   └── extract_summary.json
-    ├── private
-    │   ├── PERSON_LINKS.parquet
-    │   └── PROCEDURE_OCCURRENCE_LINKS.parquet
-    └── public
-        └── PROCEDURE_OCCURRENCE.parquet
+parquet_dir
+├── extract_summary.json
+├── private
+│   ├── PERSON_LINKS.parquet
+│   └── PROCEDURE_OCCURRENCE_LINKS.parquet
+└── public
+    └── PROCEDURE_OCCURRENCE.parquet
 ```
 
 Start the PACS extraction
