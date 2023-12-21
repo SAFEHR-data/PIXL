@@ -36,6 +36,11 @@ services:
       - "8043:8042"
     volumes:
       - ${PWD}/vna_config/:/run/secrets:ro
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "-u" , "orthanc:orthanc", "http://vna-qr:8042/patients" ]
+      interval: 10s
+      timeout: 30s
+      retries: 5
     networks:
       pixl-net:
 
