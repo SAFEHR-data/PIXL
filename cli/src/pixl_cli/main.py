@@ -88,17 +88,18 @@ def populate(parquet_dir: Path, *, restart: bool, queues: str) -> None:
             └── extract_summary.json
     """
     logger.info(f"Populating queue(s) {queues} from {parquet_dir}")
-    for queue in queues.split(","):
-        with PixlProducer(queue_name=queue, **config["rabbitmq"]) as producer:
-            state_filepath = state_filepath_for_queue(queue)
-            if state_filepath.exists() and restart:
-                logger.info(f"Extracting messages from state: {state_filepath}")
-                inform_user_that_queue_will_be_populated_from(state_filepath)
-                messages = messages_from_state_file(state_filepath)
-            elif parquet_dir is not None:
-                messages = messages_from_parquet(parquet_dir)
+    messages = messages_from_parquet(parquet_dir)
 
-            remove_file_if_it_exists(state_filepath)  # will be stale
+    for queue in queues.split(","):
+        state_filepath = state_filepath_for_queue(queue)
+        if state_filepath.exists() and restart:
+            logger.info(f"Extracting messages from state: {state_filepath}")
+            inform_user_that_queue_will_be_populated_from(state_filepath)
+            messages = messages_from_state_file(state_filepath)
+
+        remove_file_if_it_exists(state_filepath)  # will be stale
+
+        with PixlProducer(queue_name=queue, **config["rabbitmq"]) as producer:
             producer.publish(sorted(messages, key=attrgetter("study_datetime")))
 
 
