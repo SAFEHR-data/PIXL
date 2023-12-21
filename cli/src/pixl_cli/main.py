@@ -318,11 +318,11 @@ def messages_from_parquet(dir_path: Path) -> list[Message]:
     for d in [public_dir, private_dir]:
         if not d.is_dir():
             err_str = f"{d} must exist and be a directory"
-            raise ValueError(err_str)
+            raise NotADirectoryError(err_str)
 
     if not log_file.is_file():
         err_str = f"{log_file} must exist and be a file"
-        raise ValueError(err_str)
+        raise FileNotFoundError(err_str)
 
     # MRN in people.PrimaryMrn:
     people = pd.read_parquet(private_dir / "PERSON_LINKS.parquet")
