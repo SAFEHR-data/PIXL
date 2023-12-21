@@ -177,3 +177,14 @@ jobs:
         working-directory: pixl_pacs/tests
         run: |
           ./run-tests.sh
+
+  system-test:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run tests
+        working-directory: tests
+        run: |
+          ./run-system-test.sh
