@@ -348,7 +348,10 @@ def messages_from_parquet(dir_path: Path) -> list[Message]:
 
     for col in expected_col_names:
         if col not in list(cohort_data.columns):
-            msg = f"csv file expected to have at least {expected_col_names} as " f"column names"
+            msg = (
+                f"parquet files are expected to have at least {expected_col_names} as "
+                f"column names"
+            )
             raise ValueError(msg)
 
     (
