@@ -71,13 +71,24 @@ def cli(*, debug: bool) -> None:
     help="Restart from a saved state. Otherwise will use the given input file(s)",
 )
 @click.argument(
-    "parquet-dir",
-    required=True,
-    type=click.Path(path_type=Path, exists=True, file_okay=False),
-    help="Give a directory containing parquet input files",
+    "parquet-dir", required=True, type=click.Path(path_type=Path, exists=True, file_okay=False)
 )
 def populate(parquet_dir: Path, *, restart: bool, queues: str) -> None:
-    """Populate a (set of) queue(s) from a parquet file directory"""
+    """
+    Populate a (set of) queue(s) from a parquet file directory
+
+    PARQUET-DIR: Directory containing the public and private parquet input files and an
+        extract_summary.json log file.
+        It's expected that the directory structure will be:
+
+            PARQUET-DIR
+            ├── private
+            │   ├── PERSON_LINKS.parquet
+            │   └── PROCEDURE_OCCURRENCE_LINKS.parquet
+            ├── public
+            │   └── PROCEDURE_OCCURRENCE.parquet
+            └── extract_summary.json
+    """
     logger.info(f"Populating queue(s) {queues} from {parquet_dir}")
     for queue in queues.split(","):
         with PixlProducer(queue_name=queue, **config["rabbitmq"]) as producer:
