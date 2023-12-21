@@ -26,7 +26,7 @@ cd .. && \
 
 ./scripts/insert_test_data.sh
 
-pip install "${PACKAGE_DIR}/pixl_core" "${PACKAGE_DIR}/cli"
+pip install "${PACKAGE_DIR}/pixl_core" && pip install "${PACKAGE_DIR}/cli"
 pixl populate "${PACKAGE_DIR}/test/data/resources/omop"
 pixl start
 sleep 65  # need to wait until the DICOM image is "stable" = 60s
