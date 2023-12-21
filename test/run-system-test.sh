@@ -18,10 +18,10 @@ PACKAGE_DIR="${BIN_DIR%/*}"
 cd "${PACKAGE_DIR}/test"
 
 # Note: this doesn't work as a single command
-docker compose --env-file .env.test -p test down --volumes
-docker compose --env-file .env.test -p test up -d --build --remove-orphans
+docker compose --env-file .env.test -p system-test down --volumes
+docker compose --env-file .env.test -p system-test up -d --build --remove-orphans
 cd .. && \
-  docker compose --env-file test/.env.test -p test up -d --build && \
+  docker compose --env-file test/.env.test -p system-test up -d --build && \
   cd "${PACKAGE_DIR}/test"
 
 ./scripts/insert_test_data.sh
@@ -35,5 +35,4 @@ sleep 65  # need to wait until the DICOM image is "stable" = 60s
 ./scripts/check_max_storage_in_orthanc_raw.sh
 
 cd "${PACKAGE_DIR}"
-docker compose -f docker-compose.yml -f ../docker-compose.yml -p test down
-docker volume rm test_postgres-data test_orthanc-raw-data test_orthanc-anon-data
+docker compose -f docker-compose.yml -f ../docker-compose.yml -p system-test down --volumes
