@@ -70,13 +70,13 @@ def cli(*, debug: bool) -> None:
     default=True,
     help="Restart from a saved state. Otherwise will use the given input file(s)",
 )
-@click.option(
-    "--parquet-dir",
+@click.argument(
+    "parquet-dir",
     required=True,
     type=click.Path(path_type=Path, exists=True, file_okay=False),
     help="Give a directory containing parquet input files",
 )
-def populate(queues: str, *, restart: bool, parquet_dir: Path) -> None:
+def populate(parquet_dir: Path, *, restart: bool, queues: str) -> None:
     """Populate a (set of) queue(s) from a parquet file directory"""
     logger.info(f"Populating queue(s) {queues} from {parquet_dir}")
     for queue in queues.split(","):

@@ -32,7 +32,7 @@ pixl --help
 Populate queue for PACS and EHR extraction
 
 ```bash
-pixl populate --parquet-dir </path/to/parquet_dir>
+pixl populate </path/to/parquet_dir>
 ```
 
 where `parquet_dir` contains at least the following files:
