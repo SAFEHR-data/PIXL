@@ -18,6 +18,7 @@ PACKAGE_DIR="${BIN_DIR%/*}"
 cd "${PACKAGE_DIR}/test"
 
 # Note: this doesn't work as a single command
+docker compose --env-file .env.test -p test down --volumes
 docker compose --env-file .env.test -p test up -d  --remove-orphans
 cd .. && \
   docker compose --env-file test/.env.test -p test up -d --build && \

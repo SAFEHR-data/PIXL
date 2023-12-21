@@ -154,8 +154,6 @@ jobs:
 
       - name: Run tests
         working-directory: pixl_ehr/tests
-        env:
-          INFORMDB_PAT: ${{ secrets.INFORMDB_PAT }}
         run: |
           ./run-tests.sh
 
