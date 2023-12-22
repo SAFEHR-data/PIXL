@@ -47,19 +47,33 @@ def messages_from_state_file(filepath: Path) -> list[Message]:
     ]
 
 
-def copy_public_parquet_and_build_messages(dir_path: Path) -> list[Message]:
+def copy_parquet_return_logfile_fields(parquet_path: Path) -> tuple[str, datetime]:
+    """Copy public parquet file to extracts directory"""
+    log_file = parquet_path / "extract_summary.json"
+
+    logs = json.load(log_file.open())
+    project_name = logs["settings"]["cdm_source_name"]
+    omop_es_timestamp = datetime.fromisoformat(logs["datetime"])
+    project_name_slug = extract.copy_to_exports(parquet_path, project_name, omop_es_timestamp)
+    return project_name_slug, omop_es_timestamp
+
+
+def messages_from_parquet(
+    dir_path: Path, project_name: str, omop_es_timestamp: datetime
+) -> list[Message]:
     """
     Reads patient information from parquet files within directory structure
-    and transforms that into messages. Copies the public parquet files to extracts.
+    and transforms that into messages.
 
     :param dir_path: Path for parquet directory containing private and public
+    :param project_name: Name of the project, should be a slug, so it can match the export directory
+    :param omop_es_timestamp: Datetime that OMOP ES ran the extract
     files
     """
     public_dir = dir_path / "public"
     private_dir = dir_path / "private"
-    log_file = dir_path / "extract_summary.json"
 
-    cohort_data = _check_and_parse_parquet(log_file, private_dir, public_dir)
+    cohort_data = _check_and_parse_parquet(private_dir, public_dir)
 
     expected_col_names = [
         "PrimaryMrn",
@@ -89,8 +103,6 @@ def copy_public_parquet_and_build_messages(dir_path: Path) -> list[Message]:
         procedure_occurrence_id,
     ) = expected_col_names
 
-    omop_es_timestamp, project_name_slug = _parse_log_and_copy_parquet(dir_path, log_file)
-
     messages = []
 
     for _, row in cohort_data.iterrows():
@@ -100,7 +112,7 @@ def copy_public_parquet_and_build_messages(dir_path: Path) -> list[Message]:
             accession_number=row[acc_num_col_name],
             study_date=row[dt_col_name],
             procedure_occurrence_id=row[procedure_occurrence_id],
-            project_name=project_name_slug,
+            project_name=project_name,
             omop_es_timestamp=omop_es_timestamp,
         )
         messages.append(message)
@@ -113,14 +125,12 @@ def copy_public_parquet_and_build_messages(dir_path: Path) -> list[Message]:
     return messages
 
 
-def _check_and_parse_parquet(log_file: Path, private_dir: Path, public_dir: Path) -> pd.DataFrame:
+def _check_and_parse_parquet(private_dir: Path, public_dir: Path) -> pd.DataFrame:
     for d in [public_dir, private_dir]:
         if not d.is_dir():
             err_str = f"{d} must exist and be a directory"
             raise NotADirectoryError(err_str)
-    if not log_file.is_file():
-        err_str = f"{log_file} must exist and be a file"
-        raise FileNotFoundError(err_str)
+
     # MRN in people.PrimaryMrn:
     people = pd.read_parquet(private_dir / "PERSON_LINKS.parquet")
     # accession number in accessions.AccessionNumber
@@ -130,11 +140,3 @@ def _check_and_parse_parquet(log_file: Path, private_dir: Path, public_dir: Path
     # joining data together
     people_procedures = people.merge(procedure, on="person_id")
     return people_procedures.merge(accessions, on="procedure_occurrence_id")
-
-
-def _parse_log_and_copy_parquet(dir_path: Path, log_file: Path) -> tuple[datetime, str]:
-    logs = json.load(log_file.open())
-    project_name = logs["settings"]["cdm_source_name"]
-    omop_es_timestamp = datetime.fromisoformat(logs["datetime"])
-    project_name_slug = extract.copy_to_exports(dir_path, project_name, omop_es_timestamp)
-    return omop_es_timestamp, project_name_slug
