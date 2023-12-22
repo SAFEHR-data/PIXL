@@ -33,7 +33,7 @@ def test_messages_from_parquet(resources: Path) -> None:
         Message(
             mrn="12345678",
             accession_number="12345678",
-            study_datetime=datetime.date.fromisoformat("2021-07-01"),
+            study_date=datetime.date.fromisoformat("2021-07-01"),
             procedure_occurrence_id=1,
             project_name="test-extract-uclh-omop-cdm",
             omop_es_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
@@ -41,7 +41,7 @@ def test_messages_from_parquet(resources: Path) -> None:
         Message(
             mrn="12345678",
             accession_number="ABC1234567",
-            study_datetime=datetime.date.fromisoformat("2021-07-01"),
+            study_date=datetime.date.fromisoformat("2021-07-01"),
             procedure_occurrence_id=2,
             project_name="test-extract-uclh-omop-cdm",
             omop_es_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
@@ -49,7 +49,7 @@ def test_messages_from_parquet(resources: Path) -> None:
         Message(
             mrn="987654321",
             accession_number="ABC1234560",
-            study_datetime=datetime.date.fromisoformat("2020-05-01"),
+            study_date=datetime.date.fromisoformat("2020-05-01"),
             procedure_occurrence_id=3,
             project_name="test-extract-uclh-omop-cdm",
             omop_es_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
@@ -57,7 +57,7 @@ def test_messages_from_parquet(resources: Path) -> None:
         Message(
             mrn="5020765",
             accession_number="MIG0234560",
-            study_datetime=datetime.date.fromisoformat("2015-05-01"),
+            study_date=datetime.date.fromisoformat("2015-05-01"),
             procedure_occurrence_id=4,
             project_name="test-extract-uclh-omop-cdm",
             omop_es_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),

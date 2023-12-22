@@ -32,7 +32,7 @@ pytest_plugins = ("pytest_asyncio",)
 
 mrn = "testmrn"
 accession_number = "testaccessionnumber"
-study_datetime_str = "01/01/1234 01:23"
+study_date_str = "1234-01-01"
 observation_datetime = datetime.datetime.fromisoformat(
     "1234-01-01"
 )  # within hours of imaging study
@@ -58,9 +58,7 @@ ls_id, lo_id, lr_id, ltd_id = 5555555, 6666666, 7777777, 8888888
 message = Message(
     mrn=mrn,
     accession_number=accession_number,
-    study_datetime=datetime.datetime.strptime(study_datetime_str, "%d/%m/%Y %H:%M").replace(
-        tzinfo=datetime.timezone.utc
-    ),
+    study_date=datetime.date.fromisoformat(study_date_str),
     procedure_occurrence_id=procedure_occurrence_id,
     project_name=project_name,
     omop_es_timestamp=omop_es_timestamp,

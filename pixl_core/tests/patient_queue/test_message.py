@@ -18,9 +18,7 @@ from core.patient_queue.message import Message, deserialise
 msg = Message(
     mrn="111",
     accession_number="123",
-    study_datetime=datetime.datetime.strptime("Nov 22 2022 1:33PM", "%b %d %Y %I:%M%p").replace(
-        tzinfo=datetime.timezone.utc
-    ),
+    study_date=datetime.date.fromisoformat("2022-11-22"),
     procedure_occurrence_id="234",
     project_name="test project",
     omop_es_timestamp=datetime.datetime.strptime("Dec 7 2023 2:08PM", "%b %d %Y %I:%M%p").replace(
@@ -34,7 +32,7 @@ def test_serialise() -> None:
     msg_body = msg.serialise(deserialisable=False)
     assert (
         msg_body == b'{"mrn": "111", "accession_number": "123", '
-        b'"study_datetime": "2022-11-22T13:33:00+00:00", '
+        b'"study_date": "2022-11-22", '
         b'"procedure_occurrence_id": "234", '
         b'"project_name": "test project", '
         b'"omop_es_timestamp": "2023-12-07T14:08:00+00:00"}'

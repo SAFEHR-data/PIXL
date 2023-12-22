@@ -87,7 +87,7 @@ class PatientEHRData:
         self = PatientEHRData(
             mrn=message.mrn,
             accession_number=message.accession_number,
-            acquisition_datetime=message.study_datetime,
+            acquisition_datetime=message.study_date,
         )
 
         logger.debug("Created %s from message data", self)

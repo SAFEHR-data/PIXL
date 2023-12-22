@@ -98,7 +98,7 @@ def copy_public_parquet_and_build_messages(dir_path: Path) -> list[Message]:
         message = Message(
             mrn=row[mrn_col_name],
             accession_number=row[acc_num_col_name],
-            study_datetime=row[dt_col_name],
+            study_date=row[dt_col_name],
             procedure_occurrence_id=row[procedure_occurrence_id],
             project_name=project_name_slug,
             omop_es_timestamp=omop_es_timestamp,
