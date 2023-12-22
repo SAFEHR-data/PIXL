@@ -48,7 +48,7 @@ def messages_from_state_file(filepath: Path) -> list[Message]:
 
 
 def copy_parquet_return_logfile_fields(parquet_path: Path) -> tuple[str, datetime]:
-    """Copy public parquet file to extracts directory"""
+    """Copy public parquet file to extracts directory, and return fields from logfile"""
     log_file = parquet_path / "extract_summary.json"
 
     logs = json.load(log_file.open())
