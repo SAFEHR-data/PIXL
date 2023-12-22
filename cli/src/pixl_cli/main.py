@@ -100,7 +100,7 @@ def populate(parquet_dir: Path, *, restart: bool, queues: str) -> None:
         remove_file_if_it_exists(state_filepath)  # will be stale
 
         with PixlProducer(queue_name=queue, **config["rabbitmq"]) as producer:
-            producer.publish(sorted(messages, key=attrgetter("study_datetime")))
+            producer.publish(sorted(messages, key=attrgetter("study_date")))
 
 
 @cli.command()
