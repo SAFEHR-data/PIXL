@@ -195,10 +195,6 @@ jobs:
           python-version: 3.10.6
           cache: 'pip'
 
-      - name: Allow all users to write to exports
-        run: |
-          chmod 777 exports/
-
       - name: Run tests
         working-directory: test
         run: |
