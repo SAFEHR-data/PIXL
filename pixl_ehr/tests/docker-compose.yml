@@ -97,7 +97,6 @@ services:
       dockerfile: ../../test/Dockerfile.fake_emap_star
       args:
         N_TABLE_ROWS: 2
-        INFORMDB_PAT: ${INFORMDB_PAT}
 
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]

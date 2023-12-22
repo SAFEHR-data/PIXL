@@ -17,16 +17,19 @@ BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 PACKAGE_DIR="${BIN_DIR%/*}"
 cd "${PACKAGE_DIR}/test"
 
-# Note: this doesn't work as a single command
-docker compose --env-file .env.test -p test up -d  --remove-orphans
+docker compose --env-file .env.test -p system-test down --volumes
+#
+# Note: cannot run as single docker compose command due to different build contexts
+docker compose --env-file .env.test -p system-test up -d --build --remove-orphans
+# Warning: Requires to be run from the project root
 cd .. && \
-  docker compose --env-file test/.env.test -p test up -d --build && \
+  docker compose --env-file test/.env.test -p system-test up -d --build && \
   cd "${PACKAGE_DIR}/test"
 
 ./scripts/insert_test_data.sh
 
-pip install "${PACKAGE_DIR}/pixl_core" "${PACKAGE_DIR}/cli"
-pixl populate "${PACKAGE_DIR}/test/data/resources/omop"
+pip install -e "${PACKAGE_DIR}/pixl_core" && pip install -e "${PACKAGE_DIR}/cli"
+pixl populate "${PACKAGE_DIR}/test/resources/omop"
 pixl start
 sleep 65  # need to wait until the DICOM image is "stable" = 60s
 ./scripts/check_entry_in_pixl_anon.sh
@@ -34,5 +37,4 @@ sleep 65  # need to wait until the DICOM image is "stable" = 60s
 ./scripts/check_max_storage_in_orthanc_raw.sh
 
 cd "${PACKAGE_DIR}"
-docker compose -f docker-compose.yml -f ../docker-compose.yml -p test down
-docker volume rm test_postgres-data test_orthanc-raw-data test_orthanc-anon-data
+docker compose -f docker-compose.yml -f test/docker-compose.yml -p system-test down --volumes

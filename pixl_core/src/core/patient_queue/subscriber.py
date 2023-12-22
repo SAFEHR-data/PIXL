@@ -69,13 +69,14 @@ class PixlConsumer(PixlQueueInterface):
                     await message.reject(requeue=True)
                     continue
 
+                pixl_message = deserialise(message.body)
                 try:
                     await asyncio.sleep(0.01)  # Avoid very fast callbacks
-                    await callback(deserialise(message.body))
+                    await callback(pixl_message)
                 except Exception:
                     logger.exception(
                         "Failed to process %s" "Not re-queuing message",
-                        message.body.decode(),
+                        pixl_message,
                     )
                 finally:
                     await message.ack()
