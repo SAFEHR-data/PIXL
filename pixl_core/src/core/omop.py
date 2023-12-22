@@ -14,12 +14,15 @@
 
 """Processing of OMOP parquet files."""
 import datetime
+import logging
 import pathlib
 import shutil
 
 import slugify
 
 root_from_install = pathlib.Path(__file__).parents[3]
+
+logger = logging.getLogger(__file__)
 
 
 class OmopExtract:
@@ -63,6 +66,7 @@ class OmopExtract:
         public_output = OmopExtract._mkdir(
             export_base / "all_extracts" / "omop" / extract_time_slug / "public"
         )
+        logger.info("Copying public parquet files from %s to %s", omop_dir, public_output)
 
         # Copy extract files, overwriting if it exists
         shutil.copytree(public_input, public_output, dirs_exist_ok=True)
