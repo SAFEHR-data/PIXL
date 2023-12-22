@@ -13,7 +13,6 @@
 #  limitations under the License.
 """PIXL command line interface functionality"""
 
-import datetime
 import json
 import os
 from operator import attrgetter
@@ -21,15 +20,14 @@ from pathlib import Path
 from typing import Any, Optional
 
 import click
-import pandas as pd
 import requests
 import yaml
-from core.patient_queue.message import Message, deserialise
 from core.patient_queue.producer import PixlProducer
 from core.patient_queue.subscriber import PixlBlockingConsumer
 
+from ._io import copy_parquet_return_logfile_fields, messages_from_parquet, messages_from_state_file
 from ._logging import logger, set_log_level
-from ._utils import clear_file, remove_file_if_it_exists, string_is_non_empty
+from ._utils import clear_file, remove_file_if_it_exists
 
 
 def _load_config(filename: str = "pixl_config.yml") -> dict:
@@ -90,18 +88,20 @@ def populate(parquet_dir: Path, *, restart: bool, queues: str) -> None:
             └── extract_summary.json
     """
     logger.info(f"Populating queue(s) {queues} from {parquet_dir}")
-    for queue in queues.split(","):
-        with PixlProducer(queue_name=queue, **config["rabbitmq"]) as producer:
-            state_filepath = state_filepath_for_queue(queue)
-            if state_filepath.exists() and restart:
-                logger.info(f"Extracting messages from state: {state_filepath}")
-                inform_user_that_queue_will_be_populated_from(state_filepath)
-                messages = messages_from_state_file(state_filepath)
-            elif parquet_dir is not None:
-                messages = messages_from_parquet(parquet_dir)
+    project_name, omop_es_datetime = copy_parquet_return_logfile_fields(parquet_dir)
+    messages = messages_from_parquet(parquet_dir, project_name, omop_es_datetime)
 
-            remove_file_if_it_exists(state_filepath)  # will be stale
-            producer.publish(sorted(messages, key=attrgetter("study_datetime")))
+    for queue in queues.split(","):
+        state_filepath = state_filepath_for_queue(queue)
+        if state_filepath.exists() and restart:
+            logger.info(f"Extracting messages from state: {state_filepath}")
+            inform_user_that_queue_will_be_populated_from(state_filepath)
+            messages = messages_from_state_file(state_filepath)
+
+        remove_file_if_it_exists(state_filepath)  # will be stale
+
+        with PixlProducer(queue_name=queue, **config["rabbitmq"]) as producer:
+            producer.publish(sorted(messages, key=attrgetter("study_date")))
 
 
 @cli.command()
@@ -283,110 +283,6 @@ def consume_all_messages_and_save_csv_file(queue_name: str, timeout_in_seconds: 
 def state_filepath_for_queue(queue_name: str) -> Path:
     """Get the filepath to the queue state"""
     return Path(f"{queue_name.replace('/', '_')}.state")
-
-
-def messages_from_state_file(filepath: Path) -> list[Message]:
-    """
-    Return messages from a state file path
-
-    :param filepath: Path for state file to be read
-    :return: A list of Message objects containing all the messages from the state file
-    """
-    logger.info(f"Creating messages from {filepath}")
-    if not filepath.exists():
-        raise FileNotFoundError
-    if filepath.suffix != ".state":
-        msg = f"Invalid file suffix for {filepath}. Expected .state"
-        raise ValueError(msg)
-
-    return [
-        deserialise(line) for line in Path.open(filepath).readlines() if string_is_non_empty(line)
-    ]
-
-
-def messages_from_parquet(dir_path: Path) -> list[Message]:
-    """
-    Reads patient information from parquet files within directory structure
-    and transforms that into messages.
-    :param dir_path: Path for parquet directory containing private and public
-    files
-    """
-    public_dir = dir_path / "public"
-    private_dir = dir_path / "private"
-    log_file = dir_path / "extract_summary.json"
-
-    for d in [public_dir, private_dir]:
-        if not d.is_dir():
-            err_str = f"{d} must exist and be a directory"
-            raise NotADirectoryError(err_str)
-
-    if not log_file.is_file():
-        err_str = f"{log_file} must exist and be a file"
-        raise FileNotFoundError(err_str)
-
-    # MRN in people.PrimaryMrn:
-    people = pd.read_parquet(private_dir / "PERSON_LINKS.parquet")
-    # accession number in accessions.AccesionNumber
-    accessions = pd.read_parquet(private_dir / "PROCEDURE_OCCURRENCE_LINKS.parquet")
-    # study_date is in procedure.procdure_date
-    procedure = pd.read_parquet(public_dir / "PROCEDURE_OCCURRENCE.parquet")
-    # joining data together
-    people_procedures = people.merge(procedure, on="person_id")
-    cohort_data = people_procedures.merge(accessions, on="procedure_occurrence_id")
-
-    expected_col_names = [
-        "PrimaryMrn",
-        "AccessionNumber",
-        "person_id",
-        "procedure_date",
-        "procedure_occurrence_id",
-    ]
-    logger.debug(
-        f"Extracting messages from {dir_path}. Expecting columns to include "
-        f"{expected_col_names}"
-    )
-
-    for col in expected_col_names:
-        if col not in list(cohort_data.columns):
-            msg = (
-                f"parquet files are expected to have at least {expected_col_names} as "
-                f"column names"
-            )
-            raise ValueError(msg)
-
-    (
-        mrn_col_name,
-        acc_num_col_name,
-        _,
-        dt_col_name,
-        procedure_occurrence_id,
-    ) = expected_col_names
-
-    # Get project name and OMOP ES timestamp from log file
-    logs = json.load(log_file.open())
-    project_name = logs["settings"]["cdm_source_name"]
-    omop_es_timestamp = datetime.datetime.fromisoformat(logs["datetime"])
-
-    messages = []
-
-    for _, row in cohort_data.iterrows():
-        # Create new dict to initialise message
-        message = Message(
-            mrn=row[mrn_col_name],
-            accession_number=row[acc_num_col_name],
-            study_datetime=row[dt_col_name],
-            procedure_occurrence_id=row[procedure_occurrence_id],
-            project_name=project_name,
-            omop_es_timestamp=omop_es_timestamp,
-        )
-        messages.append(message)
-
-    if len(messages) == 0:
-        msg = f"Failed to find any messages in {dir_path}"
-        raise ValueError(msg)
-
-    logger.info(f"Created {len(messages)} messages from {dir_path}")
-    return messages
 
 
 def queue_is_up() -> Any:

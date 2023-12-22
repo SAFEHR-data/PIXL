@@ -16,7 +16,7 @@
 
 import logging
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
 from jsonpickle import decode, encode
@@ -30,8 +30,8 @@ class Message:
 
     mrn: str
     accession_number: str
-    study_datetime: datetime
-    procedure_occurrence_id: str
+    study_date: date
+    procedure_occurrence_id: int
     project_name: str
     omop_es_timestamp: datetime
 
@@ -53,7 +53,7 @@ class Message:
             " * project_name: %s\n * omop_es_timestamp: %s",
             self.mrn,
             self.accession_number,
-            self.study_datetime,
+            self.study_date,
             self.procedure_occurrence_id,
             self.project_name,
             self.omop_es_timestamp,

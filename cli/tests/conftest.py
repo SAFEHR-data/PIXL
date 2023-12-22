@@ -19,11 +19,17 @@ import pytest
 from core.omop import OmopExtract
 
 
-@pytest.fixture()
-def omop_files(tmp_path_factory: pytest.TempPathFactory) -> OmopExtract:
-    """Create an OmopExtract instance using a temporary directory"""
+@pytest.fixture(autouse=True)
+def omop_files(tmp_path_factory: pytest.TempPathFactory, monkeypatch) -> OmopExtract:
+    """
+    Replace production extract instance with one writing to a tmpdir.
+
+    :returns OmopExtract: For direct use when the fixture is explicity called.
+    """
     export_dir = tmp_path_factory.mktemp("repo_base")
-    return OmopExtract(export_dir)
+    tmpdir_extract = OmopExtract(export_dir)
+    monkeypatch.setattr("pixl_cli._io.extract", tmpdir_extract)
+    return tmpdir_extract
 
 
 @pytest.fixture()

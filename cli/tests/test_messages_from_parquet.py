@@ -17,49 +17,54 @@ import datetime
 from pathlib import Path
 
 from core.patient_queue.message import Message
-from pixl_cli.main import messages_from_parquet
+from pixl_cli._io import copy_parquet_return_logfile_fields, messages_from_parquet
 
 
 def test_messages_from_parquet(resources: Path) -> None:
     """
-    Test that the messages are as expected, given the test parquet files.
-    The test data doesn't have any "difficult" cases in it, eg. people without procedures.
+    Given a valid OMOP ES extract directory that has had the logfile parsed
+    When the messages are generated from the directory and the output of logfile parsing
+    Then the messages should match expected values
     """
+    # Arrange
     omop_parquet_dir = resources / "omop"
-    messages = messages_from_parquet(omop_parquet_dir)
+    project_name, omop_es_datetime = copy_parquet_return_logfile_fields(omop_parquet_dir)
+    # Act
+    messages = messages_from_parquet(omop_parquet_dir, project_name, omop_es_datetime)
+    # Assert
     assert all(isinstance(msg, Message) for msg in messages)
 
     expected_messages = [
         Message(
             mrn="12345678",
             accession_number="12345678",
-            study_datetime=datetime.date.fromisoformat("2021-07-01"),
+            study_date=datetime.date.fromisoformat("2021-07-01"),
             procedure_occurrence_id=1,
-            project_name="Test Extract - UCLH OMOP CDM",
+            project_name="test-extract-uclh-omop-cdm",
             omop_es_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
         ),
         Message(
             mrn="12345678",
             accession_number="ABC1234567",
-            study_datetime=datetime.date.fromisoformat("2021-07-01"),
+            study_date=datetime.date.fromisoformat("2021-07-01"),
             procedure_occurrence_id=2,
-            project_name="Test Extract - UCLH OMOP CDM",
+            project_name="test-extract-uclh-omop-cdm",
             omop_es_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
         ),
         Message(
             mrn="987654321",
             accession_number="ABC1234560",
-            study_datetime=datetime.date.fromisoformat("2020-05-01"),
+            study_date=datetime.date.fromisoformat("2020-05-01"),
             procedure_occurrence_id=3,
-            project_name="Test Extract - UCLH OMOP CDM",
+            project_name="test-extract-uclh-omop-cdm",
             omop_es_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
         ),
         Message(
             mrn="5020765",
             accession_number="MIG0234560",
-            study_datetime=datetime.date.fromisoformat("2015-05-01"),
+            study_date=datetime.date.fromisoformat("2015-05-01"),
             procedure_occurrence_id=4,
-            project_name="Test Extract - UCLH OMOP CDM",
+            project_name="test-extract-uclh-omop-cdm",
             omop_es_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
         ),
     ]
