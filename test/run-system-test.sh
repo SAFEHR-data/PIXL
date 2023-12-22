@@ -38,3 +38,4 @@ sleep 65  # need to wait until the DICOM image is "stable" = 60s
 
 cd "${PACKAGE_DIR}"
 docker compose -f docker-compose.yml -f test/docker-compose.yml -p system-test down --volumes
+rm -r exports/test-extract-uclh-omop-cdm/
