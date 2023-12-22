@@ -31,7 +31,7 @@ class Message:
     mrn: str
     accession_number: str
     study_date: date
-    procedure_occurrence_id: str
+    procedure_occurrence_id: int
     project_name: str
     omop_es_timestamp: datetime
 
