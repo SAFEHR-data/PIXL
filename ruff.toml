@@ -36,6 +36,8 @@ per-file-ignores = {"*tests*" = [
 ], "hooks*" = [
     "INP001",
     "T201",
+], "postgres/*" = [
+    "INP001",
 ]}
 select = [
     "ALL",

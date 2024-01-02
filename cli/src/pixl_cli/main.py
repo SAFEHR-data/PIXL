@@ -25,9 +25,13 @@ import yaml
 from core.patient_queue.producer import PixlProducer
 from core.patient_queue.subscriber import PixlBlockingConsumer
 
-from ._io import copy_parquet_return_logfile_fields, messages_from_parquet, messages_from_state_file
-from ._logging import logger, set_log_level
-from ._utils import clear_file, remove_file_if_it_exists
+from pixl_cli._io import (
+    copy_parquet_return_logfile_fields,
+    messages_from_parquet,
+    messages_from_state_file,
+)
+from pixl_cli._logging import logger, set_log_level
+from pixl_cli._utils import clear_file, remove_file_if_it_exists
 
 
 def _load_config(filename: str = "pixl_config.yml") -> dict:
