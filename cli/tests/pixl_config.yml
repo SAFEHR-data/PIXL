@@ -22,3 +22,9 @@ ehr_api:
   default_rate: 5  # ~queries per second
 pacs_api:
   default_rate: 5  # queries per second
+postgres:
+  host: host
+  port: 5432
+  username: username
+  password: password
+  database: database

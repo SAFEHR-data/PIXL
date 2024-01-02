@@ -16,7 +16,10 @@
 import pathlib
 
 import pytest
+from core.database import Base
 from core.omop import OmopExtract
+from sqlalchemy import Engine, create_engine
+from sqlalchemy.orm import Session, sessionmaker
 
 
 @pytest.fixture(autouse=True)
@@ -36,3 +39,43 @@ def omop_files(tmp_path_factory: pytest.TempPathFactory, monkeypatch) -> OmopExt
 def resources() -> pathlib.Path:
     """Test resources directory path."""
     return pathlib.Path(__file__).parent / "resources"
+
+
+@pytest.fixture(scope="module")
+def monkeymodule():
+    """Module level monkey patch."""
+    from _pytest.monkeypatch import MonkeyPatch
+
+    mpatch = MonkeyPatch()
+    yield mpatch
+    mpatch.undo()
+
+
+@pytest.fixture(autouse=True, scope="module")
+def db_engine(monkeymodule) -> Engine:
+    """
+    Patches the database engine with an in memory database
+
+    :returns Engine: Engine for use in other setup fixtures
+    """
+    engine = create_engine("sqlite:///:memory:", echo=True, echo_pool="debug", future=True)
+    monkeymodule.setattr("pixl_cli._database.engine", engine)
+    Base.metadata.create_all(engine)
+    return engine
+
+
+@pytest.fixture()
+def db_session(db_engine) -> Session:
+    """
+    Creates a session for uploading data to the in memory database.
+
+    Will remove any committed data during teardown.
+
+    :returns Session: Session for use in other setup fixtures.
+
+    """
+    Session = sessionmaker(db_engine)
+    session = Session()
+    yield session
+    session.rollback()
+    session.close()
