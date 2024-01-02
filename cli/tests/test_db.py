@@ -22,6 +22,7 @@ def rows_in_session(db_session) -> Session:
     with db_session.begin():
         db_session.add(extract)
         db_session.add(image)
+
     return db_session
 
 
