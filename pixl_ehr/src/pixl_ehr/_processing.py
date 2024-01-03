@@ -11,6 +11,8 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+from __future__ import annotations
+
 import logging
 import os
 from abc import ABC, abstractmethod
@@ -18,17 +20,16 @@ from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import requests
-from core.patient_queue.message import Message
+
+if TYPE_CHECKING:
+    from core.patient_queue.message import Message
 from decouple import config
 from pixl_core.src.core.omop import ParquetExport
 
 from pixl_ehr._databases import EMAPStar, PIXLDatabase
-
-# might need an if TYPING thingy
-from pixl_ehr._processing import PatientEHRData
 from pixl_ehr._queries import SQLQuery
 
 from .report_deid import deidentify_text
@@ -66,9 +67,9 @@ async def process_message(message: Message) -> None:
     export_radiology_report(anon_data)
 
 
-def export_radiology_report(anon_data: PatientEHRData):
+def export_radiology_report(anon_data: PatientEHRData) -> None:
     # columns in parquet: anon report, accession number, OMOP ES study id
-    pe = ParquetExport(project_name, extract_datetime, root_dir)
+    pe = ParquetExport(project_name, extract_datetime)
     pe.export_radiology(anon_data)
 
 
@@ -90,7 +91,7 @@ class PatientEHRData:
     report_text: Optional[str] = None
 
     @classmethod
-    def from_message(cls, message: Message) -> "PatientEHRData":
+    def from_message(cls, message: Message) -> PatientEHRData:
         """
         Create a minimal set of patient EHR data required to start queries from a
         queue message
@@ -104,7 +105,7 @@ class PatientEHRData:
         logger.debug("Created %s from message data", self)
         return self
 
-    def update_using(self, pipeline: "ProcessingPipeline") -> None:
+    def update_using(self, pipeline: ProcessingPipeline) -> None:
         """Update these data using a processing pipeline"""
         for i, step in enumerate(pipeline.steps):
             logger.debug("Step %s", [i / len(pipeline.steps) - 1])
@@ -154,7 +155,7 @@ class PatientEHRData:
         )
         logger.debug("Persist successful!")
 
-    def anonymise(self) -> "PatientEHRData":
+    def anonymise(self) -> PatientEHRData:
         """Anonymise these patient data by processing text and hashing identifiers"""
         if self.report_text is not None:
             self.report_text = deidentify_text(self.report_text)
@@ -167,7 +168,7 @@ class PatientEHRData:
 
         return self
 
-    def copy(self) -> "PatientEHRData":
+    def copy(self) -> PatientEHRData:
         return deepcopy(self)
 
 

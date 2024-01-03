@@ -15,7 +15,6 @@
 """Processing of OMOP parquet files."""
 from __future__ import annotations
 
-import datetime
 import logging
 import pathlib
 import shutil
@@ -24,6 +23,8 @@ from typing import TYPE_CHECKING
 import slugify
 
 if TYPE_CHECKING:
+    import datetime
+
     from pixl_ehr._processing import PatientEHRData
 
 root_from_install = pathlib.Path(__file__).parents[3]
@@ -87,7 +88,7 @@ class ParquetExport:
         latest_public.symlink_to(self.public_output, target_is_directory=True)
         return self.project_slug
 
-    def export_radiology(self, anon_data: PatientEHRData):
+    def export_radiology(self, anon_data: PatientEHRData) -> str:
         """Export radiology reports to parquet file"""
         # columns in parquet: anon report, accession number, OMOP ES study id
         anon_data.report_text
