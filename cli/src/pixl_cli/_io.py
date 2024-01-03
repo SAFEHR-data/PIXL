@@ -24,9 +24,6 @@ from core.patient_queue.message import Message, deserialise
 from pixl_cli._logging import logger
 from pixl_cli._utils import string_is_non_empty
 
-# instance of omop extract, can be overriden during testing
-extract = ParquetExport()
-
 
 def messages_from_state_file(filepath: Path) -> list[Message]:
     """
@@ -54,7 +51,8 @@ def copy_parquet_return_logfile_fields(parquet_path: Path) -> tuple[str, datetim
     logs = json.load(log_file.open())
     project_name = logs["settings"]["cdm_source_name"]
     omop_es_timestamp = datetime.fromisoformat(logs["datetime"])
-    project_name_slug = extract.copy_to_exports(parquet_path, project_name, omop_es_timestamp)
+    extract = ParquetExport(project_name, omop_es_timestamp)
+    project_name_slug = extract.copy_to_exports(parquet_path)
     return project_name_slug, omop_es_timestamp
 
 
