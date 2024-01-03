@@ -20,7 +20,6 @@ import pandas as pd
 import shutil
 
 import slugify
-
 from pixl_ehr._processing import PatientEHRData
 
 root_from_install = pathlib.Path(__file__).parents[3]
@@ -31,7 +30,12 @@ logger = logging.getLogger(__file__)
 class ParquetExport:
     """Exporting Omop and Emap extracts to Parquet files."""
 
-    def __init__(self, project_name: str, extract_datetime: datetime.datetime, root_dir: pathlib.Path = root_from_install) -> None:
+    def __init__(
+        self,
+        project_name: str,
+        extract_datetime: datetime.datetime,
+        root_dir: pathlib.Path = root_from_install,
+    ) -> None:
         """
         :param project_name: name of the project
         :param extract_datetime: datetime that the OMOP ES extract was run
@@ -83,7 +87,7 @@ class ParquetExport:
         return self.project_slug
 
     def export_radiology(self, anon_data: PatientEHRData):
-        """export radiology reports to parquet file"""
+        """Export radiology reports to parquet file"""
         # columns in parquet: anon report, accession number, OMOP ES study id
         anon_data.report_text
         anon_data.accession_number
@@ -102,7 +106,6 @@ class ParquetExport:
 
         # What column header names?
         return self.project_slug
-
 
     @staticmethod
     def _mkdir(directory: pathlib.Path) -> pathlib.Path:

@@ -23,12 +23,12 @@ from typing import Optional
 import requests
 from core.patient_queue.message import Message
 from decouple import config
+from pixl_core.src.core.omop import ParquetExport
+
+from pixl_ehr._databases import EMAPStar, PIXLDatabase
 
 # might need an if TYPING thingy
 from pixl_ehr._processing import PatientEHRData
-
-from pixl_core.src.core.omop import ParquetExport
-from pixl_ehr._databases import EMAPStar, PIXLDatabase
 from pixl_ehr._queries import SQLQuery
 
 from .report_deid import deidentify_text
