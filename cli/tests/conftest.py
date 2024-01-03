@@ -16,7 +16,7 @@
 import pathlib
 
 import pytest
-from core.database import Base
+from core.database import Base, Extract, Image
 from core.omop import OmopExtract
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
@@ -61,7 +61,8 @@ def db_engine(monkeymodule) -> Engine:
     engine = create_engine("sqlite:///:memory:", echo=True, echo_pool="debug", future=True)
     monkeymodule.setattr("pixl_cli._database.engine", engine)
     Base.metadata.create_all(engine)
-    return engine
+    yield engine
+    Base.metadata.drop_all(engine)
 
 
 @pytest.fixture()
@@ -74,8 +75,11 @@ def db_session(db_engine) -> Session:
     :returns Session: Session for use in other setup fixtures.
 
     """
-    Session = sessionmaker(db_engine)
-    session = Session()
+    InMemorySession = sessionmaker(db_engine)
+    session = InMemorySession()
+    session.begin()
+    # sqlite with sqlalchemy doesn't rollback, so manually deleting all database entities before use
+    session.query(Image).delete()
+    session.query(Extract).delete()
     yield session
-    session.rollback()
     session.close()
