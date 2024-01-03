@@ -2,12 +2,14 @@
 import os
 
 from core.database import Base
-from sqlalchemy import create_engine
+from sqlalchemy import URL, create_engine
 
-user = os.environ["POSTGRES_USER"]
-password = os.environ["POSTGRES_PASSWORD"]
-DB = os.environ["POSTGRES_DB"]
+url = URL.create(
+    drivername="postgresql+psycopg2",
+    username=os.environ["POSTGRES_USER"],
+    password=os.environ["POSTGRES_PASSWORD"],
+    database=os.environ["POSTGRES_DB"],
+)
 
-conn = f"postgresql+psycopg2://{user}:{password}@/{DB}"
-engine = create_engine(conn, echo=True, echo_pool="debug")
+engine = create_engine(url, echo=True, echo_pool="debug")
 Base.metadata.create_all(engine)
