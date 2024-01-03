@@ -18,14 +18,14 @@ from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
-from core.omop import OmopExtract
+from core.omop import ParquetExport
 from core.patient_queue.message import Message, deserialise
 
 from pixl_cli._logging import logger
 from pixl_cli._utils import string_is_non_empty
 
 # instance of omop extract, can be overriden during testing
-extract = OmopExtract()
+extract = ParquetExport()
 
 
 def messages_from_state_file(filepath: Path) -> list[Message]:

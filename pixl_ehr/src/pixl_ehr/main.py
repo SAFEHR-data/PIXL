@@ -59,6 +59,16 @@ async def startup_event() -> None:
 
 
 @app.get(
+    "/export-radiology-as-parquet",
+    summary="",
+)
+async def export_radiology_as_parquet() -> None:
+    """Batch export of all radiology reports in PIXL DB to a parquet file."""
+    # can we check the queue to make sure it's empty?
+    # or that the correct number of entries are in the PIXL DB?
+
+
+@app.get(
     "/az-copy-current",
     summary="Copy the current state of the PIXL anon EHR schema to azure",
 )

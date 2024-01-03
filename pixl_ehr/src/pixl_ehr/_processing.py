@@ -24,6 +24,10 @@ import requests
 from core.patient_queue.message import Message
 from decouple import config
 
+# might need an if TYPING thingy
+from pixl_ehr._processing import PatientEHRData
+
+from pixl_core.src.core.omop import ParquetExport
 from pixl_ehr._databases import EMAPStar, PIXLDatabase
 from pixl_ehr._queries import SQLQuery
 
@@ -59,6 +63,26 @@ async def process_message(message: Message) -> None:
     raw_data.persist(pixl_db, schema_name="emap_data", table_name="ehr_raw")
     anon_data = raw_data.anonymise()
     anon_data.persist(pixl_db, schema_name="emap_data", table_name="ehr_anon")
+    export_radiology_report(anon_data)
+
+
+def export_radiology_report(anon_data: PatientEHRData):
+    # columns in parquet: anon report, accession number, OMOP ES study id
+    pe = ParquetExport(project_name, extract_datetime, root_dir)
+    # need to add any code to ParquetExport? It's not really an ParquetExport but the path is the same...
+    # perhaps rename ParquetExport to something more Generic? Or factor out the path bits?
+    # `ParquetExport`?
+    pe.export_radiology(anon_data)
+    anon_data.report_text
+    anon_data.accession_number
+
+    # see pixl_cli._io.copy_parquet_return_logfile_fields for how we might do this:
+    # ie.    project_name_slug = extract.copy_to_exports(parquet_path, project_name, omop_es_timestamp)
+
+    # will need to append or create new depending on slug (is there a parquet
+    # file open flag that combines these two?)
+
+    # What column headers?
 
 
 @dataclass

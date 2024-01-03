@@ -16,21 +16,34 @@
 import datetime
 import logging
 import pathlib
+import pandas as pd
 import shutil
 
 import slugify
+
+from pixl_ehr._processing import PatientEHRData
 
 root_from_install = pathlib.Path(__file__).parents[3]
 
 logger = logging.getLogger(__file__)
 
 
-class OmopExtract:
-    """Processing Omop extracts on the filesystem."""
+class ParquetExport:
+    """Exporting Omop and Emap extracts to Parquet files."""
 
-    def __init__(self, root_dir: pathlib.Path = root_from_install) -> None:
-        """Create instance of OMOPExtract helper."""
+    def __init__(self, project_name: str, extract_datetime: datetime.datetime, root_dir: pathlib.Path = root_from_install) -> None:
+        """
+        :param project_name: name of the project
+        :param extract_datetime: datetime that the OMOP ES extract was run
+        :param root_dir: export directory root
+        """
         self.export_dir = root_dir / "exports"
+        self.project_slug, self.extract_time_slug = self._get_slugs(project_name, extract_datetime)
+        self.export_base = self.export_dir / self.project_slug
+        current_extract = self.export_base / "all_extracts" / "omop" / self.extract_time_slug
+        self.public_output = current_extract / "public"
+        self.radiology_output = current_extract / "radiology"
+        self.latest_parent_dir = self.export_base / "latest" / "omop"
 
     @staticmethod
     def _get_slugs(project_name: str, extract_datetime: datetime.datetime) -> tuple[str, str]:
@@ -39,19 +52,11 @@ class OmopExtract:
         extract_time_slug = slugify.slugify(extract_datetime.isoformat())
         return project_slug, extract_time_slug
 
-    def copy_to_exports(
-        self,
-        omop_dir: pathlib.Path,
-        project_name: str,
-        extract_datetime: datetime.datetime,
-    ) -> str:
+    def copy_to_exports(self, omop_dir: pathlib.Path) -> str:
         """
         Copy public omop directory as the latest extract for the project.
-
         Creates directories if they don't already exist.
         :param omop_dir: parent path for omop export, with a "public" subdirectory
-        :param project_name: name of the project
-        :param extract_datetime: datetime that the OMOP ES extract was run
         :raises FileNotFoundError: if there is no public subdirectory in `omop_dir`
         :returns str: the project slug, so this can be registered for export to the DSH
         """
@@ -61,24 +66,51 @@ class OmopExtract:
             raise FileNotFoundError(msg)
 
         # Make directory for exports if they don't exist
-        project_slug, extract_time_slug = self._get_slugs(project_name, extract_datetime)
-        export_base = self.export_dir / project_slug
-        public_output = OmopExtract._mkdir(
-            export_base / "all_extracts" / "omop" / extract_time_slug / "public"
-        )
-        logger.info("Copying public parquet files from %s to %s", omop_dir, public_output)
+        ParquetExport._mkdir(self.public_output)
+        logger.info("Copying public parquet files from %s to %s", omop_dir, self.public_output)
 
         # Copy extract files, overwriting if it exists
-        shutil.copytree(public_input, public_output, dirs_exist_ok=True)
+        shutil.copytree(public_input, self.public_output, dirs_exist_ok=True)
         # Make the latest export dir if it doesn't exist
-        latest_parent_dir = self._mkdir(export_base / "latest" / "omop")
+
+        self._mkdir(self.latest_parent_dir)
         # Symlink this extract to the latest directory
-        latest_public = latest_parent_dir / "public"
+        latest_public = self.latest_parent_dir / "public"
         if latest_public.exists():
             latest_public.unlink()
 
-        latest_public.symlink_to(public_output, target_is_directory=True)
-        return project_slug
+        latest_public.symlink_to(self.public_output, target_is_directory=True)
+        return self.project_slug
+
+    def export_radiology(self, anon_data: PatientEHRData):
+        """export radiology reports to parquet file"""
+        # columns in parquet: anon report, accession number, OMOP ES study id
+        # need to add any code to ParquetExport? It's not really an ParquetExport but the path is the same...
+        # perhaps rename ParquetExport to something more Generic? Or factor out the path bits?
+        # `ParquetExport`?
+        # pe.export_dir
+        # pe.export_radiology(anon_data)
+        anon_data.report_text
+        anon_data.accession_number
+        self._mkdir(self.radiology_output)
+
+        ps.write_p
+        # symlinks...
+        return self.project_slug
+
+        # see pixl_cli._io.copy_parquet_return_logfile_fields for how we might do this:
+        # ie.    project_name_slug = extract.copy_to_exports(parquet_path, project_name, omop_es_timestamp)
+
+        # get project slug - from where?
+        oe._get_slugs()
+
+
+
+        # will need to append or create new depending on slug (is there a parquet
+        # file open flag that combines these two?)
+
+        # What column headers?
+
 
     @staticmethod
     def _mkdir(directory: pathlib.Path) -> pathlib.Path:

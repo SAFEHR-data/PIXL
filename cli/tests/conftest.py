@@ -16,18 +16,18 @@
 import pathlib
 
 import pytest
-from core.omop import OmopExtract
+from core.omop import ParquetExport
 
 
 @pytest.fixture(autouse=True)
-def omop_files(tmp_path_factory: pytest.TempPathFactory, monkeypatch) -> OmopExtract:
+def omop_files(tmp_path_factory: pytest.TempPathFactory, monkeypatch) -> ParquetExport:
     """
     Replace production extract instance with one writing to a tmpdir.
 
-    :returns OmopExtract: For direct use when the fixture is explicity called.
+    :returns ParquetExport: For direct use when the fixture is explicity called.
     """
     export_dir = tmp_path_factory.mktemp("repo_base")
-    tmpdir_extract = OmopExtract(export_dir)
+    tmpdir_extract = ParquetExport(export_dir)
     monkeypatch.setattr("pixl_cli._io.extract", tmpdir_extract)
     return tmpdir_extract
 
