@@ -26,8 +26,8 @@ import requests
 
 if TYPE_CHECKING:
     from core.patient_queue.message import Message
+from core.omop import ParquetExport
 from decouple import config
-from pixl_core.src.core.omop import ParquetExport
 
 from pixl_ehr._databases import EMAPStar, PIXLDatabase
 from pixl_ehr._queries import SQLQuery
