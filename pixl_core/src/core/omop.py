@@ -13,14 +13,18 @@
 #  limitations under the License.
 
 """Processing of OMOP parquet files."""
+from __future__ import annotations
+
 import datetime
 import logging
 import pathlib
-import pandas as pd
 import shutil
+from typing import TYPE_CHECKING
 
 import slugify
-from pixl_ehr._processing import PatientEHRData
+
+if TYPE_CHECKING:
+    from pixl_ehr._processing import PatientEHRData
 
 root_from_install = pathlib.Path(__file__).parents[3]
 
