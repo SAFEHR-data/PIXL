@@ -5,7 +5,7 @@ import pytest
 from core.database import Extract, Image
 from core.patient_queue.message import Message
 from dateutil.tz import UTC
-from pixl_cli._database import _number_of_images, filter_if_exported
+from pixl_cli._database import filter_exported_or_add_to_db
 from sqlalchemy.orm import Session
 
 STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
@@ -37,39 +37,38 @@ def rows_in_session(db_session) -> Session:
     """Insert some a test row for each table, returning the session for use in tests."""
     extract = Extract(slug="i-am-a-project")
 
-    image = Image(
+    image_exported = Image(
         accession_number="123",
         study_date=STUDY_DATE,
         mrn="mrn",
         extract=extract,
         exported_at=datetime.datetime.now(tz=UTC),
     )
+    image_not_exported = Image(
+        accession_number="234",
+        study_date=STUDY_DATE,
+        mrn="mrn",
+        extract=extract,
+    )
     with db_session:
-        db_session.add(extract)
-        db_session.add(image)
+        db_session.add_all([extract, image_exported, image_not_exported])
         db_session.commit()
 
     return db_session
 
 
-def test_no_data():
-    """Ensure no data exists before load."""
-    assert _number_of_images() == 0
-
-
-def test_rows(rows_in_session):
-    """Test images added from fixture."""
-    assert _number_of_images() == 1
-
-
 def test_project_doesnt_exist(example_messages, db_session):
     """If project doesn't exist, then no filtering of messages and then project saved to database"""
-    output = filter_if_exported(example_messages, "i-am-a-project")
+    output = filter_exported_or_add_to_db(example_messages, "i-am-a-project")
     assert output == example_messages
 
 
 def test_first_image_exported(example_messages, rows_in_session):
-    """If one message has been exported from test messages, that should be filtered out."""
-    output = filter_if_exported(example_messages, "i-am-a-project", rows_in_session)
+    """
+    GIVEN 3 messages, where one has been exported, the second has been saved to db but not exported
+    WHEN the messages are filtered
+    THEN the first message that has an exported_at value should not be in the filtered list
+    """
+    output = filter_exported_or_add_to_db(example_messages, "i-am-a-project")
     assert len(output) == len(example_messages) - 1
     assert [x for x in output if x.accession_number == "123"] == []

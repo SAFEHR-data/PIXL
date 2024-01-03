@@ -25,6 +25,7 @@ from core.patient_queue.producer import PixlProducer
 from core.patient_queue.subscriber import PixlBlockingConsumer
 
 from pixl_cli._config import cli_config
+from pixl_cli._database import filter_exported_or_add_to_db
 from pixl_cli._io import (
     copy_parquet_return_logfile_fields,
     messages_from_parquet,
@@ -47,7 +48,7 @@ def cli(*, debug: bool) -> None:
 @cli.command()
 @click.option(
     "--queues",
-    default="ehr,pacs",
+    default="pacs,ehr",
     show_default=True,
     help="Comma seperated list of queues to populate with messages generated from the "
     "input file(s)",
@@ -90,8 +91,12 @@ def populate(parquet_dir: Path, *, restart: bool, queues: str) -> None:
 
         remove_file_if_it_exists(state_filepath)  # will be stale
 
+        sorted_messages = sorted(messages, key=attrgetter("study_date"))
+        # For imaging, check
+        if queue == "pacs":
+            sorted_messages = filter_exported_or_add_to_db(sorted_messages)
         with PixlProducer(queue_name=queue, **cli_config["rabbitmq"]) as producer:
-            producer.publish(sorted(messages, key=attrgetter("study_date")))
+            producer.publish(sorted_messages)
 
 
 @cli.command()

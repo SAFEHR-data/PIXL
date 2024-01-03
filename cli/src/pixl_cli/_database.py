@@ -21,22 +21,16 @@ url = URL.create(
 engine = create_engine(url)
 
 
-def _number_of_images(session: Session = None) -> int:
+def filter_exported_or_add_to_db(messages: list[Message], project_slug: str) -> list[Message]:
     """
-    Dummy function to ensure that tests can be run
-    will remove once we have real code to test.
+    Filter exported images for this project, and adds missing extract or images to database.
+
+    :param messages: Initial messages to filter if they already exist
+    :param project_slug: project slug to query on
+    :return messages that have not been exported
     """
-    active_session = session or Session(engine)
-    output = active_session.query(Image).where(Image.image_id is not None)
-    return len([x.image_id for x in output])
-
-
-def filter_if_exported(
-    messages: list[Message], project_slug: str, session: Session = None
-) -> list[Message]:
-    """Filter messages which have already been exported to imaging endpoint for this project."""
     PixlSession = sessionmaker(engine)
-    with session or PixlSession() as pixl_session, pixl_session.begin():
+    with PixlSession() as pixl_session, pixl_session.begin():
         extract, extract_created = _get_or_create_project(project_slug, pixl_session)
         if extract_created:
             return messages
