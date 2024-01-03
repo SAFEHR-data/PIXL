@@ -24,3 +24,9 @@ pacs_api:
   host: localhost
   port: 7007
   default_rate: 1
+postgres:
+  host: localhost
+  port: 7001
+  username: pixl_db_username
+  password: pixl_db_password
+  database: pixl
