@@ -92,7 +92,7 @@ def populate(parquet_dir: Path, *, restart: bool, queues: str) -> None:
         remove_file_if_it_exists(state_filepath)  # will be stale
 
         sorted_messages = sorted(messages, key=attrgetter("study_date"))
-        # For imaging, check
+        # For imaging, we don't want to query again for images that have already been exported
         if queue == "pacs":
             sorted_messages = filter_exported_or_add_to_db(sorted_messages)
         with PixlProducer(queue_name=queue, **cli_config["rabbitmq"]) as producer:
