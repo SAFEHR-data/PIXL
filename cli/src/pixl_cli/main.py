@@ -93,8 +93,10 @@ def populate(parquet_dir: Path, *, restart: bool, queues: str) -> None:
 
         sorted_messages = sorted(messages, key=attrgetter("study_date"))
         # For imaging, we don't want to query again for images that have already been exported
-        if queue == "pacs":
-            sorted_messages = filter_exported_or_add_to_db(sorted_messages)
+        if queue == "pacs" and messages:
+            sorted_messages = filter_exported_or_add_to_db(
+                sorted_messages, messages[0].project_name
+            )
         with PixlProducer(queue_name=queue, **cli_config["rabbitmq"]) as producer:
             producer.publish(sorted_messages)
 
