@@ -85,31 +85,23 @@ class ParquetExport:
     def export_radiology(self, anon_data: PatientEHRData):
         """export radiology reports to parquet file"""
         # columns in parquet: anon report, accession number, OMOP ES study id
-        # need to add any code to ParquetExport? It's not really an ParquetExport but the path is the same...
-        # perhaps rename ParquetExport to something more Generic? Or factor out the path bits?
-        # `ParquetExport`?
-        # pe.export_dir
-        # pe.export_radiology(anon_data)
         anon_data.report_text
         anon_data.accession_number
         self._mkdir(self.radiology_output)
 
-        ps.write_p
-        # symlinks...
-        return self.project_slug
+        # Appending might require fastparquet library. Or do as batch.
+        # pd.DataFrame.to_parquet()
+
+        # do symlinks...
 
         # see pixl_cli._io.copy_parquet_return_logfile_fields for how we might do this:
-        # ie.    project_name_slug = extract.copy_to_exports(parquet_path, project_name, omop_es_timestamp)
-
-        # get project slug - from where?
-        oe._get_slugs()
-
-
+        # ie. project_name_slug = extract.copy_to_exports(parquet_path, project_name, omop_es_timestamp)
 
         # will need to append or create new depending on slug (is there a parquet
         # file open flag that combines these two?)
 
-        # What column headers?
+        # What column header names?
+        return self.project_slug
 
 
     @staticmethod
