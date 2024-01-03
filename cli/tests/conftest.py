@@ -76,10 +76,9 @@ def db_session(db_engine) -> Session:
 
     """
     InMemorySession = sessionmaker(db_engine)
-    session = InMemorySession()
-    session.begin()
-    # sqlite with sqlalchemy doesn't rollback, so manually deleting all database entities before use
-    session.query(Image).delete()
-    session.query(Extract).delete()
-    yield session
+    with InMemorySession() as session:
+        # sqlite with sqlalchemy doesn't rollback, so manually deleting all database entities
+        session.query(Image).delete()
+        session.query(Extract).delete()
+        yield session
     session.close()
