@@ -26,9 +26,9 @@ if TYPE_CHECKING:
 
 def test_messages_from_parquet(resources: Path) -> None:
     """
-    Given a valid OMOP ES extract directory that has had the logfile parsed
+    Given a valid OMOP ES extract with 4 procedures, two of which are x-rays.
     When the messages are generated from the directory and the output of logfile parsing
-    Then the messages should match expected values
+    Then two messages should be generated
     """
     # Arrange
     omop_parquet_dir = resources / "omop"
