@@ -28,6 +28,8 @@ from ._base import PixlBlockingInterface, PixlQueueInterface
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
 
+    from typing_extensions import Self
+
     from core.token_buffer.tokens import TokenBucket
 
 logger = logging.getLogger(__name__)
@@ -48,7 +50,7 @@ class PixlConsumer(PixlQueueInterface):
     def _url(self) -> str:
         return f"amqp://{self._username}:{self._password}@{self._host}:{self._port}/"
 
-    async def __aenter__(self) -> PixlConsumer:
+    async def __aenter__(self) -> Self:
         """Establishes connection to queue."""
         self._connection = await aio_pika.connect_robust(self._url)
         self._channel = await self._connection.channel()
