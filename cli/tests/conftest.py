@@ -18,7 +18,6 @@ import pathlib
 
 import pytest
 from core.database import Base, Extract, Image
-from core.omop import OmopExtract
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
