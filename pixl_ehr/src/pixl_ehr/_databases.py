@@ -101,7 +101,7 @@ class PIXLDatabase(WriteableDatabase, QueryableDatabase):
         with Path(filename, "w").open() as file:
             self._cursor.copy_expert(query, file)
 
-    def contains(self, data: "PatientEHRData") -> bool:
+    def contains(self, data: PatientEHRData) -> bool:
         """Does the database contain a set of data already?"""
         query = "SELECT * FROM emap_data.ehr_raw WHERE mrn = %s and accession_number = %s"
         self._cursor.execute(query=str(query), vars=[data.mrn, data.accession_number])

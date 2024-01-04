@@ -68,7 +68,7 @@ class ImagingStudy:
     message: Message
 
     @classmethod
-    def from_message(cls, message: Message) -> "ImagingStudy":
+    def from_message(cls, message: Message) -> ImagingStudy:
         return ImagingStudy(message=message)
 
     @property

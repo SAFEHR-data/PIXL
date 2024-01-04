@@ -81,7 +81,7 @@ class PatientEHRData:
     report_text: Optional[str] = None
 
     @classmethod
-    def from_message(cls, message: Message) -> "PatientEHRData":
+    def from_message(cls, message: Message) -> PatientEHRData:
         """
         Create a minimal set of patient EHR data required to start queries from a
         queue message
@@ -95,7 +95,7 @@ class PatientEHRData:
         logger.debug("Created %s from message data", self)
         return self
 
-    def update_using(self, pipeline: "ProcessingPipeline") -> None:
+    def update_using(self, pipeline: ProcessingPipeline) -> None:
         """Update these data using a processing pipeline"""
         for i, step in enumerate(pipeline.steps):
             logger.debug("Step %s", [i / len(pipeline.steps) - 1])
@@ -145,7 +145,7 @@ class PatientEHRData:
         )
         logger.debug("Persist successful!")
 
-    def anonymise(self) -> "PatientEHRData":
+    def anonymise(self) -> PatientEHRData:
         """Anonymise these patient data by processing text and hashing identifiers"""
         if self.report_text is not None:
             self.report_text = deidentify_text(self.report_text)
@@ -158,7 +158,7 @@ class PatientEHRData:
 
         return self
 
-    def copy(self) -> "PatientEHRData":
+    def copy(self) -> PatientEHRData:
         return deepcopy(self)
 
 

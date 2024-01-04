@@ -45,7 +45,7 @@ class PixlConsumer(PixlQueueInterface):
     def _url(self) -> str:
         return f"amqp://{self._username}:{self._password}@{self._host}:{self._port}/"
 
-    async def __aenter__(self) -> "PixlConsumer":
+    async def __aenter__(self) -> PixlConsumer:
         """Establishes connection to queue."""
         self._connection = await aio_pika.connect_robust(self._url)
         self._channel = await self._connection.channel()
