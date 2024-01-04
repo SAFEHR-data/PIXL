@@ -73,7 +73,6 @@ def export_radiology_as_parquet() -> None:
     export_radiology_reports(anon_data)
 
 
-
 @app.get(
     "/az-copy-current",
     summary="Copy the current state of the PIXL anon EHR schema to azure",

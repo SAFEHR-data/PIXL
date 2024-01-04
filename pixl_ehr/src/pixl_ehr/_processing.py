@@ -16,11 +16,12 @@ from __future__ import annotations
 import logging
 import os
 from abc import ABC, abstractmethod
+from collections.abc import Iterable
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional, Iterable
+from typing import TYPE_CHECKING, Optional
 
 import requests
 
@@ -69,7 +70,7 @@ async def process_message(message: Message) -> None:
     anon_data.persist(pixl_db, schema_name="emap_data", table_name="ehr_anon")
 
 
-def export_radiology_reports(anon_data: Iterable[PatientEHRData]) -> None:
+def export_radiology_reports(anon_data: Iterable[tuple]) -> None:
     # columns required in parquet:
     # - accession number
     # - OMOP ES study id
