@@ -20,9 +20,12 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 RUN sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
-RUN wget https://www.python.org/ftp/python/3.10.0/Python-3.10.0.tgz && \
-    tar -xvf Python-3.10.0.tgz && \
-    cd Python-3.10.0 && \
+
+ADD https://www.python.org/ftp/python/3.10.13/Python-3.10.13.tgz /pixl/python/
+
+RUN cd /pixl/python/ && \
+    tar -xvf Python-3.10.13.tgz && \
+    cd Python-3.10.13 && \
     ./configure --enable-optimizations && \
     make -j 2 && \
     make altinstall
