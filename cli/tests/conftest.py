@@ -46,9 +46,9 @@ def monkeymodule():
     """Module level monkey patch."""
     from _pytest.monkeypatch import MonkeyPatch
 
-    mpatch = MonkeyPatch()
-    yield mpatch
-    mpatch.undo()
+    monkeypatch = MonkeyPatch()
+    yield monkeypatch
+    monkeypatch.undo()
 
 
 @pytest.fixture(autouse=True, scope="module")
@@ -77,9 +77,9 @@ def db_engine(monkeymodule) -> Engine:
 @pytest.fixture()
 def db_session(db_engine) -> Session:
     """
-    Creates a session for uploading data to the in memory database.
+    Creates a session for interacting with an in memory database.
 
-    Will remove any committed data during teardown.
+    Will remove any data from database in setup
 
     :returns Session: Session for use in other setup fixtures.
 
