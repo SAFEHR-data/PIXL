@@ -20,12 +20,11 @@ from typing import TYPE_CHECKING, Optional
 import psycopg2 as pypg
 from decouple import config
 
-from pixl_ehr._queries import SQLQuery
-
 logger = logging.getLogger("uvicorn")
 
 if TYPE_CHECKING:
     from pixl_ehr._processing import PatientEHRData
+    from pixl_ehr._queries import SQLQuery
 
 
 class Database:

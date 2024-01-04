@@ -16,10 +16,12 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from datetime import date, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from jsonpickle import decode, encode
+
+if TYPE_CHECKING:
+    from datetime import date, datetime
 
 logger = logging.getLogger(__name__)
 

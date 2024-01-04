@@ -14,12 +14,15 @@
 """Processing of OMOP parquet files."""
 from __future__ import annotations
 
-import datetime
 import logging
 import pathlib
 import shutil
+from typing import TYPE_CHECKING
 
 import slugify
+
+if TYPE_CHECKING:
+    import datetime
 
 root_from_install = pathlib.Path(__file__).parents[3]
 

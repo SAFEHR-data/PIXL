@@ -16,16 +16,19 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from collections.abc import Awaitable, Callable
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import aio_pika
 
 from core.patient_queue.message import Message, deserialise
-from core.token_buffer.tokens import TokenBucket
 
 from ._base import PixlBlockingInterface, PixlQueueInterface
+
+if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
+
+    from core.token_buffer.tokens import TokenBucket
 
 logger = logging.getLogger(__name__)
 

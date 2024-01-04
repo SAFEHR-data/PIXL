@@ -11,9 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-"""
-pixl_ehr module is an EHR extraction service app
-"""
+"""pixl_ehr module is an EHR extraction service app"""
 from __future__ import annotations
 
 import asyncio

@@ -18,11 +18,14 @@ import os
 from asyncio import sleep
 from dataclasses import dataclass
 from time import time
+from typing import TYPE_CHECKING
 
-from core.patient_queue.message import Message
 from decouple import config
 
 from pixl_pacs._orthanc import Orthanc, PIXLRawOrthanc
+
+if TYPE_CHECKING:
+    from core.patient_queue.message import Message
 
 logger = logging.getLogger("uvicorn")
 logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))

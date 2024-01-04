@@ -15,10 +15,13 @@
 from __future__ import annotations
 
 import datetime
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from core.patient_queue.message import Message
 from pixl_cli._io import copy_parquet_return_logfile_fields, messages_from_parquet
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def test_messages_from_parquet(resources: Path) -> None:

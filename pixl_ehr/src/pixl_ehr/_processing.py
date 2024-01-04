@@ -20,16 +20,18 @@ from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import requests
-from core.patient_queue.message import Message
 from decouple import config
 
 from pixl_ehr._databases import EMAPStar, PIXLDatabase
 from pixl_ehr._queries import SQLQuery
 
 from .report_deid import deidentify_text
+
+if TYPE_CHECKING:
+    from core.patient_queue.message import Message
 
 logger = logging.getLogger("uvicorn")
 logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))
