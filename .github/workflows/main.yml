@@ -194,7 +194,7 @@ jobs:
       - uses: docker/build-push-action@v5
         with:
           context: .
-          dockerfile: docker/postgres/Dockerfile
+          file: docker/postgres/Dockerfile
 
       - name: Init Python
         uses: actions/setup-python@v4
