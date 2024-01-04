@@ -35,6 +35,10 @@ class Extract(Base):
     extract_id: Mapped[int] = mapped_column(primary_key=True)
     slug: Mapped[str]
 
+    def __repr__(self) -> str:
+        """Nice representation for printing."""
+        return f"<{self.__class__.__name__} {self.extract_id=} {self.slug=}>".replace(" self.", " ")
+
 
 class Image(Base):
     """image table"""
@@ -49,3 +53,11 @@ class Image(Base):
     exported_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), nullable=True)
     extract: Mapped["Extract"] = relationship()
     extract_id: Mapped[int] = mapped_column(ForeignKey("extract.extract_id"))
+
+    def __repr__(self) -> str:
+        """Nice representation for printing."""
+        return (
+            f"<{self.__class__.__name__} "
+            f"{self.image_id=} {self.accession_number=} {self.mrn=} "
+            f"{self.hashed_identifier} {self.extract_id}>"
+        ).replace(" self.", " ")
