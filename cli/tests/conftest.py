@@ -69,7 +69,6 @@ def db_engine(monkeymodule) -> Engine:
     )
     monkeymodule.setattr("pixl_cli._database.engine", engine)
 
-    # super fun way to remove the schema name for sqlite
     Base.metadata.create_all(engine)
     yield engine
     Base.metadata.drop_all(engine)
