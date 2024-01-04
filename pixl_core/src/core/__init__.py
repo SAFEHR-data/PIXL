@@ -17,3 +17,4 @@ This module contains the core PIXL functionality utilised by both the EHR and PA
 to interact with RabbitMQ and ensure suitable rate limiting of requests to the upstream
 services.
 """
+from __future__ import annotations

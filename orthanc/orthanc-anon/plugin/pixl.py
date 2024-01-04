@@ -1,11 +1,3 @@
-"""
-
-Applies anonymisation scheme to datasets
-
-This module:
--Modifies a DICOM instance received by Orthanc and applies anonymisation
--Upload the resource to a dicom-web server
-
 #  Copyright (c) 2022 University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +12,13 @@ This module:
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """
+Applies anonymisation scheme to datasets
+
+This module:
+-Modifies a DICOM instance received by Orthanc and applies anonymisation
+-Upload the resource to a dicom-web server
+"""
+from __future__ import annotations
 
 import json
 import logging

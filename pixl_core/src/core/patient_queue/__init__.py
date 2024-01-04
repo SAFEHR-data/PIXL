@@ -12,6 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """RabbitMQ consumer for Pixl"""
+from __future__ import annotations
 
 from .subscriber import PixlConsumer
 

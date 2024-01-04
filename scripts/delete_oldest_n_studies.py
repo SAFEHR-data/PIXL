@@ -12,6 +12,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """Delete a number of studies from an Orthanc instance"""
+from __future__ import annotations
+
 import argparse
 import os
 from datetime import datetime
