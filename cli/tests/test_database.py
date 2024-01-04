@@ -75,6 +75,9 @@ def test_project_doesnt_exist(example_messages, db_session):
     """If project doesn't exist, then no filtering of messages and then project saved to database"""
     output = filter_exported_or_add_to_db(example_messages, "i-am-a-project")
     assert output == example_messages
+    extract = db_session.query(Extract).one()
+    images = db_session.query(Image).filter(Image.extract == extract).all()
+    assert len(images) == 3
 
 
 def test_first_image_exported(example_messages, rows_in_session):
@@ -86,3 +89,6 @@ def test_first_image_exported(example_messages, rows_in_session):
     output = filter_exported_or_add_to_db(example_messages, "i-am-a-project")
     assert len(output) == len(example_messages) - 1
     assert [x for x in output if x.accession_number == "123"] == []
+    extract = rows_in_session.query(Extract).one()
+    images = rows_in_session.query(Image).filter(Image.extract == extract).all()
+    assert len(images) == 3

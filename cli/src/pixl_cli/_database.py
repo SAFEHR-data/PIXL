@@ -46,10 +46,10 @@ def filter_exported_or_add_to_db(messages: list[Message], project_slug: str) -> 
     PixlSession = sessionmaker(engine)
     with PixlSession() as pixl_session, pixl_session.begin():
         extract, extract_created = _get_or_create_project(project_slug, pixl_session)
-        if extract_created:
-            return messages
 
-        return _filter_exported_messages(extract, messages, pixl_session)
+        return _filter_exported_messages(
+            extract, messages, pixl_session, extract_created=extract_created
+        )
 
 
 def _get_or_create_project(project_slug: str, session: Session) -> tuple[Extract, bool]:
@@ -62,19 +62,25 @@ def _get_or_create_project(project_slug: str, session: Session) -> tuple[Extract
 
 
 def _filter_exported_messages(
-    extract: Extract, messages: list[Message], session: Session
+    extract: Extract, messages: list[Message], session: Session, *, extract_created: bool
 ) -> list[Message]:
     output_messages = []
     for message in messages:
-        _, image_exported = _get_image_and_check_exported(extract, message, session)
+        _, image_exported = _get_image_and_check_exported(
+            extract, message, session, extract_created=extract_created
+        )
         if not image_exported:
             output_messages.append(message)
     return output_messages
 
 
 def _get_image_and_check_exported(
-    extract: Extract, message: Message, session: Session
+    extract: Extract, message: Message, session: Session, *, extract_created: bool
 ) -> tuple[Image, bool]:
+    if extract_created:
+        new_image = _add_new_image_to_session(extract, message, session)
+        return new_image, False
+
     existing_image = (
         session.query(Image)
         .filter(
@@ -91,6 +97,11 @@ def _get_image_and_check_exported(
             return existing_image, True
         return existing_image, False
 
+    new_image = _add_new_image_to_session(extract, message, session)
+    return new_image, False
+
+
+def _add_new_image_to_session(extract: Extract, message: Message, session: Session) -> Image:
     new_image = Image(
         accession_number=message.accession_number,
         study_date=message.study_date,
@@ -98,4 +109,4 @@ def _get_image_and_check_exported(
         extract=extract,
     )
     session.add(new_image)
-    return new_image, False
+    return new_image
