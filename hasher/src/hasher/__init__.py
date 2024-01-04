@@ -21,6 +21,7 @@ The key is stored as a secret in an Azure Key Vault.
 The Azure infrastructure (Key Vault, ServicePrincipal & permissions) must be persistent
 and instructions are provided for creating these with the az CLI tool.
 """
+from __future__ import annotations
 
 import importlib.metadata
 
