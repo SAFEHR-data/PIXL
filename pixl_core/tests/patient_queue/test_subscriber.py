@@ -11,10 +11,11 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+from __future__ import annotations
+
 import asyncio
-from collections.abc import Coroutine, Generator
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest import TestCase
 
 import pytest
@@ -22,6 +23,9 @@ from core.patient_queue.message import Message
 from core.patient_queue.producer import PixlProducer
 from core.patient_queue.subscriber import PixlBlockingConsumer, PixlConsumer
 from core.token_buffer.tokens import TokenBucket
+
+if TYPE_CHECKING:
+    from collections.abc import Coroutine, Generator
 
 TEST_QUEUE = "test_consume"
 TEST_MESSAGE = Message(

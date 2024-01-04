@@ -12,6 +12,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """Filter a cohort .csv file for those that are not present in Orthanc raw"""
+from __future__ import annotations
+
 import os
 import sys
 from json import JSONDecodeError

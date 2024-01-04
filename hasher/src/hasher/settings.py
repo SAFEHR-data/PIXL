@@ -22,6 +22,7 @@ The following settings are defined:
 - "AZURE_KEY_VAULT_NAME"
 - "AZURE_KEY_VAULT_SECRET_NAME"
 """
+from __future__ import annotations
 
 import pprint
 import tempfile

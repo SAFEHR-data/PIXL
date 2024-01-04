@@ -12,13 +12,16 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """Producer for RabbitMQ"""
+from __future__ import annotations
 
 import logging
 from time import sleep
-
-from core.patient_queue.message import Message
+from typing import TYPE_CHECKING
 
 from ._base import PixlBlockingInterface
+
+if TYPE_CHECKING:
+    from core.patient_queue.message import Message
 
 LOGGER = logging.getLogger(__name__)
 

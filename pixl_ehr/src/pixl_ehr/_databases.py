@@ -11,6 +11,8 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+from __future__ import annotations
+
 import logging
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional
@@ -18,12 +20,11 @@ from typing import TYPE_CHECKING, Optional
 import psycopg2 as pypg
 from decouple import config
 
-from pixl_ehr._queries import SQLQuery
-
 logger = logging.getLogger("uvicorn")
 
 if TYPE_CHECKING:
     from pixl_ehr._processing import PatientEHRData
+    from pixl_ehr._queries import SQLQuery
 
 
 class Database:
@@ -99,7 +100,7 @@ class PIXLDatabase(WriteableDatabase, QueryableDatabase):
         with Path(filename, "w").open() as file:
             self._cursor.copy_expert(query, file)
 
-    def contains(self, data: "PatientEHRData") -> bool:
+    def contains(self, data: PatientEHRData) -> bool:
         """Does the database contain a set of data already?"""
         query = "SELECT * FROM emap_data.ehr_raw WHERE mrn = %s and accession_number = %s"
         self._cursor.execute(query=str(query), vars=[data.mrn, data.accession_number])
