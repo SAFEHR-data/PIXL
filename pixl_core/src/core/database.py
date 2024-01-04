@@ -15,6 +15,7 @@
 """Interaction with PIXL database"""
 from typing import Optional
 
+from sqlalchemy import MetaData
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.schema import ForeignKey
 from sqlalchemy.types import Date, DateTime
@@ -22,6 +23,8 @@ from sqlalchemy.types import Date, DateTime
 
 class Base(DeclarativeBase):
     """sqlalchemy base class"""
+
+    metadata = MetaData(schema="pixl")
 
 
 class Extract(Base):

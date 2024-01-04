@@ -17,6 +17,7 @@ import os
 
 from core.database import Base
 from sqlalchemy import URL, create_engine
+from sqlalchemy.sql.ddl import CreateSchema
 
 url = URL.create(
     drivername="postgresql+psycopg2",
@@ -26,4 +27,9 @@ url = URL.create(
 )
 
 engine = create_engine(url, echo=True, echo_pool="debug")
+
+with engine.connect() as connection:
+    connection.execute(CreateSchema("pixl", if_not_exists=True))
+    connection.commit()
+
 Base.metadata.create_all(engine)

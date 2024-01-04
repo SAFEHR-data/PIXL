@@ -58,8 +58,18 @@ def db_engine(monkeymodule) -> Engine:
 
     :returns Engine: Engine for use in other setup fixtures
     """
-    engine = create_engine("sqlite:///:memory:", echo=True, echo_pool="debug", future=True)
+    # SQLite doesnt support schemas, so remove pixl schema from engine options
+    execution_options = {"schema_translate_map": {"pixl": None}}
+    engine = create_engine(
+        "sqlite:///:memory:",
+        execution_options=execution_options,
+        echo=True,
+        echo_pool="debug",
+        future=True,
+    )
     monkeymodule.setattr("pixl_cli._database.engine", engine)
+
+    # super fun way to remove the schema name for sqlite
     Base.metadata.create_all(engine)
     yield engine
     Base.metadata.drop_all(engine)
