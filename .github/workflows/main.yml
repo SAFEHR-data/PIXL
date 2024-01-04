@@ -202,6 +202,8 @@ jobs:
         with:
           context: .
           file: docker/postgres/Dockerfile
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Init Python
         uses: actions/setup-python@v4
