@@ -11,15 +11,17 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-
 """Classes to represent messages in the patient queue."""
+from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from datetime import date, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from jsonpickle import decode, encode
+
+if TYPE_CHECKING:
+    from datetime import date, datetime
 
 logger = logging.getLogger(__name__)
 

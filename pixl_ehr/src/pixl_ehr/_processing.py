@@ -34,6 +34,9 @@ from pixl_ehr._queries import SQLQuery
 
 from .report_deid import deidentify_text
 
+if TYPE_CHECKING:
+    from core.patient_queue.message import Message
+
 logger = logging.getLogger("uvicorn")
 logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))
 

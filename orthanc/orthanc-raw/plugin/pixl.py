@@ -1,12 +1,3 @@
-"""
-
-Facilitates routing of stable studies from orthanc-raw to orthanc-anon
-
-This module provides:
--OnChange: route stable studies and if auto-routing enabled
--ShouldAutoRoute: checks whether auto-routing is enabled
--OnHeartBeat: extends the REST API
-
 #  Copyright (c) 2022 University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +12,15 @@ This module provides:
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """
+Facilitates routing of stable studies from orthanc-raw to orthanc-anon
+
+This module provides:
+-OnChange: route stable studies and if auto-routing enabled
+-ShouldAutoRoute: checks whether auto-routing is enabled
+-OnHeartBeat: extends the REST API
+"""
+from __future__ import annotations
+
 import os
 
 import orthanc

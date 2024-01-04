@@ -12,19 +12,25 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """Subscriber for RabbitMQ"""
+from __future__ import annotations
 
 import asyncio
 import logging
-from collections.abc import Awaitable, Callable
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import aio_pika
 
 from core.patient_queue.message import Message, deserialise
-from core.token_buffer.tokens import TokenBucket
 
 from ._base import PixlBlockingInterface, PixlQueueInterface
+
+if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
+
+    from typing_extensions import Self
+
+    from core.token_buffer.tokens import TokenBucket
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +50,7 @@ class PixlConsumer(PixlQueueInterface):
     def _url(self) -> str:
         return f"amqp://{self._username}:{self._password}@{self._host}:{self._port}/"
 
-    async def __aenter__(self) -> "PixlConsumer":
+    async def __aenter__(self) -> Self:
         """Establishes connection to queue."""
         self._connection = await aio_pika.connect_robust(self._url)
         self._channel = await self._connection.channel()

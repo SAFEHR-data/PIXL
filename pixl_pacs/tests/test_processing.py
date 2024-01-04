@@ -15,6 +15,8 @@
 These tests require executing from within the PACS API container with the dependent
 services being up
 """
+from __future__ import annotations
+
 import datetime
 import os
 
