@@ -71,12 +71,7 @@ async def process_message(message: Message) -> None:
 
 
 def export_radiology_reports(anon_data: Iterable[tuple]) -> None:
-    # columns required in parquet:
-    # - accession number
-    # - OMOP ES study id
-    # - the deIDed report text
-    # - link to the DICOM image
-    # - EHR imaging identifiers
+    # might need to generate the study ID slug here?
     pe = ParquetExport(project_name, extract_datetime)
     pe.export_radiology(anon_data)
 

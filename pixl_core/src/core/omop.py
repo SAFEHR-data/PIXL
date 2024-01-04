@@ -27,7 +27,6 @@ if TYPE_CHECKING:
     import datetime
 
 
-
 root_from_install = pathlib.Path(__file__).parents[3]
 
 logger = logging.getLogger(__file__)
@@ -91,24 +90,21 @@ class ParquetExport:
 
     def export_radiology(self, anon_data: Iterable[tuple]) -> str:
         """Export radiology reports to parquet file"""
-        # columns in parquet: anon report, accession number, OMOP ES study id
-        anon_data.report_text
-        anon_data.accession_number
+        # columns required in parquet:
+        # - accession number
+        # - OMOP ES study id
+        # - the deIDed report text
+        # - link to the DICOM image
+        # - EHR imaging identifiers
         self._mkdir(self.radiology_output)
 
-        pd.DataFrame()
-        # Appending might require fastparquet library. Or do as batch.
-        # pd.DataFrame.to_parquet()
+        # will need to convert header names
+        df = pd.DataFrame(anon_data)
+
+        # df.to_parquet()
 
         # do symlinks...
 
-        # see pixl_cli._io.copy_parquet_return_logfile_fields for how we might do this:
-        # ie. project_name_slug = extract.copy_to_exports(parquet_path, project_name, omop_es_timestamp)
-
-        # will need to append or create new depending on slug (is there a parquet
-        # file open flag that combines these two?)
-
-        # What column header names?
         return self.project_slug
 
     @staticmethod
