@@ -48,7 +48,7 @@ def example_messages():
 
 @pytest.fixture()
 def rows_in_session(db_session) -> Session:
-    """Insert some a test row for each table, returning the session for use in tests."""
+    """Insert a test row for each table, returning the session for use in tests."""
     extract = Extract(slug="i-am-a-project")
 
     image_exported = Image(
