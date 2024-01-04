@@ -11,3 +11,9 @@ pacs_api:
   host:
   port:
   default_rate: 0.1  # queries per second
+postgres:
+  host:
+  port:
+  username:
+  password:
+  database:

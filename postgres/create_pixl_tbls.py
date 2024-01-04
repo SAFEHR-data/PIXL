@@ -1,4 +1,3 @@
-#!/bin/bash
 #  Copyright (c) University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,14 +12,24 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-set -euxo pipefail
+"""Create PIXL tables"""
+import os
 
-# Create the EHR schema and associated tables
-columns_and_types="mrn text, accession_number text, age integer, sex text, ethnicity text, height real, weight real, gcs integer, xray_report text"
-ehr_create_command="CREATE SCHEMA emap_data AUTHORIZATION ${POSTGRES_USER}
-    CREATE TABLE ehr_raw ($columns_and_types)
-    CREATE TABLE ehr_anon ($columns_and_types)
-"
-psql -U "${POSTGRES_USER}" --dbname "${POSTGRES_DB}" -c "$ehr_create_command"
+from core.database import Base
+from sqlalchemy import URL, create_engine
+from sqlalchemy.sql.ddl import CreateSchema
 
-python3.10 /pixl/create_pixl_tbls.py
+url = URL.create(
+    drivername="postgresql+psycopg2",
+    username=os.environ["POSTGRES_USER"],
+    password=os.environ["POSTGRES_PASSWORD"],
+    database=os.environ["POSTGRES_DB"],
+)
+
+engine = create_engine(url, echo=True, echo_pool="debug")
+
+with engine.connect() as connection:
+    connection.execute(CreateSchema("pixl", if_not_exists=True))
+    connection.commit()
+
+Base.metadata.create_all(engine)
