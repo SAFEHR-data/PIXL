@@ -19,6 +19,7 @@ import pathlib
 import shutil
 from typing import TYPE_CHECKING
 
+import pandas as pd
 import slugify
 
 if TYPE_CHECKING:
@@ -95,6 +96,7 @@ class ParquetExport:
         anon_data.accession_number
         self._mkdir(self.radiology_output)
 
+        pd.DataFrame()
         # Appending might require fastparquet library. Or do as batch.
         # pd.DataFrame.to_parquet()
 

@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Iterable
 
 import psycopg2 as pypg
 from decouple import config
@@ -105,3 +105,12 @@ class PIXLDatabase(WriteableDatabase, QueryableDatabase):
         query = "SELECT * FROM emap_data.ehr_raw WHERE mrn = %s and accession_number = %s"
         self._cursor.execute(query=str(query), vars=[data.mrn, data.accession_number])
         return self._cursor.fetchone() is not None
+
+    def get_radiology_reports(self) -> Iterable[tuple]:
+        """Get all radiology reports. Preferably filtered by study but we
+        don't have a column for that. """
+        # columns_and_types="mrn text, accession_number text, age integer, sex text, ethnicity text, height real, weight real, gcs integer, xray_report text"
+        query = "SELECT accession_number, xray_report FROM emap_data.ehr_anon"
+        self._cursor.execute(query=query)
+        all_rows = self._cursor.fetchall()
+        return all_rows

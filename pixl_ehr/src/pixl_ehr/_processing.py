@@ -20,7 +20,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Iterable
 
 import requests
 
@@ -67,11 +67,15 @@ async def process_message(message: Message) -> None:
     raw_data.persist(pixl_db, schema_name="emap_data", table_name="ehr_raw")
     anon_data = raw_data.anonymise()
     anon_data.persist(pixl_db, schema_name="emap_data", table_name="ehr_anon")
-    export_radiology_report(anon_data)
 
 
-def export_radiology_report(anon_data: PatientEHRData) -> None:
-    # columns in parquet: anon report, accession number, OMOP ES study id
+def export_radiology_reports(anon_data: Iterable[PatientEHRData]) -> None:
+    # columns required in parquet:
+    # - accession number
+    # - OMOP ES study id
+    # - the deIDed report text
+    # - link to the DICOM image
+    # - EHR imaging identifiers
     pe = ParquetExport(project_name, extract_datetime)
     pe.export_radiology(anon_data)
 

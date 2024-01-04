@@ -28,7 +28,7 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
 from ._databases import PIXLDatabase
-from ._processing import process_message
+from ._processing import export_radiology_reports, process_message
 
 QUEUE_NAME = "ehr"
 
@@ -58,14 +58,20 @@ async def startup_event() -> None:
         task.add_done_callback(background_tasks.discard)
 
 
-@app.get(
+@app.post(
     "/export-radiology-as-parquet",
-    summary="",
+    summary="Copy all radiology reports in the PIXL DB to a parquet file",
 )
-async def export_radiology_as_parquet() -> None:
+def export_radiology_as_parquet() -> None:
     """Batch export of all radiology reports in PIXL DB to a parquet file."""
     # can we check the queue to make sure it's empty?
     # or that the correct number of entries are in the PIXL DB?
+    # Get all reports - we don't store the extract IDs so we just hope there's
+    # only data from one extract here.
+    # Or will this command have to tell us which extract ID to use?
+    anon_data = PIXLDatabase().get_radiology_reports()
+    export_radiology_reports(anon_data)
+
 
 
 @app.get(
