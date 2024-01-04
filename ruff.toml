@@ -31,11 +31,14 @@ ignore = [
     "S608",   # possible SQL injection vectors (#FIXME)
 ]
 per-file-ignores = {"*tests*" = [
+    "ARG001", # Unused function argument, fixtures can be used for their side effects
     "INP001",
     "S101",
 ], "hooks*" = [
     "INP001",
     "T201",
+], "postgres/*" = [
+    "INP001",
 ]}
 select = [
     "ALL",

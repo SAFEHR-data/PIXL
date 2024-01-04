@@ -22,27 +22,18 @@ from typing import Any, Optional
 
 import click
 import requests
-import yaml
 from core.patient_queue.producer import PixlProducer
 from core.patient_queue.subscriber import PixlBlockingConsumer
 
-from ._io import copy_parquet_return_logfile_fields, messages_from_parquet, messages_from_state_file
-from ._logging import logger, set_log_level
-from ._utils import clear_file, remove_file_if_it_exists
-
-
-def _load_config(filename: str = "pixl_config.yml") -> dict:
-    """CLI configuration generated from a .yaml file"""
-    if not Path(filename).exists():
-        msg = f"Failed to find {filename}. It must be present " f"in the current working directory"
-        raise OSError(msg)
-
-    with Path(filename).open() as config_file:
-        config_dict = yaml.safe_load(config_file)
-    return dict(config_dict)
-
-
-config = _load_config()
+from pixl_cli._config import cli_config
+from pixl_cli._database import filter_exported_or_add_to_db
+from pixl_cli._io import (
+    copy_parquet_return_logfile_fields,
+    messages_from_parquet,
+    messages_from_state_file,
+)
+from pixl_cli._logging import logger, set_log_level
+from pixl_cli._utils import clear_file, remove_file_if_it_exists
 
 # localhost needs to be added to the NO_PROXY environment variables on GAEs
 os.environ["NO_PROXY"] = os.environ["no_proxy"] = "localhost"
@@ -58,7 +49,7 @@ def cli(*, debug: bool) -> None:
 @cli.command()
 @click.option(
     "--queues",
-    default="ehr,pacs",
+    default="pacs,ehr",
     show_default=True,
     help="Comma seperated list of queues to populate with messages generated from the "
     "input file(s)",
@@ -101,8 +92,14 @@ def populate(parquet_dir: Path, *, restart: bool, queues: str) -> None:
 
         remove_file_if_it_exists(state_filepath)  # will be stale
 
-        with PixlProducer(queue_name=queue, **config["rabbitmq"]) as producer:
-            producer.publish(sorted(messages, key=attrgetter("study_date")))
+        sorted_messages = sorted(messages, key=attrgetter("study_date"))
+        # For imaging, we don't want to query again for images that have already been exported
+        if queue == "pacs" and messages:
+            sorted_messages = filter_exported_or_add_to_db(
+                sorted_messages, messages[0].project_name
+            )
+        with PixlProducer(queue_name=queue, **cli_config["rabbitmq"]) as producer:
+            producer.publish(sorted_messages)
 
 
 @cli.command()
@@ -272,7 +269,7 @@ def consume_all_messages_and_save_csv_file(queue_name: str, timeout_in_seconds: 
         f"{timeout_in_seconds} seconds"
     )
 
-    with PixlBlockingConsumer(queue_name=queue_name, **config["rabbitmq"]) as consumer:
+    with PixlBlockingConsumer(queue_name=queue_name, **cli_config["rabbitmq"]) as consumer:
         state_filepath = state_filepath_for_queue(queue_name)
         if consumer.message_count > 0:
             logger.info("Found messages in the queue. Clearing the state file")
@@ -337,11 +334,11 @@ def api_config_for_queue(queue_name: str) -> APIConfig:
     """Configuration for an API associated with a queue"""
     config_key = f"{queue_name}_api"
 
-    if config_key not in config:
+    if config_key not in cli_config:
         msg = (
             f"Cannot update the rate for {queue_name}. {config_key} was"
             f" not specified in the configuration"
         )
         raise ValueError(msg)
 
-    return APIConfig(config[config_key])
+    return APIConfig(cli_config[config_key])
