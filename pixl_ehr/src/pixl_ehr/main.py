@@ -18,9 +18,11 @@ import asyncio
 import importlib.metadata
 import logging
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from azure.identity import EnvironmentCredential
 from azure.storage.blob import BlobServiceClient
+from core.omop import ParquetExport
 from core.patient_queue import PixlConsumer
 from core.router import router, state
 from decouple import config
@@ -28,7 +30,10 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
 from ._databases import PIXLDatabase
-from ._processing import export_radiology_reports, process_message
+from ._processing import process_message
+
+if TYPE_CHECKING:
+    from datetime import datetime
 
 QUEUE_NAME = "ehr"
 
@@ -62,14 +67,15 @@ async def startup_event() -> None:
     "/export-radiology-as-parquet",
     summary="Copy all radiology reports in the PIXL DB to a parquet file",
 )
-def export_radiology_as_parquet(project_name, extract_datetime) -> None:
+def export_radiology_as_parquet(project_name: str, extract_datetime: datetime) -> None:
     """Batch export of all radiology reports in PIXL DB to a parquet file."""
     # This command has to tell us the extract identifiers so we can extract to the correct
     # path, however we can't verify that the reports in the DB actually came from that extract.
     # Also we can't check that all reports in the queue have been processed.
     # So we are relying on the user passing correct parameters here.
     anon_data = PIXLDatabase().get_radiology_reports()
-    export_radiology_reports(anon_data)
+    pe = ParquetExport(project_name, extract_datetime)
+    pe.export_radiology(anon_data)
 
 
 @app.get(

@@ -17,7 +17,6 @@ from __future__ import annotations
 import logging
 import pathlib
 import shutil
-from collections.abc import Iterable
 from typing import TYPE_CHECKING
 
 import pandas as pd
@@ -25,6 +24,7 @@ import slugify
 
 if TYPE_CHECKING:
     import datetime
+    from collections.abc import Iterable
 
 
 root_from_install = pathlib.Path(__file__).parents[3]
@@ -93,16 +93,16 @@ class ParquetExport:
         # The parquet file should have the following columns:
         # - De-IDed report text
         # - procedure_occurrence_id (aka. EHR imaging identifier)
-        # - DICOM link (ie. the hashing API’s response for {patient mrn}{accession number})
+        # - DICOM link (ie. the hashing API's response for {patient mrn}{accession number})
 
         self._mkdir(self.radiology_output)
+        parquet_file = self.radiology_output / "radiology.parquet"
 
         # will need to convert header names
-        df = pd.DataFrame(anon_data)
+        export_df = pd.DataFrame(anon_data)
+        export_df.to_parquet(parquet_file)
 
-        # df.to_parquet()
-
-        # do symlinks...
+        # do symlinks
 
         return self.project_slug
 

@@ -23,7 +23,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 
 @pytest.fixture(autouse=True)
-def omop_files(tmp_path_factory: pytest.TempPathFactory, monkeypatch) -> None:
+def _omop_files(tmp_path_factory: pytest.TempPathFactory, monkeypatch) -> None:
     """
     Replace production extract instance with one writing to a tmpdir.
 

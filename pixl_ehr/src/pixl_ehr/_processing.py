@@ -16,7 +16,6 @@ from __future__ import annotations
 import logging
 import os
 from abc import ABC, abstractmethod
-from collections.abc import Iterable
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -27,7 +26,6 @@ import requests
 
 if TYPE_CHECKING:
     from core.patient_queue.message import Message
-from core.omop import ParquetExport
 from decouple import config
 
 from pixl_ehr._databases import EMAPStar, PIXLDatabase
@@ -68,11 +66,6 @@ async def process_message(message: Message) -> None:
     raw_data.persist(pixl_db, schema_name="emap_data", table_name="ehr_raw")
     anon_data = raw_data.anonymise()
     anon_data.persist(pixl_db, schema_name="emap_data", table_name="ehr_anon")
-
-
-def export_radiology_reports(anon_data: Iterable[tuple], project_name, extract_datetime) -> None:
-    pe = ParquetExport(project_name, extract_datetime)
-    pe.export_radiology(anon_data)
 
 
 @dataclass
@@ -175,7 +168,7 @@ class PatientEHRData:
             self.accession_number, endpoint_path="hash-accession-number"
         )
         self.image_identifier = pixl_hash(
-            self.image_identifier, endpoint_path='hash-image-identifier'
+            self.image_identifier, endpoint_path="hash-image-identifier"
         )
         self.acquisition_datetime = None
 

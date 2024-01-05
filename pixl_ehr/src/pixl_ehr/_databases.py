@@ -14,9 +14,8 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Iterable
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 import psycopg2 as pypg
 from decouple import config
@@ -107,7 +106,7 @@ class PIXLDatabase(WriteableDatabase, QueryableDatabase):
         self._cursor.execute(query=str(query), vars=[data.mrn, data.accession_number])
         return self._cursor.fetchone() is not None
 
-    def get_radiology_reports(self) -> Iterable[tuple]:
+    def get_radiology_reports(self) -> list[tuple[Any, ...]]:
         """
         Get all radiology reports. Preferably filtered by study but we
         don't have a column for that.
@@ -116,5 +115,4 @@ class PIXLDatabase(WriteableDatabase, QueryableDatabase):
             "SELECT image_identifier, procedure_occurrence_id, xray_report FROM emap_data.ehr_anon"
         )
         self._cursor.execute(query=query)
-        all_rows = self._cursor.fetchall()
-        return all_rows
+        return self._cursor.fetchall()
