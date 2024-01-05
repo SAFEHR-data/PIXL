@@ -82,6 +82,7 @@ class PatientEHRData:
 
     mrn: str
     accession_number: str
+    image_identifier: str
     acquisition_datetime: Optional[datetime]
 
     age: Optional[int] = None
@@ -102,6 +103,7 @@ class PatientEHRData:
         self = PatientEHRData(
             mrn=message.mrn,
             accession_number=message.accession_number,
+            image_identifier=message.mrn + message.accession_number,
             acquisition_datetime=message.study_date,
         )
 
@@ -130,6 +132,7 @@ class PatientEHRData:
         col_names = [
             "mrn",
             "accession_number",
+            "image_identifier",
             "age",
             "sex",
             "ethnicity",
@@ -147,6 +150,7 @@ class PatientEHRData:
             [
                 self.mrn,
                 self.accession_number,
+                self.image_identifier,
                 self.age,
                 self.sex,
                 self.ethnicity,
@@ -166,6 +170,9 @@ class PatientEHRData:
         self.mrn = pixl_hash(self.mrn, endpoint_path="hash-mrn")
         self.accession_number = pixl_hash(
             self.accession_number, endpoint_path="hash-accession-number"
+        )
+        self.image_identifier = pixl_hash(
+            self.image_identifier, endpoint_path='hash-image-identifier'
         )
         self.acquisition_datetime = None
 

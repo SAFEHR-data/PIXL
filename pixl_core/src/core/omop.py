@@ -90,12 +90,11 @@ class ParquetExport:
 
     def export_radiology(self, anon_data: Iterable[tuple]) -> str:
         """Export radiology reports to parquet file"""
-        # columns required in parquet:
-        # - accession number
-        # - OMOP ES study id
-        # - the deIDed report text
-        # - link to the DICOM image
-        # - EHR imaging identifiers
+        # The parquet file should have the following columns:
+        # - De-IDed report text
+        # - procedure_occurence_id (aka. EHR imaging identifier)
+        # - DICOM link (ie. the hashing API’s response for {patient mrn}{accession number})
+
         self._mkdir(self.radiology_output)
 
         # will need to convert header names
