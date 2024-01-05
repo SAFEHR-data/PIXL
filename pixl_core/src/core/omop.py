@@ -92,7 +92,7 @@ class ParquetExport:
         """Export radiology reports to parquet file"""
         # The parquet file should have the following columns:
         # - De-IDed report text
-        # - procedure_occurence_id (aka. EHR imaging identifier)
+        # - procedure_occurrence_id (aka. EHR imaging identifier)
         # - DICOM link (ie. the hashing API’s response for {patient mrn}{accession number})
 
         self._mkdir(self.radiology_output)

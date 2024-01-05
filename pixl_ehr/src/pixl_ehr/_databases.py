@@ -112,7 +112,9 @@ class PIXLDatabase(WriteableDatabase, QueryableDatabase):
         Get all radiology reports. Preferably filtered by study but we
         don't have a column for that.
         """
-        query = "SELECT accession_number, xray_report FROM emap_data.ehr_anon"
+        query = (
+            "SELECT image_identifier, procedure_occurrence_id, xray_report FROM emap_data.ehr_anon"
+        )
         self._cursor.execute(query=query)
         all_rows = self._cursor.fetchall()
         return all_rows

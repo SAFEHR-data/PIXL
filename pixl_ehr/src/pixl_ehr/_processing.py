@@ -70,8 +70,7 @@ async def process_message(message: Message) -> None:
     anon_data.persist(pixl_db, schema_name="emap_data", table_name="ehr_anon")
 
 
-def export_radiology_reports(anon_data: Iterable[tuple]) -> None:
-    # might need to generate the study ID slug here?
+def export_radiology_reports(anon_data: Iterable[tuple], project_name, extract_datetime) -> None:
     pe = ParquetExport(project_name, extract_datetime)
     pe.export_radiology(anon_data)
 
@@ -83,6 +82,7 @@ class PatientEHRData:
     mrn: str
     accession_number: str
     image_identifier: str
+    procedure_occurrence_id: int
     acquisition_datetime: Optional[datetime]
 
     age: Optional[int] = None
@@ -104,6 +104,7 @@ class PatientEHRData:
             mrn=message.mrn,
             accession_number=message.accession_number,
             image_identifier=message.mrn + message.accession_number,
+            procedure_occurrence_id=message.procedure_occurrence_id,
             acquisition_datetime=message.study_date,
         )
 
@@ -133,6 +134,7 @@ class PatientEHRData:
             "mrn",
             "accession_number",
             "image_identifier",
+            "procedure_occurrence_id",
             "age",
             "sex",
             "ethnicity",
@@ -151,6 +153,7 @@ class PatientEHRData:
                 self.mrn,
                 self.accession_number,
                 self.image_identifier,
+                self.procedure_occurrence_id,
                 self.age,
                 self.sex,
                 self.ethnicity,

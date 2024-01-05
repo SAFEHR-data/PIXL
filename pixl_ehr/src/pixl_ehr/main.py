@@ -62,13 +62,12 @@ async def startup_event() -> None:
     "/export-radiology-as-parquet",
     summary="Copy all radiology reports in the PIXL DB to a parquet file",
 )
-def export_radiology_as_parquet() -> None:
+def export_radiology_as_parquet(project_name, extract_datetime) -> None:
     """Batch export of all radiology reports in PIXL DB to a parquet file."""
-    # can we check the queue to make sure it's empty?
-    # or that the correct number of entries are in the PIXL DB?
-    # Get all reports - we don't store the extract IDs so we just hope there's
-    # only data from one extract here.
-    # Or will this command have to tell us which extract ID to use?
+    # This command has to tell us the extract identifiers so we can extract to the correct
+    # path, however we can't verify that the reports in the DB actually came from that extract.
+    # Also we can't check that all reports in the queue have been processed.
+    # So we are relying on the user passing correct parameters here.
     anon_data = PIXLDatabase().get_radiology_reports()
     export_radiology_reports(anon_data)
 
