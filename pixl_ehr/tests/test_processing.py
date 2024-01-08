@@ -39,6 +39,7 @@ observation_datetime = datetime.datetime.fromisoformat(
     "1234-01-01"
 )  # within hours of imaging study
 procedure_occurrence_id = 123456
+image_identifier = mrn + accession_number
 project_name = "test project"
 omop_es_timestamp = datetime.datetime.fromisoformat("1234-01-01 00:00:00")
 date_of_birth = "09/08/0007"
@@ -171,6 +172,8 @@ async def test_message_processing() -> None:
     expected_row = [
         mrn,
         accession_number,
+        image_identifier,
+        procedure_occurrence_id,
         "any",
         sex,
         ethnicity,
