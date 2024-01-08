@@ -17,8 +17,10 @@ from __future__ import annotations
 import asyncio
 import importlib.metadata
 import logging
+from datetime import (
+    datetime,  # noqa: TCH003, always import datetime otherwise pydantic throws error
+)
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from azure.identity import EnvironmentCredential
 from azure.storage.blob import BlobServiceClient
@@ -31,9 +33,6 @@ from fastapi.responses import JSONResponse
 
 from ._databases import PIXLDatabase
 from ._processing import process_message
-
-if TYPE_CHECKING:
-    from datetime import datetime
 
 QUEUE_NAME = "ehr"
 
