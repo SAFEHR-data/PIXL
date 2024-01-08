@@ -17,6 +17,7 @@ from __future__ import annotations
 import os
 import sys
 from json import JSONDecodeError
+from pathlib import Path
 from typing import Any
 
 import requests
@@ -91,8 +92,8 @@ if __name__ == "__main__":
     present_accession_numbers = [orthanc.accession_number(s) for s in orthanc.studies]
     print(f"Found {len(present_accession_numbers)} total studies")
 
-    with Path.open(filename) as file:
-        with Path.open(f"{filename.rstrip('.csv')}_filtered.csv", "w") as new_file:
+    with Path(filename).open() as file:
+        with Path(f"{filename.rstrip('.csv')}_filtered.csv").open("w") as new_file:
             for line in file:
                 if any(a in line for a in present_accession_numbers):
                     continue
