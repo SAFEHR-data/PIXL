@@ -23,4 +23,6 @@ ehr_create_command="CREATE SCHEMA emap_data AUTHORIZATION ${POSTGRES_USER}
 "
 psql -U "${POSTGRES_USER}" --dbname "${POSTGRES_DB}" -c "$ehr_create_command"
 
-python3.10 /pixl/create_pixl_tbls.py
+source /pixl/venv/bin/activate
+
+python3 /pixl/create_pixl_tbls.py
