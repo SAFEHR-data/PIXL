@@ -29,7 +29,7 @@ url = URL.create(
 engine = create_engine(url, echo=True, echo_pool="debug")
 
 with engine.connect() as connection:
-    connection.execute(CreateSchema("pixl", if_not_exists=True))
+    connection.execute(CreateSchema("pipeline", if_not_exists=True))
     connection.commit()
 
 Base.metadata.create_all(engine)

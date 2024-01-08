@@ -11,31 +11,24 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-FROM postgres:14-bullseye
+FROM postgres:16-bookworm
 
 # OS setup
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
-    apt-get install --yes --no-install-recommends procps ca-certificates locales build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev wget libbz2-dev && \
+    apt-get install --yes --no-install-recommends procps ca-certificates locales python3 python3-pip python3.11-venv && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 RUN sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
-
-ADD https://www.python.org/ftp/python/3.10.13/Python-3.10.13.tgz /pixl/python/
-
-RUN cd /pixl/python/ && \
-    tar -xvf Python-3.10.13.tgz && \
-    cd Python-3.10.13 && \
-    ./configure --enable-optimizations && \
-    make -j 2 && \
-    make altinstall
 
 COPY --chmod=0755 ./postgres/postgres.conf /etc/postgresql/postgresql.conf
 
 COPY --chmod=0777 ./postgres/pixl-db_init.sh /docker-entrypoint-initdb.d/pixl-db_init.sh
 
-COPY ./postgres/create_pixl_tbls.py /pixl/create_pixl_tbls.py
+COPY --chmod=0777 ./postgres/create_pixl_tbls.py /pixl/create_pixl_tbls.py
 
 COPY ./pixl_core/ /pixl/pixl_core
 
-RUN python3.10 -m pip install /pixl/pixl_core/
+RUN python3 -m venv /pixl/venv \
+    && cd /pixl/venv/bin \
+    && ./pip install /pixl/pixl_core/
