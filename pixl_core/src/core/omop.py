@@ -99,7 +99,10 @@ class ParquetExport:
         parquet_file = self.radiology_output / "radiology.parquet"
 
         # will need to convert header names
-        export_df = pd.DataFrame(anon_data)
+        parquet_header_names = ["image_identifier", "procedure_occurrence_id", "image_report"]
+        if anon_data:
+            assert len(parquet_header_names) == len(anon_data[0])
+        export_df = pd.DataFrame(anon_data, columns=parquet_header_names)
         export_df.to_parquet(parquet_file)
 
         # Make the latest export dir if it doesn't exist

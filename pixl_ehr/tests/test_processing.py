@@ -26,8 +26,8 @@ import pytest
 from core.patient_queue.message import Message
 from decouple import config
 from pixl_ehr._databases import PIXLDatabase, WriteableDatabase
-from pixl_ehr.main import export_radiology_as_parquet
 from pixl_ehr._processing import process_message
+from pixl_ehr.main import export_radiology_as_parquet
 from psycopg2.errors import UniqueViolation
 
 pytest_plugins = ("pytest_asyncio",)
