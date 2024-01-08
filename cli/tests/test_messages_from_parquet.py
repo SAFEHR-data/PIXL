@@ -26,9 +26,9 @@ if TYPE_CHECKING:
 
 def test_messages_from_parquet(resources: Path) -> None:
     """
-    Given a valid OMOP ES extract directory that has had the logfile parsed
+    Given a valid OMOP ES extract with 4 procedures, two of which are x-rays.
     When the messages are generated from the directory and the output of logfile parsing
-    Then the messages should match expected values
+    Then two messages should be generated
     """
     # Arrange
     omop_parquet_dir = resources / "omop"
@@ -40,34 +40,18 @@ def test_messages_from_parquet(resources: Path) -> None:
 
     expected_messages = [
         Message(
-            mrn="12345678",
-            accession_number="12345678",
-            study_date=datetime.date.fromisoformat("2021-07-01"),
-            procedure_occurrence_id=1,
-            project_name="test-extract-uclh-omop-cdm",
-            omop_es_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
-        ),
-        Message(
-            mrn="12345678",
-            accession_number="ABC1234567",
-            study_date=datetime.date.fromisoformat("2021-07-01"),
-            procedure_occurrence_id=2,
+            mrn="987654321",
+            accession_number="AA12345601",
+            study_date=datetime.date.fromisoformat("2020-05-23"),
+            procedure_occurrence_id=4,
             project_name="test-extract-uclh-omop-cdm",
             omop_es_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
         ),
         Message(
             mrn="987654321",
-            accession_number="ABC1234560",
-            study_date=datetime.date.fromisoformat("2020-05-01"),
-            procedure_occurrence_id=3,
-            project_name="test-extract-uclh-omop-cdm",
-            omop_es_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
-        ),
-        Message(
-            mrn="5020765",
-            accession_number="MIG0234560",
-            study_date=datetime.date.fromisoformat("2015-05-01"),
-            procedure_occurrence_id=4,
+            accession_number="AA12345605",
+            study_date=datetime.date.fromisoformat("2020-05-23"),
+            procedure_occurrence_id=5,
             project_name="test-extract-uclh-omop-cdm",
             omop_es_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
         ),
