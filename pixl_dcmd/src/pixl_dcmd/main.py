@@ -25,6 +25,7 @@ import arrow
 import requests
 from decouple import config
 from pydicom import Dataset, dcmwrite
+from _database import insert_new_uid_into_db_entity
 
 DicomDataSetType = Union[Union[str, bytes, PathLike[Any]], BinaryIO]
 
@@ -210,8 +211,10 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
     # Keep the original study time before any operations are applied.
     # For example: orig_study_time = dataset[0x0008, 0x0030].value
 
-    # Set salt based on ENV VAR
-    salt_plaintext = config("SALT_VALUE")
+    # Set salt based on mrn and accession number
+    mrn = dataset[0x0010, 0x0020].value  # Patient ID
+    accession_number = dataset[0x0008, 0x0050].value  # Accession Number
+    salt_plaintext = mrn + accession_number
 
     HASHER_API_AZ_NAME = config("HASHER_API_AZ_NAME")
     HASHER_API_PORT = config("HASHER_API_PORT")
@@ -273,6 +276,9 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
                 logging.info(f"\t\tCurrent UID:\t{dataset[grp,el].value}")
                 new_uid = get_encrypted_uid(dataset[grp, el].value, salt)
                 dataset[grp, el].value = new_uid
+
+                # Insert the new_uid into the PIXL database
+                insert_new_uid_into_db_entity(accession_number, mrn, new_uid)
                 logging.info(f"\t\tEncrypted UID:\t{new_uid}")
 
             else:
