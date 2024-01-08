@@ -126,7 +126,8 @@ def _check_and_parse_parquet(private_dir: Path, public_dir: Path) -> pd.DataFram
     accessions = pd.read_parquet(private_dir / "PROCEDURE_OCCURRENCE_LINKS.parquet")
     # study_date is in procedure.procedure_date
     procedure = pd.read_parquet(public_dir / "PROCEDURE_OCCURRENCE.parquet")
-    # harcoded to ng tube and chest x-rays for now, will allow this to be configured in the future
+    # TODO: move from hardcoded ng tube and chest x-rays to being configurable  # noqa: FIX002
+    # https://github.com/UCLH-Foundry/PIXL/issues/212
     imaging_procedures = procedure.loc[procedure.procedure_concept_id.isin([4163872, 42538241])]
     # joining data together
     people_procedures = people.merge(imaging_procedures, on="person_id")
