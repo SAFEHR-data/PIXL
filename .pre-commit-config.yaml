@@ -29,4 +29,4 @@ repos:
         pass_filenames: false
         entry: mypy
         args: ['--config-file=setup.cfg']
-        additional_dependencies: ['mypy', 'types-PyYAML', 'types-requests', 'types-python-slugify']
+        additional_dependencies: ['mypy', 'types-PyYAML', 'types-requests', 'types-python-slugify', 'types-psycopg2']
