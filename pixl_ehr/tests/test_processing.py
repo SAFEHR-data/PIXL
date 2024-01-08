@@ -26,6 +26,7 @@ import pytest
 from core.patient_queue.message import Message
 from decouple import config
 from pixl_ehr._databases import PIXLDatabase, WriteableDatabase
+from pixl_ehr.main import export_radiology_as_parquet
 from pixl_ehr._processing import process_message
 from psycopg2.errors import UniqueViolation
 
@@ -165,6 +166,7 @@ def insert_data_into_emap_star_schema() -> None:
 async def test_message_processing() -> None:
     insert_data_into_emap_star_schema()
     await process_message(message)
+    export_radiology_as_parquet(project_name, omop_es_timestamp)
 
     pixl_db = QueryablePIXLDB()
     row = pixl_db.execute_query_string("select * from emap_data.ehr_raw where mrn = %s", [mrn])
