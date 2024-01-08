@@ -38,7 +38,7 @@ study_date_str = "1234-01-01"
 observation_datetime = datetime.datetime.fromisoformat(
     "1234-01-01"
 )  # within hours of imaging study
-procedure_occurrence_id = "123"
+procedure_occurrence_id = 123456
 project_name = "test project"
 omop_es_timestamp = datetime.datetime.fromisoformat("1234-01-01 00:00:00")
 date_of_birth = "09/08/0007"
