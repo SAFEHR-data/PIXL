@@ -102,7 +102,14 @@ class ParquetExport:
         export_df = pd.DataFrame(anon_data)
         export_df.to_parquet(parquet_file)
 
-        # do symlinks
+        # Make the latest export dir if it doesn't exist
+        self._mkdir(self.latest_parent_dir)
+        # Symlink this report to the latest directory
+        latest_parquet_file = self.latest_parent_dir / "radiology.parquet"
+        if latest_parquet_file.exists():
+            latest_parquet_file.unlink()
+
+        latest_parquet_file.symlink_to(parquet_file, target_is_directory=False)
 
         return self.project_slug
 
