@@ -100,8 +100,12 @@ class ParquetExport:
 
         # will need to convert header names
         parquet_header_names = ["image_identifier", "procedure_occurrence_id", "image_report"]
-        if anon_data:
-            assert len(parquet_header_names) == len(anon_data[0])
+        if anon_data and len(parquet_header_names) != len(anon_data[0]):
+            err_str = (
+                f"Passed in data must have expected number of columns "
+                f"(got {len(anon_data[0])}, expected {len(parquet_header_names)})"
+            )
+            raise ValueError(err_str)
         export_df = pd.DataFrame(anon_data, columns=parquet_header_names)
         export_df.to_parquet(parquet_file)
 
