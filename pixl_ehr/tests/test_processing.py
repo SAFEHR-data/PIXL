@@ -21,9 +21,8 @@ from __future__ import annotations
 
 import contextlib
 import datetime
-import re
-from typing import TYPE_CHECKING
 
+import pandas as pd
 import pytest
 from core.omop import ParquetExport
 from core.patient_queue.message import Message
@@ -33,18 +32,12 @@ from pixl_ehr._processing import process_message
 from pixl_ehr.main import export_radiology_as_parquet
 from psycopg2.errors import UniqueViolation
 
-if TYPE_CHECKING:
-    from pathlib import Path
-
 pytest_plugins = ("pytest_asyncio",)
 
 
 mrn = "testmrn"
 accession_number = "testaccessionnumber"
-study_date_str = "1234-01-01"
-observation_datetime = datetime.datetime.fromisoformat(
-    "1234-01-01"
-)  # within hours of imaging study
+observation_datetime = datetime.datetime.fromisoformat("2024-01-01")
 procedure_occurrence_id = 123456
 image_identifier = mrn + accession_number
 project_name = "test project"
@@ -58,6 +51,11 @@ gcs = 6
 name_of_doctor = "John Smith"
 report_text = f"test\nxray report\nsigned by {name_of_doctor}"
 
+accession_number2 = "testaccessionnumber22"
+procedure_occurrence_id2 = 234567
+image_identifier2 = mrn + accession_number2
+report_text2 = "test\nanother xray report\nsigned by someone else"
+
 # Primary/foreign keys used to insert linked mrns, hospital visits, labs
 # visit observation types
 mrn_id = 9999999
@@ -65,14 +63,25 @@ hv_id = 1111111
 weight_vot_id, height_vot_id, gcs_vot_id = 2222222, 3333333, 4444444
 ls_id, lo_id, lr_id, ltd_id = 5555555, 6666666, 7777777, 8888888
 
-message = Message(
-    mrn=mrn,
-    accession_number=accession_number,
-    study_date=datetime.date.fromisoformat(study_date_str),
-    procedure_occurrence_id=procedure_occurrence_id,
-    project_name=project_name,
-    omop_es_timestamp=omop_es_timestamp,
-)
+
+def _make_message(project_name) -> Message:
+    return Message(
+        project_name=project_name,
+        accession_number=accession_number,
+        mrn=mrn,
+        study_date=observation_datetime,
+        procedure_occurrence_id=procedure_occurrence_id,
+        omop_es_timestamp=omop_es_timestamp,
+    )
+
+
+@pytest.fixture()
+def example_messages():
+    """Test input data."""
+    return [
+        _make_message(project_name=project_name),
+        _make_message(project_name="other project"),
+    ]
 
 
 class WritableEMAPStar(WriteableDatabase):
@@ -149,10 +158,17 @@ def insert_data_into_emap_star_schema() -> None:
     insert_visit_observation(type_id=weight_vot_id, value=weight)
     insert_visit_observation(type_id=gcs_vot_id, value=float(gcs))
 
+    # First message data
     insert_row_into_emap_star_schema(
         "lab_sample",
         ["lab_sample_id", "external_lab_number", "mrn_id"],
         [ls_id, accession_number, mrn_id],
+    )
+    # Second message data
+    insert_row_into_emap_star_schema(
+        "lab_sample",
+        ["lab_sample_id", "external_lab_number", "mrn_id"],
+        [ls_id, accession_number2, mrn_id],
     )
     insert_row_into_emap_star_schema("lab_order", ["lab_order_id", "lab_sample_id"], [lo_id, ls_id])
     insert_row_into_emap_star_schema(
@@ -160,30 +176,27 @@ def insert_data_into_emap_star_schema() -> None:
         ["lab_test_definition_id", "test_lab_code"],
         [ltd_id, "NARRATIVE"],
     )
+    # First message radiology report
     insert_row_into_emap_star_schema(
         "lab_result",
         ["lab_result_id", "lab_order_id", "lab_test_definition_id", "value_as_text"],
         [lr_id, lo_id, ltd_id, report_text],
     )
-
-
-def check_radiology_reports(output_dir: Path):
-    assert output_dir.exists()
-    expected_dir = str(
-        ParquetExport.root_dir / "exports" / "(.*)" / "all_extracts" / "omop" / "(.*)" / "radiology"
+    # Second message radiology report
+    insert_row_into_emap_star_schema(
+        "lab_result",
+        ["lab_result_id", "lab_order_id", "lab_test_definition_id", "value_as_text"],
+        [lr_id, lo_id, ltd_id, report_text2],
     )
-    m = re.match(expected_dir, str(output_dir))
-    assert m.group(1) == "test-project"  # (sluggified)
-    assert m.group(2) == "1234-01-01t00-00-00"  # (sluggified)
 
 
 @pytest.mark.processing()
 @pytest.mark.asyncio()
-async def test_message_processing() -> None:
+async def test_message_processing(example_messages) -> None:
     insert_data_into_emap_star_schema()
+
+    message = example_messages[0]
     await process_message(message)
-    output_dir = export_radiology_as_parquet(project_name, omop_es_timestamp)
-    check_radiology_reports(output_dir)
 
     pixl_db = QueryablePIXLDB()
     row = pixl_db.execute_query_string("select * from emap_data.ehr_raw where mrn = %s", [mrn])
@@ -200,7 +213,7 @@ async def test_message_processing() -> None:
         weight,
         gcs,
         report_text,
-        project_name
+        project_name,
     ]
 
     for value, expected_value in zip(row, expected_row, strict=True):
@@ -218,3 +231,61 @@ async def test_message_processing() -> None:
 
     # No deidintification performed so we expext the report to stay identical
     assert report_text == anon_row[-2]
+
+
+@pytest.mark.processing()
+@pytest.mark.asyncio()
+async def test_radiology_export(example_messages) -> None:
+    """
+    GIVEN a message processed by the EHR API
+    WHEN export_radiology_as_parquet is called
+    THEN the radiology reports are exported to a parquet file and symlinked to the latest export
+    directory
+    """
+    # ARRANGE
+    message = example_messages[0]
+    project_name = message.project_name
+    extract_date = message.omop_es_timestamp
+    pe = ParquetExport(project_name, extract_date)
+    await process_message(message)
+
+    # ACT
+    export_radiology_as_parquet(project_name, omop_es_timestamp)
+
+    # ASSERT
+    parquet_file = pe.radiology_output / "radiology.parquet"
+
+    assert parquet_file.exists()
+    assert parquet_file.is_file()
+    # Check symlink
+    latest_parquet_file = pe.latest_parent_dir / "radiology.parquet"
+    latest_parquet_file.is_symlink()
+
+
+@pytest.mark.processing()
+@pytest.mark.asyncio()
+async def test_radiology_export_multiple_projects(example_messages) -> None:
+    """
+    GIVEN 2 messages each from a different project processed by the EHR API
+    WHEN export_radiology_as_parquet is called for 1 given project
+    THEN only the radiology reports for that project are exported
+    """
+    # ARRANGE
+    message = example_messages[0]
+    project_name = message.project_name
+    extract_date = message.omop_es_timestamp
+    pe = ParquetExport(project_name, extract_date)
+
+    message2 = example_messages[1]
+
+    await process_message(message)
+    await process_message(message2)
+
+    # ACT
+    export_radiology_as_parquet(project_name, extract_date)
+
+    # ASSERT
+    parquet_file = pe.radiology_output / "radiology.parquet"
+    parquet_df = pd.read_parquet(parquet_file)
+    assert parquet_df.shape[0] == 1  # should contain only 1 row
+    assert parquet_df["image_report"].iloc[0] == report_text
