@@ -17,14 +17,13 @@ from __future__ import annotations
 import logging
 import pathlib
 import shutil
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pandas as pd
 import slugify
 
 if TYPE_CHECKING:
     import datetime
-    from collections.abc import Iterable
 
 
 root_from_install = pathlib.Path(__file__).parents[3]
@@ -88,7 +87,7 @@ class ParquetExport:
         latest_public.symlink_to(self.public_output, target_is_directory=True)
         return self.project_slug
 
-    def export_radiology(self, anon_data: Iterable[tuple]) -> str:
+    def export_radiology(self, anon_data: list[tuple[Any, ...]]) -> str:
         """Export radiology reports to parquet file"""
         # The parquet file should have the following columns:
         # - De-IDed report text
