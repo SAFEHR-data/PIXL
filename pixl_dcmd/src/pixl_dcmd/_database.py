@@ -55,3 +55,20 @@ def insert_new_uid_into_db_entity(
                 .values(hashed_identifier=new_uid)
             )
             pixl_session.execute(stmt)
+
+
+def query_db(mrn: str, accession_number: str) -> bool:
+    PixlSession = sessionmaker(engine)
+    with PixlSession() as pixl_session, pixl_session.begin():
+        existing_image = (
+            pixl_session.query(Image)
+            .filter(
+                Image.accession_number == accession_number,
+                Image.mrn == mrn,
+            )
+            .one_or_none()
+        )
+
+        if existing_image.exported_at is not None:
+            return True
+        return False
