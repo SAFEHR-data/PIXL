@@ -25,7 +25,7 @@ import arrow
 import requests
 from decouple import config
 from pydicom import Dataset, dcmwrite
-from _database import insert_new_uid_into_db_entity
+from _database import insert_new_uid_into_db_entity, query_db
 
 DicomDataSetType = Union[Union[str, bytes, PathLike[Any]], BinaryIO]
 
@@ -214,6 +214,9 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
     # Set salt based on mrn and accession number
     mrn = dataset[0x0010, 0x0020].value  # Patient ID
     accession_number = dataset[0x0008, 0x0050].value  # Accession Number
+
+    # Query PIXL database
+    query_db(mrn, accession_number)
     salt_plaintext = mrn + accession_number
 
     HASHER_API_AZ_NAME = config("HASHER_API_AZ_NAME")
