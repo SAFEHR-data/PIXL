@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import aio_pika
@@ -27,6 +26,7 @@ from ._base import PixlBlockingInterface, PixlQueueInterface
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
+    from pathlib import Path
 
     from typing_extensions import Self
 
@@ -112,7 +112,7 @@ class PixlBlockingConsumer(PixlBlockingInterface):
         def callback(method: Any, properties: Any, body: Any) -> None:  # noqa: ARG001
             """Consume to file."""
             try:
-                with Path.open(file_path, "a") as csv_file:
+                with file_path.open("a") as csv_file:
                     print(str(body.decode()), file=csv_file)
             except:  # noqa: E722
                 logger.exception("Failed to consume")

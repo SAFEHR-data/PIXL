@@ -18,7 +18,7 @@ from pathlib import Path
 
 def clear_file(filepath: Path) -> None:
     """Clear the contents of a file"""
-    Path.open(filepath, "w").close()
+    filepath.open("w").close()
 
 
 def string_is_non_empty(string: str) -> bool:

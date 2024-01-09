@@ -13,14 +13,17 @@
 #  limitations under the License.
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class SQLQuery:
     def __init__(self, filepath: Path, context: dict) -> None:
         self.values: list[str] = []
         self._filepath = filepath
-        self._lines = Path.open(filepath).readlines()
+        self._lines = filepath.open().readlines()
         self._replace_placeholders_and_populate_values(context)
 
     def __str__(self) -> str:
