@@ -87,7 +87,7 @@ class ParquetExport:
         latest_public.symlink_to(self.public_output, target_is_directory=True)
         return self.project_slug
 
-    def export_radiology(self, anon_data: list[tuple[Any, ...]]) -> str:
+    def export_radiology(self, anon_data: list[tuple[Any, ...]]) -> pathlib.Path:
         """Export radiology reports to parquet file"""
         # The parquet file should have the following columns:
         # - De-IDed report text
@@ -117,7 +117,7 @@ class ParquetExport:
 
         latest_parquet_file.symlink_to(parquet_file, target_is_directory=False)
 
-        return self.project_slug
+        return self.radiology_output
 
     @staticmethod
     def _mkdir(directory: pathlib.Path) -> pathlib.Path:

@@ -21,14 +21,20 @@ from __future__ import annotations
 
 import contextlib
 import datetime
+import re
+from typing import TYPE_CHECKING
 
 import pytest
+from core.omop import ParquetExport
 from core.patient_queue.message import Message
 from decouple import config
 from pixl_ehr._databases import PIXLDatabase, WriteableDatabase
 from pixl_ehr._processing import process_message
 from pixl_ehr.main import export_radiology_as_parquet
 from psycopg2.errors import UniqueViolation
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 pytest_plugins = ("pytest_asyncio",)
 
@@ -161,12 +167,23 @@ def insert_data_into_emap_star_schema() -> None:
     )
 
 
+def check_radiology_reports(output_dir: Path):
+    assert output_dir.exists()
+    expected_dir = str(
+        ParquetExport.root_dir / "exports" / "(.*)" / "all_extracts" / "omop" / "(.*)" / "radiology"
+    )
+    m = re.match(expected_dir, str(output_dir))
+    assert m.group(1) == "test-project"  # (sluggified)
+    assert m.group(2) == "1234-01-01t00-00-00"  # (sluggified)
+
+
 @pytest.mark.processing()
 @pytest.mark.asyncio()
 async def test_message_processing() -> None:
     insert_data_into_emap_star_schema()
     await process_message(message)
-    export_radiology_as_parquet(project_name, omop_es_timestamp)
+    output_dir = export_radiology_as_parquet(project_name, omop_es_timestamp)
+    check_radiology_reports(output_dir)
 
     pixl_db = QueryablePIXLDB()
     row = pixl_db.execute_query_string("select * from emap_data.ehr_raw where mrn = %s", [mrn])

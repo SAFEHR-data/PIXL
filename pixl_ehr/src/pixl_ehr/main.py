@@ -66,7 +66,7 @@ async def startup_event() -> None:
     "/export-radiology-as-parquet",
     summary="Copy all radiology reports in the PIXL DB to a parquet file",
 )
-def export_radiology_as_parquet(project_name: str, extract_datetime: datetime) -> None:
+def export_radiology_as_parquet(project_name: str, extract_datetime: datetime) -> Path:
     """Batch export of all radiology reports in PIXL DB to a parquet file."""
     # This command has to tell us the extract identifiers so we can extract to the correct
     # path, however we can't verify that the reports in the DB actually came from that extract.
@@ -74,7 +74,7 @@ def export_radiology_as_parquet(project_name: str, extract_datetime: datetime) -
     # So we are relying on the user passing correct parameters here.
     anon_data = PIXLDatabase().get_radiology_reports()
     pe = ParquetExport(project_name, extract_datetime)
-    pe.export_radiology(anon_data)
+    return pe.export_radiology(anon_data)
 
 
 @app.get(
