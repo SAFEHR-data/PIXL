@@ -76,6 +76,7 @@ class PatientEHRData:
     accession_number: str
     image_identifier: str
     procedure_occurrence_id: int
+    project_name: Optional[str]
     acquisition_datetime: Optional[datetime]
 
     age: Optional[int] = None
@@ -98,6 +99,7 @@ class PatientEHRData:
             accession_number=message.accession_number,
             image_identifier=message.mrn + message.accession_number,
             procedure_occurrence_id=message.procedure_occurrence_id,
+            project_name=message.project_name,
             acquisition_datetime=message.study_date,
         )
 
@@ -135,6 +137,7 @@ class PatientEHRData:
             "weight",
             "gcs",
             "xray_report",
+            "project_name",
         ]
 
         cols = ",".join(col_names)
@@ -154,6 +157,7 @@ class PatientEHRData:
                 self.weight,
                 self.glasgow_coma_scale,
                 self.report_text,
+                self.project_name,
             ],
         )
         logger.debug("Persist successful!")

@@ -200,6 +200,7 @@ async def test_message_processing() -> None:
         weight,
         gcs,
         report_text,
+        project_name
     ]
 
     for value, expected_value in zip(row, expected_row, strict=True):
@@ -215,4 +216,5 @@ async def test_message_processing() -> None:
     assert anon_mrn != mrn
     assert anon_accession_number != accession_number
 
-    assert report_text == anon_row[-1]
+    # No deidintification performed so we expext the report to stay identical
+    assert report_text == anon_row[-2]

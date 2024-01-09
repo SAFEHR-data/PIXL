@@ -106,13 +106,11 @@ class PIXLDatabase(WriteableDatabase, QueryableDatabase):
         self._cursor.execute(query=str(query), vars=[data.mrn, data.accession_number])
         return self._cursor.fetchone() is not None
 
-    def get_radiology_reports(self) -> list[tuple[Any, ...]]:
-        """
-        Get all radiology reports. Preferably filtered by study but we
-        don't have a column for that.
-        """
+    def get_radiology_reports(self, project_name: str) -> list[tuple[Any, ...]]:
+        """Get all radiology reports for a given study."""
         query = (
-            "SELECT image_identifier, procedure_occurrence_id, xray_report FROM emap_data.ehr_anon"
+            "SELECT image_identifier, procedure_occurrence_id, xray_report FROM emap_data.ehr_anon "
+            "WHERE project_name = %s "
         )
-        self._cursor.execute(query=query)
+        self._cursor.execute(query=str(query), vars=[project_name])
         return self._cursor.fetchall()
