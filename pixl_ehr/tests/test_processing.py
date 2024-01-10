@@ -42,13 +42,13 @@ mrn = "testmrn"
 accession_number_base = "testaccessionnumber"
 
 
-def test_accession_number(acc_id):
+def _test_accession_number(acc_id: int) -> str:
     return f"{accession_number_base}{acc_id}"
 
 
 observation_datetime = datetime.datetime.fromisoformat("2024-01-01")
 procedure_occurrence_id = 123456
-image_identifier = mrn + test_accession_number(1)
+image_identifier = mrn + _test_accession_number(1)
 project_name_1 = "test project"
 project_name_2 = "other project"
 omop_es_timestamp_1 = datetime.datetime.fromisoformat("1234-01-01 00:00:00")
@@ -63,7 +63,7 @@ name_of_doctor = "John Smith"
 report_text = f"test\nxray report\nsigned by {name_of_doctor}"
 
 procedure_occurrence_id2 = 234567
-image_identifier2 = mrn + test_accession_number(2)
+image_identifier2 = mrn + _test_accession_number(2)
 report_text2 = "test\nanother xray report\nsigned by someone else"
 
 # Primary/foreign keys used to insert linked mrns, hospital visits, labs
@@ -92,22 +92,22 @@ def example_messages():
         _make_message(
             project_name=project_name_1,
             omop_es_timestamp=omop_es_timestamp_1,
-            accession_number=test_accession_number(1),
+            accession_number=_test_accession_number(1),
         ),
         _make_message(
             project_name=project_name_2,
             omop_es_timestamp=omop_es_timestamp_1,
-            accession_number=test_accession_number(2),
+            accession_number=_test_accession_number(2),
         ),
         _make_message(
             project_name=project_name_1,
             omop_es_timestamp=omop_es_timestamp_2,
-            accession_number=test_accession_number(3),
+            accession_number=_test_accession_number(3),
         ),
         _make_message(
             project_name=project_name_2,
             omop_es_timestamp=omop_es_timestamp_2,
-            accession_number=test_accession_number(4),
+            accession_number=_test_accession_number(4),
         ),
     ]
 
@@ -189,13 +189,13 @@ def insert_data_into_emap_star_schema() -> None:
     insert_row_into_emap_star_schema(
         "lab_sample",
         ["lab_sample_id", "external_lab_number", "mrn_id"],
-        [ls_id, test_accession_number(1), mrn_id],
+        [ls_id, _test_accession_number(1), mrn_id],
     )
     # Second message data
     insert_row_into_emap_star_schema(
         "lab_sample",
         ["lab_sample_id", "external_lab_number", "mrn_id"],
-        [ls_id, test_accession_number(2), mrn_id],
+        [ls_id, _test_accession_number(2), mrn_id],
     )
     insert_row_into_emap_star_schema("lab_order", ["lab_order_id", "lab_sample_id"], [lo_id, ls_id])
     insert_row_into_emap_star_schema(
