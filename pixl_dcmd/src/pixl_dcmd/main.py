@@ -25,7 +25,7 @@ import arrow
 import requests
 from decouple import config
 from pydicom import Dataset, dcmwrite
-from _database import insert_new_uid_into_db_entity, query_db
+from pixl_dcmd._database import insert_new_uid_into_db_entity, query_db
 
 DicomDataSetType = Union[Union[str, bytes, PathLike[Any]], BinaryIO]
 
@@ -215,8 +215,6 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
     mrn = dataset[0x0010, 0x0020].value  # Patient ID
     accession_number = dataset[0x0008, 0x0050].value  # Accession Number
 
-    # Query PIXL database
-    query_db(mrn, accession_number)
     salt_plaintext = mrn + accession_number
 
     HASHER_API_AZ_NAME = config("HASHER_API_AZ_NAME")
@@ -279,9 +277,6 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
                 logging.info(f"\t\tCurrent UID:\t{dataset[grp,el].value}")
                 new_uid = get_encrypted_uid(dataset[grp, el].value, salt)
                 dataset[grp, el].value = new_uid
-
-                # Insert the new_uid into the PIXL database
-                insert_new_uid_into_db_entity(accession_number, mrn, new_uid)
                 logging.info(f"\t\tEncrypted UID:\t{new_uid}")
 
             else:
@@ -422,19 +417,23 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
         # Change value into hash from hasher API.
         elif op == "secure-hash":
             if [grp, el] in dataset:
-                pat_value = str(dataset[grp, el].value)
-                ep_path = hash_endpoint_path_for_tag(group=grp, element=el)
-                payload = ep_path + "?message=" + pat_value
-                request_url = hasher_host_url + payload
-                response = requests.get(request_url)
-                logging.info(b"RESPONSE = %a}" % response.content)
+                if grp == 0x0010 and el == 0x0020:  # Patient ID
+                    pat_value = mrn + accession_number
 
-                new_value = response.content
+                    hashed_value = _hash_values(grp, el, pat_value, hasher_host_url)
+                    # Query PIXL database
+                    existing_image = query_db(mrn, accession_number)
+                    # Insert the hashed_value into the PIXL database
+                    insert_new_uid_into_db_entity(existing_image, hashed_value)
+                else:
+                    pat_value = str(dataset[grp, el].value)
+
+                    hashed_value = _hash_values(grp, el, pat_value, hasher_host_url)
 
                 if dataset[grp, el].VR == "SH":
-                    new_value = new_value[:16]
+                    hashed_value = hashed_value[:16]
 
-                dataset[grp, el].value = new_value
+                dataset[grp, el].value = hashed_value
 
                 message = f"Changing: {name} (0x{grp:04x},0x{el:04x})"
                 logging.info(f"\t{message}")
@@ -454,3 +453,13 @@ def hash_endpoint_path_for_tag(group: bytes, element: bytes) -> str:
         return "/hash-accession-number"
 
     return "/hash"
+
+
+def _hash_values(grp: bytes, el: bytes, pat_value: str, hasher_host_url: str) -> bytes:
+    ep_path = hash_endpoint_path_for_tag(group=grp, element=el)
+    payload = ep_path + "?message=" + pat_value
+    request_url = hasher_host_url + payload
+    response = requests.get(request_url)
+    logging.info(b"RESPONSE = %a}" % response.content)
+
+    return response.content
