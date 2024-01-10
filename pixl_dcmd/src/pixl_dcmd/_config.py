@@ -1,4 +1,4 @@
-#  Copyright (c) 2022 University College London Hospitals NHS Foundation Trust
+#  Copyright (c) University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -11,25 +11,22 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-from __future__ import annotations
 
+"""Configuration of CLI for db from config file."""
 from pathlib import Path
 
-from setuptools import find_packages, setup
+import yaml
 
-from pixl_dcmd._version import __version__
 
-exec(Path("./pixl_dcmd/_version.py").open().read())
+def _load_config(filename: str = "pixl_config.yml") -> dict:
+    """CLI configuration generated from a .yaml file"""
+    if not Path(filename).exists():
+        msg = f"Failed to find {filename}. It must be present in the current working directory"
+        raise FileNotFoundError(msg)
 
-setup(
-    name="pixl_dcmd",
-    version=__version__,  # type: ignore
-    description="DICOM de-identifier",
-    packages=find_packages(
-        exclude=[
-            "*tests",
-            "*.tests.*",
-        ],
-    ),
-    python_requires=">=3.9.2",
-)
+    with Path(filename).open() as config_file:
+        config_dict = yaml.safe_load(config_file)
+    return dict(config_dict)
+
+
+cli_config = _load_config()
