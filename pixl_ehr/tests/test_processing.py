@@ -39,8 +39,11 @@ pytest_plugins = ("pytest_asyncio",)
 mrn = "testmrn"
 
 
+accession_number_base = "testaccessionnumber"
+
+
 def test_accession_number(acc_id):
-    return f"testaccessionnumber{acc_id}"
+    return f"{accession_number_base}{acc_id}"
 
 
 observation_datetime = datetime.datetime.fromisoformat("2024-01-01")
@@ -328,3 +331,7 @@ async def test_radiology_export_multiple_projects(example_messages) -> None:
 
     assert parquet_df.shape[0] == 1  # should contain only 1 row
     assert parquet_df["image_report"].iloc[0] == report_text
+    # check image identifier doesn't contain its unhashed components
+    image_id = parquet_df["image_identifier"].iloc[0]
+    assert image_id.find(mrn) == -1
+    assert image_id.find(accession_number_base) == -1
