@@ -16,7 +16,7 @@
 set -euxo pipefail
 
 # Create the EHR schema and associated tables
-columns_and_types="mrn text, accession_number text, image_identifier text, procedure_occurrence_id integer, age integer, sex text, ethnicity text, height real, weight real, gcs integer, xray_report text, project_name text"
+columns_and_types="mrn text, accession_number text, image_identifier text, procedure_occurrence_id integer, age integer, sex text, ethnicity text, height real, weight real, gcs integer, xray_report text, project_name text, extract_datetime timestamp"
 ehr_create_command="CREATE SCHEMA emap_data AUTHORIZATION ${POSTGRES_USER}
     CREATE TABLE ehr_raw ($columns_and_types)
     CREATE TABLE ehr_anon ($columns_and_types)

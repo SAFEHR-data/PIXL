@@ -70,7 +70,7 @@ def export_radiology_as_parquet(project_name: str, extract_datetime: datetime) -
     """Batch export of all radiology reports in PIXL DB to a parquet file."""
     # NOTE: we can't check that all reports in the queue have been processed.
     # So we are relying on the user passing correct parameters here.
-    anon_data = PIXLDatabase().get_radiology_reports(project_name)
+    anon_data = PIXLDatabase().get_radiology_reports(project_name, extract_datetime)
     pe = ParquetExport(project_name, extract_datetime)
     pe.export_radiology(anon_data)
 

@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import contextlib
 import datetime
+from typing import Optional
 
 import pandas as pd
 import pytest
@@ -36,12 +37,19 @@ pytest_plugins = ("pytest_asyncio",)
 
 
 mrn = "testmrn"
-accession_number = "testaccessionnumber"
+
+
+def test_accession_number(acc_id):
+    return f"testaccessionnumber{acc_id}"
+
+
 observation_datetime = datetime.datetime.fromisoformat("2024-01-01")
 procedure_occurrence_id = 123456
-image_identifier = mrn + accession_number
-project_name = "test project"
-omop_es_timestamp = datetime.datetime.fromisoformat("1234-01-01 00:00:00")
+image_identifier = mrn + test_accession_number(1)
+project_name_1 = "test project"
+project_name_2 = "other project"
+omop_es_timestamp_1 = datetime.datetime.fromisoformat("1234-01-01 00:00:00")
+omop_es_timestamp_2 = datetime.datetime.fromisoformat("1834-01-01 00:00:00")
 date_of_birth = "09/08/0007"
 sex = "testsexvalue"
 ethnicity = "testethnicity"
@@ -51,9 +59,8 @@ gcs = 6
 name_of_doctor = "John Smith"
 report_text = f"test\nxray report\nsigned by {name_of_doctor}"
 
-accession_number2 = "testaccessionnumber22"
 procedure_occurrence_id2 = 234567
-image_identifier2 = mrn + accession_number2
+image_identifier2 = mrn + test_accession_number(2)
 report_text2 = "test\nanother xray report\nsigned by someone else"
 
 # Primary/foreign keys used to insert linked mrns, hospital visits, labs
@@ -64,7 +71,7 @@ weight_vot_id, height_vot_id, gcs_vot_id = 2222222, 3333333, 4444444
 ls_id, lo_id, lr_id, ltd_id = 5555555, 6666666, 7777777, 8888888
 
 
-def _make_message(project_name) -> Message:
+def _make_message(project_name, omop_es_timestamp, accession_number) -> Message:
     return Message(
         project_name=project_name,
         accession_number=accession_number,
@@ -79,8 +86,26 @@ def _make_message(project_name) -> Message:
 def example_messages():
     """Test input data."""
     return [
-        _make_message(project_name=project_name),
-        _make_message(project_name="other project"),
+        _make_message(
+            project_name=project_name_1,
+            omop_es_timestamp=omop_es_timestamp_1,
+            accession_number=test_accession_number(1),
+        ),
+        _make_message(
+            project_name=project_name_2,
+            omop_es_timestamp=omop_es_timestamp_1,
+            accession_number=test_accession_number(2),
+        ),
+        _make_message(
+            project_name=project_name_1,
+            omop_es_timestamp=omop_es_timestamp_2,
+            accession_number=test_accession_number(3),
+        ),
+        _make_message(
+            project_name=project_name_2,
+            omop_es_timestamp=omop_es_timestamp_2,
+            accession_number=test_accession_number(4),
+        ),
     ]
 
 
@@ -102,10 +127,9 @@ class WritableEMAPStar(WriteableDatabase):
 
 
 class QueryablePIXLDB(PIXLDatabase):
-    def execute_query_string(self, query: str, values: list) -> tuple:
+    def execute_query_string(self, query: str, values: Optional[list] = None) -> tuple:
         self._cursor.execute(query=query, vars=values)
-        row = self._cursor.fetchone()
-        return tuple(row)
+        return self._cursor.fetchall()
 
 
 def insert_row_into_emap_star_schema(table_name: str, col_names: list[str], values: list) -> None:
@@ -162,13 +186,13 @@ def insert_data_into_emap_star_schema() -> None:
     insert_row_into_emap_star_schema(
         "lab_sample",
         ["lab_sample_id", "external_lab_number", "mrn_id"],
-        [ls_id, accession_number, mrn_id],
+        [ls_id, test_accession_number(1), mrn_id],
     )
     # Second message data
     insert_row_into_emap_star_schema(
         "lab_sample",
         ["lab_sample_id", "external_lab_number", "mrn_id"],
-        [ls_id, accession_number2, mrn_id],
+        [ls_id, test_accession_number(2), mrn_id],
     )
     insert_row_into_emap_star_schema("lab_order", ["lab_order_id", "lab_sample_id"], [lo_id, ls_id])
     insert_row_into_emap_star_schema(
@@ -193,17 +217,24 @@ def insert_data_into_emap_star_schema() -> None:
 @pytest.mark.processing()
 @pytest.mark.asyncio()
 async def test_message_processing(example_messages) -> None:
+    """
+    GIVEN some patient metadata in Emap
+    WHEN a message is processed requesting EHR data from Emap
+    THEN The row of data is added to the PIXL DB
+    """
     insert_data_into_emap_star_schema()
 
     message = example_messages[0]
     await process_message(message)
 
     pixl_db = QueryablePIXLDB()
-    row = pixl_db.execute_query_string("select * from emap_data.ehr_raw where mrn = %s", [mrn])
+    all_rows = pixl_db.execute_query_string("select * from emap_data.ehr_raw where mrn = %s", [mrn])
+    assert len(all_rows) == 1
+    row = all_rows[0]
 
     expected_row = [
         mrn,
-        accession_number,
+        message.accession_number,
         image_identifier,
         procedure_occurrence_id,
         "any",
@@ -213,7 +244,8 @@ async def test_message_processing(example_messages) -> None:
         weight,
         gcs,
         report_text,
-        project_name,
+        message.project_name,
+        message.omop_es_timestamp,
     ]
 
     for value, expected_value in zip(row, expected_row, strict=True):
@@ -222,15 +254,17 @@ async def test_message_processing(example_messages) -> None:
 
         assert value == expected_value
 
-    anon_row = pixl_db.execute_query_string(
-        "select * from emap_data.ehr_anon where gcs = %s", [gcs]
+    anon_all_rows = pixl_db.execute_query_string(
+        "select mrn, accession_number, xray_report from emap_data.ehr_anon where gcs = %s", [gcs]
     )
-    anon_mrn, anon_accession_number = anon_row[:2]
+    assert len(anon_all_rows) == 1
+    anon_row = anon_all_rows[0]
+    anon_mrn, anon_accession_number, anon_report_text = anon_row
     assert anon_mrn != mrn
-    assert anon_accession_number != accession_number
+    assert anon_accession_number != message.accession_number
 
-    # No deidintification performed so we expext the report to stay identical
-    assert report_text == anon_row[-2]
+    # No deidentification performed so we expect the report to stay identical
+    assert report_text == anon_report_text
 
 
 @pytest.mark.processing()
@@ -250,7 +284,7 @@ async def test_radiology_export(example_messages) -> None:
     await process_message(message)
 
     # ACT
-    export_radiology_as_parquet(project_name, omop_es_timestamp)
+    export_radiology_as_parquet(project_name, omop_es_timestamp_1)
 
     # ASSERT
     parquet_file = pe.radiology_output / "radiology.parquet"
@@ -266,26 +300,31 @@ async def test_radiology_export(example_messages) -> None:
 @pytest.mark.asyncio()
 async def test_radiology_export_multiple_projects(example_messages) -> None:
     """
-    GIVEN 2 messages each from a different project processed by the EHR API
-    WHEN export_radiology_as_parquet is called for 1 given project
+    GIVEN 4 messages each from a different project+extract processed by the EHR API
+    WHEN export_radiology_as_parquet is called for 1 given project+extract
     THEN only the radiology reports for that project are exported
     """
     # ARRANGE
-    message = example_messages[0]
-    project_name = message.project_name
-    extract_date = message.omop_es_timestamp
+    project_name = example_messages[0].project_name
+    extract_date = example_messages[0].omop_es_timestamp
     pe = ParquetExport(project_name, extract_date)
 
-    message2 = example_messages[1]
-
-    await process_message(message)
-    await process_message(message2)
+    for mess in example_messages:
+        await process_message(mess)
 
     # ACT
     export_radiology_as_parquet(project_name, extract_date)
 
     # ASSERT
+    # check that although 4 records are in the DB, only one makes it into the parquet file
+    pixl_db = QueryablePIXLDB()
+    row_count_raw = pixl_db.execute_query_string("select count(*) from emap_data.ehr_raw")
+    row_count_anon = pixl_db.execute_query_string("select count(*) from emap_data.ehr_anon")
+    assert row_count_raw[0][0] == 4
+    assert row_count_anon[0][0] == 4
+
     parquet_file = pe.radiology_output / "radiology.parquet"
     parquet_df = pd.read_parquet(parquet_file)
+
     assert parquet_df.shape[0] == 1  # should contain only 1 row
     assert parquet_df["image_report"].iloc[0] == report_text
