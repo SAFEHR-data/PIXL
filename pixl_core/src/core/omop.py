@@ -17,13 +17,14 @@ from __future__ import annotations
 import logging
 import pathlib
 import shutil
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
-import pandas as pd
 import slugify
 
 if TYPE_CHECKING:
     import datetime
+
+    import pandas as pd
 
 
 root_from_install = pathlib.Path(__file__).parents[3]
@@ -86,19 +87,11 @@ class ParquetExport:
         latest_public.symlink_to(self.public_output, target_is_directory=True)
         return self.project_slug
 
-    def export_radiology(self, anon_data: list[tuple[Any, ...]]) -> pathlib.Path:
+    def export_radiology(self, export_df: pd.DataFrame) -> pathlib.Path:
         """Export radiology reports to parquet file"""
         self._mkdir(self.radiology_output)
         parquet_file = self.radiology_output / "radiology.parquet"
 
-        parquet_header_names = ["image_identifier", "procedure_occurrence_id", "image_report"]
-        if anon_data and len(parquet_header_names) != len(anon_data[0]):
-            err_str = (
-                f"Passed in data must have expected number of columns "
-                f"(got {len(anon_data[0])}, expected {len(parquet_header_names)})"
-            )
-            raise ValueError(err_str)
-        export_df = pd.DataFrame(anon_data, columns=parquet_header_names)
         export_df.to_parquet(parquet_file)
 
         # Make the "latest" export dir if it doesn't exist
