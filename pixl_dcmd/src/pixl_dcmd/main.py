@@ -111,7 +111,7 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
     mrn = dataset[0x0010, 0x0020].value  # Patient ID
     accession_number = dataset[0x0008, 0x0050].value  # Accession Number
 
-    salt_plaintext = mrn + accession_number
+    salt_plaintext = config("SALT_VALUE")
 
     HASHER_API_AZ_NAME = config("HASHER_API_AZ_NAME")
     HASHER_API_PORT = config("HASHER_API_PORT")

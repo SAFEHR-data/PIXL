@@ -16,6 +16,7 @@ from __future__ import annotations
 import datetime
 
 import pytest
+import requests
 from core.database import Base, Extract, Image
 from dateutil.tz import UTC
 from sqlalchemy import Engine, create_engine
@@ -99,3 +100,24 @@ def db_session(db_engine) -> Session:
         session.query(Extract).delete()
         yield session
     session.close()
+
+
+@pytest.fixture()
+def return_hashed_val(requests_mock):
+    requests_mock.get("http://test.com", text="f-i-x-e-d")
+    response = requests.get("http://test.com").text
+    assert response.status_code == 200
+    return response.content
+
+
+@pytest.fixture()
+def dummy_env_var(monkeypatch):  # noqa: ANN202
+    """Fixture to set up a dummy environment variables for hasher API"""
+    monkeypatch.setenv("ENV", "testenv")
+    monkeypatch.setenv("DEBUG", "True")
+    monkeypatch.setenv("AZURE_CLIENT_ID", "test_client_id")
+    monkeypatch.setenv("AZURE_CLIENT_SECRET", "test_client_secret")
+    monkeypatch.setenv("AZURE_TENANT_ID", "test_tenant_id")
+    monkeypatch.setenv("AZURE_KEY_VAULT_NAME", "test_AZ_KV_name")
+    monkeypatch.setenv("AZURE_KEY_VAULT_SECRET_NAME", "test_AZ_KV_secret_name")
+    monkeypatch.setenv("LOG_ROOT_DIR", "test_log_root_dir")
