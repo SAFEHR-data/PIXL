@@ -14,13 +14,26 @@
 """CLI testing fixtures."""
 from __future__ import annotations
 import datetime
-
+import os
 import pytest
 import requests
 from core.database import Base, Extract, Image
 from dateutil.tz import UTC
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
+
+# os.environ["ENV"] = "test"
+os.environ["SALT_VALUE"] = "salt"
+os.environ["HASHER_API_AZ_NAME"] = "test_hash_API"
+os.environ["HASHER_API_PORT"] = "test_hash_API_port"
+os.environ["TIME_OFFSET"] = "5"
+os.environ["DEBUG"] = "True"
+os.environ["AZURE_CLIENT_ID"] = "test_client_id"
+os.environ["AZURE_CLIENT_SECRET"] = "test_client_secret"
+os.environ["AZURE_TENANT_ID"] = "test_tenant_id"
+os.environ["AZURE_KEY_VAULT_NAME"] = "test_AZ_KV_name"
+os.environ["AZURE_KEY_VAULT_SECRET_NAME"] = "test_AZ_KV_secret_name"
+os.environ["LOG_ROOT_DIR"] = "test_log_root_dir"
 
 STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
 
@@ -102,12 +115,73 @@ def db_session(db_engine) -> Session:
     session.close()
 
 
-@pytest.fixture()
-def return_hashed_val(requests_mock):
-    requests_mock.get("http://test.com", text="f-i-x-e-d")
-    response = requests.get("http://test.com").text
+def get_json(url):
+    """Takes a URL, and returns the JSON."""
+    r = requests.get(url)
+    return r.json(), r.content
+
+
+class MockResponse:
+    def __init__(self):
+        self.status_code = 200
+        self.url = "www.testurl.com"
+        self.content = "f-i-x-e-d"
+
+    # mock json() method always returns a specific testing dictionary
+    @staticmethod
+    def json():
+        return {"mock_key": "mock_response"}
+
+
+# monkeypatched requests.get moved to a fixture
+@pytest.fixture(autouse=True)
+def mock_response(monkeypatch):
+    """Requests.get() mocked to return {'mock_key':'mock_response'}."""
+
+    def mock_get(*args, **kwargs):
+        return MockResponse()
+
+    monkeypatch.setattr(requests, "get", mock_get)
+
+
+# @pytest.fixture(autouse=True)
+# def mock_content(monkeypatch):
+#     """Requests.get() mocked to return {'mock_key':'mock_response'}."""
+
+#     def mock_get(*args, **kwargs):
+#         return MockResponse().
+
+#     monkeypatch.setattr(requests, "get", mock_get)
+
+
+def test_get_json(monkeypatch):
+    # app.get_json, which contains requests.get, uses the monkeypatch
+    result = get_json(os.environ["HASHER_API_AZ_NAME"])
+    assert result["mock_key"] == "mock_response"
+
+
+# @pytest.fixture(autouse=True)
+def request_mock_response(requests_mock):
+    requests_mock.get(os.environ["HASHER_API_AZ_NAME"], text="f-i-x-e-d")
+    response = requests.get(os.environ["HASHER_API_AZ_NAME"]).text
     assert response.status_code == 200
     return response.content
+
+
+def test_get_response_success(monkeypatch):
+    class MockResponse(object):
+        def __init__(self):
+            self.status_code = 200
+            self.url = "http://httpbin.org/get"
+            self.headers = {"foobar": "foooooo"}
+
+        def json(self):
+            return {"fooaccount": "foo123", "url": os.environ["HASHER_API_AZ_NAME"]}
+
+    def mock_get(url):
+        return MockResponse()
+
+    monkeypatch.setattr(requests, "get", mock_get)
 
 
 @pytest.fixture()
