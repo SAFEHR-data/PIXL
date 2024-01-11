@@ -266,8 +266,8 @@ async def test_message_processing(example_messages) -> None:
     assert anon_mrn != mrn
     assert anon_accession_number != message.accession_number
 
-    # No deidentification performed so we expect the report to stay identical
-    assert report_text == anon_report_text
+    # Check that CogStack de-identification was called
+    assert anon_report_text == report_text + "**DE-IDENTIFIED**"
 
 
 @pytest.mark.processing()
@@ -331,7 +331,7 @@ async def test_radiology_export_multiple_projects(example_messages) -> None:
     parquet_df = pd.read_parquet(parquet_file)
 
     assert parquet_df.shape[0] == 1  # should contain only 1 row
-    assert parquet_df["image_report"].iloc[0] == report_text
+    assert parquet_df["image_report"].iloc[0] == report_text + "**DE-IDENTIFIED**"
     # check image identifier doesn't contain its unhashed components
     image_id = parquet_df["image_identifier"].iloc[0]
     assert image_id.find(mrn) == -1
