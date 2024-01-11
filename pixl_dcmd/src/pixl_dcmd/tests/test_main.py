@@ -21,6 +21,7 @@ import sqlalchemy
 import yaml
 from pydicom.data import get_testdata_files
 
+from core.database import Image
 from pixl_dcmd.main import (
     apply_tag_scheme,
     remove_overlays,
@@ -51,7 +52,7 @@ def test_remove_overlay_plane() -> None:
 # https://github.com/UCLH-Foundry/PIXL/issues/132
 def test_image_already_exported_throws(rows_in_session, tag_scheme):
     """
-    GIVEN a dicom image which has no un-exported rows in the pixl database
+    GIVEN a dicom image which has no un-exported rows in the pipeline database
     WHEN the dicom tag scheme is applied
     THEN an exception will be thrown as
     """
@@ -60,3 +61,27 @@ def test_image_already_exported_throws(rows_in_session, tag_scheme):
 
     with pytest.raises(sqlalchemy.exc.NoResultFound):
         apply_tag_scheme(input_dataset, tag_scheme)
+
+
+def test_pseudo_identifier_processing(rows_in_session, tag_scheme):
+    """
+    GIVEN a dicom image that hasn't been exported in the pipeline db
+    WHEN the dicom tag scheme is applied
+    THEN the patient identifier tag should be the mrn and accession hashed
+      and the pipeline db row should now have the fake hash
+    """
+    exported_dicom = pathlib.Path(__file__).parents[4] / "test/resources/Dicom2.dcm"
+    input_dataset = pydicom.dcmread(exported_dicom)
+
+    accession_number = "AA12345605"
+    mrn = "987654321"
+    fake_hash = "-".join(list(f"{mrn}{accession_number}")).encode("utf-8")
+
+    output_dataset = apply_tag_scheme(input_dataset, tag_scheme)
+    image = (
+        rows_in_session.query(Image)
+        .filter(Image.accession_number == "AA12345605")
+        .one()
+    )
+    assert output_dataset[0x0010, 0x0020].value == fake_hash
+    assert image.hashed_identifier == fake_hash
