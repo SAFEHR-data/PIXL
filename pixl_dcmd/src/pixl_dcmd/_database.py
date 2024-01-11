@@ -70,7 +70,7 @@ def query_db(mrn: str, accession_number: str) -> Image:
             .filter(
                 Image.accession_number == accession_number,
                 Image.mrn == mrn,
-                Image.exported_at is None,
+                Image.exported_at == None,  # noqa: E711
             )
             .one()
         )
