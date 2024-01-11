@@ -16,6 +16,8 @@ from __future__ import annotations
 import pathlib
 
 import pydicom
+import pytest
+import sqlalchemy
 import yaml
 from pydicom.data import get_testdata_files
 
@@ -23,6 +25,16 @@ from pixl_dcmd.main import (
     apply_tag_scheme,
     remove_overlays,
 )
+
+
+@pytest.fixture(scope="module")
+def tag_scheme() -> dict:
+    """Read the tag scheme from orthanc raw."""
+    tag_file = (
+        pathlib.Path(__file__).parents[4]
+        / "orthanc/orthanc-anon/plugin/tag-operations.yaml"
+    )
+    return yaml.safe_load(tag_file.read_text())
 
 
 def test_remove_overlay_plane() -> None:
@@ -37,18 +49,14 @@ def test_remove_overlay_plane() -> None:
 
 # TODO: Produce more complete test coverage for anonymisation
 # https://github.com/UCLH-Foundry/PIXL/issues/132
-def test_no_unexported_image_throws(rows_in_session):
+def test_image_already_exported_throws(rows_in_session, tag_scheme):
     """
-    GIVEN a dicom image which has already been exported
+    GIVEN a dicom image which has no un-exported rows in the pixl database
     WHEN the dicom tag scheme is applied
     THEN an exception will be thrown as
     """
     exported_dicom = pathlib.Path(__file__).parents[4] / "test/resources/Dicom1.dcm"
     input_dataset = pydicom.dcmread(exported_dicom)
 
-    tag_file = (
-        pathlib.Path(__file__).parents[4]
-        / "orthanc/orthanc-anon/plugin/tag-operations.yaml"
-    )
-    tags_scheme = yaml.safe_load(tag_file.read_text())
-    apply_tag_scheme(input_dataset, tags_scheme)
+    with pytest.raises(sqlalchemy.exc.NoResultFound):
+        apply_tag_scheme(input_dataset, tag_scheme)
