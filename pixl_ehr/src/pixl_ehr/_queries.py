@@ -41,17 +41,17 @@ class SQLQuery:
                 continue
 
             for key, value in context.items():
-                line = line.replace("${{ " + str(key) + " }}", str(value))  # noqa: PLW2901
+                new_line = line.replace("${{ " + str(key) + " }}", str(value))
 
-                n = line.count(f":{key}")
+                n = new_line.count(f":{key}")
                 self.values += n * [value]
-                line = line.replace(f":{key}", "%s")  # noqa: PLW2901
+                new_line = new_line.replace(f":{key}", "%s")
 
-            if ":" in line.replace("::", "") or "${{" in line:
+            if ":" in new_line.replace("::", "") or "${{" in new_line:
                 msg = (
                     "Had an insufficient context to replace "
-                    f"line {i} in {self._filepath}\n"
-                    f"{line}"
+                    f"new_line {i} in {self._filepath}\n"
+                    f"{new_line}"
                 )
                 raise RuntimeError(msg)
-            self._lines[i] = line
+            self._lines[i] = new_line
