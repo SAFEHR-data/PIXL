@@ -40,8 +40,9 @@ class SQLQuery:
             if ":" not in line and "${{" not in line:
                 continue
 
+            new_line = line
             for key, value in context.items():
-                new_line = line.replace("${{ " + str(key) + " }}", str(value))
+                new_line = new_line.replace("${{ " + str(key) + " }}", str(value))
 
                 n = new_line.count(f":{key}")
                 self.values += n * [value]
