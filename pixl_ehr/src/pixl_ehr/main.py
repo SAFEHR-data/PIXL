@@ -64,12 +64,12 @@ async def startup_event() -> None:
 
 @app.post(
     "/export-radiology-as-parquet",
-    summary="Copy all radiology reports in the PIXL DB to a parquet file",
+    summary="Copy all matching radiology reports in the PIXL DB to a parquet file",
 )
 def export_radiology_as_parquet(project_name: str, extract_datetime: datetime) -> None:
-    """Batch export of all radiology reports in PIXL DB to a parquet file."""
+    """Batch export of all matching radiology reports in PIXL DB to a parquet file."""
     # NOTE: we can't check that all reports in the queue have been processed.
-    # So we are relying on the user passing correct parameters here.
+    # So we are relying on the user waiting until processing has finished before running this.
     anon_data = PIXLDatabase().get_radiology_reports(project_name, extract_datetime)
     pe = ParquetExport(project_name, extract_datetime)
     pe.export_radiology(anon_data)

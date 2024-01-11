@@ -97,7 +97,6 @@ class ParquetExport:
         self._mkdir(self.radiology_output)
         parquet_file = self.radiology_output / "radiology.parquet"
 
-        # will need to convert header names
         parquet_header_names = ["image_identifier", "procedure_occurrence_id", "image_report"]
         if anon_data and len(parquet_header_names) != len(anon_data[0]):
             err_str = (
@@ -108,7 +107,7 @@ class ParquetExport:
         export_df = pd.DataFrame(anon_data, columns=parquet_header_names)
         export_df.to_parquet(parquet_file)
 
-        # Make the latest export dir if it doesn't exist
+        # Make the "latest" export dir if it doesn't exist
         self._mkdir(self.latest_parent_dir)
         # Symlink this report to the latest directory
         latest_parquet_file = self.latest_parent_dir / "radiology.parquet"

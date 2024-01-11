@@ -303,7 +303,7 @@ async def test_radiology_export(example_messages) -> None:
 @pytest.mark.asyncio()
 async def test_radiology_export_multiple_projects(example_messages) -> None:
     """
-    GIVEN 4 messages each from a different project+extract processed by the EHR API
+    GIVEN 4 messages, each from a different project+extract processed by the EHR API
     WHEN export_radiology_as_parquet is called for 1 given project+extract
     THEN only the radiology reports for that project are exported
     """
