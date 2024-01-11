@@ -24,7 +24,7 @@ from pathlib import Path
 
 from azure.identity import EnvironmentCredential
 from azure.storage.blob import BlobServiceClient
-from core.omop import ParquetExport
+from core.exports import ParquetExport
 from core.patient_queue import PixlConsumer
 from core.router import router, state
 from decouple import config

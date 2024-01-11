@@ -19,7 +19,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 import pandas as pd
-from core.omop import ParquetExport
+from core.exports import ParquetExport
 from core.patient_queue.message import Message, deserialise
 
 from pixl_cli._logging import logger

@@ -25,7 +25,7 @@ from typing import Optional
 
 import pandas as pd
 import pytest
-from core.omop import ParquetExport
+from core.exports import ParquetExport
 from core.patient_queue.message import Message
 from decouple import config
 from pixl_ehr._databases import PIXLDatabase, WriteableDatabase

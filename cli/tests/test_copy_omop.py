@@ -17,7 +17,7 @@ from __future__ import annotations
 import datetime
 
 import pytest
-from core.omop import ParquetExport
+from core.exports import ParquetExport
 
 
 def test_new_project_copies(resources):
