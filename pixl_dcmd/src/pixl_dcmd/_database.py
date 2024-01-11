@@ -13,22 +13,19 @@
 #  limitations under the License.
 
 """Interaction with the PIXL database."""
+from decouple import config
 
 from core.database import Image
 from sqlalchemy import URL, create_engine
 from sqlalchemy.orm import sessionmaker
 
-from pixl_dcmd._config import cli_config
-
-connection_config = cli_config["postgres"]
-
 url = URL.create(
     drivername="postgresql+psycopg2",
-    username=connection_config["username"],
-    password=connection_config["password"],
-    host=connection_config["host"],
-    port=connection_config["port"],
-    database=connection_config["database"],
+    username=config("PIXL_DB_USER", default="None"),
+    password=config("PIXL_DB_PASSWORD", default="None"),
+    host=config("PIXL_DB_HOST", default="None"),
+    port=config("PIXL_DB_PORT", default=1),
+    database=config("PIXL_DB_NAME", default="None"),
 )
 
 engine = create_engine(url)
@@ -61,7 +58,7 @@ def query_db(mrn: str, accession_number: str) -> Image:
             .filter(
                 Image.accession_number == accession_number,
                 Image.mrn == mrn,
-                Image.exported_at is None,
+                Image.exported_at == None,  # noqa: E711
             )
             .one()
         )
