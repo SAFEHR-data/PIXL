@@ -239,7 +239,7 @@ def AnonymiseCallback(dataset):
     orthanc.LogWarning("Removed overlays")
 
     # Apply anonymisation.
-    with Path.open("/etc/orthanc/tag-operations.yaml") as file:
+    with Path("/etc/orthanc/tag-operations.yaml").open() as file:
         # Load tag operations scheme from YAML.
         tags = yaml.safe_load(file)
         # Apply scheme to instance
@@ -247,7 +247,7 @@ def AnonymiseCallback(dataset):
         # Apply whitelist
         dataset = pixl_dcmd.enforce_whitelist(dataset, tags)
 
-    # Write anoymised instance to disk.
+    # Write anonymised instance to disk.
     return orthanc.ReceivedInstanceAction.MODIFY, pixl_dcmd.write_dataset_to_bytes(dataset)
 
 

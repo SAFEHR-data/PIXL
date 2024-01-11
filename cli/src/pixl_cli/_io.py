@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import json
 from datetime import datetime
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pandas as pd
 from core.omop import OmopExtract
@@ -24,6 +24,9 @@ from core.patient_queue.message import Message, deserialise
 
 from pixl_cli._logging import logger
 from pixl_cli._utils import string_is_non_empty
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 # instance of omop extract, can be overriden during testing
 extract = OmopExtract()
@@ -43,9 +46,7 @@ def messages_from_state_file(filepath: Path) -> list[Message]:
         msg = f"Invalid file suffix for {filepath}. Expected .state"
         raise ValueError(msg)
 
-    return [
-        deserialise(line) for line in Path.open(filepath).readlines() if string_is_non_empty(line)
-    ]
+    return [deserialise(line) for line in filepath.open().readlines() if string_is_non_empty(line)]
 
 
 def copy_parquet_return_logfile_fields(parquet_path: Path) -> tuple[str, datetime]:
@@ -126,8 +127,11 @@ def _check_and_parse_parquet(private_dir: Path, public_dir: Path) -> pd.DataFram
     accessions = pd.read_parquet(private_dir / "PROCEDURE_OCCURRENCE_LINKS.parquet")
     # study_date is in procedure.procedure_date
     procedure = pd.read_parquet(public_dir / "PROCEDURE_OCCURRENCE.parquet")
+    # TODO: move from hardcoded ng tube and chest x-rays to being configurable  # noqa: FIX002
+    # https://github.com/UCLH-Foundry/PIXL/issues/212
+    imaging_procedures = procedure.loc[procedure.procedure_concept_id.isin([4163872, 42538241])]
     # joining data together
-    people_procedures = people.merge(procedure, on="person_id")
+    people_procedures = people.merge(imaging_procedures, on="person_id")
     return people_procedures.merge(accessions, on="procedure_occurrence_id")
 
 
