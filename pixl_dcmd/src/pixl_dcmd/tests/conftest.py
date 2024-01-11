@@ -75,7 +75,7 @@ def db_engine(monkeymodule) -> Engine:
         echo_pool="debug",
         future=True,
     )
-    monkeymodule.setattr("pixl_cli._database.engine", engine)
+    monkeymodule.setattr("pixl_dcmd._database.engine", engine)
 
     Base.metadata.create_all(engine)
     yield engine
