@@ -16,9 +16,11 @@ from __future__ import annotations
 import pathlib
 
 import pydicom
+import yaml
 from pydicom.data import get_testdata_files
 
 from pixl_dcmd.main import (
+    apply_tag_scheme,
     remove_overlays,
 )
 
@@ -35,4 +37,18 @@ def test_remove_overlay_plane() -> None:
 
 # TODO: Produce more complete test coverage for anonymisation
 # https://github.com/UCLH-Foundry/PIXL/issues/132
-fpath = pathlib.Path(__file__).parents[4] / "test/resources/Dicom1.dcm"
+def test_no_unexported_image_throws(rows_in_session):
+    """
+    GIVEN a dicom image which has already been exported
+    WHEN the dicom tag scheme is applied
+    THEN an exception will be thrown as
+    """
+    exported_dicom = pathlib.Path(__file__).parents[4] / "test/resources/Dicom1.dcm"
+    input_dataset = pydicom.dcmread(exported_dicom)
+
+    tag_file = (
+        pathlib.Path(__file__).parents[4]
+        / "orthanc/orthanc-anon/plugin/tag-operations.yaml"
+    )
+    tags_scheme = yaml.safe_load(tag_file.read_text())
+    apply_tag_scheme(input_dataset, tags_scheme)

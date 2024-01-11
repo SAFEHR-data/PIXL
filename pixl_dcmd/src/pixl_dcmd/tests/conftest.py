@@ -30,16 +30,16 @@ def rows_in_session(db_session) -> Session:
     extract = Extract(slug="i-am-a-project")
 
     image_exported = Image(
-        accession_number="123",
+        accession_number="AA12345601",
         study_date=STUDY_DATE,
-        mrn="mrn",
+        mrn="987654321",
         extract=extract,
         exported_at=datetime.datetime.now(tz=UTC),
     )
     image_not_exported = Image(
-        accession_number="234",
+        accession_number="AA12345605",
         study_date=STUDY_DATE,
-        mrn="mrn",
+        mrn="987654321",
         extract=extract,
     )
     with db_session:
@@ -67,7 +67,7 @@ def db_engine(monkeymodule) -> Engine:
     :returns Engine: Engine for use in other setup fixtures
     """
     # SQLite doesnt support schemas, so remove pixl schema from engine options
-    execution_options = {"schema_translate_map": {"pixl": None}}
+    execution_options = {"schema_translate_map": {"pipeline": None}}
     engine = create_engine(
         "sqlite:///:memory:",
         execution_options=execution_options,
