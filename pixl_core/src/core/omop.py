@@ -40,7 +40,6 @@ class ParquetExport:
         """
         :param project_name: name of the project
         :param extract_datetime: datetime that the OMOP ES extract was run
-        :param root_dir: export directory root
         """
         self.export_dir = ParquetExport.root_dir / "exports"
         self.project_slug, self.extract_time_slug = self._get_slugs(project_name, extract_datetime)
@@ -89,11 +88,6 @@ class ParquetExport:
 
     def export_radiology(self, anon_data: list[tuple[Any, ...]]) -> pathlib.Path:
         """Export radiology reports to parquet file"""
-        # The parquet file should have the following columns:
-        # - De-IDed report text
-        # - procedure_occurrence_id (aka. EHR imaging identifier)
-        # - DICOM link (ie. the hashing API's response for {patient mrn}{accession number})
-
         self._mkdir(self.radiology_output)
         parquet_file = self.radiology_output / "radiology.parquet"
 
