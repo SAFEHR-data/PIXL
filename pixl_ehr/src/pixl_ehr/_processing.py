@@ -175,9 +175,7 @@ class PatientEHRData:
         self.accession_number = pixl_hash(
             self.accession_number, endpoint_path="hash-accession-number"
         )
-        self.image_identifier = pixl_hash(
-            self.image_identifier, endpoint_path="hash-image-identifier"
-        )
+        self.image_identifier = pixl_hash(self.image_identifier, endpoint_path="hash")
         self.acquisition_datetime = None
 
         return self

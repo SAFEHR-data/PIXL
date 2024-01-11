@@ -57,12 +57,3 @@ async def hash_accession_number(message: str) -> Response:
 )
 async def hash_mrn(message: str) -> Response:
     return Response(content=generate_hash(message, 64), media_type="application/text")
-
-
-@router.get(
-    "/hash-image-identifier",
-    summary="Produce secure hash appropriate for an image identifier "
-    "(MRN + accession num concatenated)",
-)
-async def hash_image_identifier(message: str) -> Response:
-    return Response(content=generate_hash(message, 64), media_type="application/text")
