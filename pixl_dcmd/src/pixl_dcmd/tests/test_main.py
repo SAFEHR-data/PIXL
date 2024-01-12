@@ -19,7 +19,7 @@ import pydicom
 import pytest
 import sqlalchemy
 import yaml
-from pydicom.data import get_testdata_file, get_testdata_files
+from pydicom.data import get_testdata_file
 
 from core.database import Image
 from pixl_dcmd.main import (
@@ -43,8 +43,8 @@ def test_remove_overlay_plane() -> None:
     ds = get_testdata_file(
         "MR-SIEMENS-DICOM-WithOverlays.dcm", read=True, download=True
     )
-    fpath = get_testdata_files("MR-SIEMENS-DICOM-WithOverlays.dcm")[0]
-    ds = pydicom.dcmread(fpath)
+    # fpath = get_testdata_files("MR-SIEMENS-DICOM-WithOverlays.dcm")[0]
+    # ds = pydicom.dcmread(fpath)
     assert (0x6000, 0x3000) in ds
 
     ds_minus_overlays = remove_overlays(ds)
