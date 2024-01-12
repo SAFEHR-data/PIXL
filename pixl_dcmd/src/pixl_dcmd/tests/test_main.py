@@ -19,7 +19,7 @@ import pydicom
 import pytest
 import sqlalchemy
 import yaml
-from pydicom.data import get_testdata_files
+from pydicom.data import get_testdata_file
 
 from core.database import Image
 from pixl_dcmd.main import (
@@ -40,8 +40,9 @@ def tag_scheme() -> dict:
 
 def test_remove_overlay_plane() -> None:
     """Checks that overlay planes are removed."""
-    fpath = get_testdata_files("MR-SIEMENS-DICOM-WithOverlays.dcm")[0]
-    ds = pydicom.dcmread(fpath)
+    ds = get_testdata_file(
+        "MR-SIEMENS-DICOM-WithOverlays.dcm", read=True, download=True
+    )
     assert (0x6000, 0x3000) in ds
 
     ds_minus_overlays = remove_overlays(ds)
@@ -76,12 +77,13 @@ def test_pseudo_identifier_processing(rows_in_session, tag_scheme):
     accession_number = "AA12345605"
     mrn = "987654321"
     fake_hash = "-".join(list(f"{mrn}{accession_number}")).encode("utf-8")
-
+    print("fake_hash = ", fake_hash)
     output_dataset = apply_tag_scheme(input_dataset, tag_scheme)
     image = (
         rows_in_session.query(Image)
         .filter(Image.accession_number == "AA12345605")
         .one()
     )
+    print("after tags applied")
     assert output_dataset[0x0010, 0x0020].value == fake_hash
     assert image.hashed_identifier == fake_hash

@@ -317,6 +317,7 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
                     pat_value = mrn + accession_number
 
                     hashed_value = _hash_values(grp, el, pat_value, hasher_host_url)
+                    print("HASHED_VALUE = ", hashed_value)
                     # Query PIXL database
                     existing_image = query_db(mrn, accession_number)
                     # Insert the hashed_value into the PIXL database
@@ -325,11 +326,12 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
                     pat_value = str(dataset[grp, el].value)
 
                     hashed_value = _hash_values(grp, el, pat_value, hasher_host_url)
-
+                    print("HASHED_VALUE ELSE = ", hashed_value)
                 if dataset[grp, el].VR == "SH":
                     hashed_value = hashed_value[:16]
 
                 dataset[grp, el].value = hashed_value
+                print("dataset[grp, el].value", dataset[grp, el].value)
 
                 message = f"Changing: {name} (0x{grp:04x},0x{el:04x})"
                 logging.info(f"\t{message}")
@@ -355,7 +357,9 @@ def _hash_values(grp: bytes, el: bytes, pat_value: str, hasher_host_url: str) ->
     ep_path = hash_endpoint_path_for_tag(group=grp, element=el)
     payload = ep_path + "?message=" + pat_value
     request_url = hasher_host_url + payload
+    print("request_url", request_url)
     response = requests.get(request_url)
+    print("response", response)
     logging.info(b"RESPONSE = %a}" % response.content)
-
+    print("CONTENT", response.content)
     return response.content

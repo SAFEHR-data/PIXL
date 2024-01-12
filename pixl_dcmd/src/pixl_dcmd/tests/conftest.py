@@ -107,22 +107,11 @@ def db_session(db_engine) -> Session:
     session.close()
 
 
-def get_json(url):
-    """Takes a URL, and returns the JSON."""
-    r = requests.get(url)
-    return r.json(), r.content
-
-
-class MockResponse:
-    def __init__(self):
+class MockResponse(object):
+    def __init__(self, content: str):
         self.status_code = 200
         self.url = "www.testurl.com"
-        self.content = b"9-8-7-6-5-4-3-2-1-A-A-1-2-3-4-5-6-0-5"
-
-    # mock json() method always returns a specific testing dictionary
-    @staticmethod
-    def json():
-        return {"mock_key": "mock_response"}
+        self.content = "-".join(list(content)).encode("utf-8")
 
 
 # monkeypatched requests.get moved to a fixture
@@ -130,7 +119,7 @@ class MockResponse:
 def mock_response(monkeypatch):
     """Requests.get() mocked to return {'mock_key':'mock_response'}."""
 
-    def mock_get(*args, **kwargs):
-        return MockResponse()
+    def mock_get(input: str):
+        return MockResponse(input.split("=")[1])
 
     monkeypatch.setattr(requests, "get", mock_get)
