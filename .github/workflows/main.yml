@@ -111,7 +111,7 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e pixl_core
+          pip install pixl_core/[test] pixl_dcmd/[test]
           pip install -r pixl_dcmd/src/requirements.txt
 
       - name: Run tests
