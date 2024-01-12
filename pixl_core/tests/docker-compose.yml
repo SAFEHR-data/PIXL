@@ -27,9 +27,9 @@ services:
       - "15672:15672"
     healthcheck:
       test: rabbitmq-diagnostics -q ping
-      interval: 30s
-      timeout: 30s
-      retries: 3
+      interval: 10s
+      timeout: 10s
+      retries: 5
 
   test:
     container_name: pixl-test-python
@@ -39,6 +39,8 @@ services:
     depends_on:
       queue:
         condition: service_healthy
+      ftp-server:
+        condition: service_healthy
     environment:
       RABBITMQ_USERNAME: guest
       RABBITMQ_PASSWORD: guest
@@ -46,12 +48,15 @@ services:
       RABBITMQ_PORT: 5672
     entrypoint: "pytest"
   ftp-server:
-    image: stilliard/pure-ftpd
+#    image: stilliard/pure-ftpd
+    container_name: test-ftp-server
+    build:
+      context: ftp-server
     ports:
       - "11121:21"
     volumes:
       # Mount for uploaded data
-      - "./ftp-server/mounts/data/:/home/prototype/"
+      - "./ftp-server/mounts/data/:/home/pixl/"
       # Mount SSL keys for TLS
       - "./ftp-server/mounts/ssl/:/etc/ssl/private/"
     environment:
@@ -61,3 +66,8 @@ services:
       FTP_USER_HOME: /home/pixl
       # Enable TLS
       ADDED_FLAGS: "--tls=2"
+    healthcheck:
+      test: netstat -lnt | grep ":21" || exit 1
+      interval: 10s
+      timeout: 10s
+      retries: 5
