@@ -17,6 +17,9 @@ SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 COPY ./orthanc/orthanc-anon/plugin/pixl.py /etc/orthanc/pixl.py
 COPY ./orthanc/orthanc-anon/plugin/tag-operations.yaml /etc/orthanc/tag-operations.yaml
 
+COPY ./pixl_core/ ./pixl_core
+RUN pip3 install --no-cache-dir ./pixl_core
+
 COPY ./pixl_dcmd/src/requirements.txt .
 RUN pip3 install --no-cache-dir -r requirements.txt
 
