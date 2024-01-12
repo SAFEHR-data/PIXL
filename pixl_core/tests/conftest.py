@@ -20,12 +20,12 @@ from pathlib import Path
 import pytest
 
 os.environ["RABBITMQ_USERNAME"] = "guest"
-os.environ["RABBITMQ_PASSWORD"] = "guest"  # noqa: S105 Harcoding password
+os.environ["RABBITMQ_PASSWORD"] = "guest"  # noqa: S105 Hardcoding password
 os.environ["RABBITMQ_HOST"] = "localhost"
 os.environ["RABBITMQ_PORT"] = "25672"
 os.environ["FTP_HOST"] = "localhost"
 os.environ["FTP_USER_NAME"] = "pixl"
-os.environ["FTP_USER_PASS"] = "pixl"  # noqa: S105 Harcoding password
+os.environ["FTP_USER_PASS"] = "pixl"  # noqa: S105 Hardcoding password
 os.environ["FTP_PORT"] = "20021"
 
 TEST_DIR = Path(__file__).parent
