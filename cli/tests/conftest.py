@@ -27,7 +27,6 @@ def _omop_files(tmp_path_factory: pytest.TempPathFactory, monkeypatch) -> None:
     """
     Replace production extract instance with one writing to a tmpdir.
 
-    :returns ParquetExport: For direct use when the fixture is explicity called.
     """
     tmpdir_extract = tmp_path_factory.mktemp("repo_base")
     monkeypatch.setattr("core.exports.ParquetExport.root_dir", tmpdir_extract)
