@@ -22,18 +22,10 @@ from dateutil.tz import UTC
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-# os.environ["ENV"] = "test"
-os.environ["SALT_VALUE"] = "salt"
+os.environ["SALT_VALUE"] = "test_salt"
 os.environ["HASHER_API_AZ_NAME"] = "test_hash_API"
 os.environ["HASHER_API_PORT"] = "test_hash_API_port"
 os.environ["TIME_OFFSET"] = "5"
-os.environ["DEBUG"] = "True"
-os.environ["AZURE_CLIENT_ID"] = "test_client_id"
-os.environ["AZURE_CLIENT_SECRET"] = "test_client_secret"
-os.environ["AZURE_TENANT_ID"] = "test_tenant_id"
-os.environ["AZURE_KEY_VAULT_NAME"] = "test_AZ_KV_name"
-os.environ["AZURE_KEY_VAULT_SECRET_NAME"] = "test_AZ_KV_secret_name"
-os.environ["LOG_ROOT_DIR"] = "test_log_root_dir"
 
 STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
 
@@ -125,7 +117,7 @@ class MockResponse:
     def __init__(self):
         self.status_code = 200
         self.url = "www.testurl.com"
-        self.content = "f-i-x-e-d"
+        self.content = b"9-8-7-6-5-4-3-2-1-A-A-1-2-3-4-5-6-0-5"
 
     # mock json() method always returns a specific testing dictionary
     @staticmethod
@@ -142,56 +134,3 @@ def mock_response(monkeypatch):
         return MockResponse()
 
     monkeypatch.setattr(requests, "get", mock_get)
-
-
-# @pytest.fixture(autouse=True)
-# def mock_content(monkeypatch):
-#     """Requests.get() mocked to return {'mock_key':'mock_response'}."""
-
-#     def mock_get(*args, **kwargs):
-#         return MockResponse().
-
-#     monkeypatch.setattr(requests, "get", mock_get)
-
-
-def test_get_json(monkeypatch):
-    # app.get_json, which contains requests.get, uses the monkeypatch
-    result = get_json(os.environ["HASHER_API_AZ_NAME"])
-    assert result["mock_key"] == "mock_response"
-
-
-# @pytest.fixture(autouse=True)
-def request_mock_response(requests_mock):
-    requests_mock.get(os.environ["HASHER_API_AZ_NAME"], text="f-i-x-e-d")
-    response = requests.get(os.environ["HASHER_API_AZ_NAME"]).text
-    assert response.status_code == 200
-    return response.content
-
-
-def test_get_response_success(monkeypatch):
-    class MockResponse(object):
-        def __init__(self):
-            self.status_code = 200
-            self.url = "http://httpbin.org/get"
-            self.headers = {"foobar": "foooooo"}
-
-        def json(self):
-            return {"fooaccount": "foo123", "url": os.environ["HASHER_API_AZ_NAME"]}
-
-    def mock_get(url):
-        return MockResponse()
-
-    monkeypatch.setattr(requests, "get", mock_get)
-
-
-@pytest.fixture()
-def dummy_env_var(monkeypatch):  # noqa: ANN202
-    """Fixture to set up a dummy environment variables for hasher API"""
-    monkeypatch.setenv("ENV", "testenv")
-    monkeypatch.setenv("DEBUG", "True")
-    monkeypatch.setenv("AZURE_CLIENT_ID", "test_client_id")
-    monkeypatch.setenv("AZURE_CLIENT_SECRET", "test_client_secret")
-    monkeypatch.setenv("AZURE_TENANT_ID", "test_tenant_id")
-    monkeypatch.setenv("AZURE_KEY_VAULT_NAME", "test_AZ_KV_name")
-    monkeypatch.setenv("AZURE_KEY_VAULT_SECRET_NAME", "test_AZ_KV_secret_name")
-    monkeypatch.setenv("LOG_ROOT_DIR", "test_log_root_dir")
