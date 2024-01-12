@@ -21,7 +21,7 @@ from typing import Any, BinaryIO, Union
 import requests
 from decouple import config
 from pydicom import Dataset, dcmwrite
-from pixl_dcmd._database import insert_new_uid_into_db_entity, query_db
+from pixl_dcmd._database import add_hashed_identifier_and_save, query_db
 from pixl_dcmd._deid_helpers import get_bounded_age, get_encrypted_uid
 from pixl_dcmd._datetime import combine_date_time, format_date_time
 
@@ -107,10 +107,10 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
     # Keep the original study time before any operations are applied.
     # For example: orig_study_time = dataset[0x0008, 0x0030].value
 
-    # Set salt based on mrn and accession number
     mrn = dataset[0x0010, 0x0020].value  # Patient ID
     accession_number = dataset[0x0008, 0x0050].value  # Accession Number
 
+    # Set salt based on ENV VAR
     salt_plaintext = config("SALT_VALUE")
 
     HASHER_API_AZ_NAME = config("HASHER_API_AZ_NAME")
@@ -317,21 +317,18 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
                     pat_value = mrn + accession_number
 
                     hashed_value = _hash_values(grp, el, pat_value, hasher_host_url)
-                    print("HASHED_VALUE = ", hashed_value)
                     # Query PIXL database
                     existing_image = query_db(mrn, accession_number)
                     # Insert the hashed_value into the PIXL database
-                    insert_new_uid_into_db_entity(existing_image, hashed_value)
+                    add_hashed_identifier_and_save(existing_image, hashed_value)
                 else:
                     pat_value = str(dataset[grp, el].value)
 
                     hashed_value = _hash_values(grp, el, pat_value, hasher_host_url)
-                    print("HASHED_VALUE ELSE = ", hashed_value)
                 if dataset[grp, el].VR == "SH":
                     hashed_value = hashed_value[:16]
 
                 dataset[grp, el].value = hashed_value
-                print("dataset[grp, el].value", dataset[grp, el].value)
 
                 message = f"Changing: {name} (0x{grp:04x},0x{el:04x})"
                 logging.info(f"\t{message}")
@@ -357,9 +354,6 @@ def _hash_values(grp: bytes, el: bytes, pat_value: str, hasher_host_url: str) ->
     ep_path = hash_endpoint_path_for_tag(group=grp, element=el)
     payload = ep_path + "?message=" + pat_value
     request_url = hasher_host_url + payload
-    print("request_url", request_url)
     response = requests.get(request_url)
-    print("response", response)
     logging.info(b"RESPONSE = %a}" % response.content)
-    print("CONTENT", response.content)
     return response.content

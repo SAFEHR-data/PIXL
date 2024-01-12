@@ -19,7 +19,7 @@ import pydicom
 import pytest
 import sqlalchemy
 import yaml
-from pydicom.data import get_testdata_files
+from pydicom.data import get_testdata_file
 
 from core.database import Image
 from pixl_dcmd.main import (
@@ -32,7 +32,7 @@ from pixl_dcmd.main import (
 def tag_scheme() -> dict:
     """Read the tag scheme from orthanc raw."""
     tag_file = (
-        pathlib.Path(__file__).parents[4]
+        pathlib.Path(__file__).parents[2]
         / "orthanc/orthanc-anon/plugin/tag-operations.yaml"
     )
     return yaml.safe_load(tag_file.read_text())
@@ -40,11 +40,9 @@ def tag_scheme() -> dict:
 
 def test_remove_overlay_plane() -> None:
     """Checks that overlay planes are removed."""
-    # ds = get_testdata_file(
-    #     "MR-SIEMENS-DICOM-WithOverlays.dcm", read=True, download=True
-    # )
-    fpath = get_testdata_files("MR-SIEMENS-DICOM-WithOverlays.dcm")[0]
-    ds = pydicom.dcmread(fpath)
+    ds = get_testdata_file(
+        "MR-SIEMENS-DICOM-WithOverlays.dcm", read=True, download=True
+    )
     assert (0x6000, 0x3000) in ds
 
     ds_minus_overlays = remove_overlays(ds)
@@ -59,7 +57,7 @@ def test_image_already_exported_throws(rows_in_session, tag_scheme):
     WHEN the dicom tag scheme is applied
     THEN an exception will be thrown as
     """
-    exported_dicom = pathlib.Path(__file__).parents[4] / "test/resources/Dicom1.dcm"
+    exported_dicom = pathlib.Path(__file__).parents[2] / "test/resources/Dicom1.dcm"
     input_dataset = pydicom.dcmread(exported_dicom)
 
     with pytest.raises(sqlalchemy.exc.NoResultFound):
@@ -73,7 +71,7 @@ def test_pseudo_identifier_processing(rows_in_session, tag_scheme):
     THEN the patient identifier tag should be the mrn and accession hashed
       and the pipeline db row should now have the fake hash
     """
-    exported_dicom = pathlib.Path(__file__).parents[4] / "test/resources/Dicom2.dcm"
+    exported_dicom = pathlib.Path(__file__).parents[2] / "test/resources/Dicom2.dcm"
     input_dataset = pydicom.dcmread(exported_dicom)
 
     accession_number = "AA12345605"

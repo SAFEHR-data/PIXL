@@ -110,14 +110,13 @@ def db_session(db_engine) -> Session:
 class MockResponse(object):
     def __init__(self, content: str):
         self.status_code = 200
-        self.url = "www.testurl.com"
         self.content = "-".join(list(content)).encode("utf-8")
 
 
 # monkeypatched requests.get moved to a fixture
 @pytest.fixture(autouse=True)
 def mock_response(monkeypatch):
-    """Requests.get() mocked to return {'mock_key':'mock_response'}."""
+    """Requests.get() mocked to return MockedResponse built from input."""
 
     def mock_get(input: str):
         return MockResponse(input.split("=")[1])
