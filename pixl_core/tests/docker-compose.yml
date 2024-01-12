@@ -45,3 +45,19 @@ services:
       RABBITMQ_HOST: queue
       RABBITMQ_PORT: 5672
     entrypoint: "pytest"
+  ftp-server:
+    image: stilliard/pure-ftpd
+    ports:
+      - "11121:21"
+    volumes:
+      # Mount for uploaded data
+      - "./ftp-server/mounts/data/:/home/prototype/"
+      # Mount SSL keys for TLS
+      - "./ftp-server/mounts/ssl/:/etc/ssl/private/"
+    environment:
+      PUBLICHOST: "localhost"
+      FTP_USER_NAME: pixl
+      FTP_USER_PASS: pixl
+      FTP_USER_HOME: /home/pixl
+      # Enable TLS
+      ADDED_FLAGS: "--tls=2"
