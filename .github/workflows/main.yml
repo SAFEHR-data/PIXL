@@ -91,9 +91,7 @@ jobs:
       - name: Run tests
         working-directory: pixl_core/tests
         run: |
-          docker compose up --wait --build
           pytest
-          docker compose down
         env:
           ENV: test
 

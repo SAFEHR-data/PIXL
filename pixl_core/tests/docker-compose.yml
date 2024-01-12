@@ -27,7 +27,7 @@ services:
       - "35672:15672"
     healthcheck:
       test: rabbitmq-diagnostics -q ping
-      interval: 10s
+      interval: 30s
       timeout: 10s
       retries: 5
   ftp-server:
@@ -50,6 +50,6 @@ services:
       ADDED_FLAGS: "--tls=2"
     healthcheck:
       test: netstat -lnt | grep ":21" || exit 1
-      interval: 10s
+      interval: 30s
       timeout: 10s
       retries: 5

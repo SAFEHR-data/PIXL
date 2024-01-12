@@ -28,14 +28,14 @@ TEST_MESSAGE = Message(
 )
 
 
-@pytest.mark.pika()
+@pytest.mark.usefixtures("_run_containers")
 def test_create_pixl_producer() -> None:
     """Checks that PixlProducer can be instantiated."""
     with PixlProducer(queue_name=TEST_QUEUE) as pp:
         assert pp.connection_open
 
 
-@pytest.mark.pika()
+@pytest.mark.usefixtures("_run_containers")
 def test_publish() -> None:
     """
     Checks that after publishing, there is one message in the queue.
