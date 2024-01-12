@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  ftp-server:
+    image: stilliard/pure-ftpd
+    ports:
+      - "11121:21"
+    volumes:
+      # Mount for uploaded data
+      - "./ftp-mounts/data/:/home/prototype/"
+      # Mount SSL keys for TLS
+      - "./ftp-mounts/ssl/:/etc/ssl/private/"
+    environment:
+      PUBLICHOST: "localhost"
+      FTP_USER_NAME: pixl
+      FTP_USER_PASS: pixl
+      FTP_USER_HOME: /home/pixl
+      # Enable TLS
+      ADDED_FLAGS: "--tls=2"
