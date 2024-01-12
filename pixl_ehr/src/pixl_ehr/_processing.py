@@ -76,8 +76,8 @@ class PatientEHRData:
     accession_number: str
     image_identifier: str
     procedure_occurrence_id: int
-    project_name: Optional[str]
-    extract_datetime: Optional[datetime]
+    project_name: str
+    extract_datetime: datetime
     acquisition_datetime: Optional[datetime]
 
     age: Optional[int] = None
