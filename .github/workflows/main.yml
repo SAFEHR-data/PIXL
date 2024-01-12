@@ -113,7 +113,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e pixl_core
           pip install -r pixl_dcmd/src/requirements.txt
-          pip install git+https://github.com/pydicom/pydicom-data
 
       - name: Run tests
         working-directory: pixl_dcmd
