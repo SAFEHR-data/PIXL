@@ -18,22 +18,15 @@ import pathlib
 
 import pytest
 from core.database import Base, Extract, Image
-from core.omop import OmopExtract
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 
 @pytest.fixture(autouse=True)
-def omop_files(tmp_path_factory: pytest.TempPathFactory, monkeypatch) -> OmopExtract:
-    """
-    Replace production extract instance with one writing to a tmpdir.
-
-    :returns OmopExtract: For direct use when the fixture is explicity called.
-    """
-    export_dir = tmp_path_factory.mktemp("repo_base")
-    tmpdir_extract = OmopExtract(export_dir)
-    monkeypatch.setattr("pixl_cli._io.extract", tmpdir_extract)
-    return tmpdir_extract
+def _omop_files(tmp_path_factory: pytest.TempPathFactory, monkeypatch) -> None:
+    """Replace production extract instance with one writing to a tmpdir."""
+    tmpdir_extract = tmp_path_factory.mktemp("repo_base")
+    monkeypatch.setattr("core.exports.ParquetExport.root_dir", tmpdir_extract)
 
 
 @pytest.fixture()
