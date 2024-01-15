@@ -31,6 +31,7 @@ services:
       timeout: 10s
       retries: 5
   ftp-server:
+    platform: linux/x86_64
     container_name: test-ftp-server
     build:
       context: ftp-server
