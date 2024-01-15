@@ -34,6 +34,7 @@ TEST_DIR = Path(__file__).parent
 @pytest.fixture(scope="package")
 def _run_containers() -> None:
     """WIP, should  be able to get this up and running from pytest"""
+    # TODO: update docstrings once finalised
     subprocess.run(
         b"docker compose up --build --wait",
         check=True,
@@ -42,3 +43,18 @@ def _run_containers() -> None:
     )
     yield
     subprocess.run(b"docker compose down --volumes", check=True, cwd=TEST_DIR, shell=True)  # noqa: S602
+
+
+@pytest.fixture()
+def data() -> Path:
+    """Directory containing the test data for uploading to the ftp server."""
+    return Path(__file__).parent / "data"
+
+
+@pytest.fixture()
+def mounted_data() -> Path:
+    """
+    The mounted data directory for the ftp server.
+    This will contain the data after successful upload.
+    """
+    return Path(__file__).parent / "ftp-server" / "mounts" / "data"
