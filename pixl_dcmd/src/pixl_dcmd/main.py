@@ -13,18 +13,17 @@
 #  limitations under the License.
 from __future__ import annotations
 
-import hashlib
 import logging
-import re
 from io import BytesIO
 from os import PathLike
-from random import randint
 from typing import Any, BinaryIO, Union
 
-import arrow
 import requests
 from decouple import config
 from pydicom import Dataset, dcmwrite
+from pixl_dcmd._database import add_hashed_identifier_and_save, query_db
+from pixl_dcmd._deid_helpers import get_bounded_age, get_encrypted_uid
+from pixl_dcmd._datetime import combine_date_time, format_date_time
 
 DicomDataSetType = Union[Union[str, bytes, PathLike[Any]], BinaryIO]
 
@@ -74,108 +73,6 @@ def remove_overlays(dataset: Dataset) -> Dataset:
     return dataset
 
 
-def get_encrypted_uid(uid: str, salt: bytes) -> str:
-    """
-    Hashes the suffix of a DICOM UID with the given salt.
-
-    This function retains the prefix, while sha512-hashing the subcomponents
-    of the suffix. The number of digits per subcomponent is retained in the
-    encrypted UID. This also ensures that no UID is greater than 64 chars.
-    No leading zeros are permitted in a subcomponent unless the subcomponent
-    has a length of 1.
-
-    Original UID:	    1.2.124.113532.10.122.1.203.20051130.122937.2950157
-    Encrypted UID:	1.2.124.113532.74.696.4.703.80155569.949794.5833842
-
-    Encrypting the UIDs this way ensures that no time information remains but
-    that a input UID will always result in the same output UID, for a given salt.
-
-    Note. that while no application should ever rely on the structure of a UID,
-    there is a possibility that the were the anonyimised data to be push to the
-    originating scanner (or scanner type), the data may not be recognised.
-    """
-    uid_elements = uid.split(".")
-
-    prefix = ".".join(uid_elements[:4])
-    suffix = ".".join(uid_elements[4:])
-    logging.debug(f"\t\tPrefix: {prefix}")
-    logging.debug(f"\t\tSuffix: {suffix}")
-
-    # Get subcomponents of suffix as array.
-    suffix_elements = uid_elements[4:]
-    enc_element = [""] * len(suffix_elements)
-
-    # For each subcomponent of the suffix:
-    for idx, item in enumerate(suffix_elements):
-        h = hashlib.sha512()
-        h.update(item.encode("utf-8"))  # Add subcomponent.
-        h.update(salt)  # Apply salt.
-
-        # If subcomponent has a length of one, allow a leading zero, otherwise
-        # strip leading zeros.
-        # Regex removes any non-numeric chars.
-        if len(item) == 1:
-            enc_element[idx] = re.sub("[^0-9]", "", h.hexdigest())[: len(item)]
-        else:
-            enc_element[idx] = re.sub("[^0-9]", "", h.hexdigest()).lstrip("0")[
-                : len(item)
-            ]
-
-    # Return original prefix and encrypted suffix.
-    return prefix + "." + ".".join(enc_element[:])
-
-
-def get_bounded_age(age: str) -> str:
-    """Bounds patient age between 18 and 89"""
-    if age[3] != "Y":
-        return "018Y"
-
-    age_as_int = int(age[0:3])
-    if age_as_int < 18:
-        return "018Y"
-
-    if age_as_int > 89:
-        return "089Y"
-
-    return age
-
-
-def combine_date_time(a_date: str, a_time: str) -> Any:
-    """Turn date string and time string into arrow object."""
-    date_time_str = f"{a_date} {a_time}"
-
-    # TODO: Should Timezone be hardcoded?
-    # https://github.com/UCLH-Foundry/PIXL/issues/151
-    tz = "Europe/London"
-
-    try:
-        new_date_time = arrow.get(date_time_str, tzinfo=tz)
-    except arrow.parser.ParserError:
-        logging.exception(
-            f"Failed to parse the datetime string '{date_time_str}'"
-            f"falling back to a random time in 1970"
-        )
-        new_date_time = arrow.get("1970-01-01T00:00:00+00:00")
-        new_date_time = new_date_time.shift(seconds=randint(10**2, 10**7))
-
-    return new_date_time
-
-
-def format_date_time(a_date_time: str) -> Any:
-    """Turn date-time string into arrow object."""
-    if "." not in a_date_time:
-        a_date_time += ".000000"
-
-    if a_date_time[8] != " ":
-        a_date_time = a_date_time[0:8] + " " + a_date_time[8:]
-
-    if arrow.get(a_date_time, "YYYYMMDD HHmmss.SSSSSS"):
-        a_date = "{s}".format(s=arrow.get(a_date_time).format("YYYYMMDD"))
-        a_time = "{s}".format(s=arrow.get(a_date_time).format("HHmmss.SSSSSS"))
-
-    return combine_date_time(a_date, a_time)
-
-
 def enforce_whitelist(dataset: dict, tags: dict) -> dict:
     """Delete any tags not in the tagging scheme."""
     # For every element:
@@ -209,6 +106,9 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
     """Apply anoymisation operations for a given set of tags to a dataset"""
     # Keep the original study time before any operations are applied.
     # For example: orig_study_time = dataset[0x0008, 0x0030].value
+
+    mrn = dataset[0x0010, 0x0020].value  # Patient ID
+    accession_number = dataset[0x0008, 0x0050].value  # Accession Number
 
     # Set salt based on ENV VAR
     salt_plaintext = config("SALT_VALUE")
@@ -413,19 +313,22 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
         # Change value into hash from hasher API.
         elif op == "secure-hash":
             if [grp, el] in dataset:
-                pat_value = str(dataset[grp, el].value)
-                ep_path = hash_endpoint_path_for_tag(group=grp, element=el)
-                payload = ep_path + "?message=" + pat_value
-                request_url = hasher_host_url + payload
-                response = requests.get(request_url)
-                logging.info(b"RESPONSE = %a}" % response.content)
+                if grp == 0x0010 and el == 0x0020:  # Patient ID
+                    pat_value = mrn + accession_number
 
-                new_value = response.content
+                    hashed_value = _hash_values(grp, el, pat_value, hasher_host_url)
+                    # Query PIXL database
+                    existing_image = query_db(mrn, accession_number)
+                    # Insert the hashed_value into the PIXL database
+                    add_hashed_identifier_and_save(existing_image, hashed_value)
+                else:
+                    pat_value = str(dataset[grp, el].value)
 
+                    hashed_value = _hash_values(grp, el, pat_value, hasher_host_url)
                 if dataset[grp, el].VR == "SH":
-                    new_value = new_value[:16]
+                    hashed_value = hashed_value[:16]
 
-                dataset[grp, el].value = new_value
+                dataset[grp, el].value = hashed_value
 
                 message = f"Changing: {name} (0x{grp:04x},0x{el:04x})"
                 logging.info(f"\t{message}")
@@ -445,3 +348,12 @@ def hash_endpoint_path_for_tag(group: bytes, element: bytes) -> str:
         return "/hash-accession-number"
 
     return "/hash"
+
+
+def _hash_values(grp: bytes, el: bytes, pat_value: str, hasher_host_url: str) -> bytes:
+    ep_path = hash_endpoint_path_for_tag(group=grp, element=el)
+    payload = ep_path + "?message=" + pat_value
+    request_url = hasher_host_url + payload
+    response = requests.get(request_url)
+    logging.info(b"RESPONSE = %a}" % response.content)
+    return response.content

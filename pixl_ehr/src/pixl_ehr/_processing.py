@@ -23,6 +23,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 
 import requests
+
+if TYPE_CHECKING:
+    from core.patient_queue.message import Message
 from decouple import config
 
 from pixl_ehr._databases import EMAPStar, PIXLDatabase
@@ -71,6 +74,10 @@ class PatientEHRData:
 
     mrn: str
     accession_number: str
+    image_identifier: str
+    procedure_occurrence_id: int
+    project_name: str
+    extract_datetime: datetime
     acquisition_datetime: Optional[datetime]
 
     age: Optional[int] = None
@@ -91,6 +98,10 @@ class PatientEHRData:
         self = PatientEHRData(
             mrn=message.mrn,
             accession_number=message.accession_number,
+            image_identifier=message.mrn + message.accession_number,
+            procedure_occurrence_id=message.procedure_occurrence_id,
+            project_name=message.project_name,
+            extract_datetime=message.omop_es_timestamp,
             acquisition_datetime=message.study_date,
         )
 
@@ -119,6 +130,8 @@ class PatientEHRData:
         col_names = [
             "mrn",
             "accession_number",
+            "image_identifier",
+            "procedure_occurrence_id",
             "age",
             "sex",
             "ethnicity",
@@ -126,6 +139,8 @@ class PatientEHRData:
             "weight",
             "gcs",
             "xray_report",
+            "project_name",
+            "extract_datetime",
         ]
 
         cols = ",".join(col_names)
@@ -136,6 +151,8 @@ class PatientEHRData:
             [
                 self.mrn,
                 self.accession_number,
+                self.image_identifier,
+                self.procedure_occurrence_id,
                 self.age,
                 self.sex,
                 self.ethnicity,
@@ -143,6 +160,8 @@ class PatientEHRData:
                 self.weight,
                 self.glasgow_coma_scale,
                 self.report_text,
+                self.project_name,
+                self.extract_datetime,
             ],
         )
         logger.debug("Persist successful!")
@@ -156,6 +175,7 @@ class PatientEHRData:
         self.accession_number = pixl_hash(
             self.accession_number, endpoint_path="hash-accession-number"
         )
+        self.image_identifier = pixl_hash(self.image_identifier, endpoint_path="hash")
         self.acquisition_datetime = None
 
         return self

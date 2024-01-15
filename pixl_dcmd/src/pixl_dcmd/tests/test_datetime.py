@@ -11,52 +11,11 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-from __future__ import annotations
 
-import pydicom
+"""Test datetime helpers."""
 import pytest
-from pydicom.data import get_testdata_files
 
-from pixl_dcmd.main import (
-    combine_date_time,
-    format_date_time,
-    get_bounded_age,
-    get_encrypted_uid,
-    remove_overlays,
-)
-
-
-def test_encrypt_uid_1() -> None:
-    """Checks whether UID is hashed with salt=1234567890."""
-    test_uid = "1.2.124.113532.10.122.1.203.20051130.122937.2950157"
-    test_salt = b"1234567890"
-    expected_uid = "1.2.124.113532.28.570.5.537.30525294.945722.5900125"
-    assert get_encrypted_uid(test_uid, test_salt) == expected_uid
-
-
-def test_encrypt_uid_2() -> None:
-    """Checks whether UID is hashed with salt=ABCDEFGHIJ."""
-    test_uid = "1.2.124.113532.10.122.1.203.20051130.122937.2950157"
-    test_salt = b"ABCDEFGHIJ"
-    expected_uid = "1.2.124.113532.66.684.0.649.78590783.565647.7283900"
-    assert get_encrypted_uid(test_uid, test_salt) == expected_uid
-
-
-@pytest.mark.parametrize(
-    ("test_ages", "expected_ages"),
-    [
-        ("005D", "018Y"),
-        ("010M", "018Y"),
-        ("017Y", "018Y"),
-        ("018Y", "018Y"),
-        ("030Y", "030Y"),
-        ("089Y", "089Y"),
-        ("100Y", "089Y"),
-    ],
-)
-def test_age_bounding(test_ages: str, expected_ages: str) -> None:
-    """Checks ages are bounded between 18 >= x <= 89."""
-    assert get_bounded_age(test_ages) == expected_ages
+from pixl_dcmd._datetime import combine_date_time, format_date_time
 
 
 @pytest.mark.parametrize(
@@ -95,17 +54,3 @@ def test_date_time_format(orig_date_time: str, output_date_time: str) -> None:
         format_date_time(orig_date_time).format("YYYYMMDD HHmmss.SSSSSS")
         == output_date_time
     )
-
-
-def test_remove_overlay_plane() -> None:
-    """Checks that overlay planes are removed."""
-    fpath = get_testdata_files("MR-SIEMENS-DICOM-WithOverlays.dcm")[0]
-    ds = pydicom.dcmread(fpath)
-    assert (0x6000, 0x3000) in ds
-
-    ds_minus_overlays = remove_overlays(ds)
-    assert (0x6000, 0x3000) not in ds_minus_overlays
-
-
-# TODO: def test_anonymisation
-# https://github.com/UCLH-Foundry/PIXL/issues/132

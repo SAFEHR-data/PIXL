@@ -13,6 +13,8 @@
 #  limitations under the License.
 
 """Interaction with PIXL database"""
+from __future__ import annotations
+
 from typing import Optional
 
 from sqlalchemy import MetaData
@@ -51,7 +53,7 @@ class Image(Base):
     mrn: Mapped[str]
     hashed_identifier: Mapped[Optional[str]]
     exported_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), nullable=True)
-    extract: Mapped["Extract"] = relationship()
+    extract: Mapped[Extract] = relationship()
     extract_id: Mapped[int] = mapped_column(ForeignKey("extract.extract_id"))
 
     def __repr__(self) -> str:

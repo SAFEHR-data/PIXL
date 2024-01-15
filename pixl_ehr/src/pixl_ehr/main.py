@@ -17,10 +17,14 @@ from __future__ import annotations
 import asyncio
 import importlib.metadata
 import logging
+from datetime import (
+    datetime,  # noqa: TCH003, always import datetime otherwise pydantic throws error
+)
 from pathlib import Path
 
 from azure.identity import EnvironmentCredential
 from azure.storage.blob import BlobServiceClient
+from core.exports import ParquetExport
 from core.patient_queue import PixlConsumer
 from core.router import router, state
 from decouple import config
@@ -56,6 +60,21 @@ async def startup_event() -> None:
         task = asyncio.create_task(consumer.run(callback=process_message))
         background_tasks.add(task)
         task.add_done_callback(background_tasks.discard)
+
+
+@app.post(
+    "/export-radiology-as-parquet",
+    summary="Copy all matching radiology reports in the PIXL DB to a parquet file",
+)
+def export_radiology_as_parquet(project_name: str, extract_datetime: datetime) -> None:
+    """
+    Batch export of all matching radiology reports in PIXL DB to a parquet file.
+    NOTE: we can't check that all reports in the queue have been processed, so
+    we are relying on the user waiting until processing has finished before running this.
+    """
+    anon_data = PIXLDatabase().get_radiology_reports(project_name, extract_datetime)
+    pe = ParquetExport(project_name, extract_datetime)
+    pe.export_radiology(anon_data)
 
 
 @app.get(

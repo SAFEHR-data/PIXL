@@ -1,6 +1,7 @@
 # Keep out of production
 .env
 local.env
+pixl_config.yml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

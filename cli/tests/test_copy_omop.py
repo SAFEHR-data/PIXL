@@ -17,9 +17,10 @@ from __future__ import annotations
 import datetime
 
 import pytest
+from core.exports import ParquetExport
 
 
-def test_new_project_copies(omop_files, resources):
+def test_new_project_copies(resources):
     """
     Given a valid export directory and hasn't been exported before
     When copy to exports is run
@@ -29,8 +30,9 @@ def test_new_project_copies(omop_files, resources):
     input_dir = resources / "omop"
     project_name = "Really great cool project"
     input_date = datetime.datetime.fromisoformat("2020-06-10T18:00:00")
+    omop_files = ParquetExport(project_name, input_date)
     # ACT
-    omop_files.copy_to_exports(input_dir, project_name, input_date)
+    omop_files.copy_to_exports(input_dir)
     # ASSERT
     output_base = omop_files.export_dir / "really-great-cool-project"
 
@@ -47,7 +49,7 @@ def test_new_project_copies(omop_files, resources):
     assert symlinked_dir.is_symlink()
 
 
-def test_second_export(omop_files, resources):
+def test_second_export(resources):
     """
     Given one export already exists for the project
     When a second export with a different timestamp is run for the same project
@@ -58,11 +60,15 @@ def test_second_export(omop_files, resources):
     input_dir = resources / "omop"
     project_name = "Really great cool project"
     first_export_datetime = datetime.datetime.fromisoformat("2020-06-10T18:00:00")
-    omop_files.copy_to_exports(input_dir, project_name, first_export_datetime)
+
+    omop_files = ParquetExport(project_name, first_export_datetime)
+    omop_files.copy_to_exports(input_dir)
     second_export_datetime = datetime.datetime.fromisoformat("2020-07-10T18:00:00")
 
+    omop_files = ParquetExport(project_name, second_export_datetime)
+
     # ACT
-    omop_files.copy_to_exports(input_dir, project_name, second_export_datetime)
+    omop_files.copy_to_exports(input_dir)
 
     # ASSERT
     output_base = omop_files.export_dir / "really-great-cool-project"
@@ -76,7 +82,7 @@ def test_second_export(omop_files, resources):
     assert previous_export_dir.exists()
 
 
-def test_project_with_no_public(omop_files, resources):
+def test_project_with_no_public(resources):
     """
     Given an export directory which has no "public" subdirectory
     When copy to exports is run
@@ -85,7 +91,8 @@ def test_project_with_no_public(omop_files, resources):
     input_dir = resources
     project_name = "Really great cool project"
     input_date = datetime.datetime.fromisoformat("2020-06-10T18:00:00")
+    omop_files = ParquetExport(project_name, input_date)
     with pytest.raises(FileNotFoundError) as error_info:
-        omop_files.copy_to_exports(input_dir, project_name, input_date)
+        omop_files.copy_to_exports(input_dir)
 
     assert error_info.match("Could not find public")

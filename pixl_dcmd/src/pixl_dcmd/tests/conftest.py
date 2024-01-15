@@ -13,26 +13,46 @@
 #  limitations under the License.
 """CLI testing fixtures."""
 from __future__ import annotations
-
-import pathlib
-
+import datetime
+import os
 import pytest
+import requests
 from core.database import Base, Extract, Image
+from dateutil.tz import UTC
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
+os.environ["SALT_VALUE"] = "test_salt"
+os.environ["HASHER_API_AZ_NAME"] = "test_hash_API"
+os.environ["HASHER_API_PORT"] = "test_hash_API_port"
+os.environ["TIME_OFFSET"] = "5"
 
-@pytest.fixture(autouse=True)
-def _omop_files(tmp_path_factory: pytest.TempPathFactory, monkeypatch) -> None:
-    """Replace production extract instance with one writing to a tmpdir."""
-    tmpdir_extract = tmp_path_factory.mktemp("repo_base")
-    monkeypatch.setattr("core.exports.ParquetExport.root_dir", tmpdir_extract)
+STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
 
 
 @pytest.fixture()
-def resources() -> pathlib.Path:
-    """Test resources directory path."""
-    return pathlib.Path(__file__).parent / "resources"
+def rows_in_session(db_session) -> Session:
+    """Insert a test row for each table, returning the session for use in tests."""
+    extract = Extract(slug="i-am-a-project")
+
+    image_exported = Image(
+        accession_number="AA12345601",
+        study_date=STUDY_DATE,
+        mrn="987654321",
+        extract=extract,
+        exported_at=datetime.datetime.now(tz=UTC),
+    )
+    image_not_exported = Image(
+        accession_number="AA12345605",
+        study_date=STUDY_DATE,
+        mrn="987654321",
+        extract=extract,
+    )
+    with db_session:
+        db_session.add_all([extract, image_exported, image_not_exported])
+        db_session.commit()
+
+    return db_session
 
 
 @pytest.fixture(scope="module")
@@ -61,7 +81,7 @@ def db_engine(monkeymodule) -> Engine:
         echo_pool="debug",
         future=True,
     )
-    monkeymodule.setattr("pixl_cli._database.engine", engine)
+    monkeymodule.setattr("pixl_dcmd._database.engine", engine)
 
     Base.metadata.create_all(engine)
     yield engine
@@ -85,3 +105,20 @@ def db_session(db_engine) -> Session:
         session.query(Extract).delete()
         yield session
     session.close()
+
+
+class MockResponse(object):
+    def __init__(self, content: str):
+        self.status_code = 200
+        self.content = "-".join(list(content)).encode("utf-8")
+
+
+# monkeypatched requests.get moved to a fixture
+@pytest.fixture(autouse=True)
+def mock_response(monkeypatch):
+    """Requests.get() mocked to return MockedResponse built from input."""
+
+    def mock_get(input: str):
+        return MockResponse(input.split("=")[1])
+
+    monkeypatch.setattr(requests, "get", mock_get)
