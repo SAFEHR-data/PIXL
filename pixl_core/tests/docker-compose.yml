@@ -31,10 +31,8 @@ services:
       timeout: 10s
       retries: 5
   ftp-server:
-    platform: linux/x86_64
     container_name: test-ftp-server
-    build:
-      context: ftp-server
+    image: delfer/alpine-ftp-server
     ports:
       - "20021:21"
     volumes:
@@ -43,12 +41,10 @@ services:
       # Mount SSL keys for TLS
       - "./ftp-server/mounts/ssl/:/etc/ssl/private/"
     environment:
-      PUBLICHOST: "localhost"
-      FTP_USER_NAME: pixl
-      FTP_USER_PASS: pixl
-      FTP_USER_HOME: /home/pixl
-      # Enable TLS
-      ADDED_FLAGS: "--tls=2"
+      ADDRESS: "localhost"
+      USERS: pixl|pixl|/home/pixl
+      TLS_KEY: /etc/ssl/private/localhost.key
+      TLS_CERT: /etc/ssl/private/localhost.crt
     healthcheck:
       test: netstat -lnt | grep ":21" || exit 1
       interval: 30s
