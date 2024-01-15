@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 # Make a DSHUploader class that takes a project slug and study pseudonymised id?
 
 
-def upload_file(local_file_path: Path) -> None:
+def upload_file(local_file_path: Path) -> str:
     """Upload local file to hardcoded directory in ftp server."""
     ftp = _connect_to_ftp()
 
@@ -21,9 +21,9 @@ def upload_file(local_file_path: Path) -> None:
     remote_directory = "new-extract"
     _create_and_set_as_cwd(ftp, remote_directory)
 
+    output_filename = local_file_path.name
     # Store the file using a binary handler
     with local_file_path.open("rb") as local_file:
-        output_filename = local_file_path.name
         command = f"STOR {output_filename}"
         logger.info("Running %s", command)
         ftp.storbinary(command, local_file)
@@ -32,17 +32,19 @@ def upload_file(local_file_path: Path) -> None:
     ftp.quit()
     logger.info("Done!")
 
+    return f"{remote_directory} / {output_filename}"
+
 
 def _connect_to_ftp() -> FTP_TLS:
     # Set your FTP server details
-    ftp_host = os.environ.get("FTP_HOST", default="localhost")
-    ftp_port = int(os.environ.get("FTP_PORT", default=21))  # FTPS usually uses port 21
-    ftp_user = os.environ.get("FTP_USER_NAME", default="pixl")
-    ftp_password = os.environ.get("FTP_USER_PASS", default="pixl")
+    ftp_host = os.environ.get("FTP_HOST")
+    ftp_port = os.environ.get("FTP_PORT")  # FTPS usually uses port 21
+    ftp_user = os.environ.get("FTP_USER_NAME")
+    ftp_password = os.environ.get("FTP_USER_PASS")
 
     # Connect to the server and login
     ftp = FTP_TLS()  # noqa: S321, we're required to use FTP_TLS
-    ftp.connect(ftp_host, ftp_port)
+    ftp.connect(ftp_host, int(ftp_port))
     ftp.login(ftp_user, ftp_password)
     return ftp
 
