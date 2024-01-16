@@ -31,6 +31,7 @@ from time import sleep
 
 import requests
 import yaml
+from core import upload
 from decouple import config
 from pydicom import dcmread
 
@@ -154,6 +155,34 @@ def SendViaStow(resourceId):
         )
     except requests.exceptions.RequestException:
         orthanc.LogError("Failed to send via STOW")
+
+
+def SendViaFTPS(resourceId):
+    """
+    Makes a POST API call to upload the resource to a dicom-web server
+    using orthanc credentials as authorisation
+    """
+    ORTHANC_USERNAME = config("ORTHANC_USERNAME")
+    ORTHANC_PASSWORD = config("ORTHANC_PASSWORD")
+
+    orthanc_url = "http://localhost:8042"
+
+    # Query orthanc-anon for the study
+    query = f"{orthanc_url}/studies/{resourceId}/archive"
+    try:
+        response_study = requests.get(
+            query, verify=False, auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD)
+        )
+        if response_study.status_code != 200:
+            raise RuntimeError(f"Could not download archive of resource '{resourceId}'")
+    except requests.exceptions.RequestException:
+        orthanc.LogError(f"Failed to query'{resourceId}'")
+
+    # get the zip content
+    zip_content = response_study.content
+    logging.info("Downloaded data: %s", zip_content)
+
+    upload.upload_content(zip_content, resourceId)
 
 
 def ShouldAutoRoute():
