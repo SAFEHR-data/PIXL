@@ -38,6 +38,9 @@ sleep 65  # need to wait until the DICOM image is "stable" = 60s
 
 pixl extract-radiology-reports "${PACKAGE_DIR}/test/resources/omop"
 
+./scripts/check_radiology_parquet.py \
+  ../exports/test-extract-uclh-omop-cdm/all_extracts/omop/2023-12-07t14-08-58/radiology/radiology.parquet
+
 cd "${PACKAGE_DIR}"
 docker compose -f docker-compose.yml -f test/docker-compose.yml -p system-test down --volumes
 rm -r exports/test-extract-uclh-omop-cdm/
