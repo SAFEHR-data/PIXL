@@ -115,8 +115,8 @@ class PatientEHRData:
 
             try:
                 step.update(self)
-            except Exception as e:  # noqa: BLE001
-                logger.error(e)
+            except Exception:
+                logger.exception("pipeline step failed")
 
     def persist(self, database: PIXLDatabase, schema_name: str, table_name: str) -> None:
         """Persist a.k.a. save some data in a database"""
