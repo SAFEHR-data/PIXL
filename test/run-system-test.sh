@@ -36,6 +36,8 @@ sleep 65  # need to wait until the DICOM image is "stable" = 60s
 ./scripts/check_entry_in_orthanc_anon.sh
 ./scripts/check_max_storage_in_orthanc_raw.sh
 
+pixl extract-radiology-reports "${PACKAGE_DIR}/test/resources/omop"
+
 cd "${PACKAGE_DIR}"
 docker compose -f docker-compose.yml -f test/docker-compose.yml -p system-test down --volumes
 rm -r exports/test-extract-uclh-omop-cdm/
