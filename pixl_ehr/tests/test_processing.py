@@ -272,7 +272,7 @@ async def test_message_processing(example_messages) -> None:
 
 @pytest.mark.processing()
 @pytest.mark.asyncio()
-async def test_radiology_export(example_messages) -> None:
+async def test_radiology_export(example_messages, tmp_path) -> None:
     """
     GIVEN a message processed by the EHR API
     WHEN export_radiology_as_parquet is called
@@ -283,7 +283,7 @@ async def test_radiology_export(example_messages) -> None:
     message = example_messages[0]
     project_name = message.project_name
     extract_date = message.omop_es_timestamp
-    pe = ParquetExport(project_name, extract_date)
+    pe = ParquetExport(project_name, extract_date, tmp_path)
     await process_message(message)
 
     # ACT
@@ -301,7 +301,7 @@ async def test_radiology_export(example_messages) -> None:
 
 @pytest.mark.processing()
 @pytest.mark.asyncio()
-async def test_radiology_export_multiple_projects(example_messages) -> None:
+async def test_radiology_export_multiple_projects(example_messages, tmp_path) -> None:
     """
     GIVEN EHR API has processed four messages, each from a different project+extract combination
           (p1e1, p1e2, p2e1, p2e2 to ensure both fields must match)
@@ -311,7 +311,7 @@ async def test_radiology_export_multiple_projects(example_messages) -> None:
     # ARRANGE
     project_name = example_messages[0].project_name
     extract_date = example_messages[0].omop_es_timestamp
-    pe = ParquetExport(project_name, extract_date)
+    pe = ParquetExport(project_name, extract_date, tmp_path)
 
     for mess in example_messages:
         await process_message(mess)

@@ -27,22 +27,23 @@ if TYPE_CHECKING:
     import pandas as pd
 
 
-root_from_install = pathlib.Path(__file__).parents[3]
-
 logger = logging.getLogger(__file__)
 
 
 class ParquetExport:
     """Exporting Omop and Emap extracts to Parquet files."""
 
-    root_dir: pathlib.Path = root_from_install
-
-    def __init__(self, project_name: str, extract_datetime: datetime.datetime) -> None:
+    def __init__(
+        self, project_name: str, extract_datetime: datetime.datetime, root_dir: pathlib.Path
+    ) -> None:
         """
         :param project_name: name of the project
         :param extract_datetime: datetime that the OMOP ES extract was run
+        :param root_dir: Root directory to export files to. Don't forget that the CLI has a
+                        different view of the filesystem than the docker containers do.
         """
-        self.export_dir = ParquetExport.root_dir / "exports"
+        self.root_dir = root_dir
+        self.export_dir = self.root_dir / "exports"
         self.project_slug, self.extract_time_slug = self._get_slugs(project_name, extract_datetime)
         self.export_base = self.export_dir / self.project_slug
         current_extract = self.export_base / "all_extracts" / "omop" / self.extract_time_slug

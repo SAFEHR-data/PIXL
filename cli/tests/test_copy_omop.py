@@ -20,7 +20,7 @@ import pytest
 from core.exports import ParquetExport
 
 
-def test_new_project_copies(resources):
+def test_new_project_copies(resources, export_dir):
     """
     Given a valid export directory and hasn't been exported before
     When copy to exports is run
@@ -30,7 +30,7 @@ def test_new_project_copies(resources):
     input_dir = resources / "omop"
     project_name = "Really great cool project"
     input_date = datetime.datetime.fromisoformat("2020-06-10T18:00:00")
-    omop_files = ParquetExport(project_name, input_date)
+    omop_files = ParquetExport(project_name, input_date, export_dir)
     # ACT
     omop_files.copy_to_exports(input_dir)
     # ASSERT
@@ -49,7 +49,7 @@ def test_new_project_copies(resources):
     assert symlinked_dir.is_symlink()
 
 
-def test_second_export(resources):
+def test_second_export(resources, export_dir):
     """
     Given one export already exists for the project
     When a second export with a different timestamp is run for the same project
@@ -61,11 +61,11 @@ def test_second_export(resources):
     project_name = "Really great cool project"
     first_export_datetime = datetime.datetime.fromisoformat("2020-06-10T18:00:00")
 
-    omop_files = ParquetExport(project_name, first_export_datetime)
+    omop_files = ParquetExport(project_name, first_export_datetime, export_dir)
     omop_files.copy_to_exports(input_dir)
     second_export_datetime = datetime.datetime.fromisoformat("2020-07-10T18:00:00")
 
-    omop_files = ParquetExport(project_name, second_export_datetime)
+    omop_files = ParquetExport(project_name, second_export_datetime, export_dir)
 
     # ACT
     omop_files.copy_to_exports(input_dir)
@@ -82,7 +82,7 @@ def test_second_export(resources):
     assert previous_export_dir.exists()
 
 
-def test_project_with_no_public(resources):
+def test_project_with_no_public(resources, export_dir):
     """
     Given an export directory which has no "public" subdirectory
     When copy to exports is run
@@ -91,7 +91,7 @@ def test_project_with_no_public(resources):
     input_dir = resources
     project_name = "Really great cool project"
     input_date = datetime.datetime.fromisoformat("2020-06-10T18:00:00")
-    omop_files = ParquetExport(project_name, input_date)
+    omop_files = ParquetExport(project_name, input_date, export_dir)
     with pytest.raises(FileNotFoundError) as error_info:
         omop_files.copy_to_exports(input_dir)
 

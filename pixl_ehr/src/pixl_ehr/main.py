@@ -30,6 +30,7 @@ from core.router import router, state
 from decouple import config
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 
 from ._databases import PIXLDatabase
 from ._processing import process_message
@@ -62,18 +63,31 @@ async def startup_event() -> None:
         task.add_done_callback(background_tasks.discard)
 
 
+# export root dir from inside the EHR container
+EHR_EXPORT_ROOT_DIR = Path("/run")
+
+
+class ExportRadiologyData(BaseModel):
+    project_name: str
+    extract_datetime: datetime
+
+
 @app.post(
     "/export-radiology-as-parquet",
     summary="Copy all matching radiology reports in the PIXL DB to a parquet file",
 )
-def export_radiology_as_parquet(project_name: str, extract_datetime: datetime) -> None:
+def export_radiology_as_parquet(export_params: ExportRadiologyData) -> None:
     """
     Batch export of all matching radiology reports in PIXL DB to a parquet file.
     NOTE: we can't check that all reports in the queue have been processed, so
     we are relying on the user waiting until processing has finished before running this.
     """
-    anon_data = PIXLDatabase().get_radiology_reports(project_name, extract_datetime)
-    pe = ParquetExport(project_name, extract_datetime)
+    pe = ParquetExport(
+        export_params.project_name, export_params.extract_datetime, EHR_EXPORT_ROOT_DIR
+    )
+    anon_data = PIXLDatabase().get_radiology_reports(
+        pe.project_slug, export_params.extract_datetime
+    )
     pe.export_radiology(anon_data)
 
 
