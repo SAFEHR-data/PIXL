@@ -116,7 +116,7 @@ class PatientEHRData:
             try:
                 step.update(self)
             except Exception as e:  # noqa: BLE001
-                logger.warning(e)
+                logger.error(e)
 
     def persist(self, database: PIXLDatabase, schema_name: str, table_name: str) -> None:
         """Persist a.k.a. save some data in a database"""
@@ -257,7 +257,7 @@ class SetVOT(EMAPStep, ABC):
                 "window_midpoint": data.acquisition_datetime,
             },
         )
-        result = self.db.execute_or_raise(query, f"No {self.name}")
+        result = self.db.execute_or_raise(query, f"No observation with name {self.name}")
         setattr(data, self.name, result[0])  # e.g. data.height = result[0]
 
 
