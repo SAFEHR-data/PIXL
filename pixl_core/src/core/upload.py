@@ -3,11 +3,8 @@
 import ftplib
 import logging
 import os
-from datetime import datetime
 from ftplib import FTP_TLS
 from pathlib import Path
-
-from core._database import get_project_slug_from_db, update_exported_at_and_save
 
 logger = logging.getLogger(__name__)
 
@@ -16,33 +13,24 @@ logger = logging.getLogger(__name__)
 
 def upload_file(local_file_path: Path) -> str:
     """Upload local file to hardcoded directory in ftp server."""
-    output_filename = local_file_path.name
-    # Store the file using a binary handler
-    with local_file_path.open("rb") as file_content:
-        upload_content(file_content, output_filename)
-
-
-def upload_content(content: bytes, pseudo_anon_id: str) -> str:
-    """Upload local file to hardcoded directory in ftp server."""
     ftp = _connect_to_ftp()
 
     # Create the remote directory if it doesn't exist
     # TODO: rename destination to {project-slug}/{study-pseduonymised-id}.zip
-    remote_directory = get_project_slug_from_db(pseudo_anon_id)
 
+    remote_directory = "new-extract"
     _create_and_set_as_cwd(ftp, remote_directory)
-    output_filename = pseudo_anon_id + ".zip"
 
+    output_filename = local_file_path.name
     # Store the file using a binary handler
-    command = f"STOR {output_filename}"
-    logger.info("Running %s", command)
-    ftp.storbinary(command, content)
+    with local_file_path.open("rb") as local_file:
+        command = f"STOR {output_filename}"
+        logger.info("Running %s", command)
+        ftp.storbinary(command, local_file)
 
     # Close the FTP connection
     ftp.quit()
     logger.info("Done!")
-
-    update_exported_at_and_save(datetime.now)
 
     return f"{remote_directory} / {output_filename}"
 
