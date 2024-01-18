@@ -31,5 +31,5 @@ setup(
             "*.tests.*",
         ],
     ),
-    python_requires="==3.9.2",
+    python_requires=">=3.9.2",
 )
