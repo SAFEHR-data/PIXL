@@ -30,7 +30,7 @@ from core.patient_queue.message import Message
 from decouple import config
 from pixl_ehr._databases import PIXLDatabase, WriteableDatabase
 from pixl_ehr._processing import process_message
-from pixl_ehr.main import export_radiology_as_parquet
+from pixl_ehr.main import ExportRadiologyData, export_radiology_as_parquet
 from psycopg2.errors import UniqueViolation
 
 pytest_plugins = ("pytest_asyncio",)
@@ -287,7 +287,9 @@ async def test_radiology_export(example_messages, tmp_path) -> None:
     await process_message(message)
 
     # ACT
-    export_radiology_as_parquet(project_name, omop_es_timestamp_1)
+    export_radiology_as_parquet(
+        ExportRadiologyData(project_name=project_name, extract_date=omop_es_timestamp_1)
+    )
 
     # ASSERT
     parquet_file = pe.radiology_output / "radiology.parquet"
@@ -317,7 +319,10 @@ async def test_radiology_export_multiple_projects(example_messages, tmp_path) ->
         await process_message(mess)
 
     # ACT
-    export_radiology_as_parquet(project_name, extract_date)
+
+    export_radiology_as_parquet(
+        ExportRadiologyData(project_name=project_name, extract_date=extract_date)
+    )
 
     # ASSERT
     # check that although 4 records are in the DB, only one makes it into the parquet file

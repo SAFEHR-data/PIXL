@@ -68,6 +68,8 @@ EHR_EXPORT_ROOT_DIR = Path("/run")
 
 
 class ExportRadiologyData(BaseModel):
+    """there may be entries from multiple extracts in the PIXL database, so filtering is needed"""
+
     project_name: str
     extract_datetime: datetime
 

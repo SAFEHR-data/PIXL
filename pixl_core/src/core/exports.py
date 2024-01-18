@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 import logging
-import pathlib
 import shutil
 from typing import TYPE_CHECKING
 
@@ -23,6 +22,7 @@ import slugify
 
 if TYPE_CHECKING:
     import datetime
+    import pathlib
 
     import pandas as pd
 
