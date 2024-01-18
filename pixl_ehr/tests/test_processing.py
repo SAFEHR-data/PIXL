@@ -288,7 +288,7 @@ async def test_radiology_export(example_messages, tmp_path) -> None:
 
     # ACT
     export_radiology_as_parquet(
-        ExportRadiologyData(project_name=project_name, extract_date=omop_es_timestamp_1)
+        ExportRadiologyData(project_name=project_name, extract_datetime=omop_es_timestamp_1)
     )
 
     # ASSERT
@@ -312,8 +312,8 @@ async def test_radiology_export_multiple_projects(example_messages, tmp_path) ->
     """
     # ARRANGE
     project_name = example_messages[0].project_name
-    extract_date = example_messages[0].omop_es_timestamp
-    pe = ParquetExport(project_name, extract_date, tmp_path)
+    extract_datetime = example_messages[0].omop_es_timestamp
+    pe = ParquetExport(project_name, extract_datetime, tmp_path)
 
     for mess in example_messages:
         await process_message(mess)
@@ -321,7 +321,7 @@ async def test_radiology_export_multiple_projects(example_messages, tmp_path) ->
     # ACT
 
     export_radiology_as_parquet(
-        ExportRadiologyData(project_name=project_name, extract_date=extract_date)
+        ExportRadiologyData(project_name=project_name, extract_datetime=extract_datetime)
     )
 
     # ASSERT
