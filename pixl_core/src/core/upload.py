@@ -4,15 +4,15 @@ import ftplib
 import logging
 import os
 from ftplib import FTP_TLS
-from pathlib import Path
+from typing import BinaryIO
 
 logger = logging.getLogger(__name__)
 
 # Make a DSHUploader class that takes a project slug and study pseudonymised id?
 
 
-def upload_file(local_file_path: Path) -> str:
-    """Upload local file to hardcoded directory in ftp server."""
+def upload_as_file(local_data: BinaryIO, output_name: str) -> str:
+    """Upload binary data to hardcoded directory in ftp server."""
     ftp = _connect_to_ftp()
 
     # Create the remote directory if it doesn't exist
@@ -21,26 +21,23 @@ def upload_file(local_file_path: Path) -> str:
     remote_directory = "new-extract"
     _create_and_set_as_cwd(ftp, remote_directory)
 
-    output_filename = local_file_path.name
-    # Store the file using a binary handler
-    with local_file_path.open("rb") as local_file:
-        command = f"STOR {output_filename}"
-        logger.info("Running %s", command)
-        ftp.storbinary(command, local_file)
+    command = f"STOR {output_name}"
+    logger.info("Running %s", command)
+    ftp.storbinary(command, local_data)
 
     # Close the FTP connection
     ftp.quit()
     logger.info("Done!")
 
-    return f"{remote_directory} / {output_filename}"
+    return f"{remote_directory}/{output_name}"
 
 
 def _connect_to_ftp() -> FTP_TLS:
     # Set your FTP server details
-    ftp_host = os.environ.get("FTP_HOST")
-    ftp_port = os.environ.get("FTP_PORT")  # FTPS usually uses port 21
-    ftp_user = os.environ.get("FTP_USER_NAME")
-    ftp_password = os.environ.get("FTP_USER_PASS")
+    ftp_host = os.environ["FTP_HOST"]
+    ftp_port = os.environ["FTP_PORT"]  # FTPS usually uses port 21
+    ftp_user = os.environ["FTP_USER_NAME"]
+    ftp_password = os.environ["FTP_USER_PASS"]
 
     # Connect to the server and login
     ftp = FTP_TLS()  # noqa: S321, we're required to use FTP_TLS

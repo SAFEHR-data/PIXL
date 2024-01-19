@@ -31,12 +31,10 @@ services:
       timeout: 10s
       retries: 5
   ftp-server:
-    platform: linux/x86_64
-    container_name: test-ftp-server
-    build:
-      context: ftp-server
+    image: stilliard/pure-ftpd
     ports:
       - "20021:21"
+      - "30000-30009:30000-30009"
     volumes:
       # Mount for uploaded data
       - "./ftp-server/mounts/data/:/home/pixl/"
@@ -49,8 +47,3 @@ services:
       FTP_USER_HOME: /home/pixl
       # Enable TLS
       ADDED_FLAGS: "--tls=2"
-    healthcheck:
-      test: netstat -lnt | grep ":21" || exit 1
-      interval: 30s
-      timeout: 10s
-      retries: 5

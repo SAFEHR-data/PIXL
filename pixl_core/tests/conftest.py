@@ -41,8 +41,7 @@ def _run_containers() -> None:
         cwd=TEST_DIR,
         shell=True,  # noqa: S602
     )
-    yield
-    subprocess.run(b"docker compose down --volumes", check=True, cwd=TEST_DIR, shell=True)  # noqa: S602
+    subprocess.run(b"docker compose down --volumes", check=True, cwd=TEST_DIR, shell=True)
 
 
 @pytest.fixture()
