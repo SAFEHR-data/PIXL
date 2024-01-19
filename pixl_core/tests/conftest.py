@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import os
 import subprocess
-from ftplib import FTP
 from pathlib import Path
 
 import pytest
@@ -29,29 +28,23 @@ os.environ["RABBITMQ_HOST"] = "localhost"
 os.environ["RABBITMQ_PORT"] = "25672"
 os.environ["FTP_HOST"] = "localhost"
 os.environ["FTP_USER_NAME"] = "pixl"
-os.environ["FTP_USER_PASS"] = "pixl"  # noqa: S105 Hardcoding password
+os.environ["FTP_USER_PASS"] = "longpassword"  # noqa: S105 Hardcoding password
 os.environ["FTP_PORT"] = "20021"
 
 TEST_DIR = Path(__file__).parent
 
 
-@pytest.fixture(autouse=True)
-def _use_FTP(monkeypatch):
-    monkeypatch.setattr("core.upload.FTP_type", FTP)
-
-
 @pytest.fixture(scope="package")
 def _run_containers() -> None:
-    """WIP, should  be able to get this up and running from pytest"""
-    # TODO: update docstrings once finalised
+    """Run docker containers for tests which require them."""
     subprocess.run(
         b"docker compose up --build --wait",
         check=True,
         cwd=TEST_DIR,
         shell=True,  # noqa: S602
+        timeout=60,
     )
-    yield
-    subprocess.run(b"docker compose down --volumes", check=True, cwd=TEST_DIR, shell=True)  # noqa: S602
+    # could yield and take down volumes but for now keep up for ease of testing
 
 
 @pytest.fixture()

@@ -27,8 +27,8 @@ services:
       - "35672:15672"
     healthcheck:
       test: rabbitmq-diagnostics -q ping
-      interval: 30s
-      timeout: 10s
+      interval: 10s
+      timeout: 5s
       retries: 5
   ftp-server:
     container_name: test-ftp-server
@@ -44,11 +44,11 @@ services:
       - "./ftp-server/mounts/ssl/:/etc/ssl/private/"
     environment:
       ADDRESS: "localhost"
-      USERS: pixl|pixl|/home/pixl
-      # TLS_KEY: /etc/ssl/private/localhost.key
-      # TLS_CERT: /etc/ssl/private/localhost.crt
+      USERS: pixl|longpassword|/home/pixl
+      TLS_KEY: /etc/ssl/private/localhost.key
+      TLS_CERT: /etc/ssl/private/localhost.crt
     healthcheck:
-      test: netstat -lnt | grep ":21" || exit 1
-      interval: 30s
-      timeout: 10s
+      test: ping localhost:21 -w 2
+      interval: 10s
+      timeout: 5s
       retries: 5

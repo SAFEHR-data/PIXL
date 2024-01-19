@@ -18,7 +18,6 @@ import os
 import pytest
 import requests
 from core.database import Base, Extract, Image
-from dateutil.tz import UTC
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -40,7 +39,7 @@ def rows_in_session(db_session) -> Session:
         study_date=STUDY_DATE,
         mrn="987654321",
         extract=extract,
-        exported_at=datetime.datetime.now(tz=UTC),
+        exported_at=datetime.datetime.now(tz=datetime.timezone.utc),
     )
     image_not_exported = Image(
         accession_number="AA12345605",

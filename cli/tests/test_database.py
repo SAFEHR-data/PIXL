@@ -18,7 +18,6 @@ import datetime
 import pytest
 from core.database import Extract, Image
 from core.patient_queue.message import Message
-from dateutil.tz import UTC
 from pixl_cli._database import filter_exported_or_add_to_db
 from sqlalchemy.orm import Session
 
@@ -32,7 +31,7 @@ def _make_message(project_name: str, accession_number: str, mrn: str) -> Message
         mrn=mrn,
         study_date=STUDY_DATE,
         procedure_occurrence_id=1,
-        omop_es_timestamp=datetime.datetime.now(tz=UTC),
+        omop_es_timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
     )
 
 
@@ -56,7 +55,7 @@ def rows_in_session(db_session) -> Session:
         study_date=STUDY_DATE,
         mrn="mrn",
         extract=extract,
-        exported_at=datetime.datetime.now(tz=UTC),
+        exported_at=datetime.datetime.now(tz=datetime.timezone.utc),
     )
     image_not_exported = Image(
         accession_number="234",
