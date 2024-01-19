@@ -13,16 +13,14 @@
 #  limitations under the License.
 
 """Interaction with the PIXL database."""
-from typing import TYPE_CHECKING
+
+from datetime import datetime
 
 from decouple import config
 from sqlalchemy import URL, create_engine
 from sqlalchemy.orm import sessionmaker
 
 from core.database import Extract, Image
-
-if TYPE_CHECKING:
-    from datetime import datetime
 
 url = URL.create(
     drivername="postgresql+psycopg2",
@@ -71,10 +69,4 @@ def update_exported_at_and_save(hashed_value: str, date_time: datetime) -> Image
         existing_image.exported_at = date_time
         pixl_session.add(existing_image)
 
-        updated_image = (
-            pixl_session.query(Image)
-            .filter(Image.hashed_identifier == hashed_value, Image.exported_at == date_time)
-            .one_or_none()
-        )
-
-        return updated_image
+        return existing_image

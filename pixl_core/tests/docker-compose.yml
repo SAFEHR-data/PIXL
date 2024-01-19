@@ -35,6 +35,7 @@ services:
     image: delfer/alpine-ftp-server
     ports:
       - "20021:21"
+      - "21000-21010:21000-21010"
     volumes:
       # Mount for uploaded data
       - "./ftp-server/mounts/data/:/home/pixl/"
