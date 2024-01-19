@@ -14,7 +14,7 @@ from core._database import get_project_slug_from_db, update_exported_at_and_save
 
 logger = logging.getLogger(__name__)
 
-
+FTP_type = FTP_TLS
 # Make a DSHUploader class that takes a project slug and study pseudonymised id?
 
 
@@ -54,7 +54,7 @@ def upload_content(content: BinaryIO, *, remote_dir: str, remote_file: str) -> s
     return f"{remote_dir}/{remote_file}"
 
 
-def _connect_to_ftp() -> FTP_TLS:
+def _connect_to_ftp() -> FTP_type:
     # Set your FTP server details
     ftp_host = os.environ["FTP_HOST"]
     ftp_port = os.environ["FTP_PORT"]  # FTPS usually uses port 21
@@ -62,13 +62,13 @@ def _connect_to_ftp() -> FTP_TLS:
     ftp_password = os.environ["FTP_USER_PASS"]
 
     # Connect to the server and login
-    ftp = FTP_TLS()  # noqa: S321, we're required to use FTP_TLS
+    ftp = FTP_type()  # , we're required to use FTP_TLS
     ftp.connect(ftp_host, int(ftp_port))
     ftp.login(ftp_user, ftp_password)
     return ftp
 
 
-def _create_and_set_as_cwd(ftp: FTP_TLS, project_dir: str) -> None:
+def _create_and_set_as_cwd(ftp: FTP_type, project_dir: str) -> None:
     try:
         ftp.cwd(project_dir)
         logger.info("'%s' exists on remote ftp, so moving into it", project_dir)

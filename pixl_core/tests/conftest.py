@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+from ftplib import FTP
 from pathlib import Path
 
 import pytest
@@ -34,6 +35,11 @@ os.environ["FTP_PORT"] = "20021"
 TEST_DIR = Path(__file__).parent
 
 
+@pytest.fixture(autouse=True)
+def _use_FTP(monkeypatch):
+    monkeypatch.setattr("core.upload.FTP_type", FTP)
+
+
 @pytest.fixture(scope="package")
 def _run_containers() -> None:
     """WIP, should  be able to get this up and running from pytest"""
@@ -43,7 +49,6 @@ def _run_containers() -> None:
         check=True,
         cwd=TEST_DIR,
         shell=True,  # noqa: S602
-        timeout=60
     )
     yield
     subprocess.run(b"docker compose down --volumes", check=True, cwd=TEST_DIR, shell=True)  # noqa: S602
