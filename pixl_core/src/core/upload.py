@@ -16,8 +16,6 @@ def upload_as_file(local_data: BinaryIO, output_name: str) -> str:
     ftp = _connect_to_ftp()
 
     # Create the remote directory if it doesn't exist
-    # TODO: rename destination to {project-slug}/{study-pseduonymised-id}.zip
-
     remote_directory = "new-extract"
     _create_and_set_as_cwd(ftp, remote_directory)
 

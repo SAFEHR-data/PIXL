@@ -33,15 +33,15 @@ TEST_DIR = Path(__file__).parent
 
 @pytest.fixture(scope="package")
 def _run_containers() -> None:
-    """WIP, should  be able to get this up and running from pytest"""
-    # TODO: update docstrings once finalised
+    """Run containers that are required for testing, take them down after use."""
     subprocess.run(
         b"docker compose up --build --wait",
         check=True,
         cwd=TEST_DIR,
         shell=True,  # noqa: S602
     )
-    subprocess.run(b"docker compose down --volumes", check=True, cwd=TEST_DIR, shell=True)
+    yield
+    subprocess.run(b"docker compose down --volumes", check=True, cwd=TEST_DIR, shell=True)  # noqa: S602
 
 
 @pytest.fixture()

@@ -27,11 +27,13 @@ services:
       - "35672:15672"
     healthcheck:
       test: rabbitmq-diagnostics -q ping
-      interval: 30s
+      interval: 10s
       timeout: 10s
-      retries: 5
+      retries: 10
   ftp-server:
-    image: stilliard/pure-ftpd
+    container_name: test-ftp-server
+    build:
+      context: ftp-server
     ports:
       - "20021:21"
       - "30000-30009:30000-30009"
@@ -47,3 +49,8 @@ services:
       FTP_USER_HOME: /home/pixl
       # Enable TLS
       ADDED_FLAGS: "--tls=2"
+    healthcheck:
+      test: netstat -lnt | grep ":21" || exit 1
+      interval: 10s
+      timeout: 10s
+      retries: 5
