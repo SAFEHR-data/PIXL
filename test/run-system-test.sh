@@ -43,4 +43,6 @@ pixl extract-radiology-reports "${PACKAGE_DIR}/test/resources/omop"
 
 cd "${PACKAGE_DIR}"
 docker compose -f docker-compose.yml -f test/docker-compose.yml -p system-test down --volumes
+
+ls -laR exports/
 rm -r exports/test-extract-uclh-omop-cdm/
