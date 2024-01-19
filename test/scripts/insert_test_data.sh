@@ -37,7 +37,7 @@ insert into star.lab_result(lab_result_id, lab_order_id, lab_test_definition_id,
     VALUES (78902, 56782, 6789, 'this is a radiology report 2');
 "
 
-docker exec -it system-test-fake-star-db /bin/bash -c "psql -U postgres -d emap -c \"$_sql_command\""
+docker exec system-test-fake-star-db /bin/bash -c "psql -U postgres -d emap -c \"$_sql_command\""
 
 # Uses an accession number of "AA12345601" for MRN 987654321
 curl -X POST -u "orthanc:orthanc" "http://localhost:8043/instances" \
