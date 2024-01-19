@@ -43,6 +43,7 @@ def _run_containers() -> None:
         check=True,
         cwd=TEST_DIR,
         shell=True,  # noqa: S602
+        timeout=60
     )
     yield
     subprocess.run(b"docker compose down --volumes", check=True, cwd=TEST_DIR, shell=True)  # noqa: S602
