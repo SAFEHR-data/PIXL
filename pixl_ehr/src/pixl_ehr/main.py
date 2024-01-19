@@ -21,6 +21,7 @@ from datetime import (
     datetime,  # noqa: TCH003, always import datetime otherwise pydantic throws error
 )
 from pathlib import Path
+from typing import Optional
 
 from azure.identity import EnvironmentCredential
 from azure.storage.blob import BlobServiceClient
@@ -72,6 +73,7 @@ class ExportRadiologyData(BaseModel):
 
     project_name: str
     extract_datetime: datetime
+    output_dir: Optional[Path] = EHR_EXPORT_ROOT_DIR
 
 
 @app.post(
@@ -85,10 +87,10 @@ def export_radiology_as_parquet(export_params: ExportRadiologyData) -> None:
     we are relying on the user waiting until processing has finished before running this.
     """
     pe = ParquetExport(
-        export_params.project_name, export_params.extract_datetime, EHR_EXPORT_ROOT_DIR
+        export_params.project_name, export_params.extract_datetime, export_params.output_dir
     )
     anon_data = PIXLDatabase().get_radiology_reports(
-        pe.project_slug, export_params.extract_datetime
+        export_params.project_name, export_params.extract_datetime
     )
     pe.export_radiology(anon_data)
 

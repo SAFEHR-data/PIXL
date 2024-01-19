@@ -109,15 +109,13 @@ class PIXLDatabase(WriteableDatabase, QueryableDatabase):
         self._cursor.execute(query=str(query), vars=[data.mrn, data.accession_number])
         return self._cursor.fetchone() is not None
 
-    def get_radiology_reports(
-        self, slugified_project_name: str, extract_datetime: datetime
-    ) -> pd.DataFrame:
+    def get_radiology_reports(self, project_name: str, extract_datetime: datetime) -> pd.DataFrame:
         """Get all radiology reports for a given study."""
         query = (
             "SELECT image_identifier, procedure_occurrence_id, xray_report FROM emap_data.ehr_anon "
             "WHERE project_name = %s AND extract_datetime = %s"
         )
-        self._cursor.execute(query=str(query), vars=[slugified_project_name, extract_datetime])
+        self._cursor.execute(query=str(query), vars=[project_name, extract_datetime])
         anon_data = self._cursor.fetchall()
         parquet_header_names = ["image_identifier", "procedure_occurrence_id", "image_report"]
         return pd.DataFrame(anon_data, columns=parquet_header_names)

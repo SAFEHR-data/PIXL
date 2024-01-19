@@ -287,8 +287,11 @@ async def test_radiology_export(example_messages, tmp_path) -> None:
     await process_message(message)
 
     # ACT
+    # Because the test is running in the EHR API container, can just call this directly
     export_radiology_as_parquet(
-        ExportRadiologyData(project_name=project_name, extract_datetime=omop_es_timestamp_1)
+        ExportRadiologyData(
+            project_name=project_name, extract_datetime=omop_es_timestamp_1, output_dir=tmp_path
+        )
     )
 
     # ASSERT
@@ -299,6 +302,8 @@ async def test_radiology_export(example_messages, tmp_path) -> None:
     # Check symlink
     latest_parquet_file = pe.latest_parent_dir / "radiology.parquet"
     latest_parquet_file.is_symlink()
+    parquet_df = pd.read_parquet(parquet_file)
+    assert parquet_df.shape[0] == 1  # should contain only 1 row
 
 
 @pytest.mark.processing()
@@ -321,7 +326,9 @@ async def test_radiology_export_multiple_projects(example_messages, tmp_path) ->
     # ACT
 
     export_radiology_as_parquet(
-        ExportRadiologyData(project_name=project_name, extract_datetime=extract_datetime)
+        ExportRadiologyData(
+            project_name=project_name, extract_datetime=extract_datetime, output_dir=tmp_path
+        )
     )
 
     # ASSERT
