@@ -12,6 +12,8 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+from pathlib import Path
+
 import pandas as pd
 import sys
 
@@ -35,5 +37,11 @@ assert exported_data.loc[0].image_report == 'this is a radiology report 1' + DE_
 
 assert exported_data.loc[1].procedure_occurrence_id == 5
 assert exported_data.loc[1].image_report == 'this is a radiology report 2' + DE_ID_SUFFIX
+
+# Files must not be owned by root - they'll be hard to delete and we shouldn't be running our
+# containers as root anyway.
+file_stats = Path(expected_parquet_file).stat()
+assert file_stats.st_uid != 0
+assert file_stats.st_gid != 0
 
 # assert exported_data.loc[1].image_identifier == 'f71b228fa97d6c87db751e0bb35605fd9d4c1274834be4'
