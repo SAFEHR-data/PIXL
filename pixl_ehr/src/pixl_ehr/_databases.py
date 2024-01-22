@@ -33,14 +33,17 @@ if TYPE_CHECKING:
 class Database:
     """Fake database wrapper"""
 
-    def __init__(
+    def __init__(  # noqa: PLR0913 Too many arguments in function definition
         self,
         db_name: Optional[str] = None,
         username: Optional[str] = None,
         password: Optional[str] = None,
         host: Optional[str] = None,
+        port: Optional[int] = 4567,
     ) -> None:
-        connection_string = f"dbname={db_name} user={username} password={password} host={host}"
+        connection_string = (
+            f"dbname={db_name} user={username} password={password} host={host} port={port}"
+        )
         self._connection = pypg.connect(connection_string)
         self._cursor = self._connection.cursor()
 
@@ -78,6 +81,7 @@ class EMAPStar(QueryableDatabase):
             username=config("EMAP_UDS_USER"),
             password=config("EMAP_UDS_PASSWORD"),
             host=config("EMAP_UDS_HOST"),
+            port=config("EMAP_UDS_PORT", int),
         )
 
     def __repr__(self) -> str:
@@ -91,6 +95,7 @@ class PIXLDatabase(WriteableDatabase, QueryableDatabase):
             username=config("PIXL_DB_USER"),
             password=config("PIXL_DB_PASSWORD"),
             host=config("PIXL_DB_HOST"),
+            port=config("PIXL_DB_PORT", int),
         )
 
     def __repr__(self) -> str:
