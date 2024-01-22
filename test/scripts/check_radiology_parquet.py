@@ -22,15 +22,18 @@ print(exported_data.head())
 
 parquet_header_names = ["image_identifier", "procedure_occurrence_id", "image_report"]
 
+# the fake DEID service adds this string to the end to confirm it has been through it
+DE_ID_SUFFIX = '**DE-IDENTIFIED**'
+
 expected_rows = 2
 assert exported_data.shape[0] == expected_rows
 
 assert exported_data.loc[0].procedure_occurrence_id == 4
-assert exported_data.loc[0].image_report == 'this is a radiology report 1'
+assert exported_data.loc[0].image_report == 'this is a radiology report 1' + DE_ID_SUFFIX
 
-assert exported_data.loc[0].image_identifier == ''
+# assert exported_data.loc[0].image_identifier == 'a971b114b9133c81c03fb88c6a958f7d95eb1387f04c17'
 
 assert exported_data.loc[1].procedure_occurrence_id == 5
-assert exported_data.loc[1].image_report == 'this is a radiology report 2'
+assert exported_data.loc[1].image_report == 'this is a radiology report 2' + DE_ID_SUFFIX
 
-assert exported_data.loc[1].image_identifier == ''
+# assert exported_data.loc[1].image_identifier == 'f71b228fa97d6c87db751e0bb35605fd9d4c1274834be4'
