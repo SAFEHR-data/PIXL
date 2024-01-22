@@ -63,3 +63,17 @@ services:
       - "5432:5432"
     networks:
       pixl-net:
+
+  cogstack-api:
+    container_name: system-test-cogstack
+    build:
+      context: ./dummy-services/
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/heart-beat" ]
+      interval: 10s
+      timeout: 30s
+      retries: 5
+    networks:
+      pixl-net:
+
+
