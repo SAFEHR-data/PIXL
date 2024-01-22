@@ -84,7 +84,7 @@ class TestConsumer(TestCase):  # noqa: D101
         assert counter == 1
 
 
-@pytest.mark.usefixtures("_run_containers")
+@pytest.mark.usefixtures("run_containers")
 def test_consume_all() -> None:
     """
     Checks that all messages are returned that have been published before for

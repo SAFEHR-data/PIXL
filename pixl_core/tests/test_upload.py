@@ -22,7 +22,7 @@ from core.database import Image
 from core.upload import upload_content, upload_dicom_image
 
 
-@pytest.mark.usefixtures("_run_containers")
+@pytest.mark.usefixtures("run_containers")
 def test_upload_content(data, mounted_data) -> None:
     """Tests that file is present on the endpoint after upload"""
     local_file = data / "public.zip"
@@ -32,7 +32,7 @@ def test_upload_content(data, mounted_data) -> None:
     assert (mounted_data / output_file).exists()
 
 
-@pytest.mark.usefixtures("_run_containers")
+@pytest.mark.usefixtures("run_containers")
 def test_upload_dicom_image(data, mounted_data, not_yet_exported_dicom_image) -> None:
     """Tests that DICOM image can be uploaded to the correct location"""
     # ARRANGE
@@ -49,7 +49,7 @@ def test_upload_dicom_image(data, mounted_data, not_yet_exported_dicom_image) ->
     assert expected_output_file.exists()
 
 
-@pytest.mark.usefixtures("_run_containers")
+@pytest.mark.usefixtures("run_containers")
 def test_upload_dicom_image_throws(data, already_exported_dicom_image) -> None:
     """Tests that exception thrown if DICOM image already exported"""
     # ARRANGE
@@ -64,7 +64,7 @@ def test_upload_dicom_image_throws(data, already_exported_dicom_image) -> None:
         upload_dicom_image(local_file, pseudo_anon_id)
 
 
-@pytest.mark.usefixtures("_run_containers")
+@pytest.mark.usefixtures("run_containers")
 def test_update_exported_and_save(rows_in_session) -> None:
     """Tests that the exported_at field is updated when a file is uploaded"""
     # ARRANGE

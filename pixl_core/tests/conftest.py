@@ -38,7 +38,7 @@ STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
 
 
 @pytest.fixture(scope="package")
-def _run_containers() -> None:
+def run_containers() -> None:
     """Run docker containers for tests which require them."""
     yield subprocess.run(
         b"docker compose up --build --wait",
@@ -63,8 +63,8 @@ def data() -> Path:
 
 
 @pytest.fixture(scope="package")
-# make mounted_data depend on _run_containers; the teardown needs the Docker containers to be down
-def mounted_data(_run_containers: None) -> Path:
+# make mounted_data depend on run_containers; the teardown needs the Docker containers to be down
+def mounted_data(run_containers: None) -> Path:
     """
     The mounted data directory for the ftp server.
     This will contain the data after successful upload.
@@ -75,7 +75,7 @@ def mounted_data(_run_containers: None) -> Path:
     ]
     # Tear down the directory after tests
     for sub_dir in sub_dirs:
-        shutil.rmtree(sub_dir)
+        shutil.rmtree(sub_dir, ignore_errors=True)
 
 
 @pytest.fixture(scope="module")
