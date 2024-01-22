@@ -45,6 +45,10 @@ def get_project_slug_from_db(hashed_value: str) -> str:
             .one()
         )
 
+        if existing_image.exported_at is not None:
+            msg = "Image already exported"
+            raise RuntimeError(msg)
+
         existing_extract = (
             pixl_session.query(Extract)
             .filter(

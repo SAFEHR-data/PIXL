@@ -33,11 +33,11 @@ def test_upload_content(data, mounted_data, ftp_remote_dir) -> None:
 
 
 @pytest.mark.usefixtures("_run_containers")
-def test_upload_dicom_image(data, mounted_data, dicom_image) -> None:
+def test_upload_dicom_image(data, mounted_data, not_yet_exported_dicom_image) -> None:
     """Tests that DICOM image can be uploaded to the correct location"""
     # ARRANGE
     # Get the pseudo identifier from the test image
-    pseudo_anon_id = dicom_image.hashed_identifier
+    pseudo_anon_id = not_yet_exported_dicom_image.hashed_identifier
     project_slug = get_project_slug_from_db(pseudo_anon_id)
     expected_output_file = mounted_data / project_slug / (pseudo_anon_id + ".zip")
 
@@ -50,14 +50,31 @@ def test_upload_dicom_image(data, mounted_data, dicom_image) -> None:
 
 
 @pytest.mark.usefixtures("_run_containers")
+def test_upload_dicom_image_throws(data, already_exported_dicom_image) -> None:
+    """Tests that exception thrown if DICOM image already exported"""
+    # ARRANGE
+    # Get the pseudo identifier from the test image
+    pseudo_anon_id = already_exported_dicom_image.hashed_identifier
+
+    # ACT
+    local_file = data / "public.zip"
+
+    # ASSERT
+    with pytest.raises(RuntimeError, match="Image already exported"):
+        upload_dicom_image(local_file, pseudo_anon_id)
+
+
+@pytest.mark.usefixtures("_run_containers")
 def test_update_exported_and_save(rows_in_session) -> None:
     """Tests that the exported_at field is updated when a file is uploaded"""
     # ARRANGE
     expected_export_time = datetime.now(tz=timezone.utc)
 
     # ACT
-    update_exported_at_and_save("123", expected_export_time)
-    new_row = rows_in_session.query(Image).filter(Image.hashed_identifier == "123").one()
+    update_exported_at_and_save("not_yet_exported", expected_export_time)
+    new_row = (
+        rows_in_session.query(Image).filter(Image.hashed_identifier == "not_yet_exported").one()
+    )
     actual_export_time = new_row.exported_at.replace(tzinfo=timezone.utc)
 
     # ASSERT
