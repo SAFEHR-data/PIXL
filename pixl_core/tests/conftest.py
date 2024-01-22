@@ -62,15 +62,13 @@ def mounted_data() -> Path:
     The mounted data directory for the ftp server.
     This will contain the data after successful upload.
     """
-    return TEST_DIR / "ftp-server" / "mounts" / "data"
-
-
-@pytest.fixture()
-def ftp_remote_dir(mounted_data) -> str:
-    """The directory on the ftp server where the data will be uploaded."""
-    yield "new_dir"
+    yield TEST_DIR / "ftp-server" / "mounts" / "data"
+    sub_dirs = [
+        f.path for f in os.scandir(TEST_DIR / "ftp-server" / "mounts" / "data") if f.is_dir()
+    ]
     # Tear down the directory after tests
-    shutil.rmtree(mounted_data / "new_dir")
+    for sub_dir in sub_dirs:
+        shutil.rmtree(sub_dir)
 
 
 @pytest.fixture(scope="module")

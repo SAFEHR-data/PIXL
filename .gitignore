@@ -148,4 +148,4 @@ dmypy.json
 # project specific files
 /exports/
 **/test_producer.csv
-pixl_core/tests/ftp-server/mounts/data/new_dir/
+pixl_core/tests/ftp-server/mounts/data/*
