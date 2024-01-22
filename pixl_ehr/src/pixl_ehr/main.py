@@ -90,7 +90,7 @@ def export_radiology_as_parquet(export_params: ExportRadiologyData) -> None:
         export_params.project_name, export_params.extract_datetime, export_params.output_dir
     )
     anon_data = PIXLDatabase().get_radiology_reports(
-        export_params.project_name, export_params.extract_datetime
+        pe.project_slug, export_params.extract_datetime
     )
     pe.export_radiology(anon_data)
 

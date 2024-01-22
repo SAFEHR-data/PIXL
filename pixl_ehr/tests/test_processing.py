@@ -112,8 +112,9 @@ ls_id, lo_id, lr_id, ltd_id = 5555555, 6666666, 7777777, 8888888
 
 
 def _make_message(project_name, omop_es_timestamp, accession_number) -> Message:
+    slugified_project_name, _ = ParquetExport._get_slugs(project_name, omop_es_timestamp)  # noqa: SLF001
     return Message(
-        project_name=project_name,
+        project_name=slugified_project_name,
         accession_number=accession_number,
         mrn=mrn,
         study_date=observation_datetime,
