@@ -57,8 +57,8 @@ def test_update_exported_and_save(rows_in_session) -> None:
 
     # ACT
     update_exported_at_and_save("123", expected_export_time)
-    new_row = rows_in_session.query(Image).filter(Image.hashed_identifier == "234").one()
-    actual_export_time = datetime(new_row.exported_at, tzinfo=new_row.time_zone)
+    new_row = rows_in_session.query(Image).filter(Image.hashed_identifier == "123").one()
+    actual_export_time = new_row.exported_at.replace(tzinfo=timezone.utc)
 
     # ASSERT
     assert actual_export_time == expected_export_time

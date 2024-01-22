@@ -136,7 +136,6 @@ def rows_in_session(db_session) -> Session:
         mrn="mrn",
         extract=extract,
         exported_at=datetime.datetime.now(tz=datetime.timezone.utc),
-        time_zone=str(datetime.timezone.utc),
         hashed_identifier="123",
     )
     image_not_exported = Image(

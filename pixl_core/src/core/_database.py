@@ -53,7 +53,7 @@ def get_project_slug_from_db(hashed_value: str) -> str:
             .one()
         )
 
-        return existing_extract.slug
+        return str(existing_extract.slug)
 
 
 def update_exported_at_and_save(hashed_value: str, date_time: datetime) -> Image:
