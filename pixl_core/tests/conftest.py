@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -50,7 +51,7 @@ def _run_containers() -> None:
 @pytest.fixture()
 def data() -> Path:
     """Directory containing the test data for uploading to the ftp server."""
-    return Path(__file__).parent / "data"
+    return TEST_DIR / "data"
 
 
 @pytest.fixture()
@@ -59,7 +60,15 @@ def mounted_data() -> Path:
     The mounted data directory for the ftp server.
     This will contain the data after successful upload.
     """
-    return Path(__file__).parent / "ftp-server" / "mounts" / "data"
+    return TEST_DIR / "ftp-server" / "mounts" / "data"
+
+
+@pytest.fixture()
+def ftp_remote_dir(mounted_data) -> str:
+    """The directory on the ftp server where the data will be uploaded."""
+    yield "new_dir"
+    # Tear down the directory after tests
+    shutil.rmtree(mounted_data / "new_dir")
 
 
 @pytest.fixture(scope="module")
