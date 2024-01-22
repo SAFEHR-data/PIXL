@@ -91,7 +91,7 @@ jobs:
       - name: Run tests
         working-directory: pixl_core/tests
         run: |
-          chmod +w ftp-server/mounts/data/
+          chown -R ${USER_ID}:${GROUP_ID} ftp-server/mounts/data
           pytest
         env:
           ENV: test
