@@ -64,12 +64,10 @@ def mounted_data() -> Path:
     """
     yield TEST_DIR / "ftp-server" / "mounts" / "data"
     sub_dirs = [
-        Path(f) for f in os.scandir(TEST_DIR / "ftp-server" / "mounts" / "data") if f.is_dir()
+        f.path for f in os.scandir(TEST_DIR / "ftp-server" / "mounts" / "data") if f.is_dir()
     ]
     # Tear down the directory after tests
     for sub_dir in sub_dirs:
-        # Make sure the directory is writable
-        Path.chmod(sub_dir, 0o777)
         shutil.rmtree(sub_dir)
 
 
