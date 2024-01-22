@@ -40,24 +40,31 @@ STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
 @pytest.fixture(scope="package")
 def _run_containers() -> None:
     """Run docker containers for tests which require them."""
-    subprocess.run(
+    yield subprocess.run(
         b"docker compose up --build --wait",
         check=True,
         cwd=TEST_DIR,
         shell=True,  # noqa: S602
         timeout=60,
     )
-    # could yield and take down volumes but for now keep up for ease of testing
+    subprocess.run(
+        b"docker compose down --volumes",
+        check=True,
+        cwd=TEST_DIR,
+        shell=True,  # noqa: S602
+        timeout=60,
+    )
 
 
-@pytest.fixture()
+@pytest.fixture(scope="package")
 def data() -> Path:
     """Directory containing the test data for uploading to the ftp server."""
     return TEST_DIR / "data"
 
 
-@pytest.fixture()
-def mounted_data() -> Path:
+@pytest.fixture(scope="package")
+# make mounted_data depend on _run_containers; the teardown needs the Docker containers to be down
+def mounted_data(_run_containers: None) -> Path:
     """
     The mounted data directory for the ftp server.
     This will contain the data after successful upload.
