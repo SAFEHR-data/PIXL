@@ -91,7 +91,7 @@ jobs:
       - name: Run tests
         working-directory: pixl_core/tests
         run: |
-          chmod +w pixl_core/tests/ftp-server/data/
+          chmod +w pixl_core/tests/ftp-server/mounts/data/
           pytest
         env:
           ENV: test
