@@ -32,7 +32,6 @@ from core._database import get_project_slug_from_db, update_exported_at_and_save
 logger = logging.getLogger(__name__)
 
 
-# Make a DSHUploader class that takes a project slug and study pseudonymised id?
 class ImplicitFtpTls(ftplib.FTP_TLS):
     """
     FTP_TLS subclass that automatically wraps sockets in SSL to support implicit FTPS.

@@ -157,7 +157,7 @@ def SendViaStow(resourceId):
         orthanc.LogError("Failed to send via STOW")
 
 
-def SendViaFTPS(resourceId):
+def SendViaFTPS(resourceId: str) -> None:
     """
     Makes a POST API call to upload the resource to a dicom-web server
     using orthanc credentials as authorisation
@@ -170,11 +170,11 @@ def SendViaFTPS(resourceId):
     # Query orthanc-anon for the study
     query = f"{orthanc_url}/studies/{resourceId}/archive"
     try:
-        response_study = requests.get(
-            query, verify=False, auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD)
-        )
-        if response_study.status_code != 200:
-            raise RuntimeError(f"Could not download archive of resource '{resourceId}'")
+        response_study = requests.get(query, auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD), timeout=10)
+        success_code = 200
+        if response_study.status_code != success_code:
+            msg = "Could not download archive of resource '%s'"
+            raise RuntimeError(msg, resourceId)
     except requests.exceptions.RequestException:
         orthanc.LogError(f"Failed to query'{resourceId}'")
 

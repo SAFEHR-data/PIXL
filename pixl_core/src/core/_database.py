@@ -71,7 +71,6 @@ def update_exported_at_and_save(hashed_value: str, date_time: datetime) -> Image
             .one()
         )
         existing_image.exported_at = date_time
-        existing_image.time_zone = str(date_time.tzinfo)
         pixl_session.add(existing_image)
 
         return existing_image
