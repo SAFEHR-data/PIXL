@@ -14,8 +14,12 @@
 """Test functionality to upload files to an endpoint."""
 
 
+from datetime import datetime, timezone
+
 import pytest
-from core.upload import upload_content
+from core._database import get_project_slug_from_db, update_exported_at_and_save
+from core.database import Image
+from core.upload import upload_content, upload_dicom_image
 
 
 @pytest.mark.usefixtures("_run_containers")
@@ -26,3 +30,35 @@ def test_upload_content(data, mounted_data, ftp_remote_dir) -> None:
         output_file = upload_content(handle, remote_file="public.zip", remote_dir=ftp_remote_dir)
 
     assert (mounted_data / output_file).exists()
+
+
+@pytest.mark.usefixtures("_run_containers")
+def test_upload_dicom_image(data, mounted_data, dicom_image) -> None:
+    """Tests that DICOM image can be uploaded to the correct location"""
+    # ARRANGE
+    # Get the pseudo identifier from the test image
+    pseudo_anon_id = dicom_image.hashed_identifier
+    project_slug = get_project_slug_from_db(pseudo_anon_id)
+    expected_output_file = mounted_data / project_slug / (pseudo_anon_id + ".zip")
+
+    # ACT
+    local_file = data / "public.zip"
+    upload_dicom_image(local_file, pseudo_anon_id)
+
+    # ASSERT
+    assert expected_output_file.exists()
+
+
+@pytest.mark.usefixtures("_run_containers")
+def test_update_exported_and_save(rows_in_session) -> None:
+    """Tests that the exported_at field is updated when a file is uploaded"""
+    # ARRANGE
+    expected_export_time = datetime.now(tz=timezone.utc)
+
+    # ACT
+    update_exported_at_and_save("123", expected_export_time)
+    new_row = rows_in_session.query(Image).filter(Image.hashed_identifier == "234").one()
+    actual_export_time = datetime(new_row.exported_at, tzinfo=new_row.time_zone)
+
+    # ASSERT
+    assert actual_export_time == expected_export_time

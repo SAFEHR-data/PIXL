@@ -69,11 +69,11 @@ def upload_dicom_image(local_file_path: Path, pseudo_anon_id: str) -> str:
         output_path = upload_content(
             # wrong directory name, can get that from the image at least
             file_content,
-            remote_dir=remote_directory.hashed_identifier,
-            remote_file=f"{remote_directory.hashed_identifier}.zip",
+            remote_dir=remote_directory,
+            remote_file=f"{pseudo_anon_id}.zip",
         )
 
-    update_exported_at_and_save(datetime.now(tz=timezone.utc))
+    update_exported_at_and_save(pseudo_anon_id, datetime.now(tz=timezone.utc))
     return output_path
 
 

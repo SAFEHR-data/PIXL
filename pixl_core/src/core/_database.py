@@ -34,7 +34,7 @@ url = URL.create(
 engine = create_engine(url)
 
 
-def get_project_slug_from_db(hashed_value: str) -> Image:
+def get_project_slug_from_db(hashed_value: str) -> str:
     PixlSession = sessionmaker(engine)
     with PixlSession() as pixl_session, pixl_session.begin():
         existing_image = (
@@ -67,6 +67,7 @@ def update_exported_at_and_save(hashed_value: str, date_time: datetime) -> Image
             .one()
         )
         existing_image.exported_at = date_time
+        existing_image.time_zone = str(date_time.tzinfo)
         pixl_session.add(existing_image)
 
         return existing_image

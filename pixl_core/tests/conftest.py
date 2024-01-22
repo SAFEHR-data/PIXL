@@ -13,6 +13,7 @@
 #  limitations under the License.
 from __future__ import annotations
 
+import datetime
 import os
 import shutil
 import subprocess
@@ -33,6 +34,7 @@ os.environ["FTP_USER_PASS"] = "longpassword"  # noqa: S105 Hardcoding password
 os.environ["FTP_PORT"] = "20021"
 
 TEST_DIR = Path(__file__).parent
+STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
 
 
 @pytest.fixture(scope="package")
@@ -121,3 +123,37 @@ def db_session(db_engine) -> Session:
         session.query(Extract).delete()
         yield session
     session.close()
+
+
+@pytest.fixture()
+def rows_in_session(db_session) -> Session:
+    """Insert a test row for each table, returning the session for use in tests."""
+    extract = Extract(slug="i-am-a-project")
+
+    image_exported = Image(
+        accession_number="123",
+        study_date=STUDY_DATE,
+        mrn="mrn",
+        extract=extract,
+        exported_at=datetime.datetime.now(tz=datetime.timezone.utc),
+        time_zone=str(datetime.timezone.utc),
+        hashed_identifier="123",
+    )
+    image_not_exported = Image(
+        accession_number="234",
+        study_date=STUDY_DATE,
+        mrn="mrn",
+        extract=extract,
+        hashed_identifier="234",
+    )
+    with db_session:
+        db_session.add_all([extract, image_exported, image_not_exported])
+        db_session.commit()
+
+    return db_session
+
+
+@pytest.fixture()
+def dicom_image(rows_in_session) -> Image:
+    """Return a DICOM image from the database."""
+    return rows_in_session.query(Image).filter(Image.hashed_identifier == "123").one()
