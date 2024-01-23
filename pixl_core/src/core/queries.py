@@ -18,7 +18,7 @@ from datetime import datetime
 
 from decouple import config
 from sqlalchemy import URL, create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 
 from core.database import Extract, Image
 
@@ -41,13 +41,7 @@ def get_project_slug_from_db(hashed_value: str) -> str:
     """
     PixlSession = sessionmaker(engine)
     with PixlSession() as pixl_session, pixl_session.begin():
-        existing_image = (
-            pixl_session.query(Image)
-            .filter(
-                Image.hashed_identifier == hashed_value,
-            )
-            .one()
-        )
+        existing_image = _query_existing_image(pixl_session, hashed_value)
 
         if existing_image.exported_at is not None:
             msg = "Image already exported"
@@ -68,12 +62,16 @@ def update_exported_at(hashed_value: str, date_time: datetime) -> None:
     """Update the `exported_at` field for an image in the PIXL database"""
     PixlSession = sessionmaker(engine)
     with PixlSession() as pixl_session, pixl_session.begin():
-        existing_image = (
-            pixl_session.query(Image)
-            .filter(
-                Image.hashed_identifier == hashed_value,
-            )
-            .one()
-        )
+        existing_image = _query_existing_image(pixl_session, hashed_value)
         existing_image.exported_at = date_time
         pixl_session.add(existing_image)
+
+
+def _query_existing_image(pixl_session: Session, hashed_value: str) -> Image:
+    return (
+        pixl_session.query(Image)
+        .filter(
+            Image.hashed_identifier == hashed_value,
+        )
+        .one()
+    )
