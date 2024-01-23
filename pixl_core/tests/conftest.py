@@ -18,6 +18,7 @@ import os
 import shutil
 import subprocess
 from pathlib import Path
+from typing import BinaryIO
 
 import pytest
 from core.database import Base, Extract, Image
@@ -56,10 +57,12 @@ def run_containers() -> None:
     )
 
 
-@pytest.fixture(scope="package")
-def data() -> Path:
+@pytest.fixture()
+def test_zip_content() -> BinaryIO:
     """Directory containing the test data for uploading to the ftp server."""
-    return TEST_DIR / "data"
+    test_zip_file = TEST_DIR / "data" / "public.zip"
+    with test_zip_file.open("rb") as file_content:
+        yield file_content
 
 
 @pytest.fixture(scope="package")

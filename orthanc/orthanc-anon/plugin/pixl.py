@@ -182,7 +182,7 @@ def SendViaFTPS(resourceId: str) -> None:
     zip_content = response_study.content
     logging.info("Downloaded data: %s", zip_content)
 
-    upload.upload_content(zip_content, resourceId)
+    upload.upload_dicom_image(zip_content, resourceId)
 
 
 def ShouldAutoRoute():

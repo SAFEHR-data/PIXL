@@ -24,7 +24,6 @@ from ftplib import FTP_TLS
 from typing import TYPE_CHECKING, Any, BinaryIO
 
 if TYPE_CHECKING:
-    from pathlib import Path
     from socket import socket
 
 from core._database import get_project_slug_from_db, update_exported_at_and_save
@@ -57,39 +56,25 @@ class ImplicitFtpTls(ftplib.FTP_TLS):
         self._sock = value
 
 
-def upload_dicom_image(local_file_path: Path, pseudo_anon_id: str) -> None:
+def upload_dicom_image(zip_content: BinaryIO, pseudo_anon_id: str) -> None:
     """Top level way to upload an image."""
-    # Create the remote directory if it doesn't exist
     # rename destination to {project-slug}/{study-pseduonymised-id}.zip
     remote_directory = get_project_slug_from_db(pseudo_anon_id)
 
-    # Store the file using a binary handler
-    with local_file_path.open("rb") as file_content:
-        upload_content(
-            # wrong directory name, can get that from the image at least
-            file_content,
-            remote_dir=remote_directory,
-            remote_file=f"{pseudo_anon_id}.zip",
-        )
-
-    update_exported_at_and_save(pseudo_anon_id, datetime.now(tz=timezone.utc))
-
-
-def upload_content(content: BinaryIO, *, remote_dir: str, remote_file: str) -> str:
-    """Upload local file to directory in ftp server."""
+    # Create the remote directory if it doesn't exist
     ftp = _connect_to_ftp()
-
-    _create_and_set_as_cwd(ftp, remote_dir)
+    _create_and_set_as_cwd(ftp, remote_directory)
+    command = f"STOR {pseudo_anon_id}.zip"
+    logger.debug("Running %s", command)
 
     # Store the file using a binary handler
-    command = f"STOR {remote_file}"
-    logger.debug("Running %s", command)
-    ftp.storbinary(command, content)
+    ftp.storbinary(command, zip_content)
 
     # Close the FTP connection
     ftp.quit()
     logger.debug("Finished uploading!")
-    return f"{remote_dir}/{remote_file}"
+
+    update_exported_at_and_save(pseudo_anon_id, datetime.now(tz=timezone.utc))
 
 
 def _connect_to_ftp() -> FTP_TLS:
