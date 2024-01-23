@@ -73,7 +73,6 @@ def upload_dicom_image(local_file_path: Path, pseudo_anon_id: str) -> None:
         )
 
     update_exported_at_and_save(pseudo_anon_id, datetime.now(tz=timezone.utc))
-    return output_path
 
 
 def upload_content(content: BinaryIO, *, remote_dir: str, remote_file: str) -> str:
