@@ -26,7 +26,7 @@ from typing import TYPE_CHECKING, Any, BinaryIO
 if TYPE_CHECKING:
     from socket import socket
 
-from core._database import get_project_slug_from_db, update_exported_at_and_save
+from core.queries import get_project_slug_from_db, update_exported_at
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +74,7 @@ def upload_dicom_image(zip_content: BinaryIO, pseudo_anon_id: str) -> None:
     ftp.quit()
     logger.debug("Finished uploading!")
 
-    update_exported_at_and_save(pseudo_anon_id, datetime.now(tz=timezone.utc))
+    update_exported_at(pseudo_anon_id, datetime.now(tz=timezone.utc))
 
 
 def _connect_to_ftp() -> FTP_TLS:

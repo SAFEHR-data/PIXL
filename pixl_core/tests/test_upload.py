@@ -17,8 +17,8 @@
 from datetime import datetime, timezone
 
 import pytest
-from core._database import get_project_slug_from_db, update_exported_at_and_save
 from core.database import Image
+from core.queries import get_project_slug_from_db, update_exported_at
 from core.upload import upload_dicom_image
 
 
@@ -57,7 +57,7 @@ def test_update_exported_and_save(rows_in_session) -> None:
     expected_export_time = datetime.now(tz=timezone.utc)
 
     # ACT
-    update_exported_at_and_save("not_yet_exported", expected_export_time)
+    update_exported_at("not_yet_exported", expected_export_time)
     new_row = (
         rows_in_session.query(Image).filter(Image.hashed_identifier == "not_yet_exported").one()
     )

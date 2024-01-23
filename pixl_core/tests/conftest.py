@@ -106,7 +106,7 @@ def db_engine(monkeymodule) -> Engine:
         echo_pool="debug",
         future=True,
     )
-    monkeymodule.setattr("core._database.engine", engine)
+    monkeymodule.setattr("core.queries.engine", engine)
 
     Base.metadata.create_all(engine)
     yield engine

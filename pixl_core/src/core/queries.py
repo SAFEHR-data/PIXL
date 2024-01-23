@@ -35,6 +35,10 @@ engine = create_engine(url)
 
 
 def get_project_slug_from_db(hashed_value: str) -> str:
+    """
+    Get the project slug from the PIXL database for a given hashed identifier.
+    Throws an exception if the image has already been exported.
+    """
     PixlSession = sessionmaker(engine)
     with PixlSession() as pixl_session, pixl_session.begin():
         existing_image = (
@@ -60,7 +64,8 @@ def get_project_slug_from_db(hashed_value: str) -> str:
         return str(existing_extract.slug)
 
 
-def update_exported_at_and_save(hashed_value: str, date_time: datetime) -> Image:
+def update_exported_at(hashed_value: str, date_time: datetime) -> None:
+    """Update the `exported_at` field for an image in the PIXL database"""
     PixlSession = sessionmaker(engine)
     with PixlSession() as pixl_session, pixl_session.begin():
         existing_image = (
@@ -72,5 +77,3 @@ def update_exported_at_and_save(hashed_value: str, date_time: datetime) -> Image
         )
         existing_image.exported_at = date_time
         pixl_session.add(existing_image)
-
-        return existing_image
