@@ -38,6 +38,10 @@ from pydicom import dcmread
 import orthanc
 import pixl_dcmd
 
+ORTHANC_USERNAME = config("ORTHANC_USERNAME")
+ORTHANC_PASSWORD = config("ORTHANC_PASSWORD")
+ORTHANC_URL = "http://localhost:8042"
+
 
 def AzureAccessToken():
     """
@@ -76,9 +80,6 @@ def AzureDICOMTokenRefresh():
 
     orthanc.LogWarning("Refreshing Azure DICOM token")
 
-    ORTHANC_USERNAME = config("ORTHANC_USERNAME")
-    ORTHANC_PASSWORD = config("ORTHANC_PASSWORD")
-
     AZ_DICOM_TOKEN_REFRESH_SECS = int(config("AZ_DICOM_TOKEN_REFRESH_SECS"))
     AZ_DICOM_ENDPOINT_NAME = config("AZ_DICOM_ENDPOINT_NAME")
     AZ_DICOM_ENDPOINT_URL = config("AZ_DICOM_ENDPOINT_URL")
@@ -106,7 +107,7 @@ def AzureDICOMTokenRefresh():
 
     headers = {"content-type": "application/json"}
 
-    url = "http://localhost:8042/dicom-web/servers/" + AZ_DICOM_ENDPOINT_NAME
+    url = ORTHANC_URL + "/dicom-web/servers/" + AZ_DICOM_ENDPOINT_NAME
 
     try:
         requests.put(
@@ -132,12 +133,9 @@ def SendViaStow(resourceId):
     Makes a POST API call to upload the resource to a dicom-web server
     using orthanc credentials as authorisation
     """
-    ORTHANC_USERNAME = config("ORTHANC_USERNAME")
-    ORTHANC_PASSWORD = config("ORTHANC_PASSWORD")
-
     AZ_DICOM_ENDPOINT_NAME = config("AZ_DICOM_ENDPOINT_NAME")
 
-    url = "http://localhost:8042/dicom-web/servers/" + AZ_DICOM_ENDPOINT_NAME + "/stow"
+    url = ORTHANC_URL + "/dicom-web/servers/" + AZ_DICOM_ENDPOINT_NAME + "/stow"
 
     headers = {"content-type": "application/json"}
 
@@ -162,13 +160,8 @@ def SendViaFTPS(resourceId: str) -> None:
     Makes a POST API call to upload the resource to a dicom-web server
     using orthanc credentials as authorisation
     """
-    ORTHANC_USERNAME = config("ORTHANC_USERNAME")
-    ORTHANC_PASSWORD = config("ORTHANC_PASSWORD")
-
-    orthanc_url = "http://localhost:8042"
-
     # Query orthanc-anon for the study
-    query = f"{orthanc_url}/studies/{resourceId}/archive"
+    query = f"{ORTHANC_URL}/studies/{resourceId}/archive"
     try:
         response_study = requests.get(query, auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD), timeout=10)
         success_code = 200
