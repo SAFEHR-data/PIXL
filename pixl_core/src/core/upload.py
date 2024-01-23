@@ -65,7 +65,7 @@ def upload_dicom_image(local_file_path: Path, pseudo_anon_id: str) -> None:
 
     # Store the file using a binary handler
     with local_file_path.open("rb") as file_content:
-        output_path = upload_content(
+        upload_content(
             # wrong directory name, can get that from the image at least
             file_content,
             remote_dir=remote_directory,
