@@ -57,7 +57,7 @@ class ImplicitFtpTls(ftplib.FTP_TLS):
         self._sock = value
 
 
-def upload_dicom_image(local_file_path: Path, pseudo_anon_id: str) -> str:
+def upload_dicom_image(local_file_path: Path, pseudo_anon_id: str) -> None:
     """Top level way to upload an image."""
     # Create the remote directory if it doesn't exist
     # rename destination to {project-slug}/{study-pseduonymised-id}.zip
