@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import shutil
 from typing import TYPE_CHECKING
 
@@ -44,6 +45,9 @@ class ParquetExport:
         """
         self.root_dir = root_dir
         self.export_dir = self.root_dir / "exports"
+        existing_dir_stats = self.export_dir.stat()
+        self.wanted_uid = existing_dir_stats.st_uid
+        self.wanted_gid = existing_dir_stats.st_gid
         self.project_slug, self.extract_time_slug = self._get_slugs(project_name, extract_datetime)
         self.export_base = self.export_dir / self.project_slug
         current_extract = self.export_base / "all_extracts" / "omop" / self.extract_time_slug
@@ -94,6 +98,7 @@ class ParquetExport:
         parquet_file = self.radiology_output / "radiology.parquet"
 
         export_df.to_parquet(parquet_file)
+        os.chown(parquet_file, self.wanted_uid, self.wanted_gid)
 
         # Make the "latest" export dir if it doesn't exist
         self._mkdir(self.latest_parent_dir)

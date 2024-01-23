@@ -17,8 +17,6 @@ BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 PACKAGE_DIR="${BIN_DIR%/*}"
 cd "${PACKAGE_DIR}/test"
 
-source $BIN_DIR/get_current_user.sh
-
 docker compose --env-file .env.test -p system-test down --volumes
 #
 # Note: cannot run as single docker compose command due to different build contexts

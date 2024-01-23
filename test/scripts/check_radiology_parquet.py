@@ -17,7 +17,7 @@ from pathlib import Path
 import pandas as pd
 import sys
 
-expected_parquet_file = sys.argv[1]
+expected_parquet_file = Path(sys.argv[1])
 exported_data = pd.read_parquet(expected_parquet_file)
 
 print(exported_data.head())
@@ -40,7 +40,7 @@ assert exported_data.loc[1].image_report == 'this is a radiology report 2' + DE_
 
 # Files must not be owned by root - they'll be hard to delete and we shouldn't be running our
 # containers as root anyway.
-file_stats = Path(expected_parquet_file).stat()
+file_stats = expected_parquet_file.stat()
 assert file_stats.st_uid != 0
 assert file_stats.st_gid != 0
 
