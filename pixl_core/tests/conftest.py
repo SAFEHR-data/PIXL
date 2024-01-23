@@ -65,9 +65,8 @@ def test_zip_content() -> BinaryIO:
         yield file_content
 
 
-@pytest.fixture(scope="package")
-# make mounted_data depend on run_containers; the teardown needs the Docker containers to be down
-def mounted_data(run_containers: None) -> Path:
+@pytest.fixture()
+def mounted_data() -> Path:
     """
     The mounted data directory for the ftp server.
     This will contain the data after successful upload.
