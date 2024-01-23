@@ -39,7 +39,7 @@ STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
 
 
 @pytest.fixture(scope="package")
-def run_containers() -> None:
+def run_containers() -> subprocess.CompletedProcess[bytes]:
     """Run docker containers for tests which require them."""
     yield subprocess.run(
         b"docker compose up --build --wait",
