@@ -173,7 +173,7 @@ def SendViaFTPS(resourceId: str) -> None:
 
     # get the zip content
     zip_content = response_study.content
-    logging.info("Downloaded data: %s", zip_content)
+    logging.info("Downloaded data for resource %s", resourceId)
 
     upload.upload_dicom_image(zip_content, resourceId)
 
