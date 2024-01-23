@@ -44,4 +44,4 @@ cd "${PACKAGE_DIR}"
 docker compose -f docker-compose.yml -f test/docker-compose.yml -p system-test down --volumes
 
 ls -laR exports/
-rm -r exports/test-extract-uclh-omop-cdm/
+docker exec system-test-ehr-api rm -r /run/exports/test-extract-uclh-omop-cdm/
