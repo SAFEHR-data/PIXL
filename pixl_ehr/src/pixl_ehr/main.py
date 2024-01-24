@@ -64,8 +64,9 @@ async def startup_event() -> None:
         task.add_done_callback(background_tasks.discard)
 
 
-# export root dir from inside the EHR container
-EHR_EXPORT_ROOT_DIR = Path("/run")
+# Export root dir from inside the EHR container.
+# For the view from outside, see pixl_cli/_io.py: HOST_EXPORT_ROOT_DIR
+EHR_EXPORT_ROOT_DIR = Path("/run/exports")
 
 
 class ExportRadiologyData(BaseModel):
