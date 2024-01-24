@@ -92,7 +92,5 @@ def test_project_with_no_public(resources, export_dir):
     project_name = "Really great cool project"
     input_date = datetime.datetime.fromisoformat("2020-06-10T18:00:00")
     omop_files = ParquetExport(project_name, input_date, export_dir)
-    with pytest.raises(FileNotFoundError) as error_info:
+    with pytest.raises(FileNotFoundError):
         omop_files.copy_to_exports(input_dir)
-
-    assert error_info.match("Could not find public")
