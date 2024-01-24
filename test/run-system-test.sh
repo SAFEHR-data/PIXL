@@ -40,7 +40,7 @@ pixl extract-radiology-reports "${PACKAGE_DIR}/test/resources/omop"
 ./scripts/check_radiology_parquet.py \
   ../exports/test-extract-uclh-omop-cdm/all_extracts/omop/2023-12-07t14-08-58/radiology/radiology.parquet
 
-ls -laR exports/
+ls -laR ../exports/
 docker exec system-test-ehr-api rm -r /run/exports/test-extract-uclh-omop-cdm/
 
 cd "${PACKAGE_DIR}"
