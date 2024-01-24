@@ -41,7 +41,7 @@ pixl extract-radiology-reports "${PACKAGE_DIR}/test/resources/omop"
   ../exports/test-extract-uclh-omop-cdm/all_extracts/omop/2023-12-07t14-08-58/radiology/radiology.parquet
 
 ls -laR ../exports/
-docker exec system-test-ehr-api rm -r /run/exports/test-extract-uclh-omop-cdm/
+docker exec system-test-ehr-api-1 rm -r /run/exports/test-extract-uclh-omop-cdm/
 
 cd "${PACKAGE_DIR}"
 docker compose -f docker-compose.yml -f test/docker-compose.yml -p system-test down --volumes
