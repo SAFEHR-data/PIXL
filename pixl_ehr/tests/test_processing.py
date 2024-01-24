@@ -364,7 +364,7 @@ async def test_radiology_export_multiple_projects(example_messages, tmp_path) ->
     assert row_count_anon[0][0] == 4
 
     pe = ParquetExport(project_name, extract_datetime, tmp_path)
-    parquet_file = pe.radiology_output / "radiology" / "radiology.parquet"
+    parquet_file = pe.radiology_output / "radiology.parquet"
     parquet_df = pd.read_parquet(parquet_file)
 
     assert parquet_df.shape[0] == 1  # should contain only 1 row
