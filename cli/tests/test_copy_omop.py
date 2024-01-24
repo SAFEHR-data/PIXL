@@ -39,14 +39,16 @@ def test_new_project_copies(resources, export_dir):
     # check public files copied
     specific_export_dir = output_base / "all_extracts" / "2020-06-10t18-00-00" / "omop" / "public"
     assert (specific_export_dir).exists()
-    expected_files = [x.stem for x in (input_dir / "public").glob("*.parquet")]
-    output_files = [x.stem for x in (specific_export_dir).glob("*.parquet")]
+    # (glob sort order is not guaranteed)
+    expected_files = sorted([x.stem for x in (input_dir / "public").glob("*.parquet")])
+    output_files = sorted([x.stem for x in (specific_export_dir).glob("*.parquet")])
     assert expected_files == output_files
     # check that symlinked files exist
-    symlinked_dir = output_base / "latest" / "omop" / "public"
-    symlinked_files = list(symlinked_dir.glob("*.parquet"))
-    assert expected_files == [x.stem for x in symlinked_files]
+    symlinked_dir = output_base / "latest"
     assert symlinked_dir.is_symlink()
+    symlinked_dir_public = symlinked_dir / "omop" / "public"
+    symlinked_files = list(symlinked_dir_public.glob("*.parquet"))
+    assert expected_files == sorted([x.stem for x in symlinked_files])
 
 
 def test_second_export(resources, export_dir):
