@@ -65,3 +65,14 @@ def test_update_exported_and_save(rows_in_session) -> None:
 
     # ASSERT
     assert actual_export_time == expected_export_time
+
+
+# TODO: need to export both the radiology parquet and the public parquet files
+@pytest.mark.usefixtures("run_containers")
+def test_upload_parquet(parquet_export, mounted_data) -> None:
+    """Tests that parquet files are uploaded to the correct location"""
+    expected_radiology_file = mounted_data / project_slug / "radiology.parquet"
+    expected_public_parquet_dir = mounted_data / project_slug / "public"
+    upload_radiology_reports(parquet_export)
+
+    assert expected_output_file.exists()

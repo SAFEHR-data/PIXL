@@ -169,3 +169,12 @@ def not_yet_exported_dicom_image(rows_in_session) -> Image:
 def already_exported_dicom_image(rows_in_session) -> Image:
     """Return a DICOM image from the database."""
     return rows_in_session.query(Image).filter(Image.hashed_identifier == "already_exported").one()
+
+
+@pytest.fixture()
+def parquet_export() -> ParquetExport:
+    """Return a ParquetExport object."""
+    return ParquetExport(
+        project_name="i-am-a-project",
+        extract_datetime=datetime.datetime.now(tz=datetime.timezone.utc),
+    )
