@@ -39,16 +39,17 @@ class ParquetExport:
         """
         :param project_name: name of the project
         :param extract_datetime: datetime that the OMOP ES extract was run
-        :param root_dir: Root directory to export files to. Don't forget that the CLI has a
+        :param export_dir: Root directory to export files to. Don't forget that the CLI has a
                         different view of the filesystem than the docker containers do.
         """
         self.export_dir = export_dir
         self.project_slug, self.extract_time_slug = self._get_slugs(project_name, extract_datetime)
-        self.export_base = self.export_dir / self.project_slug
-        current_extract = self.export_base / "all_extracts" / "omop" / self.extract_time_slug
-        self.public_output = current_extract / "public"
-        self.radiology_output = current_extract / "radiology"
-        self.latest_parent_dir = self.export_base / "latest" / "omop"
+        project_base = self.export_dir / self.project_slug
+
+        self.current_extract_base = project_base / "all_extracts" / self.extract_time_slug
+        self.public_output = self.current_extract_base / "omop" / "public"
+        self.radiology_output = self.current_extract_base / "radiology"
+        self.latest_symlink = project_base / "latest"
 
     @staticmethod
     def _get_slugs(project_name: str, extract_datetime: datetime.datetime) -> tuple[str, str]:
@@ -57,52 +58,38 @@ class ParquetExport:
         extract_time_slug = slugify.slugify(extract_datetime.isoformat())
         return project_slug, extract_time_slug
 
-    def copy_to_exports(self, omop_dir: pathlib.Path) -> str:
+    def copy_to_exports(self, input_omop_dir: pathlib.Path) -> str:
         """
         Copy public omop directory as the latest extract for the project.
         Creates directories if they don't already exist.
-        :param omop_dir: parent path for omop export, with a "public" subdirectory
+        :param input_omop_dir: parent path for input omop data, with a "public" subdirectory
         :raises FileNotFoundError: if there is no public subdirectory in `omop_dir`
         :returns str: the project slug, so this can be registered for export to the DSH
         """
-        public_input = omop_dir / "public"
-        if not public_input.exists():
-            msg = f"Could not find public directory in input {omop_dir}"
-            raise FileNotFoundError(msg)
+        public_input = input_omop_dir / "public"
 
         # Make directory for exports if they don't exist
         ParquetExport._mkdir(self.public_output)
-        logger.info("Copying public parquet files from %s to %s", omop_dir, self.public_output)
+        logger.info("Copying public parquet files from %s to %s", public_input, self.public_output)
 
         # Copy extract files, overwriting if it exists
         shutil.copytree(public_input, self.public_output, dirs_exist_ok=True)
-        # Make the latest export dir if it doesn't exist
 
-        self._mkdir(self.latest_parent_dir)
         # Symlink this extract to the latest directory
-        latest_public = self.latest_parent_dir / "public"
-        if latest_public.exists():
-            latest_public.unlink()
-
-        latest_public.symlink_to(self.public_output, target_is_directory=True)
+        self.latest_symlink.unlink(missing_ok=True)
+        self.latest_symlink.symlink_to(self.current_extract_base, target_is_directory=True)
         return self.project_slug
 
     def export_radiology(self, export_df: pd.DataFrame) -> pathlib.Path:
         """Export radiology reports to parquet file"""
         self._mkdir(self.radiology_output)
         parquet_file = self.radiology_output / "radiology.parquet"
-
         export_df.to_parquet(parquet_file)
-
-        # Make the "latest" export dir if it doesn't exist
-        self._mkdir(self.latest_parent_dir)
-        # Symlink this report to the latest directory
-        latest_parquet_file = self.latest_parent_dir / "radiology.parquet"
-        if latest_parquet_file.exists():
-            latest_parquet_file.unlink()
-
-        latest_parquet_file.symlink_to(parquet_file, target_is_directory=False)
-
+        # We are not responsible for making the "latest" symlink, see `copy_to_exports`.
+        # This avoids the confusion caused by EHR API (which calls export_radiology) having a
+        # different view of the filesystem vs CLI (which calls copy_to_exports). EHR API should
+        # never have to evaluate the symlink.
+        # Symlink could be made before or after this method is called.
         return self.radiology_output
 
     @staticmethod

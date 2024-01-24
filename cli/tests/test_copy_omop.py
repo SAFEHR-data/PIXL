@@ -37,7 +37,7 @@ def test_new_project_copies(resources, export_dir):
     output_base = omop_files.export_dir / "really-great-cool-project"
 
     # check public files copied
-    specific_export_dir = output_base / "all_extracts" / "omop" / "2020-06-10t18-00-00" / "public"
+    specific_export_dir = output_base / "all_extracts" / "2020-06-10t18-00-00" / "omop" / "public"
     assert (specific_export_dir).exists()
     expected_files = [x.stem for x in (input_dir / "public").glob("*.parquet")]
     output_files = [x.stem for x in (specific_export_dir).glob("*.parquet")]
@@ -72,13 +72,13 @@ def test_second_export(resources, export_dir):
 
     # ASSERT
     output_base = omop_files.export_dir / "really-great-cool-project"
-    specific_export_dir = output_base / "all_extracts" / "omop" / "2020-07-10t18-00-00" / "public"
-    assert specific_export_dir.exists()
+    specific_export_dir = output_base / "all_extracts" / "2020-07-10t18-00-00" / "omop" / "public"
+    assert specific_export_dir.is_dir()
     # check that symlinked files are the most recent export
     symlinked_dir = output_base / "latest" / "omop" / "public"
-    assert symlinked_dir.readlink() == specific_export_dir
-    previous_export_dir = output_base / "all_extracts" / "omop" / "2020-06-10t18-00-00" / "public"
-    assert symlinked_dir.readlink() != previous_export_dir
+    assert symlinked_dir.samefile(specific_export_dir)
+    previous_export_dir = output_base / "all_extracts" / "2020-06-10t18-00-00" / "omop" / "public"
+    assert not symlinked_dir.samefile(previous_export_dir)
     assert previous_export_dir.exists()
 
 

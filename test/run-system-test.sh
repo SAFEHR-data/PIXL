@@ -38,7 +38,7 @@ sleep 65  # need to wait until the DICOM image is "stable" = 60s
 pixl extract-radiology-reports "${PACKAGE_DIR}/test/resources/omop"
 
 ./scripts/check_radiology_parquet.py \
-  ../exports/test-extract-uclh-omop-cdm/all_extracts/omop/2023-12-07t14-08-58/radiology/radiology.parquet
+  ../exports/test-extract-uclh-omop-cdm/latest/radiology/radiology.parquet
 
 ls -laR ../exports/
 docker exec system-test-ehr-api-1 rm -r /run/exports/test-extract-uclh-omop-cdm/
