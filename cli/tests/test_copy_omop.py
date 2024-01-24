@@ -78,6 +78,7 @@ def test_second_export(resources, export_dir):
     assert specific_export_dir.is_dir()
     # check that symlinked files are the most recent export
     symlinked_dir = output_base / "latest" / "omop" / "public"
+    # samefile does follow symlinks, even though the docs are vague on this
     assert symlinked_dir.samefile(specific_export_dir)
     previous_export_dir = output_base / "all_extracts" / "2020-06-10t18-00-00" / "omop" / "public"
     assert not symlinked_dir.samefile(previous_export_dir)

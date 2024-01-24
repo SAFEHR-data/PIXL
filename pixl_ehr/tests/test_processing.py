@@ -323,12 +323,10 @@ async def test_radiology_export(example_messages, tmp_path) -> None:
 
     assert parquet_file.exists()
     assert parquet_file.is_file()
-    # Check symlink
-    latest_parquet_file = pe.latest_symlink / "radiology" / "radiology.parquet"
-    # samefile does follow symlinks, even though the docs are vague on this
-    assert parquet_file.samefile(latest_parquet_file)
+
     parquet_df = pd.read_parquet(parquet_file)
     assert parquet_df.shape[0] == 1  # should contain only 1 row
+    # symlink is not created by radiology export - this is covered by the system test
 
 
 @pytest.mark.processing()
