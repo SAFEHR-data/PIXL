@@ -15,6 +15,22 @@ from __future__ import annotations
 
 import os
 
-cogstack_url = os.environ.get("COGSTACK_REDACT_URL")
-if not cogstack_url:
-    os.environ["COGSTACK_REDACT_URL"] = "test"
+# configure environmental variables
+os.environ["LOG_LEVEL"] = "DEBUG"
+os.environ["RABBITMQ_PASSWORD"] = "guest"  # noqa: S105
+os.environ["RABBITMQ_USERNAME"] = "guest"
+os.environ["RABBITMQ_HOST"] = "queue"
+os.environ["RABBITMQ_PORT"] = "5672"
+os.environ["PIXL_DB_HOST"] = "localhost"
+os.environ["PIXL_DB_PORT"] = "35432"
+os.environ["PIXL_DB_NAME"] = "pixl"
+os.environ["PIXL_DB_USER"] = "postgres"
+os.environ["PIXL_DB_PASSWORD"] = "postgres"  # noqa: S105
+os.environ["PIXL_DB_EHR_SCHEMA_NAME"] = "emap_data"
+os.environ["EMAP_UDS_HOST"] = "localhost"
+os.environ["EMAP_UDS_PORT"] = "35433"
+os.environ["EMAP_UDS_NAME"] = "emap"
+os.environ["EMAP_UDS_USER"] = "postgres"
+os.environ["EMAP_UDS_PASSWORD"] = "postgres"  # noqa: S105
+os.environ["EMAP_UDS_SCHEMA_NAME"] = "star"
+os.environ["COGSTACK_REDACT_URL"] = "test"

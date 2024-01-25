@@ -57,26 +57,26 @@ The asynchronous mode of transferring messages is a lot more complex as it is ba
 
 Public parquet exports from OMOP ES that should be transferred outside the hospital are copied to the `exports` directory at the repository base.
 
-Within this directory each project has a directory, with all extracts run stored in `all_extracts` and the `latest` directory
+Within this directory each project has a directory, with all extracts stored in `all_extracts` and the `latest` directory
 contains a symlink to the most recent extract. This symlinking means that during the export stage it is clear which export should be sent.
 
 ```
 └── project-1
     ├── all_extracts
-    │     └── omop
-    │         ├── 2020-06-10t18-00-00
-    │         │   └── public
-    │         └── 2020-07-10t18-00-00
+    │     ├── 2020-06-10t18-00-00
+    │     │   ├── radiology
+    │     │   └── omop
+    │     │       └── public
+    │     └── 2020-07-10t18-00-00
+    │         ├── radiology
+    │         └── omop
     │             └── public
-    └── latest
-        └── omop
-            └── public -> ../../../ all_extracts / omop / 2020-07-10t18-00-00 / public
+    └── latest -> all_extracts/2020-07-10t18-00-00
 └── project-2
     ├── all_extracts
-    │     └── omop
-    │         └── 2023-12-13t16-22-40
+    │     └── 2023-12-13t16-22-40
+    │         ├── radiology
+    │         └── omop
     │             └── public
-    └── latest
-        └── omop
-            └── public -> ../../../ all_extracts / omop / 2023-12-13t16-22-40 / public
+    └── latest -> all_extracts/2023-12-13t16-22-40
 ```

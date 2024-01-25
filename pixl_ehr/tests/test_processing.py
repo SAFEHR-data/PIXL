@@ -20,8 +20,10 @@ services being up
 from __future__ import annotations
 
 import contextlib
+import dataclasses
 import datetime
-from typing import Optional
+from logging import getLogger
+from typing import Any, Optional
 
 import pandas as pd
 import pytest
@@ -35,9 +37,44 @@ from psycopg2.errors import UniqueViolation
 
 pytest_plugins = ("pytest_asyncio",)
 
+logger = getLogger(__file__)
+
+
+@dataclasses.dataclass
+class MockResponse:
+    """Mock response object for get or post."""
+
+    status_code = 200
+    content: str | None
+    text: str | None
+
+
+@pytest.fixture(autouse=True)
+def _mock_requests(monkeypatch) -> None:
+    """Mock requests so we don't have to run APIs."""
+
+    def mock_get(url: str, params: dict, *args: Any, **kwargs: Any) -> MockResponse:
+        logger.info("Mocking request for %s: %s", url, params)
+        return MockResponse(
+            content="-".join(list(params["message"])), text="-".join(list(params["message"]))
+        )
+
+    def mock_post(url: str, data, *args: Any, **kwargs: Any) -> MockResponse:
+        logger.info("Mocking request for %s: %s", url, data)
+        return MockResponse(content=data + "**DE-IDENTIFIED**", text=data + "**DE-IDENTIFIED**")
+
+    monkeypatch.setattr("requests.get", mock_get)
+    monkeypatch.setattr("requests.post", mock_post)
+
+
+@pytest.fixture(autouse=True)
+def _pixl_db() -> None:
+    pixl_db = QueryablePIXLDB()
+    pixl_db.execute_and_commit("delete from emap_data.ehr_raw")
+    pixl_db.execute_and_commit("delete from emap_data.ehr_anon")
+
 
 mrn = "testmrn"
-
 
 accession_number_base = "testaccessionnumber"
 
@@ -120,9 +157,10 @@ class WritableEMAPStar(WriteableDatabase):
             username=config("EMAP_UDS_USER"),
             password=config("EMAP_UDS_PASSWORD"),
             host=config("EMAP_UDS_HOST"),
+            port=config("EMAP_UDS_PORT", int),
         )
 
-        if config("EMAP_UDS_HOST") != "star":
+        if config("EMAP_UDS_HOST") not in ("star", "localhost"):
             msg = (
                 "It looks like the host was not a docker-compose "
                 "created service. Cannot create a writable EMAPStar"
@@ -134,6 +172,10 @@ class QueryablePIXLDB(PIXLDatabase):
     def execute_query_string(self, query: str, values: Optional[list] = None) -> tuple:
         self._cursor.execute(query=query, vars=values)
         return self._cursor.fetchall()
+
+    def execute_and_commit(self, query: str):
+        self._cursor.execute(query=query, vars=[])
+        self._connection.commit()
 
 
 def insert_row_into_emap_star_schema(table_name: str, col_names: list[str], values: list) -> None:
@@ -148,29 +190,6 @@ def insert_row_into_emap_star_schema(table_name: str, col_names: list[str], valu
         )  # If it's already there then all is okay, hopefully
 
 
-def insert_visit_observation(type_id: int, value: float) -> None:
-    insert_row_into_emap_star_schema(
-        "visit_observation",
-        [
-            "hospital_visit_id",
-            "visit_observation_type_id",
-            "value_as_real",
-            "observation_datetime",
-        ],
-        [hv_id, type_id, value, observation_datetime],
-    )
-
-
-def insert_visit_observation_types() -> None:
-    vot_names = ("HEIGHT", "WEIGHT/SCALE", "R GLASGOW COMA SCALE SCORE")
-    for name, vot_id in zip(vot_names, (height_vot_id, weight_vot_id, gcs_vot_id), strict=True):
-        insert_row_into_emap_star_schema(
-            "visit_observation_type",
-            ["visit_observation_type_id", "name"],
-            [vot_id, name],
-        )
-
-
 def insert_data_into_emap_star_schema() -> None:
     insert_row_into_emap_star_schema("mrn", ["mrn_id", "mrn"], [mrn_id, mrn])
     insert_row_into_emap_star_schema(
@@ -181,10 +200,6 @@ def insert_data_into_emap_star_schema() -> None:
     insert_row_into_emap_star_schema(
         "hospital_visit", ["hospital_visit_id", "mrn_id"], [hv_id, mrn_id]
     )
-    insert_visit_observation_types()
-    insert_visit_observation(type_id=height_vot_id, value=height)
-    insert_visit_observation(type_id=weight_vot_id, value=weight)
-    insert_visit_observation(type_id=gcs_vot_id, value=float(gcs))
 
     # First message data
     insert_row_into_emap_star_schema(
@@ -232,7 +247,19 @@ async def test_message_processing(example_messages) -> None:
     await process_message(message)
 
     pixl_db = QueryablePIXLDB()
-    all_rows = pixl_db.execute_query_string("select * from emap_data.ehr_raw where mrn = %s", [mrn])
+    select_columns = [
+        "mrn",
+        "accession_number",
+        "image_identifier",
+        "procedure_occurrence_id",
+        "xray_report",
+        "project_name",
+        "extract_datetime",
+    ]
+    all_rows = pixl_db.execute_query_string(
+        f"select {', '.join(select_columns)} from emap_data.ehr_raw where mrn = %s",
+        [mrn],
+    )
     assert len(all_rows) == 1
     row = all_rows[0]
 
@@ -241,12 +268,6 @@ async def test_message_processing(example_messages) -> None:
         message.accession_number,
         image_identifier,
         procedure_occurrence_id,
-        "any",
-        sex,
-        ethnicity,
-        height,
-        weight,
-        gcs,
         report_text,
         message.project_name,
         message.omop_es_timestamp,
@@ -259,7 +280,9 @@ async def test_message_processing(example_messages) -> None:
         assert value == expected_value
 
     anon_all_rows = pixl_db.execute_query_string(
-        "select mrn, accession_number, xray_report from emap_data.ehr_anon where gcs = %s", [gcs]
+        "select mrn, accession_number, xray_report from "
+        "emap_data.ehr_anon where procedure_occurrence_id = %s",
+        [procedure_occurrence_id],
     )
     assert len(anon_all_rows) == 1
     anon_row = anon_all_rows[0]
@@ -300,11 +323,10 @@ async def test_radiology_export(example_messages, tmp_path) -> None:
 
     assert parquet_file.exists()
     assert parquet_file.is_file()
-    # Check symlink
-    latest_parquet_file = pe.latest_parent_dir / "radiology.parquet"
-    latest_parquet_file.is_symlink()
+
     parquet_df = pd.read_parquet(parquet_file)
     assert parquet_df.shape[0] == 1  # should contain only 1 row
+    # symlink is not created by radiology export - this is covered by the system test
 
 
 @pytest.mark.processing()
@@ -319,7 +341,6 @@ async def test_radiology_export_multiple_projects(example_messages, tmp_path) ->
     # ARRANGE
     project_name = example_messages[0].project_name
     extract_datetime = example_messages[0].omop_es_timestamp
-    pe = ParquetExport(project_name, extract_datetime, tmp_path)
 
     for mess in example_messages:
         await process_message(mess)
@@ -340,6 +361,7 @@ async def test_radiology_export_multiple_projects(example_messages, tmp_path) ->
     assert row_count_raw[0][0] == 4
     assert row_count_anon[0][0] == 4
 
+    pe = ParquetExport(project_name, extract_datetime, tmp_path)
     parquet_file = pe.radiology_output / "radiology.parquet"
     parquet_df = pd.read_parquet(parquet_file)
 

@@ -25,7 +25,7 @@ from sqlalchemy.orm import Session, sessionmaker
 @pytest.fixture(autouse=True)
 def export_dir(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
     """Tmp dir to for tests to extract to."""
-    return tmp_path_factory.mktemp("export_base")
+    return tmp_path_factory.mktemp("export_base") / "exports"
 
 
 @pytest.fixture()

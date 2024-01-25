@@ -43,7 +43,7 @@ and the processing tests with
 ```
 
 To test the availability of a CogStack instance, we mock up a *FastAPI* server which simply takes in
-some input text and returns the same text. The configuration of this mock instance is defined in [`tests/dummy-services`](./tests/dummy-services/).
+some input text and returns the same text. The configuration of this mock instance is defined in [`test/dummy-services`](/test/dummy-services/).
 
 ## Usage
 
