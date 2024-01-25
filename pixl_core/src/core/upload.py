@@ -133,15 +133,3 @@ def _create_and_set_as_cwd(ftp: FTP_TLS, project_dir: str) -> None:
         # Directory doesn't exist, so create it
         ftp.mkd(project_dir)
         ftp.cwd(project_dir)
-
-
-def _create_and_set_as_cwd_parquet(ftp: FTP_TLS, list_dir: list) -> None:
-    for dir_current in list_dir:
-        try:
-            ftp.cwd(dir_current)
-            logger.info("'%s' exists on remote ftp, so moving into it", dir_current)
-        except ftplib.error_perm:
-            logger.info("creating '%s' on remote ftp and moving into it", dir_current)
-            # Directory doesn't exist, so create it
-            ftp.mkd(dir_current)
-            ftp.cwd(dir_current)

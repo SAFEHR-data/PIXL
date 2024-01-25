@@ -110,10 +110,7 @@ def export_radiology_as_parquet(export_params: ExportRadiologyData) -> None:
     summary="Copy/send all ParquetExports via FTPS",
 )
 def SendViaFTPS(project_name: str, extract_datetime: datetime) -> None:
-    """
-    fdsfasfd af dfdsfds
-    sdff
-    """
+    """Send parquet files via FTPS"""
     pe = ParquetExport(project_name, extract_datetime)
     upload_parquet_files(pe)
 
