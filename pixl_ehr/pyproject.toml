@@ -42,7 +42,7 @@ markers = ["processing"]
 extend = "../ruff.toml"
 
 [tool.ruff.extend-per-file-ignores]
-"./tests/**" = ["D1", "S105"]
+"./tests/**" = ["D1"]
 
 [tool.setuptools.package-data]
 pixl_ehr = ["sql/*.sql", "report_deid/*.txt"]
