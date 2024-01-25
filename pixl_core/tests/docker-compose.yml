@@ -23,25 +23,32 @@ services:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "25672:5672"
+      - "35672:15672"
     healthcheck:
       test: rabbitmq-diagnostics -q ping
-      interval: 30s
-      timeout: 30s
-      retries: 3
-
-  test:
-    container_name: pixl-test-python
-    build:
-      context: ..
-      dockerfile: tests/Dockerfile
-    depends_on:
-      queue:
-        condition: service_healthy
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  ftp-server:
+    container_name: test-ftp-server
+    build: 
+      context: ftp-server
+    ports:
+      - "20021:21"
+      - "21000-21010:21000-21010"
+    volumes:
+      # Mount for uploaded data
+      - "./ftp-server/mounts/data/:/home/pixl/"
+      # Mount SSL keys for TLS
+      - "./ftp-server/mounts/ssl/:/etc/ssl/private/"
     environment:
-      RABBITMQ_USERNAME: guest
-      RABBITMQ_PASSWORD: guest
-      RABBITMQ_HOST: queue
-      RABBITMQ_PORT: 5672
-    entrypoint: "pytest"
+      ADDRESS: "localhost"
+      USERS: pixl|longpassword|/home/pixl
+      TLS_KEY: /etc/ssl/private/localhost.key
+      TLS_CERT: /etc/ssl/private/localhost.crt
+    healthcheck:
+      test: ping localhost:21 -w 2
+      interval: 10s
+      timeout: 5s
+      retries: 5

@@ -11,14 +11,8 @@ pip install -e .
 ### Test
 
 ```bash
-pip install .[test]
-pytest -m "not pika"
-```
-or the full set with
-```bash
-cd tests
-docker compose up --build --exit-code-from test
-docker compose down
+pip install -e .[test]
+pytest 
 ```
 
 ## Token buffer

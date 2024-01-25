@@ -91,8 +91,7 @@ jobs:
       - name: Run tests
         working-directory: pixl_core/tests
         run: |
-          docker compose up --build --exit-code-from test
-          docker compose down
+          pytest
         env:
           ENV: test
 
@@ -235,7 +234,7 @@ jobs:
         name: Move cache
         run: |
           rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache   
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
       - name: Init Python
         uses: actions/setup-python@v4
