@@ -25,6 +25,8 @@ from typing import TYPE_CHECKING, Any, BinaryIO
 
 if TYPE_CHECKING:
     from socket import socket
+    from core.exports import ParquetExport
+
 
 from core.db.queries import get_project_slug_from_db, update_exported_at
 
@@ -77,6 +79,30 @@ def upload_dicom_image(zip_content: BinaryIO, pseudo_anon_id: str) -> None:
     update_exported_at(pseudo_anon_id, datetime.now(tz=timezone.utc))
 
 
+def upload_radiology_reports(pe: ParquetExport) -> None:
+    """Top level way to upload an image."""
+    latest_dir = pe.latest_parent_dir
+    # Create the remote directory if it doesn't exist
+    ftp = _connect_to_ftp()
+    _create_and_set_as_cwd(ftp, pe.project_slug)
+    for path in latest_dir.rglob("**"):
+        print(path)
+    _create_and_set_as_cwd_parquet(ftp, project_slug, list_dir)
+
+    # loop through files here?
+    command = f"STOR {public_dir}.parquet"
+    zip_content = data
+    logger.debug("Running %s", command)
+
+    # Store the file using a binary handler
+    ftp.storbinary(command, zip_content)
+
+    # Close the FTP connection
+    ftp.quit()
+    logger.debug("Finished uploading!")
+
+    # update_exported_at(pseudo_anon_id, datetime.now(tz=timezone.utc))
+
 def _connect_to_ftp() -> FTP_TLS:
     # Set your FTP server details
     ftp_host = os.environ["FTP_HOST"]
@@ -101,3 +127,14 @@ def _create_and_set_as_cwd(ftp: FTP_TLS, project_dir: str) -> None:
         # Directory doesn't exist, so create it
         ftp.mkd(project_dir)
         ftp.cwd(project_dir)
+
+def _create_and_set_as_cwd_parquet(ftp: FTP_TLS, list_dir: list) -> None:
+    for dir_current in list_dir:
+        try:
+            ftp.cwd(dir_current)
+            logger.info("'%s' exists on remote ftp, so moving into it", dir_current)
+        except ftplib.error_perm:
+            logger.info("creating '%s' on remote ftp and moving into it", dir_current)
+            # Directory doesn't exist, so create it
+            ftp.mkd(dir_current)
+            ftp.cwd(dir_current)

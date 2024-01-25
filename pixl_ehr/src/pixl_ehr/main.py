@@ -27,7 +27,12 @@ from azure.identity import EnvironmentCredential
 from azure.storage.blob import BlobServiceClient
 from core.exports import ParquetExport
 from core.patient_queue import PixlConsumer
+<<<<<<< HEAD
 from core.rest_api.router import router, state
+=======
+from core.router import router, state
+from core.upload import upload_radiology_reports
+>>>>>>> 76c5655 (pair prog switchover)
 from decouple import config
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
@@ -94,6 +99,18 @@ def export_radiology_as_parquet(export_params: ExportRadiologyData) -> None:
         pe.project_slug, export_params.extract_datetime
     )
     pe.export_radiology(anon_data)
+
+@app.post(
+"/send-parquet-files-via-FTPS",
+summary="Copy/send all ParquetExports via FTPS",
+)
+def SendViaFTPS(project_name: str, extract_datetime: datetime) -> None:
+    """
+    fdsfasfd af dfdsfds
+    sdff
+    """
+    pe = ParquetExport(project_name, extract_datetime)
+    upload_radiology_reports(pe)
 
 
 @app.get(

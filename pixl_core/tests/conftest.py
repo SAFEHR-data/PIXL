@@ -170,6 +170,11 @@ def already_exported_dicom_image(rows_in_session) -> Image:
     """Return a DICOM image from the database."""
     return rows_in_session.query(Image).filter(Image.hashed_identifier == "already_exported").one()
 
+@pytest.fixture(autouse=True)
+def _omop_files(tmp_path_factory: pytest.TempPathFactory, monkeypatch) -> None:
+    """Replace production extract instance with one writing to a tmpdir."""
+    tmpdir_extract = tmp_path_factory.mktemp("repo_base")
+    monkeypatch.setattr("core.exports.ParquetExport.root_dir", tmpdir_extract)
 
 @pytest.fixture()
 def parquet_export() -> ParquetExport:
