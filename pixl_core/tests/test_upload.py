@@ -68,7 +68,6 @@ def test_update_exported_and_save(rows_in_session) -> None:
     assert actual_export_time == expected_export_time
 
 
-# TODO: need to export both the radiology parquet and the public parquet files
 @pytest.mark.usefixtures("run_containers")
 def test_upload_parquet(parquet_export, mounted_data) -> None:
     """Tests that parquet files are uploaded to the correct location"""
@@ -89,3 +88,11 @@ def test_upload_parquet(parquet_export, mounted_data) -> None:
     assert expected_public_parquet_dir.exists()
     assert (expected_public_parquet_dir / "PROCEDURE_OCCURRENCE.parquet").exists()
     assert (expected_public_parquet_dir / "radiology.parquet").exists()
+
+
+@pytest.mark.usefixtures("run_containers")
+def test_no_export_to_upload(parquet_export, mounted_data) -> None:
+    """If there is nothing in the export directly, an exception is thrown"""
+    parquet_export.public_output.mkdir(parents=True, exist_ok=True)
+    with pytest.raises(FileNotFoundError):
+        upload_parquet_files(parquet_export)

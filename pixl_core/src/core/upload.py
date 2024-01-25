@@ -80,20 +80,22 @@ def upload_dicom_image(zip_content: BinaryIO, pseudo_anon_id: str) -> None:
     update_exported_at(pseudo_anon_id, datetime.now(tz=timezone.utc))
 
 
-def upload_parquet_files(pe: ParquetExport) -> None:
+def upload_parquet_files(parquet_export: ParquetExport) -> None:
     """Upload parquet to FTPS under <project name>/<extract datetime>/parquet."""
     # TODO: fix after Jeremy's PR is merged in
-    current_extract = pe.public_output.parent
+    current_extract = parquet_export.public_output.parent
     # Create the remote directory if it doesn't exist
     ftp = _connect_to_ftp()
-    _create_and_set_as_cwd(ftp, pe.project_slug)
-    _create_and_set_as_cwd(ftp, pe.extract_time_slug)
+    _create_and_set_as_cwd(ftp, parquet_export.project_slug)
+    _create_and_set_as_cwd(ftp, parquet_export.extract_time_slug)
     _create_and_set_as_cwd(ftp, "parquet")
-    # throw exception if empty dir
-    for path in current_extract.rglob("*.parquet"):
-        if path.is_dir():
-            continue
 
+    export_files = [x for x in current_extract.rglob("*.parquet") if x.is_file()]
+    if not export_files:
+        raise FileNotFoundError(f"No files found in {current_extract}")
+
+    # throw exception if empty dir
+    for path in export_files:
         with path.open("rb") as handle:
             # loop through files here?
             command = f"STOR {path.stem}.parquet"
