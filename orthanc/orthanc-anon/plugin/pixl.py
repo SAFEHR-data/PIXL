@@ -190,7 +190,7 @@ def OnChange(changeType, level, resource) -> None:  # noqa: ARG001
     """
     Three ChangeTypes included in this function:
     - If a study if stable and if ShouldAutoRoute returns true
-    then SendViaStow is called
+    then SendViaFTPS is called
     - If orthanc has started then message added to Orthanc LogWarning
     and AzureDICOMTokenRefresh called
     - If orthanc has stopped and TIMER is not none then message added
@@ -202,7 +202,7 @@ def OnChange(changeType, level, resource) -> None:  # noqa: ARG001
 
     if changeType == orthanc.ChangeType.STABLE_STUDY and ShouldAutoRoute():
         print("Stable study: %s" % resource)  # noqa: T201
-        SendViaStow(resource)
+        SendViaFTPS(resource)
 
     if changeType == orthanc.ChangeType.ORTHANC_STARTED:
         orthanc.LogWarning("Starting the scheduler")
