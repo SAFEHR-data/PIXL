@@ -15,10 +15,8 @@ from __future__ import annotations
 
 import datetime
 import os
-import shutil
 import subprocess
 from pathlib import Path
-from time import sleep
 from typing import BinaryIO
 
 import pytest
@@ -71,6 +69,7 @@ def mounted_data(run_containers) -> Path:
     """
     The mounted data directory for the ftp server.
     This will contain the data after successful upload.
+    Tear down through docker
     """
     yield TEST_DIR / "ftp-server" / "mounts" / "data"
     # Tear down the directory after tests
@@ -81,6 +80,7 @@ def mounted_data(run_containers) -> Path:
         shell=True,  # noqa: S602
         timeout=60,
     )
+
 
 @pytest.fixture(scope="module")
 def monkeymodule():
