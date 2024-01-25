@@ -18,6 +18,7 @@ import os
 import shutil
 import subprocess
 from pathlib import Path
+from time import sleep
 from typing import BinaryIO
 
 import pytest
@@ -66,19 +67,20 @@ def test_zip_content() -> BinaryIO:
 
 
 @pytest.fixture()
-def mounted_data() -> Path:
+def mounted_data(run_containers) -> Path:
     """
     The mounted data directory for the ftp server.
     This will contain the data after successful upload.
     """
     yield TEST_DIR / "ftp-server" / "mounts" / "data"
-    sub_dirs = [
-        f.path for f in os.scandir(TEST_DIR / "ftp-server" / "mounts" / "data") if f.is_dir()
-    ]
     # Tear down the directory after tests
-    for sub_dir in sub_dirs:
-        shutil.rmtree(sub_dir, ignore_errors=True)
-
+    subprocess.run(
+        b"docker compose exec ftp-server rm -rf /home/pixl/*",
+        check=True,
+        cwd=TEST_DIR,
+        shell=True,  # noqa: S602
+        timeout=60,
+    )
 
 @pytest.fixture(scope="module")
 def monkeymodule():
