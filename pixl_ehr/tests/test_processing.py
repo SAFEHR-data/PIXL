@@ -50,7 +50,7 @@ class MockResponse:
 
 
 @pytest.fixture(autouse=True)
-def _mock_requests(monkeypatch) -> MockResponse:
+def _mock_requests(monkeypatch) -> None:
     """Mock requests so we don't have to run APIs."""
 
     def mock_get(url: str, params: dict, *args: Any, **kwargs: Any) -> MockResponse:
