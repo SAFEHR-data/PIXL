@@ -100,9 +100,10 @@ def export_radiology_as_parquet(export_params: ExportRadiologyData) -> None:
     )
     pe.export_radiology(anon_data)
 
+
 @app.post(
-"/send-parquet-files-via-FTPS",
-summary="Copy/send all ParquetExports via FTPS",
+    "/send-parquet-files-via-FTPS",
+    summary="Copy/send all ParquetExports via FTPS",
 )
 def SendViaFTPS(project_name: str, extract_datetime: datetime) -> None:
     """

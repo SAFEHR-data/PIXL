@@ -25,6 +25,7 @@ from typing import TYPE_CHECKING, Any, BinaryIO
 
 if TYPE_CHECKING:
     from socket import socket
+
     from core.exports import ParquetExport
 
 
@@ -103,6 +104,7 @@ def upload_radiology_reports(pe: ParquetExport) -> None:
 
     # update_exported_at(pseudo_anon_id, datetime.now(tz=timezone.utc))
 
+
 def _connect_to_ftp() -> FTP_TLS:
     # Set your FTP server details
     ftp_host = os.environ["FTP_HOST"]
@@ -127,6 +129,7 @@ def _create_and_set_as_cwd(ftp: FTP_TLS, project_dir: str) -> None:
         # Directory doesn't exist, so create it
         ftp.mkd(project_dir)
         ftp.cwd(project_dir)
+
 
 def _create_and_set_as_cwd_parquet(ftp: FTP_TLS, list_dir: list) -> None:
     for dir_current in list_dir:
