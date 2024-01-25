@@ -31,8 +31,12 @@ from core.patient_queue import PixlConsumer
 from core.rest_api.router import router, state
 =======
 from core.router import router, state
+<<<<<<< HEAD
 from core.upload import upload_radiology_reports
 >>>>>>> 76c5655 (pair prog switchover)
+=======
+from core.upload import upload_parquet_files
+>>>>>>> 384f113 (Basic upload tested)
 from decouple import config
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
@@ -111,7 +115,7 @@ def SendViaFTPS(project_name: str, extract_datetime: datetime) -> None:
     sdff
     """
     pe = ParquetExport(project_name, extract_datetime)
-    upload_radiology_reports(pe)
+    upload_parquet_files(pe)
 
 
 @app.get(

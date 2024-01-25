@@ -80,29 +80,31 @@ def upload_dicom_image(zip_content: BinaryIO, pseudo_anon_id: str) -> None:
     update_exported_at(pseudo_anon_id, datetime.now(tz=timezone.utc))
 
 
-def upload_radiology_reports(pe: ParquetExport) -> None:
-    """Top level way to upload an image."""
-    latest_dir = pe.latest_parent_dir
+def upload_parquet_files(pe: ParquetExport) -> None:
+    """Upload parquet to FTPS under <project name>/<extract datetime>/parquet."""
+    # TODO: fix after Jeremy's PR is merged in
+    current_extract = pe.public_output.parent
     # Create the remote directory if it doesn't exist
     ftp = _connect_to_ftp()
     _create_and_set_as_cwd(ftp, pe.project_slug)
-    for path in latest_dir.rglob("**"):
-        print(path)
-    _create_and_set_as_cwd_parquet(ftp, project_slug, list_dir)
+    _create_and_set_as_cwd(ftp, pe.extract_time_slug)
+    _create_and_set_as_cwd(ftp, "parquet")
+    # throw exception if empty dir
+    for path in current_extract.rglob("*.parquet"):
+        if path.is_dir():
+            continue
 
-    # loop through files here?
-    command = f"STOR {public_dir}.parquet"
-    zip_content = data
-    logger.debug("Running %s", command)
+        with path.open("rb") as handle:
+            # loop through files here?
+            command = f"STOR {path.stem}.parquet"
+            logger.debug("Running %s", command)
 
-    # Store the file using a binary handler
-    ftp.storbinary(command, zip_content)
+            # Store the file using a binary handler
+            ftp.storbinary(command, handle)
 
     # Close the FTP connection
     ftp.quit()
     logger.debug("Finished uploading!")
-
-    # update_exported_at(pseudo_anon_id, datetime.now(tz=timezone.utc))
 
 
 def _connect_to_ftp() -> FTP_TLS:

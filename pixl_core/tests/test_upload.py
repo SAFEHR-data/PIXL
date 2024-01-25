@@ -72,20 +72,20 @@ def test_update_exported_and_save(rows_in_session) -> None:
 @pytest.mark.usefixtures("run_containers")
 def test_upload_parquet(parquet_export, mounted_data) -> None:
     """Tests that parquet files are uploaded to the correct location"""
+    # ARRANGE
+
     parquet_export.copy_to_exports(
         pathlib.Path(__file__).parents[2] / "test" / "resources" / "omop"
     )
-    expected_radiology_file = (
-        mounted_data
-        / parquet_export.project_slug
-        / parquet_export.extract_time_slug
-        / "radiology.parquet"
-    )
-    expected_public_parquet_dir = (
-        mounted_data / parquet_export.project_slug / parquet_export.extract_time_slug / "public"
-    )
-    upload_radiology_reports(parquet_export)
+    with (parquet_export.public_output.parent / "radiology.parquet").open("w") as handle:
+        handle.writelines(["dummy data"])
 
+    # ACT
+    upload_parquet_files(parquet_export)
+    # ASSERT
+    expected_public_parquet_dir = (
+        mounted_data / parquet_export.project_slug / parquet_export.extract_time_slug / "parquet"
+    )
     assert expected_public_parquet_dir.exists()
     assert (expected_public_parquet_dir / "PROCEDURE_OCCURRENCE.parquet").exists()
-    assert expected_radiology_file.exists()
+    assert (expected_public_parquet_dir / "radiology.parquet").exists()
