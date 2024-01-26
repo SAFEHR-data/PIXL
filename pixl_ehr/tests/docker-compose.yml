@@ -62,7 +62,7 @@ services:
     container_name: pixl-test-queue
     image: rabbitmq:3.11.2-management
     healthcheck:
-      test: rabbitmq-diagnostics -q ping
+      test: rabbitmq-diagnostics -q check_running
       interval: 30s
       timeout: 30s
       retries: 3
