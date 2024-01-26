@@ -22,7 +22,7 @@ services:
       - "5672:5672"
       - "15672:15672"
     healthcheck:
-      test: rabbitmq-diagnostics -q ping
+      test: rabbitmq-diagnostics -q check_running
       interval: 30s
       timeout: 30s
       retries: 3
