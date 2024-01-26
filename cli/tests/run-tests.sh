@@ -14,11 +14,6 @@
 #  limitations under the License.
 set -euxo pipefail
 
-function wait_until_service_healthy() {
-    while ! docker ps | grep "$1" | grep -q healthy ;do
-        sleep 5
-    done
-}
 
 THIS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 PACKAGE_DIR="${THIS_DIR%/*}"
@@ -27,7 +22,6 @@ cd "$PACKAGE_DIR" || exit
 pip install -e "../pixl_core/[test]" ".[test]"
 
 cd tests/
-docker compose up -d
-wait_until_service_healthy queue
+docker compose up -d --wait
 pytest
 docker compose down

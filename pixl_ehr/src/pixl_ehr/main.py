@@ -21,6 +21,7 @@ from datetime import (
     datetime,  # noqa: TCH003, always import datetime otherwise pydantic throws error
 )
 from pathlib import Path
+from typing import Optional
 
 from azure.identity import EnvironmentCredential
 from azure.storage.blob import BlobServiceClient
@@ -30,6 +31,7 @@ from core.router import router, state
 from decouple import config
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 
 from ._databases import PIXLDatabase
 from ._processing import process_message
@@ -62,18 +64,35 @@ async def startup_event() -> None:
         task.add_done_callback(background_tasks.discard)
 
 
+# Export root dir from inside the EHR container.
+# For the view from outside, see pixl_cli/_io.py: HOST_EXPORT_ROOT_DIR
+EHR_EXPORT_ROOT_DIR = Path("/run/exports")
+
+
+class ExportRadiologyData(BaseModel):
+    """there may be entries from multiple extracts in the PIXL database, so filtering is needed"""
+
+    project_name: str
+    extract_datetime: datetime
+    output_dir: Optional[Path] = EHR_EXPORT_ROOT_DIR
+
+
 @app.post(
     "/export-radiology-as-parquet",
     summary="Copy all matching radiology reports in the PIXL DB to a parquet file",
 )
-def export_radiology_as_parquet(project_name: str, extract_datetime: datetime) -> None:
+def export_radiology_as_parquet(export_params: ExportRadiologyData) -> None:
     """
     Batch export of all matching radiology reports in PIXL DB to a parquet file.
     NOTE: we can't check that all reports in the queue have been processed, so
     we are relying on the user waiting until processing has finished before running this.
     """
-    anon_data = PIXLDatabase().get_radiology_reports(project_name, extract_datetime)
-    pe = ParquetExport(project_name, extract_datetime)
+    pe = ParquetExport(
+        export_params.project_name, export_params.extract_datetime, export_params.output_dir
+    )
+    anon_data = PIXLDatabase().get_radiology_reports(
+        pe.project_slug, export_params.extract_datetime
+    )
     pe.export_radiology(anon_data)
 
 

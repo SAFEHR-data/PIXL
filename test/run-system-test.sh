@@ -20,11 +20,10 @@ cd "${PACKAGE_DIR}/test"
 docker compose --env-file .env.test -p system-test down --volumes
 #
 # Note: cannot run as single docker compose command due to different build contexts
-docker compose --env-file .env.test -p system-test up -d --build --remove-orphans
+docker compose --env-file .env.test -p system-test up --wait -d --build --remove-orphans
 # Warning: Requires to be run from the project root
-cd .. && \
-  docker compose --env-file test/.env.test -p system-test up -d --build && \
-  cd "${PACKAGE_DIR}/test"
+(cd .. && \
+  docker compose --env-file test/.env.test -p system-test up --wait -d --build)
 
 ./scripts/insert_test_data.sh
 
@@ -36,6 +35,14 @@ sleep 65  # need to wait until the DICOM image is "stable" = 60s
 ./scripts/check_entry_in_orthanc_anon.sh
 ./scripts/check_max_storage_in_orthanc_raw.sh
 
+pixl extract-radiology-reports "${PACKAGE_DIR}/test/resources/omop"
+
+./scripts/check_radiology_parquet.py \
+  ../exports/test-extract-uclh-omop-cdm/latest/radiology/radiology.parquet
+
+ls -laR ../exports/
+docker exec system-test-ehr-api-1 rm -r /run/exports/test-extract-uclh-omop-cdm/
+
 cd "${PACKAGE_DIR}"
 docker compose -f docker-compose.yml -f test/docker-compose.yml -p system-test down --volumes
-rm -r exports/test-extract-uclh-omop-cdm/
+

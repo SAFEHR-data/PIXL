@@ -28,6 +28,7 @@ from core.patient_queue.subscriber import PixlBlockingConsumer
 from pixl_cli._config import cli_config
 from pixl_cli._database import filter_exported_or_add_to_db
 from pixl_cli._io import (
+    config_from_log_file,
     copy_parquet_return_logfile_fields,
     messages_from_parquet,
     messages_from_state_file,
@@ -66,8 +67,7 @@ def cli(*, debug: bool) -> None:
 def populate(parquet_dir: Path, *, restart: bool, queues: str) -> None:
     """
     Populate a (set of) queue(s) from a parquet file directory
-
-    PARQUET-DIR: Directory containing the public and private parquet input files and an
+    PARQUET_DIR: Directory containing the public and private parquet input files and an
         extract_summary.json log file.
         It's expected that the directory structure will be:
 
@@ -100,6 +100,33 @@ def populate(parquet_dir: Path, *, restart: bool, queues: str) -> None:
             )
         with PixlProducer(queue_name=queue, **cli_config["rabbitmq"]) as producer:
             producer.publish(sorted_messages)
+
+
+@cli.command()
+@click.argument(
+    "parquet-dir", required=True, type=click.Path(path_type=Path, exists=True, file_okay=False)
+)
+def extract_radiology_reports(parquet_dir: Path) -> None:
+    """
+    Export processed radiology reports to parquet file.
+
+    PARQUET_DIR: Directory containing the extract_summary.json
+    log file defining which extract to export radiology reports for.
+    """
+    project_name, omop_es_datetime = config_from_log_file(parquet_dir)
+
+    # Call the EHR API
+    api_config = api_config_for_queue("ehr")
+    response = requests.post(
+        url=f"{api_config.base_url}/export-radiology-as-parquet",
+        json={"project_name": project_name, "extract_datetime": omop_es_datetime.isoformat()},
+        timeout=10,
+    )
+
+    success_code = 200
+    if response.status_code != success_code:
+        msg = f"Failed to run extract-radiology-as-parquet due to: {response.text}"
+        raise RuntimeError(msg)
 
 
 @cli.command()

@@ -18,13 +18,14 @@ import os
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from dataclasses import dataclass
-from datetime import datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 
 import requests
 
 if TYPE_CHECKING:
+    from datetime import datetime
+
     from core.patient_queue.message import Message
 from decouple import config
 
@@ -55,10 +56,6 @@ async def process_message(message: Message) -> None:
     emap_star_db = EMAPStar()
 
     pipeline = ProcessingPipeline(
-        SetAgeSexEthnicity(emap_star_db),
-        SetHeight(emap_star_db, time_cutoff_n_days=1),
-        SetWeight(emap_star_db, time_cutoff_n_days=1),
-        SetGCS(emap_star_db, time_cutoff_n_days=1),
         SetReport(emap_star_db),
     )
     raw_data.update_using(pipeline)
@@ -115,8 +112,8 @@ class PatientEHRData:
 
             try:
                 step.update(self)
-            except Exception as e:  # noqa: BLE001
-                logger.warning(e)
+            except Exception:
+                logger.exception("pipeline step failed")
 
     def persist(self, database: PIXLDatabase, schema_name: str, table_name: str) -> None:
         """Persist a.k.a. save some data in a database"""
@@ -193,102 +190,6 @@ class Step(ABC):
 class EMAPStep(Step, ABC):
     def __init__(self, db: EMAPStar) -> None:
         self.db = db
-
-
-class SetAgeSexEthnicity(EMAPStep):
-    def update(self, data: PatientEHRData) -> None:
-        """Update the data with age, sex and ethnicity"""
-        query = SQLQuery(
-            filepath=Path(_this_dir, "sql/mrn_to_DOB_sex_ethnicity.sql"),
-            context={
-                "schema_name": config("EMAP_UDS_SCHEMA_NAME"),
-                "mrn": data.mrn,
-                "window_midpoint": data.acquisition_datetime,
-            },
-        )
-        result = self.db.execute_or_raise(query, "No demographic data")
-        date_of_birth, data.sex, data.ethnicity = result
-
-        if data.acquisition_datetime is None:
-            logger.warning("WARNING: Cannot set the age without an acquisition time")
-            return
-
-        acquisition_date = data.acquisition_datetime.date()
-        data.age = (
-            acquisition_date - date_of_birth
-        ).days / 365.2425  # Average days per year. Accurate enough
-
-
-class SetVOT(EMAPStep, ABC):
-    def __init__(self, db: EMAPStar, time_cutoff_n_days: int) -> None:
-        super().__init__(db=db)
-
-        self.time_cutoff_n_days = int(time_cutoff_n_days)
-
-    def time_window_start(self, from_time: datetime) -> datetime:
-        return from_time - timedelta(self.time_cutoff_n_days)
-
-    def time_window_end(self, from_time: datetime) -> datetime:
-        return from_time + timedelta(self.time_cutoff_n_days)
-
-    @property
-    @abstractmethod
-    def name(self) -> str:
-        """Common name of the observation type e.g. height"""
-
-    @property
-    @abstractmethod
-    def emap_name(self) -> str:
-        """Name of this observation type in an EMAP star schema, e.g. HEIGHT"""
-
-    def update(self, data: PatientEHRData) -> None:
-        if data.acquisition_datetime is None:
-            msg = "Cannot update a height without an acquisition"
-            raise RuntimeError(msg)
-
-        query = SQLQuery(
-            filepath=Path(_this_dir, "sql/mrn_timewindow_to_observationtype.sql"),
-            context={
-                "schema_name": config("EMAP_UDS_SCHEMA_NAME"),
-                "mrn": data.mrn,
-                "observation_type": self.emap_name,
-                "window_start": self.time_window_start(from_time=data.acquisition_datetime),
-                "window_end": self.time_window_end(from_time=data.acquisition_datetime),
-                "window_midpoint": data.acquisition_datetime,
-            },
-        )
-        result = self.db.execute_or_raise(query, f"No {self.name}")
-        setattr(data, self.name, result[0])  # e.g. data.height = result[0]
-
-
-class SetHeight(SetVOT):
-    @property
-    def name(self) -> str:
-        return "height"
-
-    @property
-    def emap_name(self) -> str:
-        return "HEIGHT"
-
-
-class SetWeight(SetVOT):
-    @property
-    def name(self) -> str:
-        return "weight"
-
-    @property
-    def emap_name(self) -> str:
-        return "WEIGHT/SCALE"
-
-
-class SetGCS(SetVOT):
-    @property
-    def name(self) -> str:
-        return "glasgow_coma_scale"
-
-    @property
-    def emap_name(self) -> str:
-        return "R GLASGOW COMA SCALE SCORE"
 
 
 class SetReport(EMAPStep):

@@ -23,10 +23,9 @@ from sqlalchemy.orm import Session, sessionmaker
 
 
 @pytest.fixture(autouse=True)
-def _omop_files(tmp_path_factory: pytest.TempPathFactory, monkeypatch) -> None:
-    """Replace production extract instance with one writing to a tmpdir."""
-    tmpdir_extract = tmp_path_factory.mktemp("repo_base")
-    monkeypatch.setattr("core.exports.ParquetExport.root_dir", tmpdir_extract)
+def export_dir(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
+    """Tmp dir to for tests to extract to."""
+    return tmp_path_factory.mktemp("export_base") / "exports"
 
 
 @pytest.fixture()

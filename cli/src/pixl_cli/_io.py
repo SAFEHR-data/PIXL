@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import json
 from datetime import datetime
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import pandas as pd
 from core.exports import ParquetExport
@@ -25,8 +25,9 @@ from core.patient_queue.message import Message, deserialise
 from pixl_cli._logging import logger
 from pixl_cli._utils import string_is_non_empty
 
-if TYPE_CHECKING:
-    from pathlib import Path
+# The export root dir from the point of view of the docker host (which is where the CLI runs)
+# For the view from inside, see pixl_ehr/main.py: EHR_EXPORT_ROOT_DIR
+HOST_EXPORT_ROOT_DIR = Path(__file__).parents[3] / "exports"
 
 
 def messages_from_state_file(filepath: Path) -> list[Message]:
@@ -46,14 +47,18 @@ def messages_from_state_file(filepath: Path) -> list[Message]:
     return [deserialise(line) for line in filepath.open().readlines() if string_is_non_empty(line)]
 
 
-def copy_parquet_return_logfile_fields(parquet_path: Path) -> tuple[str, datetime]:
-    """Copy public parquet file to extracts directory, and return fields from logfile"""
+def config_from_log_file(parquet_path: Path) -> tuple[str, datetime]:
     log_file = parquet_path / "extract_summary.json"
-
     logs = json.load(log_file.open())
     project_name = logs["settings"]["cdm_source_name"]
     omop_es_timestamp = datetime.fromisoformat(logs["datetime"])
-    extract = ParquetExport(project_name, omop_es_timestamp)
+    return project_name, omop_es_timestamp
+
+
+def copy_parquet_return_logfile_fields(parquet_path: Path) -> tuple[str, datetime]:
+    """Copy public parquet file to extracts directory, and return fields from logfile"""
+    project_name, omop_es_timestamp = config_from_log_file(parquet_path)
+    extract = ParquetExport(project_name, omop_es_timestamp, HOST_EXPORT_ROOT_DIR)
     project_name_slug = extract.copy_to_exports(parquet_path)
     return project_name_slug, omop_es_timestamp
 

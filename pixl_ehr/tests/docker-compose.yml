@@ -15,49 +15,6 @@ version: "3.8"
 
 services:
 
-  ehr-api:
-    container_name: pixl-test-ehr-api
-    build:
-      context: ../../
-      dockerfile: ./docker/ehr-api/Dockerfile
-      args:
-        TEST: true
-    depends_on:
-      queue:
-        condition: service_healthy
-      star:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
-      hasher-api:
-        condition: service_healthy
-      cogstack-api:
-        condition: service_healthy
-    healthcheck:
-      interval: 10s
-      timeout: 30s
-      retries: 5
-    environment:
-      LOG_LEVEL: DEBUG
-      RABBITMQ_PASSWORD: guest
-      RABBITMQ_USERNAME: guest
-      RABBITMQ_HOST: queue
-      RABBITMQ_PORT: 5672
-      PIXL_DB_HOST: postgres
-      PIXL_DB_NAME: pixl
-      PIXL_DB_USER: postgres
-      PIXL_DB_PASSWORD: postgres
-      PIXL_DB_EHR_SCHEMA_NAME: emap_data
-      EMAP_UDS_HOST: star
-      EMAP_UDS_NAME: emap  # database name
-      EMAP_UDS_USER: postgres
-      EMAP_UDS_PASSWORD: postgres
-      EMAP_UDS_SCHEMA_NAME: star
-      COGSTACK_REDACT_URL: http://cogstack-api:8000/redact
-    ports:
-      - "9000:8000"
-      - "443:443"
-
   queue:
     container_name: pixl-test-queue
     image: rabbitmq:3.11.2-management
@@ -67,8 +24,8 @@ services:
       timeout: 30s
       retries: 3
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "35672:5672"
+      - "45672:15672"
 
   postgres:
     container_name: pixl-test-db
@@ -81,6 +38,8 @@ services:
       POSTGRES_DB: pixl
       PGTZ: Europe/London
       PIXL_DB_EHR_SCHEMA_NAME: emap_data
+    ports:
+      - "35432:5432"
     env_file:
       - ../../docker/common.env
     command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
@@ -97,6 +56,8 @@ services:
       dockerfile: ../../test/Dockerfile.fake_emap_star
       args:
         N_TABLE_ROWS: 2
+    ports:
+      - "35433:5432"
 
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
@@ -104,28 +65,3 @@ services:
       interval: 10s
       timeout: 30s
       retries: 5
-
-  hasher-api:
-    container_name: pixl-test-hasher
-    build:
-      context: ../../
-      dockerfile: ./docker/hasher-api/Dockerfile
-    environment:
-      ENV: test
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://hasher-api:8000/heart-beat" ]
-      interval: 10s
-      timeout: 30s
-      retries: 5
-
-  cogstack-api:
-    container_name: pixl-test-cogstack
-    build:
-      context: ./dummy-services/
-      dockerfile: ./Dockerfile
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8000/heart-beat" ]
-      interval: 10s
-      timeout: 30s
-      retries: 5
-
