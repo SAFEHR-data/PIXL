@@ -6,7 +6,7 @@ EMAP star database and the PACS image system. Once a set of queues are
 populated the consumers can be started, updated and the system extractions
 stopped cleanly.
 
-## Development
+## Prerequisites
 
 ### Prerequisites
 
@@ -19,7 +19,7 @@ recommend running `pixl` from the [`./tests/`](./tests/) directory, which contai
 
 Running the tests requires [docker](https://docs.docker.com/get-docker/) to be installed.
 
-### Installation
+## Installation
 
 We recommend installing in a project specific virtual environment created using a environment
 management tool such as [conda](https://docs.conda.io/en/latest/) or [virtualenv](https://virtualenv.pypa.io/en/latest/).
@@ -28,16 +28,6 @@ Then install in editable mode by running
 
 ```bash
 pip install -e ../pixl_core/ .
-```
-
-### Running tests
-
-The CLI tests require a running instance of the `rabbitmq` service, for which we provide a
-`docker-compose` [file](./tests/docker-compose.yml). Spinning up the service and running `pytest`
-can be done by running
-
-```bash
-./tests/run-tests.sh
 ```
 
 ## Usage
@@ -87,4 +77,46 @@ Stop PACS and EHR database extraction
 
 ```bash
 pixl stop
+```
+
+## Development
+
+The CLI is created using [click](https://click.palletsprojects.com/en/8.0.x/), and curently provides
+the following commands:
+
+```sh
+$ pixl --help
+Usage: pixl [OPTIONS] COMMAND [ARGS]...
+
+  PIXL command line interface
+
+Options:
+  --debug / --no-debug
+  --help                Show this message and exit.
+
+Commands:
+  az-copy-ehr                Copy the EHR data to azure
+  extract-radiology-reports  Export processed radiology reports to...
+  kill                       Stop all the PIXL services
+  populate                   Populate a (set of) queue(s) from a parquet...
+  start                      Start consumers for a set of queues
+  status                     Get the status of the PIXL consumers
+  stop                       Stop extracting images and/or EHR data.
+  update                     Update one or a list of consumers with a...
+```
+
+Install locally in editable mode with the development and testing dependencies by running
+
+```bash
+pip install -e ../pixl_core/[test] .[test]
+```
+
+### Running tests
+
+The CLI tests require a running instance of the `rabbitmq` service, for which we provide a
+`docker-compose` [file](./tests/docker-compose.yml). Spinning up the service and running `pytest`
+can be done by running
+
+```bash
+./tests/run-tests.sh
 ```
