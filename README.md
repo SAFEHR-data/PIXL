@@ -218,11 +218,6 @@ See each service's README for instructions for individual developing and testing
 For Python development we use [ruff](https://docs.astral.sh/ruff/) alongside [pytest](https://www.pytest.org/).
 There is support (sometimes through plugins) for these tools in most IDEs & editors.
 
-Before raising a PR, **run the full test suite** from the _PIXL_ directory with
-
-```bash
-bin/run-all-tests.sh
-```
 
 and not just the component you have been working on as this will help us catch unintentional regressions without spending GH actions minutes :-)
 
