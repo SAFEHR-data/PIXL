@@ -20,7 +20,7 @@ from decouple import config
 from sqlalchemy import URL, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from core.database import Extract, Image
+from core.db.models import Extract, Image
 
 url = URL.create(
     drivername="postgresql+psycopg2",
