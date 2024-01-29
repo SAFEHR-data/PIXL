@@ -16,7 +16,7 @@
 import datetime
 
 import pytest
-from core.database import Extract, Image
+from core.db.models import Extract, Image
 from core.patient_queue.message import Message
 from pixl_cli._database import filter_exported_or_add_to_db
 from sqlalchemy.orm import Session

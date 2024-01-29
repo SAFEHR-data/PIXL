@@ -17,7 +17,7 @@ import datetime
 import os
 import pytest
 import requests
-from core.database import Base, Extract, Image
+from core.db.models import Base, Extract, Image
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 

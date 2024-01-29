@@ -1,0 +1,1 @@
+"""Shared REST API definitions."""

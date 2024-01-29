@@ -14,7 +14,7 @@
 
 """Interaction with the PIXL database."""
 
-from core.database import Extract, Image
+from core.db.models import Extract, Image
 from core.patient_queue.message import Message
 from sqlalchemy import URL, create_engine
 from sqlalchemy.orm import Session, sessionmaker

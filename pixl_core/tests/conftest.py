@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import BinaryIO
 
 import pytest
-from core.database import Base, Extract, Image
+from core.db.models import Base, Extract, Image
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 

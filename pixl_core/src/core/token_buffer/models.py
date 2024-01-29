@@ -21,7 +21,7 @@ from dataclasses import dataclass
 
 from pydantic import BaseModel
 
-from .token_buffer import TokenBucket
+from core.token_buffer import TokenBucket
 
 
 @dataclass

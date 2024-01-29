@@ -21,7 +21,7 @@ import sqlalchemy
 import yaml
 from pydicom.data import get_testdata_file
 
-from core.database import Image
+from core.db.models import Image
 from pixl_dcmd.main import (
     apply_tag_scheme,
     remove_overlays,

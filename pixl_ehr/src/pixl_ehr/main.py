@@ -27,7 +27,7 @@ from azure.identity import EnvironmentCredential
 from azure.storage.blob import BlobServiceClient
 from core.exports import ParquetExport
 from core.patient_queue import PixlConsumer
-from core.router import router, state
+from core.rest_api.router import router, state
 from decouple import config
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
