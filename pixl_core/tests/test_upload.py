@@ -18,7 +18,7 @@ from datetime import datetime, timezone
 
 import pytest
 from core.db.models import Image
-from core.queries import get_project_slug_from_db, update_exported_at
+from core.db.queries import get_project_slug_from_db, update_exported_at
 from core.upload import upload_dicom_image
 
 
