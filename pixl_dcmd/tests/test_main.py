@@ -32,7 +32,7 @@ from pixl_dcmd.main import (
 def tag_scheme() -> dict:
     """Read the tag scheme from orthanc raw."""
     tag_file = (
-        pathlib.Path(__file__).parents[4]
+        pathlib.Path(__file__).parents[2]
         / "orthanc/orthanc-anon/plugin/tag-operations.yaml"
     )
     return yaml.safe_load(tag_file.read_text())
@@ -57,7 +57,7 @@ def test_image_already_exported_throws(rows_in_session, tag_scheme):
     WHEN the dicom tag scheme is applied
     THEN an exception will be thrown as
     """
-    exported_dicom = pathlib.Path(__file__).parents[4] / "test/resources/Dicom1.dcm"
+    exported_dicom = pathlib.Path(__file__).parents[2] / "test/resources/Dicom1.dcm"
     input_dataset = pydicom.dcmread(exported_dicom)
 
     with pytest.raises(sqlalchemy.exc.NoResultFound):
@@ -71,7 +71,7 @@ def test_pseudo_identifier_processing(rows_in_session, tag_scheme):
     THEN the patient identifier tag should be the mrn and accession hashed
       and the pipeline db row should now have the fake hash
     """
-    exported_dicom = pathlib.Path(__file__).parents[4] / "test/resources/Dicom2.dcm"
+    exported_dicom = pathlib.Path(__file__).parents[2] / "test/resources/Dicom2.dcm"
     input_dataset = pydicom.dcmread(exported_dicom)
 
     accession_number = "AA12345605"
