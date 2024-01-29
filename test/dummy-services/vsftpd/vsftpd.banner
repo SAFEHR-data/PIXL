@@ -1,0 +1,32 @@
+***************************************************************
+Anonymous FTP Upload
+
+Place individual files in /incoming. If you intend
+to upload a number of files, create a subdirectory
+under /incoming.  Only login as "anonymous" with a
+valid password is supported!
+
+Example session:
+
+	ftp> user anonymous
+	331 Please specify the password.
+	Password:
+	331 Please specify the password.
+	Password:
+	230 Login successful.
+	ftp> cd incoming
+	250 Directory successfully changed.
+	ftp> mkdir my-dataset
+	257 "/incoming/my-dataset" created
+	ftp> cd my-dataset
+	250 Directory successfully changed.
+	ftp> prompt
+	Interactive mode off.
+	ftp> mput *.tiff
+	local: 0001.tiff remote: 0001.tiff
+	227 Entering Passive Mode (172,17,0,19,82,46).
+	150 Ok to send data.
+	226 Transfer complete.
+	16070 bytes sent in 0.000634 secs (25347.00 Kbytes/sec)
+    
+***************************************************************
