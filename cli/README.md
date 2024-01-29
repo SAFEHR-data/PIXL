@@ -32,6 +32,7 @@ pip install -e ../pixl_core/ .
 
 > **Note**
 > The `rabbitmq`, `ehr-api` and `pacs-api` services must be started prior to using the CLI
+> This is typically done by spinning up the necessary Docker containers through `docker compose`.
 
 See the commands and subcommands with
 
