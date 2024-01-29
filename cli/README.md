@@ -8,9 +8,7 @@ stopped cleanly.
 
 ## Prerequisites
 
-### Prerequisites
-
-`PIXL CLI` requires Python version 3.10 or higher.
+`PIXL CLI` requires Python version 3.10.
 
 The CLI requires a `pixl_config.yml` file in the current working directory. A [sample
 file](../pixl_config.yml.sample) is provided in the root of the repository. For local testing, we
