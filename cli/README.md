@@ -31,7 +31,7 @@ pip install -e ../pixl_core/ .
 ## Usage
 
 > **Note**
-> The `rabbitmq` service must be started prior to using the CLI
+> The `rabbitmq`, `ehr-api` and `pacs-api` services must be started prior to using the CLI
 
 See the commands and subcommands with
 
