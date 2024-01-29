@@ -223,12 +223,7 @@ Most modules require [`docker`](https://docs.docker.com/desktop/) and `docker-co
 For Python development we use [ruff](https://docs.astral.sh/ruff/) alongside [pytest](https://www.pytest.org/).
 There is support (sometimes through plugins) for these tools in most IDEs & editors.
 
-Before raising a PR, **run the full test suite** from the _PIXL_ directory with
-
-```bash
-bin/run-all-tests.sh
-```
-
+Before raising a PR, make sure to **run all tests** for each PIXL module
 and not just the component you have been working on as this will help us catch unintentional regressions without spending GH actions minutes :-)
 
 We run [pre-commit](https://pre-commit.com/) as part of the GitHub Actions CI. To install and run it locally, do:
