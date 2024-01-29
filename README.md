@@ -12,6 +12,10 @@ To get access to the GAE, [see the documentation on Slab](https://uclh.slab.com/
 
 ## Services
 
+### [PIXL core](./pixl_core/README.md)
+
+The `core` module contains the functionality shared by the other PIXL modules.
+
 ### [PIXL CLI](./cli/README.md)
 
 Primary interface to the PIXL system.
