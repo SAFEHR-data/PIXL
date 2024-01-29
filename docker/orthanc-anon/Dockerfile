@@ -20,8 +20,5 @@ COPY ./orthanc/orthanc-anon/plugin/tag-operations.yaml /etc/orthanc/tag-operatio
 COPY ./pixl_core/ ./pixl_core
 RUN pip3 install --no-cache-dir ./pixl_core
 
-COPY ./pixl_dcmd/src/requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt
-
-COPY ./pixl_dcmd/src ./pixl_dcmd
+COPY ./pixl_dcmd/ ./pixl_dcmd
 RUN pip3 install --no-cache-dir ./pixl_dcmd
