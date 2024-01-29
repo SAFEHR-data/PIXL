@@ -3,10 +3,12 @@
 PIXL Image eXtraction Laboratory
 
 `PIXL` is a system for extracting, linking and de-identifying DICOM imaging data, structured EHR data and free-text data from radiology reports at UCLH.
-Please see the [wiki](https://github.com/UCLH-Foundry/PIXL/wiki) for more details.
+Please see the [rolling-skeleton]([https://github.com/UCLH-Foundry/the-rolling-skeleton=](https://github.com/UCLH-Foundry/the-rolling-skeleton/blob/main/docs/design/100-day-design.md)) for more details.
 
 PIXL is intended run on one of the [GAE](https://github.com/UCLH-Foundry/Book-of-FlowEHR/blob/main/glossary.md#gaes)s and comprises
 several services orchestrated by [Docker Compose](https://docs.docker.com/compose/).
+
+To get access to the GAE, [see the documentation on Slab](https://uclh.slab.com/posts/gae-access-7hkddxap)
 
 ## Services
 
