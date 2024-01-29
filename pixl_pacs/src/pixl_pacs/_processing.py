@@ -66,7 +66,7 @@ async def process_message(message: Message) -> None:
 
 @dataclass
 class ImagingStudy:
-    """Dataclass for EHR unique to a patient and xray study"""
+    """Dataclass for DICOM study unique to a patient and imaging study"""
 
     message: Message
 
