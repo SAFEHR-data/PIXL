@@ -185,7 +185,7 @@ jobs:
         run: |
           ./run-tests.sh
 
-  pacs-api-tests:
+  imaging-api-tests:
     runs-on: ubuntu-22.04
     timeout-minutes: 10
     steps:
@@ -199,10 +199,10 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install pixl_core/[test] pixl_pacs/[test]
+          pip install pixl_core/[test] pixl_imaging/[test]
 
       - name: Run tests
-        working-directory: pixl_pacs/tests
+        working-directory: pixl_imaging/tests
         run: |
           ./run-tests.sh
 

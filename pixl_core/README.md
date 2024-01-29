@@ -1,6 +1,6 @@
 # Core
 
-This directory contains a Python module with core PIXL functionality utilised by both the EHR and PACS APIs to
+This directory contains a Python module with core PIXL functionality utilised by both the EHR and Imaging APIs to
 interact with RabbitMQ and ensure suitable rate limiting of requests to the upstream services.
 
 ### Install
@@ -32,7 +32,7 @@ Mechanism that allows driver to populate queues that can then be consumed by dif
 or image download.
 
 Two queues are currently planned: 
-1. for download and de-identification of image data (default "pacs")
+1. for download and de-identification of image data (default "imaging")
 2. for download and de-identification of EHR demographic data (default "ehr")
 
 The image anonymisation will be triggered automatically once the image has been downloaded to the raw Orthanc server.

@@ -2,7 +2,7 @@
 
 The PIXL CLI driver provides functionality to populate a queue with messages
 containing information required to run electronic health queries against the
-EMAP star database and the PACS image system. Once a set of queues are
+EMAP star database and the VNA image system. Once a set of queues are
 populated the consumers can be started, updated and the system extractions
 stopped cleanly.
 
@@ -29,7 +29,7 @@ See the commands and subcommands with
 pixl --help
 ```
 
-Populate queue for PACS and EHR extraction
+Populate queue for Imaging and EHR extraction
 
 ```bash
 pixl populate </path/to/parquet_dir>
@@ -47,10 +47,10 @@ parquet_dir
     └── PROCEDURE_OCCURRENCE.parquet
 ```
 
-Start the PACS extraction
+Start the Imaging extraction
 
 ```bash
-pixl start --queues pacs
+pixl start --queues imaging
 ```
 
 and equivalently the EHR extraction
@@ -61,7 +61,7 @@ pixl start --queues ehr
 
 Use `pixl start --help` for information.
 
-Stop PACS and EHR database extraction
+Stop Imaging and EHR database extraction
 
 ```bash
 pixl stop

@@ -8,7 +8,7 @@ _The Orthanc instance containing raw DICOM data from PACS/VNA._
 
 The following assumptions are made:
 - There is a PostgreSQL database available to store the Index data within Orthanc (or it will become available shortly when the service is started).
-- The IP, port and AE Title for the VNA Q/R target have been provided, and the reciprocal details for this instance have been shared with the PACS team.
+- The IP, port and AE Title for the VNA Q/R target have been provided, and the reciprocal details for this instance have been shared with the imaging team.
 - There is sufficient local storage for the `orthanc-raw-data` volume.
 
 ### Configuration
@@ -22,7 +22,7 @@ The following assumptions are made:
   - `postgres.json` - Configuration of the PostgreSQL DB.
 
 ### Step 1
-Save credentials `.env` for the PACS/VNA, the PACS/VNA Q/R target, postgreSQL and 'Orthanc anon'.
+Save credentials `.env` for the PACS/VNA Q/R target, postgreSQL and 'Orthanc anon'.
 ```
 # PIXL PostgreSQL instance
 PIXL_DB_HOST=
@@ -59,7 +59,7 @@ You should now be able to navigate the web interface at `http://localhost:<YYYY>
 ![Orthanc Raw Web interface](../assets/orthanc-raw-web.png)
 
 ### Step 4
-From the interface, you can view data stored on the instance or perform Query/Retrieves against PACS for debugging purposes. Similarly you can target the instance over DIMSE on port `XXXX`.
+From the interface, you can view data stored on the instance or perform Query/Retrieves against VNA for debugging purposes. Similarly you can target the instance over DIMSE on port `XXXX`.
 
 ## Step 5
 The advanced user interface can be found at `http://localhost:YYYY/ui/app/`. This can be used to check connectivity to the other modalities and the running configuration.
@@ -71,7 +71,7 @@ The advanced user interface can be found at `http://localhost:YYYY/ui/app/`. Thi
 
 - If modifying any of the `.json` configuration files, any typo will cause the instance to fail to start.
 - If the postgreSQL DB is not available, the instance will fail to start.
-- In production, the IPs, ports and AE Titles must match those given to / received from the PACS team.
+- In production, the IPs, ports and AE Titles must match those given to / received from the Imaging team.
 - To use the REST interface, the web port must be exposed.
 - To use DIMSE, the DICOM port must be exposed.
 - DICOMWeb is (deliberately) not enabled on this instance.
