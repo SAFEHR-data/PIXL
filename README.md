@@ -214,6 +214,7 @@ select count(*) from emap_data.ehr_anon where xray_report is not null;
 ## Develop
 
 See each service's README for instructions for individual developing and testing instructions.
+Most modules require [`docker`](https://docs.docker.com/desktop/) and `docker-compose` to be installed to run tests.
 
 For Python development we use [ruff](https://docs.astral.sh/ruff/) alongside [pytest](https://www.pytest.org/).
 There is support (sometimes through plugins) for these tools in most IDEs & editors.
