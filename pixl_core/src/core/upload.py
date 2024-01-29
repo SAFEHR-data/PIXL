@@ -26,7 +26,7 @@ from typing import TYPE_CHECKING, Any, BinaryIO
 if TYPE_CHECKING:
     from socket import socket
 
-from core.queries import get_project_slug_from_db, update_exported_at
+from core.db.queries import get_project_slug_from_db, update_exported_at
 
 logger = logging.getLogger(__name__)
 
