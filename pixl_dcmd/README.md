@@ -8,15 +8,7 @@ and persisting it in the PIXL postgres database.
 Install the Python dependencies with
 
 ```bash
-pip install -e ../../pixl_core/ .
-```
-
-```bash
-pip install -r requirements.txt
-```
-
-```bash
-pip install -e .
+pip install -e ../pixl_core/ .[test,dev]
 ```
 
 ## Test
