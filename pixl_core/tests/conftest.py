@@ -21,6 +21,7 @@ from typing import BinaryIO
 
 import pytest
 from core.db.models import Base, Extract, Image
+from core.exports import ParquetExport
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -173,17 +174,11 @@ def already_exported_dicom_image(rows_in_session) -> Image:
     return rows_in_session.query(Image).filter(Image.hashed_identifier == "already_exported").one()
 
 
-@pytest.fixture(autouse=True)
-def _omop_files(tmp_path_factory: pytest.TempPathFactory, monkeypatch) -> None:
-    """Replace production extract instance with one writing to a tmpdir."""
-    tmpdir_extract = tmp_path_factory.mktemp("repo_base")
-    monkeypatch.setattr("core.exports.ParquetExport.root_dir", tmpdir_extract)
-
-
 @pytest.fixture()
-def parquet_export() -> ParquetExport:
+def parquet_export(tmp_path_factory: pytest.TempPathFactory) -> ParquetExport:
     """Return a ParquetExport object."""
     return ParquetExport(
         project_name="i-am-a-project",
         extract_datetime=datetime.datetime.now(tz=datetime.timezone.utc),
+        export_dir=tmp_path_factory.mktemp("repo_base"),
     )
