@@ -15,8 +15,11 @@ from __future__ import annotations
 
 import datetime
 import os
+import pathlib
+import shutil
 import subprocess
 from pathlib import Path
+from time import sleep
 from typing import BinaryIO
 
 import pytest
@@ -81,6 +84,12 @@ def mounted_data(run_containers) -> Path:
         shell=True,  # noqa: S602
         timeout=60,
     )
+
+    # sub_dirs = [
+    #     f.path for f in os.scandir(TEST_DIR / "ftp-server" / "mounts" / "data") if f.is_dir()
+    # ]
+    # for sub_dir in sub_dirs:
+    #     shutil.rmtree(sub_dir, ignore_errors=True)
 
 
 @pytest.fixture(scope="module")
@@ -174,11 +183,21 @@ def already_exported_dicom_image(rows_in_session) -> Image:
     return rows_in_session.query(Image).filter(Image.hashed_identifier == "already_exported").one()
 
 
+@pytest.fixture(autouse=True)
+# def _omop_files(tmp_path_factory: pytest.TempPathFactory, monkeypatch) -> None:
+#     """Replace production extract instance with one writing to a tmpdir."""
+#     tmpdir_extract = tmp_path_factory.mktemp("repo_base")
+#     monkeypatch.setattr("core.exports.ParquetExport.root_dir", tmpdir_extract)
+def export_dir(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
+    """Tmp dir to for tests to extract to."""
+    return tmp_path_factory.mktemp("export_base") / "exports"
+
+
 @pytest.fixture()
-def parquet_export(tmp_path_factory: pytest.TempPathFactory) -> ParquetExport:
+def parquet_export(export_dir) -> ParquetExport:
     """Return a ParquetExport object."""
     return ParquetExport(
         project_name="i-am-a-project",
         extract_datetime=datetime.datetime.now(tz=datetime.timezone.utc),
-        export_dir=tmp_path_factory.mktemp("repo_base"),
+        export_dir=export_dir,
     )
