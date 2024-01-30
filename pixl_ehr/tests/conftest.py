@@ -34,3 +34,7 @@ os.environ["EMAP_UDS_USER"] = "postgres"
 os.environ["EMAP_UDS_PASSWORD"] = "postgres"  # noqa: S105
 os.environ["EMAP_UDS_SCHEMA_NAME"] = "star"
 os.environ["COGSTACK_REDACT_URL"] = "test"
+os.environ["FTP_HOST"] = "localhost"
+os.environ["FTP_USER_NAME"] = "pixl"
+os.environ["FTP_USER_PASS"] = "longpassword"  # noqa: S105 Hardcoding password
+os.environ["FTP_PORT"] = "20021"
