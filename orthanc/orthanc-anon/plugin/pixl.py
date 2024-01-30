@@ -190,7 +190,7 @@ def ShouldAutoRoute():
     return os.environ.get("ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT", "false").lower() == "true"
 
 
-def OnChange(changeType: str, _level: None, resource: str) -> Any:
+def OnChange(changeType, level, resource):  # noqa: ARG001
     """
     Three ChangeTypes included in this function:
     - If a study is stable and if ShouldAutoRoute returns true
