@@ -76,7 +76,7 @@ def mounted_data(run_containers) -> Path:
     yield TEST_DIR / "ftp-server" / "mounts" / "data"
     # Tear down the directory after tests
     subprocess.run(
-        b"docker compose exec ftp-server sh -c 'rm -rf /home/pixl/*'",
+        b"docker compose exec ftp-server sh -c 'rm -r /home/pixl/*'",
         check=True,
         cwd=TEST_DIR,
         shell=True,  # noqa: S602

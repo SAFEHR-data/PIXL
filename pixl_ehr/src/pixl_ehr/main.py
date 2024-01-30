@@ -79,10 +79,11 @@ class ExportRadiologyData(BaseModel):
 
 
 @app.post(
-    "/export-radiology-as-parquet",
-    summary="Copy all matching radiology reports in the PIXL DB to a parquet file",
+    "/export-radiology-as-parquet and send via FTPS",
+    summary="Copy all matching radiology reports in the PIXL DB to a parquet file \
+    and send all ParquetExports via FTPS",
 )
-def export_radiology_as_parquet(export_params: ExportRadiologyData) -> None:
+def export_patient_data(export_params: ExportRadiologyData) -> None:
     """
     Batch export of all matching radiology reports in PIXL DB to a parquet file.
     NOTE: we can't check that all reports in the queue have been processed, so
@@ -96,12 +97,10 @@ def export_radiology_as_parquet(export_params: ExportRadiologyData) -> None:
     )
     pe.export_radiology(anon_data)
 
+    send_via_ftps(export_params.project_name, export_params.extract_datetime)
 
-@app.post(
-    "/send-parquet-files-via-FTPS",
-    summary="Copy/send all ParquetExports via FTPS",
-)
-def SendViaFTPS(project_name: str, extract_datetime: datetime) -> None:
+
+def send_via_ftps(project_name: str, extract_datetime: datetime) -> None:
     """Send parquet files via FTPS"""
     pe = ParquetExport(project_name, extract_datetime)
     upload_parquet_files(pe)
