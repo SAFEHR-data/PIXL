@@ -25,7 +25,7 @@ project_name, omop_es_timestamp = config_from_log_file(PARQUET_PATH)
 expected_output_dir = MOUNTED_DATA_DIR / project_name
 
 # Test whether DICOM images have been uploaded
-glob_list = [expected_output_dir.glob("*.zip")]
+glob_list = list(expected_output_dir.glob("*.zip"))
 logger.info(f"glob_list: {glob_list}")
 
 assert len(glob_list) == 1
