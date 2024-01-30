@@ -15,7 +15,7 @@
 """Create PIXL tables"""
 import os
 
-from core.database import Base
+from core.db.models import Base
 from sqlalchemy import URL, create_engine
 from sqlalchemy.sql.ddl import CreateSchema
 

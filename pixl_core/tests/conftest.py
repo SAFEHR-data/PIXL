@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import BinaryIO
 
 import pytest
-from core.database import Base, Extract, Image
+from core.db.models import Base, Extract, Image
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -106,7 +106,7 @@ def db_engine(monkeymodule) -> Engine:
         echo_pool="debug",
         future=True,
     )
-    monkeymodule.setattr("core.queries.engine", engine)
+    monkeymodule.setattr("core.db.queries.engine", engine)
 
     Base.metadata.create_all(engine)
     yield engine

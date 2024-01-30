@@ -15,7 +15,7 @@
 """Interaction with the PIXL database."""
 from decouple import config
 
-from core.database import Image
+from core.db.models import Image
 from sqlalchemy import URL, create_engine
 from sqlalchemy.orm import sessionmaker
 

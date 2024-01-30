@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, status
 
-from .models import AppState, TokenRefreshUpdate
+from core.token_buffer.models import AppState, TokenRefreshUpdate
 
 state = AppState()
 router = APIRouter()

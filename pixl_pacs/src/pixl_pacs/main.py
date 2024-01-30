@@ -19,7 +19,7 @@ import importlib.metadata
 import logging
 
 from core.patient_queue.subscriber import PixlConsumer
-from core.router import router, state
+from core.rest_api.router import router, state
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
