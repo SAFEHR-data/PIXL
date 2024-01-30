@@ -77,7 +77,7 @@ services:
       pixl-net:
 
   ftp-server:
-    container_name: test-ftp-server
+    container_name: system-test-ftp-server
     build:
       context: ./dummy-services/ftp-server
     ports:
