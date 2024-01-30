@@ -14,7 +14,7 @@
 #  limitations under the License.
 import logging
 from pathlib import Path
-from core import config_from_log_file
+from pixl_cli._io import config_from_log_file
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +26,8 @@ expected_output_dir = MOUNTED_DATA_DIR / project_name
 
 # Test whether DICOM images have been uploaded
 glob_list = [expected_output_dir.glob("*.zip")]
+logger.info(f"glob_list: {glob_list}")
+
 assert len(glob_list) == 1
 
 # TODO: check parquet files upload
