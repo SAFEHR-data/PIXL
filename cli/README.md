@@ -1,26 +1,26 @@
 # PIXL Driver + Command line interface
 
-The PIXL CLI driver provides functionality to populate a queue with messages
-containing information required to run electronic health queries against the
-EMAP star database and the PACS image system. Once a set of queues are
-populated the consumers can be started, updated and the system extractions
+The PIXL CLI driver provides functionality to populate a queue with messages containing information
+required to run electronic health queries against the EMAP star database and the PACS image system.
+Once a set of queues are populated the consumers can be started, updated and the system extractions
 stopped cleanly.
 
 ## Prerequisites
 
 `PIXL CLI` requires Python version 3.10.
 
-The CLI requires a `pixl_config.yml` file in the current working directory. A [sample
-file](../pixl_config.yml.sample) is provided in the root of the repository. For local testing, we
-recommend running `pixl` from the [`./tests/`](./tests/) directory, which contains a mock
-`pixl_config.yml` file.
+The CLI requires a `pixl_config.yml` file in the current working directory. A
+[sample file](../pixl_config.yml.sample) is provided in the root of the repository. If you want to
+run locally during development, we recommend running `pixl` from the [`./tests/`](./tests/)
+directory, which contains a mock `pixl_config.yml` file.
 
 Running the tests requires [docker](https://docs.docker.com/get-docker/) to be installed.
 
 ## Installation
 
 We recommend installing in a project specific virtual environment created using a environment
-management tool such as [conda](https://docs.conda.io/en/latest/) or [virtualenv](https://virtualenv.pypa.io/en/latest/).
+management tool such as [conda](https://docs.conda.io/en/latest/) or
+[virtualenv](https://virtualenv.pypa.io/en/latest/).
 
 Then install in editable mode by running
 
@@ -30,11 +30,12 @@ pip install -e ../pixl_core/ .
 
 ## Usage
 
-> **Note**
-> The `rabbitmq`, `ehr-api` and `pacs-api` services must be started prior to using the CLI
+> **Note** The `rabbitmq`, `ehr-api` and `pacs-api` services must be started prior to using the CLI
 > This is typically done by spinning up the necessary Docker containers through `docker compose`.
+> For convenience, we provide the [`bin/pixldc`](../bin/pixldc) script to spin up the relevant
+> services.
 
-See the commands and subcommands with
+See the commands and subcommands wih
 
 ```bash
 pixl --help

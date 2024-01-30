@@ -2,9 +2,9 @@
 
 _The secure hashing service_.
 
-This package provides a _FastAPI_ service that can be used to generate secure hashes.
-It is used by the [PIXL EHR API](../pixl_ehr/README.md) (for EHR anonymisation) and [PIXL Orthanc
-Anon](../orthanc_anon/README.md) (for DICOM image anonymisation) services.
+This package provides a _FastAPI_ service that can be used to generate secure hashes. It is used by
+the [PIXL EHR API](../pixl_ehr/README.md) (for EHR anonymisation) and
+[PIXL Orthanc Anon](../orthanc_anon/README.md) (for DICOM image anonymisation) services.
 
 ## Local development
 
@@ -21,8 +21,7 @@ pip install -e .
 
 Create a _local.env_ file in _PIXL.hasher/src/hasher_ from _local.env.sample_ in the same location.
 Use the credentials stored in the `Hasher API dev secrets` note in LastPass to populate the
-environment variables.
-Set `LOG_ROOT_DIR` to anywhere convenient.
+environment variables. Set `LOG_ROOT_DIR` to anywhere convenient.
 
 ### Run
 
@@ -34,35 +33,36 @@ uvicorn hasher.main:app --host=0.0.0.0 --port=8000 --reload
 
 ### Test
 
-From this directory:
+From this directory run:
 
 ```bash
 pytest
 ```
 
-to skip linting and run only the last failed test.
-
-----
+---
 
 <details><summary>Azure setup</summary>
 
 ## Azure setup
 
-_This is done for the _UCLH_DIF_ `dev` tenancy, will need to be done once in the _UCLHAZ_ `prod` tenancy when ready to deploy to production._
+_This is done for the \_UCLH_DIF_ `dev` tenancy, will need to be done once in the _UCLHAZ_ `prod`
+tenancy when ready to deploy to production.\_
 
-An Azure Key Vault is required to hold the secret key used in the
-hashing process. This Key Vault and secret must persist any infrastructure changes so
-should be separate from disposable infrastructure services.
-ServicePrincipal is required to connect to the Key Vault.
+An Azure Key Vault is required to hold the secret key used in the hashing process. This Key Vault
+and secret must persist any infrastructure changes so should be separate from disposable
+infrastructure services. ServicePrincipal is required to connect to the Key Vault.
 
-The application uses the ServicePrincipal and password to authenticates with Azure via
-environment variables. See [here](https://learn.microsoft.com/en-us/python/api/azure-identity/azure.identity.environmentcredential?view=azure-python) for more info.
+The application uses the ServicePrincipal and password to authenticates with Azure via environment
+variables. See
+[here](https://learn.microsoft.com/en-us/python/api/azure-identity/azure.identity.environmentcredential?view=azure-python)
+for more info.
 
-The Key Vault and ServicePrincipal have already been created for the `dev` environment and details are stored in
-the `Hasher API dev secrets` note in the shared FlowEHR folder on LastPass.
+The Key Vault and ServicePrincipal have already been created for the `dev` environment and details
+are stored in the `Hasher API dev secrets` note in the shared FlowEHR folder on LastPass.
 
-The process for doing so using the `az` CLI tool is described below.
-This can be converted into a Terraform template but given that we need a single, permanent instance of this, having a repeatable template is less useful.
+The process for doing so using the `az` CLI tool is described below. This can be converted into a
+Terraform template but given that we need a single, permanent instance of this, having a repeatable
+template is less useful.
 
 This process must be repeated for `staging` & `prod` environments.
 
@@ -92,7 +92,6 @@ This will produce the following output
     "password": "<generated-password>",
     "tenant": "<tenant-ID>"
 }
-
 ```
 
 ### Step 3
