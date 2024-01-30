@@ -97,12 +97,14 @@ def export_patient_data(export_params: ExportRadiologyData) -> None:
     )
     pe.export_radiology(anon_data)
 
-    send_via_ftps(export_params.project_name, export_params.extract_datetime)
+    send_via_ftps(
+        export_params.project_name, export_params.extract_datetime, export_params.output_dir
+    )
 
 
-def send_via_ftps(project_name: str, extract_datetime: datetime) -> None:
+def send_via_ftps(project_name: str, extract_datetime: datetime, export_dir: Path) -> None:
     """Send parquet files via FTPS"""
-    pe = ParquetExport(project_name, extract_datetime)
+    pe = ParquetExport(project_name, extract_datetime, export_dir)
     upload_parquet_files(pe)
 
 
