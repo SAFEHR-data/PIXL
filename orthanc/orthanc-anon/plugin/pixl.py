@@ -193,7 +193,7 @@ def ShouldAutoRoute():
 def OnChange(changeType: str, _level: None, resource: str) -> Any:
     """
     Three ChangeTypes included in this function:
-    - If a study if stable and if ShouldAutoRoute returns true
+    - If a study is stable and if ShouldAutoRoute returns true
     then SendViaFTPS is called
     - If orthanc has started then message added to Orthanc LogWarning
     and AzureDICOMTokenRefresh called
