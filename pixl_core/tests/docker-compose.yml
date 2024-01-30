@@ -32,16 +32,16 @@ services:
       retries: 5
   ftp-server:
     container_name: test-ftp-server
-    build: 
-      context: ftp-server
+    build:
+      context: ../../test/dummy-services/ftp-server
     ports:
       - "20021:21"
       - "21000-21010:21000-21010"
     volumes:
       # Mount for uploaded data
-      - "./ftp-server/mounts/data/:/home/pixl/"
+      - "../../test/dummy-services/ftp-server/mounts/data/:/home/pixl/"
       # Mount SSL keys for TLS
-      - "./ftp-server/mounts/ssl/:/etc/ssl/private/"
+      - "../../test/dummy-services/ftp-server/mounts/ssl/:/etc/ssl/private/"
     environment:
       ADDRESS: "localhost"
       USERS: pixl|longpassword|/home/pixl
