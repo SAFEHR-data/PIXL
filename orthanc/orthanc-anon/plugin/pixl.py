@@ -161,7 +161,7 @@ def SendViaStow(resourceId):
 
 def SendViaFTPS(resourceId: str) -> None:
     """
-    Makes a POST API call to upload the resource to a dicom-web server
+    Makes a POST API call to upload the resource to an FTPS server
     using orthanc credentials as authorisation
     """
     # Query orthanc-anon for the study
