@@ -78,12 +78,12 @@ def mounted_data(run_containers) -> Path:
     yield TEST_DIR / "ftp-server" / "mounts" / "data"
     # Tear down the directory after tests
     subprocess.run(
-        b"docker compose exec ftp-server rm -rf /home/pixl/*",
+        b"docker compose exec ftp-server sh -c 'rm -rf /home/pixl/*'",
         check=True,
         cwd=TEST_DIR,
         shell=True,  # noqa: S602
         timeout=60,
-    )
+    ).check_returncode()
 
     # sub_dirs = [
     #     f.path for f in os.scandir(TEST_DIR / "ftp-server" / "mounts" / "data") if f.is_dir()
