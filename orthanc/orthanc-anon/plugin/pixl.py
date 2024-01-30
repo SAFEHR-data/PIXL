@@ -28,6 +28,7 @@ import traceback
 from io import BytesIO
 from pathlib import Path
 from time import sleep
+from typing import TYPE_CHECKING
 
 import requests
 import yaml
@@ -37,6 +38,9 @@ from pydicom import dcmread
 
 import orthanc
 import pixl_dcmd
+
+if TYPE_CHECKING:
+    from typing import Any
 
 ORTHANC_USERNAME = config("ORTHANC_USERNAME")
 ORTHANC_PASSWORD = config("ORTHANC_PASSWORD")
@@ -180,17 +184,17 @@ def SendViaFTPS(resourceId: str) -> None:
 
 def ShouldAutoRoute():
     """
-    Checks whether ORTHANC_AUTOROUTE_ANON_TO_AZURE environment variable is
+    Checks whether ORTHANC_AUTOROUTE_ANON_TO_FTPS environment variable is
     set to true or false
     """
-    return os.environ.get("ORTHANC_AUTOROUTE_ANON_TO_AZURE", "false").lower() == "true"
+    return os.environ.get("ORTHANC_AUTOROUTE_ANON_TO_FTPS", "false").lower() == "true"
 
 
-def OnChange(changeType, level, resource) -> None:  # noqa: ARG001
+def OnChange(changeType: str, _level: None, resource: str) -> Any:
     """
     Three ChangeTypes included in this function:
     - If a study if stable and if ShouldAutoRoute returns true
-    then SendViaStow is called
+    then SendViaFTPS is called
     - If orthanc has started then message added to Orthanc LogWarning
     and AzureDICOMTokenRefresh called
     - If orthanc has stopped and TIMER is not none then message added
@@ -202,7 +206,7 @@ def OnChange(changeType, level, resource) -> None:  # noqa: ARG001
 
     if changeType == orthanc.ChangeType.STABLE_STUDY and ShouldAutoRoute():
         print("Stable study: %s" % resource)  # noqa: T201
-        SendViaStow(resource)
+        SendViaFTPS(resource)
 
     if changeType == orthanc.ChangeType.ORTHANC_STARTED:
         orthanc.LogWarning("Starting the scheduler")
@@ -213,13 +217,13 @@ def OnChange(changeType, level, resource) -> None:  # noqa: ARG001
             TIMER.cancel()
 
 
-def OnHeartBeat(output, uri, **request):  # noqa: ARG001
+def OnHeartBeat(output, uri, **request) -> Any:  # noqa: ARG001
     """Extends the REST API by registering a new route in the REST API"""
     orthanc.LogWarning("OK")
     output.AnswerBuffer("OK\n", "text/plain")
 
 
-def ReceivedInstanceCallback(receivedDicom, origin):
+def ReceivedInstanceCallback(receivedDicom: BytesIO, origin: str) -> Any:
     """Modifies a DICOM instance received by Orthanc and applies anonymisation."""
     if origin == orthanc.InstanceOrigin.REST_API:
         orthanc.LogWarning("DICOM instance received from the REST API")
