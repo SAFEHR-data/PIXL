@@ -184,10 +184,10 @@ def SendViaFTPS(resourceId: str) -> None:
 
 def ShouldAutoRoute():
     """
-    Checks whether ORTHANC_AUTOROUTE_ANON_TO_FTPS environment variable is
+    Checks whether ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT environment variable is
     set to true or false
     """
-    return os.environ.get("ORTHANC_AUTOROUTE_ANON_TO_FTPS", "false").lower() == "true"
+    return os.environ.get("ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT", "false").lower() == "true"
 
 
 def OnChange(changeType: str, _level: None, resource: str) -> Any:
