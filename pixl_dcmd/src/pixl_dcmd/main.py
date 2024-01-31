@@ -353,10 +353,12 @@ def hash_endpoint_path_for_tag(group: bytes, element: bytes) -> str:
     return "/hash"
 
 
-def _hash_values(grp: bytes, el: bytes, pat_value: str, hasher_host_url: str) -> bytes:
+def _hash_values(grp: bytes, el: bytes, pat_value: str, hasher_host_url: str) -> str:
     ep_path = hash_endpoint_path_for_tag(group=grp, element=el)
     payload = ep_path + "?message=" + pat_value
     request_url = hasher_host_url + payload
     response = requests.get(request_url)
-    logging.info(b"RESPONSE = %a}" % response.content)
-    return response.content
+    # All three hashing endpoints return application/text so should be fine to
+    # use response.text here
+    logging.info("RESPONSE = %s}" % response.text)
+    return response.text

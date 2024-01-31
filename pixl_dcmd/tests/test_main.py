@@ -76,7 +76,7 @@ def test_pseudo_identifier_processing(rows_in_session, tag_scheme):
 
     accession_number = "AA12345605"
     mrn = "987654321"
-    fake_hash = "-".join(list(f"{mrn}{accession_number}")).encode("utf-8")
+    fake_hash = "-".join(list(f"{mrn}{accession_number}"))
     print("fake_hash = ", fake_hash)
     output_dataset = apply_tag_scheme(input_dataset, tag_scheme)
     image = (
