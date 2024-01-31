@@ -1,9 +1,10 @@
 # PIXL Electronic Health Record Extractor
 
-This service has an exposed HTTP endpoint for updating the processing rate
-of the EHR extraction from EMAP star. It also includes the processing pipeline
-for transforming (inc. anonymization) the data and persisting it in the PIXL
-postgres database.
+The EHR API provides an HTTP endpoint to extract EHR data from the EMAP star database and export it
+as parquet files. It expects a JSON-formatted message as input, structured as defined by the
+[`Message`](../pixl_core/src/core/patient_queue/message.py) class in `pixl_core/patient_queue`.
+Upon receiving a message, the API will extract the EHR data for the patient specified in the message
+and anonymise any identifiable data through the [CogStack](https://cogstack.org/) API.
 
 ## Installation
 
@@ -43,7 +44,8 @@ and the processing tests with
 ```
 
 To test the availability of a CogStack instance, we mock up a *FastAPI* server which simply takes in
-some input text and returns the same text. The configuration of this mock instance is defined in [`test/dummy-services`](/test/dummy-services/).
+some input text and returns the text with a fixed suffix. The configuration of this mock instance is
+defined in [`test/dummy-services`](/test/dummy-services/).
 
 ## Usage
 
