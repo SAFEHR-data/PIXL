@@ -205,7 +205,7 @@ def ShouldAutoRoute():
 
 
 def _AzureAvailable() -> bool:
-    return os.environ("AZ_DICOM_ENDPOINT_CLIENT_ID") is not None
+    return os.environ.get("AZ_DICOM_ENDPOINT_CLIENT_ID") is not None
 
 
 def OnChange(changeType, level, resource):  # noqa: ARG001
