@@ -162,22 +162,38 @@ def SendViaFTPS(resourceId: str) -> None:
     Makes a POST API call to upload the resource to an FTPS server
     using orthanc credentials as authorisation
     """
-    # Query orthanc-anon for the study
+    # Download zip archive of the DICOM resource
     query = f"{ORTHANC_URL}/studies/{resourceId}/archive"
-    try:
-        response_study = requests.get(query, auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD), timeout=10)
-        success_code = 200
-        if response_study.status_code != success_code:
-            msg = "Could not download archive of resource '%s'"
-            raise RuntimeError(msg, resourceId)
-    except requests.exceptions.RequestException:
-        orthanc.LogError(f"Failed to query'{resourceId}'")
+    fail_msg = "Could not download archive of resource '%s'"
+    response_study = _make_query(resourceId, query, fail_msg)
 
     # get the zip content
     zip_content = response_study.content
     logging.info("Downloaded data for resource %s", resourceId)
 
-    upload.upload_dicom_image(zip_content, resourceId)
+    upload.upload_dicom_image(zip_content, GetPatientID(resourceId))
+
+
+def GetPatientID(resourceId: str) -> str:
+    """
+    Queries the Orthanc instance to get the PatientID for a given resource.
+    When anonymisation has been applied, the PatientID is the pseudo-anonymised ID.
+    """
+    query = f"{ORTHANC_URL}/studies/{resourceId}"
+    fail_msg = "Could not query study for resource '%s'"
+    response_study = _make_query(resourceId, query, fail_msg)
+    return json.loads(response_study.content.decode())["PatientMainDicomTags"]["PatientID"]
+
+
+def _make_query(resourceId: str, query: str, fail_msg: str) -> requests.Response:
+    try:
+        response_study = requests.get(query, auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD), timeout=10)
+        success_code = 200
+        if response_study.status_code != success_code:
+            raise RuntimeError(fail_msg, resourceId)
+    except requests.exceptions.RequestException:
+        orthanc.LogError(f"Failed to query'{resourceId}'")
+    return response_study
 
 
 def ShouldAutoRoute():
