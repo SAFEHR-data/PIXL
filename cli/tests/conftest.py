@@ -15,11 +15,16 @@
 from __future__ import annotations
 
 import pathlib
+import shutil
+from typing import TYPE_CHECKING
 
 import pytest
 from core.db.models import Base, Extract, Image
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 @pytest.fixture(autouse=True)
@@ -30,8 +35,37 @@ def export_dir(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
 
 @pytest.fixture()
 def resources() -> pathlib.Path:
-    """Test resources directory path."""
-    return pathlib.Path(__file__).parent / "resources"
+    """Top-level test resources directory path."""
+    return pathlib.Path(__file__).parents[2] / "test" / "resources"
+
+
+@pytest.fixture()
+def omop_es_batch_generator(resources, tmp_path_factory) -> Callable[..., pathlib.Path]:
+    """
+    return a callable which returns, by default, a path to (a copy of) the
+    resources/omop/batch_1/ directory, as if it were a single batch.
+    You can also set up any subset of the resources/omop/batch_* directories to be present
+    in the returned directory. Useful for testing different setups without having a load of
+    copied files in the resources/omop directory.
+    """
+    omop_batch_root = resources / "omop"
+    # keep separate from a test that might want to use tmp_path
+    tmp = tmp_path_factory.mktemp("copied_omop_es_input")
+
+    def inner_gen(batches=None, *, single_batch: bool = True) -> pathlib.Path:
+        if batches is None:
+            batches = ["batch_1"]
+        if single_batch:
+            assert len(batches) == 1
+            # the root tmp dir will already exist; we are effectively replacing it
+            shutil.copytree(omop_batch_root / batches[0], tmp, dirs_exist_ok=True)
+        else:
+            assert batches
+            for b in batches:
+                shutil.copytree(omop_batch_root / b, tmp / b)
+        return tmp
+
+    return inner_gen
 
 
 @pytest.fixture(scope="module")

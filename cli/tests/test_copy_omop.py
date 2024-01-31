@@ -20,14 +20,14 @@ import pytest
 from core.exports import ParquetExport
 
 
-def test_new_project_copies(resources, export_dir):
+def test_new_project_copies(omop_es_batch_generator, export_dir):
     """
     Given a valid export directory and hasn't been exported before
     When copy to exports is run
     Then the public files should be copied and symlinked to the latest export directory
     """
     # ARRANGE
-    input_dir = resources / "omop"
+    input_dir = omop_es_batch_generator()
     project_name = "Really great cool project"
     input_date = datetime.datetime.fromisoformat("2020-06-10T18:00:00")
     omop_files = ParquetExport(project_name, input_date, export_dir)
@@ -51,7 +51,7 @@ def test_new_project_copies(resources, export_dir):
     assert expected_files == sorted([x.stem for x in symlinked_files])
 
 
-def test_second_export(resources, export_dir):
+def test_second_export(omop_es_batch_generator, export_dir):
     """
     Given one export already exists for the project
     When a second export with a different timestamp is run for the same project
@@ -59,7 +59,7 @@ def test_second_export(resources, export_dir):
       and the symlinked dir should point to the most recently copied dir
     """
     # ARRANGE
-    input_dir = resources / "omop"
+    input_dir = omop_es_batch_generator()
     project_name = "Really great cool project"
     first_export_datetime = datetime.datetime.fromisoformat("2020-06-10T18:00:00")
 

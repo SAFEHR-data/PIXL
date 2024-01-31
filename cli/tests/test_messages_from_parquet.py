@@ -15,23 +15,19 @@
 from __future__ import annotations
 
 import datetime
-from typing import TYPE_CHECKING
 
 from core.patient_queue.message import Message
 from pixl_cli._io import copy_parquet_return_logfile_fields, messages_from_parquet
 
-if TYPE_CHECKING:
-    from pathlib import Path
 
-
-def test_messages_from_parquet(resources: Path) -> None:
+def test_messages_from_parquet(omop_es_batch_generator) -> None:
     """
     Given a valid OMOP ES extract with 4 procedures, two of which are x-rays.
     When the messages are generated from the directory and the output of logfile parsing
     Then two messages should be generated
     """
     # Arrange
-    omop_parquet_dir = resources / "omop"
+    omop_parquet_dir = omop_es_batch_generator()
     project_name, omop_es_datetime = copy_parquet_return_logfile_fields(omop_parquet_dir)
     # Act
     messages = messages_from_parquet(omop_parquet_dir, project_name, omop_es_datetime)

@@ -20,20 +20,20 @@ from click.testing import CliRunner
 from pixl_cli.main import populate, queue_is_up, stop
 
 
-def test_populate_queue_parquet(resources: Path, queue_name: str = "test_populate") -> None:
+def test_populate_queue_parquet(omop_es_batch_generator, queue_name: str = "test_populate") -> None:
     """Checks that patient queue can be populated without error."""
-    omop_parquet_dir = str(resources / "omop")
+    omop_parquet_dir = str(omop_es_batch_generator())
     runner = CliRunner()
     result = runner.invoke(populate, args=[omop_parquet_dir, "--queues", queue_name])
     assert result.exit_code == 0
 
 
-def test_down_queue_parquet(resources: Path, queue_name: str = "test_down") -> None:
+def test_down_queue_parquet(omop_es_batch_generator, queue_name: str = "test_down") -> None:
     """
     Checks that after the queue has been sent a stop signal,
     the queue has been emptied.
     """
-    omop_parquet_dir = str(resources / "omop")
+    omop_parquet_dir = str(omop_es_batch_generator())
     runner = CliRunner()
     _ = runner.invoke(populate, args=[omop_parquet_dir, "--queues", queue_name])
     _ = runner.invoke(stop, args=["--queues", queue_name])
