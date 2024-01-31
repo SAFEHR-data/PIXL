@@ -110,7 +110,7 @@ class MockResponse(object):
     def __init__(self, content: str):
         self.status_code = 200
         self.content = "-".join(list(content)).encode("utf-8")
-
+        self.text = self.content.decode("utf-8")
 
 # monkeypatched requests.get moved to a fixture
 @pytest.fixture(autouse=True)
