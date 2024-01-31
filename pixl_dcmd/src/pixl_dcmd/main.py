@@ -360,5 +360,5 @@ def _hash_values(grp: bytes, el: bytes, pat_value: str, hasher_host_url: str) ->
     response = requests.get(request_url)
     # All three hashing endpoints return application/text so should be fine to
     # use response.text here
-    logging.info(b"RESPONSE = %a}" % response.text)
+    logging.info("RESPONSE = %s}" % response.text)
     return response.text
