@@ -24,7 +24,7 @@ import shlex
 import subprocess
 
 
-instances_cmd = shlex.split('docker exec -it system-test-orthanc-anon-1 curl -u "orthanc_anon_username:orthanc_anon_password" http://orthanc-anon:8042/instances')
+instances_cmd = shlex.split('docker exec system-test-orthanc-anon-1 curl -u "orthanc_anon_username:orthanc_anon_password" http://orthanc-anon:8042/instances')
 instances_output = subprocess.run(instances_cmd, capture_output=True, check=True, text=True)
 instances = json.loads(instances_output.stdout)
 print("orthanc-anon instances:", instances)
