@@ -172,6 +172,7 @@ def SendViaFTPS(resourceId: str) -> None:
     logging.info("Downloaded data for resource %s", resourceId)
 
     upload.upload_dicom_image(zip_content, GetPatientID(resourceId))
+    logging.info("Uploaded data to FTPS for resource %s", resourceId)
 
 
 def GetPatientID(resourceId: str) -> str:
@@ -205,7 +206,8 @@ def ShouldAutoRoute():
 
 
 def _AzureAvailable() -> bool:
-    return os.environ.get("AZ_DICOM_ENDPOINT_CLIENT_ID") is not None
+    # Check if AZ_DICOM_ENDPOINT_CLIENT_ID is set
+    return config("AZ_DICOM_ENDPOINT_CLIENT_ID", default="") != ""
 
 
 def OnChange(changeType, level, resource):  # noqa: ARG001
