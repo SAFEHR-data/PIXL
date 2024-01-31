@@ -80,7 +80,7 @@ def populate(parquet_dir: Path, *, restart: bool, queues: str) -> None:
             └── extract_summary.json
     """
     logger.info(f"Populating queue(s) {queues} from {parquet_dir}")
-    project_name, omop_es_datetime = copy_parquet_return_logfile_fields(parquet_dir)
+    project_name, omop_es_datetime, batch_dirs = copy_parquet_return_logfile_fields(parquet_dir)
     messages = messages_from_parquet(parquet_dir, project_name, omop_es_datetime)
 
     for queue in queues.split(","):

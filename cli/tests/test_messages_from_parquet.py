@@ -16,25 +16,40 @@ from __future__ import annotations
 
 import datetime
 
+import pytest
 from core.patient_queue.message import Message
 from pixl_cli._io import copy_parquet_return_logfile_fields, messages_from_parquet
 
 
-def test_messages_from_parquet(omop_es_batch_generator) -> None:
+@pytest.mark.parametrize(
+    ("batches", "single_batch", "expected_message_indexes"),
+    [
+        (["batch_1", "batch_2"], False, [0, 1]),
+        (["batch_1"], True, [0]),
+        (["batch_1"], False, [0]),
+        (["batch_2"], True, [1]),
+        (["batch_2"], False, [1]),
+    ],
+)
+def test_messages_from_parquet(
+    omop_es_batch_generator, batches, single_batch, expected_message_indexes
+) -> None:
     """
     Given a valid OMOP ES extract with 4 procedures, two of which are x-rays.
     When the messages are generated from the directory and the output of logfile parsing
     Then two messages should be generated
     """
     # Arrange
-    omop_parquet_dir = omop_es_batch_generator()
-    project_name, omop_es_datetime = copy_parquet_return_logfile_fields(omop_parquet_dir)
+    omop_parquet_dir = omop_es_batch_generator(batches, single_batch=single_batch)
+    project_name, omop_es_datetime, batch_dirs = copy_parquet_return_logfile_fields(
+        omop_parquet_dir
+    )
     # Act
     messages = messages_from_parquet(omop_parquet_dir, project_name, omop_es_datetime)
     # Assert
     assert all(isinstance(msg, Message) for msg in messages)
 
-    expected_messages = [
+    all_expected_messages = [
         Message(
             mrn="987654321",
             accession_number="AA12345601",
@@ -52,5 +67,21 @@ def test_messages_from_parquet(omop_es_batch_generator) -> None:
             omop_es_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
         ),
     ]
-
+    expected_messages = [all_expected_messages[i] for i in expected_message_indexes]
     assert messages == expected_messages
+
+
+def test_conflicting_batches(omop_es_batch_generator) -> None:
+    """
+    Batches 1 and 3 have different timestamps so should fail if they are given to us as part of the
+    same extract.
+    """
+    omop_parquet_dir = omop_es_batch_generator(["batch_1", "batch_3"], single_batch=False)
+    with pytest.raises(RuntimeError, match=r"log files with different IDs.*batch_.*batch_"):
+        copy_parquet_return_logfile_fields(omop_parquet_dir)
+
+
+def test_empty_batches(tmp_path) -> None:
+    """Empty dir, nothing found."""
+    with pytest.raises(RuntimeError, match=r"No batched or unbatched log files found in"):
+        copy_parquet_return_logfile_fields(tmp_path)

@@ -47,20 +47,58 @@ def messages_from_state_file(filepath: Path) -> list[Message]:
     return [deserialise(line) for line in filepath.open().readlines() if string_is_non_empty(line)]
 
 
-def config_from_log_file(parquet_path: Path) -> tuple[str, datetime]:
-    log_file = parquet_path / "extract_summary.json"
+def determine_batch_structure(extract_path: Path) -> tuple[str, datetime, list[Path]]:
+    log_filename = "extract_summary.json"
+    single_batch_logfile = extract_path / log_filename
+    if single_batch_logfile.exists():
+        project_name, omop_es_timestamp = config_from_log_file(single_batch_logfile)
+        return project_name, omop_es_timestamp, [extract_path]
+
+    # should it really be 'extract_*'?
+    batch_dirs = list(extract_path.glob("batch_*"))
+    extract_ids = [config_from_log_file(log_file / log_filename) for log_file in batch_dirs]
+    # There should be one or more log files, all with the same identifiers
+    if not extract_ids:
+        err = f"No batched or unbatched log files found in {extract_path}"
+        raise RuntimeError(err)
+
+    distinct_extract_ids = set(extract_ids)
+    if len(distinct_extract_ids) != 1:
+        err = (
+            f"Found {len(batch_dirs)} log files with different IDs: "
+            f"Batch dirs: {batch_dirs}, IDs: {extract_ids}"
+        )
+        raise RuntimeError(err)
+
+    project_name, omop_es_timestamp = distinct_extract_ids.pop()
+    return project_name, omop_es_timestamp, batch_dirs
+
+
+def config_from_log_file(log_file: Path) -> tuple[str, datetime]:
     logs = json.load(log_file.open())
     project_name = logs["settings"]["cdm_source_name"]
     omop_es_timestamp = datetime.fromisoformat(logs["datetime"])
     return project_name, omop_es_timestamp
 
 
-def copy_parquet_return_logfile_fields(parquet_path: Path) -> tuple[str, datetime]:
-    """Copy public parquet file to extracts directory, and return fields from logfile"""
-    project_name, omop_es_timestamp = config_from_log_file(parquet_path)
+def copy_parquet_return_logfile_fields(extract_path: Path) -> tuple[str, datetime, list[Path]]:
+    """
+    Copy public parquet file to extracts directory, and return fields from logfile
+    :param extract_path: top-level dir for the OMOP ES extract
+                        (either a single or multi batch extract)
+    :returns: ( slugified project name of all the batches,
+                slugified timestamp of all the batches,
+                list of directories containing batches
+                - can be just the top level
+                directory in the case of a single batch
+              )
+    :raises RuntimeError: if no log file can be found, or there is more than one batch and
+                            project names or timestamps don't match.
+    """
+    project_name, omop_es_timestamp, batch_dirs = determine_batch_structure(extract_path)
     extract = ParquetExport(project_name, omop_es_timestamp, HOST_EXPORT_ROOT_DIR)
-    project_name_slug = extract.copy_to_exports(parquet_path)
-    return project_name_slug, omop_es_timestamp
+    project_name_slug = extract.copy_to_exports(extract_path)
+    return project_name_slug, omop_es_timestamp, batch_dirs
 
 
 def messages_from_parquet(
