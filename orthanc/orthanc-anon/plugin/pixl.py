@@ -49,7 +49,6 @@ ORTHANC_URL = "http://localhost:8042"
 
 def AzureAccessToken():
     """
-
     Send payload to oath2/token url and
     return the response
     """
@@ -73,7 +72,6 @@ def AzureAccessToken():
 
 def AzureDICOMTokenRefresh():
     """
-
     Refresh Azure DICOM token
     If this fails then wait 30s and try again
     If successful then access_token can be used in
@@ -190,6 +188,10 @@ def ShouldAutoRoute():
     return os.environ.get("ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT", "false").lower() == "true"
 
 
+def _AzureAvailable() -> bool:
+    return os.environ("AZ_DICOM_ENDPOINT_CLIENT_ID") is not None
+
+
 def OnChange(changeType, level, resource):  # noqa: ARG001
     """
     Three ChangeTypes included in this function:
@@ -208,7 +210,7 @@ def OnChange(changeType, level, resource):  # noqa: ARG001
         print("Stable study: %s" % resource)  # noqa: T201
         SendViaFTPS(resource)
 
-    if changeType == orthanc.ChangeType.ORTHANC_STARTED:
+    if changeType == orthanc.ChangeType.ORTHANC_STARTED and _AzureAvailable():
         orthanc.LogWarning("Starting the scheduler")
         AzureDICOMTokenRefresh()
     elif changeType == orthanc.ChangeType.ORTHANC_STOPPED:
