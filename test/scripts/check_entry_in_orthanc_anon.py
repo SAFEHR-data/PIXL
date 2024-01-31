@@ -14,8 +14,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-# After pixl has run this script will query the orthanc-anon REST API to check
-# that the correct number of instances have been received.
+"""
+After pixl has run this script will query the orthanc-anon REST API to check
+that the correct number of instances have been received.
+"""
 
 import json
 import shlex
