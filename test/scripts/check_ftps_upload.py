@@ -13,13 +13,16 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 from pathlib import Path
-from pixl_cli._io import config_from_log_file
 
 PARQUET_PATH = Path(__file__).parents[1] / "resources" / "omop"
+print(f"parquet path: {PARQUET_PATH}")
 MOUNTED_DATA_DIR = Path(__file__).parents[1] / "dummy-services" / "ftp-server" / "mounts" / "data"
+print(f"mounted data dir: {MOUNTED_DATA_DIR}")
 
-project_name, omop_es_timestamp = config_from_log_file(PARQUET_PATH)
+project_name = "test-extract-uclh-omop-cdm"
+print(f"project name: {project_name}")
 expected_output_dir = MOUNTED_DATA_DIR / project_name
+print(f"expected output dir: {expected_output_dir}")
 
 # Test whether DICOM images have been uploaded
 glob_list = list(expected_output_dir.glob("*.zip"))
