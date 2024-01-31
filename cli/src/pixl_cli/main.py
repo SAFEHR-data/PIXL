@@ -118,7 +118,7 @@ def extract_radiology_reports(parquet_dir: Path) -> None:
     # Call the EHR API
     api_config = api_config_for_queue("ehr")
     response = requests.post(
-        url=f"{api_config.base_url}/export-radiology-as-parquet",
+        url=f"{api_config.base_url}/export-patient-data",
         json={"project_name": project_name, "extract_datetime": omop_es_datetime.isoformat()},
         timeout=10,
     )
