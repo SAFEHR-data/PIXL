@@ -35,7 +35,7 @@ pip install -e ../pixl_core/ .
 > For convenience, we provide the [`bin/pixldc`](../bin/pixldc) script to spin up the relevant
 > services.
 
-See the commands and subcommands wih
+See the commands and subcommands with
 
 ```bash
 pixl --help
