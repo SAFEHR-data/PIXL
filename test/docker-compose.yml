@@ -80,7 +80,7 @@ services:
         build:
             context: ./dummy-services/ftp-server
         ports:
-            - "20021:21"
+            - "${FTP_PORT}:21"
             - "21000-21010:21000-21010"
         volumes:
             # Mount for uploaded data
