@@ -68,7 +68,12 @@ def upload_dicom_image(zip_content: BinaryIO, pseudo_anon_id: str) -> None:
     logger.debug("Running %s", command)
 
     # Store the file using a binary handler
-    ftp.storbinary(command, zip_content)
+    try:
+        ftp.storbinary(command, zip_content)
+    except ftplib.all_errors as ftp_error:
+        ftp.quit()
+        error_msg = "Failed to run STOR command '%s': '%s'"
+        raise ConnectionError(error_msg, command, ftp_error) from ftp_error
 
     # Close the FTP connection
     ftp.quit()
@@ -85,10 +90,14 @@ def _connect_to_ftp() -> FTP_TLS:
     ftp_password = os.environ["FTP_USER_PASSWORD"]
 
     # Connect to the server and login
-    ftp = ImplicitFtpTls()
-    ftp.connect(ftp_host, int(ftp_port))
-    ftp.login(ftp_user, ftp_password)
-    ftp.prot_p()
+    try:
+        ftp = ImplicitFtpTls()
+        ftp.connect(ftp_host, int(ftp_port))
+        ftp.login(ftp_user, ftp_password)
+        ftp.prot_p()
+    except ftplib.all_errors as ftp_error:
+        error_msg = "Failed to connect to FTPS server: '%s'"
+        raise ConnectionError(error_msg, ftp_error) from ftp_error
     return ftp
 
 

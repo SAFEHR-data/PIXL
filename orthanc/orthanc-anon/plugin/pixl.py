@@ -223,7 +223,6 @@ def OnChange(changeType, level, resource):  # noqa: ARG001
     and AzureDICOMTokenRefresh called
     - If orthanc has stopped and TIMER is not none then message added
     to Orthanc LogWarning and TIMER cancelled
-
     """
     if not ShouldAutoRoute():
         return
