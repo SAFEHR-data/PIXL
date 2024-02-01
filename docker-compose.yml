@@ -58,7 +58,7 @@ x-pixl-db: &pixl-db
 x-ftp-host: &ftp-host
   FTP_HOST: ${FTP_HOST}
   FTP_USER_NAME: ${FTP_USER_NAME}
-  FTP_USER_PASS: ${FTP_USER_PASS}
+  FTP_USER_PASSWORD: ${FTP_USER_PASSWORD}
 
 x-logs-volume: &logs-volume
   type: volume

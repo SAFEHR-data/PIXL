@@ -82,7 +82,7 @@ def _connect_to_ftp() -> FTP_TLS:
     ftp_host = os.environ["FTP_HOST"]
     ftp_port = os.environ["FTP_PORT"]  # FTPS usually uses port 21
     ftp_user = os.environ["FTP_USER_NAME"]
-    ftp_password = os.environ["FTP_USER_PASS"]
+    ftp_password = os.environ["FTP_USER_PASSWORD"]
 
     # Connect to the server and login
     ftp = ImplicitFtpTls()

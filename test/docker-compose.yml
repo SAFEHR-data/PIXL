@@ -14,87 +14,86 @@
 version: "3.8"
 
 volumes:
-  vna-qr-data:
+    vna-qr-data:
 
 networks:
-  pixl-net:
+    pixl-net:
 
 services:
+    vna-qr:
+        image: osimis/orthanc:22.9.0-full-stable
+        environment:
+            ORTHANC_NAME: ${VNAQR_AE_TITLE}
+            ORTHANC_USERNAME: "orthanc"
+            ORTHANC_PASSWORD: "orthanc"
+            ORTHANC_AE_TITLE: "VNAQR"
+            RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
+            RAW_DICOM_PORT: "4242"
+            RAW_IP_ADDR: "orthanc-raw" # aka. hostname
+        ports:
+            - "4243:4242"
+            - "8043:8042"
+        volumes:
+            - ${PWD}/vna_config/:/run/secrets:ro
+        healthcheck:
+            test: ["CMD", "curl", "-f", "-u", "orthanc:orthanc", "http://vna-qr:8042/patients"]
+            interval: 10s
+            timeout: 30s
+            retries: 5
+        networks:
+            pixl-net:
 
-  vna-qr:
-    image: osimis/orthanc:22.9.0-full-stable
-    environment:
-      ORTHANC_NAME: ${VNAQR_AE_TITLE}
-      ORTHANC_USERNAME: "orthanc"
-      ORTHANC_PASSWORD: "orthanc"
-      ORTHANC_AE_TITLE: "VNAQR"
-      RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
-      RAW_DICOM_PORT: "4242"
-      RAW_IP_ADDR: "orthanc-raw"  # aka. hostname
-    ports:
-      - "4243:4242"
-      - "8043:8042"
-    volumes:
-      - ${PWD}/vna_config/:/run/secrets:ro
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "-u" , "orthanc:orthanc", "http://vna-qr:8042/patients" ]
-      interval: 10s
-      timeout: 30s
-      retries: 5
-    networks:
-      pixl-net:
+    star:
+        container_name: system-test-fake-star-db
+        build:
+            context: ..
+            dockerfile: test/Dockerfile.fake_emap_star
+            args:
+                N_TABLE_ROWS: 2
+        environment:
+            POSTGRES_USER: ${EMAP_UDS_USER}
+            POSTGRES_PASSWORD: ${EMAP_UDS_PASSWORD}
+        healthcheck:
+            test: ["CMD", "pg_isready", "-U", "postgres"]
+            interval: 10s
+            timeout: 30s
+            retries: 5
+        ports:
+            - "5432:5432"
+        networks:
+            pixl-net:
 
-  star:
-    container_name: system-test-fake-star-db
-    build:
-      context: ..
-      dockerfile: test/Dockerfile.fake_emap_star
-      args:
-        N_TABLE_ROWS: 2
-    environment:
-      POSTGRES_USER: ${EMAP_UDS_USER}
-      POSTGRES_PASSWORD: ${EMAP_UDS_PASSWORD}
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres"]
-      interval: 10s
-      timeout: 30s
-      retries: 5
-    ports:
-      - "5432:5432"
-    networks:
-      pixl-net:
+    cogstack-api:
+        container_name: system-test-cogstack
+        build:
+            context: ./dummy-services/cogstack/
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:8000/heart-beat"]
+            interval: 10s
+            timeout: 30s
+            retries: 5
+        networks:
+            pixl-net:
 
-  cogstack-api:
-    container_name: system-test-cogstack
-    build:
-      context: ./dummy-services/cogstack/
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8000/heart-beat" ]
-      interval: 10s
-      timeout: 30s
-      retries: 5
-    networks:
-      pixl-net:
-
-  ftp-server:
-    container_name: system-test-ftp-server
-    build:
-      context: ./dummy-services/ftp-server
-    ports:
-      - "20021:21"
-      - "21000-21010:21000-21010"
-    volumes:
-      # Mount for uploaded data
-      - "./dummy-services/ftp-server/mounts/data/:/home/pixl/"
-      # Mount SSL keys for TLS
-      - "./dummy-services/ftp-server/mounts/ssl/:/etc/ssl/private/"
-    environment:
-      ADDRESS: "${FTP_HOST}"
-      USERS: ${FTP_USER_NAME}|${FTP_USER_PASS}|/home/${FTP_USER_NAME}
-      TLS_KEY: /etc/ssl/private/localhost.key
-      TLS_CERT: /etc/ssl/private/localhost.crt
-    healthcheck:
-      test: ping localhost:21 -w 2
-      interval: 10s
-      timeout: 5s
-      retries: 5
+    ftp-server:
+        container_name: system-test-ftp-server
+        build:
+            context: ./dummy-services/ftp-server
+        ports:
+            - "20021:21"
+            - "21000-21010:21000-21010"
+        volumes:
+            # Mount for uploaded data
+            - "./dummy-services/ftp-server/mounts/data/:/home/pixl/"
+            # Mount SSL keys for TLS
+            - "./dummy-services/ftp-server/mounts/ssl/:/etc/ssl/private/"
+        environment:
+            ADDRESS: "${FTP_HOST}"
+            USERS: ${FTP_USER_NAME}|${FTP_USER_PASSWORD}|/home/${FTP_USER_NAME}
+            TLS_KEY: /etc/ssl/private/localhost.key
+            TLS_CERT: /etc/ssl/private/localhost.crt
+        healthcheck:
+            test: ping localhost:21 -w 2
+            interval: 10s
+            timeout: 5s
+            retries: 5

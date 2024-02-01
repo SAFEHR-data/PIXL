@@ -31,7 +31,7 @@ os.environ["RABBITMQ_HOST"] = "localhost"
 os.environ["RABBITMQ_PORT"] = "25672"
 os.environ["FTP_HOST"] = "localhost"
 os.environ["FTP_USER_NAME"] = "pixl"
-os.environ["FTP_USER_PASS"] = "longpassword"  # noqa: S105 Hardcoding password
+os.environ["FTP_USER_PASSWORD"] = "longpassword"  # noqa: S105 Hardcoding password
 os.environ["FTP_PORT"] = "20021"
 
 TEST_DIR = Path(__file__).parent
