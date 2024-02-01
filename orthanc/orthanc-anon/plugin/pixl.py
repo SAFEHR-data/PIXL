@@ -171,11 +171,11 @@ def SendViaFTPS(resourceId: str) -> None:
     zip_content = response_study.content
     logging.info("Downloaded data for resource %s", resourceId)
 
-    upload.upload_dicom_image(zip_content, GetPatientID(resourceId))
+    upload.upload_dicom_image(zip_content, _get_patient_id(resourceId))
     logging.info("Uploaded data to FTPS for resource %s", resourceId)
 
 
-def GetPatientID(resourceId: str) -> str:
+def _get_patient_id(resourceId: str) -> str:
     """
     Queries the Orthanc instance to get the PatientID for a given resource.
     When anonymisation has been applied, the PatientID is the pseudo-anonymised ID.
@@ -205,7 +205,7 @@ def ShouldAutoRoute():
     return os.environ.get("ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT", "false").lower() == "true"
 
 
-def _AzureAvailable() -> bool:
+def _azure_available() -> bool:
     # Check if AZ_DICOM_ENDPOINT_CLIENT_ID is set
     return config("AZ_DICOM_ENDPOINT_CLIENT_ID", default="") != ""
 
@@ -228,7 +228,7 @@ def OnChange(changeType, level, resource):  # noqa: ARG001
         print("Stable study: %s" % resource)  # noqa: T201
         SendViaFTPS(resource)
 
-    if changeType == orthanc.ChangeType.ORTHANC_STARTED and _AzureAvailable():
+    if changeType == orthanc.ChangeType.ORTHANC_STARTED and _azure_available():
         orthanc.LogWarning("Starting the scheduler")
         AzureDICOMTokenRefresh()
     elif changeType == orthanc.ChangeType.ORTHANC_STOPPED:
