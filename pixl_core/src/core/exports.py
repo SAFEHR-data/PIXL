@@ -58,22 +58,25 @@ class ParquetExport:
         extract_time_slug = slugify.slugify(extract_datetime.isoformat())
         return project_slug, extract_time_slug
 
-    def copy_to_exports(self, input_omop_dir: pathlib.Path) -> str:
+    def copy_to_exports(self, input_omop_dir: pathlib.Path, rel_batch_name: pathlib.Path) -> str:
         """
         Copy public omop directory as the latest extract for the project.
         Creates directories if they don't already exist.
         :param input_omop_dir: parent path for input omop data, with a "public" subdirectory
+        :param rel_batch_name: batch name which determines output subdir to copy to, or Path() if
+                               this is a single batch extract
         :raises FileNotFoundError: if there is no public subdirectory in `omop_dir`
         :returns str: the project slug, so this can be registered for export to the DSH
         """
         public_input = input_omop_dir / "public"
 
         # Make directory for exports if they don't exist
-        ParquetExport._mkdir(self.public_output)
-        logger.info("Copying public parquet files from %s to %s", public_input, self.public_output)
+        public_batch_output = self.public_output / rel_batch_name
+        ParquetExport._mkdir(public_batch_output)
+        logger.info("Copying public parquet files from %s to %s", public_input, public_batch_output)
 
         # Copy extract files, overwriting if it exists
-        shutil.copytree(public_input, self.public_output, dirs_exist_ok=True)
+        shutil.copytree(public_input, public_batch_output, dirs_exist_ok=True)
 
         # Symlink this extract to the latest directory
         self.latest_symlink.unlink(missing_ok=True)

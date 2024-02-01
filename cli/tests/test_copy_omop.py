@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import datetime
+from pathlib import Path
 
 import pytest
 from core.exports import ParquetExport
@@ -32,7 +33,7 @@ def test_new_project_copies(omop_es_batch_generator, export_dir):
     input_date = datetime.datetime.fromisoformat("2020-06-10T18:00:00")
     omop_files = ParquetExport(project_name, input_date, export_dir)
     # ACT
-    omop_files.copy_to_exports(input_dir)
+    omop_files.copy_to_exports(input_dir, Path())
     # ASSERT
     output_base = omop_files.export_dir / "really-great-cool-project"
 
@@ -64,13 +65,13 @@ def test_second_export(omop_es_batch_generator, export_dir):
     first_export_datetime = datetime.datetime.fromisoformat("2020-06-10T18:00:00")
 
     omop_files = ParquetExport(project_name, first_export_datetime, export_dir)
-    omop_files.copy_to_exports(input_dir)
+    omop_files.copy_to_exports(input_dir, Path())
     second_export_datetime = datetime.datetime.fromisoformat("2020-07-10T18:00:00")
 
     omop_files = ParquetExport(project_name, second_export_datetime, export_dir)
 
     # ACT
-    omop_files.copy_to_exports(input_dir)
+    omop_files.copy_to_exports(input_dir, Path())
 
     # ASSERT
     output_base = omop_files.export_dir / "really-great-cool-project"
@@ -96,4 +97,4 @@ def test_project_with_no_public(resources, export_dir):
     input_date = datetime.datetime.fromisoformat("2020-06-10T18:00:00")
     omop_files = ParquetExport(project_name, input_date, export_dir)
     with pytest.raises(FileNotFoundError):
-        omop_files.copy_to_exports(input_dir)
+        omop_files.copy_to_exports(input_dir, Path())
