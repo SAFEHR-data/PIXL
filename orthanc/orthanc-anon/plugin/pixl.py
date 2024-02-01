@@ -165,7 +165,7 @@ def SendViaFTPS(resourceId: str) -> None:
     # Download zip archive of the DICOM resource
     query = f"{ORTHANC_URL}/studies/{resourceId}/archive"
     fail_msg = "Could not download archive of resource '%s'"
-    response_study = _make_query(resourceId, query, fail_msg)
+    response_study = _query(resourceId, query, fail_msg)
 
     # get the zip content
     zip_content = response_study.content
@@ -182,11 +182,11 @@ def GetPatientID(resourceId: str) -> str:
     """
     query = f"{ORTHANC_URL}/studies/{resourceId}"
     fail_msg = "Could not query study for resource '%s'"
-    response_study = _make_query(resourceId, query, fail_msg)
+    response_study = _query(resourceId, query, fail_msg)
     return json.loads(response_study.content.decode())["PatientMainDicomTags"]["PatientID"]
 
 
-def _make_query(resourceId: str, query: str, fail_msg: str) -> requests.Response:
+def _query(resourceId: str, query: str, fail_msg: str) -> requests.Response:
     try:
         response_study = requests.get(query, auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD), timeout=10)
         success_code = 200
