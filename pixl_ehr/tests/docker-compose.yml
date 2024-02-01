@@ -46,3 +46,10 @@ services:
         N_TABLE_ROWS: 2
     ports:
       - "35433:5432"
+
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      start_period: 30s
+      interval: 10s
+      timeout: 30s
+      retries: 5
