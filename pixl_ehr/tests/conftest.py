@@ -46,7 +46,7 @@ def run_containers() -> subprocess.CompletedProcess[bytes]:
         check=True,
         cwd=TEST_DIR,
         shell=True,  # noqa: S602
-        timeout=60,
+        timeout=120,
     )
     subprocess.run(
         b"docker compose down --volumes",
