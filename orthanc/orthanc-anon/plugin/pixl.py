@@ -188,16 +188,18 @@ def _get_patient_id(resourceId: str) -> str:
 
 def _query(resourceId: str, query: str, fail_msg: str) -> requests.Response:
     try:
-        response_study = requests.get(query, auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD), timeout=10)
+        response = requests.get(query, auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD), timeout=10)
         success_code = 200
-        if response_study.status_code != success_code:
+        if response.status_code != success_code:
             raise RuntimeError(fail_msg, resourceId)
-    except requests.exceptions.RequestException:
+    except requests.exceptions.RequestException as request_exception:
         orthanc.LogError(f"Failed to query'{resourceId}'")
-    return response_study
+        raise SystemExit from request_exception
+    else:
+        return response
 
 
-def ShouldAutoRoute():
+def ShouldAutoRoute() -> bool:
     """
     Checks whether ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT environment variable is
     set to true or false
