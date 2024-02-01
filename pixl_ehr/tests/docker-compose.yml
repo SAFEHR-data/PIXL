@@ -15,18 +15,6 @@ version: "3.8"
 
 services:
 
-  queue:
-    container_name: pixl-test-queue
-    image: rabbitmq:3.11.2-management
-    healthcheck:
-      test: rabbitmq-diagnostics -q check_running
-      interval: 30s
-      timeout: 30s
-      retries: 3
-    ports:
-      - "35672:5672"
-      - "45672:15672"
-
   postgres:
     container_name: pixl-test-db
     build:

@@ -14,13 +14,13 @@
 from __future__ import annotations
 
 import os
+import subprocess
+from pathlib import Path
+
+import pytest
 
 # configure environmental variables
 os.environ["LOG_LEVEL"] = "DEBUG"
-os.environ["RABBITMQ_PASSWORD"] = "guest"  # noqa: S105
-os.environ["RABBITMQ_USERNAME"] = "guest"
-os.environ["RABBITMQ_HOST"] = "queue"
-os.environ["RABBITMQ_PORT"] = "5672"
 os.environ["PIXL_DB_HOST"] = "localhost"
 os.environ["PIXL_DB_PORT"] = "35432"
 os.environ["PIXL_DB_NAME"] = "pixl"
@@ -34,3 +34,24 @@ os.environ["EMAP_UDS_USER"] = "postgres"
 os.environ["EMAP_UDS_PASSWORD"] = "postgres"  # noqa: S105
 os.environ["EMAP_UDS_SCHEMA_NAME"] = "star"
 os.environ["COGSTACK_REDACT_URL"] = "test"
+
+TEST_DIR = Path(__file__).parent
+
+
+@pytest.fixture(scope="package", autouse=True)
+def run_containers() -> subprocess.CompletedProcess[bytes]:
+    """Run docker containers for tests which require them."""
+    yield subprocess.run(
+        b"docker compose up --build --wait",
+        check=True,
+        cwd=TEST_DIR,
+        shell=True,  # noqa: S602
+        timeout=120,
+    )
+    subprocess.run(
+        b"docker compose down --volumes",
+        check=True,
+        cwd=TEST_DIR,
+        shell=True,  # noqa: S602
+        timeout=60,
+    )
