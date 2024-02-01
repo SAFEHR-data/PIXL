@@ -182,8 +182,10 @@ def _get_patient_id(resourceId: str) -> str:
     """
     query = f"{ORTHANC_URL}/studies/{resourceId}"
     fail_msg = "Could not query study for resource '%s'"
+
     response_study = _query(resourceId, query, fail_msg)
-    return json.loads(response_study.content.decode())["PatientMainDicomTags"]["PatientID"]
+    json_response = json.loads(response_study.content.decode())
+    return str(json_response["PatientMainDicomTags"]["PatientID"])
 
 
 def _query(resourceId: str, query: str, fail_msg: str) -> requests.Response:
