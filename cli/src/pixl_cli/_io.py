@@ -114,7 +114,7 @@ def copy_parquet_return_logfile_fields(extract_path: Path) -> tuple[str, datetim
     extract = ParquetExport(project_name, omop_es_timestamp, HOST_EXPORT_ROOT_DIR)
     for batch in batch_dirs:
         batch_subdir = batch.relative_to(extract_path)
-        extract.copy_to_exports(batch, str(batch_subdir))
+        extract.copy_to_exports(batch, batch_subdir)
     return extract.project_slug, omop_es_timestamp, batch_dirs
 
 
