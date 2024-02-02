@@ -45,7 +45,9 @@ def test_messages_from_parquet(
         omop_parquet_dir
     )
     # Act
-    messages = messages_from_parquet(omop_parquet_dir, project_name, omop_es_datetime)
+    messages = []
+    for batch in batch_dirs:
+        messages.extend(messages_from_parquet(batch, project_name, omop_es_datetime))
     # Assert
     assert all(isinstance(msg, Message) for msg in messages)
 

@@ -28,8 +28,8 @@ from core.patient_queue.subscriber import PixlBlockingConsumer
 from pixl_cli._config import cli_config
 from pixl_cli._database import filter_exported_or_add_to_db
 from pixl_cli._io import (
-    config_from_log_file,
     copy_parquet_return_logfile_fields,
+    determine_batch_structure,
     messages_from_parquet,
     messages_from_state_file,
 )
@@ -81,7 +81,9 @@ def populate(parquet_dir: Path, *, restart: bool, queues: str) -> None:
     """
     logger.info(f"Populating queue(s) {queues} from {parquet_dir}")
     project_name, omop_es_datetime, batch_dirs = copy_parquet_return_logfile_fields(parquet_dir)
-    messages = messages_from_parquet(parquet_dir, project_name, omop_es_datetime)
+    messages = []
+    for batch in batch_dirs:
+        messages.extend(messages_from_parquet(batch, project_name, omop_es_datetime))
 
     for queue in queues.split(","):
         state_filepath = state_filepath_for_queue(queue)
@@ -113,13 +115,13 @@ def extract_radiology_reports(parquet_dir: Path) -> None:
     PARQUET_DIR: Directory containing the extract_summary.json
     log file defining which extract to export radiology reports for.
     """
-    project_name, omop_es_datetime = config_from_log_file(parquet_dir)
+    project_name, omop_es_timestamp, _batch_dirs = determine_batch_structure(parquet_dir)
 
     # Call the EHR API
     api_config = api_config_for_queue("ehr")
     response = requests.post(
         url=f"{api_config.base_url}/export-radiology-as-parquet",
-        json={"project_name": project_name, "extract_datetime": omop_es_datetime.isoformat()},
+        json={"project_name": project_name, "extract_datetime": omop_es_timestamp.isoformat()},
         timeout=10,
     )
 

@@ -48,15 +48,27 @@ def messages_from_state_file(filepath: Path) -> list[Message]:
 
 
 def determine_batch_structure(extract_path: Path) -> tuple[str, datetime, list[Path]]:
+    """
+    Takes the top level extract directory and determines if it's a single or multi batch setup,
+    and returns the resultant metadata.
+    :param extract_path: the top level path that may contain the single batch or one or
+                         more directories containing batches.
+    :returns: ( slugified project name of all the batches,
+                slugified timestamp of all the batches,
+                list of directories containing batches
+                - can be just the top level directory in the case of a single batch
+              )
+    :raises RuntimeError: if config files are non-existent or contradictory
+    """
     log_filename = "extract_summary.json"
     single_batch_logfile = extract_path / log_filename
     if single_batch_logfile.exists():
-        project_name, omop_es_timestamp = config_from_log_file(single_batch_logfile)
+        project_name, omop_es_timestamp = _config_from_log_file(single_batch_logfile)
         return project_name, omop_es_timestamp, [extract_path]
 
     # should it really be 'extract_*'?
     batch_dirs = list(extract_path.glob("batch_*"))
-    extract_ids = [config_from_log_file(log_file / log_filename) for log_file in batch_dirs]
+    extract_ids = [_config_from_log_file(log_file / log_filename) for log_file in batch_dirs]
     # There should be one or more log files, all with the same identifiers
     if not extract_ids:
         err = f"No batched or unbatched log files found in {extract_path}"
@@ -74,7 +86,11 @@ def determine_batch_structure(extract_path: Path) -> tuple[str, datetime, list[P
     return project_name, omop_es_timestamp, batch_dirs
 
 
-def config_from_log_file(log_file: Path) -> tuple[str, datetime]:
+def _config_from_log_file(log_file: Path) -> tuple[str, datetime]:
+    """
+    Load a config file from the given file. This method has no knowledge of
+    multi- vs single- batch so should not be called directly.
+    """
     logs = json.load(log_file.open())
     project_name = logs["settings"]["cdm_source_name"]
     omop_es_timestamp = datetime.fromisoformat(logs["datetime"])
@@ -89,16 +105,17 @@ def copy_parquet_return_logfile_fields(extract_path: Path) -> tuple[str, datetim
     :returns: ( slugified project name of all the batches,
                 slugified timestamp of all the batches,
                 list of directories containing batches
-                - can be just the top level
-                directory in the case of a single batch
+                - can be just the top level directory in the case of a single batch
               )
     :raises RuntimeError: if no log file can be found, or there is more than one batch and
                             project names or timestamps don't match.
     """
     project_name, omop_es_timestamp, batch_dirs = determine_batch_structure(extract_path)
     extract = ParquetExport(project_name, omop_es_timestamp, HOST_EXPORT_ROOT_DIR)
-    project_name_slug = extract.copy_to_exports(extract_path)
-    return project_name_slug, omop_es_timestamp, batch_dirs
+    for batch in batch_dirs:
+        batch_subdir = batch.relative_to(extract_path)
+        extract.copy_to_exports(batch, str(batch_subdir))
+    return extract.project_slug, omop_es_timestamp, batch_dirs
 
 
 def messages_from_parquet(
