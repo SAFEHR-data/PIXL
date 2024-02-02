@@ -28,6 +28,6 @@ print(f"expected output dir: {expected_output_dir}")
 glob_list = list(expected_output_dir.glob("*.zip"))
 print(f"glob_list: {glob_list}")
 
-assert len(glob_list) == 1
+assert len(glob_list) == 2
 
 # TODO: check parquet files upload

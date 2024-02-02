@@ -88,7 +88,7 @@ services:
             # Mount SSL keys for TLS
             - "./dummy-services/ftp-server/mounts/ssl/:/etc/ssl/private/"
         environment:
-            ADDRESS: "localhost"
+            ADDRESS: ${FTP_HOST}
             USERS: ${FTP_USER_NAME}|${FTP_USER_PASSWORD}|/home/${FTP_USER_NAME}
             TLS_KEY: /etc/ssl/private/localhost.key
             TLS_CERT: /etc/ssl/private/localhost.crt

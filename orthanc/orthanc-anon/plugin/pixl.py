@@ -171,7 +171,7 @@ def SendViaFTPS(resourceId: str) -> None:
     zip_content = response_study.content
     logging.info("Downloaded data for resource %s", resourceId)
 
-    upload.upload_dicom_image(zip_content, _get_patient_id(resourceId))
+    upload.upload_dicom_image(BytesIO(zip_content), _get_patient_id(resourceId))
     logging.info("Uploaded data to FTPS for resource %s", resourceId)
 
 
@@ -246,7 +246,7 @@ def OnHeartBeat(output, uri, **request) -> Any:  # noqa: ARG001
     output.AnswerBuffer("OK\n", "text/plain")
 
 
-def ReceivedInstanceCallback(receivedDicom: BytesIO, origin: str) -> Any:
+def ReceivedInstanceCallback(receivedDicom: bytes, origin: str) -> Any:
     """Modifies a DICOM instance received by Orthanc and applies anonymisation."""
     if origin == orthanc.InstanceOrigin.REST_API:
         orthanc.LogWarning("DICOM instance received from the REST API")
