@@ -12,6 +12,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+import subprocess
 from pathlib import Path
 from shutil import rmtree
 from time import sleep
@@ -29,7 +30,7 @@ print(f"expected output dir: {expected_output_dir}")
 SECONDS_WAIT = 5
 
 glob_list = []
-for seconds in range(0, 601, SECONDS_WAIT):
+for seconds in range(0, 121, SECONDS_WAIT):
     # Test whether DICOM images have been uploaded
     glob_list = list(expected_output_dir.glob("*.zip"))
     print(f"Waited for {seconds} seconds. glob_list: {glob_list}")
@@ -42,6 +43,7 @@ try:
     # We expect 2 DICOM image studies to be uploaded
     assert len(glob_list) == 2
 finally:
-    rmtree(expected_output_dir)
+    # To we want to always remove the files if its failed, may help debugging not to?
+    rmtree(expected_output_dir, ignore_errors=True)
 
 # TODO: check parquet files upload
