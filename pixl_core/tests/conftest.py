@@ -32,10 +32,13 @@ os.environ["RABBITMQ_HOST"] = "localhost"
 os.environ["RABBITMQ_PORT"] = "25672"
 os.environ["FTP_HOST"] = "localhost"
 os.environ["FTP_USER_NAME"] = "pixl"
-os.environ["FTP_USER_PASS"] = "longpassword"  # noqa: S105 Hardcoding password
+os.environ["FTP_USER_PASSWORD"] = "longpassword"  # noqa: S105 Hardcoding password
 os.environ["FTP_PORT"] = "20021"
 
 TEST_DIR = Path(__file__).parent
+MOUNTED_DATA_DIR = (
+    Path(__file__).parents[2] / "test" / "dummy-services" / "ftp-server" / "mounts" / "data"
+)
 STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
 
 
@@ -73,7 +76,7 @@ def mounted_data(run_containers) -> Path:
     This will contain the data after successful upload.
     Tear down through docker
     """
-    yield TEST_DIR / "ftp-server" / "mounts" / "data"
+    yield MOUNTED_DATA_DIR
     # Tear down the directory after tests
     subprocess.run(
         b"docker compose exec ftp-server sh -c 'rm -r /home/pixl/*'",

@@ -178,7 +178,7 @@
 - name: "Patients Age"
   group: 0x0010
   element: 0x1010
-  op: "num-range"
+  op: "delete"
 - name: "Patients Size"
   group: 0x0010
   element: 0x1020
