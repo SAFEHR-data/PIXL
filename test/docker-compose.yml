@@ -85,8 +85,6 @@ services:
         volumes:
             # Mount for uploaded data
             - "./dummy-services/ftp-server/mounts/data/:/home/${FTP_USER_NAME}/"
-            # Mount SSL keys for TLS
-            - "./dummy-services/ftp-server/mounts/ssl/:/etc/ssl/private/"
         environment:
             ADDRESS: ${FTP_HOST}
             USERS: ${FTP_USER_NAME}|${FTP_USER_PASSWORD}|/home/${FTP_USER_NAME}
