@@ -14,6 +14,7 @@
 #  limitations under the License.
 from pathlib import Path
 from shutil import rmtree
+from time import sleep
 
 PARQUET_PATH = Path(__file__).parents[1] / "resources" / "omop"
 print(f"parquet path: {PARQUET_PATH}")
@@ -34,6 +35,7 @@ for seconds in range(0, 601, SECONDS_WAIT):
     print(f"Waited for {seconds} seconds. glob_list: {glob_list}")
     if glob_list:
         break
+    sleep(SECONDS_WAIT)
 
 # Check for expected number of uploaded files and clean up, even if the assertion fails
 try:
