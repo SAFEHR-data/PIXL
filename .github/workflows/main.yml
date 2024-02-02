@@ -249,4 +249,5 @@ jobs:
         if: always()
         working-directory: test
         run: |
-          docker logs system-test-ftp-server
+          docker logs system-test-ftp-server &&\
+          docker logs system-test-orthanc-anon-1 --tail=1000

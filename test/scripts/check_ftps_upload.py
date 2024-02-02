@@ -24,9 +24,15 @@ print(f"project name: {project_name}")
 expected_output_dir = MOUNTED_DATA_DIR / project_name
 print(f"expected output dir: {expected_output_dir}")
 
-# Test whether DICOM images have been uploaded
-glob_list = list(expected_output_dir.glob("*.zip"))
-print(f"glob_list: {glob_list}")
+SECONDS_WAIT = 5
+
+glob_list = []
+for seconds in range(0, 121, SECONDS_WAIT):
+    # Test whether DICOM images have been uploaded
+    glob_list = list(expected_output_dir.glob("*.zip"))
+    print(f"Waited for {seconds} seconds. glob_list: {glob_list}")
+    if glob_list:
+        break
 
 assert len(glob_list) == 2
 
