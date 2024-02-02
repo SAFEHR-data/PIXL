@@ -46,6 +46,8 @@ ORTHANC_USERNAME = config("ORTHANC_USERNAME")
 ORTHANC_PASSWORD = config("ORTHANC_PASSWORD")
 ORTHANC_URL = "http://localhost:8042"
 
+logger = logging.getLogger(__name__)
+
 
 def AzureAccessToken():
     """
@@ -143,7 +145,7 @@ def SendViaStow(resourceId):
 
     payload = {"Resources": [resourceId], "Synchronous": False}
 
-    logging.info("Payload: %s", payload)
+    logger.info("Payload: %s", payload)
 
     try:
         requests.post(
@@ -162,6 +164,8 @@ def SendViaFTPS(resourceId: str) -> None:
     Makes a POST API call to upload the resource to an FTPS server
     using orthanc credentials as authorisation
     """
+    msg = f"Sending {resourceId} via FTPS"
+    logging.info(msg)
     # Download zip archive of the DICOM resource
     query = f"{ORTHANC_URL}/studies/{resourceId}/archive"
     fail_msg = "Could not download archive of resource '%s'"
@@ -169,10 +173,10 @@ def SendViaFTPS(resourceId: str) -> None:
 
     # get the zip content
     zip_content = response_study.content
-    logging.info("Downloaded data for resource %s", resourceId)
+    logger.info("Downloaded data for resource %s", resourceId)
 
     upload.upload_dicom_image(BytesIO(zip_content), _get_patient_id(resourceId))
-    logging.info("Uploaded data to FTPS for resource %s", resourceId)
+    logger.info("Uploaded data to FTPS for resource %s", resourceId)
 
 
 def _get_patient_id(resourceId: str) -> str:
@@ -206,6 +210,7 @@ def ShouldAutoRoute() -> bool:
     Checks whether ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT environment variable is
     set to true or false
     """
+    logger.debug("Checking value of autoroute")
     return os.environ.get("ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT", "false").lower() == "true"
 
 
@@ -228,7 +233,8 @@ def OnChange(changeType, level, resource):  # noqa: ARG001
         return
 
     if changeType == orthanc.ChangeType.STABLE_STUDY and ShouldAutoRoute():
-        print("Stable study: %s" % resource)  # noqa: T201
+        msg = f"Stable study: {resource}"
+        logger.info(msg)
         SendViaFTPS(resource)
 
     if changeType == orthanc.ChangeType.ORTHANC_STARTED and _azure_available():
