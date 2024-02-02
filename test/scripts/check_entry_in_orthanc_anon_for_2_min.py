@@ -34,7 +34,7 @@ for seconds in range(0, 121, SECONDS_WAIT):
     instances_cmd = shlex.split('docker exec system-test-orthanc-anon-1 curl -u "orthanc_anon_username:orthanc_anon_password" http://orthanc-anon:8042/instances')
     instances_output = subprocess.run(instances_cmd, capture_output=True, check=True, text=True)
     instances = json.loads(instances_output.stdout)
-    print("orthanc-anon instances:", instances)
+    print(f"Waited for {seconds} seconds, orthanc-anon instances: {instances}")
     if len(instances) == 2:
         break
     sleep(SECONDS_WAIT)
