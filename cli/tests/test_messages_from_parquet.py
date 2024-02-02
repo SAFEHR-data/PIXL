@@ -15,10 +15,15 @@
 from __future__ import annotations
 
 import datetime
+import shutil
 
 import pytest
 from core.patient_queue.message import Message
-from pixl_cli._io import copy_parquet_return_logfile_fields, messages_from_parquet
+from pixl_cli._io import (
+    copy_parquet_return_logfile_fields,
+    determine_batch_structure,
+    messages_from_parquet,
+)
 
 
 @pytest.mark.parametrize(
@@ -87,3 +92,17 @@ def test_empty_batches(tmp_path) -> None:
     """Empty dir, nothing found."""
     with pytest.raises(RuntimeError, match=r"No batched or unbatched log files found in"):
         copy_parquet_return_logfile_fields(tmp_path)
+
+
+def test_missing_public(omop_es_batch_generator) -> None:
+    """
+    This error is hard to reach in real life because a missing public dir would trigger an error
+    from copy_parquet_return_logfile_fields first.
+    """
+    omop_parquet_dir = omop_es_batch_generator(["batch_1"], single_batch=True)
+    # simulate broken input batch
+    shutil.rmtree(omop_parquet_dir / "public", ignore_errors=False)
+
+    project_name, omop_es_datetime, batch_dirs = determine_batch_structure(omop_parquet_dir)
+    with pytest.raises(NotADirectoryError):
+        messages_from_parquet(omop_parquet_dir, project_name, omop_es_datetime)
