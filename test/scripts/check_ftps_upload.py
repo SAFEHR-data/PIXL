@@ -34,7 +34,7 @@ for seconds in range(0, 121, SECONDS_WAIT):
     # Test whether DICOM images have been uploaded
     glob_list = list(expected_output_dir.glob("*.zip"))
     print(f"Waited for {seconds} seconds. glob_list: {glob_list}")
-    if glob_list:
+    if len(glob_list) == 2:
         break
     sleep(SECONDS_WAIT)
 
