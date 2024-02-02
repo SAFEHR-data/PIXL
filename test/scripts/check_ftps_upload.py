@@ -34,6 +34,7 @@ for seconds in range(0, 601, SECONDS_WAIT):
     if glob_list:
         break
 
+# We expect 2 DICOM image studies to be uploaded
 assert len(glob_list) == 2
 
 # TODO: check parquet files upload
