@@ -13,6 +13,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 from pathlib import Path
+from shutil import rmtree
 
 PARQUET_PATH = Path(__file__).parents[1] / "resources" / "omop"
 print(f"parquet path: {PARQUET_PATH}")
@@ -34,7 +35,11 @@ for seconds in range(0, 601, SECONDS_WAIT):
     if glob_list:
         break
 
-# We expect 2 DICOM image studies to be uploaded
-assert len(glob_list) == 2
+# Check for expected number of uploaded files and clean up, even if the assertion fails
+try:
+    # We expect 2 DICOM image studies to be uploaded
+    assert len(glob_list) == 2
+finally:
+    rmtree(expected_output_dir)
 
 # TODO: check parquet files upload
