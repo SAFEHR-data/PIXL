@@ -42,8 +42,8 @@ for seconds in range(0, 121, SECONDS_WAIT):
 try:
     # We expect 2 DICOM image studies to be uploaded
     assert len(glob_list) == 2
+    # TODO: check parquet files upload before deleting
 finally:
     # To we want to always remove the files if its failed, may help debugging not to?
     rmtree(expected_output_dir, ignore_errors=True)
 
-# TODO: check parquet files upload

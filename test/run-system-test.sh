@@ -35,12 +35,13 @@ pixl start
 # need to wait until the DICOM image is "stable" so poll for 2 minutes to check
 ./scripts/check_entry_in_orthanc_anon_for_2_min.py
 ./scripts/check_entry_in_pixl_anon.sh
-./scripts/check_ftps_upload.py
 
+# test export and upload
 pixl extract-radiology-reports "${PACKAGE_DIR}/test/resources/omop"
-
 ./scripts/check_radiology_parquet.py \
   ../exports/test-extract-uclh-omop-cdm/latest/radiology/radiology.parquet
+./scripts/check_ftps_upload.py
+
 
 ls -laR ../exports/
 docker exec system-test-ehr-api-1 rm -r /run/exports/test-extract-uclh-omop-cdm/
