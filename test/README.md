@@ -57,10 +57,10 @@ as the FTP client. The Docker container requires the following environment varia
 > work, as the address name is only checked for protected operations such as listing and transfering
 > files._
 
-**Volumes**:
+**Volume**: to check succesful uploads, we mount a local data directory to `/home/${FTP_USERNAME}/`
 
--   To check succesful uploads, we mount a local data directory to `/home/${FTP_USERNAME}/`
--   The `TLS_*` files should be mounted to the `/etc/ssl/private` directory.
+**SSL certifcates**: the SSL certificate files are defined in `test/dummy-services/ftp-server/ssl`
+and are copied into `/etc/ssl/private` when building the Docker container.
 
 ### Resources
 
