@@ -35,7 +35,8 @@ A test `pixl_config.yml` file is provided to run the PIXL pipeline.
 ### Dummy services
 
 `./dummy-services` contains a Python script and Dockerfile to mock the CogStack service, used for
-de-identification of the radiology reports in the EHR API.
+de-identification of the radiology reports in the EHR API, and an FTP server for testing the
+DSH upload.
 
 #### FTP server
 
@@ -65,8 +66,14 @@ and are copied into `/etc/ssl/private` when building the Docker container.
 ### Resources
 
 -   `./resources/` provides 2 mock DICOM images used to populate the mock VNA.
--   `./resources/omop` contains mock public and private Parquet files used to populate the message
-    queues and extract the radiology reports
+-   `./resources/omop` contains several extract batches, each containing a config (log) file and
+      mock public and private Parquet files used to populate the message
+      queues and extract the radiology reports.
+      System and unit tests are able to set up some subset of these
+      batches depending on what they're testing. `batch_1` and `batch_2` together form the happy
+      path for the system test. `batch_3` has a mismatching timestamp so is supposed
+      to fail when used with 1 or 2. Any batch can also be used alone as a single-batch (old style)
+      extract.
 
 ### VNA config
 
