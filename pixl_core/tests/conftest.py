@@ -31,10 +31,13 @@ os.environ["RABBITMQ_HOST"] = "localhost"
 os.environ["RABBITMQ_PORT"] = "25672"
 os.environ["FTP_HOST"] = "localhost"
 os.environ["FTP_USER_NAME"] = "pixl"
-os.environ["FTP_USER_PASS"] = "longpassword"  # noqa: S105 Hardcoding password
+os.environ["FTP_USER_PASSWORD"] = "longpassword"  # noqa: S105 Hardcoding password
 os.environ["FTP_PORT"] = "20021"
 
 TEST_DIR = Path(__file__).parent
+MOUNTED_DATA_DIR = (
+    Path(__file__).parents[2] / "test" / "dummy-services" / "ftp-server" / "mounts" / "data"
+)
 STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
 
 
@@ -71,10 +74,8 @@ def mounted_data() -> Path:
     The mounted data directory for the ftp server.
     This will contain the data after successful upload.
     """
-    yield TEST_DIR / "ftp-server" / "mounts" / "data"
-    sub_dirs = [
-        f.path for f in os.scandir(TEST_DIR / "ftp-server" / "mounts" / "data") if f.is_dir()
-    ]
+    yield MOUNTED_DATA_DIR
+    sub_dirs = [f.path for f in os.scandir(MOUNTED_DATA_DIR) if f.is_dir()]
     # Tear down the directory after tests
     for sub_dir in sub_dirs:
         shutil.rmtree(sub_dir, ignore_errors=True)
