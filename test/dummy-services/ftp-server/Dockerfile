@@ -13,7 +13,7 @@
 #  limitations under the License.
 FROM delfer/alpine-ftp-server
 
-COPY /dummy-services/ftp-server/ssl/ /etc/ssl/private/
+COPY ssl/ /etc/ssl/private/
 
 SHELL ["/bin/sh", "-c"]
 RUN echo $'# Attempting to enable FTPS.\n\
