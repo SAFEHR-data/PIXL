@@ -30,19 +30,21 @@ docker compose --env-file .env.test -p system-test up --wait -d --build --remove
 pip install -e "${PACKAGE_DIR}/pixl_core" && pip install -e "${PACKAGE_DIR}/cli"
 pixl populate "${PACKAGE_DIR}/test/resources/omop"
 pixl start
-sleep 65  # need to wait until the DICOM image is "stable" = 60s
-./scripts/check_entry_in_pixl_anon.sh
-./scripts/check_entry_in_orthanc_anon.py
+
 ./scripts/check_max_storage_in_orthanc_raw.sh
+# need to wait until the DICOM image is "stable" so poll for 2 minutes to check
+./scripts/check_entry_in_orthanc_anon_for_2_min.py
+./scripts/check_entry_in_pixl_anon.sh
 
+# test export and upload
 pixl extract-radiology-reports "${PACKAGE_DIR}/test/resources/omop"
-
 ./scripts/check_radiology_parquet.py \
   ../exports/test-extract-uclh-omop-cdm/latest/radiology/radiology.parquet
+./scripts/check_ftps_upload.py
+
 
 ls -laR ../exports/
 docker exec system-test-ehr-api-1 rm -r /run/exports/test-extract-uclh-omop-cdm/
 
 cd "${PACKAGE_DIR}"
 docker compose -f docker-compose.yml -f test/docker-compose.yml -p system-test down --volumes
-

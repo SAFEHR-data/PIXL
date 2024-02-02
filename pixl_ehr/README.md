@@ -44,8 +44,8 @@ and the processing tests with
 ```
 
 To test the availability of a CogStack instance, we mock up a *FastAPI* server which simply takes in
-some input text and returns the text with a fixed suffix. The configuration of this mock instance is
-defined in [`test/dummy-services`](/test/dummy-services/).
+some input text and returns the text with a fixed suffix. The mocking is handled by a *pytest* fixture in
+`test_processing.py()` (`_mock_requests`).
 
 ## Usage
 
