@@ -40,8 +40,6 @@ services:
     volumes:
       # Mount for uploaded data
       - "../../test/dummy-services/ftp-server/mounts/data/:/home/pixl/"
-      # Mount SSL keys for TLS
-      - "../../test/dummy-services/ftp-server/mounts/ssl/:/etc/ssl/private/"
     environment:
       ADDRESS: "localhost"
       USERS: pixl|longpassword|/home/pixl
