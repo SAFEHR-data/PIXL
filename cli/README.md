@@ -44,20 +44,41 @@ pixl --help
 Populate queue for PACS and EHR extraction
 
 ```bash
-pixl populate </path/to/parquet_dir>
+pixl populate PARQUET_DIR
 ```
 
-where `parquet_dir` contains at least the following files:
+where `PARQUET_DIR` has one of the two following setups, which the CLI will automatically detect:
 
+* In single batch mode:
 ```sh
-parquet_dir
-├── extract_summary.json
-├── private
-│   ├── PERSON_LINKS.parquet
-│   └── PROCEDURE_OCCURRENCE_LINKS.parquet
-└── public
-    └── PROCEDURE_OCCURRENCE.parquet
+└── PARQUET_DIR
+    ├── extract_summary.json
+    ├── private
+    │   ├── PERSON_LINKS.parquet
+    │   └── PROCEDURE_OCCURRENCE_LINKS.parquet
+    └── public
+        └── PROCEDURE_OCCURRENCE.parquet
 ```
+
+* In multi-batch configuration:
+```sh
+└── PARQUET_DIR
+    ├── batch_1
+    │   ├── extract_summary.json
+    │   ├── private
+    │   │   ├── PERSON_LINKS.parquet
+    │   │   └── PROCEDURE_OCCURRENCE_LINKS.parquet
+    │   └── public
+    │       └── PROCEDURE_OCCURRENCE.parquet
+    └── batch_2
+        ├── extract_summary.json
+        ├── private
+        │   ├── PERSON_LINKS.parquet
+        │   └── PROCEDURE_OCCURRENCE_LINKS.parquet
+        └── public
+            └── PROCEDURE_OCCURRENCE.parquet
+```
+
 
 Start the imaging extraction
 
