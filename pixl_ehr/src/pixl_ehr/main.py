@@ -91,13 +91,21 @@ def export_patient_data(export_params: ExportRadiologyData) -> None:
     """
     export_radiology_as_parquet(export_params)
 
-    send_via_ftps(
-        export_params.project_name, export_params.extract_datetime, export_params.output_dir
+    # Upload Parquet files to the appropriate endpoint
+    upload_parquet_files(
+        ParquetExport(
+            export_params.project_name, export_params.extract_datetime, export_params.output_dir
+        )
     )
 
 
 def export_radiology_as_parquet(export_params: ExportRadiologyData) -> None:
-    """export-radiology-as-parquet"""
+    """
+    Export radiology reports as a parquet file to
+    `{EHR_EXPORT_ROOT_DIR}/<project-slug>/all_extracts/radiology/radiology.parquet`.
+    :param export_params: the project name, extract datetime and output directory defined as an
+        ExportRadiologyData object.
+    """
     pe = ParquetExport(
         export_params.project_name, export_params.extract_datetime, export_params.output_dir
     )
@@ -106,14 +114,6 @@ def export_radiology_as_parquet(export_params: ExportRadiologyData) -> None:
         pe.project_slug, export_params.extract_datetime
     )
     pe.export_radiology(anon_data)
-
-
-def send_via_ftps(
-    project_name: str, extract_datetime: datetime, export_dir: Optional[Path]
-) -> None:
-    """Send parquet files via FTPS"""
-    pe = ParquetExport(project_name, extract_datetime, export_dir)
-    upload_parquet_files(pe)
 
 
 @app.get(
