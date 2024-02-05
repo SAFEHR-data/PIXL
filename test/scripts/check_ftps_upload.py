@@ -22,10 +22,13 @@ print(f"parquet path: {OMOP_INPUT_PATH}")
 MOUNTED_DATA_DIR = Path(__file__).parents[1] / "dummy-services" / "ftp-server" / "mounts" / "data"
 print(f"mounted data dir: {MOUNTED_DATA_DIR}")
 
-project_name = "test-extract-uclh-omop-cdm"
-print(f"project name: {project_name}")
-expected_output_dir = MOUNTED_DATA_DIR / project_name
+project_slug = "test-extract-uclh-omop-cdm"
+extract_time_slug = "2023-12-07t14-08-58"
+
+expected_output_dir = MOUNTED_DATA_DIR / project_slug
+expected_public_parquet_dir = expected_output_dir / extract_time_slug / "parquet"
 print(f"expected output dir: {expected_output_dir}")
+print(f"expected parquet files dir: {expected_public_parquet_dir}")
 
 SECONDS_WAIT = 5
 
@@ -40,7 +43,9 @@ for seconds in range(0, 121, SECONDS_WAIT):
 
 # We expect 2 DICOM image studies to be uploaded
 assert len(zip_files) == 2
-# TODO: check parquet files upload before deleting
+assert expected_public_parquet_dir.exists()
+assert (expected_public_parquet_dir / "PROCEDURE_OCCURRENCE.parquet").exists()
+assert (expected_public_parquet_dir / "radiology.parquet").exists()
 
 # Clean up; only happens if the assertion passes
 rmtree(expected_output_dir, ignore_errors=True)
