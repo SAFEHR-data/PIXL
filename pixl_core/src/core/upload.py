@@ -87,7 +87,7 @@ def upload_dicom_image(zip_content: BinaryIO, pseudo_anon_id: str) -> None:
 
 def upload_parquet_files(parquet_export: ParquetExport) -> None:
     """Upload parquet to FTPS under <project name>/<extract datetime>/parquet."""
-    current_extract = parquet_export.public_output.parent
+    current_extract = parquet_export.public_output.parents[1]
     # Create the remote directory if it doesn't exist
     ftp = _connect_to_ftp()
     _create_and_set_as_cwd(ftp, parquet_export.project_slug)
