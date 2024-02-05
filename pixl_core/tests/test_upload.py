@@ -74,7 +74,8 @@ def test_upload_parquet(parquet_export, mounted_data) -> None:
     # ARRANGE
 
     parquet_export.copy_to_exports(
-        pathlib.Path(__file__).parents[2] / "test" / "resources" / "omop"
+        pathlib.Path(__file__).parents[2] / "test" / "resources" / "omop" / "batch_1",
+        pathlib.Path(),
     )
     with (parquet_export.public_output.parent / "radiology.parquet").open("w") as handle:
         handle.writelines(["dummy data"])
