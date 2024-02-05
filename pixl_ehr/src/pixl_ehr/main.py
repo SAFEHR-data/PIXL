@@ -28,6 +28,7 @@ from azure.storage.blob import BlobServiceClient
 from core.exports import ParquetExport
 from core.patient_queue import PixlConsumer
 from core.rest_api.router import router, state
+from core.upload import upload_parquet_files
 from decouple import config
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
@@ -78,18 +79,37 @@ class ExportRadiologyData(BaseModel):
 
 
 @app.post(
-    "/export-radiology-as-parquet",
-    summary="Copy all matching radiology reports in the PIXL DB to a parquet file",
+    "/export-patient-data",
+    summary="Copy all matching radiology reports in the PIXL DB to a parquet file \
+    and send all ParquetExports via FTPS",
 )
-def export_radiology_as_parquet(export_params: ExportRadiologyData) -> None:
+def export_patient_data(export_params: ExportRadiologyData) -> None:
     """
     Batch export of all matching radiology reports in PIXL DB to a parquet file.
     NOTE: we can't check that all reports in the queue have been processed, so
     we are relying on the user waiting until processing has finished before running this.
     """
+    export_radiology_as_parquet(export_params)
+
+    # Upload Parquet files to the appropriate endpoint
+    upload_parquet_files(
+        ParquetExport(
+            export_params.project_name, export_params.extract_datetime, export_params.output_dir
+        )
+    )
+
+
+def export_radiology_as_parquet(export_params: ExportRadiologyData) -> None:
+    """
+    Export radiology reports as a parquet file to
+    `{EHR_EXPORT_ROOT_DIR}/<project-slug>/all_extracts/radiology/radiology.parquet`.
+    :param export_params: the project name, extract datetime and output directory defined as an
+        ExportRadiologyData object.
+    """
     pe = ParquetExport(
         export_params.project_name, export_params.extract_datetime, export_params.output_dir
     )
+
     anon_data = PIXLDatabase().get_radiology_reports(
         pe.project_slug, export_params.extract_datetime
     )
