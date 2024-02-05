@@ -15,13 +15,14 @@ from __future__ import annotations
 
 import datetime
 import os
-import shutil
+import pathlib
 import subprocess
 from pathlib import Path
 from typing import BinaryIO
 
 import pytest
 from core.db.models import Base, Extract, Image
+from core.exports import ParquetExport
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -69,16 +70,21 @@ def test_zip_content() -> BinaryIO:
 
 
 @pytest.fixture()
-def mounted_data() -> Path:
+def mounted_data(run_containers) -> Path:
     """
     The mounted data directory for the ftp server.
     This will contain the data after successful upload.
+    Tear down through docker
     """
     yield MOUNTED_DATA_DIR
-    sub_dirs = [f.path for f in os.scandir(MOUNTED_DATA_DIR) if f.is_dir()]
     # Tear down the directory after tests
-    for sub_dir in sub_dirs:
-        shutil.rmtree(sub_dir, ignore_errors=True)
+    subprocess.run(
+        b"docker compose exec ftp-server sh -c 'rm -r /home/pixl/*'",
+        check=True,
+        cwd=TEST_DIR,
+        shell=True,  # noqa: S602
+        timeout=60,
+    ).check_returncode()
 
 
 @pytest.fixture(scope="module")
@@ -170,3 +176,19 @@ def not_yet_exported_dicom_image(rows_in_session) -> Image:
 def already_exported_dicom_image(rows_in_session) -> Image:
     """Return a DICOM image from the database."""
     return rows_in_session.query(Image).filter(Image.hashed_identifier == "already_exported").one()
+
+
+@pytest.fixture(autouse=True)
+def export_dir(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
+    """Tmp dir to for tests to extract to."""
+    return tmp_path_factory.mktemp("export_base") / "exports"
+
+
+@pytest.fixture()
+def parquet_export(export_dir) -> ParquetExport:
+    """Return a ParquetExport object."""
+    return ParquetExport(
+        project_name="i-am-a-project",
+        extract_datetime=datetime.datetime.now(tz=datetime.timezone.utc),
+        export_dir=export_dir,
+    )

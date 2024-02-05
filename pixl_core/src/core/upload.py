@@ -26,6 +26,9 @@ from typing import TYPE_CHECKING, Any, BinaryIO
 if TYPE_CHECKING:
     from socket import socket
 
+    from core.exports import ParquetExport
+
+
 from core.db.queries import get_project_slug_from_db, update_exported_at
 
 logger = logging.getLogger(__name__)
@@ -80,6 +83,34 @@ def upload_dicom_image(zip_content: BinaryIO, pseudo_anon_id: str) -> None:
     logger.debug("Finished uploading!")
 
     update_exported_at(pseudo_anon_id, datetime.now(tz=timezone.utc))
+
+
+def upload_parquet_files(parquet_export: ParquetExport) -> None:
+    """Upload parquet to FTPS under <project name>/<extract datetime>/parquet."""
+    current_extract = parquet_export.public_output.parents[1]
+    # Create the remote directory if it doesn't exist
+    ftp = _connect_to_ftp()
+    _create_and_set_as_cwd(ftp, parquet_export.project_slug)
+    _create_and_set_as_cwd(ftp, parquet_export.extract_time_slug)
+    _create_and_set_as_cwd(ftp, "parquet")
+
+    export_files = [x for x in current_extract.rglob("*.parquet") if x.is_file()]
+    if not export_files:
+        msg = f"No files found in {current_extract}"
+        raise FileNotFoundError(msg)
+
+    # throw exception if empty dir
+    for path in export_files:
+        with path.open("rb") as handle:
+            command = f"STOR {path.stem}.parquet"
+            logger.debug("Running %s", command)
+
+            # Store the file using a binary handler
+            ftp.storbinary(command, handle)
+
+    # Close the FTP connection
+    ftp.quit()
+    logger.debug("Finished uploading!")
 
 
 def _connect_to_ftp() -> FTP_TLS:
