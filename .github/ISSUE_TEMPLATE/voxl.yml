@@ -11,8 +11,8 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-name: 100-day story
-description: Create a new story or task for 100 day plan project
+name: VOXL story
+description: Create a new story or task for VOXL
 projects: [ "UCLH-Foundry/13" ]
 body:
   - type: markdown
@@ -24,7 +24,7 @@ body:
     attributes:
       label: Definition of Done / Acceptance Criteria
       description: What can someone see/do when this task is done.
-      placeholder: The export data is available in the xxx format, including age of the patient at the time of imaging...
+      placeholder: "- [ ] The export data is available in the xxx format, including age of the patient at the time of imaging..."
     validations:
       required: true
   - type: textarea
@@ -32,7 +32,7 @@ body:
     attributes:
       label: Testing
       description: Specific testing considerations for this task to be done
-      placeholder: Passed integration testing that uses the correct modality...
+      placeholder: "- [ ] Passed integration testing that uses the correct modality..."
     validations:
       required: false
   - type: textarea
@@ -40,15 +40,15 @@ body:
     attributes:
       label: Documentation
       description: Documentation to be completed along with this task
-      placeholder: Update README and user guide...
+      placeholder: "- [ ] Update module README and user guide..."
     validations:
       required: false
   - type: textarea
     id: dependencies
     attributes:
       label: Dependencies
-      description: Enter the github issue number that the requirement is dependent on, in the form `#1`
-      placeholder: "#1"
+      description: Enter the github issue number that the requirement is dependent on, in the form `- [ ] #1` to make a checklist
+      placeholder: "- [ ] #1"
     validations:
       required: false
   - type: textarea
