@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import datetime
+import os
 import shutil
 
 import pytest
@@ -24,6 +25,7 @@ from pixl_cli._io import (
     determine_batch_structure,
     messages_from_parquet,
 )
+from pyarrow import ArrowException
 
 
 @pytest.mark.parametrize(
@@ -106,3 +108,33 @@ def test_missing_public(omop_es_batch_generator) -> None:
     project_name, omop_es_datetime, batch_dirs = determine_batch_structure(omop_parquet_dir)
     with pytest.raises(NotADirectoryError):
         messages_from_parquet(omop_parquet_dir, project_name, omop_es_datetime)
+
+
+@pytest.mark.parametrize(
+    "file_to_corrupt",
+    [
+        # include all parquet files required to generate messages
+        "public/PROCEDURE_OCCURRENCE.parquet",
+        "private/PROCEDURE_OCCURRENCE_LINKS.parquet",
+        "private/PERSON_LINKS.parquet",
+    ],
+)
+def test_broken_parquet_dir(omop_es_batch_generator, file_to_corrupt) -> None:
+    """
+    Check that if any of the parquet files we use to generate messages are incomplete,
+    nothing much happens. We aren't checking the validity of parquet files that we simply copy
+    to the extract dir.
+    We fail even if batch_1 is fine but batch_2 is faulty; this might be an argument
+    for continuing to call messages_from_parquet on *all* batches before sending any messages,
+    as long as that's not too slow or uses too much memory.
+    """
+    omop_parquet_dir = omop_es_batch_generator(["batch_1", "batch_2"], single_batch=False)
+    # Assume most likely error is an incomplete copy. Because parquet has a magic footer,
+    # even one byte missing at the end should be enough for it to fail.
+    to_corrupt = omop_parquet_dir / "batch_2" / file_to_corrupt
+    new_size = to_corrupt.stat().st_size - 1
+    os.truncate(to_corrupt, new_size)
+    project_name, omop_es_datetime, batch_dirs = determine_batch_structure(omop_parquet_dir)
+    with pytest.raises(ArrowException):  # noqa: PT012 It may not fail on all, but must fail on one
+        for b in batch_dirs:
+            messages_from_parquet(b, project_name, omop_es_datetime)
