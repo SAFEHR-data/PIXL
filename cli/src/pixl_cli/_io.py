@@ -67,7 +67,8 @@ def determine_batch_structure(extract_path: Path) -> tuple[str, datetime, list[P
         return project_name, omop_es_timestamp, [extract_path]
 
     # should it really be 'extract_*'?
-    batch_dirs = list(extract_path.glob("batch_*"))
+    # The order doesn't matter functionally, but sort here so failures are more repeatable.
+    batch_dirs = sorted(extract_path.glob("batch_*"))
     extract_ids = [_config_from_log_file(log_file / log_filename) for log_file in batch_dirs]
     # There should be one or more log files, all with the same identifiers
     if not extract_ids:
@@ -82,6 +83,7 @@ def determine_batch_structure(extract_path: Path) -> tuple[str, datetime, list[P
         )
         raise RuntimeError(err)
 
+    logger.info(f"Batches found: ({len(batch_dirs)}) {batch_dirs}")
     project_name, omop_es_timestamp = distinct_extract_ids.pop()
     return project_name, omop_es_timestamp, batch_dirs
 
@@ -114,7 +116,9 @@ def copy_parquet_return_logfile_fields(extract_path: Path) -> tuple[str, datetim
     extract = ParquetExport(project_name, omop_es_timestamp, HOST_EXPORT_ROOT_DIR)
     for batch in batch_dirs:
         batch_subdir = batch.relative_to(extract_path)
+        logger.info(f"Copying extract files from batch at {batch}...")
         extract.copy_to_exports(batch, batch_subdir)
+        logger.info(f"Done copying extract files from batch at {batch}")
     return extract.project_slug, omop_es_timestamp, batch_dirs
 
 
