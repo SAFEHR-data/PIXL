@@ -31,7 +31,6 @@ pip install -e "${PACKAGE_DIR}/pixl_core" && pip install -e "${PACKAGE_DIR}/cli"
 pixl populate "${PACKAGE_DIR}/test/resources/omop"
 pixl start
 
-./scripts/check_max_storage_in_orthanc_raw.sh
 # need to wait until the DICOM image is "stable" so poll for 2 minutes to check
 ./scripts/check_entry_in_orthanc_anon_for_2_min.py
 ./scripts/check_entry_in_pixl_anon.sh
@@ -45,6 +44,13 @@ pixl extract-radiology-reports "${PACKAGE_DIR}/test/resources/omop"
 
 ls -laR ../exports/
 docker exec system-test-ehr-api-1 rm -r /run/exports/test-extract-uclh-omop-cdm/
+
+# This checks that orthanc-raw acknowledges the configured maximum storage size
+./scripts/check_max_storage_in_orthanc_raw.sh
+
+# Run this last because it will force out original test images from orthanc-raw
+pip install pydicom
+./scripts/check_max_storage_in_orthanc_raw.py
 
 cd "${PACKAGE_DIR}"
 docker compose -f docker-compose.yml -f test/docker-compose.yml -p system-test down --volumes
