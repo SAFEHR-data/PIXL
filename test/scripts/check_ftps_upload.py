@@ -17,8 +17,8 @@ from pathlib import Path
 from shutil import rmtree
 from time import sleep
 
-PARQUET_PATH = Path(__file__).parents[1] / "resources" / "omop"
-print(f"parquet path: {PARQUET_PATH}")
+OMOP_INPUT_PATH = Path(__file__).parents[1] / "resources" / "omop"
+print(f"parquet path: {OMOP_INPUT_PATH}")
 MOUNTED_DATA_DIR = Path(__file__).parents[1] / "dummy-services" / "ftp-server" / "mounts" / "data"
 print(f"mounted data dir: {MOUNTED_DATA_DIR}")
 
@@ -29,12 +29,12 @@ print(f"expected output dir: {expected_output_dir}")
 
 SECONDS_WAIT = 5
 
-glob_list = []
+zip_files = []
 for seconds in range(0, 121, SECONDS_WAIT):
     # Test whether DICOM images have been uploaded
-    glob_list = list(expected_output_dir.glob("*.zip"))
-    print(f"Waited for {seconds} seconds. glob_list: {glob_list}")
-    if len(glob_list) == 2:
+    zip_files = list(expected_output_dir.glob("*.zip"))
+    print(f"Waited for {seconds} seconds. glob_list: {zip_files}")
+    if len(zip_files) == 2:
         break
     sleep(SECONDS_WAIT)
 
