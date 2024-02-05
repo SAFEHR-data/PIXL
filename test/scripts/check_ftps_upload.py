@@ -38,12 +38,9 @@ for seconds in range(0, 121, SECONDS_WAIT):
         break
     sleep(SECONDS_WAIT)
 
-# Check for expected number of uploaded files and clean up, even if the assertion fails
-try:
-    # We expect 2 DICOM image studies to be uploaded
-    assert len(glob_list) == 2
-    # TODO: check parquet files upload before deleting
-finally:
-    # To we want to always remove the files if its failed, may help debugging not to?
-    rmtree(expected_output_dir, ignore_errors=True)
+# We expect 2 DICOM image studies to be uploaded
+assert len(zip_files) == 2
+# TODO: check parquet files upload before deleting
 
+# Clean up; only happens if the assertion passes
+rmtree(expected_output_dir, ignore_errors=True)
