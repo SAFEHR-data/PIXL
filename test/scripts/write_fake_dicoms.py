@@ -20,7 +20,6 @@ from pathlib import Path
 
 import numpy as np
 
-import pydicom
 from pydicom.dataset import Dataset, FileMetaDataset
 from pydicom.sequence import Sequence
 
