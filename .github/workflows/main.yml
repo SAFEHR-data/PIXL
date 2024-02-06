@@ -138,7 +138,7 @@ jobs:
       - name: Run tests
         working-directory: cli/tests
         run: |
-          ./run-tests.sh
+          pytest
 
   ehr-api-tests:
     runs-on: ubuntu-22.04
