@@ -15,17 +15,13 @@ from __future__ import annotations
 
 import asyncio
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
-from unittest import TestCase
+from unittest.mock import AsyncMock
 
 import pytest
 from core.patient_queue.message import Message
 from core.patient_queue.producer import PixlProducer
 from core.patient_queue.subscriber import PixlBlockingConsumer, PixlConsumer
 from core.token_buffer.tokens import TokenBucket
-
-if TYPE_CHECKING:
-    from collections.abc import Coroutine, Generator
 
 TEST_QUEUE = "test_consume"
 TEST_MESSAGE = Message(
@@ -37,51 +33,29 @@ TEST_MESSAGE = Message(
     omop_es_timestamp="2023-12-07T14:08:00+00:00",
 )
 
-counter = 0
 
+@pytest.mark.asyncio()
+@pytest.mark.usefixtures("run_containers")
+async def test_create() -> None:
+    """Checks consume is working."""
+    with PixlProducer(queue_name=TEST_QUEUE) as pp:
+        pp.publish(messages=[TEST_MESSAGE])
+        pp.publish(messages=[TEST_MESSAGE])
 
-@pytest.fixture(scope="class")
-def _event_loop_instance(request: Any) -> Generator:
-    """
-    Add the event_loop as an attribute to the unittest style test class.
-    :param request: the object event loop ties to
-    :returns: a generator
-    """
-    request.cls.event_loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield
-    request.cls.event_loop.close()
+    async with PixlConsumer(queue_name=TEST_QUEUE, token_bucket=TokenBucket()) as pc:
+        consume = AsyncMock()
+        # Create a Task to run pc.run in the background
+        task = asyncio.create_task(pc.run(callback=consume))
 
+        # Wait for a short time to allow pc.run to start
+        await asyncio.sleep(1)
 
-@pytest.mark.usefixtures("_event_loop_instance")
-class TestConsumer(TestCase):  # noqa: D101
-    def get_async_result(self, coro: Coroutine) -> Any:
-        """
-        Run a coroutine synchronously.
-        :param coro: coroutine generated from run
-        """
-        return self.event_loop.run_until_complete(coro)
-
-    async def test_create(self) -> None:
-        """Checks consume is working."""
-        global counter  # noqa: PLW0602
-        with PixlProducer(queue_name=TEST_QUEUE) as pp:
-            pp.publish(messages=[TEST_MESSAGE])
-
-        async with PixlConsumer(queue_name=TEST_QUEUE, token_bucket=TokenBucket()) as pc:
-
-            async def consume(msg: Message) -> None:
-                """
-                Increases counter when message is downloaded.
-                :param msg: body of the message, though not needed
-                :returns: the increased counter, though here only once
-                """
-                if str(msg.serialise()) != "":
-                    global counter
-                    counter += 1
-
-            self.get_async_result(pc.run(callback=consume))
-
-        assert counter == 1
+        consume.assert_called()
+        task.cancel()
+        # need to close connection attribute or cancellation will hang waiting for next message
+        await pc._connection.close()  # noqa: SLF001
+        await asyncio.sleep(1)  # Allow time for task to cancel
+    # pytest.fail("Check that async test runs")  # noqa: ERA001 uncomment for sanity check
 
 
 @pytest.mark.usefixtures("run_containers")
