@@ -64,7 +64,8 @@ and are copied into `/etc/ssl/private` when building the Docker container.
 
 ### Resources
 
--   `./resources/` provides 2 mock DICOM images used to populate the mock VNA.
+-   `./resources/` provides 2 mock DICOM images used to populate the mock VNA
+    and a JSON file of slice varying parameters from a 3D MRI sequence.
 -   `./resources/omop` contains mock public and private Parquet files used to populate the message
     queues and extract the radiology reports
 
