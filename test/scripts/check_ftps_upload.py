@@ -12,38 +12,40 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-import subprocess
+
 from pathlib import Path
 from shutil import rmtree
 from time import sleep
 
-PARQUET_PATH = Path(__file__).parents[1] / "resources" / "omop"
-print(f"parquet path: {PARQUET_PATH}")
+OMOP_INPUT_PATH = Path(__file__).parents[1] / "resources" / "omop"
+print(f"parquet path: {OMOP_INPUT_PATH}")
 MOUNTED_DATA_DIR = Path(__file__).parents[1] / "dummy-services" / "ftp-server" / "mounts" / "data"
 print(f"mounted data dir: {MOUNTED_DATA_DIR}")
 
-project_name = "test-extract-uclh-omop-cdm"
-print(f"project name: {project_name}")
-expected_output_dir = MOUNTED_DATA_DIR / project_name
+project_slug = "test-extract-uclh-omop-cdm"
+extract_time_slug = "2023-12-07t14-08-58"
+
+expected_output_dir = MOUNTED_DATA_DIR / project_slug
+expected_public_parquet_dir = expected_output_dir / extract_time_slug / "parquet"
 print(f"expected output dir: {expected_output_dir}")
+print(f"expected parquet files dir: {expected_public_parquet_dir}")
 
 SECONDS_WAIT = 5
 
-glob_list = []
+zip_files = []
 for seconds in range(0, 121, SECONDS_WAIT):
     # Test whether DICOM images have been uploaded
-    glob_list = list(expected_output_dir.glob("*.zip"))
-    print(f"Waited for {seconds} seconds. glob_list: {glob_list}")
-    if len(glob_list) == 2:
+    zip_files = list(expected_output_dir.glob("*.zip"))
+    print(f"Waited for {seconds} seconds. glob_list: {zip_files}")
+    if len(zip_files) == 2:
         break
     sleep(SECONDS_WAIT)
 
-# Check for expected number of uploaded files and clean up, even if the assertion fails
-try:
-    # We expect 2 DICOM image studies to be uploaded
-    assert len(glob_list) == 2
-    # TODO: check parquet files upload before deleting
-finally:
-    # To we want to always remove the files if its failed, may help debugging not to?
-    rmtree(expected_output_dir, ignore_errors=True)
+# We expect 2 DICOM image studies to be uploaded
+assert len(zip_files) == 2
+assert expected_public_parquet_dir.exists()
+assert (expected_public_parquet_dir / "PROCEDURE_OCCURRENCE.parquet").exists()
+assert (expected_public_parquet_dir / "radiology.parquet").exists()
 
+# Clean up; only happens if the assertion passes
+rmtree(expected_output_dir, ignore_errors=True)
