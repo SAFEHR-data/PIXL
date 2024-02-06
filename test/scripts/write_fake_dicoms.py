@@ -25,12 +25,20 @@ from pydicom.sequence import Sequence
 
 
 def write_volume(filename_pattern: str):
+    """Write a volumes worth of fake DICOM images
+
+    Args:
+        filename_pattern: The pattern to use for the filenames. This should include a {slice} which will be replaced with the slice number e.g. /tmp/slice{slice:03d}.dcm
+    """
     variables = json.load(open(Path(__file__).parent / "dicom_variables.json"))
     for i, slice_info in enumerate(variables):
         write_slice(file_name=filename_pattern.format(slice=i), pixel_data=np.random.rand(256, 256), **slice_info)
 
 
-def write_slice(instance_creation_time: str, sop_instance_uid: str, instance_number: str, image_position_patient: list[float], slice_location: float, window_centre: str, window_width: str, pixel_data: np.ndarray, file_name: str):
+    """Write a single fake DICOM image
+
+    Elements that vary between slices are exposed as arguments.  Values for these can be obtained from the dicom_variables.json file.
+    """
     # File meta info data elements
     file_meta = FileMetaDataset()
 
