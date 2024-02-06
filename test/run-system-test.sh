@@ -27,7 +27,10 @@ docker compose --env-file .env.test -p system-test up --wait -d --build --remove
 
 ./scripts/insert_test_data.sh
 
+# Install pixl_cli and test dependencies
 pip install -e "${PACKAGE_DIR}/pixl_core" && pip install -e "${PACKAGE_DIR}/cli"
+pip install pydicom
+
 pixl populate "${PACKAGE_DIR}/test/resources/omop"
 pixl start
 
@@ -49,7 +52,6 @@ docker exec system-test-ehr-api-1 rm -r /run/exports/test-extract-uclh-omop-cdm/
 ./scripts/check_max_storage_in_orthanc_raw.sh
 
 # Run this last because it will force out original test images from orthanc-raw
-pip install pydicom
 ./scripts/check_max_storage_in_orthanc_raw.py
 
 cd "${PACKAGE_DIR}"
