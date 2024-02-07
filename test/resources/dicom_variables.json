@@ -1,0 +1,2290 @@
+[
+    {
+        "instance_creation_time": "180048.910",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580650156",
+        "instance_number": 1,
+        "image_position_patient": [
+            76.7026372724213,
+            -139.24652189062,
+            119.42031365307
+        ],
+        "slice_location": 82.4282811615865,
+        "window_centre": 321.0,
+        "window_width": 558.0
+    },
+    {
+        "instance_creation_time": "180049.113",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580653164",
+        "instance_number": 2,
+        "image_position_patient": [
+            75.7043157392181,
+            -139.25373166846,
+            119.362885293085
+        ],
+        "slice_location": 81.4282832210471,
+        "window_centre": 370.0,
+        "window_width": 643.0
+    },
+    {
+        "instance_creation_time": "180049.301",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580654166",
+        "instance_number": 3,
+        "image_position_patient": [
+            74.705994206015,
+            -139.26094144629,
+            119.305455025751
+        ],
+        "slice_location": 80.4282851709699,
+        "window_centre": 386.0,
+        "window_width": 672.0
+    },
+    {
+        "instance_creation_time": "180049.488",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580659174",
+        "instance_number": 4,
+        "image_position_patient": [
+            73.7076726728119,
+            -139.26815122412,
+            119.248026665766
+        ],
+        "slice_location": 79.4282872304305,
+        "window_centre": 374.0,
+        "window_width": 651.0
+    },
+    {
+        "instance_creation_time": "180049.707",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580668197",
+        "instance_number": 5,
+        "image_position_patient": [
+            72.7093511396088,
+            -139.27536100195,
+            119.190596398432
+        ],
+        "slice_location": 78.4282891803533,
+        "window_centre": 379.0,
+        "window_width": 659.0
+    },
+    {
+        "instance_creation_time": "180049.910",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580673205",
+        "instance_number": 6,
+        "image_position_patient": [
+            71.7110296064056,
+            -139.28257077978,
+            119.133168038446
+        ],
+        "slice_location": 77.4282912398139,
+        "window_centre": 439.0,
+        "window_width": 763.0
+    },
+    {
+        "instance_creation_time": "180050.129",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580675211",
+        "instance_number": 7,
+        "image_position_patient": [
+            70.7127080732025,
+            -139.28978055762,
+            119.075737771112
+        ],
+        "slice_location": 76.4282931897367,
+        "window_centre": 443.0,
+        "window_width": 770.0
+    },
+    {
+        "instance_creation_time": "180050.332",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580689233",
+        "instance_number": 8,
+        "image_position_patient": [
+            69.7143865399994,
+            -139.29699033545,
+            119.018309411127
+        ],
+        "slice_location": 75.4282952491973,
+        "window_centre": 464.0,
+        "window_width": 807.0
+    },
+    {
+        "instance_creation_time": "180050.535",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580690237",
+        "instance_number": 9,
+        "image_position_patient": [
+            68.7160650067963,
+            -139.30420011328,
+            118.960879143793
+        ],
+        "slice_location": 74.42829719912,
+        "window_centre": 531.0,
+        "window_width": 923.0
+    },
+    {
+        "instance_creation_time": "180050.738",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580692242",
+        "instance_number": 10,
+        "image_position_patient": [
+            67.7177434735931,
+            -139.31140989111,
+            118.903450783808
+        ],
+        "slice_location": 73.4282992585806,
+        "window_centre": 550.0,
+        "window_width": 957.0
+    },
+    {
+        "instance_creation_time": "180050.942",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580695249",
+        "instance_number": 11,
+        "image_position_patient": [
+            66.71942194039,
+            -139.31861966894,
+            118.846020516474
+        ],
+        "slice_location": 72.4283012085034,
+        "window_centre": 580.0,
+        "window_width": 1008.0
+    },
+    {
+        "instance_creation_time": "180051.145",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580696255",
+        "instance_number": 12,
+        "image_position_patient": [
+            65.7211004071869,
+            -139.32582944678,
+            118.788592156488
+        ],
+        "slice_location": 71.428303267964,
+        "window_centre": 599.0,
+        "window_width": 1041.0
+    },
+    {
+        "instance_creation_time": "180051.348",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580698259",
+        "instance_number": 13,
+        "image_position_patient": [
+            64.7227788739838,
+            -139.33303922461,
+            118.731161889154
+        ],
+        "slice_location": 70.4283052178868,
+        "window_centre": 656.0,
+        "window_width": 1141.0
+    },
+    {
+        "instance_creation_time": "180051.551",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580696252",
+        "instance_number": 14,
+        "image_position_patient": [
+            63.7244573407806,
+            -139.34024900244,
+            118.673733529169
+        ],
+        "slice_location": 69.4283072773474,
+        "window_centre": 645.0,
+        "window_width": 1122.0
+    },
+    {
+        "instance_creation_time": "180051.754",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580693247",
+        "instance_number": 15,
+        "image_position_patient": [
+            62.7261358075775,
+            -139.34745878027,
+            118.616303261835
+        ],
+        "slice_location": 68.4283092272702,
+        "window_centre": 680.0,
+        "window_width": 1182.0
+    },
+    {
+        "instance_creation_time": "180051.957",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580693246",
+        "instance_number": 16,
+        "image_position_patient": [
+            61.7278142743744,
+            -139.35466855811,
+            118.55887490185
+        ],
+        "slice_location": 67.4283112867308,
+        "window_centre": 720.0,
+        "window_width": 1252.0
+    },
+    {
+        "instance_creation_time": "180052.176",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580692243",
+        "instance_number": 17,
+        "image_position_patient": [
+            60.7294927411713,
+            -139.36187833594,
+            118.501444634516
+        ],
+        "slice_location": 66.4283132366535,
+        "window_centre": 757.0,
+        "window_width": 1317.0
+    },
+    {
+        "instance_creation_time": "180052.379",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580692241",
+        "instance_number": 18,
+        "image_position_patient": [
+            59.7311712079681,
+            -139.36908811377,
+            118.44401627453
+        ],
+        "slice_location": 65.4283152961141,
+        "window_centre": 787.0,
+        "window_width": 1368.0
+    },
+    {
+        "instance_creation_time": "180052.598",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580690240",
+        "instance_number": 19,
+        "image_position_patient": [
+            58.732849674765,
+            -139.3762978916,
+            118.386586007196
+        ],
+        "slice_location": 64.4283172460369,
+        "window_centre": 786.0,
+        "window_width": 1367.0
+    },
+    {
+        "instance_creation_time": "180052.817",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580690236",
+        "instance_number": 20,
+        "image_position_patient": [
+            57.7345281415619,
+            -139.38350766943,
+            118.329157647211
+        ],
+        "slice_location": 63.4283193054975,
+        "window_centre": 785.0,
+        "window_width": 1364.0
+    },
+    {
+        "instance_creation_time": "180053.035",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580689235",
+        "instance_number": 21,
+        "image_position_patient": [
+            56.7362066083588,
+            -139.39071744727,
+            118.271727379877
+        ],
+        "slice_location": 62.4283212554203,
+        "window_centre": 793.0,
+        "window_width": 1378.0
+    },
+    {
+        "instance_creation_time": "180053.239",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580659179",
+        "instance_number": 22,
+        "image_position_patient": [
+            55.7378850751556,
+            -139.3979272251,
+            118.214299019892
+        ],
+        "slice_location": 61.4283233148809,
+        "window_centre": 799.0,
+        "window_width": 1388.0
+    },
+    {
+        "instance_creation_time": "180053.442",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580664187",
+        "instance_number": 23,
+        "image_position_patient": [
+            54.7395635419525,
+            -139.40513700293,
+            118.156868752558
+        ],
+        "slice_location": 60.4283252648037,
+        "window_centre": 810.0,
+        "window_width": 1408.0
+    },
+    {
+        "instance_creation_time": "180053.645",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580720323",
+        "instance_number": 24,
+        "image_position_patient": [
+            53.7412420087494,
+            -139.41234678076,
+            118.099440392572
+        ],
+        "slice_location": 59.4283273242643,
+        "window_centre": 828.0,
+        "window_width": 1439.0
+    },
+    {
+        "instance_creation_time": "180053.879",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580712302",
+        "instance_number": 25,
+        "image_position_patient": [
+            52.7429204755463,
+            -139.41955655859,
+            118.042010125238
+        ],
+        "slice_location": 58.428329274187,
+        "window_centre": 844.0,
+        "window_width": 1466.0
+    },
+    {
+        "instance_creation_time": "180054.082",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580706282",
+        "instance_number": 26,
+        "image_position_patient": [
+            51.7445989423431,
+            -139.42676633643,
+            117.984581765253
+        ],
+        "slice_location": 57.4283313336476,
+        "window_centre": 863.0,
+        "window_width": 1499.0
+    },
+    {
+        "instance_creation_time": "180054.285",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580665191",
+        "instance_number": 27,
+        "image_position_patient": [
+            50.74627740914,
+            -139.43397611426,
+            117.927151497919
+        ],
+        "slice_location": 56.4283332835704,
+        "window_centre": 870.0,
+        "window_width": 1513.0
+    },
+    {
+        "instance_creation_time": "180054.489",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580661181",
+        "instance_number": 28,
+        "image_position_patient": [
+            49.7479558759369,
+            -139.44118589209,
+            117.869723137934
+        ],
+        "slice_location": 55.428335343031,
+        "window_centre": 864.0,
+        "window_width": 1501.0
+    },
+    {
+        "instance_creation_time": "180054.692",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580678216",
+        "instance_number": 29,
+        "image_position_patient": [
+            48.7496343427338,
+            -139.44839566992,
+            117.8122928706
+        ],
+        "slice_location": 54.4283372929538,
+        "window_centre": 856.0,
+        "window_width": 1489.0
+    },
+    {
+        "instance_creation_time": "180054.895",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580679219",
+        "instance_number": 30,
+        "image_position_patient": [
+            47.7513128095306,
+            -139.45560544775,
+            117.754864510614
+        ],
+        "slice_location": 53.4283393524144,
+        "window_centre": 896.0,
+        "window_width": 1558.0
+    },
+    {
+        "instance_creation_time": "180055.114",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580700261",
+        "instance_number": 31,
+        "image_position_patient": [
+            46.7529912763275,
+            -139.46281522559,
+            117.69743424328
+        ],
+        "slice_location": 52.4283413023372,
+        "window_centre": 908.0,
+        "window_width": 1578.0
+    },
+    {
+        "instance_creation_time": "180055.317",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580700263",
+        "instance_number": 32,
+        "image_position_patient": [
+            45.7546697431244,
+            -139.47002500342,
+            117.640005883295
+        ],
+        "slice_location": 51.4283433617978,
+        "window_centre": 941.0,
+        "window_width": 1635.0
+    },
+    {
+        "instance_creation_time": "180055.535",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580701265",
+        "instance_number": 33,
+        "image_position_patient": [
+            44.7563482099213,
+            -139.47723478125,
+            117.582575615961
+        ],
+        "slice_location": 50.4283453117205,
+        "window_centre": 947.0,
+        "window_width": 1646.0
+    },
+    {
+        "instance_creation_time": "180055.739",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580707287",
+        "instance_number": 34,
+        "image_position_patient": [
+            43.7580266767181,
+            -139.48444455908,
+            117.525147255976
+        ],
+        "slice_location": 49.4283473711811,
+        "window_centre": 989.0,
+        "window_width": 1720.0
+    },
+    {
+        "instance_creation_time": "180055.942",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580709293",
+        "instance_number": 35,
+        "image_position_patient": [
+            42.759705143515,
+            -139.49165433691,
+            117.467716988642
+        ],
+        "slice_location": 48.4283493211039,
+        "window_centre": 990.0,
+        "window_width": 1721.0
+    },
+    {
+        "instance_creation_time": "180056.145",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580715308",
+        "instance_number": 36,
+        "image_position_patient": [
+            41.7613836103119,
+            -139.49886411475,
+            117.410288628656
+        ],
+        "slice_location": 47.4283513805645,
+        "window_centre": 1003.0,
+        "window_width": 1744.0
+    },
+    {
+        "instance_creation_time": "180056.348",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580717312",
+        "instance_number": 37,
+        "image_position_patient": [
+            40.7630620771088,
+            -139.50607389258,
+            117.352858361322
+        ],
+        "slice_location": 46.4283533304873,
+        "window_centre": 1024.0,
+        "window_width": 1780.0
+    },
+    {
+        "instance_creation_time": "180056.551",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580717313",
+        "instance_number": 38,
+        "image_position_patient": [
+            39.7647405439056,
+            -139.51328367041,
+            117.295430001337
+        ],
+        "slice_location": 45.4283553899479,
+        "window_centre": 1053.0,
+        "window_width": 1830.0
+    },
+    {
+        "instance_creation_time": "180056.770",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580720325",
+        "instance_number": 39,
+        "image_position_patient": [
+            38.7664190107025,
+            -139.52049344824,
+            117.237999734003
+        ],
+        "slice_location": 44.4283573398706,
+        "window_centre": 1046.0,
+        "window_width": 1819.0
+    },
+    {
+        "instance_creation_time": "180056.973",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580711297",
+        "instance_number": 40,
+        "image_position_patient": [
+            37.7680974774994,
+            -139.52770322607,
+            117.180571374018
+        ],
+        "slice_location": 43.4283593993313,
+        "window_centre": 1037.0,
+        "window_width": 1803.0
+    },
+    {
+        "instance_creation_time": "180057.192",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580671204",
+        "instance_number": 41,
+        "image_position_patient": [
+            36.7697759442963,
+            -139.53491300391,
+            117.123141106684
+        ],
+        "slice_location": 42.428361349254,
+        "window_centre": 1032.0,
+        "window_width": 1794.0
+    },
+    {
+        "instance_creation_time": "180057.395",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580670199",
+        "instance_number": 42,
+        "image_position_patient": [
+            35.7714544110931,
+            -139.54212278174,
+            117.065712746698
+        ],
+        "slice_location": 41.4283634087146,
+        "window_centre": 1050.0,
+        "window_width": 1825.0
+    },
+    {
+        "instance_creation_time": "180057.598",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580667194",
+        "instance_number": 43,
+        "image_position_patient": [
+            34.77313287789,
+            -139.54933255957,
+            117.008282479364
+        ],
+        "slice_location": 40.4283653586374,
+        "window_centre": 1051.0,
+        "window_width": 1827.0
+    },
+    {
+        "instance_creation_time": "180057.801",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580650157",
+        "instance_number": 44,
+        "image_position_patient": [
+            33.7748113446869,
+            -139.5565423374,
+            116.950854119379
+        ],
+        "slice_location": 39.428367418098,
+        "window_centre": 1066.0,
+        "window_width": 1853.0
+    },
+    {
+        "instance_creation_time": "180058.004",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580651162",
+        "instance_number": 45,
+        "image_position_patient": [
+            32.7764898114838,
+            -139.56375211523,
+            116.893423852045
+        ],
+        "slice_location": 38.4283693680208,
+        "window_centre": 1052.0,
+        "window_width": 1828.0
+    },
+    {
+        "instance_creation_time": "180058.207",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580656168",
+        "instance_number": 46,
+        "image_position_patient": [
+            31.7781682782806,
+            -139.57096189307,
+            116.83599549206
+        ],
+        "slice_location": 37.4283714274814,
+        "window_centre": 1065.0,
+        "window_width": 1852.0
+    },
+    {
+        "instance_creation_time": "180058.410",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580664189",
+        "instance_number": 47,
+        "image_position_patient": [
+            30.7798467450775,
+            -139.5781716709,
+            116.778565224726
+        ],
+        "slice_location": 36.4283733774042,
+        "window_centre": 1071.0,
+        "window_width": 1862.0
+    },
+    {
+        "instance_creation_time": "180058.614",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580671200",
+        "instance_number": 48,
+        "image_position_patient": [
+            29.7815252118744,
+            -139.58538144873,
+            116.72113686474
+        ],
+        "slice_location": 35.4283754368648,
+        "window_centre": 1079.0,
+        "window_width": 1875.0
+    },
+    {
+        "instance_creation_time": "180058.817",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580673206",
+        "instance_number": 49,
+        "image_position_patient": [
+            28.7832036786713,
+            -139.59259122656,
+            116.663706597406
+        ],
+        "slice_location": 34.4283773867875,
+        "window_centre": 1088.0,
+        "window_width": 1891.0
+    },
+    {
+        "instance_creation_time": "180059.035",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580676214",
+        "instance_number": 50,
+        "image_position_patient": [
+            27.7848821454681,
+            -139.59980100439,
+            116.606278237421
+        ],
+        "slice_location": 33.4283794462481,
+        "window_centre": 1088.0,
+        "window_width": 1892.0
+    },
+    {
+        "instance_creation_time": "180059.239",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580693244",
+        "instance_number": 51,
+        "image_position_patient": [
+            26.786560612265,
+            -139.60701078223,
+            116.548847970087
+        ],
+        "slice_location": 32.4283813961709,
+        "window_centre": 1100.0,
+        "window_width": 1912.0
+    },
+    {
+        "instance_creation_time": "180059.457",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580695248",
+        "instance_number": 52,
+        "image_position_patient": [
+            25.7882390790619,
+            -139.61422056006,
+            116.491419610102
+        ],
+        "slice_location": 31.4283834556315,
+        "window_centre": 1111.0,
+        "window_width": 1931.0
+    },
+    {
+        "instance_creation_time": "180059.660",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580696254",
+        "instance_number": 53,
+        "image_position_patient": [
+            24.7899175458588,
+            -139.62143033789,
+            116.433989342768
+        ],
+        "slice_location": 30.4283854055543,
+        "window_centre": 1142.0,
+        "window_width": 1985.0
+    },
+    {
+        "instance_creation_time": "180059.864",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580700260",
+        "instance_number": 54,
+        "image_position_patient": [
+            23.7915960126556,
+            -139.62864011572,
+            116.376560982782
+        ],
+        "slice_location": 29.4283874650149,
+        "window_centre": 1115.0,
+        "window_width": 1939.0
+    },
+    {
+        "instance_creation_time": "180100.067",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580701264",
+        "instance_number": 55,
+        "image_position_patient": [
+            22.7932744794525,
+            -139.63584989355,
+            116.319130715448
+        ],
+        "slice_location": 28.4283894149376,
+        "window_centre": 1102.0,
+        "window_width": 1916.0
+    },
+    {
+        "instance_creation_time": "180100.270",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580701268",
+        "instance_number": 56,
+        "image_position_patient": [
+            21.7949529462494,
+            -139.64305967139,
+            116.261702355463
+        ],
+        "slice_location": 27.4283914743983,
+        "window_centre": 1117.0,
+        "window_width": 1942.0
+    },
+    {
+        "instance_creation_time": "180100.473",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580701267",
+        "instance_number": 57,
+        "image_position_patient": [
+            20.7966314130463,
+            -139.65026944922,
+            116.204272088129
+        ],
+        "slice_location": 26.428393424321,
+        "window_centre": 1128.0,
+        "window_width": 1961.0
+    },
+    {
+        "instance_creation_time": "180100.723",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580698258",
+        "instance_number": 58,
+        "image_position_patient": [
+            19.7983098798431,
+            -139.65747922705,
+            116.146843728144
+        ],
+        "slice_location": 25.4283954837816,
+        "window_centre": 1117.0,
+        "window_width": 1942.0
+    },
+    {
+        "instance_creation_time": "180100.926",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580698257",
+        "instance_number": 59,
+        "image_position_patient": [
+            18.79998834664,
+            -139.66468900488,
+            116.08941346081
+        ],
+        "slice_location": 24.4283974337044,
+        "window_centre": 1129.0,
+        "window_width": 1963.0
+    },
+    {
+        "instance_creation_time": "180101.129",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580696253",
+        "instance_number": 60,
+        "image_position_patient": [
+            17.8016668134369,
+            -139.67189878271,
+            116.031985100824
+        ],
+        "slice_location": 23.428399493165,
+        "window_centre": 1150.0,
+        "window_width": 1999.0
+    },
+    {
+        "instance_creation_time": "180101.332",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580679218",
+        "instance_number": 61,
+        "image_position_patient": [
+            16.8033452802338,
+            -139.67910856055,
+            115.97455483349
+        ],
+        "slice_location": 22.4284014430878,
+        "window_centre": 1143.0,
+        "window_width": 1987.0
+    },
+    {
+        "instance_creation_time": "180101.535",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580681220",
+        "instance_number": 62,
+        "image_position_patient": [
+            15.8050237470306,
+            -139.68631833838,
+            115.917126473505
+        ],
+        "slice_location": 21.4284035025484,
+        "window_centre": 1150.0,
+        "window_width": 2000.0
+    },
+    {
+        "instance_creation_time": "180101.739",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580682223",
+        "instance_number": 63,
+        "image_position_patient": [
+            14.8067022138275,
+            -139.69352811621,
+            115.859696206171
+        ],
+        "slice_location": 20.4284054524711,
+        "window_centre": 1151.0,
+        "window_width": 2001.0
+    },
+    {
+        "instance_creation_time": "180101.942",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580684225",
+        "instance_number": 64,
+        "image_position_patient": [
+            13.8083806806244,
+            -139.70073789404,
+            115.802267846186
+        ],
+        "slice_location": 19.4284075119318,
+        "window_centre": 1152.0,
+        "window_width": 2003.0
+    },
+    {
+        "instance_creation_time": "180102.145",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580686226",
+        "instance_number": 65,
+        "image_position_patient": [
+            12.8100591474213,
+            -139.70794767187,
+            115.744837578852
+        ],
+        "slice_location": 18.4284094618545,
+        "window_centre": 1134.0,
+        "window_width": 1971.0
+    },
+    {
+        "instance_creation_time": "180102.348",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580670198",
+        "instance_number": 66,
+        "image_position_patient": [
+            11.8117376142181,
+            -139.71515744971,
+            115.687409218866
+        ],
+        "slice_location": 17.4284115213151,
+        "window_centre": 1095.0,
+        "window_width": 1904.0
+    },
+    {
+        "instance_creation_time": "180102.551",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580665190",
+        "instance_number": 67,
+        "image_position_patient": [
+            10.813416081015,
+            -139.72236722754,
+            115.629978951532
+        ],
+        "slice_location": 16.4284134712379,
+        "window_centre": 1087.0,
+        "window_width": 1889.0
+    },
+    {
+        "instance_creation_time": "180102.754",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580668196",
+        "instance_number": 68,
+        "image_position_patient": [
+            9.8150945478119,
+            -139.72957700537,
+            115.572550591547
+        ],
+        "slice_location": 15.4284155306985,
+        "window_centre": 1097.0,
+        "window_width": 1907.0
+    },
+    {
+        "instance_creation_time": "180102.957",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580671202",
+        "instance_number": 69,
+        "image_position_patient": [
+            8.81677301460877,
+            -139.7367867832,
+            115.515120324213
+        ],
+        "slice_location": 14.4284174806213,
+        "window_centre": 1109.0,
+        "window_width": 1927.0
+    },
+    {
+        "instance_creation_time": "180103.161",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580668195",
+        "instance_number": 70,
+        "image_position_patient": [
+            7.81845148140565,
+            -139.74399656103,
+            115.457691964228
+        ],
+        "slice_location": 13.4284195400819,
+        "window_centre": 1102.0,
+        "window_width": 1916.0
+    },
+    {
+        "instance_creation_time": "180103.364",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580656169",
+        "instance_number": 71,
+        "image_position_patient": [
+            6.82012994820252,
+            -139.75120633887,
+            115.400261696894
+        ],
+        "slice_location": 12.4284214900046,
+        "window_centre": 1099.0,
+        "window_width": 1910.0
+    },
+    {
+        "instance_creation_time": "180103.567",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580654167",
+        "instance_number": 72,
+        "image_position_patient": [
+            5.8218084149994,
+            -139.7584161167,
+            115.342833336908
+        ],
+        "slice_location": 11.4284235494652,
+        "window_centre": 1100.0,
+        "window_width": 1911.0
+    },
+    {
+        "instance_creation_time": "180103.770",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580659175",
+        "instance_number": 73,
+        "image_position_patient": [
+            4.82348688179627,
+            -139.76562589453,
+            115.285403069574
+        ],
+        "slice_location": 10.428425499388,
+        "window_centre": 1087.0,
+        "window_width": 1890.0
+    },
+    {
+        "instance_creation_time": "180103.973",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580661180",
+        "instance_number": 74,
+        "image_position_patient": [
+            3.82516534859315,
+            -139.77283567236,
+            115.227974709589
+        ],
+        "slice_location": 9.42842755884867,
+        "window_centre": 1088.0,
+        "window_width": 1891.0
+    },
+    {
+        "instance_creation_time": "180104.192",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580661182",
+        "instance_number": 75,
+        "image_position_patient": [
+            2.82684381539002,
+            -139.78004545019,
+            115.170544442255
+        ],
+        "slice_location": 8.42842950877144,
+        "window_centre": 1061.0,
+        "window_width": 1845.0
+    },
+    {
+        "instance_creation_time": "180104.395",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580659177",
+        "instance_number": 76,
+        "image_position_patient": [
+            1.8285222821869,
+            -139.78725522803,
+            115.11311608227
+        ],
+        "slice_location": 7.42843156823204,
+        "window_centre": 1067.0,
+        "window_width": 1855.0
+    },
+    {
+        "instance_creation_time": "180104.598",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580650155",
+        "instance_number": 77,
+        "image_position_patient": [
+            0.83020074898377,
+            -139.79446500586,
+            115.055685814936
+        ],
+        "slice_location": 6.42843351815481,
+        "window_centre": 1061.0,
+        "window_width": 1844.0
+    },
+    {
+        "instance_creation_time": "180104.801",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580648154",
+        "instance_number": 78,
+        "image_position_patient": [
+            -0.1681207842193,
+            -139.80167478369,
+            114.99825745495
+        ],
+        "slice_location": 5.42843557761542,
+        "window_centre": 1070.0,
+        "window_width": 1860.0
+    },
+    {
+        "instance_creation_time": "180105.004",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580650158",
+        "instance_number": 79,
+        "image_position_patient": [
+            -1.1664423174224,
+            -139.80888456152,
+            114.940827187616
+        ],
+        "slice_location": 4.42843752753819,
+        "window_centre": 1075.0,
+        "window_width": 1869.0
+    },
+    {
+        "instance_creation_time": "180105.207",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580651159",
+        "instance_number": 80,
+        "image_position_patient": [
+            -2.1647638506256,
+            -139.81609433936,
+            114.883398827631
+        ],
+        "slice_location": 3.42843958699879,
+        "window_centre": 1069.0,
+        "window_width": 1858.0
+    },
+    {
+        "instance_creation_time": "180105.411",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580651160",
+        "instance_number": 81,
+        "image_position_patient": [
+            -3.1630853838287,
+            -139.82330411719,
+            114.825968560297
+        ],
+        "slice_location": 2.42844153692156,
+        "window_centre": 1071.0,
+        "window_width": 1861.0
+    },
+    {
+        "instance_creation_time": "180105.614",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580656170",
+        "instance_number": 82,
+        "image_position_patient": [
+            -4.1614069170318,
+            -139.83051389502,
+            114.768540200312
+        ],
+        "slice_location": 1.42844359638217,
+        "window_centre": 1071.0,
+        "window_width": 1862.0
+    },
+    {
+        "instance_creation_time": "180105.817",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580657172",
+        "instance_number": 83,
+        "image_position_patient": [
+            -5.1597284502349,
+            -139.83772367285,
+            114.711109932978
+        ],
+        "slice_location": 0.42844554630493,
+        "window_centre": 1075.0,
+        "window_width": 1869.0
+    },
+    {
+        "instance_creation_time": "180106.020",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580654165",
+        "instance_number": 84,
+        "image_position_patient": [
+            -6.1580499834381,
+            -139.84493345068,
+            114.653681572992
+        ],
+        "slice_location": -0.5715523942344,
+        "window_centre": 1082.0,
+        "window_width": 1880.0
+    },
+    {
+        "instance_creation_time": "180106.223",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580653163",
+        "instance_number": 85,
+        "image_position_patient": [
+            -7.1563715166412,
+            -139.85214322852,
+            114.596251305658
+        ],
+        "slice_location": -1.5715504443116,
+        "window_centre": 1091.0,
+        "window_width": 1896.0
+    },
+    {
+        "instance_creation_time": "180106.442",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580667193",
+        "instance_number": 86,
+        "image_position_patient": [
+            -8.1546930498443,
+            -139.85935300635,
+            114.538822945673
+        ],
+        "slice_location": -2.571548384851,
+        "window_centre": 1078.0,
+        "window_width": 1874.0
+    },
+    {
+        "instance_creation_time": "180106.645",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580661184",
+        "instance_number": 87,
+        "image_position_patient": [
+            -9.1530145830474,
+            -139.86656278418,
+            114.481392678339
+        ],
+        "slice_location": -3.5715464349283,
+        "window_centre": 1077.0,
+        "window_width": 1872.0
+    },
+    {
+        "instance_creation_time": "180106.848",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580659178",
+        "instance_number": 88,
+        "image_position_patient": [
+            -10.15133611625,
+            -139.87377256201,
+            114.423964318354
+        ],
+        "slice_location": -4.5715443754677,
+        "window_centre": 1078.0,
+        "window_width": 1874.0
+    },
+    {
+        "instance_creation_time": "180107.051",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580659176",
+        "instance_number": 89,
+        "image_position_patient": [
+            -11.149657649453,
+            -139.88098233984,
+            114.36653405102
+        ],
+        "slice_location": -5.5715424255449,
+        "window_centre": 1091.0,
+        "window_width": 1897.0
+    },
+    {
+        "instance_creation_time": "180107.254",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580657173",
+        "instance_number": 90,
+        "image_position_patient": [
+            -12.147979182656,
+            -139.88819211768,
+            114.309105691034
+        ],
+        "slice_location": -6.5715403660843,
+        "window_centre": 1074.0,
+        "window_width": 1867.0
+    },
+    {
+        "instance_creation_time": "180107.457",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580657171",
+        "instance_number": 91,
+        "image_position_patient": [
+            -13.14630071586,
+            -139.89540189551,
+            114.2516754237
+        ],
+        "slice_location": -7.5715384161615,
+        "window_centre": 1087.0,
+        "window_width": 1890.0
+    },
+    {
+        "instance_creation_time": "180107.661",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580651161",
+        "instance_number": 92,
+        "image_position_patient": [
+            -14.144622249063,
+            -139.90261167334,
+            114.194247063715
+        ],
+        "slice_location": -8.5715363567009,
+        "window_centre": 1077.0,
+        "window_width": 1872.0
+    },
+    {
+        "instance_creation_time": "180107.864",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580673208",
+        "instance_number": 93,
+        "image_position_patient": [
+            -15.142943782266,
+            -139.90982145117,
+            114.136816796381
+        ],
+        "slice_location": -9.5715344067781,
+        "window_centre": 1086.0,
+        "window_width": 1888.0
+    },
+    {
+        "instance_creation_time": "180108.067",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580676212",
+        "instance_number": 94,
+        "image_position_patient": [
+            -16.141265315469,
+            -139.917031229,
+            114.079388436396
+        ],
+        "slice_location": -10.571532347317,
+        "window_centre": 1100.0,
+        "window_width": 1912.0
+    },
+    {
+        "instance_creation_time": "180108.270",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580676215",
+        "instance_number": 95,
+        "image_position_patient": [
+            -17.139586848672,
+            -139.92424100684,
+            114.021958169062
+        ],
+        "slice_location": -11.571530397394,
+        "window_centre": 1075.0,
+        "window_width": 1869.0
+    },
+    {
+        "instance_creation_time": "180108.473",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580679217",
+        "instance_number": 96,
+        "image_position_patient": [
+            -18.137908381875,
+            -139.93145078467,
+            113.964529809076
+        ],
+        "slice_location": -12.571528337934,
+        "window_centre": 1082.0,
+        "window_width": 1882.0
+    },
+    {
+        "instance_creation_time": "180108.676",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580689228",
+        "instance_number": 97,
+        "image_position_patient": [
+            -19.136229915078,
+            -139.9386605625,
+            113.907099541742
+        ],
+        "slice_location": -13.571526388011,
+        "window_centre": 1086.0,
+        "window_width": 1888.0
+    },
+    {
+        "instance_creation_time": "180108.879",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580682222",
+        "instance_number": 98,
+        "image_position_patient": [
+            -20.134551448281,
+            -139.94587034033,
+            113.849671181757
+        ],
+        "slice_location": -14.57152432855,
+        "window_centre": 1099.0,
+        "window_width": 1910.0
+    },
+    {
+        "instance_creation_time": "180109.082",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580695251",
+        "instance_number": 99,
+        "image_position_patient": [
+            -21.132872981485,
+            -139.95308011816,
+            113.792240914423
+        ],
+        "slice_location": -15.571522378628,
+        "window_centre": 1089.0,
+        "window_width": 1893.0
+    },
+    {
+        "instance_creation_time": "180109.286",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580703271",
+        "instance_number": 100,
+        "image_position_patient": [
+            -22.131194514688,
+            -139.960289896,
+            113.734812554438
+        ],
+        "slice_location": -16.571520319167,
+        "window_centre": 1100.0,
+        "window_width": 1912.0
+    },
+    {
+        "instance_creation_time": "180109.489",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580684224",
+        "instance_number": 101,
+        "image_position_patient": [
+            -23.129516047891,
+            -139.96749967383,
+            113.677382287104
+        ],
+        "slice_location": -17.571518369244,
+        "window_centre": 1092.0,
+        "window_width": 1899.0
+    },
+    {
+        "instance_creation_time": "180109.692",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580681221",
+        "instance_number": 102,
+        "image_position_patient": [
+            -24.127837581094,
+            -139.97470945166,
+            113.619953927118
+        ],
+        "slice_location": -18.571516309784,
+        "window_centre": 1107.0,
+        "window_width": 1925.0
+    },
+    {
+        "instance_creation_time": "180109.895",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580690239",
+        "instance_number": 103,
+        "image_position_patient": [
+            -25.126159114297,
+            -139.98191922949,
+            113.562523659784
+        ],
+        "slice_location": -19.571514359861,
+        "window_centre": 1095.0,
+        "window_width": 1903.0
+    },
+    {
+        "instance_creation_time": "180110.098",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580689234",
+        "instance_number": 104,
+        "image_position_patient": [
+            -26.1244806475,
+            -139.98912900732,
+            113.505095299799
+        ],
+        "slice_location": -20.5715123004,
+        "window_centre": 1082.0,
+        "window_width": 1882.0
+    },
+    {
+        "instance_creation_time": "180110.301",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580717311",
+        "instance_number": 105,
+        "image_position_patient": [
+            -27.122802180703,
+            -139.99633878516,
+            113.447665032465
+        ],
+        "slice_location": -21.571510350477,
+        "window_centre": 1097.0,
+        "window_width": 1906.0
+    },
+    {
+        "instance_creation_time": "180110.504",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580701266",
+        "instance_number": 106,
+        "image_position_patient": [
+            -28.121123713906,
+            -140.00354856299,
+            113.39023667248
+        ],
+        "slice_location": -22.571508291017,
+        "window_centre": 1094.0,
+        "window_width": 1901.0
+    },
+    {
+        "instance_creation_time": "180110.707",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580700262",
+        "instance_number": 107,
+        "image_position_patient": [
+            -29.11944524711,
+            -140.01075834082,
+            113.332806405146
+        ],
+        "slice_location": -23.571506341094,
+        "window_centre": 1097.0,
+        "window_width": 1908.0
+    },
+    {
+        "instance_creation_time": "180110.926",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580696256",
+        "instance_number": 108,
+        "image_position_patient": [
+            -30.117766780313,
+            -140.01796811865,
+            113.27537804516
+        ],
+        "slice_location": -24.571504281633,
+        "window_centre": 1098.0,
+        "window_width": 1909.0
+    },
+    {
+        "instance_creation_time": "180111.161",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580693245",
+        "instance_number": 109,
+        "image_position_patient": [
+            -31.116088313516,
+            -140.02517789648,
+            113.217947777826
+        ],
+        "slice_location": -25.571502331711,
+        "window_centre": 1090.0,
+        "window_width": 1894.0
+    },
+    {
+        "instance_creation_time": "180111.395",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580718317",
+        "instance_number": 110,
+        "image_position_patient": [
+            -32.114409846719,
+            -140.03238767432,
+            113.160519417841
+        ],
+        "slice_location": -26.57150027225,
+        "window_centre": 1075.0,
+        "window_width": 1868.0
+    },
+    {
+        "instance_creation_time": "180111.629",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580714303",
+        "instance_number": 111,
+        "image_position_patient": [
+            -33.112731379922,
+            -140.03959745215,
+            113.103089150507
+        ],
+        "slice_location": -27.571498322327,
+        "window_centre": 1082.0,
+        "window_width": 1881.0
+    },
+    {
+        "instance_creation_time": "180111.864",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580721329",
+        "instance_number": 112,
+        "image_position_patient": [
+            -34.111052913125,
+            -140.04680722998,
+            113.045660790522
+        ],
+        "slice_location": -28.571496262867,
+        "window_centre": 1089.0,
+        "window_width": 1894.0
+    },
+    {
+        "instance_creation_time": "180112.114",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580720322",
+        "instance_number": 113,
+        "image_position_patient": [
+            -35.109374446328,
+            -140.05401700781,
+            112.988230523188
+        ],
+        "slice_location": -29.571494312944,
+        "window_centre": 1094.0,
+        "window_width": 1902.0
+    },
+    {
+        "instance_creation_time": "180112.364",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580709291",
+        "instance_number": 114,
+        "image_position_patient": [
+            -36.107695979531,
+            -140.06122678564,
+            112.930802163202
+        ],
+        "slice_location": -30.571492253483,
+        "window_centre": 1087.0,
+        "window_width": 1889.0
+    },
+    {
+        "instance_creation_time": "180112.567",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580706283",
+        "instance_number": 115,
+        "image_position_patient": [
+            -37.106017512735,
+            -140.06843656348,
+            112.873371895868
+        ],
+        "slice_location": -31.571490303561,
+        "window_centre": 1083.0,
+        "window_width": 1882.0
+    },
+    {
+        "instance_creation_time": "180112.770",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580704277",
+        "instance_number": 116,
+        "image_position_patient": [
+            -38.104339045938,
+            -140.07564634131,
+            112.815943535883
+        ],
+        "slice_location": -32.5714882441,
+        "window_centre": 1060.0,
+        "window_width": 1843.0
+    },
+    {
+        "instance_creation_time": "180112.989",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580715309",
+        "instance_number": 117,
+        "image_position_patient": [
+            -39.102660579141,
+            -140.08285611914,
+            112.758513268549
+        ],
+        "slice_location": -33.571486294177,
+        "window_centre": 1064.0,
+        "window_width": 1849.0
+    },
+    {
+        "instance_creation_time": "180113.223",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580718316",
+        "instance_number": 118,
+        "image_position_patient": [
+            -40.100982112344,
+            -140.09006589697,
+            112.701084908564
+        ],
+        "slice_location": -34.571484234717,
+        "window_centre": 1089.0,
+        "window_width": 1893.0
+    },
+    {
+        "instance_creation_time": "180113.458",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580714307",
+        "instance_number": 119,
+        "image_position_patient": [
+            -41.099303645547,
+            -140.0972756748,
+            112.64365464123
+        ],
+        "slice_location": -35.571482284794,
+        "window_centre": 1107.0,
+        "window_width": 1924.0
+    },
+    {
+        "instance_creation_time": "180113.708",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580715310",
+        "instance_number": 120,
+        "image_position_patient": [
+            -42.09762517875,
+            -140.10448545264,
+            112.586226281244
+        ],
+        "slice_location": -36.571480225333,
+        "window_centre": 1123.0,
+        "window_width": 1951.0
+    },
+    {
+        "instance_creation_time": "180113.958",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580717314",
+        "instance_number": 121,
+        "image_position_patient": [
+            -43.095946711953,
+            -140.11169523047,
+            112.52879601391
+        ],
+        "slice_location": -37.57147827541,
+        "window_centre": 1109.0,
+        "window_width": 1927.0
+    },
+    {
+        "instance_creation_time": "180114.208",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580714305",
+        "instance_number": 122,
+        "image_position_patient": [
+            -44.094268245156,
+            -140.1189050083,
+            112.471367653925
+        ],
+        "slice_location": -38.57147621595,
+        "window_centre": 1090.0,
+        "window_width": 1894.0
+    },
+    {
+        "instance_creation_time": "180114.520",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580714306",
+        "instance_number": 123,
+        "image_position_patient": [
+            -45.09258977836,
+            -140.12611478613,
+            112.413937386591
+        ],
+        "slice_location": -39.571474266027,
+        "window_centre": 1072.0,
+        "window_width": 1863.0
+    },
+    {
+        "instance_creation_time": "180114.723",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580714304",
+        "instance_number": 124,
+        "image_position_patient": [
+            -46.090911311563,
+            -140.13332456396,
+            112.356509026606
+        ],
+        "slice_location": -40.571472206566,
+        "window_centre": 1049.0,
+        "window_width": 1824.0
+    },
+    {
+        "instance_creation_time": "180114.926",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580720324",
+        "instance_number": 125,
+        "image_position_patient": [
+            -47.089232844766,
+            -140.1405343418,
+            112.299078759272
+        ],
+        "slice_location": -41.571470256644,
+        "window_centre": 1036.0,
+        "window_width": 1801.0
+    },
+    {
+        "instance_creation_time": "180115.129",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580721326",
+        "instance_number": 126,
+        "image_position_patient": [
+            -48.087554377969,
+            -140.14774411963,
+            112.241650399286
+        ],
+        "slice_location": -42.571468197183,
+        "window_centre": 1035.0,
+        "window_width": 1800.0
+    },
+    {
+        "instance_creation_time": "180115.333",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580721328",
+        "instance_number": 127,
+        "image_position_patient": [
+            -49.085875911172,
+            -140.15495389746,
+            112.184220131952
+        ],
+        "slice_location": -43.57146624726,
+        "window_centre": 1028.0,
+        "window_width": 1788.0
+    },
+    {
+        "instance_creation_time": "180115.536",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580721327",
+        "instance_number": 128,
+        "image_position_patient": [
+            -50.084197444375,
+            -140.16216367529,
+            112.126791771967
+        ],
+        "slice_location": -44.5714641878,
+        "window_centre": 1013.0,
+        "window_width": 1761.0
+    },
+    {
+        "instance_creation_time": "180115.739",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580712301",
+        "instance_number": 129,
+        "image_position_patient": [
+            -51.082518977578,
+            -140.16937345312,
+            112.069361504633
+        ],
+        "slice_location": -45.571462237877,
+        "window_centre": 1018.0,
+        "window_width": 1770.0
+    },
+    {
+        "instance_creation_time": "180115.942",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580712300",
+        "instance_number": 130,
+        "image_position_patient": [
+            -52.080840510781,
+            -140.17658323096,
+            112.011933144648
+        ],
+        "slice_location": -46.571460178416,
+        "window_centre": 1014.0,
+        "window_width": 1763.0
+    },
+    {
+        "instance_creation_time": "180116.145",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580709290",
+        "instance_number": 131,
+        "image_position_patient": [
+            -53.079162043985,
+            -140.18379300879,
+            111.954502877314
+        ],
+        "slice_location": -47.571458228494,
+        "window_centre": 1012.0,
+        "window_width": 1760.0
+    },
+    {
+        "instance_creation_time": "180116.348",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580717315",
+        "instance_number": 132,
+        "image_position_patient": [
+            -54.077483577188,
+            -140.19100278662,
+            111.897074517328
+        ],
+        "slice_location": -48.571456169033,
+        "window_centre": 1024.0,
+        "window_width": 1780.0
+    },
+    {
+        "instance_creation_time": "180116.551",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580718319",
+        "instance_number": 133,
+        "image_position_patient": [
+            -55.075805110391,
+            -140.19821256445,
+            111.839644249994
+        ],
+        "slice_location": -49.57145421911,
+        "window_centre": 1030.0,
+        "window_width": 1790.0
+    },
+    {
+        "instance_creation_time": "180116.754",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580718318",
+        "instance_number": 134,
+        "image_position_patient": [
+            -56.074126643594,
+            -140.20542234228,
+            111.782215890009
+        ],
+        "slice_location": -50.57145215965,
+        "window_centre": 1016.0,
+        "window_width": 1766.0
+    },
+    {
+        "instance_creation_time": "180116.958",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580718320",
+        "instance_number": 135,
+        "image_position_patient": [
+            -57.072448176797,
+            -140.21263212012,
+            111.724785622675
+        ],
+        "slice_location": -51.571450209727,
+        "window_centre": 1015.0,
+        "window_width": 1764.0
+    },
+    {
+        "instance_creation_time": "180117.161",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580720321",
+        "instance_number": 136,
+        "image_position_patient": [
+            -58.07076971,
+            -140.21984189795,
+            111.66735726269
+        ],
+        "slice_location": -52.571448150266,
+        "window_centre": 984.0,
+        "window_width": 1710.0
+    },
+    {
+        "instance_creation_time": "180117.364",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580711294",
+        "instance_number": 137,
+        "image_position_patient": [
+            -59.069091243203,
+            -140.22705167578,
+            111.609926995356
+        ],
+        "slice_location": -53.571446200343,
+        "window_centre": 984.0,
+        "window_width": 1710.0
+    },
+    {
+        "instance_creation_time": "180117.567",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580711295",
+        "instance_number": 138,
+        "image_position_patient": [
+            -60.067412776406,
+            -140.23426145361,
+            111.55249863537
+        ],
+        "slice_location": -54.571444140883,
+        "window_centre": 962.0,
+        "window_width": 1672.0
+    },
+    {
+        "instance_creation_time": "180117.770",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580711296",
+        "instance_number": 139,
+        "image_position_patient": [
+            -61.06573430961,
+            -140.24147123144,
+            111.495068368036
+        ],
+        "slice_location": -55.57144219096,
+        "window_centre": 957.0,
+        "window_width": 1664.0
+    },
+    {
+        "instance_creation_time": "180117.973",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580711298",
+        "instance_number": 140,
+        "image_position_patient": [
+            -62.064055842813,
+            -140.24868100928,
+            111.437640008051
+        ],
+        "slice_location": -56.571440131499,
+        "window_centre": 955.0,
+        "window_width": 1659.0
+    },
+    {
+        "instance_creation_time": "180118.192",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580712299",
+        "instance_number": 141,
+        "image_position_patient": [
+            -63.062377376016,
+            -140.25589078711,
+            111.380209740717
+        ],
+        "slice_location": -57.571438181577,
+        "window_centre": 948.0,
+        "window_width": 1649.0
+    },
+    {
+        "instance_creation_time": "180118.395",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580709289",
+        "instance_number": 142,
+        "image_position_patient": [
+            -64.060698909219,
+            -140.26310056494,
+            111.322781380732
+        ],
+        "slice_location": -58.571436122116,
+        "window_centre": 956.0,
+        "window_width": 1661.0
+    },
+    {
+        "instance_creation_time": "180118.598",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580707286",
+        "instance_number": 143,
+        "image_position_patient": [
+            -65.059020442422,
+            -140.27031034277,
+            111.265351113398
+        ],
+        "slice_location": -59.571434172193,
+        "window_centre": 928.0,
+        "window_width": 1613.0
+    },
+    {
+        "instance_creation_time": "180118.801",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580706280",
+        "instance_number": 144,
+        "image_position_patient": [
+            -66.057341975625,
+            -140.27752012061,
+            111.207922753412
+        ],
+        "slice_location": -60.571432112733,
+        "window_centre": 887.0,
+        "window_width": 1541.0
+    },
+    {
+        "instance_creation_time": "180119.004",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580706285",
+        "instance_number": 145,
+        "image_position_patient": [
+            -67.055663508828,
+            -140.28472989844,
+            111.150492486078
+        ],
+        "slice_location": -61.57143016281,
+        "window_centre": 862.0,
+        "window_width": 1499.0
+    },
+    {
+        "instance_creation_time": "180119.208",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580706284",
+        "instance_number": 146,
+        "image_position_patient": [
+            -68.053985042031,
+            -140.29193967627,
+            111.093064126093
+        ],
+        "slice_location": -62.571428103349,
+        "window_centre": 851.0,
+        "window_width": 1479.0
+    },
+    {
+        "instance_creation_time": "180119.411",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580703272",
+        "instance_number": 147,
+        "image_position_patient": [
+            -69.052306575235,
+            -140.2991494541,
+            111.035633858759
+        ],
+        "slice_location": -63.571426153427,
+        "window_centre": 837.0,
+        "window_width": 1454.0
+    },
+    {
+        "instance_creation_time": "180119.614",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580707288",
+        "instance_number": 148,
+        "image_position_patient": [
+            -70.050628108438,
+            -140.30635923193,
+            110.978205498774
+        ],
+        "slice_location": -64.571424093966,
+        "window_centre": 858.0,
+        "window_width": 1492.0
+    },
+    {
+        "instance_creation_time": "180119.817",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580709292",
+        "instance_number": 149,
+        "image_position_patient": [
+            -71.048949641641,
+            -140.31356900977,
+            110.92077523144
+        ],
+        "slice_location": -65.571422144043,
+        "window_centre": 880.0,
+        "window_width": 1530.0
+    },
+    {
+        "instance_creation_time": "180120.020",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580695250",
+        "instance_number": 150,
+        "image_position_patient": [
+            -72.047271174844,
+            -140.3207787876,
+            110.863346871454
+        ],
+        "slice_location": -66.571420084583,
+        "window_centre": 893.0,
+        "window_width": 1553.0
+    },
+    {
+        "instance_creation_time": "180120.223",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580701270",
+        "instance_number": 151,
+        "image_position_patient": [
+            -73.045592708047,
+            -140.32798856543,
+            110.80591660412
+        ],
+        "slice_location": -67.57141813466,
+        "window_centre": 892.0,
+        "window_width": 1550.0
+    },
+    {
+        "instance_creation_time": "180120.426",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580704276",
+        "instance_number": 152,
+        "image_position_patient": [
+            -74.04391424125,
+            -140.33519834326,
+            110.748488244135
+        ],
+        "slice_location": -68.571416075199,
+        "window_centre": 882.0,
+        "window_width": 1533.0
+    },
+    {
+        "instance_creation_time": "180120.629",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580703274",
+        "instance_number": 153,
+        "image_position_patient": [
+            -75.042235774453,
+            -140.34240812109,
+            110.691057976801
+        ],
+        "slice_location": -69.571414125276,
+        "window_centre": 886.0,
+        "window_width": 1540.0
+    },
+    {
+        "instance_creation_time": "180120.833",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580701269",
+        "instance_number": 154,
+        "image_position_patient": [
+            -76.040557307656,
+            -140.34961789893,
+            110.633629616816
+        ],
+        "slice_location": -70.571412065816,
+        "window_centre": 900.0,
+        "window_width": 1564.0
+    },
+    {
+        "instance_creation_time": "180121.036",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580690238",
+        "instance_number": 155,
+        "image_position_patient": [
+            -77.03887884086,
+            -140.35682767676,
+            110.576199349482
+        ],
+        "slice_location": -71.571410115893,
+        "window_centre": 905.0,
+        "window_width": 1573.0
+    },
+    {
+        "instance_creation_time": "180121.239",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580703273",
+        "instance_number": 156,
+        "image_position_patient": [
+            -78.037200374063,
+            -140.36403745459,
+            110.518770989496
+        ],
+        "slice_location": -72.571408056432,
+        "window_centre": 900.0,
+        "window_width": 1564.0
+    },
+    {
+        "instance_creation_time": "180121.442",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580704275",
+        "instance_number": 157,
+        "image_position_patient": [
+            -79.035521907266,
+            -140.37124723242,
+            110.461340722162
+        ],
+        "slice_location": -73.57140610651,
+        "window_centre": 891.0,
+        "window_width": 1549.0
+    },
+    {
+        "instance_creation_time": "180121.645",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580704278",
+        "instance_number": 158,
+        "image_position_patient": [
+            -80.033843440469,
+            -140.37845701025,
+            110.403912362177
+        ],
+        "slice_location": -74.571404047049,
+        "window_centre": 855.0,
+        "window_width": 1486.0
+    },
+    {
+        "instance_creation_time": "180121.848",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580704279",
+        "instance_number": 159,
+        "image_position_patient": [
+            -81.032164973672,
+            -140.38566678809,
+            110.346482094843
+        ],
+        "slice_location": -75.571402097126,
+        "window_centre": 854.0,
+        "window_width": 1485.0
+    },
+    {
+        "instance_creation_time": "180122.067",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580706281",
+        "instance_number": 160,
+        "image_position_patient": [
+            -82.030486506875,
+            -140.39287656592,
+            110.289053734858
+        ],
+        "slice_location": -76.571400037666,
+        "window_centre": 849.0,
+        "window_width": 1475.0
+    },
+    {
+        "instance_creation_time": "180122.270",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580689231",
+        "instance_number": 161,
+        "image_position_patient": [
+            -83.028808040078,
+            -140.40008634375,
+            110.231623467524
+        ],
+        "slice_location": -77.571398087743,
+        "window_centre": 837.0,
+        "window_width": 1456.0
+    },
+    {
+        "instance_creation_time": "180122.473",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580689232",
+        "instance_number": 162,
+        "image_position_patient": [
+            -84.027129573281,
+            -140.40729612158,
+            110.174195107538
+        ],
+        "slice_location": -78.571396028282,
+        "window_centre": 813.0,
+        "window_width": 1413.0
+    },
+    {
+        "instance_creation_time": "180122.676",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580675210",
+        "instance_number": 163,
+        "image_position_patient": [
+            -85.025451106485,
+            -140.41450589941,
+            110.116764840204
+        ],
+        "slice_location": -79.57139407836,
+        "window_centre": 794.0,
+        "window_width": 1381.0
+    },
+    {
+        "instance_creation_time": "180122.879",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580676213",
+        "instance_number": 164,
+        "image_position_patient": [
+            -86.023772639688,
+            -140.42171567725,
+            110.059336480219
+        ],
+        "slice_location": -80.571392018899,
+        "window_centre": 782.0,
+        "window_width": 1359.0
+    },
+    {
+        "instance_creation_time": "180123.098",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580673207",
+        "instance_number": 165,
+        "image_position_patient": [
+            -87.022094172891,
+            -140.42892545508,
+            110.001906212885
+        ],
+        "slice_location": -81.571390068976,
+        "window_centre": 754.0,
+        "window_width": 1310.0
+    },
+    {
+        "instance_creation_time": "180123.301",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580671203",
+        "instance_number": 166,
+        "image_position_patient": [
+            -88.020415706094,
+            -140.43613523291,
+            109.9444778529
+        ],
+        "slice_location": -82.571388009516,
+        "window_centre": 717.0,
+        "window_width": 1246.0
+    },
+    {
+        "instance_creation_time": "180123.504",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580675209",
+        "instance_number": 167,
+        "image_position_patient": [
+            -89.018737239297,
+            -140.44334501074,
+            109.887047585566
+        ],
+        "slice_location": -83.571386059593,
+        "window_centre": 663.0,
+        "window_width": 1153.0
+    },
+    {
+        "instance_creation_time": "180123.708",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580664188",
+        "instance_number": 168,
+        "image_position_patient": [
+            -90.0170587725,
+            -140.45055478857,
+            109.82961922558
+        ],
+        "slice_location": -84.571384000132,
+        "window_centre": 632.0,
+        "window_width": 1098.0
+    },
+    {
+        "instance_creation_time": "180123.911",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580667192",
+        "instance_number": 169,
+        "image_position_patient": [
+            -91.015380305703,
+            -140.45776456641,
+            109.772188958246
+        ],
+        "slice_location": -85.571382050209,
+        "window_centre": 612.0,
+        "window_width": 1063.0
+    },
+    {
+        "instance_creation_time": "180124.114",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580671201",
+        "instance_number": 170,
+        "image_position_patient": [
+            -92.013701838906,
+            -140.46497434424,
+            109.714760598261
+        ],
+        "slice_location": -86.571379990749,
+        "window_centre": 653.0,
+        "window_width": 1134.0
+    },
+    {
+        "instance_creation_time": "180124.317",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580664186",
+        "instance_number": 171,
+        "image_position_patient": [
+            -93.01202337211,
+            -140.47218412207,
+            109.657330330927
+        ],
+        "slice_location": -87.571378040826,
+        "window_centre": 639.0,
+        "window_width": 1111.0
+    },
+    {
+        "instance_creation_time": "180124.520",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580686227",
+        "instance_number": 172,
+        "image_position_patient": [
+            -94.010344905313,
+            -140.4793938999,
+            109.599901970942
+        ],
+        "slice_location": -88.571375981365,
+        "window_centre": 604.0,
+        "window_width": 1049.0
+    },
+    {
+        "instance_creation_time": "180124.708",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580689230",
+        "instance_number": 173,
+        "image_position_patient": [
+            -95.008666438516,
+            -140.48660367773,
+            109.542471703608
+        ],
+        "slice_location": -89.571374031443,
+        "window_centre": 606.0,
+        "window_width": 1053.0
+    },
+    {
+        "instance_creation_time": "180124.895",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580689229",
+        "instance_number": 174,
+        "image_position_patient": [
+            -96.006987971719,
+            -140.49381345557,
+            109.485043343622
+        ],
+        "slice_location": -90.571371971982,
+        "window_centre": 602.0,
+        "window_width": 1047.0
+    },
+    {
+        "instance_creation_time": "180125.083",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580661183",
+        "instance_number": 175,
+        "image_position_patient": [
+            -97.005309504922,
+            -140.5010232334,
+            109.427613076288
+        ],
+        "slice_location": -91.571370022059,
+        "window_centre": 613.0,
+        "window_width": 1065.0
+    },
+    {
+        "instance_creation_time": "180125.270",
+        "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580662185",
+        "instance_number": 176,
+        "image_position_patient": [
+            -98.003631038125,
+            -140.50823301123,
+            109.370184716303
+        ],
+        "slice_location": -92.571367962599,
+        "window_centre": 578.0,
+        "window_width": 1005.0
+    }
+]
