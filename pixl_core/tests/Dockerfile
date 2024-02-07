@@ -15,5 +15,14 @@ FROM python:3.10.6-slim-bullseye
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 
 WORKDIR /core
+
+# Install requirements before copying modules
+RUN pip install pip-tools
+COPY /pixl_core/pyproject.toml core.toml
+
+RUN --mount=type=cache,target=/root/.cache \
+    python -m piptools compile -o core.txt core.toml \
+    && pip install -r core.txt
+
 COPY . .
 RUN pip install --no-cache-dir .[test]

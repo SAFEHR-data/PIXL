@@ -14,6 +14,18 @@
 FROM osimis/orthanc:22.9.0-full-stable
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 
+
+# Install requirements before copying modules
+RUN pip install pip-tools
+COPY /pixl_core/pyproject.toml core.toml
+COPY /pixl_dcmd/pyproject.toml dcmd.toml
+
+RUN --mount=type=cache,target=/root/.cache \
+    python -m piptools compile -o core.txt core.toml \
+    && pip install -r core.txt \
+    && python -m piptools compile -o dcmd.txt dcmd.toml \
+    && pip install -r dcmd.txt
+
 COPY ./orthanc/orthanc-anon/plugin/pixl.py /etc/orthanc/pixl.py
 COPY ./orthanc/orthanc-anon/plugin/tag-operations.yaml /etc/orthanc/tag-operations.yaml
 
