@@ -17,8 +17,6 @@ SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 WORKDIR /core
 
 # Install requirements before copying modules
-RUN --mount=type=cache,target=/root/.cache\
-    pip install pip-tools
 COPY pyproject.toml .
 RUN --mount=type=cache,target=/root/.cache \
     pip3 install .[test]

@@ -15,8 +15,6 @@ FROM osimis/orthanc:22.9.0-full-stable
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 
 # Install requirements before copying modules
-RUN --mount=type=cache,target=/root/.cache\
-    pip install pip-tools
 COPY ./pixl_core/pyproject.toml ./pixl_core/pyproject.toml
 COPY ./pixl_dcmd/pyproject.toml ./pixl_dcmd/pyproject.toml
 RUN --mount=type=cache,target=/root/.cache \

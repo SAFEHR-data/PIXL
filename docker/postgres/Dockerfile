@@ -28,8 +28,6 @@ COPY --chmod=0777 ./postgres/pixl-db_init.sh /docker-entrypoint-initdb.d/pixl-db
 COPY --chmod=0777 ./postgres/create_pixl_tbls.py /pixl/create_pixl_tbls.py
 
 # Install requirements before copying modules
-RUN --mount=type=cache,target=/root/.cache\
-    pip install pip-tools
 COPY ./pixl_core/pyproject.toml /pixl/pixl_core/pyproject.toml
 RUN --mount=type=cache,target=/root/.cache \
     python3 -m venv /pixl/venv \
