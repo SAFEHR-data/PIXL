@@ -15,8 +15,10 @@
 #  limitations under the License.
 
 """
-This script will upload additional instances to orthanc-raw and then confirm
-that the original test images have been removed.
+We need to test that orthanc-raw is enforcing the configured maximum storage
+limit.  This script will upload sufficient instances to orthanc-raw that the
+maximum storage capacity will be reached and then confirm that the original test
+images are no longer stored.
 
 Polling to allow for orthanc processing time.
 """
