@@ -26,10 +26,10 @@ RUN  apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install requirements before copying module
 RUN pip install pip-tools
-COPY /hasher/pyproject.toml .
+COPY ./hasher/pyproject.toml .
 
 RUN --mount=type=cache,target=/root/.cache\
-    python -m piptools compile -o requirements.txt pyproject.toml \
+    python -m piptools compile --max-rounds 1 -o requirements.txt pyproject.toml \
     && pip install -r requirements.txt
 
 WORKDIR /app

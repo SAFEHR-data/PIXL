@@ -11,7 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-FROM python:3.10.6-slim-bullseye
+FROM python:3.10.7-slim-bullseye
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 
 ARG TEST="false"
@@ -27,13 +27,13 @@ WORKDIR /app
 
 # Install requirements before copying modules
 RUN pip install pip-tools
-COPY /pixl_core/pyproject.toml core.toml
-COPY /pixl_ehr/pyproject.toml ehr.toml
+COPY ./pixl_core/pyproject.toml core.toml
+COPY ./pixl_ehr/pyproject.toml ehr.toml
 
 RUN --mount=type=cache,target=/root/.cache\
-    python -m piptools compile -o core.txt core.toml \
+    python -m piptools compile --max-rounds 1 -o core.txt core.toml \
     && pip install -r core.txt \
-    && python -m piptools compile -o ehr.txt ehr.toml \
+    && python -m piptools compile --max-rounds 1 -o ehr.txt ehr.toml \
     && pip install -r ehr.txt
 
 COPY ./pixl_core/ core/
