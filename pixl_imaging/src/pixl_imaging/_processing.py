@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING
 
 from decouple import config
 
-from pixl_pacs._orthanc import Orthanc, PIXLRawOrthanc
+from pixl_imaging._orthanc import Orthanc, PIXLRawOrthanc
 
 if TYPE_CHECKING:
     from core.patient_queue.message import Message
