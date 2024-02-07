@@ -30,7 +30,7 @@ COPY ./pixl_dcmd/pyproject.toml dcmd.toml
 
 
 RUN --mount=type=cache,target=/root/.cache \
-    && python3 -m piptools compile --max-rounds 1 pyproject.toml -o core.txt
+    && python3 -m piptools compile --max-rounds 1 pyproject.toml -o core.txt \
     && pip3 install -r core.txt \
     && python3 -m piptools compile --max-rounds 1 dcmd.toml -o dcmd.txt \
     && pip3 install -r dcmd.txt
