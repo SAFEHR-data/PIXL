@@ -59,12 +59,17 @@ with tempfile.TemporaryDirectory() as temp_dir:
         upload_response = requests.post(
             raw_instances_url,
             auth=(config("ORTHANC_RAW_USERNAME"), config("ORTHANC_RAW_PASSWORD")),
-            files={"file": open(dcm, "rb")},
+            data=open(dcm, "rb")
         )
-        if upload_response.status_code != 200:
+        if upload_response.status != requests.codes.ok:
             # orthanc will eventually refuse more instances becuase the test
             # exam we're using exceeds the max storage
-            break
+            if upload_response.json()["OrthancError"] == "The file storage is full":
+                # This is what we're looking for when storage limit reached
+                break
+            else:
+                # Something else happened preventing the upload
+                raise(RuntimeError(f"Failed to upload {dcm} to orthanc-raw"))
         n_dcm += 1
     print(f"Uploaded {n_dcm} new instances")
 
