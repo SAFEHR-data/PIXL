@@ -31,7 +31,7 @@ def write_volume(filename_pattern: str):
         filename_pattern: The pattern to use for the filenames. This should include a {slice} which will be replaced with the slice number e.g. /tmp/slice{slice:03d}.dcm
     """
     # dicom_variables.json contains per slice information for a 3D image (geometry, windowing, etc.)
-    variables = json.load(open(Path(__file__).parents[2] / "resources" / "dicom_variables.json"))
+    variables = json.load(open(Path(__file__).parents[1] / "resources" / "dicom_variables.json"))
     for i, slice_info in enumerate(variables):
         write_slice(
             file_name=filename_pattern.format(slice=i),
