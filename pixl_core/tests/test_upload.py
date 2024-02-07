@@ -12,11 +12,11 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """Test functionality to upload files to an endpoint."""
-
-
+import filecmp
 import pathlib
 from datetime import datetime, timezone
 
+import pandas as pd
 import pytest
 from core.db.models import Image
 from core.db.queries import get_project_slug_from_db, update_exported_at
@@ -69,26 +69,40 @@ def test_update_exported_and_save(rows_in_session) -> None:
 
 
 @pytest.mark.usefixtures("run_containers")
-def test_upload_parquet(parquet_export, mounted_data) -> None:
-    """Tests that parquet files are uploaded to the correct location"""
-    # ARRANGE
-
-    parquet_export.copy_to_exports(
-        pathlib.Path(__file__).parents[2] / "test" / "resources" / "omop" / "batch_1",
-        pathlib.Path(),
-    )
-    with (parquet_export.public_output.parent / "radiology.parquet").open("w") as handle:
-        handle.writelines(["dummy data"])
+def test_upload_parquet(omop_es_batch_generator, parquet_export, mounted_data) -> None:
+    """
+    GIVEN an OMOP-ES extract of two batches has been added to the export dir
+    WHEN parquet files are uploaded via FTPS
+    THEN the structure of the batch should be preserved on the FTP server
+    """
+    # ARRANGE - a ready to upload directory containing copied OMOP extract and radiology reports
+    batch_names = ["batch_1", "batch_2"]
+    omop_input_path = omop_es_batch_generator(batch_names, single_batch=False)
+    for batch in batch_names:
+        parquet_export.copy_to_exports(
+            omop_input_path / batch,
+            pathlib.Path(batch),
+        )
+    parquet_export.export_radiology(pd.DataFrame(list("dummy"), columns=["D"]))
 
     # ACT
     upload_parquet_files(parquet_export)
+
     # ASSERT
     expected_public_parquet_dir = (
         mounted_data / parquet_export.project_slug / parquet_export.extract_time_slug / "parquet"
     )
     assert expected_public_parquet_dir.exists()
-    assert (expected_public_parquet_dir / "PROCEDURE_OCCURRENCE.parquet").exists()
-    assert (expected_public_parquet_dir / "radiology.parquet").exists()
+    # Print difference report to aid debugging (it doesn't actually assert anything)
+    dc = filecmp.dircmp(parquet_export.current_extract_base, expected_public_parquet_dir)
+    dc.report_full_closure()
+    assert (
+        expected_public_parquet_dir / "batch_1" / "public" / "PROCEDURE_OCCURRENCE.parquet"
+    ).exists()
+    assert (
+        expected_public_parquet_dir / "batch_2" / "public" / "PROCEDURE_OCCURRENCE.parquet"
+    ).exists()
+    assert (expected_public_parquet_dir / "radiology" / "radiology.parquet").exists()
 
 
 @pytest.mark.usefixtures("run_containers")

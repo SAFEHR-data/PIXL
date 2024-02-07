@@ -16,9 +16,10 @@ from __future__ import annotations
 import datetime
 import os
 import pathlib
+import shutil
 import subprocess
 from pathlib import Path
-from typing import BinaryIO
+from typing import BinaryIO, Callable
 
 import pytest
 from core.db.models import Base, Extract, Image
@@ -40,6 +41,41 @@ MOUNTED_DATA_DIR = (
     Path(__file__).parents[2] / "test" / "dummy-services" / "ftp-server" / "mounts" / "data"
 )
 STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
+
+
+@pytest.fixture()
+def resources() -> pathlib.Path:
+    """Top-level test resources directory path."""
+    return pathlib.Path(__file__).parents[2] / "test" / "resources"
+
+
+@pytest.fixture()
+def omop_es_batch_generator(resources, tmp_path_factory) -> Callable[..., pathlib.Path]:
+    """
+    return a callable which returns, by default, a path to (a copy of) the
+    resources/omop/batch_1/ directory, as if it were a single batch.
+    You can also set up any subset of the resources/omop/batch_* directories to be present
+    in the returned directory. Useful for testing different setups without having a load of
+    copied files in the resources/omop directory.
+    """
+    omop_batch_root = resources / "omop"
+    # keep separate from a test that might want to use tmp_path
+    tmp = tmp_path_factory.mktemp("copied_omop_es_input")
+
+    def inner_gen(batches=None, *, single_batch: bool = True) -> pathlib.Path:
+        if batches is None:
+            batches = ["batch_1"]
+        if single_batch:
+            assert len(batches) == 1
+            # the root tmp dir will already exist; we are effectively replacing it
+            shutil.copytree(omop_batch_root / batches[0], tmp, dirs_exist_ok=True)
+        else:
+            assert batches
+            for b in batches:
+                shutil.copytree(omop_batch_root / b, tmp / b)
+        return tmp
+
+    return inner_gen
 
 
 @pytest.fixture(scope="package")
