@@ -56,6 +56,8 @@ with tempfile.TemporaryDirectory() as temp_dir:
     write_volume(temp_dir + "/dcm{slice:03d}.dcm")
     n_dcm = 0
     for dcm in Path(temp_dir).glob("*.dcm"):
+        # We use data= rather than files= in this request because orthanc does
+        # not return JSON when files= is used.
         upload_response = requests.post(
             raw_instances_url,
             auth=(config("ORTHANC_RAW_USERNAME"), config("ORTHANC_RAW_PASSWORD")),
