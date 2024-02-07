@@ -14,14 +14,6 @@
 FROM osimis/orthanc:22.9.0-full-stable
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 
-# python3-venv required for piptools
-RUN export DEBIAN_FRONTEND=noninteractive && \
-    apt-get update && \
-    apt-get install --yes --no-install-recommends python3-venv
-RUN sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
-RUN  apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-
 # Install requirements before copying modules
 RUN --mount=type=cache,target=/root/.cache\
     pip install pip-tools

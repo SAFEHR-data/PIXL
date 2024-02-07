@@ -26,8 +26,6 @@ RUN  apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 # Install requirements before copying modules
-RUN --mount=type=cache,target=/root/.cache\
-    pip install pip-tools
 COPY ./pixl_core/pyproject.toml ./pixl_core/pyproject.toml
 COPY ./pixl_ehr/pyproject.toml ./pixl_ehr/pyproject.toml
 RUN --mount=type=cache,target=/root/.cache \
