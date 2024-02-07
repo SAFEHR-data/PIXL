@@ -32,6 +32,6 @@ THIS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 PACKAGE_DIR="${THIS_DIR%/*}"
 cd "$PACKAGE_DIR"/tests || exit
 
-docker compose up -d --build
+docker compose up --wait --build
 docker exec pixl-test-imaging-api /bin/bash -c "pytest -m processing"
-docker compose down
+docker compose down --volumes

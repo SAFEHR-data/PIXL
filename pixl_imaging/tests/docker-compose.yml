@@ -33,9 +33,9 @@ services:
       orthanc-raw:
         condition: service_started
     healthcheck:
-      interval: 10s
-      timeout: 30s
-      retries: 5
+      interval: 5s
+      timeout: 5s
+      retries: 10
     environment:
       LOG_LEVEL: DEBUG
       RABBITMQ_PASSWORD: guest
@@ -54,6 +54,7 @@ services:
       - "9001:8000"
 
   vna-qr:
+    platform: linux/amd64
     image: osimis/orthanc:22.9.0-full-stable
     environment:
       ORTHANC_NAME: "VNAQR"
@@ -70,6 +71,7 @@ services:
       - ${PWD}/../../test/vna_config/:/run/secrets:ro
 
   orthanc-raw:
+    platform: linux/amd64
     build:
       context: ../../
       dockerfile: ./docker/orthanc-raw/Dockerfile
@@ -93,12 +95,12 @@ services:
 
   queue:
     container_name: pixl-test-queue
-    image: rabbitmq:3.11.2-management
+    image: rabbitmq:3.12.9-management
     healthcheck:
       test: rabbitmq-diagnostics -q check_running
-      interval: 30s
-      timeout: 30s
-      retries: 3
+      interval: 5s
+      timeout: 5s
+      retries: 20
     ports:
       - "5672:5672"
       - "15672:15672"
