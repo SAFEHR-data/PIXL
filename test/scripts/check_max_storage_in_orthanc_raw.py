@@ -56,14 +56,14 @@ with tempfile.TemporaryDirectory() as temp_dir:
     write_volume(temp_dir + "/dcm{slice:03d}.dcm")
     n_dcm = 0
     for dcm in Path(temp_dir).glob("*.dcm"):
-        # We use data= rather than files= in this request because orthanc does
-        # not return JSON when files= is used.
+        # We use data= rather than files= in this request because orthanc does not return JSON
+        # when files= is used.
         upload_response = requests.post(
             raw_instances_url,
             auth=(config("ORTHANC_RAW_USERNAME"), config("ORTHANC_RAW_PASSWORD")),
             data=open(dcm, "rb")
         )
-        if upload_response.status != requests.codes.ok:
+        if upload_response.status_code != requests.codes.ok:
             # orthanc will eventually refuse more instances becuase the test
             # exam we're using exceeds the max storage
             if upload_response.json()["OrthancError"] == "The file storage is full":
