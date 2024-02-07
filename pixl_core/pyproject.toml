@@ -23,6 +23,7 @@ dependencies = [
     "sqlalchemy==2.0.24",
     "psycopg2-binary==2.9.9",
     "pandas==1.5.1",
+    "pyarrow==14.0.1",
 ]
 
 [project.optional-dependencies]
