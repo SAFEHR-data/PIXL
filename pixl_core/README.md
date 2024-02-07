@@ -43,7 +43,7 @@ the token buffer is not set up as a service as it is only needed for the image d
 We use [RabbitMQ](https://www.rabbitmq.com/) as a message broker to transfer messages between the
 different PIXL services. Currently, we define two queues:
 
-1. `pacs` for downloading and de-identifying images
+1. `imaging` for downloading and de-identifying images
 2. `ehr` for downloading and de-identifying the EHR data
 
 The image anonymisation will be triggered automatically once the image has been downloaded to the

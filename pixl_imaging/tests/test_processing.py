@@ -11,10 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-"""
-These tests require executing from within the PACS API container with the dependent
-services being up
-"""
+"""These tests require docker containers to be up to be able to run."""
 from __future__ import annotations
 
 import datetime
@@ -23,8 +20,8 @@ import os
 import pytest
 from core.patient_queue.message import Message
 from decouple import config
-from pixl_pacs._orthanc import Orthanc, PIXLRawOrthanc
-from pixl_pacs._processing import ImagingStudy, process_message
+from pixl_imaging._orthanc import Orthanc, PIXLRawOrthanc
+from pixl_imaging._processing import ImagingStudy, process_message
 from pydicom import dcmread
 from pydicom.data import get_testdata_file
 
