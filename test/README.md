@@ -52,7 +52,7 @@ as the FTP client. The Docker container requires the following environment varia
 -   `TLS_KEY`: keyfile for the TLS certificate
 -   `TLS_CERT`: TLS certificate
 
-> [!warning] The `ADDRESS` should match the `FTP_HOST` environment variable defined in `.env.test`,
+> [!warning] The `ADDRESS` should match the `FTP_HOST` environment variable defined in `.env`,
 > otherwise FTP commands such as `STOR` or `dir` run from other Docker containers in the network
 > (such as `orthanc-anon`) will fail. _Note: connecting and logging into the FTP server might still
 > work, as the address name is only checked for protected operations such as listing and transfering
@@ -65,7 +65,8 @@ and are copied into `/etc/ssl/private` when building the Docker container.
 
 ### Resources
 
--   `./resources/` provides 2 mock DICOM images used to populate the mock VNA.
+-   `./resources/` provides 2 mock DICOM images used to populate the mock VNA
+    and a JSON file of slice varying parameters from a 3D MRI sequence.
 -   `./resources/omop` contains several extract batches, each containing a config (log) file and
       mock public and private Parquet files used to populate the message
       queues and extract the radiology reports.
