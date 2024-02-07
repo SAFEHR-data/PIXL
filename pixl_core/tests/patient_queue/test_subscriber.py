@@ -34,12 +34,18 @@ TEST_MESSAGE = Message(
 )
 
 
+class ExpectedTestError(Exception):
+    """Expected error for testing."""
+
+
 @pytest.mark.asyncio()
 @pytest.mark.usefixtures("run_containers")
+@pytest.mark.xfail(
+    reason="Sanity check that async test gets run", strict=True, raises=ExpectedTestError
+)
 async def test_create() -> None:
     """Checks consume is working."""
     with PixlProducer(queue_name=TEST_QUEUE) as pp:
-        pp.publish(messages=[TEST_MESSAGE])
         pp.publish(messages=[TEST_MESSAGE])
 
     async with PixlConsumer(queue_name=TEST_QUEUE, token_bucket=TokenBucket()) as pc:
@@ -49,13 +55,11 @@ async def test_create() -> None:
 
         # Wait for a short time to allow pc.run to start
         await asyncio.sleep(1)
-
-        consume.assert_called()
+        # Cancel before assertion so the task doesn't hang
         task.cancel()
-        # need to close connection attribute or cancellation will hang waiting for next message
-        await pc._connection.close()  # noqa: SLF001
-        await asyncio.sleep(1)  # Allow time for task to cancel
-    # pytest.fail("Check that async test runs")  # noqa: ERA001 uncomment for sanity check
+        consume.assert_called_once()
+    # Fail on purpose to check async test awaited
+    raise ExpectedTestError
 
 
 @pytest.mark.usefixtures("run_containers")

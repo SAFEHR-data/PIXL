@@ -89,6 +89,8 @@ class PixlConsumer(PixlQueueInterface):
 
     async def __aexit__(self, *args: object, **kwargs: Any) -> None:
         """Requirement for the asynchronous context manager"""
+        await self._channel.close()
+        await self._connection.close()
 
 
 class PixlBlockingConsumer(PixlBlockingInterface):
