@@ -21,6 +21,7 @@ networks:
 
 services:
     vna-qr:
+        platform: linux/amd64
         image: osimis/orthanc:22.9.0-full-stable
         environment:
             ORTHANC_NAME: ${VNAQR_AE_TITLE}
