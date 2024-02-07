@@ -17,12 +17,11 @@ SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 WORKDIR /core
 
 # Install requirements before copying modules
-RUN pip install pip-tools
-COPY /pixl_core/pyproject.toml core.toml
-
+RUN --mount=type=cache,target=/root/.cache\
+    pip install pip-tools
+COPY ./pixl_core/pyproject.toml .
 RUN --mount=type=cache,target=/root/.cache \
-    python -m piptools compile --max-rounds 1 -o core.txt core.toml \
-    && pip install -r core.txt
+    pip3 install .[test]
 
 COPY . .
 RUN pip install --no-cache-dir .[test]

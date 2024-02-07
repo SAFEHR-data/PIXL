@@ -25,15 +25,11 @@ RUN  apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
 # Install requirements before copying modules
 RUN --mount=type=cache,target=/root/.cache\
     pip install pip-tools
-COPY ./pixl_core/pyproject.toml pyproject.toml
-COPY ./pixl_dcmd/pyproject.toml dcmd.toml
-
-
+COPY ./pixl_core/pyproject.toml ./pixl_core/pyproject.toml
+COPY ./pixl_dcmd/pyproject.toml ./pixl_dcmd/pyproject.toml
 RUN --mount=type=cache,target=/root/.cache \
-    && python3 -m piptools compile --max-rounds 1 pyproject.toml -o core.txt \
-    && pip3 install -r core.txt \
-    && python3 -m piptools compile --max-rounds 1 dcmd.toml -o dcmd.txt \
-    && pip3 install -r dcmd.txt
+    pip3 install pixl_core/ \
+    && pip3 install pixl_dcmd/
 
 COPY ./orthanc/orthanc-anon/plugin/pixl.py /etc/orthanc/pixl.py
 COPY ./orthanc/orthanc-anon/plugin/tag-operations.yaml /etc/orthanc/tag-operations.yaml

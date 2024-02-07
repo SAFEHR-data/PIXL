@@ -26,15 +26,13 @@ RUN  apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 # Install requirements before copying modules
-RUN pip install pip-tools
-COPY ./pixl_core/pyproject.toml core.toml
-COPY ./pixl_imaging/pyproject.toml imaging.toml
-
+RUN --mount=type=cache,target=/root/.cache\
+    pip install pip-tools
+COPY ./pixl_core/pyproject.toml ./pixl_core/pyproject.toml
+COPY ./pixl_imaging/pyproject.toml ./pixl_imaging/pyproject.toml
 RUN --mount=type=cache,target=/root/.cache \
-    python -m piptools compile --max-rounds 1 -o core.txt core.toml \
-    && pip install -r core.txt \
-    && python -m piptools compile --max-rounds 1 -o imaging.txt imaging.toml \
-    && pip install -r imaging.txt
+    pip3 install pixl_core/ \
+    && pip3 install pixl_imaging/
 
 COPY ./pixl_core/ core/
 COPY ./pixl_imaging/ .

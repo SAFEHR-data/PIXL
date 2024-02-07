@@ -26,15 +26,13 @@ RUN  apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 # Install requirements before copying modules
-RUN pip install pip-tools
-COPY ./pixl_core/pyproject.toml core.toml
-COPY ./pixl_ehr/pyproject.toml ehr.toml
-
 RUN --mount=type=cache,target=/root/.cache\
-    python -m piptools compile --max-rounds 1 -o core.txt core.toml \
-    && pip install -r core.txt \
-    && python -m piptools compile --max-rounds 1 -o ehr.txt ehr.toml \
-    && pip install -r ehr.txt
+    pip install pip-tools
+COPY ./pixl_core/pyproject.toml ./pixl_core/pyproject.toml
+COPY ./pixl_ehr/pyproject.toml ./pixl_ehr/pyproject.toml
+RUN --mount=type=cache,target=/root/.cache \
+    pip3 install pixl_core/ \
+    && pip3 install pixl_imaging/
 
 COPY ./pixl_core/ core/
 COPY ./pixl_ehr/ .
