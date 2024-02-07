@@ -1,4 +1,3 @@
-#!/bin/bash
 #  Copyright (c) University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,8 +11,18 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-set -euxo pipefail
+FROM delfer/alpine-ftp-server
 
-# This could be much improved by having more realistic test data some of
-# which actually was persisted
-docker logs system-test-orthanc-anon-1 2>&1 | grep "DICOM instance received"
+COPY ssl/ /etc/ssl/private/
+
+SHELL ["/bin/sh", "-c"]
+RUN echo $'# Attempting to enable FTPS.\n\
+ssl_enable=YES\n\
+ssl_sslv2=YES\n\
+ssl_sslv3=YES\n\
+implicit_ssl=YES\n\
+require_ssl_reuse=NO\n\
+xferlog_std_format=YES\n\
+log_ftp_protocol=YES\n\
+vsftpd_log_file=/var/log/vsftpd.log\n\
+syslog_enable=NO' >> /etc/vsftpd/vsftpd.conf

@@ -21,9 +21,10 @@ from typing import Any, BinaryIO, Union
 import requests
 from decouple import config
 from pydicom import Dataset, dcmwrite
+
 from pixl_dcmd._database import add_hashed_identifier_and_save, query_db
-from pixl_dcmd._deid_helpers import get_bounded_age, get_encrypted_uid
 from pixl_dcmd._datetime import combine_date_time, format_date_time
+from pixl_dcmd._deid_helpers import get_bounded_age, get_encrypted_uid
 
 DicomDataSetType = Union[Union[str, bytes, PathLike[Any]], BinaryIO]
 
@@ -103,9 +104,11 @@ def enforce_whitelist(dataset: dict, tags: dict) -> dict:
 
 
 def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
-    """Apply anoymisation operations for a given set of tags to a dataset"""
-    # Keep the original study time before any operations are applied.
-    # For example: orig_study_time = dataset[0x0008, 0x0030].value
+    """
+    Apply anonymisation operations for a given set of tags to a dataset.
+    The original study time is kept before any operations are applied.
+    For example: orig_study_time = `dataset[0x0008, 0x0030].value`
+    """
 
     mrn = dataset[0x0010, 0x0020].value  # Patient ID
     accession_number = dataset[0x0008, 0x0050].value  # Accession Number
@@ -350,10 +353,12 @@ def hash_endpoint_path_for_tag(group: bytes, element: bytes) -> str:
     return "/hash"
 
 
-def _hash_values(grp: bytes, el: bytes, pat_value: str, hasher_host_url: str) -> bytes:
+def _hash_values(grp: bytes, el: bytes, pat_value: str, hasher_host_url: str) -> str:
     ep_path = hash_endpoint_path_for_tag(group=grp, element=el)
     payload = ep_path + "?message=" + pat_value
     request_url = hasher_host_url + payload
     response = requests.get(request_url)
-    logging.info(b"RESPONSE = %a}" % response.content)
-    return response.content
+    # All three hashing endpoints return application/text so should be fine to
+    # use response.text here
+    logging.info("RESPONSE = %s}" % response.text)
+    return response.text

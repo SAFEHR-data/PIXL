@@ -241,12 +241,27 @@ async def test_message_processing(example_messages) -> None:
     WHEN a message is processed requesting EHR data from Emap
     THEN The row of data is added to the PIXL DB
     """
+    ## ARRANGE
     insert_data_into_emap_star_schema()
 
     message = example_messages[0]
+
+    expected_row = [
+        mrn,
+        message.accession_number,
+        image_identifier,
+        procedure_occurrence_id,
+        report_text,
+        message.project_name,
+        message.omop_es_timestamp,
+    ]
+    ## ACT
     await process_message(message)
 
+    ## ASSERT
     pixl_db = QueryablePIXLDB()
+
+    # Check that an EHR was added to the PIXL DB
     select_columns = [
         "mrn",
         "accession_number",
@@ -263,22 +278,10 @@ async def test_message_processing(example_messages) -> None:
     assert len(all_rows) == 1
     row = all_rows[0]
 
-    expected_row = [
-        mrn,
-        message.accession_number,
-        image_identifier,
-        procedure_occurrence_id,
-        report_text,
-        message.project_name,
-        message.omop_es_timestamp,
-    ]
-
     for value, expected_value in zip(row, expected_row, strict=True):
-        if expected_value == "any":
-            continue  # Skip the age, because that depends on the current date...
-
         assert value == expected_value
 
+    # Check that anonymised EHR was added to the PIXL DB
     anon_all_rows = pixl_db.execute_query_string(
         "select mrn, accession_number, xray_report from "
         "emap_data.ehr_anon where procedure_occurrence_id = %s",
@@ -299,7 +302,7 @@ async def test_message_processing(example_messages) -> None:
 async def test_radiology_export(example_messages, tmp_path) -> None:
     """
     GIVEN a message processed by the EHR API
-    WHEN export_radiology_as_parquet is called
+    WHEN export_patient_data is called
     THEN the radiology reports are exported to a parquet file and symlinked to the latest export
     directory
     """
@@ -335,7 +338,7 @@ async def test_radiology_export_multiple_projects(example_messages, tmp_path) ->
     """
     GIVEN EHR API has processed four messages, each from a different project+extract combination
           (p1e1, p1e2, p2e1, p2e2 to ensure both fields must match)
-    WHEN export_radiology_as_parquet is called for 1 given project+extract
+    WHEN export_patient_data is called for 1 given project+extract
     THEN only the radiology reports for that project+extract are exported
     """
     # ARRANGE
@@ -346,7 +349,6 @@ async def test_radiology_export_multiple_projects(example_messages, tmp_path) ->
         await process_message(mess)
 
     # ACT
-
     export_radiology_as_parquet(
         ExportRadiologyData(
             project_name=project_name, extract_datetime=extract_datetime, output_dir=tmp_path

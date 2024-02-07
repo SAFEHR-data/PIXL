@@ -28,6 +28,7 @@ import traceback
 from io import BytesIO
 from pathlib import Path
 from time import sleep
+from typing import TYPE_CHECKING
 
 import requests
 import yaml
@@ -38,14 +39,18 @@ from pydicom import dcmread
 import orthanc
 import pixl_dcmd
 
+if TYPE_CHECKING:
+    from typing import Any
+
 ORTHANC_USERNAME = config("ORTHANC_USERNAME")
 ORTHANC_PASSWORD = config("ORTHANC_PASSWORD")
 ORTHANC_URL = "http://localhost:8042"
 
+logger = logging.getLogger(__name__)
+
 
 def AzureAccessToken():
     """
-
     Send payload to oath2/token url and
     return the response
     """
@@ -69,7 +74,6 @@ def AzureAccessToken():
 
 def AzureDICOMTokenRefresh():
     """
-
     Refresh Azure DICOM token
     If this fails then wait 30s and try again
     If successful then access_token can be used in
@@ -141,7 +145,7 @@ def SendViaStow(resourceId):
 
     payload = {"Resources": [resourceId], "Synchronous": False}
 
-    logging.info("Payload: %s", payload)
+    logger.info("Payload: %s", payload)
 
     try:
         requests.post(
@@ -157,54 +161,83 @@ def SendViaStow(resourceId):
 
 def SendViaFTPS(resourceId: str) -> None:
     """
-    Makes a POST API call to upload the resource to a dicom-web server
+    Makes a POST API call to upload the resource to an FTPS server
     using orthanc credentials as authorisation
     """
-    # Query orthanc-anon for the study
+    msg = f"Sending {resourceId} via FTPS"
+    logging.info(msg)
+    # Download zip archive of the DICOM resource
     query = f"{ORTHANC_URL}/studies/{resourceId}/archive"
-    try:
-        response_study = requests.get(query, auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD), timeout=10)
-        success_code = 200
-        if response_study.status_code != success_code:
-            msg = "Could not download archive of resource '%s'"
-            raise RuntimeError(msg, resourceId)
-    except requests.exceptions.RequestException:
-        orthanc.LogError(f"Failed to query'{resourceId}'")
+    fail_msg = "Could not download archive of resource '%s'"
+    response_study = _query(resourceId, query, fail_msg)
 
     # get the zip content
     zip_content = response_study.content
-    logging.info("Downloaded data for resource %s", resourceId)
+    logger.info("Downloaded data for resource %s", resourceId)
 
-    upload.upload_dicom_image(zip_content, resourceId)
+    upload.upload_dicom_image(BytesIO(zip_content), _get_patient_id(resourceId))
+    logger.info("Uploaded data to FTPS for resource %s", resourceId)
 
 
-def ShouldAutoRoute():
+def _get_patient_id(resourceId: str) -> str:
     """
-    Checks whether ORTHANC_AUTOROUTE_ANON_TO_AZURE environment variable is
+    Queries the Orthanc instance to get the PatientID for a given resource.
+    When anonymisation has been applied, the PatientID is the pseudo-anonymised ID.
+    """
+    query = f"{ORTHANC_URL}/studies/{resourceId}"
+    fail_msg = "Could not query study for resource '%s'"
+
+    response_study = _query(resourceId, query, fail_msg)
+    json_response = json.loads(response_study.content.decode())
+    return str(json_response["PatientMainDicomTags"]["PatientID"])
+
+
+def _query(resourceId: str, query: str, fail_msg: str) -> requests.Response:
+    try:
+        response = requests.get(query, auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD), timeout=10)
+        success_code = 200
+        if response.status_code != success_code:
+            raise RuntimeError(fail_msg, resourceId)
+    except requests.exceptions.RequestException as request_exception:
+        orthanc.LogError(f"Failed to query'{resourceId}'")
+        raise SystemExit from request_exception
+    else:
+        return response
+
+
+def ShouldAutoRoute() -> bool:
+    """
+    Checks whether ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT environment variable is
     set to true or false
     """
-    return os.environ.get("ORTHANC_AUTOROUTE_ANON_TO_AZURE", "false").lower() == "true"
+    logger.debug("Checking value of autoroute")
+    return os.environ.get("ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT", "false").lower() == "true"
 
 
-def OnChange(changeType, level, resource) -> None:  # noqa: ARG001
+def _azure_available() -> bool:
+    # Check if AZ_DICOM_ENDPOINT_CLIENT_ID is set
+    return config("AZ_DICOM_ENDPOINT_CLIENT_ID", default="") != ""
+
+
+def OnChange(changeType, level, resource):  # noqa: ARG001
     """
     Three ChangeTypes included in this function:
-    - If a study if stable and if ShouldAutoRoute returns true
-    then SendViaStow is called
+    - If a study is stable and if ShouldAutoRoute returns true
+    then SendViaFTPS is called
     - If orthanc has started then message added to Orthanc LogWarning
     and AzureDICOMTokenRefresh called
     - If orthanc has stopped and TIMER is not none then message added
     to Orthanc LogWarning and TIMER cancelled
-
     """
     if not ShouldAutoRoute():
         return
 
     if changeType == orthanc.ChangeType.STABLE_STUDY and ShouldAutoRoute():
-        print("Stable study: %s" % resource)  # noqa: T201
-        SendViaStow(resource)
+        msg = f"Stable study: {resource}"
+        logger.info(msg)
+        SendViaFTPS(resource)
 
-    if changeType == orthanc.ChangeType.ORTHANC_STARTED:
+    if changeType == orthanc.ChangeType.ORTHANC_STARTED and _azure_available():
         orthanc.LogWarning("Starting the scheduler")
         AzureDICOMTokenRefresh()
     elif changeType == orthanc.ChangeType.ORTHANC_STOPPED:
@@ -213,13 +246,13 @@ def OnChange(changeType, level, resource) -> None:  # noqa: ARG001
             TIMER.cancel()
 
 
-def OnHeartBeat(output, uri, **request):  # noqa: ARG001
+def OnHeartBeat(output, uri, **request) -> Any:  # noqa: ARG001
     """Extends the REST API by registering a new route in the REST API"""
     orthanc.LogWarning("OK")
     output.AnswerBuffer("OK\n", "text/plain")
 
 
-def ReceivedInstanceCallback(receivedDicom, origin):
+def ReceivedInstanceCallback(receivedDicom: bytes, origin: str) -> Any:
     """Modifies a DICOM instance received by Orthanc and applies anonymisation."""
     if origin == orthanc.InstanceOrigin.REST_API:
         orthanc.LogWarning("DICOM instance received from the REST API")

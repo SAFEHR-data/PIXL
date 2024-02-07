@@ -26,6 +26,9 @@ from typing import TYPE_CHECKING, Any, BinaryIO
 if TYPE_CHECKING:
     from socket import socket
 
+    from core.exports import ParquetExport
+
+
 from core.db.queries import get_project_slug_from_db, update_exported_at
 
 logger = logging.getLogger(__name__)
@@ -68,7 +71,12 @@ def upload_dicom_image(zip_content: BinaryIO, pseudo_anon_id: str) -> None:
     logger.debug("Running %s", command)
 
     # Store the file using a binary handler
-    ftp.storbinary(command, zip_content)
+    try:
+        ftp.storbinary(command, zip_content)
+    except ftplib.all_errors as ftp_error:
+        ftp.quit()
+        error_msg = "Failed to run STOR command '%s': '%s'"
+        raise ConnectionError(error_msg, command, ftp_error) from ftp_error
 
     # Close the FTP connection
     ftp.quit()
@@ -77,18 +85,50 @@ def upload_dicom_image(zip_content: BinaryIO, pseudo_anon_id: str) -> None:
     update_exported_at(pseudo_anon_id, datetime.now(tz=timezone.utc))
 
 
+def upload_parquet_files(parquet_export: ParquetExport) -> None:
+    """Upload parquet to FTPS under <project name>/<extract datetime>/parquet."""
+    current_extract = parquet_export.public_output.parents[1]
+    # Create the remote directory if it doesn't exist
+    ftp = _connect_to_ftp()
+    _create_and_set_as_cwd(ftp, parquet_export.project_slug)
+    _create_and_set_as_cwd(ftp, parquet_export.extract_time_slug)
+    _create_and_set_as_cwd(ftp, "parquet")
+
+    export_files = [x for x in current_extract.rglob("*.parquet") if x.is_file()]
+    if not export_files:
+        msg = f"No files found in {current_extract}"
+        raise FileNotFoundError(msg)
+
+    # throw exception if empty dir
+    for path in export_files:
+        with path.open("rb") as handle:
+            command = f"STOR {path.stem}.parquet"
+            logger.debug("Running %s", command)
+
+            # Store the file using a binary handler
+            ftp.storbinary(command, handle)
+
+    # Close the FTP connection
+    ftp.quit()
+    logger.debug("Finished uploading!")
+
+
 def _connect_to_ftp() -> FTP_TLS:
     # Set your FTP server details
     ftp_host = os.environ["FTP_HOST"]
     ftp_port = os.environ["FTP_PORT"]  # FTPS usually uses port 21
     ftp_user = os.environ["FTP_USER_NAME"]
-    ftp_password = os.environ["FTP_USER_PASS"]
+    ftp_password = os.environ["FTP_USER_PASSWORD"]
 
     # Connect to the server and login
-    ftp = ImplicitFtpTls()
-    ftp.connect(ftp_host, int(ftp_port))
-    ftp.login(ftp_user, ftp_password)
-    ftp.prot_p()
+    try:
+        ftp = ImplicitFtpTls()
+        ftp.connect(ftp_host, int(ftp_port))
+        ftp.login(ftp_user, ftp_password)
+        ftp.prot_p()
+    except ftplib.all_errors as ftp_error:
+        error_msg = "Failed to connect to FTPS server: '%s'"
+        raise ConnectionError(error_msg, ftp_error) from ftp_error
     return ftp
 
 

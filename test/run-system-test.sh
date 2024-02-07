@@ -17,32 +17,42 @@ BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 PACKAGE_DIR="${BIN_DIR%/*}"
 cd "${PACKAGE_DIR}/test"
 
-docker compose --env-file .env.test -p system-test down --volumes
+docker compose --env-file .env -p system-test down --volumes
 #
 # Note: cannot run as single docker compose command due to different build contexts
-docker compose --env-file .env.test -p system-test up --wait -d --build --remove-orphans
+docker compose --env-file .env -p system-test up --wait -d --build --remove-orphans
 # Warning: Requires to be run from the project root
 (cd .. && \
-  docker compose --env-file test/.env.test -p system-test up --wait -d --build)
+  docker compose --env-file test/.env -p system-test up --wait -d --build)
 
 ./scripts/insert_test_data.sh
 
+# Install pixl_cli and test dependencies
 pip install -e "${PACKAGE_DIR}/pixl_core" && pip install -e "${PACKAGE_DIR}/cli"
+pip install pydicom
+
 pixl populate "${PACKAGE_DIR}/test/resources/omop"
 pixl start
-sleep 65  # need to wait until the DICOM image is "stable" = 60s
+
+# need to wait until the DICOM image is "stable" so poll for 2 minutes to check
+./scripts/check_entry_in_orthanc_anon_for_2_min.py
 ./scripts/check_entry_in_pixl_anon.sh
-./scripts/check_entry_in_orthanc_anon.sh
-./scripts/check_max_storage_in_orthanc_raw.sh
 
+# test export and upload
 pixl extract-radiology-reports "${PACKAGE_DIR}/test/resources/omop"
-
 ./scripts/check_radiology_parquet.py \
   ../exports/test-extract-uclh-omop-cdm/latest/radiology/radiology.parquet
+./scripts/check_ftps_upload.py
+
 
 ls -laR ../exports/
 docker exec system-test-ehr-api-1 rm -r /run/exports/test-extract-uclh-omop-cdm/
 
+# This checks that orthanc-raw acknowledges the configured maximum storage size
+./scripts/check_max_storage_in_orthanc_raw.sh
+
+# Run this last because it will force out original test images from orthanc-raw
+./scripts/check_max_storage_in_orthanc_raw.py
+
 cd "${PACKAGE_DIR}"
 docker compose -f docker-compose.yml -f test/docker-compose.yml -p system-test down --volumes
-

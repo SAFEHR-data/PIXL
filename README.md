@@ -12,6 +12,10 @@ To get access to the GAE, [see the documentation on Slab](https://uclh.slab.com/
 
 ## Services
 
+### [PIXL core](./pixl_core/README.md)
+
+The `core` module contains the functionality shared by the other PIXL modules.
+
 ### [PIXL CLI](./cli/README.md)
 
 Primary interface to the PIXL system.
@@ -20,13 +24,20 @@ Primary interface to the PIXL system.
 
 HTTP API to securely hash an identifier using a key stored in Azure Key Vault.
 
-### [Orthanc Raw](./orthanc/orthanc-raw/README.md)
+### [Orthanc](./orthanc/README.md)
+
+#### [Orthanc Raw](./orthanc/orthanc-raw/README.md)
 
 A DICOM node which receives images from the upstream hospital systems and acts as cache for PIXL.
 
-### [Orthanc Anon](./orthanc/orthanc-anon/README.md)
+#### [Orthanc Anon](./orthanc/orthanc-anon/README.md)
 
-A DICOM node which wraps our de-identifcation and cloud transfer components.
+A DICOM node which wraps our de-identifcation process and uploading of the images to their final
+destination.
+
+#### [PIXL DICOM de-identifier](./pixl_dcmd/README.md)
+
+Provides helper functions for de-identifying DICOM data
 
 ### PostgreSQL
 
@@ -214,6 +225,7 @@ select count(*) from emap_data.ehr_anon where xray_report is not null;
 ## Develop
 
 See each service's README for instructions for individual developing and testing instructions.
+Most modules require [`docker`](https://docs.docker.com/desktop/) and `docker-compose` to be installed to run tests.
 
 For Python development we use [ruff](https://docs.astral.sh/ruff/) alongside [pytest](https://www.pytest.org/).
 There is support (sometimes through plugins) for these tools in most IDEs & editors.

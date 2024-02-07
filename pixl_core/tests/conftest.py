@@ -15,13 +15,14 @@ from __future__ import annotations
 
 import datetime
 import os
-import shutil
+import pathlib
 import subprocess
 from pathlib import Path
 from typing import BinaryIO
 
 import pytest
 from core.db.models import Base, Extract, Image
+from core.exports import ParquetExport
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -31,10 +32,13 @@ os.environ["RABBITMQ_HOST"] = "localhost"
 os.environ["RABBITMQ_PORT"] = "25672"
 os.environ["FTP_HOST"] = "localhost"
 os.environ["FTP_USER_NAME"] = "pixl"
-os.environ["FTP_USER_PASS"] = "longpassword"  # noqa: S105 Hardcoding password
+os.environ["FTP_USER_PASSWORD"] = "longpassword"  # noqa: S105 Hardcoding password
 os.environ["FTP_PORT"] = "20021"
 
 TEST_DIR = Path(__file__).parent
+MOUNTED_DATA_DIR = (
+    Path(__file__).parents[2] / "test" / "dummy-services" / "ftp-server" / "mounts" / "data"
+)
 STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
 
 
@@ -66,18 +70,21 @@ def test_zip_content() -> BinaryIO:
 
 
 @pytest.fixture()
-def mounted_data() -> Path:
+def mounted_data(run_containers) -> Path:
     """
     The mounted data directory for the ftp server.
     This will contain the data after successful upload.
+    Tear down through docker
     """
-    yield TEST_DIR / "ftp-server" / "mounts" / "data"
-    sub_dirs = [
-        f.path for f in os.scandir(TEST_DIR / "ftp-server" / "mounts" / "data") if f.is_dir()
-    ]
+    yield MOUNTED_DATA_DIR
     # Tear down the directory after tests
-    for sub_dir in sub_dirs:
-        shutil.rmtree(sub_dir, ignore_errors=True)
+    subprocess.run(
+        b"docker compose exec ftp-server sh -c 'rm -r /home/pixl/*'",
+        check=True,
+        cwd=TEST_DIR,
+        shell=True,  # noqa: S602
+        timeout=60,
+    ).check_returncode()
 
 
 @pytest.fixture(scope="module")
@@ -169,3 +176,19 @@ def not_yet_exported_dicom_image(rows_in_session) -> Image:
 def already_exported_dicom_image(rows_in_session) -> Image:
     """Return a DICOM image from the database."""
     return rows_in_session.query(Image).filter(Image.hashed_identifier == "already_exported").one()
+
+
+@pytest.fixture(autouse=True)
+def export_dir(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
+    """Tmp dir to for tests to extract to."""
+    return tmp_path_factory.mktemp("export_base") / "exports"
+
+
+@pytest.fixture()
+def parquet_export(export_dir) -> ParquetExport:
+    """Return a ParquetExport object."""
+    return ParquetExport(
+        project_name="i-am-a-project",
+        extract_datetime=datetime.datetime.now(tz=datetime.timezone.utc),
+        export_dir=export_dir,
+    )
