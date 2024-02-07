@@ -20,7 +20,7 @@ ehr_api:
   host: localhost
   port: 9000
   default_rate: 5  # ~queries per second
-pacs_api:
+imaging_api:
   default_rate: 5  # queries per second
 postgres:
   host: host

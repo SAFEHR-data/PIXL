@@ -20,7 +20,7 @@ ehr_api:
   host: localhost
   port: 7006
   default_rate: 1
-pacs_api:
+imaging_api:
   host: localhost
   port: 7007
   default_rate: 1

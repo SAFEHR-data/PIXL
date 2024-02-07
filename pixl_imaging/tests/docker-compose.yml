@@ -20,11 +20,11 @@ volumes:
 
 services:
 
-  pacs-api:
-    container_name: pixl-test-pacs-api
+  imaging-api:
+    container_name: pixl-test-imaging-api
     build:
       context: ../../
-      dockerfile: ./docker/pacs-api/Dockerfile
+      dockerfile: ./docker/imaging-api/Dockerfile
       args:
         TEST: true
     depends_on:

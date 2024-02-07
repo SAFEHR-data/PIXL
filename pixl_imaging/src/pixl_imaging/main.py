@@ -11,7 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-"""pixl_pacs module queries the VNA to check if a dataset exists"""
+"""pixl_imaging module queries the VNA to check if a dataset exists"""
 from __future__ import annotations
 
 import asyncio
@@ -25,12 +25,12 @@ from fastapi.responses import JSONResponse
 
 from ._processing import process_message
 
-QUEUE_NAME = "pacs"
+QUEUE_NAME = "imaging"
 
 app = FastAPI(
-    title="pacs-api",
-    description="PACS extraction service",
-    version=importlib.metadata.version("pixl_pacs"),
+    title="imaging-api",
+    description="Imaging extraction service",
+    version=importlib.metadata.version("pixl_imaging"),
     default_response_class=JSONResponse,
 )
 app.include_router(router)
