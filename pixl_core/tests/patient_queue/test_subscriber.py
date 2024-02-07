@@ -57,6 +57,9 @@ async def test_create() -> None:
         await asyncio.sleep(1)
         # Cancel before assertion so the task doesn't hang
         task.cancel()
+        # need to close the connection and channel
+        await pc._channel.close()  # noqa: SLF001
+        await pc._connection.close()  # noqa: SLF001
         consume.assert_called_once()
     # Fail on purpose to check async test awaited
     raise ExpectedTestError
