@@ -50,7 +50,7 @@ def cli(*, debug: bool) -> None:
 @cli.command()
 @click.option(
     "--queues",
-    default="pacs,ehr",
+    default="imaging,ehr",
     show_default=True,
     help="Comma seperated list of queues to populate with messages generated from the "
     "input file(s)",
@@ -94,7 +94,7 @@ def populate(parquet_dir: Path, *, restart: bool, queues: str) -> None:
 
         sorted_messages = sorted(messages, key=attrgetter("study_date"))
         # For imaging, we don't want to query again for images that have already been exported
-        if queue == "pacs" and messages:
+        if queue == "imaging" and messages:
             sorted_messages = filter_exported_or_add_to_db(
                 sorted_messages, messages[0].project_name
             )
@@ -132,7 +132,7 @@ def extract_radiology_reports(parquet_dir: Path) -> None:
 @cli.command()
 @click.option(
     "--queues",
-    default="ehr,pacs",
+    default="ehr,imaging",
     show_default=True,
     help="Comma seperated list of queues to start consuming from",
 )
@@ -155,7 +155,7 @@ def start(queues: str, rate: Optional[int]) -> None:
 @cli.command()
 @click.option(
     "--queues",
-    default="ehr,pacs",
+    default="ehr,imaging",
     show_default=True,
     help="Comma seperated list of queues to update the consume rate of",
 )
@@ -215,7 +215,7 @@ def _update_extract_rate(queue_name: str, rate: Optional[float]) -> None:
 @cli.command()
 @click.option(
     "--queues",
-    default="ehr,pacs",
+    default="ehr,imaging",
     show_default=True,
     help="Comma seperated list of queues to consume messages from",
 )
@@ -240,7 +240,7 @@ def kill() -> None:
 @cli.command()
 @click.option(
     "--queues",
-    default="ehr,pacs",
+    default="ehr,imaging",
     show_default=True,
     help="Comma seperated list of queues to consume messages from",
 )

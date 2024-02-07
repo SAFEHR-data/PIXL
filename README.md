@@ -47,9 +47,9 @@ RDBMS which stores DICOM metadata, application data and anonymised patient recor
 
 HTTP API to process messages from the `ehr` queue and populate raw and anon tables in the PIXL postgres instance.
 
-### [PACS Image Extractor](./pixl_pacs/README.md)
+### [Image Extractor](./pixl_imaging/README.md)
 
-HTTP API to process messages from the `pacs` queue and populate the raw orthanc instance with images from PACS/VNA.
+HTTP API to process messages from the `imaging` queue and populate the raw orthanc instance with images from PACS/VNA.
 
 ## Setup
 

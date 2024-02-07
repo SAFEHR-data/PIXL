@@ -256,10 +256,10 @@ services:
     volumes:
       - ${PWD}/exports:/run/exports
 
-  pacs-api:
+  imaging-api:
     build:
       context: .
-      dockerfile: ./docker/pacs-api/Dockerfile
+      dockerfile: ./docker/imaging-api/Dockerfile
       args:
         <<: *build-args-common
     depends_on:
@@ -282,7 +282,7 @@ services:
       PIXL_DICOM_TRANSFER_TIMEOUT: ${PIXL_DICOM_TRANSFER_TIMEOUT}
       PIXL_QUERY_TIMEOUT: ${PIXL_QUERY_TIMEOUT}
     ports:
-      - "${PIXL_PACS_API_PORT}:8000"
+      - "${PIXL_IMAGING_API_PORT}:8000"
 
 ################################################################################
 # Data Stores

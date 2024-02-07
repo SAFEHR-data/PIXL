@@ -1,5 +1,5 @@
 [project]
-name = "pixl_pacs"
+name = "pixl_imaging"
 version = "0.0.2"
 authors = [
   { name="PIXL authors" },

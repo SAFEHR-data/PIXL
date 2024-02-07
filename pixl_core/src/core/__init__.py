@@ -13,7 +13,7 @@
 #  limitations under the License.
 """
 PIXL core module
-This module contains the core PIXL functionality utilised by both the EHR and PACS APIs
+This module contains the core PIXL functionality utilised by both the EHR and Imaging APIs
 to interact with RabbitMQ and ensure suitable rate limiting of requests to the upstream
 services.
 """
