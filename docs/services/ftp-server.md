@@ -18,7 +18,7 @@ in the `.env` file (see [the example](../.env.sample)).
 
 For the `pixl_core` unit tests and the system test, we spin up an FTPS server with a Docker
 container, defined in [`test/dummy-services/ftp-server`](../../test/dummy-services/ftp-server/) and
-set the necessary environment variables in [`.env.test`](../../test/.env.test).
+set the necessary environment variables in [`test/.env`](../../test/.env).
 
 ## FTPS test server
 
