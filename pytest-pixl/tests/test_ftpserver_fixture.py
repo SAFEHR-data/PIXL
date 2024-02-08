@@ -1,4 +1,4 @@
-#  Copyright (c) University College London Hospitals NHS Foundation Trust
+#  Copyright (c) 2022 University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -11,22 +11,11 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-version: "3.8"
+import pytest
 
 
-services:
-
-  queue:
-    container_name: pixl-test-queue
-    image: rabbitmq:3.11.2-management
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-    ports:
-      - "25672:5672"
-      - "35672:15672"
-    healthcheck:
-      test: rabbitmq-diagnostics -q check_running
-      interval: 10s
-      timeout: 5s
-      retries: 5
+@pytest.mark.pytester_example_path("tests/samples_for_fixture_tests/test_ftpserver_fixture")
+def test_ftpserver_connection(pytester):
+    """Test whether we can connect to the FTP server fixture"""
+    pytester.copy_example("test_ftpserver_login.py")
+    pytester.runpytest("-k", "test_ftpserver_login")
