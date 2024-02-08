@@ -58,12 +58,6 @@ class PixlFTPServer:
     :param home_dir: The home directory for the FTP server. This is the directory where the
         user will be placed after login.
     :type home_dir: str
-    :param certfile: The path to the SSL certificate file. Confgiruable with the 'FTP_CERT_FILE'
-        environment variable.
-    :type certfile: str
-    :param keyfile: The path to the SSL key file. Configurable with the 'FTP_KEY_FILE' environment
-        variable.
-    :type keyfile: str
     """
 
     def __init__(self, home_dir: str) -> None:
@@ -80,8 +74,8 @@ class PixlFTPServer:
         self.user_password = config("FTP_USER_PASSWORD", default="longpassword")
         self.home_dir = home_dir
 
-        self.certfile = config("FTP_CERT_FILE")
-        self.keyfile = config("FTP_KEY_FILE")
+        self.certfile = Path(__file__).parents[1] / "resources" / "ssl" / "localhost.crt"
+        self.keyfile = Path(__file__).parents[1] / "resources" / "ssl" / "localhost.key"
 
         self.authorizer = DummyAuthorizer()
         self.handler = SSLImplicitFTPHandler

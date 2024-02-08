@@ -13,5 +13,3 @@ the following environment variables:
 - `FTP_PORT`: port on which the FTPS server is listening
 - `FTP_USER_NAME`: name of user with access to the FTPS server
 - `FTP_USER_PASSWORD`: password for the authorised user
-- `FTP_CERT_FILE`: path to an SSL certificate file
-- `FTP_KEY_FILE`: path to an SSL key file
