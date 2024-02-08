@@ -208,7 +208,7 @@ jobs:
   system-test:
     if: ${{ ! github.event.pull_request.draft || contains(github.event.pull_request.title, '[force-system-test]') }}
     runs-on: ubuntu-22.04
-    timeout-minutes: 60
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v3
       - name: Prune docker volumes
