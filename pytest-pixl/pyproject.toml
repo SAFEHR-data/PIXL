@@ -35,3 +35,6 @@ extend = "../ruff.toml"
 
 [tool.ruff.extend-per-file-ignores]
 "./tests/**" = ["D100"]
+
+[project.entry-points.pytest11]
+pytest_pixl = "pytest_pixl.plugin"
