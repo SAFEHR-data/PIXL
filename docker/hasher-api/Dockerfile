@@ -24,12 +24,12 @@ RUN sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 # clean up
 RUN  apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-## Install requirements before copying modules
-#COPY ./hasher/pyproject.toml pyproject.toml
-#RUN --mount=type=cache,target=/root/.cache \
-#    pip install .
-
 WORKDIR /app
+# Install requirements before copying modules
+COPY ./hasher/pyproject.toml .
+RUN --mount=type=cache,target=/root/.cache \
+    pip install /app/
+
 COPY ./hasher/ .
 RUN --mount=type=cache,target=/root/.cache \
     pip install .
