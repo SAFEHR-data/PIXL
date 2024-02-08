@@ -25,9 +25,9 @@ RUN sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 RUN  apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install requirements before copying modules
-COPY ./hasher/pyproject.toml .
+COPY ./hasher/pyproject.toml pyproject.toml
 RUN --mount=type=cache,target=/root/.cache \
-    pip3 install .
+    pip install .
 
 WORKDIR /app
 COPY ./hasher/ .
