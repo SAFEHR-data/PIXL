@@ -11,13 +11,13 @@ classifiers = [
     "Programming Language :: Python :: 3"
 ]
 dependencies = [
-    "core", # pixl_core
     "pyftpdlib==1.5.9",
     "python-decouple==3.6",
 ]
 
 [project.optional-dependencies]
 test = [
+    "core", # pixl_core
     "pytest==7.4.2",
 ]
 dev = [
