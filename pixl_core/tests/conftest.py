@@ -16,15 +16,24 @@ from __future__ import annotations
 import datetime
 import os
 import pathlib
+import shutil
 import subprocess
 from pathlib import Path
-from typing import BinaryIO
+from typing import TYPE_CHECKING, BinaryIO
 
 import pytest
 from core.db.models import Base, Extract, Image
 from core.exports import ParquetExport
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+pytest_plugins = "pytest_pixl"
+
+TEST_DIR = Path(__file__).parent
+STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
 
 os.environ["RABBITMQ_USERNAME"] = "guest"
 os.environ["RABBITMQ_PASSWORD"] = "guest"  # noqa: S105 Hardcoding password
@@ -34,12 +43,6 @@ os.environ["FTP_HOST"] = "localhost"
 os.environ["FTP_USER_NAME"] = "pixl"
 os.environ["FTP_USER_PASSWORD"] = "longpassword"  # noqa: S105 Hardcoding password
 os.environ["FTP_PORT"] = "20021"
-
-TEST_DIR = Path(__file__).parent
-MOUNTED_DATA_DIR = (
-    Path(__file__).parents[2] / "test" / "dummy-services" / "ftp-server" / "mounts" / "data"
-)
-STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
 
 
 @pytest.fixture(scope="package")
@@ -69,29 +72,25 @@ def run_containers() -> subprocess.CompletedProcess[bytes]:
 
 
 @pytest.fixture()
+def ftps_home_dir(ftps_server) -> Generator[Path, None, None]:
+    """Return the FTPS server home directory and clear it after every test"""
+    ftp_home = Path(ftps_server.home_dir)
+    yield ftp_home
+
+    # Clear contents
+    for p in ftp_home.glob("*"):
+        if p.is_dir():
+            shutil.rmtree(p)
+        else:
+            p.unlink()
+
+
+@pytest.fixture()
 def test_zip_content() -> BinaryIO:
     """Directory containing the test data for uploading to the ftp server."""
     test_zip_file = TEST_DIR / "data" / "public.zip"
     with test_zip_file.open("rb") as file_content:
         yield file_content
-
-
-@pytest.fixture()
-def mounted_data(run_containers) -> Path:
-    """
-    The mounted data directory for the ftp server.
-    This will contain the data after successful upload.
-    Tear down through docker
-    """
-    yield MOUNTED_DATA_DIR
-    # Tear down the directory after tests
-    subprocess.run(
-        b"docker compose exec ftp-server sh -c 'rm -r /home/pixl/*'",
-        check=True,
-        cwd=TEST_DIR,
-        shell=True,  # noqa: S602
-        timeout=60,
-    ).check_returncode()
 
 
 @pytest.fixture(scope="module")
