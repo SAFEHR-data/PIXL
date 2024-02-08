@@ -1,0 +1,37 @@
+[project]
+name = "pytest-pixl"
+version = "0.0.1"
+authors = [
+  { name="PIXL core functionality" },
+]
+description = "Pytest plugin for PIXL"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3"
+]
+dependencies = [
+    "core", # pixl_core
+    "pyftpdlib==1.5.9",
+    "python-decouple==3.6",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest==7.4.2",
+]
+dev = [
+    "mypy",
+    "pre-commit",
+    "ruff",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.ruff]
+extend = "../ruff.toml"
+
+[tool.ruff.extend-per-file-ignores]
+"./tests/**" = ["D100"]
