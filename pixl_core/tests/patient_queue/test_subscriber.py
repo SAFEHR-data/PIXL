@@ -73,8 +73,12 @@ def test_consume_all() -> None:
     """
     with PixlProducer(queue_name=TEST_QUEUE) as pp:
         assert pp.connection_open
-        assert pp.message_count == 0
+
+    with PixlProducer(queue_name=TEST_QUEUE) as pp:
+        pp.clear_queue()
         pp.publish(messages=[TEST_MESSAGE, TEST_MESSAGE])
+
+    with PixlProducer(queue_name=TEST_QUEUE) as pp:
         assert pp.message_count == 1
 
     with PixlBlockingConsumer(queue_name=TEST_QUEUE) as bc:
