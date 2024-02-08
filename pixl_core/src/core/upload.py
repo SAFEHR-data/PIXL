@@ -21,6 +21,7 @@ import os
 import ssl
 from datetime import datetime, timezone
 from ftplib import FTP_TLS
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, BinaryIO
 
 if TYPE_CHECKING:
@@ -87,23 +88,34 @@ def upload_dicom_image(zip_content: BinaryIO, pseudo_anon_id: str) -> None:
 
 def upload_parquet_files(parquet_export: ParquetExport) -> None:
     """Upload parquet to FTPS under <project name>/<extract datetime>/parquet."""
-    current_extract = parquet_export.public_output.parents[1]
+    source_root_dir = parquet_export.current_extract_base
     # Create the remote directory if it doesn't exist
     ftp = _connect_to_ftp()
     _create_and_set_as_cwd(ftp, parquet_export.project_slug)
     _create_and_set_as_cwd(ftp, parquet_export.extract_time_slug)
     _create_and_set_as_cwd(ftp, "parquet")
 
-    export_files = [x for x in current_extract.rglob("*.parquet") if x.is_file()]
-    if not export_files:
-        msg = f"No files found in {current_extract}"
+    # get the upload root directory before we do anything as we'll need
+    # to return to it (will it always be absolute?)
+    upload_root_dir = Path(ftp.pwd())
+    if not upload_root_dir.is_absolute():
+        logger.error("server remote path is not absolute, what are we going to do?")
+
+    # absolute paths of the source
+    source_files = [x for x in source_root_dir.rglob("*.parquet") if x.is_file()]
+    if not source_files:
+        msg = f"No files found in {source_root_dir}"
         raise FileNotFoundError(msg)
 
     # throw exception if empty dir
-    for path in export_files:
-        with path.open("rb") as handle:
-            command = f"STOR {path.stem}.parquet"
-            logger.debug("Running %s", command)
+    for source_path in source_files:
+        _create_and_set_as_cwd(ftp, str(upload_root_dir))
+        source_rel_path = source_path.relative_to(source_root_dir)
+        source_rel_dir = source_rel_path.parent
+        source_filename_only = source_rel_path.relative_to(source_rel_dir)
+        _create_and_set_as_cwd_multi_path(ftp, source_rel_dir)
+        with source_path.open("rb") as handle:
+            command = f"STOR {source_filename_only}"
 
             # Store the file using a binary handler
             ftp.storbinary(command, handle)
@@ -130,6 +142,19 @@ def _connect_to_ftp() -> FTP_TLS:
         error_msg = "Failed to connect to FTPS server: '%s'"
         raise ConnectionError(error_msg, ftp_error) from ftp_error
     return ftp
+
+
+def _create_and_set_as_cwd_multi_path(ftp: FTP_TLS, remote_multi_dir: Path) -> None:
+    """Create (and cwd into) a multi dir path, analogously to mkdir -p"""
+    if remote_multi_dir.is_absolute():
+        # would require some special handling and we don't need it
+        err = "must be relative path"
+        raise ValueError(err)
+    logger.info("_create_and_set_as_cwd_multi_path %s", remote_multi_dir)
+    # path should be pretty normalised, so assume split is safe
+    sub_dirs = str(remote_multi_dir).split("/")
+    for sd in sub_dirs:
+        _create_and_set_as_cwd(ftp, sd)
 
 
 def _create_and_set_as_cwd(ftp: FTP_TLS, project_dir: str) -> None:
