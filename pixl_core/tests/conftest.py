@@ -16,7 +16,6 @@ from __future__ import annotations
 import datetime
 import os
 import pathlib
-import shutil
 import subprocess
 from pathlib import Path
 from typing import TYPE_CHECKING, BinaryIO
@@ -73,16 +72,11 @@ def run_containers() -> subprocess.CompletedProcess[bytes]:
 
 @pytest.fixture()
 def ftps_home_dir(ftps_server) -> Generator[Path, None, None]:
-    """Return the FTPS server home directory and clear it after every test"""
-    ftp_home = Path(ftps_server.home_dir)
-    yield ftp_home
-
-    # Clear contents
-    for p in ftp_home.glob("*"):
-        if p.is_dir():
-            shutil.rmtree(p)
-        else:
-            p.unlink()
+    """
+    Return the FTPS server home directory, the ftps_server fixture already uses
+    pytest.tmp_path_factory, so no need to clean up.
+    """
+    return Path(ftps_server.home_dir)
 
 
 @pytest.fixture()
