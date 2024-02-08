@@ -47,6 +47,7 @@ async def test_create() -> None:
     """Checks consume is working."""
     with PixlProducer(queue_name=TEST_QUEUE) as pp:
         pp.publish(messages=[TEST_MESSAGE])
+        assert pp.message_count == 1
 
     async with PixlConsumer(queue_name=TEST_QUEUE, token_bucket=TokenBucket()) as pc:
         consume = AsyncMock()
@@ -79,7 +80,7 @@ def test_consume_all() -> None:
         pp.publish(messages=[TEST_MESSAGE, TEST_MESSAGE])
 
     with PixlProducer(queue_name=TEST_QUEUE) as pp:
-        assert pp.message_count == 1
+        assert pp.message_count == 2
 
     with PixlBlockingConsumer(queue_name=TEST_QUEUE) as bc:
         counter_bc = bc.consume_all(timeout_in_seconds=2, file_path=Path("test_producer.csv"))
