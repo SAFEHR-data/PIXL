@@ -1,0 +1,122 @@
+"""A ligthweight FTPS server supporting implicit SSL for use in PIXL tests."""
+
+from pathlib import Path
+
+from decouple import config
+from pyftpdlib.authorizers import DummyAuthorizer
+from pyftpdlib.handlers import TLS_FTPHandler
+from pyftpdlib.servers import FTPServer
+
+# USer permission
+# from https://pyftpdlib.readthedocs.io/en/latest/api.html#pyftpdlib.authorizers.DummyAuthorizer.add_user
+# "e" = change directory (CWD, CDUP commands)
+# "l" = list files (LIST, NLST, STAT, MLSD, MLST, SIZE commands)
+# "r" = retrieve file from the server (RETR command)
+# "a" = append data to an existing file (APPE command)
+# "d" = delete file or directory (DELE, RMD commands)
+# "f" = rename file or directory (RNFR, RNTO commands)
+# "m" = create directory (MKD command)
+# "w" = store a file to the server (STOR, STOU commands)
+# "M" = change file mode / permission (SITE CHMOD command) New in 0.7.0
+# "T" = change file modification time (SITE MFMT command) New in 1.5.3
+
+USER_PERMISSIONS = "elradfmwMT"
+
+
+class SSLImplicitFTPHandler(TLS_FTPHandler):
+    """FTP handler class to support implicit SSL."""
+
+    def handle(self) -> None:
+        """Secure the connection with SSL."""
+        self.secure_connection(self.ssl_context)
+
+    def handle_ssl_established(self) -> None:
+        """Handle the SSL established event."""
+        TLS_FTPHandler.handle(self)
+
+    def ftp_AUTH(self, arg: None) -> None:  # noqa: ARG002 Unused method argument
+        """Handle the AUTH command."""
+        self.respond("550 not supposed to be used with implicit SSL.")
+
+
+class PixlFTPServer:
+    """
+    Mock FTPS server for PIXL tests. The server is configured to use SSL authentication.
+
+    :param host: The hostname of the FTP server. Configurable with the 'FTP_HOST' environment
+        variable, defaults to 'localhost'."
+    :type host: str
+    :param port: The port number of the FTP server. Configurable with the 'FTP_PORT' environment
+        variable, defaults to 20021."
+    :type port: int
+    :param user_name: The username for the FTP server. Configurable with the 'FTP_USER_NAME'
+        environment variable, defaults to 'pixl_user'."
+    :type user_name: str
+    :param user_password: The password for the FTP server. Configurable with the 'FTP_USER_PASSWORD'
+        environment variable, defaults to 'longpassword'."
+    :type user_password: str
+    :param home_dir: The home directory for the FTP server. This is the directory where the
+        user will be placed after login.
+    :type home_dir: str
+    :param certfile: The path to the SSL certificate file. Confgiruable with the 'FTP_CERT_FILE'
+        environment variable.
+    :type certfile: str
+    :param keyfile: The path to the SSL key file. Configurable with the 'FTP_KEY_FILE' environment
+        variable.
+    :type keyfile: str
+    """
+
+    def __init__(self, home_dir: str) -> None:
+        """
+        Initialise the FTPS server. Sets the hostname, port, username and password
+        from the corresponding environment variables.
+        :param home_dir: The home directory for the FTP server. This is the directory where the
+            user will be placed after login.
+        """
+        self.host = config("FTP_HOST", default="127.0.0.1")
+        self.port = int(config("FTP_PORT", default=20021))
+
+        self.user_name = config("FTP_USER_NAME", default="pixl_user")
+        self.user_password = config("FTP_USER_PASSWORD", default="longpassword")
+        self.home_dir = home_dir
+
+        self.certfile = config("FTP_CERT_FILE")
+        self.keyfile = config("FTP_KEY_FILE")
+
+        self.authorizer = DummyAuthorizer()
+        self.handler = SSLImplicitFTPHandler
+
+        self._add_user()
+        self._setup_TLS_handler()
+        self._create_server()
+
+    def _add_user(self) -> None:
+        """
+        Add user to the FTP server and create its homedirectory. Note that the home directory
+        will be a directory on the local filesystem!
+        """
+        self.authorizer.add_user(
+            self.user_name, self.user_password, self.home_dir, perm=USER_PERMISSIONS
+        )
+
+    def _setup_TLS_handler(self) -> None:
+        self._check_ssl_files()
+        self.handler.certfile = self.certfile
+        self.handler.keyfile = self.keyfile
+        self.handler.authorizer = self.authorizer
+
+    def _check_ssl_files(self) -> None:
+        # Make sure we have access to the SSL certificates
+        certfile_path = Path(self.certfile)
+        keyfile_path = Path(self.keyfile)
+        assert certfile_path.exists(), f"Could not find cerfile at {certfile_path.absolute()}"
+        assert keyfile_path.exists(), f"Could not find cerfile at {keyfile_path.absolute()}"
+
+    def _create_server(self) -> FTPServer:
+        """
+        Creates the FTPS server and returns it. The server can be started with the `serve_forever`
+        method.
+        """
+        address = (self.host, self.port)
+        self.server = FTPServer(address, self.handler)
+        return self.server
