@@ -20,7 +20,7 @@ from pyftpdlib.authorizers import DummyAuthorizer
 from pyftpdlib.handlers import TLS_FTPHandler
 from pyftpdlib.servers import FTPServer
 
-# USer permission
+# User permission
 # from https://pyftpdlib.readthedocs.io/en/latest/api.html#pyftpdlib.authorizers.DummyAuthorizer.add_user
 # "e" = change directory (CWD, CDUP commands)
 # "l" = list files (LIST, NLST, STAT, MLSD, MLST, SIZE commands)
