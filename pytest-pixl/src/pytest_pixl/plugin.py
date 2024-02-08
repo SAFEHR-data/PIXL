@@ -2,14 +2,15 @@
 
 import os
 import threading
+from collections.abc import Generator
 
 import pytest
 
-from pytest_pixl.ftps_server import PixlFTPServer
+from pytest_pixl.ftpserver import PixlFTPServer
 
 
 @pytest.fixture(scope="module")
-def ftps_server(tmp_path_factory) -> PixlFTPServer:
+def ftps_server(tmp_path_factory) -> Generator[PixlFTPServer, None, None]:
     """
     Spins up an FTPS server in a separate process for testing. Configuration is controlled by the
     FTP_* environment variables.
