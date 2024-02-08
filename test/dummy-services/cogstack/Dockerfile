@@ -23,6 +23,7 @@ WORKDIR /app
 COPY cogstack.py .
 COPY pyproject.toml .
 
-RUN pip install -e .
+RUN --mount=type=cache,target=/root/.cache \
+    pip install -e .
 
 ENTRYPOINT ["uvicorn", "cogstack:app", "--host", "0.0.0.0", "--port", "8000"]

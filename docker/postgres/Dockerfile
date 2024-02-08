@@ -38,4 +38,5 @@ WORKDIR /pixl/venv/bin
 
 COPY ./pixl_core/ /pixl/pixl_core
 
-RUN ./pip install /pixl/pixl_core/
+RUN --mount=type=cache,target=/root/.cache \
+    ./pip install /pixl/pixl_core/
