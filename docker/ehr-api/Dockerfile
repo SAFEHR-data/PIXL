@@ -30,7 +30,7 @@ COPY ./pixl_core/pyproject.toml ./pixl_core/pyproject.toml
 COPY ./pixl_ehr/pyproject.toml ./pixl_ehr/pyproject.toml
 RUN --mount=type=cache,target=/root/.cache \
     pip3 install pixl_core/ \
-    && pip3 install pixl_imaging/
+    && pip3 install pixl_ehr/
 
 COPY ./pixl_core/ core/
 COPY ./pixl_ehr/ .
