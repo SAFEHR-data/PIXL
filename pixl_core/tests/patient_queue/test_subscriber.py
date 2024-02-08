@@ -72,7 +72,9 @@ def test_consume_all() -> None:
     graceful shutdown.
     """
     with PixlProducer(queue_name=TEST_QUEUE) as pp:
+        assert pp.connection_open
         pp.publish(messages=[TEST_MESSAGE, TEST_MESSAGE])
+        assert pp.message_count == 1
 
     with PixlBlockingConsumer(queue_name=TEST_QUEUE) as bc:
         counter_bc = bc.consume_all(timeout_in_seconds=2, file_path=Path("test_producer.csv"))
