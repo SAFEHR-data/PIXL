@@ -42,10 +42,11 @@ RUN if [ "$TAG" != "" ] ; then \
       rm -rf /Satellite && \
       git clone --depth 1 --branch ${TAG} https://github.com/UCLH-DIF/Satellite.git ;\
     fi && \
-    pip install --no-cache-dir --upgrade pip==22.3.1
+    pip install --upgrade pip==22.3.1
 
 WORKDIR /Satellite
-RUN pip install --no-cache-dir . && \
+RUN --mount=type=cache,target=/root/.cache \
+    pip install . && \
     satellite print-db-create-command > /docker-entrypoint-initdb.d/create.sql && \
     satellite print-create-command >> /docker-entrypoint-initdb.d/create.sql
 

@@ -11,7 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-FROM python:3.10.7-slim-bullseye
+FROM python:3.11.7-slim-bullseye
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 
 # OS setup
@@ -25,6 +25,11 @@ RUN sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 RUN  apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+# Install requirements before copying modules
+COPY ./hasher/pyproject.toml .
+RUN --mount=type=cache,target=/root/.cache \
+    pip install /app/
+
 COPY ./hasher/ .
 RUN --mount=type=cache,target=/root/.cache \
     pip install .

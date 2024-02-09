@@ -11,7 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-FROM python:3.10.6-slim-bullseye
+FROM python:3.11.7-slim-bullseye
 
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
@@ -23,6 +23,7 @@ WORKDIR /app
 COPY cogstack.py .
 COPY pyproject.toml .
 
-RUN pip install -e .
+RUN --mount=type=cache,target=/root/.cache \
+    pip install -e .
 
 ENTRYPOINT ["uvicorn", "cogstack:app", "--host", "0.0.0.0", "--port", "8000"]

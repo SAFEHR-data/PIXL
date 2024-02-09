@@ -246,6 +246,15 @@ jobs:
           python-version: 3.10.6
           cache: "pip"
 
+      - name: Build test services
+        working-directory: test
+        run: |
+          docker compose build
+
+      - name: Build services
+        run: |
+          docker compose build
+
       - name: Run tests
         working-directory: test
         run: |
