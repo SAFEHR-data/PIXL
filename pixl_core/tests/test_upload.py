@@ -12,11 +12,11 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """Test functionality to upload files to an endpoint."""
-
-
+import filecmp
 import pathlib
 from datetime import datetime, timezone
 
+import pandas as pd
 import pytest
 from core.db.models import Image
 from core.db.queries import get_project_slug_from_db, update_exported_at
@@ -75,8 +75,7 @@ def test_upload_parquet(parquet_export, ftps_home_dir) -> None:
     parquet_export.copy_to_exports(
         pathlib.Path(__file__).parents[2] / "test" / "resources" / "omop"
     )
-    with (parquet_export.public_output.parent / "radiology.parquet").open("w") as handle:
-        handle.writelines(["dummy data"])
+    parquet_export.export_radiology(pd.DataFrame(list("dummy"), columns=["D"]))
 
     # ACT
     upload_parquet_files(parquet_export)
@@ -85,8 +84,14 @@ def test_upload_parquet(parquet_export, ftps_home_dir) -> None:
         ftps_home_dir / parquet_export.project_slug / parquet_export.extract_time_slug / "parquet"
     )
     assert expected_public_parquet_dir.exists()
-    assert (expected_public_parquet_dir / "PROCEDURE_OCCURRENCE.parquet").exists()
-    assert (expected_public_parquet_dir / "radiology.parquet").exists()
+
+    # Print difference report to aid debugging (it doesn't actually assert anything)
+    dc = filecmp.dircmp(parquet_export.current_extract_base, expected_public_parquet_dir)
+    dc.report_full_closure()
+    assert (
+        expected_public_parquet_dir / "omop" / "public" / "PROCEDURE_OCCURRENCE.parquet"
+    ).exists()
+    assert (expected_public_parquet_dir / "radiology" / "radiology.parquet").exists()
 
 
 @pytest.mark.usefixtures("ftps_server")
