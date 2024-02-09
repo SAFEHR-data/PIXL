@@ -1,4 +1,4 @@
-#  Copyright (c) University College London Hospitals NHS Foundation Trust
+#  Copyright (c) 2022 University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -11,22 +11,17 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-version: "3.8"
+import os
+from pathlib import Path
 
+# Avoid running samples for fixture tests directly with pytest
+collect_ignore = ["samples_for_fixture_tests"]
 
-services:
+pytest_plugins = ["pytester"]
 
-  queue:
-    container_name: pixl-test-queue
-    image: rabbitmq:3.11.2-management
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-    ports:
-      - "25672:5672"
-      - "35672:15672"
-    healthcheck:
-      test: rabbitmq-diagnostics -q check_running
-      interval: 10s
-      timeout: 5s
-      retries: 5
+TEST_DIR = Path(__file__).parent
+
+os.environ["FTP_HOST"] = "localhost"
+os.environ["FTP_USER_NAME"] = "pixl_user"
+os.environ["FTP_USER_PASSWORD"] = "longpassword"  # noqa: S105 Hardcoding password
+os.environ["FTP_PORT"] = "20021"

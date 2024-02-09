@@ -36,7 +36,7 @@ COPY ./pixl_core/ core/
 COPY ./pixl_imaging/ .
 RUN --mount=type=cache,target=/root/.cache \
     pip install core/ . && \
-    if [ "$TEST" = "true" ]; then pip install core/[test] .[test]; fi
+    if [ "$TEST" = "true" ]; then pip install core/ .[test]; fi
 
 HEALTHCHECK CMD /usr/bin/curl -f http://0.0.0.0:8000/heart-beat || exit 1
 
