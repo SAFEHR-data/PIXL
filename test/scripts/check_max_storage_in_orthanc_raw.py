@@ -31,7 +31,7 @@ from decouple import config
 
 import requests
 
-from write_fake_dicoms import write_volume
+from testutils.dicom import write_volume
 
 SECONDS_WAIT = 5
 

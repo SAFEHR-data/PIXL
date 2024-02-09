@@ -28,8 +28,10 @@ docker compose --env-file .env -p system-test up --wait -d --build --remove-orph
 ./scripts/insert_test_data.sh
 
 # Install pixl_cli and test dependencies
-pip install -e "${PACKAGE_DIR}/pixl_core" && pip install -e "${PACKAGE_DIR}/cli"
-pip install pydicom
+pip install -e "${PACKAGE_DIR}/pixl_core" && \
+  pip install -e "${PACKAGE_DIR}/cli" && \
+  pip install -e "${PACKAGE_DIR}/testutils"
+
 
 pixl populate "${PACKAGE_DIR}/test/resources/omop"
 pixl start
