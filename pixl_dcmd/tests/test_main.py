@@ -87,3 +87,8 @@ def test_pseudo_identifier_processing(rows_in_session, tag_scheme):
     print("after tags applied")
     assert output_dataset[0x0010, 0x0020].value == fake_hash
     assert image.hashed_identifier == fake_hash
+
+
+def test_can_reconstruct_post_anonymisation(rows_in_session, tag_scheme):
+    """Can a DICOM image downloaded from orthanc-raw be reconstructed to NIFTI"""
+    pass
