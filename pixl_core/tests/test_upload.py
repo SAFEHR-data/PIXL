@@ -23,7 +23,7 @@ from core.db.queries import get_project_slug_from_db, update_exported_at
 from core.upload import upload_dicom_image, upload_parquet_files
 
 
-@pytest.mark.usefixtures("run_containers", "ftps_server")
+@pytest.mark.usefixtures("ftps_server")
 def test_upload_dicom_image(test_zip_content, not_yet_exported_dicom_image, ftps_home_dir) -> None:
     """Tests that DICOM image can be uploaded to the correct location"""
     # ARRANGE
@@ -39,7 +39,7 @@ def test_upload_dicom_image(test_zip_content, not_yet_exported_dicom_image, ftps
     assert expected_output_file.exists()
 
 
-@pytest.mark.usefixtures("run_containers", "ftps_server")
+@pytest.mark.usefixtures("ftps_server")
 def test_upload_dicom_image_throws(test_zip_content, already_exported_dicom_image) -> None:
     """Tests that exception thrown if DICOM image already exported"""
     # ARRANGE
@@ -51,7 +51,6 @@ def test_upload_dicom_image_throws(test_zip_content, already_exported_dicom_imag
         upload_dicom_image(test_zip_content, pseudo_anon_id)
 
 
-@pytest.mark.usefixtures("run_containers")
 def test_update_exported_and_save(rows_in_session) -> None:
     """Tests that the exported_at field is updated when a file is uploaded"""
     # ARRANGE
@@ -68,7 +67,7 @@ def test_update_exported_and_save(rows_in_session) -> None:
     assert actual_export_time == expected_export_time
 
 
-@pytest.mark.usefixtures("run_containers", "ftps_server")
+@pytest.mark.usefixtures("ftps_server")
 def test_upload_parquet(parquet_export, ftps_home_dir) -> None:
     """Tests that parquet files are uploaded to the correct location"""
     # ARRANGE
@@ -90,7 +89,7 @@ def test_upload_parquet(parquet_export, ftps_home_dir) -> None:
     assert (expected_public_parquet_dir / "radiology.parquet").exists()
 
 
-@pytest.mark.usefixtures("run_containers", "ftps_server")
+@pytest.mark.usefixtures("ftps_server")
 def test_no_export_to_upload(parquet_export) -> None:
     """If there is nothing in the export directly, an exception is thrown"""
     parquet_export.public_output.mkdir(parents=True, exist_ok=True)
