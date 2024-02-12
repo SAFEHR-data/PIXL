@@ -41,7 +41,7 @@ def write_volume(filename_pattern: str):
     for i, slice_info in enumerate(variables):
         write_slice(
             file_name=filename_pattern.format(slice=i),
-            pixel_data=rng.rand(256, 256),
+            pixel_data=rng.random(size=(256, 256)),
             **slice_info,
         )
 
