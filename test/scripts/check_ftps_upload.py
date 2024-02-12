@@ -12,13 +12,10 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-
 from pathlib import Path
 from shutil import rmtree
 from time import sleep
 
-OMOP_INPUT_PATH = Path(__file__).parents[1] / "resources" / "omop"
-print(f"parquet path: {OMOP_INPUT_PATH}")
 MOUNTED_DATA_DIR = Path(__file__).parents[1] / "dummy-services" / "ftp-server" / "mounts" / "data"
 print(f"mounted data dir: {MOUNTED_DATA_DIR}")
 
@@ -43,9 +40,11 @@ for seconds in range(0, 121, SECONDS_WAIT):
 
 # We expect 2 DICOM image studies to be uploaded
 assert len(zip_files) == 2
+
+# check the copied files
 assert expected_public_parquet_dir.exists()
-assert (expected_public_parquet_dir / "PROCEDURE_OCCURRENCE.parquet").exists()
-assert (expected_public_parquet_dir / "radiology.parquet").exists()
+assert (expected_public_parquet_dir / "omop" / "public" / "PROCEDURE_OCCURRENCE.parquet").exists()
+assert (expected_public_parquet_dir / "radiology" / "radiology.parquet").exists()
 
 # Clean up; only happens if the assertion passes
 rmtree(expected_output_dir, ignore_errors=True)
