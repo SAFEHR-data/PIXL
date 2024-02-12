@@ -22,7 +22,7 @@ from core.db.models import Base, Extract, Image
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 import tempfile
-import testutils.dicom
+import pytest_pixl.dicom
 
 os.environ["SALT_VALUE"] = "test_salt"
 os.environ["HASHER_API_AZ_NAME"] = "test_hash_API"
@@ -79,7 +79,7 @@ def row_for_dicom_testing(db_session) -> Session:
 def directory_of_mri_dicoms() -> pathlib.Path:
     """Directory containing MRI DICOMs suitable for testing."""
     with tempfile.TemporaryDirectory() as td:
-        testutils.dicom.write_volume(td + "/{slice}.dcm")
+        pytest_pixl.dicom.write_volume(td + "/{slice}.dcm")
         td_path = pathlib.Path(td)
         yield td_path
 

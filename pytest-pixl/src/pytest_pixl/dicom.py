@@ -33,7 +33,7 @@ def write_volume(filename_pattern: str):
 
     """
     # dicom_variables.json contains per slice information for a 3D image (geometry, windowing, etc.)
-    dicom_variables_path = importlib.resources.files("testutils").joinpath(
+    dicom_variables_path = importlib.resources.files("pytest_pixl").joinpath(
         "data/dicom_variables.json"
     )
     variables = json.loads(dicom_variables_path.open("r").read())
