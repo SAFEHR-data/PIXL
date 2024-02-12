@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 #  Copyright (c) University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,33 +12,43 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+"""Functions to write test DICOM files."""
+
+import importlib
 import json
 
-from pathlib import Path
-
 import numpy as np
-
 from pydicom.dataset import Dataset, FileMetaDataset
 from pydicom.sequence import Sequence
 
 
 def write_volume(filename_pattern: str):
-    """Write a volumes worth of fake DICOM images
+    """
+    Write a volumes worth of fake DICOM images
 
     Args:
-        filename_pattern: The pattern to use for the filenames. This should include a {slice} which will be replaced with the slice number e.g. /tmp/slice{slice:03d}.dcm
+        filename_pattern: The pattern to use for the filenames. This should
+        include a {slice} which will be replaced with the slice number e.g.
+        /tmp/slice{slice:03d}.dcm
+
     """
     # dicom_variables.json contains per slice information for a 3D image (geometry, windowing, etc.)
-    variables = json.load(open(Path(__file__).parents[1] / "resources" / "dicom_variables.json"))
+    dicom_variables_path = importlib.resources.files("pytest_pixl").joinpath(
+        "data/dicom_variables.json"
+    )
+    variables = json.loads(dicom_variables_path.open("r").read())
+    rng = np.random.default_rng(0)
     for i, slice_info in enumerate(variables):
         write_slice(
             file_name=filename_pattern.format(slice=i),
-            pixel_data=np.random.rand(256, 256),
-            **slice_info
+            pixel_data=rng.random(size=(256, 256)),
+            **slice_info,
         )
 
 
-def write_slice(
+# Remove the noqa comments once this function takes a sensible number of arguments
+# and hard-coded values are moved to JSON
+def write_slice(  # noqa: PLR0913, PLR0915
     instance_creation_time: str,
     sop_instance_uid: str,
     instance_number: str,
@@ -51,9 +59,11 @@ def write_slice(
     pixel_data: np.ndarray,
     file_name: str,
 ):
-    """Write a single fake DICOM image
+    """
+    Write a single fake DICOM image
 
-    Elements that vary between slices are exposed as arguments.  Values for these can be obtained from the dicom_variables.json file.
+    Elements that vary between slices are exposed as arguments.  Values for
+    these can be obtained from the dicom_variables.json file.
     """
     # File meta info data elements
     file_meta = FileMetaDataset()
@@ -75,7 +85,7 @@ def write_slice(
     ds.SeriesTime = "175518.96000"
     ds.AcquisitionTime = "175529.75"
     ds.ContentTime = "175529.75"
-    ds.AccessionNumber = ""
+    ds.AccessionNumber = "BB01234567"
     ds.Modality = "MR"
     ds.ConversionType = ""
     ds.Manufacturer = "Company"
@@ -118,25 +128,19 @@ def write_slice(
     refd_image1 = Dataset()
     refd_image_sequence.append(refd_image1)
     refd_image1.ReferencedSOPClassUID = "1.2.840.10008.5.1.4.1.1.4"
-    refd_image1.ReferencedSOPInstanceUID = (
-        "1.3.46.670589.11.38023.5.0.7404.2023012517191564042"
-    )
+    refd_image1.ReferencedSOPInstanceUID = "1.3.46.670589.11.38023.5.0.7404.2023012517191564042"
 
     # Referenced Image Sequence: Referenced Image 2
     refd_image2 = Dataset()
     refd_image_sequence.append(refd_image2)
     refd_image2.ReferencedSOPClassUID = "1.2.840.10008.5.1.4.1.1.4"
-    refd_image2.ReferencedSOPInstanceUID = (
-        "1.3.46.670589.11.38023.5.0.7404.2023012517190467040"
-    )
+    refd_image2.ReferencedSOPInstanceUID = "1.3.46.670589.11.38023.5.0.7404.2023012517190467040"
 
     # Referenced Image Sequence: Referenced Image 3
     refd_image3 = Dataset()
     refd_image_sequence.append(refd_image3)
     refd_image3.ReferencedSOPClassUID = "1.2.840.10008.5.1.4.1.1.4"
-    refd_image3.ReferencedSOPInstanceUID = (
-        "1.3.46.670589.11.38023.5.0.7404.2023012517185239035"
-    )
+    refd_image3.ReferencedSOPInstanceUID = "1.3.46.670589.11.38023.5.0.7404.2023012517185239035"
 
     ds.PatientName = "BillPatient"
     ds.PatientID = "ID123456"
@@ -288,9 +292,7 @@ def write_slice(
 
     # Measurement Units Code Sequence
     measurement_units_code_sequence = Sequence()
-    real_world_value_mapping1.MeasurementUnitsCodeSequence = (
-        measurement_units_code_sequence
-    )
+    real_world_value_mapping1.MeasurementUnitsCodeSequence = measurement_units_code_sequence
 
     # Measurement Units Code Sequence: Measurement Units Code 1
     measurement_units_code1 = Dataset()

@@ -13,3 +13,7 @@ the following environment variables:
 - `FTP_PORT`: port on which the FTPS server is listening
 - `FTP_USER_NAME`: name of user with access to the FTPS server
 - `FTP_USER_PASSWORD`: password for the authorised user
+
+## Available testing utilities
+
+- `dicom.write_volume`: write a volume of MRI DICOMs for testing
