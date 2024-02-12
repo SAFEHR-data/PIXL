@@ -128,9 +128,10 @@ def test_can_nifti_convert_post_anonymisation(row_for_dicom_testing, tmp_path, d
         str(directory_of_mri_dicoms)
     ], check=True)
 
-    # Confirm that the shape and orientation of the pre- and
+    # Confirm that the shape, orientation and contents of the pre- and
     # post- anonymisation images match
     anon_nifti = nibabel.load(anon_nifti_dir / "anon.nii")
     ident_nifti = nibabel.load(ident_nifti_dir / "ident.nii")
     assert anon_nifti.shape == ident_nifti.shape
     assert np.all(anon_nifti.header.get_sform() == ident_nifti.header.get_sform())
+    assert np.all(anon_nifti.get_fdata() == ident_nifti.get_fdata())
