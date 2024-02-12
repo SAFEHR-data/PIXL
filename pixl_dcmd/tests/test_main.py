@@ -92,7 +92,9 @@ def test_pseudo_identifier_processing(rows_in_session, tag_scheme):
     assert image.hashed_identifier == fake_hash
 
 
-def test_can_nifti_convert_post_anonymisation(row_for_dicom_testing, tmp_path, directory_of_mri_dicoms, tag_scheme):
+def test_can_nifti_convert_post_anonymisation(
+    row_for_dicom_testing, tmp_path, directory_of_mri_dicoms, tag_scheme
+):
     """Can a DICOM image that has passed through our tag processing be converted to NIFTI"""
     # Create a directory to store anonymised DICOM files
     anon_dicom_dir = tmp_path / "anon"
@@ -107,26 +109,25 @@ def test_can_nifti_convert_post_anonymisation(row_for_dicom_testing, tmp_path, d
     # Convert the anonymised DICOMs to NIFTI with dcm2niix
     anon_nifti_dir = tmp_path / "nifti_anon"
     anon_nifti_dir.mkdir()
-    subprocess.run([
-        "dcm2niix",
-        "-f",
-        "anon",
-        "-o",
-        str(anon_nifti_dir),
-        str(anon_dicom_dir)
-    ], check=True)
+    subprocess.run(
+        ["dcm2niix", "-f", "anon", "-o", str(anon_nifti_dir), str(anon_dicom_dir)],
+        check=True,
+    )
 
     # Convert the pre-anonymisation DICOMs to NIFTI with dcm2niix
     ident_nifti_dir = tmp_path / "nifti_ident"
     ident_nifti_dir.mkdir()
-    subprocess.run([
-        "dcm2niix",
-        "-f",
-        "ident",
-        "-o",
-        str(ident_nifti_dir),
-        str(directory_of_mri_dicoms)
-    ], check=True)
+    subprocess.run(
+        [
+            "dcm2niix",
+            "-f",
+            "ident",
+            "-o",
+            str(ident_nifti_dir),
+            str(directory_of_mri_dicoms),
+        ],
+        check=True,
+    )
 
     # Confirm that the shape, orientation and contents of the pre- and
     # post- anonymisation images match

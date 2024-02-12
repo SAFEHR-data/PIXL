@@ -81,7 +81,7 @@ def directory_of_mri_dicoms() -> pathlib.Path:
     with tempfile.TemporaryDirectory() as td:
         testutils.dicom.write_volume(td + "/{slice}.dcm")
         td_path = pathlib.Path(td)
-        yield(td_path)
+        yield td_path
 
 
 @pytest.fixture(scope="module")
