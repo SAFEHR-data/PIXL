@@ -85,7 +85,7 @@ def write_slice(  # noqa: PLR0913, PLR0915
     ds.SeriesTime = "175518.96000"
     ds.AcquisitionTime = "175529.75"
     ds.ContentTime = "175529.75"
-    ds.AccessionNumber = ""
+    ds.AccessionNumber = "BB01234567"
     ds.Modality = "MR"
     ds.ConversionType = ""
     ds.Manufacturer = "Company"
