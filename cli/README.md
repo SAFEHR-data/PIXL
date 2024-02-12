@@ -108,7 +108,7 @@ Commands:
 Install locally in editable mode with the development and testing dependencies by running
 
 ```bash
-pip install -e ../pixl_core/[test] .[test]
+pip install -e ../pixl_core/ .[test]
 ```
 
 ### Running tests

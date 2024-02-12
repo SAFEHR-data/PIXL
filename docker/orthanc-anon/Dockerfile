@@ -14,11 +14,20 @@
 FROM osimis/orthanc:22.9.0-full-stable
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 
+# Install requirements before copying modules
+COPY ./pixl_core/pyproject.toml ./pixl_core/pyproject.toml
+COPY ./pixl_dcmd/pyproject.toml ./pixl_dcmd/pyproject.toml
+RUN --mount=type=cache,target=/root/.cache \
+    pip3 install pixl_core/ \
+    && pip3 install pixl_dcmd/
+
 COPY ./orthanc/orthanc-anon/plugin/pixl.py /etc/orthanc/pixl.py
 COPY ./orthanc/orthanc-anon/plugin/tag-operations.yaml /etc/orthanc/tag-operations.yaml
 
 COPY ./pixl_core/ ./pixl_core
-RUN pip3 install --no-cache-dir ./pixl_core
+RUN --mount=type=cache,target=/root/.cache \
+    pip3 install ./pixl_core
 
 COPY ./pixl_dcmd/ ./pixl_dcmd
-RUN pip3 install --no-cache-dir ./pixl_dcmd
+RUN --mount=type=cache,target=/root/.cache \
+    pip3 install ./pixl_dcmd

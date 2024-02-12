@@ -1,4 +1,4 @@
-#  Copyright (c) University College London Hospitals NHS Foundation Trust
+#  Copyright (c) 2022 University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -11,19 +11,17 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-FROM python:3.11.7-slim-bullseye
+import os
+from pathlib import Path
 
-RUN export DEBIAN_FRONTEND=noninteractive && \
-    apt-get update && \
-    apt-get install --yes --no-install-recommends procps ca-certificates \
-    iproute2 git curl libpq-dev curl gnupg g++ locales
+# Avoid running samples for fixture tests directly with pytest
+collect_ignore = ["samples_for_fixture_tests"]
 
-WORKDIR /app
+pytest_plugins = ["pytester"]
 
-COPY cogstack.py .
-COPY pyproject.toml .
+TEST_DIR = Path(__file__).parent
 
-RUN --mount=type=cache,target=/root/.cache \
-    pip install -e .
-
-ENTRYPOINT ["uvicorn", "cogstack:app", "--host", "0.0.0.0", "--port", "8000"]
+os.environ["FTP_HOST"] = "localhost"
+os.environ["FTP_USER_NAME"] = "pixl_user"
+os.environ["FTP_USER_PASSWORD"] = "longpassword"  # noqa: S105 Hardcoding password
+os.environ["FTP_PORT"] = "20021"

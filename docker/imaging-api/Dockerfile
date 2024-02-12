@@ -11,7 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-FROM python:3.10.6-slim-bullseye
+FROM python:3.11.7-slim-bullseye
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 
 ARG TEST="false"
@@ -25,11 +25,18 @@ RUN  apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
+# Install requirements before copying modules
+COPY ./pixl_core/pyproject.toml ./pixl_core/pyproject.toml
+COPY ./pixl_imaging/pyproject.toml ./pixl_imaging/pyproject.toml
+RUN --mount=type=cache,target=/root/.cache \
+    pip3 install pixl_core/ \
+    && pip3 install pixl_imaging/
+
 COPY ./pixl_core/ core/
 COPY ./pixl_imaging/ .
 RUN --mount=type=cache,target=/root/.cache \
     pip install core/ . && \
-    if [ "$TEST" = "true" ]; then pip install core/[test] .[test]; fi
+    if [ "$TEST" = "true" ]; then pip install core/ .[test]; fi
 
 HEALTHCHECK CMD /usr/bin/curl -f http://0.0.0.0:8000/heart-beat || exit 1
 
