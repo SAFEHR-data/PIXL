@@ -30,7 +30,7 @@ docker compose --env-file .env -p system-test up --wait -d --build --remove-orph
 # Install pixl_cli and test dependencies
 pip install -e "${PACKAGE_DIR}/pixl_core" && \
   pip install -e "${PACKAGE_DIR}/cli" && \
-  pip install -e "${PACKAGE_DIR}/testutils"
+  pip install -e "${PACKAGE_DIR}/pytest-pixl"
 
 
 pixl populate "${PACKAGE_DIR}/test/resources/omop"
