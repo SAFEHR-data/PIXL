@@ -25,7 +25,8 @@ COPY --chmod=0755 ./postgres/postgres.conf /etc/postgresql/postgresql.conf
 
 COPY --chmod=0777 ./postgres/pixl-db_init.sh /docker-entrypoint-initdb.d/pixl-db_init.sh
 
-COPY --chmod=0777 ./postgres/create_pixl_tbls.py /pixl/create_pixl_tbls.py
+COPY alembic /pixl/alembic
+COPY alembic.ini /pixl/alembic.ini
 
 # Install requirements before copying modules
 COPY ./pixl_core/pyproject.toml /pixl/pixl_core/pyproject.toml

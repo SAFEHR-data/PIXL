@@ -2,7 +2,7 @@ from logging.config import fileConfig
 
 import os
 
-from sqlalchemy import engine_from_config
+from sqlalchemy import create_engine
 from sqlalchemy import URL, pool
 
 from alembic import context
@@ -64,11 +64,13 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
+    url = URL.create(
+        drivername="postgresql+psycopg2",
+        username=os.environ["POSTGRES_USER"],
+        password=os.environ["POSTGRES_PASSWORD"],
+        database=os.environ["POSTGRES_DB"],
     )
+    connectable = create_engine(url)
 
     with connectable.connect() as connection:
         context.configure(

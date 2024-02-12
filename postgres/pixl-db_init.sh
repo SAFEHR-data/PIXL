@@ -25,4 +25,5 @@ psql -U "${POSTGRES_USER}" --dbname "${POSTGRES_DB}" -c "$ehr_create_command"
 
 source /pixl/venv/bin/activate
 
-python3 /pixl/create_pixl_tbls.py
+cd /pixl
+alembic upgrade head
