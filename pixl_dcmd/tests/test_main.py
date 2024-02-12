@@ -14,7 +14,10 @@
 from __future__ import annotations
 
 import pathlib
+import subprocess
 
+import nibabel
+import numpy as np
 import pydicom
 import pytest
 import sqlalchemy
@@ -87,3 +90,49 @@ def test_pseudo_identifier_processing(rows_in_session, tag_scheme):
     print("after tags applied")
     assert output_dataset[0x0010, 0x0020].value == fake_hash
     assert image.hashed_identifier == fake_hash
+
+
+def test_can_nifti_convert_post_anonymisation(
+    row_for_dicom_testing, tmp_path, directory_of_mri_dicoms, tag_scheme
+):
+    """Can a DICOM image that has passed through our tag processing be converted to NIFTI"""
+    # Create a directory to store anonymised DICOM files
+    anon_dicom_dir = tmp_path / "anon"
+    anon_dicom_dir.mkdir()
+
+    # Get test DICOMs from the fixture, anonymise and save
+    for dcm_path in directory_of_mri_dicoms.glob("*.dcm"):
+        dcm_identifiable = pydicom.dcmread(dcm_path)
+        dcm_anon = apply_tag_scheme(dcm_identifiable, tag_scheme)
+        pydicom.dcmwrite(anon_dicom_dir / dcm_path.name, dcm_anon)
+
+    # Convert the anonymised DICOMs to NIFTI with dcm2niix
+    anon_nifti_dir = tmp_path / "nifti_anon"
+    anon_nifti_dir.mkdir()
+    subprocess.run(
+        ["dcm2niix", "-f", "anon", "-o", str(anon_nifti_dir), str(anon_dicom_dir)],
+        check=True,
+    )
+
+    # Convert the pre-anonymisation DICOMs to NIFTI with dcm2niix
+    ident_nifti_dir = tmp_path / "nifti_ident"
+    ident_nifti_dir.mkdir()
+    subprocess.run(
+        [
+            "dcm2niix",
+            "-f",
+            "ident",
+            "-o",
+            str(ident_nifti_dir),
+            str(directory_of_mri_dicoms),
+        ],
+        check=True,
+    )
+
+    # Confirm that the shape, orientation and contents of the pre- and
+    # post- anonymisation images match
+    anon_nifti = nibabel.load(anon_nifti_dir / "anon.nii")
+    ident_nifti = nibabel.load(ident_nifti_dir / "ident.nii")
+    assert anon_nifti.shape == ident_nifti.shape
+    assert np.all(anon_nifti.header.get_sform() == ident_nifti.header.get_sform())
+    assert np.all(anon_nifti.get_fdata() == ident_nifti.get_fdata())
