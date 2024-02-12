@@ -264,7 +264,8 @@ def ReceivedInstanceCallback(receivedDicom: bytes, origin: str) -> Any:
 
     # Drop anything that is not an X-Ray
     if dataset.Modality not in ("DX", "CR"):
-        orthanc.LogWarning("Dropping DICOM that is not X-Ray")
+        msg = f"Dropping DICOM Modality: {dataset.Modality}"
+        orthanc.LogWarning(msg)
         return orthanc.ReceivedInstanceAction.DISCARD, None
 
     # Attempt to anonymise and drop the study if any exceptions occur

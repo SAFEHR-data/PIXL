@@ -53,7 +53,7 @@ async def process_message(message: Message) -> None:
     while job_state != "Success":
         if (time() - start_time) > config("PIXL_DICOM_TRANSFER_TIMEOUT", cast=float):
             msg = (
-                f"Failed to transfer {message.decode()} within "
+                f"Failed to transfer {message} within "
                 f"{config('PIXL_DICOM_TRANSFER_TIMEOUT')} seconds"
             )
             raise TimeoutError(msg)
