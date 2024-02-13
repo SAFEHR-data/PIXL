@@ -33,5 +33,5 @@ PACKAGE_DIR="${THIS_DIR%/*}"
 cd "$PACKAGE_DIR"/tests || exit
 
 docker compose up --wait --build
-docker exec pixl-test-imaging-api /bin/bash -c "pytest -m processing"
+docker exec pixl-test-imaging-api /bin/bash -c "pytest tests -m processing"
 docker compose down --volumes
