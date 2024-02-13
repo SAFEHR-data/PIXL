@@ -54,7 +54,6 @@ services:
       - "9001:8000"
 
   vna-qr:
-    platform: linux/amd64
     image: osimis/orthanc:22.9.0-full-stable
     environment:
       ORTHANC_NAME: "VNAQR"
@@ -71,7 +70,6 @@ services:
       - ${PWD}/../../test/vna_config/:/run/secrets:ro
 
   orthanc-raw:
-    platform: linux/amd64
     build:
       context: ../../
       dockerfile: ./docker/orthanc-raw/Dockerfile
