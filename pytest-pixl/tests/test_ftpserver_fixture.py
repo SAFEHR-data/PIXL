@@ -1,4 +1,4 @@
-#  Copyright (c) University College London Hospitals NHS Foundation Trust
+#  Copyright (c) 2022 University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -11,19 +11,11 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-FROM python:3.11.7-slim-bullseye
+import pytest
 
-RUN export DEBIAN_FRONTEND=noninteractive && \
-    apt-get update && \
-    apt-get install --yes --no-install-recommends procps ca-certificates \
-    iproute2 git curl libpq-dev curl gnupg g++ locales
 
-WORKDIR /app
-
-COPY cogstack.py .
-COPY pyproject.toml .
-
-RUN --mount=type=cache,target=/root/.cache \
-    pip install -e .
-
-ENTRYPOINT ["uvicorn", "cogstack:app", "--host", "0.0.0.0", "--port", "8000"]
+@pytest.mark.pytester_example_path("tests/samples_for_fixture_tests/test_ftpserver_fixture")
+def test_ftpserver_connection(pytester):
+    """Test whether we can connect to the FTP server fixture"""
+    pytester.copy_example("test_ftpserver_login.py")
+    pytester.runpytest("-k", "test_ftpserver_login")
