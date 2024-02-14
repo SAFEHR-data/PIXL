@@ -212,12 +212,6 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v3
-      - name: Prune docker volumes
-        # seems like we're getting an error from ftp-server exiting with zero status code
-        # this is a workaround that resolves it locally 🤞
-        run: |
-          docker volume prune --force
-
       - uses: docker/setup-buildx-action@v3
       # pre-build and cache the postgres container as installing python3 takes a while, doesn't push
       - name: Cache Docker layers
@@ -246,6 +240,10 @@ jobs:
         with:
           python-version: 3.10.6
           cache: "pip"
+
+      - name: Install Python dependencies
+        run: |
+          pip install pixl_core cli pytest-pixl
 
       - name: Build test services
         working-directory: test
