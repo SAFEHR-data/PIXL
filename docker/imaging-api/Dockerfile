@@ -32,7 +32,7 @@ RUN --mount=type=cache,target=/root/.cache \
     pip3 install pixl_core/ \
     && pip3 install pixl_imaging/
 
-COPY ./pixl-imaging/alembic/alembic.ini .
+COPY ./pixl_imaging/alembic/alembic.ini .
 
 COPY ./pixl_core/ core/
 COPY ./pixl_imaging/ .
