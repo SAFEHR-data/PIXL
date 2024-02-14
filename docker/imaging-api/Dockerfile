@@ -32,6 +32,9 @@ RUN --mount=type=cache,target=/root/.cache \
     pip3 install pixl_core/ \
     && pip3 install pixl_imaging/
 
+COPY ./alembic ./alembic
+COPY ./alembic.ini .
+
 COPY ./pixl_core/ core/
 COPY ./pixl_imaging/ .
 RUN --mount=type=cache,target=/root/.cache \
@@ -40,4 +43,4 @@ RUN --mount=type=cache,target=/root/.cache \
 
 HEALTHCHECK CMD /usr/bin/curl -f http://0.0.0.0:8000/heart-beat || exit 1
 
-ENTRYPOINT ["uvicorn", "pixl_imaging.main:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["/app/scripts/migrate_and_run.sh"]

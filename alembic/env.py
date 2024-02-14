@@ -40,6 +40,17 @@ target_metadata = models.Base.metadata
 # ... etc.
 
 
+def get_pixl_db_url() -> URL:
+    return URL.create(
+        drivername="postgresql+psycopg2",
+        host=os.environ["PIXL_DB_HOST"],
+        port=os.environ["PIXL_DB_PORT"],
+        username=os.environ["PIXL_DB_USER"],
+        password=os.environ["PIXL_DB_PASSWORD"],
+        database=os.environ["PIXL_DB_NAME"],
+    )
+
+
 def run_migrations_offline() -> None:
     """
     Run migrations in 'offline' mode.
@@ -53,12 +64,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = URL.create(
-        drivername="postgresql+psycopg2",
-        username=os.environ["POSTGRES_USER"],
-        password=os.environ["POSTGRES_PASSWORD"],
-        database=os.environ["POSTGRES_DB"],
-    )
+    url = get_pixl_db_url()
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -78,12 +84,7 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    url = URL.create(
-        drivername="postgresql+psycopg2",
-        username=os.environ["POSTGRES_USER"],
-        password=os.environ["POSTGRES_PASSWORD"],
-        database=os.environ["POSTGRES_DB"],
-    )
+    url = get_pixl_db_url()
     connectable = create_engine(url)
 
     with connectable.connect() as connection:
