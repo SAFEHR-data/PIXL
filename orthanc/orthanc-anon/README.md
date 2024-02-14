@@ -64,6 +64,8 @@ ORTHANC_ANON_DICOM_PORT=XXXX
 ORTHANC_ANON_WEB_PORT=YYYY
 ```
 
+If you don't want to attempt to connect to the azure dicom server, set `AZ_DICOM_ENDPOINT_CLIENT_ID` to an empty string or comment it out.
+
 ### Step 2
 
 Start the instance via Docker compose.

@@ -18,7 +18,7 @@ services:
 
   queue:
     container_name: pixl-test-queue
-    image: rabbitmq:3.11.2-management
+    image: rabbitmq:3.12.9-management
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest

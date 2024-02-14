@@ -15,11 +15,14 @@
 from __future__ import annotations
 import datetime
 import os
+import pathlib
 import pytest
 import requests
 from core.db.models import Base, Extract, Image
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
+import tempfile
+import pytest_pixl.dicom
 
 os.environ["SALT_VALUE"] = "test_salt"
 os.environ["HASHER_API_AZ_NAME"] = "test_hash_API"
@@ -52,6 +55,33 @@ def rows_in_session(db_session) -> Session:
         db_session.commit()
 
     return db_session
+
+
+@pytest.fixture()
+def row_for_dicom_testing(db_session) -> Session:
+    """Insert a test row for each table, returning the session for use in tests."""
+    extract = Extract(slug="dicom-testing-project")
+
+    image_not_exported = Image(
+        accession_number="BB01234567",
+        study_date=STUDY_DATE,
+        mrn="ID123456",
+        extract=extract,
+    )
+    with db_session:
+        db_session.add_all([extract, image_not_exported])
+        db_session.commit()
+
+    return db_session
+
+
+@pytest.fixture()
+def directory_of_mri_dicoms() -> pathlib.Path:
+    """Directory containing MRI DICOMs suitable for testing."""
+    with tempfile.TemporaryDirectory() as td:
+        pytest_pixl.dicom.write_volume(td + "/{slice}.dcm")
+        td_path = pathlib.Path(td)
+        yield td_path
 
 
 @pytest.fixture(scope="module")
