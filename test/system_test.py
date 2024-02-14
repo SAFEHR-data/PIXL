@@ -26,14 +26,6 @@ from conftest import run_subprocess
 pytest_plugins = "pytest_pixl"
 
 
-@pytest.mark.usefixtures("_extract_radiology_reports")
-def test_radiology_parquet():
-    """
-    scripts/check_radiology_parquet.py \
-        ../exports/test-extract-uclh-omop-cdm/latest/radiology/radiology.parquet
-    """
-
-
 class TestFtpsUpload:
     """tests adapted from ./scripts/check_ftps_upload.py"""
 

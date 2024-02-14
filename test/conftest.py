@@ -21,6 +21,12 @@ import pytest
 pytest_plugins = "pytest_pixl"
 
 
+@pytest.fixture()
+def host_export_root_dir():
+    """Intermediate export dir as seen from the host"""
+    return Path(__file__).parents[1] / "exports"
+
+
 def run_subprocess(
     cmd: list[str], working_dir: Path, *, shell=False, timeout=360
 ) -> subprocess.CompletedProcess[bytes]:
