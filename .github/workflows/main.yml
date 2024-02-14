@@ -243,7 +243,7 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install pixl_core
+          pip install pixl_core/
           pip install cli/[test]
           pip install pytest-pixl
 
