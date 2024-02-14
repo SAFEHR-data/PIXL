@@ -155,6 +155,8 @@ def SendViaStow(resourceId):
             data=json.dumps(payload),
             timeout=10,
         )
+        msg = f"Sent {resourceId} via STOW"
+        logger.info(msg)
     except requests.exceptions.RequestException:
         orthanc.LogError("Failed to send via STOW")
 
@@ -176,7 +178,6 @@ def SendViaFTPS(resourceId: str) -> None:
     logger.debug("Downloaded data for resource %s", resourceId)
 
     upload.upload_dicom_image(BytesIO(zip_content), _get_patient_id(resourceId))
-    logger.debug("Uploaded data to FTPS for resource %s", resourceId)
 
 
 def _get_patient_id(resourceId: str) -> str:
@@ -198,9 +199,8 @@ def _query(resourceId: str, query: str, fail_msg: str) -> requests.Response:
         success_code = 200
         if response.status_code != success_code:
             raise RuntimeError(fail_msg, resourceId)
-    except requests.exceptions.RequestException as request_exception:
-        orthanc.LogError(f"Failed to query'{resourceId}'")
-        raise SystemExit from request_exception
+    except requests.exceptions.RequestException:
+        logger.exception("Failed to query '%s'", resourceId)
     else:
         return response
 
@@ -234,10 +234,14 @@ def OnChange(changeType, level, resource):  # noqa: ARG001
 
     if changeType == orthanc.ChangeType.STABLE_STUDY and ShouldAutoRoute():
         msg = f"Stable study: {resource}"
-        logger.debug(msg)
+        logger.info(msg)
         SendViaFTPS(resource)
 
-    if changeType == orthanc.ChangeType.ORTHANC_STARTED and _azure_available():
+    if (
+        changeType == orthanc.ChangeType.ORTHANC_STARTED
+        and _azure_available()
+        and ShouldAutoRoute()
+    ):
         orthanc.LogWarning("Starting the scheduler")
         AzureDICOMTokenRefresh()
     elif changeType == orthanc.ChangeType.ORTHANC_STOPPED:
@@ -248,7 +252,7 @@ def OnChange(changeType, level, resource):  # noqa: ARG001
 
 def OnHeartBeat(output, uri, **request) -> Any:  # noqa: ARG001
     """Extends the REST API by registering a new route in the REST API"""
-    orthanc.LogWarning("OK")
+    orthanc.LogInfo("OK")
     output.AnswerBuffer("OK\n", "text/plain")
 
 
@@ -265,14 +269,14 @@ def ReceivedInstanceCallback(receivedDicom: bytes, origin: str) -> Any:
     # Drop anything that is not an X-Ray
     if dataset.Modality not in ("DX", "CR"):
         msg = f"Dropping DICOM Modality: {dataset.Modality}"
-        orthanc.LogWarning(msg)
+        orthanc.LogError(msg)
         return orthanc.ReceivedInstanceAction.DISCARD, None
 
     # Attempt to anonymise and drop the study if any exceptions occur
     try:
         return AnonymiseCallback(dataset)
     except Exception:  # noqa: BLE001
-        orthanc.LogWarning("Failed to anonymize study due to\n" + traceback.format_exc())
+        orthanc.LogError("Failed to anonymize study due to\n" + traceback.format_exc())
         return orthanc.ReceivedInstanceAction.DISCARD, None
 
 
@@ -283,14 +287,14 @@ def AnonymiseCallback(dataset):
     tag operations through functions in pixl_dcmd module
     Returns writing anonymised dataset to disk
     """
-    orthanc.LogWarning("***Anonymising received instance***")
+    orthanc.LogWarning("Anonymising received instance")
     # Rip out all private tags/
     dataset.remove_private_tags()
-    orthanc.LogWarning("Removed private tags")
+    orthanc.LogInfo("Removed private tags")
 
     # Rip out overlays/
     dataset = pixl_dcmd.remove_overlays(dataset)
-    orthanc.LogWarning("Removed overlays")
+    orthanc.LogInfo("Removed overlays")
 
     # Apply anonymisation.
     with Path("/etc/orthanc/tag-operations.yaml").open() as file:
@@ -300,6 +304,9 @@ def AnonymiseCallback(dataset):
         dataset = pixl_dcmd.apply_tag_scheme(dataset, tags)
         # Apply whitelist
         dataset = pixl_dcmd.enforce_whitelist(dataset, tags)
+        orthanc.LogInfo("DICOM tag anonymisation applied")
+
+    orthanc.LogWarning("DICOM tag anonymisation applied")
 
     # Write anonymised instance to disk.
     return orthanc.ReceivedInstanceAction.MODIFY, pixl_dcmd.write_dataset_to_bytes(dataset)

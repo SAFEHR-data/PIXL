@@ -77,7 +77,7 @@ def remove_overlays(dataset: Dataset) -> Dataset:
 def enforce_whitelist(dataset: dict, tags: dict) -> dict:
     """Delete any tags not in the tagging scheme."""
     # For every element:
-
+    logging.debug("Enforcing whitelist")
     for de in dataset:
         keep_el = False
         # For every entry in the YAML:
@@ -109,6 +109,7 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
     The original study time is kept before any operations are applied.
     For example: orig_study_time = `dataset[0x0008, 0x0030].value`
     """
+    logging.debug("Applying tag scheme")
 
     mrn = dataset[0x0010, 0x0020].value  # Patient ID
     accession_number = dataset[0x0008, 0x0050].value  # Accession Number

@@ -89,6 +89,7 @@ def export_patient_data(export_params: ExportRadiologyData) -> None:
     NOTE: we can't check that all reports in the queue have been processed, so
     we are relying on the user waiting until processing has finished before running this.
     """
+    logger.info("Exporting Patient Data for '%s'", export_params.project_name)
     export_radiology_as_parquet(export_params)
 
     # Upload Parquet files to the appropriate endpoint
