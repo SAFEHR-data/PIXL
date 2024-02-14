@@ -73,19 +73,20 @@ class PixlFTPServer:
     :type home_dir: str
     """
 
-    def __init__(self, home_dir: str) -> None:
+    def __init__(self, home_root: Path) -> None:
         """
         Initialise the FTPS server. Sets the hostname, port, username and password
         from the corresponding environment variables.
-        :param home_dir: The home directory for the FTP server. This is the directory where the
-            user will be placed after login.
+        :param home_root: The directory where the user's home directory will be created.
+        The home dir is the directory where the user will be placed after login.
         """
-        self.host = config("FTP_HOST", default="127.0.0.1")
+        self.host = "127.0.0.1"
         self.port = int(config("FTP_PORT", default=20021))
 
         self.user_name = config("FTP_USER_NAME", default="pixl_user")
         self.user_password = config("FTP_USER_PASSWORD", default="longpassword")
-        self.home_dir = home_dir
+        self.home_dir: Path = home_root / self.user_name
+        self.home_dir.mkdir()
 
         self.certfile = Path(__file__).parents[1] / "resources" / "ssl" / "localhost.crt"
         self.keyfile = Path(__file__).parents[1] / "resources" / "ssl" / "localhost.key"
@@ -103,7 +104,7 @@ class PixlFTPServer:
         will be a directory on the local filesystem!
         """
         self.authorizer.add_user(
-            self.user_name, self.user_password, self.home_dir, perm=USER_PERMISSIONS
+            self.user_name, self.user_password, str(self.home_dir), perm=USER_PERMISSIONS
         )
 
     def _setup_TLS_handler(self) -> None:
