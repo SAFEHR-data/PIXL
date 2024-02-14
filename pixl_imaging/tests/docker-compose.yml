@@ -50,6 +50,7 @@ services:
       ORTHANC_VNA_AE_TITLE: "VNAQR"
       VNAQR_MODALITY: "UCVNAQR"
       PIXL_DICOM_TRANSFER_TIMEOUT: 30
+      SKIP_ALEMBIC: "true"
     ports:
       - "9001:8000"
 
