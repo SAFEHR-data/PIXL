@@ -37,9 +37,10 @@ teardown () {
 # Allow user to perform just setup so that pytest may be run repeatedly without
 # redoing the setup again and again. This means that pytest must now be responsible
 # for clearing up anything it creates (export temp dir?)
-if [ "$1" = "setup" ]; then
+subcmd=${1:-""}
+if [ "$subcmd" = "setup" ]; then
   setup
-elif [ "$1" = "teardown" ]; then
+elif [ "$subcmd" = "teardown" ]; then
   teardown
 else
   setup
