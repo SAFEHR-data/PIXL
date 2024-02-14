@@ -110,6 +110,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e pixl_core
+          pip install -e pytest-pixl
           pip install -e pixl_dcmd[test]
 
       - name: Run tests
