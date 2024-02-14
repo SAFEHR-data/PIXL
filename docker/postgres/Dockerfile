@@ -24,17 +24,3 @@ RUN sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 COPY --chmod=0755 ./postgres/postgres.conf /etc/postgresql/postgresql.conf
 
 COPY --chmod=0777 ./postgres/pixl-db_init.sh /docker-entrypoint-initdb.d/pixl-db_init.sh
-
-# Install requirements before copying modules
-COPY ./pixl_core/pyproject.toml /pixl/pixl_core/pyproject.toml
-RUN --mount=type=cache,target=/root/.cache \
-    python3 -m venv /pixl/venv \
-        && cd /pixl/venv/bin \
-        && ./pip install /pixl/pixl_core/
-
-WORKDIR /pixl/venv/bin
-
-COPY ./pixl_core/ /pixl/pixl_core
-
-RUN --mount=type=cache,target=/root/.cache \
-    ./pip install /pixl/pixl_core/
