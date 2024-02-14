@@ -161,7 +161,7 @@ def _create_and_set_as_cwd_multi_path(ftp: FTP_TLS, remote_multi_dir: Path) -> N
 def _create_and_set_as_cwd(ftp: FTP_TLS, project_dir: str) -> None:
     try:
         ftp.cwd(project_dir)
-        logger.info("'%s' exists on remote ftp, so moving into it", project_dir)
+        logger.debug("'%s' exists on remote ftp, so moving into it", project_dir)
     except ftplib.error_perm:
         logger.info("creating '%s' on remote ftp and moving into it", project_dir)
         # Directory doesn't exist, so create it

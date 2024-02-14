@@ -32,7 +32,7 @@ logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))
 
 
 async def process_message(message: Message) -> None:
-    logger.info("Processing: %s", message)
+    logger.debug("Processing: %s", message)
 
     study = ImagingStudy.from_message(message)
     orthanc_raw = PIXLRawOrthanc()

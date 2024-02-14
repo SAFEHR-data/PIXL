@@ -145,7 +145,7 @@ def SendViaStow(resourceId):
 
     payload = {"Resources": [resourceId], "Synchronous": False}
 
-    logger.info("Payload: %s", payload)
+    logger.debug("Payload: %s", payload)
 
     try:
         requests.post(
@@ -165,7 +165,7 @@ def SendViaFTPS(resourceId: str) -> None:
     using orthanc credentials as authorisation
     """
     msg = f"Sending {resourceId} via FTPS"
-    logging.info(msg)
+    logging.debug(msg)
     # Download zip archive of the DICOM resource
     query = f"{ORTHANC_URL}/studies/{resourceId}/archive"
     fail_msg = "Could not download archive of resource '%s'"
@@ -173,10 +173,10 @@ def SendViaFTPS(resourceId: str) -> None:
 
     # get the zip content
     zip_content = response_study.content
-    logger.info("Downloaded data for resource %s", resourceId)
+    logger.debug("Downloaded data for resource %s", resourceId)
 
     upload.upload_dicom_image(BytesIO(zip_content), _get_patient_id(resourceId))
-    logger.info("Uploaded data to FTPS for resource %s", resourceId)
+    logger.debug("Uploaded data to FTPS for resource %s", resourceId)
 
 
 def _get_patient_id(resourceId: str) -> str:
@@ -234,7 +234,7 @@ def OnChange(changeType, level, resource):  # noqa: ARG001
 
     if changeType == orthanc.ChangeType.STABLE_STUDY and ShouldAutoRoute():
         msg = f"Stable study: {resource}"
-        logger.info(msg)
+        logger.debug(msg)
         SendViaFTPS(resource)
 
     if changeType == orthanc.ChangeType.ORTHANC_STARTED and _azure_available():
