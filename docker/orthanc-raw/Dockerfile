@@ -16,6 +16,18 @@ SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 
 ARG ORTHANC_RAW_MAXIMUM_STORAGE_SIZE
 
+RUN --mount=type=cache,target=/root/.cache \
+    pip3 install pydicom
+
+# Install requirements before copying modules
+COPY ./pixl_core/pyproject.toml ./pixl_core/pyproject.toml
+RUN --mount=type=cache,target=/root/.cache \
+    pip3 install pixl_core/
+
+COPY ./pixl_core/ ./pixl_core
+RUN --mount=type=cache,target=/root/.cache \
+    pip3 install ./pixl_core
+
 COPY ./orthanc/orthanc-raw/plugin/pixl.py /etc/orthanc/pixl.py
 # Orthanc can't substitute environment veriables as integers so copy and replace before running
 COPY ./orthanc/orthanc-raw/config /run/secrets
