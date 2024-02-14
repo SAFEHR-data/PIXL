@@ -41,6 +41,7 @@ target_metadata = models.Base.metadata
 
 
 def get_pixl_db_url() -> URL:
+    """Create PIXL database URL for connection."""
     return URL.create(
         drivername="postgresql+psycopg2",
         host=os.environ["PIXL_DB_HOST"],
