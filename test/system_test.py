@@ -12,12 +12,17 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """Replacement for the 'interesting' bits of the system/E2E test"""
-
+import json
 import logging
+import shlex
+import subprocess
 import time
+from pathlib import Path
 from time import sleep
 
 import pytest
+
+from conftest import run_subprocess
 
 pytest_plugins = "pytest_pixl"
 
@@ -84,12 +89,50 @@ class TestFtpsUpload:
         assert len(zip_files) == 2
 
 
+def _wait_for_stable_orthanc_anon(seconds_max, seconds_interval) -> None:
+    """
+    Query the orthanc-anon REST API to check that the correct number of instances
+    have been received.
+    If they haven't within the time limit, raise a TimeoutError
+    """
+    for seconds in range(0, seconds_max, seconds_interval):
+        instances_cmd = shlex.split(
+            "docker exec system-test-orthanc-anon-1 "
+            'curl -u "orthanc_anon_username:orthanc_anon_password" '
+            "http://orthanc-anon:8042/instances"
+        )
+        instances_output = subprocess.run(instances_cmd, capture_output=True, check=True, text=True)  # noqa: S603
+        instances = json.loads(instances_output.stdout)
+        logging.info("Waited for %s seconds, orthanc-anon instances: %s", seconds, instances)
+        if len(instances) == 2:
+            return  # success
+        sleep(seconds_interval)
+    raise TimeoutError
+
+
 @pytest.mark.usefixtures("_setup_pixl_cli")
-def test_orthanc_entries():
+def test_ehr_anon_entries():
     """
     ./scripts/check_entry_in_orthanc_anon_for_2_min.py
     ./scripts/check_entry_in_pixl_anon.sh
     """
+    # Because we have to wait for a stable study, poll for 2 minutes
+    _wait_for_stable_orthanc_anon(121, 5)
+
+    # This was converted from old shell script - might be better to check the data itself though?
+    sql_command = "select * from emap_data.ehr_anon"
+    cp = run_subprocess(
+        [
+            "docker",
+            "exec",
+            "system-test-postgres-1",
+            "/bin/bash",
+            "-c",
+            f'PGPASSWORD=pixl_db_password psql -U pixl_db_username -d pixl -c "{sql_command}"',
+        ],
+        Path.cwd(),
+    )
+    assert cp.stdout.decode().find("(2 rows)") != -1
 
 
 def test_max_storage_in_orthanc_raw():
