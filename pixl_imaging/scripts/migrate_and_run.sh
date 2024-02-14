@@ -16,7 +16,7 @@
 
 # Run migrations (unless SKIP_ALEMBIC is true) then run the app.
 
-set -eu -o pipefail
+set -eux -o pipefail
 cd /app
 if [ "${SKIP_ALEMBIC:-false}" = false ]; then
     echo "Running alembic migrations"
