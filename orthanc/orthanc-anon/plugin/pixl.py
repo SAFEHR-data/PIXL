@@ -167,7 +167,7 @@ def SendViaFTPS(resourceId: str) -> None:
     using orthanc credentials as authorisation
     """
     msg = f"Sending {resourceId} via FTPS"
-    logging.debug(msg)
+    logger.debug(msg)
     # Download zip archive of the DICOM resource
     query = f"{ORTHANC_URL}/studies/{resourceId}/archive"
     fail_msg = "Could not download archive of resource '%s'"
