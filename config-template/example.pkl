@@ -1,0 +1,11 @@
+amends "PixlConfig.pkl"
+
+project = "My Project"
+dicom_anon_profile {
+    base_profile = "???"
+    // extension_profile = "???" // optional
+}
+destination {
+    dicom = "FTPS" // or None, Azure, DicomWeb
+    parquet = "FTPS" // or Azure
+}

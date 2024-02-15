@@ -1,0 +1,22 @@
+module PixlConfig
+
+project: String
+
+class DicomAnonProfile {
+    base_profile: String // TODO: should this be a file path?
+    extension_profile: String? // optional
+}
+
+dicom_anon_profile: DicomAnonProfile
+
+// Permitted values for the destination types
+typealias DicomDestinationType = "FTPS"|"Azure"|"DicomWeb"
+typealias ParquetDestinationType = "FTPS"|"Azure"
+
+class DestinationTypes {
+    // optional, if not set, no upload will be performed for the given file type
+    dicom: DicomDestinationType?
+    parquet: ParquetDestinationType?
+}
+
+destination: DestinationTypes
