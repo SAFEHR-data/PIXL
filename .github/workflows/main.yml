@@ -262,6 +262,12 @@ jobs:
           ./run-system-test.sh
           echo FINISHED SYSTEM TEST SCRIPT
 
-      - name: Dump docker logs on failure
+      - name: Dump ehr-api docker logs for debugging
         if: ${{ failure() }}
-        uses: jwalton/gh-docker-logs@v2
+        run: |
+          docker logs -t system-test-ehr-api-1 2>&1
+
+      - name: Dump imaging-api docker logs for debugging
+        if: ${{ failure() }}
+        run: |
+          docker logs -t system-test-imaging-api-1 2>&1
