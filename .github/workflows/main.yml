@@ -265,3 +265,8 @@ jobs:
         if: ${{ always() }}
         run: |
           docker logs -t system-test-ehr-api-1 2>&1
+
+      - name: Dump imaging-api docker logs for debugging
+        if: ${{ always() }}
+        run: |
+          docker logs -t system-test-imaging-api-1 2>&1
