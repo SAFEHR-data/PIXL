@@ -120,7 +120,7 @@ class PixlFTPServer:
         assert certfile_path.exists(), f"Could not find cerfile at {certfile_path.absolute()}"
         assert keyfile_path.exists(), f"Could not find cerfile at {keyfile_path.absolute()}"
 
-    def _create_server(self) -> FTPServer:
+    def _create_server(self) -> ThreadedFTPServer:
         """
         Creates the FTPS server and returns it. The server can be started with the `serve_forever`
         method.
