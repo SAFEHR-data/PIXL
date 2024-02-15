@@ -262,5 +262,5 @@ jobs:
           ./run-system-test.sh
 
       - name: Dump docker logs on failure
-        if: always()
+        if: ${{ always() }}
         uses: jwalton/gh-docker-logs@v2
