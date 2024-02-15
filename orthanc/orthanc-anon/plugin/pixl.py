@@ -232,16 +232,12 @@ def OnChange(changeType, level, resource):  # noqa: ARG001
     if not ShouldAutoRoute():
         return
 
-    if changeType == orthanc.ChangeType.STABLE_STUDY and ShouldAutoRoute():
+    if changeType == orthanc.ChangeType.STABLE_STUDY:
         msg = f"Stable study: {resource}"
         logger.info(msg)
         SendViaFTPS(resource)
 
-    if (
-        changeType == orthanc.ChangeType.ORTHANC_STARTED
-        and _azure_available()
-        and ShouldAutoRoute()
-    ):
+    if changeType == orthanc.ChangeType.ORTHANC_STARTED and _azure_available():
         orthanc.LogWarning("Starting the scheduler")
         AzureDICOMTokenRefresh()
     elif changeType == orthanc.ChangeType.ORTHANC_STOPPED:
