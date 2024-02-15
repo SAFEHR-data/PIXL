@@ -260,3 +260,8 @@ jobs:
         working-directory: test
         run: |
           ./run-system-test.sh
+
+      - name: Dump ehr-api docker logs for debugging
+        if: ${{ always() }}
+        run: |
+          docker logs -t system-test-ehr-api-1 2>&1
