@@ -74,6 +74,7 @@ def upload_dicom_image(zip_content: BinaryIO, pseudo_anon_id: str) -> None:
 
     # Store the file using a binary handler
     try:
+        logger.info("Running command %s", command)
         ftp.storbinary(command, zip_content)
     except ftplib.all_errors as ftp_error:
         ftp.quit()
@@ -140,8 +141,8 @@ def _connect_to_ftp() -> FTP_TLS:
         ftp.login(ftp_user, ftp_password)
         ftp.prot_p()
     except ftplib.all_errors as ftp_error:
-        error_msg = "Failed to connect to FTPS server: '%s'"
-        raise ConnectionError(error_msg, ftp_error) from ftp_error
+        error_msg = f"Failed to connect to FTPS server: {ftp_user}@{ftp_host}:{ftp_port}"
+        raise ConnectionError(error_msg) from ftp_error
     return ftp
 
 

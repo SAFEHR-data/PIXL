@@ -125,7 +125,10 @@ def extract_radiology_reports(parquet_dir: Path) -> None:
 
     success_code = 200
     if response.status_code != success_code:
-        msg = f"Failed to run export-patient-data due to: {response.text}"
+        msg = (
+            f"Failed to run export-patient-data due to: "
+            f"error code {response.status_code} {response.text}"
+        )
         raise RuntimeError(msg)
 
 

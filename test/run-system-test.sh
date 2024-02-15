@@ -17,45 +17,56 @@ BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 PACKAGE_DIR="${BIN_DIR%/*}"
 cd "${PACKAGE_DIR}/test"
 
-docker compose --env-file .env -p system-test down --volumes
-#
-# Note: cannot run as single docker compose command due to different build contexts
-docker compose --env-file .env -p system-test up --wait -d --build --remove-orphans
-# Warning: Requires to be run from the project root
-(cd .. && \
-  docker compose --env-file test/.env -p system-test up --wait -d --build)
+setup () {
+  # The host OS determines how to reach the host from inside a container
+  if [ $(uname) = 'Linux' ]; then
+    export FTP_HOST=172.17.0.1
+  else
+    export FTP_HOST=host.docker.internal
+  fi
+  echo "FTPHOST = $FTP_HOST"
+  docker compose --env-file .env -p system-test down --volumes
+  #
+  # Note: cannot run as single docker compose command due to different build contexts
+  docker compose --env-file .env -p system-test up --wait -d --build --remove-orphans
+  # Warning: Requires to be run from the project root
+  (cd "${PACKAGE_DIR}" && \
+    docker compose --env-file test/.env -p system-test up --wait -d --build)
 
-./scripts/insert_test_data.sh
+  ./scripts/insert_test_data.sh
+}
 
-# Install pixl_cli and test dependencies
-pip install -e "${PACKAGE_DIR}/pixl_core" && \
-  pip install -e "${PACKAGE_DIR}/cli" && \
-  pip install -e "${PACKAGE_DIR}/pytest-pixl"
+teardown () {
+  (cd "${PACKAGE_DIR}" && \
+    docker compose -f docker-compose.yml -f test/docker-compose.yml -p system-test down --volumes)
+}
 
+# Allow user to perform just setup so that pytest may be run repeatedly without
+# redoing the setup again and again. This means that pytest must now be responsible
+# for clearing up anything it creates (export temp dir?)
+subcmd=${1:-""}
+if [ "$subcmd" = "setup" ]; then
+  setup
+elif [ "$subcmd" = "teardown" ]; then
+  teardown
+else
+  setup
+  # temporarily disable so we can see the state of things after the error
+  set +e
+  echo jobs before
+  jobs
+  docker ps
+  pytest --verbose &
+  for i in `seq 1 20`; do
+    echo jobs after $i:
+    jobs
+    sleep 10
+  done
+  echo FINISHED PYTEST COMMAND
+  docker ps
+  docker logs -t system-test-ehr-api-1 2>&1
+  docker logs -t system-test-imaging-api-1 2>&1
+  teardown
+fi
 
-pixl populate "${PACKAGE_DIR}/test/resources/omop"
-pixl start
-
-# need to wait until the DICOM image is "stable" so poll for 2 minutes to check
-./scripts/check_entry_in_orthanc_anon_for_2_min.py
-./scripts/check_entry_in_pixl_anon.sh
-
-# test export and upload
-pixl extract-radiology-reports "${PACKAGE_DIR}/test/resources/omop"
-./scripts/check_radiology_parquet.py \
-  ../exports/test-extract-uclh-omop-cdm/latest/radiology/radiology.parquet
-./scripts/check_ftps_upload.py
-
-
-ls -laR ../exports/
-docker exec system-test-ehr-api-1 rm -r /run/exports/test-extract-uclh-omop-cdm/
-
-# This checks that orthanc-raw acknowledges the configured maximum storage size
-./scripts/check_max_storage_in_orthanc_raw.sh
-
-# Run this last because it will force out original test images from orthanc-raw
-./scripts/check_max_storage_in_orthanc_raw.py
-
-
-cd "${PACKAGE_DIR}"
-docker compose -f docker-compose.yml -f test/docker-compose.yml -p system-test down --volumes
+echo SYSTEM TEST SUCCESSFUL
