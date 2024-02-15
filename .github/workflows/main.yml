@@ -266,6 +266,7 @@ jobs:
         working-directory: test
         run: |
           ./run-system-test.sh
+          echo FINISHED SYSTEM TEST SCRIPT
 
       - name: Dump ehr-api docker logs for debugging
         if: ${{ always() }}
