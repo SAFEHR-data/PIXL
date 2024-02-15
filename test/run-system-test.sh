@@ -49,9 +49,12 @@ else
   echo jobs before
   jobs
   docker ps
-  pytest --verbose
-  echo jobs after
-  jobs
+  pytest --verbose &
+  for i in `seq 1 20`; do
+    echo jobs after $i:
+    jobs
+    sleep 10
+  done
   echo FINISHED PYTEST COMMAND
   docker ps
   docker logs -t system-test-ehr-api-1 2>&1
