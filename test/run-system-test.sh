@@ -44,6 +44,6 @@ elif [ "$subcmd" = "teardown" ]; then
   teardown
 else
   setup
-  pytest
+  pytest --verbose
   teardown
 fi
