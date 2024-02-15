@@ -51,22 +51,9 @@ elif [ "$subcmd" = "teardown" ]; then
   teardown
 else
   setup
-  # temporarily disable so we can see the state of things after the error
-  set +e
-  echo jobs before
-  jobs
-  docker ps
-  pytest --verbose &
-  for i in `seq 1 20`; do
-    echo jobs after $i:
-    jobs
-    sleep 10
-  done
+  pytest --verbose
   echo FINISHED PYTEST COMMAND
-  docker ps
-  docker logs -t system-test-ehr-api-1 2>&1
-  docker logs -t system-test-imaging-api-1 2>&1
   teardown
+  echo SYSTEM TEST SUCCESSFUL
 fi
 
-echo SYSTEM TEST SUCCESSFUL
