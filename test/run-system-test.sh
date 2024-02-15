@@ -19,7 +19,7 @@ cd "${PACKAGE_DIR}/test"
 
 setup () {
   # The host OS determines how to reach the host from inside a container
-  if [ $(uname) = 'Linux' ]; then
+  if [ "$(uname)" = 'Linux' ]; then
     export FTP_HOST=172.17.0.1
   else
     export FTP_HOST=host.docker.internal
