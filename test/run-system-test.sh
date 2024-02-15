@@ -18,13 +18,6 @@ PACKAGE_DIR="${BIN_DIR%/*}"
 cd "${PACKAGE_DIR}/test"
 
 setup () {
-  # The host OS determines how to reach the host from inside a container
-  if [ "$(uname)" = 'Linux' ]; then
-    export FTP_HOST=172.17.0.1
-  else
-    export FTP_HOST=host.docker.internal
-  fi
-  echo "FTPHOST = $FTP_HOST"
   docker compose --env-file .env -p system-test down --volumes
   #
   # Note: cannot run as single docker compose command due to different build contexts
