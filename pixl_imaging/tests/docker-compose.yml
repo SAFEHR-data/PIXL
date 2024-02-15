@@ -33,6 +33,7 @@ services:
       orthanc-raw:
         condition: service_started
     healthcheck:
+      test: curl -f http://0.0.0.0:8000/heart-beat
       interval: 5s
       timeout: 5s
       retries: 10
