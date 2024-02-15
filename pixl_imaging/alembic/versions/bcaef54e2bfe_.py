@@ -34,11 +34,10 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.execute("create schema pipeline")
     op.create_table(
         "extract",
         sa.Column("extract_id", sa.Integer(), nullable=False),
-        sa.Column("slug", sa.String(), nullable=True),
+        sa.Column("slug", sa.String(), nullable=False),
         sa.PrimaryKeyConstraint("extract_id"),
         schema="pipeline",
     )
@@ -51,12 +50,15 @@ def upgrade() -> None:
         sa.Column("hashed_identifier", sa.String(), nullable=True),
         sa.Column("exported_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("extract_id", sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(["extract_id"], ["pipeline.extract.extract_id"]),
+        sa.ForeignKeyConstraint(
+            ["extract_id"],
+            ["pipeline.extract.extract_id"],
+        ),
         sa.PrimaryKeyConstraint("image_id"),
         schema="pipeline",
     )
 
 
 def downgrade() -> None:
-    op.drop_table("image")
-    op.drop_table("extract")
+    op.drop_table("image", schema="pipeline")
+    op.drop_table("extract", schema="pipeline")

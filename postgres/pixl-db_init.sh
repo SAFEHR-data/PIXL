@@ -22,3 +22,4 @@ ehr_create_command="CREATE SCHEMA emap_data AUTHORIZATION ${POSTGRES_USER}
     CREATE TABLE ehr_anon ($columns_and_types)
 "
 psql -U "${POSTGRES_USER}" --dbname "${POSTGRES_DB}" -c "$ehr_create_command"
+psql -U "${POSTGRES_USER}" --dbname "${POSTGRES_DB}" -c "CREATE SCHEMA pipeline AUTHORIZATION ${POSTGRES_USER}"

@@ -40,12 +40,19 @@ target_metadata = models.Base.metadata
 # ... etc.
 
 
+def include_name(name: str, type_: str, parent_names: str) -> bool:  # noqa: ARG001
+    """Filtering of allowed table names"""
+    if type_ == "schema":
+        return name in [target_metadata.schema]
+    return True
+
+
 def get_pixl_db_url() -> URL:
     """Create PIXL database URL for connection."""
     return URL.create(
         drivername="postgresql+psycopg2",
         host=os.environ["PIXL_DB_HOST"],
-        port=os.environ["PIXL_DB_PORT"],
+        port=int(os.environ["PIXL_DB_PORT"]),
         username=os.environ["PIXL_DB_USER"],
         password=os.environ["PIXL_DB_PASSWORD"],
         database=os.environ["PIXL_DB_NAME"],
@@ -71,6 +78,8 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        include_schemas=True,
+        include_name=include_name,
     )
 
     with context.begin_transaction():
@@ -89,7 +98,12 @@ def run_migrations_online() -> None:
     connectable = create_engine(url)
 
     with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata,
+            include_schemas=True,
+            include_name=include_name,
+        )
 
         with context.begin_transaction():
             context.run_migrations()
