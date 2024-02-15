@@ -56,5 +56,6 @@ docker exec system-test-ehr-api-1 rm -r /run/exports/test-extract-uclh-omop-cdm/
 # Run this last because it will force out original test images from orthanc-raw
 ./scripts/check_max_storage_in_orthanc_raw.py
 
+
 cd "${PACKAGE_DIR}"
 docker compose -f docker-compose.yml -f test/docker-compose.yml -p system-test down --volumes
