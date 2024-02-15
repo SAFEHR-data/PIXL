@@ -30,7 +30,6 @@ export PIXL_DB_NAME=pixl
 # run current migrations
 alembic upgrade head
 
-
 # generate new migrations
 alembic revision --autogenerate
 
