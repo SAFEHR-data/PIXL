@@ -18,7 +18,7 @@ from pathlib import Path
 from decouple import config
 from pyftpdlib.authorizers import DummyAuthorizer
 from pyftpdlib.handlers import TLS_FTPHandler
-from pyftpdlib.servers import FTPServer
+from pyftpdlib.servers import ThreadedFTPServer
 
 # User permission
 # from https://pyftpdlib.readthedocs.io/en/latest/api.html#pyftpdlib.authorizers.DummyAuthorizer.add_user
@@ -126,5 +126,5 @@ class PixlFTPServer:
         method.
         """
         address = (self.host, self.port)
-        self.server = FTPServer(address, self.handler)
+        self.server = ThreadedFTPServer(address, self.handler)
         return self.server
