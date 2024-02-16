@@ -22,8 +22,6 @@ The functionality for this is defined in the [EHR API](../../pixl_ehr/README.md)
 PIXL database for the de-identified radiology reports of the current extract and collects them
 in a single _parquet_ file together with the `image_identifier` and `procedure_occurrence_id`.
 
-_This was implemented in [PR#203](https://github.com/UCLH-Foundry/PIXL/pull/203)_.
-
 ## Exporting (copying from OMOP ES)
 
 As part of the PIXL pipeline, we copy the OMOP-ES public _parquet_ files  to an export directory, to
@@ -44,8 +42,6 @@ exports
     │           └── radiology.parquet
     └── latest -> </symlink/to/latest/extract>
 ```
-
-_This was implemented in [PR#182](https://github.com/UCLH-Foundry/PIXL/pull/182)._
 
 ## Uploading to the DSH
 
@@ -69,8 +65,6 @@ Once the parquet files have been uploaded to the DSH, the directory structure wi
     ├── <pseudonymised_ID_DICOM_dataset_1>.zip
     └── <pseudonymised_ID_DICOM_dataset_2>.zip
 ```
-
-_This was implemented in [PR#264](https://github.com/UCLH-Foundry/PIXL/pull/264)._
 
 ## Testing
 
