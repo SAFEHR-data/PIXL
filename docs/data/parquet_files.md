@@ -19,8 +19,7 @@ _de-identified_ radiology reports for the given extract from the CogStack API.
 
 The functionality for this is defined in the [EHR API](../../pixl_ehr/README.md), specifically in
 [`PIXLDatabase.get_radiology_reports`](../../pixl_ehr/src/pixl_ehr/_databases.py), which queries the
-<!-- TODO: add link to PIXL database documentation once we have that -->
-[PIXL database]() for the de-identified radiology reports of the current extract and collects them
+PIXL database for the de-identified radiology reports of the current extract and collects them
 in a single _parquet_ file together with the `image_identifier` and `procedure_occurrence_id`.
 
 _This was implemented in [PR#203](https://github.com/UCLH-Foundry/PIXL/pull/203)_.
