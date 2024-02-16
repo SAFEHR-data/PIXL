@@ -12,8 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """
-Initial setup
-
+Create extract and image tables
 Revision ID: bcaef54e2bfe
 Revises:
 Create Date: 2024-02-12 14:43:36.716242

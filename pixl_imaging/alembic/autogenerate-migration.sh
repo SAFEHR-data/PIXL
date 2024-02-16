@@ -15,6 +15,13 @@
 set -euxo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")" && pwd
 
+if [ $# -ne 1 ]
+  then
+    echo "Add a name for the migration in quotes"
+    exit 1
+fi
+
+
 # Set env variables
 export PIXL_DB_HOST=localhost
 export PIXL_DB_PORT=7654
@@ -31,7 +38,7 @@ export PIXL_DB_NAME=pixl
 alembic upgrade head
 
 # generate new migrations
-alembic revision --autogenerate
+alembic revision --autogenerate -m "$1"
 
 # take containers down
 (cd ../.. && docker compose -f docker-compose.yml --env-file test/.env -p migration-test down --volumes )
