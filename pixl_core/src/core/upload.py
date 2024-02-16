@@ -104,6 +104,7 @@ def upload_parquet_files(parquet_export: ParquetExport) -> None:
     │           └── radiology.parquet
     ├── <pseudonymised_ID_DICOM_dataset_1>.zip
     └── <pseudonymised_ID_DICOM_dataset_2>.zip
+    ...
     """
     logger.info("Starting FTPS upload of files for '%s'", parquet_export.project_slug)
 
