@@ -341,6 +341,7 @@ class APIConfig:
     -------
     base_url()
         Return the base url for the API
+
     """
 
     def __init__(self, kwargs: dict) -> None:

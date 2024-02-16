@@ -24,3 +24,14 @@ pip install -e ../pixl_core/ .
 ## Usage
 
 Usage should be from the CLI driver, which interacts with the endpoint.
+
+
+## Configuration and database interaction
+
+The database tables are updated using alembic, see the [alembic](alembic) dir for more details.
+
+The `SKIP_ALEMBIC` environmental variable is used to control whether migrations are applied to the database.
+
+- Tests that don't use the database use `SKIP_ALEMBIC=true`, but otherwise you probably want to run this.
+- If you wanted to test out new migrations from a test/dev deployment on the GAE with data in,
+  then you can redeploy just the `imaging-api` container while keeping the `postgres` container up. 
