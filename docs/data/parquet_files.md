@@ -25,46 +25,13 @@ in a single _parquet_ file together with the `image_identifier` and `procedure_o
 ## Exporting (copying from OMOP ES)
 
 As part of the PIXL pipeline, we copy the OMOP-ES public _parquet_ files  to an export directory, to
-prepare them for upload to the DSH. The export location is controlled by the `ParquetExport` class
-in [`exports.py`](../../pixl_core/src/core/exports.py).
-
-The final export directory will have the following structure:
-
-```
-exports
-└── <project_slug>
-    ├── all_extracts
-    │   └── <extract_datetime_slug>
-    │       ├── omop
-    │       │   └── public
-    │       │       └── PROCEDURE_OCCURRENCE.parquet
-    │       └── radiology
-    │           └── radiology.parquet
-    └── latest -> </symlink/to/latest/extract>
-```
+prepare them for upload to the DSH. The exporting details are in the
+[`pixl_core` documentation](../../pixl_core/README.md#omop-es-files).
 
 ## Uploading to the DSH
 
-When an extract is ready to be published to the DSH, the PIXL pipeline will upload the **Public**
-and **Radiology** _parquet_ files to the `<project-slug>` directory where the DICOM datasets are
-stored (see below). The uploading is controlled by `upload_parquet_files` in
-[`upload.py`](../../pixl_core/src/core/upload.py) which takes a `ParquetExport` object as input to
-define where the _parquet_ files are located. `upload_parquet_files` is called by the
-`export-patient-data` API endpoint defined in the [EHR API](../../pixl_ehr/src/pixl_ehr/main.py),
-which in turn is called by the `extract_radiology_reports` command in the
-[PIXL CLI](../../cli/README.md).
-
-Once the parquet files have been uploaded to the DSH, the directory structure will look like this:
-
-```
-<project-slug>
-    ├── <extract_datetime_slug>
-    │   └── parquet
-    │       ├── PROCEDURE_OCCURRENCE.parquet
-    │       └── radiology.parquet
-    ├── <pseudonymised_ID_DICOM_dataset_1>.zip
-    └── <pseudonymised_ID_DICOM_dataset_2>.zip
-```
+The final step in the journey of the _parquet_ files is to upload them to the DSH. This is
+implemented and documented in [`pixl_core`](../../pixl_core/README.md#uploading-to-an-ftps-server).
 
 ## Testing
 

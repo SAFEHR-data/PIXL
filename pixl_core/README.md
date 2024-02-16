@@ -90,7 +90,7 @@ for convenience `latest` is a symlink to the most recent extract.
 
 ## Uploading to an FTPS server
 
-The `core.upload` module implements functionality to upload DICOM tags and parquet files to an
+The `core.upload` module implements functionality to upload DICOM images and parquet files to an
 **FTPS server**. This requires the following environment variables to be set:
 
 - `FTP_HOST`: URL to the FTPS server
@@ -101,3 +101,23 @@ The `core.upload` module implements functionality to upload DICOM tags and parqu
 We provide mock values for these for the unit tests (see
 [`./tests/conftest.py`](./tests/conftest.py)). When running in production, these should be defined
 in the `.env` file (see [the example](../.env.sample)).
+
+When an extract is ready to be published to the DSH, the PIXL pipeline will upload the **Public**
+and **Radiology** [_parquet_ files](../docs/data/parquet_files.md) to the `<project-slug>` directory
+where the DICOM datasets are stored (see the directory structure below). The uploading is controlled
+by `upload_parquet_files` in [`upload.py`](./src/core/upload.py) which takes a `ParquetExport`
+object as input to define where the _parquet_ files are located.  `upload_parquet_files` is called
+by the `export-patient-data` API endpoint defined in the
+[EHR API](../pixl_ehr/src/pixl_ehr/main.py), which in turn is called by the `extract_radiology_reports` command in the [PIXL CLI](../cli/README.md).
+
+Once the parquet files have been uploaded to the DSH, the directory structure will look like this:
+
+```sh
+<project-slug>
+    ├── <extract_datetime_slug>
+    │   └── parquet
+    │       ├── PROCEDURE_OCCURRENCE.parquet
+    │       └── radiology.parquet
+    ├── <pseudonymised_ID_DICOM_dataset_1>.zip
+    └── <pseudonymised_ID_DICOM_dataset_2>.zip
+```
