@@ -18,10 +18,42 @@ import datetime
 from typing import TYPE_CHECKING
 
 from core.patient_queue.message import Message
-from pixl_cli._io import copy_parquet_return_logfile_fields, messages_from_parquet
+from pixl_cli._io import (
+    copy_parquet_return_logfile_fields,
+    messages_from_csv,
+    messages_from_parquet,
+)
 
 if TYPE_CHECKING:
     from pathlib import Path
+
+
+def test_messages_from_csv(resources: Path) -> None:
+    """
+    Given a valid OMOP ES extract with 4 procedures, two of which are x-rays.
+    When the messages are generated from the directory and the output of logfile parsing
+    Then two messages should be generated
+    """
+    # Arrange
+    test_csv = resources / "test.csv"
+    project_name = "test-extract-mri-csv"
+    omop_es_datetime = datetime.datetime.now(tz=datetime.timezone.utc)
+    # Act
+    messages = messages_from_csv(test_csv, project_name, omop_es_datetime)
+    # Assert
+    assert all(isinstance(msg, Message) for msg in messages)
+
+    expected_messages = [
+        Message(
+            mrn="patient_identifier",
+            accession_number="123456789",
+            study_date=datetime.date.fromisoformat("2022-01-01"),
+            procedure_occurrence_id=4,
+            project_name="test-extract-mri-csv",
+            omop_es_timestamp=omop_es_datetime,
+        ),
+    ]
+    assert messages == expected_messages
 
 
 def test_messages_from_parquet(resources: Path) -> None:

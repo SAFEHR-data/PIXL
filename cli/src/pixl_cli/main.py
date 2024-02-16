@@ -14,6 +14,7 @@
 """PIXL command line interface functionality"""
 from __future__ import annotations
 
+import datetime
 import json
 import os
 from operator import attrgetter
@@ -30,6 +31,7 @@ from pixl_cli._database import filter_exported_or_add_to_db
 from pixl_cli._io import (
     config_from_log_file,
     copy_parquet_return_logfile_fields,
+    messages_from_csv,
     messages_from_parquet,
     messages_from_state_file,
 )
@@ -80,8 +82,13 @@ def populate(parquet_dir: Path, *, restart: bool, queues: str) -> None:
             └── extract_summary.json
     """
     logger.info(f"Populating queue(s) {queues} from {parquet_dir}")
-    project_name, omop_es_datetime = copy_parquet_return_logfile_fields(parquet_dir)
-    messages = messages_from_parquet(parquet_dir, project_name, omop_es_datetime)
+    if parquet_dir.suffix == ".csv":
+        project_name = "dummy"
+        omop_es_datetime = datetime.datetime.now(tz=datetime.timezone.utc)
+        messages = messages_from_csv(parquet_dir, project_name, omop_es_datetime)
+    else:
+        project_name, omop_es_datetime = copy_parquet_return_logfile_fields(parquet_dir)
+        messages = messages_from_parquet(parquet_dir, project_name, omop_es_datetime)
 
     for queue in queues.split(","):
         state_filepath = state_filepath_for_queue(queue)
