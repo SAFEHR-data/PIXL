@@ -145,7 +145,7 @@ def SendViaStow(resourceId):
 
     payload = {"Resources": [resourceId], "Synchronous": False}
 
-    logger.info("Payload: %s", payload)
+    logger.debug("Payload: %s", payload)
 
     try:
         requests.post(
@@ -155,6 +155,8 @@ def SendViaStow(resourceId):
             data=json.dumps(payload),
             timeout=10,
         )
+        msg = f"Sent {resourceId} via STOW"
+        logger.info(msg)
     except requests.exceptions.RequestException:
         orthanc.LogError("Failed to send via STOW")
 
@@ -165,7 +167,7 @@ def SendViaFTPS(resourceId: str) -> None:
     using orthanc credentials as authorisation
     """
     msg = f"Sending {resourceId} via FTPS"
-    logging.info(msg)
+    logger.debug(msg)
     # Download zip archive of the DICOM resource
     query = f"{ORTHANC_URL}/studies/{resourceId}/archive"
     fail_msg = "Could not download archive of resource '%s'"
@@ -173,10 +175,9 @@ def SendViaFTPS(resourceId: str) -> None:
 
     # get the zip content
     zip_content = response_study.content
-    logger.info("Downloaded data for resource %s", resourceId)
+    logger.debug("Downloaded data for resource %s", resourceId)
 
     upload.upload_dicom_image(BytesIO(zip_content), _get_patient_id(resourceId))
-    logger.info("Uploaded data to FTPS for resource %s", resourceId)
 
 
 def _get_patient_id(resourceId: str) -> str:
@@ -198,9 +199,8 @@ def _query(resourceId: str, query: str, fail_msg: str) -> requests.Response:
         success_code = 200
         if response.status_code != success_code:
             raise RuntimeError(fail_msg, resourceId)
-    except requests.exceptions.RequestException as request_exception:
-        orthanc.LogError(f"Failed to query'{resourceId}'")
-        raise SystemExit from request_exception
+    except requests.exceptions.RequestException:
+        logger.exception("Failed to query '%s'", resourceId)
     else:
         return response
 
@@ -232,7 +232,7 @@ def OnChange(changeType, level, resource):  # noqa: ARG001
     if not ShouldAutoRoute():
         return
 
-    if changeType == orthanc.ChangeType.STABLE_STUDY and ShouldAutoRoute():
+    if changeType == orthanc.ChangeType.STABLE_STUDY:
         msg = f"Stable study: {resource}"
         logger.info(msg)
         SendViaFTPS(resource)
@@ -248,7 +248,7 @@ def OnChange(changeType, level, resource):  # noqa: ARG001
 
 def OnHeartBeat(output, uri, **request) -> Any:  # noqa: ARG001
     """Extends the REST API by registering a new route in the REST API"""
-    orthanc.LogWarning("OK")
+    orthanc.LogInfo("OK")
     output.AnswerBuffer("OK\n", "text/plain")
 
 
@@ -264,14 +264,15 @@ def ReceivedInstanceCallback(receivedDicom: bytes, origin: str) -> Any:
 
     # Drop anything that is not an X-Ray
     if dataset.Modality not in ("DX", "CR"):
-        orthanc.LogWarning("Dropping DICOM that is not X-Ray")
+        msg = f"Dropping DICOM Modality: {dataset.Modality}"
+        orthanc.LogError(msg)
         return orthanc.ReceivedInstanceAction.DISCARD, None
 
     # Attempt to anonymise and drop the study if any exceptions occur
     try:
         return AnonymiseCallback(dataset)
     except Exception:  # noqa: BLE001
-        orthanc.LogWarning("Failed to anonymize study due to\n" + traceback.format_exc())
+        orthanc.LogError("Failed to anonymize study due to\n" + traceback.format_exc())
         return orthanc.ReceivedInstanceAction.DISCARD, None
 
 
@@ -282,14 +283,14 @@ def AnonymiseCallback(dataset):
     tag operations through functions in pixl_dcmd module
     Returns writing anonymised dataset to disk
     """
-    orthanc.LogWarning("***Anonymising received instance***")
+    orthanc.LogWarning("Anonymising received instance")
     # Rip out all private tags/
     dataset.remove_private_tags()
-    orthanc.LogWarning("Removed private tags")
+    orthanc.LogInfo("Removed private tags")
 
     # Rip out overlays/
     dataset = pixl_dcmd.remove_overlays(dataset)
-    orthanc.LogWarning("Removed overlays")
+    orthanc.LogInfo("Removed overlays")
 
     # Apply anonymisation.
     with Path("/etc/orthanc/tag-operations.yaml").open() as file:
@@ -299,6 +300,9 @@ def AnonymiseCallback(dataset):
         dataset = pixl_dcmd.apply_tag_scheme(dataset, tags)
         # Apply whitelist
         dataset = pixl_dcmd.enforce_whitelist(dataset, tags)
+        orthanc.LogInfo("DICOM tag anonymisation applied")
+
+    orthanc.LogWarning("DICOM tag anonymisation applied")
 
     # Write anonymised instance to disk.
     return orthanc.ReceivedInstanceAction.MODIFY, pixl_dcmd.write_dataset_to_bytes(dataset)
