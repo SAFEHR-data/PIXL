@@ -253,6 +253,8 @@ PIXL data extracts include the below assumptions
 
 Files that are present at each step of the pipeline.
 
+A more detailed description of the relevant file types is available in [`docs/data/`](./docs/data/).
+
 ### Resources in source repo (for test only)
 
 ```
