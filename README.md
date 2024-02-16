@@ -249,12 +249,12 @@ PIXL data extracts include the below assumptions
 - (MRN, Accession number) is unique identifier for a report/DICOM study pair
 - Patients have a single _relevant_ MRN
 
-
-
 ## File journey overview
+
 Files that are present at each step of the pipeline.
 
 ### Resources in source repo (for test only)
+
 ```
 test/resources/omop/public /*.parquet
 ....................private/*.parquet
@@ -262,7 +262,9 @@ test/resources/omop/public /*.parquet
 ```
 
 ### OMOP ES extract dir (input to PIXL)
+
 EXTRACT_DIR is the directory passed to `pixl populate`
+
 ```
 EXTRACT_DIR/public /*.parquet
 ............private/*.parquet
@@ -270,12 +272,14 @@ EXTRACT_DIR/public /*.parquet
 ```
 
 ### PIXL Export dir (PIXL intermediate)
+
 ```
 EXPORT_ROOT/PROJECT_SLUG/all_extracts/EXTRACT_DATETIME/radiology/radiology.parquet
 ....................................................../omop/public/*.parquet
 ```
 
 ### FTP server
+
 ```
 FTPROOT/PROJECT_SLUG/EXTRACT_DATETIME/parquet/radiology/radiology.parquet
 ..............................................omop/public/*.parquet
