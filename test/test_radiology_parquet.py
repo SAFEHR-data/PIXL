@@ -29,6 +29,7 @@ def test_radiology_parquet(host_export_root_dir: Path):
         ../exports/test-extract-uclh-omop-cdm/latest/radiology/radiology.parquet
     Test contents of radiology report parquet file in the export location
     """
+    # _wait_for_rows_in_db()
     expected_radiology_parquet_file = (
         host_export_root_dir
         / "test-extract-uclh-omop-cdm"
@@ -39,7 +40,7 @@ def test_radiology_parquet(host_export_root_dir: Path):
 
     exported_data = pd.read_parquet(expected_radiology_parquet_file)
 
-    logger.info(exported_data.head())
+    logger.warning(exported_data.head())
 
     parquet_header_names = ["image_identifier", "procedure_occurrence_id", "image_report"]
     assert (exported_data.columns == parquet_header_names).all()

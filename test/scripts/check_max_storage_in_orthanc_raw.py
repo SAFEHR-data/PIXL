@@ -64,7 +64,7 @@ with tempfile.TemporaryDirectory() as temp_dir:
             data=open(dcm, "rb")
         )
         if upload_response.status_code != requests.codes.ok:
-            # orthanc will eventually refuse more instances becuase the test
+            # orthanc will eventually refuse more instances because the test
             # exam we're using exceeds the max storage
             if upload_response.json()["OrthancError"] == "The file storage is full":
                 # This is what we're looking for when storage limit reached

@@ -80,7 +80,7 @@ def upload_dicom_image(zip_content: BinaryIO, pseudo_anon_id: str) -> None:
         ftp.storbinary(command, zip_content)
     except ftplib.all_errors as ftp_error:
         ftp.quit()
-        error_msg = "Failed to run STOR command '%s': '%s'"
+        error_msg = f"Failed to run STOR command : {command}"
         raise ConnectionError(error_msg, command, ftp_error) from ftp_error
 
     # Close the FTP connection
