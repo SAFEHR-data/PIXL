@@ -21,18 +21,11 @@ if [ $# -ne 1 ]
     exit 1
 fi
 
-
-# Set env variables
 export PIXL_DB_HOST=localhost
-export PIXL_DB_PORT=7654
-export POSTGRES_PORT=${PIXL_DB_PORT}
-export PIXL_DB_USER=pixl_db_username
-export PIXL_DB_PASSWORD=pixl_db_password
-export PIXL_DB_NAME=pixl
 
 # create postgres
 (cd ../.. && \
-  docker compose -p migration-test up --wait -d --build postgres)
+  docker compose --env-file test/.env -p migration-test up  --wait -d --build postgres)
 
 # run current migrations
 alembic upgrade head
@@ -41,4 +34,4 @@ alembic upgrade head
 alembic revision --autogenerate -m "$1"
 
 # take containers down
-(cd ../.. && docker compose -f docker-compose.yml --env-file test/.env -p migration-test down --volumes )
+(cd ../.. && docker compose --env-file test/.env -p migration-test down --volumes )

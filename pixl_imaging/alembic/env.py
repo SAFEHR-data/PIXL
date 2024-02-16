@@ -12,12 +12,14 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """Alembic configuration"""
-import os
 from logging.config import fileConfig
 
+from decouple import Config, RepositoryEnv
 from sqlalchemy import URL, create_engine
 
 from alembic import context
+
+env_config = Config(RepositoryEnv("migrations.env"))
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -33,6 +35,7 @@ if config.config_file_name is not None:
 from core.db import models
 
 target_metadata = models.Base.metadata
+
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -51,11 +54,11 @@ def get_pixl_db_url() -> URL:
     """Create PIXL database URL for connection."""
     return URL.create(
         drivername="postgresql+psycopg2",
-        host=os.environ["PIXL_DB_HOST"],
-        port=int(os.environ["PIXL_DB_PORT"]),
-        username=os.environ["PIXL_DB_USER"],
-        password=os.environ["PIXL_DB_PASSWORD"],
-        database=os.environ["PIXL_DB_NAME"],
+        host=env_config("PIXL_DB_HOST"),
+        port=env_config("PIXL_DB_PORT", int),
+        username=env_config("PIXL_DB_USER"),
+        password=env_config("PIXL_DB_PASSWORD"),
+        database=env_config("PIXL_DB_NAME"),
     )
 
 
