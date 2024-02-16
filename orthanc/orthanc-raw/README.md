@@ -37,8 +37,7 @@ secrets. Orthanc interprets all `.json` files in the `/run/secrets` mount as con
 
 ### Step 1
 
-Save credentials `.env` for the PACS/VNA, the PACS/VNA Q/R target, postgreSQL and 'Orthanc anon'.
-
+Save credentials `.env` for the PACS/VNA Q/R target, postgreSQL and 'Orthanc anon'.
 ```
 # PIXL PostgreSQL instance
 PIXL_DB_HOST=
@@ -77,7 +76,7 @@ credentials and will be presented with the Orthanc web interface:
 
 ### Step 4
 
-From the interface, you can view data stored on the instance or perform Query/Retrieves against PACS for debugging purposes. Similarly you can target the instance over DIMSE on port `XXXX`.
+From the interface, you can view data stored on the instance or perform Query/Retrieves against VNA for debugging purposes. Similarly you can target the instance over DIMSE on port `XXXX`.
 
 ### Step 5
 

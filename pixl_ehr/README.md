@@ -33,7 +33,7 @@ pip install -e ../pixl_core/ .
 ## Test
 
 ```bash
-pip install -e ../pixl_core/[test] .[test]
+pip install -e ../pixl_core/ .[test]
 pytest -m "not processing"
 ```
 

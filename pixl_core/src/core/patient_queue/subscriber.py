@@ -120,7 +120,7 @@ class PixlBlockingConsumer(PixlBlockingInterface):
         counter = 0
         for args in generator:
             if all(arg is None for arg in args):
-                logger.info("Stopping")
+                logger.info("Stopping consumer")
                 break
             callback(*args)
             counter += 1

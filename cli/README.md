@@ -1,7 +1,7 @@
 # PIXL Driver + Command line interface
 
 The PIXL CLI driver provides functionality to populate a queue with messages containing information
-required to run electronic health queries against the EMAP star database and the PACS image system.
+required to run electronic health queries against the EMAP star database and the VNA image system.
 Once a set of queues are populated the consumers can be started, updated and the system extractions
 stopped cleanly.
 
@@ -30,7 +30,7 @@ pip install -e ../pixl_core/ .
 
 ## Usage
 
-> **Note** The `rabbitmq`, `ehr-api` and `pacs-api` services must be started prior to using the CLI
+> **Note** The `rabbitmq`, `ehr-api` and `imaging-api` services must be started prior to using the CLI
 > This is typically done by spinning up the necessary Docker containers through `docker compose`.
 > For convenience, we provide the [`bin/pixldc`](../bin/pixldc) script to spin up the relevant
 > services in production.
@@ -41,7 +41,7 @@ See the commands and subcommands with
 pixl --help
 ```
 
-Populate queue for PACS and EHR extraction
+Populate queue for Imaging and EHR extraction
 
 ```bash
 pixl populate </path/to/parquet_dir>
@@ -62,7 +62,7 @@ parquet_dir
 Start the imaging extraction
 
 ```bash
-pixl start --queues pacs
+pixl start --queues imaging
 ```
 
 and equivalently the EHR extraction
@@ -73,7 +73,7 @@ pixl start --queues ehr
 
 Use `pixl start --help` for information.
 
-Stop PACS and EHR database extraction
+Stop Imaging and EHR database extraction
 
 ```bash
 pixl stop
@@ -108,7 +108,7 @@ Commands:
 Install locally in editable mode with the development and testing dependencies by running
 
 ```bash
-pip install -e ../pixl_core/[test] .[test]
+pip install -e ../pixl_core/ .[test]
 ```
 
 ### Running tests

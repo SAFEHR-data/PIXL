@@ -1,5 +1,4 @@
-#!/usr/bin/env bash
-#  Copyright (c) University College London Hospitals NHS Foundation Trust
+#  Copyright (c) 2022 University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -12,16 +11,17 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-set -euxo pipefail
+import os
+from pathlib import Path
 
+# Avoid running samples for fixture tests directly with pytest
+collect_ignore = ["samples_for_fixture_tests"]
 
-THIS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-PACKAGE_DIR="${THIS_DIR%/*}"
-cd "$PACKAGE_DIR" || exit
+pytest_plugins = ["pytester"]
 
-pip install -e "../pixl_core/[test]" ".[test]"
+TEST_DIR = Path(__file__).parent
 
-cd tests/
-docker compose up -d --wait
-pytest
-docker compose down
+os.environ["FTP_HOST"] = "localhost"
+os.environ["FTP_USER_NAME"] = "pixl_user"
+os.environ["FTP_USER_PASSWORD"] = "longpassword"  # noqa: S105 Hardcoding password
+os.environ["FTP_PORT"] = "20021"

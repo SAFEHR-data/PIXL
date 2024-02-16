@@ -13,8 +13,11 @@
 #  limitations under the License.
 """Helper functions for de-identification."""
 import hashlib
-import logging
 import re
+
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 
 def get_encrypted_uid(uid: str, salt: bytes) -> str:
@@ -41,8 +44,8 @@ def get_encrypted_uid(uid: str, salt: bytes) -> str:
 
     prefix = ".".join(uid_elements[:4])
     suffix = ".".join(uid_elements[4:])
-    logging.debug(f"\t\tPrefix: {prefix}")
-    logging.debug(f"\t\tSuffix: {suffix}")
+    logger.debug(f"\t\tPrefix: {prefix}")
+    logger.debug(f"\t\tSuffix: {suffix}")
 
     # Get subcomponents of suffix as array.
     suffix_elements = uid_elements[4:]

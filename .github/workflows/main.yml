@@ -85,7 +85,7 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install pixl_core/[test]
+          pip install pytest-pixl/ pixl_core/[test]
 
       - name: Run tests
         working-directory: pixl_core/tests
@@ -110,6 +110,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e pixl_core
+          pip install -e pytest-pixl
           pip install -e pixl_dcmd[test]
 
       - name: Run tests
@@ -133,12 +134,12 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install pixl_core/[test] cli/[test]
+          pip install pixl_core/ cli/[test]
 
       - name: Run tests
         working-directory: cli/tests
         run: |
-          ./run-tests.sh
+          pytest
 
   ehr-api-tests:
     runs-on: ubuntu-22.04
@@ -177,14 +178,14 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install pixl_core/[test] pixl_ehr/[test]
+          pip install pixl_core/ pixl_ehr/[test]
 
       - name: Run tests
         working-directory: pixl_ehr/tests
         run: |
           pytest
 
-  pacs-api-tests:
+  imaging-api-tests:
     runs-on: ubuntu-22.04
     timeout-minutes: 10
     steps:
@@ -198,10 +199,10 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install pixl_core/[test] pixl_pacs/[test]
+          pip install pixl_core/ pixl_imaging/[test]
 
       - name: Run tests
-        working-directory: pixl_pacs/tests
+        working-directory: pixl_imaging/tests
         run: |
           ./run-tests.sh
 
@@ -245,6 +246,15 @@ jobs:
         with:
           python-version: 3.10.6
           cache: "pip"
+
+      - name: Build test services
+        working-directory: test
+        run: |
+          docker compose build
+
+      - name: Build services
+        run: |
+          docker compose build
 
       - name: Run tests
         working-directory: test

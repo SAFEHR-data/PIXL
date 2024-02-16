@@ -23,13 +23,15 @@ dependencies = [
     "sqlalchemy==2.0.24",
     "psycopg2-binary==2.9.9",
     "pandas==1.5.1",
+    "pyarrow==14.0.1",
 ]
 
 [project.optional-dependencies]
 test = [
     "pytest==7.4.2",
     "pytest-asyncio==0.21.1",
-    "httpx==0.24.*"
+    "httpx==0.24.*",
+    "pytest-pixl",
 ]
 dev = [
     "mypy",

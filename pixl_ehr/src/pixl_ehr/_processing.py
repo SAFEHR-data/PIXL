@@ -44,13 +44,13 @@ _this_dir = Path(Path(__file__).parent)
 
 
 async def process_message(message: Message) -> None:
-    logger.info("Processing: %s", message)
+    logger.debug("Processing: %s", message)
 
     raw_data = PatientEHRData.from_message(message)
     pixl_db = PIXLDatabase()
 
     if pixl_db.contains(raw_data):
-        logger.info("Message has already been processed")
+        logger.debug("Message has already been processed")
         return
 
     emap_star_db = EMAPStar()

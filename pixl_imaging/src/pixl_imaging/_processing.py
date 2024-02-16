@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING
 
 from decouple import config
 
-from pixl_pacs._orthanc import Orthanc, PIXLRawOrthanc
+from pixl_imaging._orthanc import Orthanc, PIXLRawOrthanc
 
 if TYPE_CHECKING:
     from core.patient_queue.message import Message
@@ -32,7 +32,7 @@ logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))
 
 
 async def process_message(message: Message) -> None:
-    logger.info("Processing: %s", message)
+    logger.debug("Processing: %s", message)
 
     study = ImagingStudy.from_message(message)
     orthanc_raw = PIXLRawOrthanc()
@@ -53,7 +53,7 @@ async def process_message(message: Message) -> None:
     while job_state != "Success":
         if (time() - start_time) > config("PIXL_DICOM_TRANSFER_TIMEOUT", cast=float):
             msg = (
-                f"Failed to transfer {message.decode()} within "
+                f"Failed to transfer {message} within "
                 f"{config('PIXL_DICOM_TRANSFER_TIMEOUT')} seconds"
             )
             raise TimeoutError(msg)
