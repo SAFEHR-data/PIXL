@@ -33,12 +33,5 @@ The database tables are updated using alembic, see the [alembic](alembic) dir fo
 The `SKIP_ALEMBIC` environmental variable is used to control whether migrations are applied to the database.
 
 - Tests that don't use the database use `SKIP_ALEMBIC=true`, but otherwise you probably want to run this.
-- If you wanted to test out new migrations from a test/dev deployment on the GAE you may want to set
-skip alembic migrations
-  - Editing the `.env` file to skip alembic 
-  - Re-recreate the `pixl-imaging` container keeping the existing postgres container up 
-  - Connect to the container and try applying the new migration(s) manually by running
-  ```shell
-  cd /app/alembic
-  alembic upgrade head
-  ```
+- If you wanted to test out new migrations from a test/dev deployment on the GAE with data in,
+  then you can redeploy just the `imaging-api` container while keeping the `postgres` container up. 
