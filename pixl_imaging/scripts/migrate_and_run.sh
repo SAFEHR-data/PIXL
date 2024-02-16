@@ -1,3 +1,5 @@
+#!/bin/bash
+
 #  Copyright (c) University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,7 +13,16 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-FROM osimis/orthanc:22.9.0-full-stable
-SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 
-# No registered callbacks
+# Run migrations (unless SKIP_ALEMBIC is true) then run the app.
+
+set -eux -o pipefail
+cd /app/alembic
+if [ "${SKIP_ALEMBIC:-false}" = false ]; then
+    echo "Running alembic migrations"
+    alembic upgrade head
+else
+    echo "Skipping alembic migrations"
+fi
+
+uvicorn pixl_imaging.main:app --host "0.0.0.0" --port 8000

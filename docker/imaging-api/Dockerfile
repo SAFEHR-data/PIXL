@@ -38,6 +38,4 @@ RUN --mount=type=cache,target=/root/.cache \
     pip install core/ . && \
     if [ "$TEST" = "true" ]; then pip install core/ .[test]; fi
 
-HEALTHCHECK CMD /usr/bin/curl -f http://0.0.0.0:8000/heart-beat || exit 1
-
-ENTRYPOINT ["uvicorn", "pixl_imaging.main:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["/app/scripts/migrate_and_run.sh"]
