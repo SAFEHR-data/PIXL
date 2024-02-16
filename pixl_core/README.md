@@ -6,13 +6,13 @@ upstream services.
 
 Specifically, it defines:
 
--   The [Token buffer](#token-buffer) for rate limiting requests to the upstream services
--   The [RabbitMQ queue](#patient-queue) implementation shared by the EHR and Imaging APIs
--   The PIXL `postgres` internal database for storing exported images and extracts from the messages
+- The [Token buffer](#token-buffer) for rate limiting requests to the upstream services
+- The [RabbitMQ queue](#patient-queue) implementation shared by the EHR and Imaging APIs
+- The PIXL `postgres` internal database for storing exported images and extracts from the messages
     processed by the CLI driver
--   The [`ParquetExport`](./src/core/exports.py) class for exporting OMOP and EMAP extracts to
+- The [`ParquetExport`](./src/core/exports.py) class for exporting OMOP and EMAP extracts to
     parquet files
--   Handling of [uploads over FTPS](./src/core/upload.py), used to transfer images and parquet files
+- Handling of [uploads over FTPS](./src/core/upload.py), used to transfer images and parquet files
     to the DSH (Data Safe Haven)
 
 ## Installation
@@ -93,10 +93,10 @@ for convenience `latest` is a symlink to the most recent extract.
 The `core.upload` module implements functionality to upload DICOM tags and parquet files to an
 **FTPS server**. This requires the following environment variables to be set:
 
--   `FTP_HOST`: URL to the FTPS server
--   `FTP_PORT`: port on which the FTPS server is listening
--   `FTP_USER_NAME`: name of user with access to the FTPS server
--   `FTP_USER_PASSWORD`: password for the authorised user
+- `FTP_HOST`: URL to the FTPS server
+- `FTP_PORT`: port on which the FTPS server is listening
+- `FTP_USER_NAME`: name of user with access to the FTPS server
+- `FTP_USER_PASSWORD`: password for the authorised user
 
 We provide mock values for these for the unit tests (see
 [`./tests/conftest.py`](./tests/conftest.py)). When running in production, these should be defined
