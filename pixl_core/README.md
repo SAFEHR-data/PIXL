@@ -116,8 +116,11 @@ Once the parquet files have been uploaded to the DSH, the directory structure wi
 <project-slug>
     ├── <extract_datetime_slug>
     │   └── parquet
-    │       ├── PROCEDURE_OCCURRENCE.parquet
-    │       └── radiology.parquet
+    │       ├── omop
+    │       │   └── public
+    │       │       └── PROCEDURE_OCCURRENCE.parquet
+    │       └── radiology
+    │           └── radiology.parquet
     ├── <pseudonymised_ID_DICOM_dataset_1>.zip
     └── <pseudonymised_ID_DICOM_dataset_2>.zip
 ```
