@@ -18,6 +18,8 @@ import logging
 import os
 from pathlib import Path
 
+logger = logging.getLogger(__name__)
+
 ALLOWED_PROJECT_NAMES = ["pixl_dev", "pixl_test", "pixl_prod"]
 parser = argparse.ArgumentParser(description="Wrapper around docker compose for pixl")
 parser.add_argument("--debug", action="store_true", help="print debugging for this wrapper")
@@ -55,8 +57,8 @@ if args.command == "up":
 # add on the user's extra args
 docker_args.extend(unknown_args)
 
-logging.debug("args = %s", args)
-logging.debug("extra args = %s", unknown_args)
-logging.debug("about to run with docker: %s", docker_args)
+logger.debug("args = %s", args)
+logger.debug("extra args = %s", unknown_args)
+logger.debug("about to run with docker: %s", docker_args)
 
 os.execvp("docker", docker_args)  # noqa: S606, S607 this is what the previous script was doing

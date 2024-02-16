@@ -63,6 +63,8 @@ class ImplicitFtpTls(ftplib.FTP_TLS):
 
 def upload_dicom_image(zip_content: BinaryIO, pseudo_anon_id: str) -> None:
     """Top level way to upload an image."""
+    logger.info("Starting FTPS upload of '%s'", pseudo_anon_id)
+
     # rename destination to {project-slug}/{study-pseduonymised-id}.zip
     remote_directory = get_project_slug_from_db(pseudo_anon_id)
 
@@ -83,13 +85,15 @@ def upload_dicom_image(zip_content: BinaryIO, pseudo_anon_id: str) -> None:
 
     # Close the FTP connection
     ftp.quit()
-    logger.debug("Finished uploading!")
 
     update_exported_at(pseudo_anon_id, datetime.now(tz=timezone.utc))
+    logger.info("Finished FTPS upload of '%s'", pseudo_anon_id)
 
 
 def upload_parquet_files(parquet_export: ParquetExport) -> None:
     """Upload parquet to FTPS under <project name>/<extract datetime>/parquet."""
+    logger.info("Starting FTPS upload of files for '%s'", parquet_export.project_slug)
+
     source_root_dir = parquet_export.current_extract_base
     # Create the remote directory if it doesn't exist
     ftp = _connect_to_ftp()
@@ -124,7 +128,7 @@ def upload_parquet_files(parquet_export: ParquetExport) -> None:
 
     # Close the FTP connection
     ftp.quit()
-    logger.debug("Finished uploading!")
+    logger.info("Finished FTPS upload of files for '%s'", parquet_export.project_slug)
 
 
 def _connect_to_ftp() -> FTP_TLS:
@@ -162,7 +166,7 @@ def _create_and_set_as_cwd_multi_path(ftp: FTP_TLS, remote_multi_dir: Path) -> N
 def _create_and_set_as_cwd(ftp: FTP_TLS, project_dir: str) -> None:
     try:
         ftp.cwd(project_dir)
-        logger.info("'%s' exists on remote ftp, so moving into it", project_dir)
+        logger.debug("'%s' exists on remote ftp, so moving into it", project_dir)
     except ftplib.error_perm:
         logger.info("creating '%s' on remote ftp and moving into it", project_dir)
         # Directory doesn't exist, so create it

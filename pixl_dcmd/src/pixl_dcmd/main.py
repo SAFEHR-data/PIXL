@@ -13,10 +13,10 @@
 #  limitations under the License.
 from __future__ import annotations
 
-import logging
 from io import BytesIO
 from os import PathLike
 from typing import Any, BinaryIO, Union
+from logging import getLogger
 
 import requests
 from decouple import config
@@ -27,6 +27,8 @@ from pixl_dcmd._datetime import combine_date_time, format_date_time
 from pixl_dcmd._deid_helpers import get_bounded_age, get_encrypted_uid
 
 DicomDataSetType = Union[Union[str, bytes, PathLike[Any]], BinaryIO]
+
+logger = getLogger(__name__)
 
 
 def write_dataset_to_bytes(dataset: Dataset) -> bytes:
@@ -52,24 +54,24 @@ def remove_overlays(dataset: Dataset) -> Dataset:
     https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.9.2.html
     for further details.
     """
-    logging.info("Starting search for overlays...")
+    logger.debug("Starting search for overlays...")
 
     for i in range(0x6000, 0x601F, 2):
         overlay = dataset.group_dataset(i)
         message = f"Checking for overlay in: [0x{i:04x}]"
-        logging.info(f"\t{message}")
+        logger.debug(f"\t{message}")
 
         if overlay:
             message = f"Found overlay in: [0x{i:04x}]"
-            logging.info(f"\t{message}")
+            logger.debug(f"\t{message}")
 
             message = f"Deleting overlay in: [0x{i:04x}]"
-            logging.info(f"\t{message}")
+            logger.debug(f"\t{message}")
             for item in overlay:
                 del dataset[item.tag]
         else:
             message = f"No overlay in: [0x{i:04x}]"
-            logging.info(f"\t{message}")
+            logger.debug(f"\t{message}")
 
     return dataset
 
@@ -77,7 +79,7 @@ def remove_overlays(dataset: Dataset) -> Dataset:
 def enforce_whitelist(dataset: dict, tags: dict) -> dict:
     """Delete any tags not in the tagging scheme."""
     # For every element:
-
+    logger.debug("Enforcing whitelist")
     for de in dataset:
         keep_el = False
         # For every entry in the YAML:
@@ -98,7 +100,7 @@ def enforce_whitelist(dataset: dict, tags: dict) -> dict:
             message = "Whitelist - deleting: {name} (0x{grp:04x},0x{el:04x})".format(
                 name=de.keyword, grp=del_grp, el=del_el
             )
-            logging.info(f"\t{message}")
+            logger.debug(f"\t{message}")
 
     return dataset
 
@@ -109,6 +111,7 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
     The original study time is kept before any operations are applied.
     For example: orig_study_time = `dataset[0x0008, 0x0030].value`
     """
+    logger.debug("Applying tag scheme")
 
     mrn = dataset[0x0010, 0x0020].value  # Patient ID
     accession_number = dataset[0x0008, 0x0050].value  # Accession Number
@@ -127,7 +130,7 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
         msg = "Failed to set the time offset in hours from the $TIME_OFFSET env var"
         raise RuntimeError(msg) from exc
 
-    logging.info(b"TIME_OFFSET = %i}" % TIME_OFFSET)
+    logger.debug(b"TIME_OFFSET = %i}" % TIME_OFFSET)
 
     # Use hasher API to get hash of salt.
     hasher_host_url = "http://" + HASHER_API_AZ_NAME + ":" + HASHER_API_PORT
@@ -136,7 +139,7 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
 
     response = requests.get(request_url)
 
-    logging.info(b"SALT = %a}" % response.content)
+    logger.debug(b"SALT = %a}" % response.content)
     salt = response.content
 
     # For every entry in the YAML:
@@ -150,38 +153,38 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
         if op == "keep":
             if [grp, el] in dataset:
                 message = f"Keeping: {name} (0x{grp:04x},0x{el:04x})"
-                logging.info(f"\t{message}")
+                logger.debug(f"\t{message}")
             else:
                 message = f"Missing: {name} (0x{grp:04x},0x{el:04x})\
                  - Operation ({op})"
-                logging.warning(f"\t{message}")
+                logger.warning(f"\t{message}")
 
         # If this tag should be deleted.
         elif op == "delete":
             if [grp, el] in dataset:
                 del dataset[grp, el]
                 message = f"Deleting: {name} (0x{grp:04x},0x{el:04x})"
-                logging.info(f"\t{message}")
+                logger.debug(f"\t{message}")
             else:
                 message = f"Missing: {name} (0x{grp:04x},0x{el:04x})\
                  - Operation ({op})"
-                logging.debug(f"\t{message}")
+                logger.debug(f"\t{message}")
 
         # Handle UIDs that should be encrypted.
         elif op == "hash-uid":
             if [grp, el] in dataset:
                 message = f"Changing: {name} (0x{grp:04x},0x{el:04x})"
-                logging.info(f"\t{message}")
+                logger.debug(f"\t{message}")
 
-                logging.info(f"\t\tCurrent UID:\t{dataset[grp,el].value}")
+                logger.debug(f"\t\tCurrent UID:\t{dataset[grp,el].value}")
                 new_uid = get_encrypted_uid(dataset[grp, el].value, salt)
                 dataset[grp, el].value = new_uid
-                logging.info(f"\t\tEncrypted UID:\t{new_uid}")
+                logger.debug(f"\t\tEncrypted UID:\t{new_uid}")
 
             else:
                 message = f"Missing: {name} (0x{grp:04x},0x{el:04x})\
                  - Operation ({op})"
-                logging.debug(f"\t{message}")
+                logger.debug(f"\t{message}")
 
         # Shift time relative to the original study time.
         elif op == "time-shift":
@@ -194,7 +197,7 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
                     new_date = study_date_time.shift(hours=TIME_OFFSET).format(
                         "YYYYMMDD"
                     )
-                    logging.info(
+                    logger.debug(
                         f"\tChanging {name}: {dataset[grp,el].value} -> {new_date}"
                     )
                     dataset[grp, el].value = new_date
@@ -206,7 +209,7 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
                     new_date = series_date_time.shift(hours=TIME_OFFSET).format(
                         "YYYYMMDD"
                     )
-                    logging.info(
+                    logger.debug(
                         f"\tChanging {name}: {dataset[grp,el].value} -> {new_date}"
                     )
                     dataset[grp, el].value = new_date
@@ -216,7 +219,7 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
                         dataset[0x0008, 0x0022].value, dataset[0x0008, 0x0032].value
                     )
                     new_date = acq_date_time.shift(hours=TIME_OFFSET).format("YYYYMMDD")
-                    logging.info(
+                    logger.debug(
                         f"\tChanging {name}: {dataset[grp,el].value} -> {new_date}"
                     )
                     dataset[grp, el].value = new_date
@@ -228,7 +231,7 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
                     new_date = image_date_time.shift(hours=TIME_OFFSET).format(
                         "YYYYMMDD"
                     )
-                    logging.info(
+                    logger.debug(
                         f"\tChanging {name}: {dataset[grp,el].value} -> {new_date}"
                     )
                     dataset[grp, el].value = new_date
@@ -241,7 +244,7 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
                     new_time = study_date_time.shift(hours=TIME_OFFSET).format(
                         "HHmmss.SSSSSS"
                     )
-                    logging.info(
+                    logger.debug(
                         f"\tChanging {name}: {dataset[grp,el].value} -> {new_time}"
                     )
                     dataset[grp, el].value = new_time
@@ -253,7 +256,7 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
                     new_time = series_date_time.shift(hours=TIME_OFFSET).format(
                         "HHmmss.SSSSSS"
                     )
-                    logging.info(
+                    logger.debug(
                         f"\tChanging {name}: {dataset[grp,el].value} -> {new_time}"
                     )
                     dataset[grp, el].value = new_time
@@ -265,7 +268,7 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
                     new_time = acq_date_time.shift(hours=TIME_OFFSET).format(
                         "HHmmss.SSSSSS"
                     )
-                    logging.info(
+                    logger.debug(
                         f"\tChanging {name}: {dataset[grp,el].value} -> {new_time}"
                     )
                     dataset[grp, el].value = new_time
@@ -277,20 +280,20 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
                     new_time = acq_date_time.shift(hours=TIME_OFFSET).format(
                         "HHmmss.SSSSSS"
                     )
-                    logging.info(
+                    logger.debug(
                         f"\tChanging {name}: {dataset[grp,el].value} -> {new_time}"
                     )
                     dataset[grp, el].value = new_time
 
                 # Acq date+time
                 if grp == 0x0008 and el == 0x002A:
-                    logging.info(f"\tChanging {name}: {dataset[grp,el].value}")
+                    logger.debug(f"\tChanging {name}: {dataset[grp,el].value}")
 
                     acq_date_time = format_date_time(dataset[grp, el].value)
                     new_date_time = acq_date_time.shift(hours=TIME_OFFSET).format(
                         "YYYYMMDDHHmmss.SSSSSS"
                     )
-                    logging.info(
+                    logger.debug(
                         f"\tChanging {name}: {dataset[grp,el].value} -> {new_date_time}"
                     )
                     dataset[grp, el].value = new_date_time
@@ -298,17 +301,17 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
         # Modify specific tags (make blank).
         elif op == "fixed":
             if grp == 0x0020 and el == 0x0010:
-                logging.info(f"\tRedacting Study ID: {dataset[grp,el].value}")
+                logger.debug(f"\tRedacting Study ID: {dataset[grp,el].value}")
                 dataset[grp, el].value = ""
             if grp == 0x0010 and el == 0x0020:
-                logging.info(f"\tRedacting Patient ID: {dataset[grp,el].value}")
+                logger.debug(f"\tRedacting Patient ID: {dataset[grp,el].value}")
                 dataset[grp, el].value = ""
 
         # Enforce a numerical range.
         elif op == "num-range" and [grp, el] in dataset:
             if grp == 0x0010 and el == 0x1010:
                 new_age = get_bounded_age(dataset[grp, el].value)
-                logging.info(
+                logger.debug(
                     f"\tChanging Patient Age: {dataset[grp,el].value} -> {new_age}"
                 )
                 dataset[grp, el].value = new_age
@@ -334,11 +337,11 @@ def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
                 dataset[grp, el].value = hashed_value
 
                 message = f"Changing: {name} (0x{grp:04x},0x{el:04x})"
-                logging.info(f"\t{message}")
+                logger.debug(f"\t{message}")
             else:
                 message = f"Missing: {name} (0x{grp:04x},0x{el:04x})\
                  - Operation ({op})"
-                logging.warning(f"\t{message}")
+                logger.warning(f"\t{message}")
 
     return dataset
 
@@ -360,5 +363,5 @@ def _hash_values(grp: bytes, el: bytes, pat_value: str, hasher_host_url: str) ->
     response = requests.get(request_url)
     # All three hashing endpoints return application/text so should be fine to
     # use response.text here
-    logging.info("RESPONSE = %s}" % response.text)
+    logger.debug("RESPONSE = %s}" % response.text)
     return response.text
