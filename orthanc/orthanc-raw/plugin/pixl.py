@@ -26,6 +26,7 @@ from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import yaml
 from pydicom import Dataset, dcmread, dcmwrite
 
 import orthanc
@@ -56,9 +57,12 @@ def ReceivedInstanceCallback(receivedDicom: bytes, _: str) -> Any:
     """Optionally record headers from the received DICOM instance."""
     if not ShouldRecordHeaders():
         return None
+    with Path("/etc/orthanc/recorded-headers.yaml").open() as f:
+        recording_config = yaml.safe_load(f)
     dataset = dcmread(BytesIO(receivedDicom), force=True)
     with Path("/tmp/headers.csv").open("a") as f:  # noqa: S108
-        f.write(f"{dataset.SOPInstanceUID},{dataset.PatientID}\n")
+        values = [str(dataset.get(tag, "NA")) for tag in recording_config["tags"]]
+        f.write(",".join(values) + "\n")
     return orthanc.ReceivedInstanceAction.KEEP_AS_IS, None
 
 
