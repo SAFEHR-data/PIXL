@@ -1,3 +1,7 @@
 tags:
-  - PatientID
-  - SOPInstanceUID
+  - Manufacturer
+  - ManufacturerModelName
+  - SoftwareVersions
+  - BurnedInAnnotation
+  - SeriesDescription
+  - SequenceName

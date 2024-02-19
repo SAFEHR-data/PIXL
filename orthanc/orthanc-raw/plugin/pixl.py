@@ -60,7 +60,7 @@ def ReceivedInstanceCallback(receivedDicom: bytes, _: str) -> Any:
     with Path("/etc/orthanc/recorded-headers.yaml").open() as f:
         recording_config = yaml.safe_load(f)
     dataset = dcmread(BytesIO(receivedDicom), force=True)
-    with Path("/tmp/headers.csv").open("a") as f:  # noqa: S108
+    with _header_log_path().open("a") as f:
         values = [str(dataset.get(tag, "NA")) for tag in recording_config["tags"]]
         f.write(",".join(values) + "\n")
     return orthanc.ReceivedInstanceAction.KEEP_AS_IS, None
@@ -74,12 +74,16 @@ def write_dataset_to_bytes(dataset: Dataset) -> bytes:
         return buffer.read()
 
 
+def _header_log_path() -> Path:
+    return Path(os.environ.get("ORTHANC_RAW_HEADER_LOG_PATH", "/dev/null"))
+
+
 def ShouldRecordHeaders() -> bool:
     """
-    Checks whether ORTHANC_RECORD_HEADERS environment variable is
+    Checks whether ORTHANC_RAW_RECORD_HEADERS environment variable is
     set to true or false
     """
-    return os.environ.get("ORTHANC_RECORD_HEADERS", "false").lower() == "true"
+    return os.environ.get("ORTHANC_RAW_RECORD_HEADERS", "false").lower() == "true"
 
 
 def ShouldAutoRoute():
