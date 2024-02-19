@@ -269,6 +269,7 @@ services:
       orthanc-raw:
         condition: service_healthy
     healthcheck:
+      test: curl -f http://0.0.0.0:8000/heart-beat
       interval: 10s
       timeout: 30s
       retries: 5
@@ -280,6 +281,12 @@ services:
       ORTHANC_RAW_PASSWORD: ${ORTHANC_RAW_PASSWORD}
       ORTHANC_RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
       VNAQR_MODALITY: ${VNAQR_MODALITY}
+      SKIP_ALEMBIC: ${SKIP_ALEMBIC}
+      PIXL_DB_HOST: ${PIXL_DB_HOST}
+      PIXL_DB_PORT: ${PIXL_DB_PORT}
+      PIXL_DB_NAME: ${PIXL_DB_NAME}
+      PIXL_DB_USER: ${PIXL_DB_USER}
+      PIXL_DB_PASSWORD: ${PIXL_DB_PASSWORD}
       PIXL_DICOM_TRANSFER_TIMEOUT: ${PIXL_DICOM_TRANSFER_TIMEOUT}
       PIXL_QUERY_TIMEOUT: ${PIXL_QUERY_TIMEOUT}
     ports:
