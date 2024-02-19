@@ -11,10 +11,11 @@ classifiers = [
     "Programming Language :: Python :: 3"
 ]
 dependencies = [
+    "alembic==1.13.1",
     "core",
     "uvicorn==0.23.2",
     "pydicom==2.4.4",
-    "python-decouple==3.6"
+    "python-decouple==3.6",
 ]
 
 [project.optional-dependencies]
@@ -40,3 +41,7 @@ extend = "../ruff.toml"
 
 [tool.ruff.extend-per-file-ignores]
 "./tests/**" = ["D1"]
+"./alembic/**" = [
+    "INP001",  # is part of an implicit namespace package. Add an `__init__.py`
+    "D103",  # Missing docstring in public function
+]

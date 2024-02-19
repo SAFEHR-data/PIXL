@@ -1,3 +1,4 @@
+#!/bin/bash
 #  Copyright (c) University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,25 +12,26 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+set -euxo pipefail
+cd "$(dirname "${BASH_SOURCE[0]}")" && pwd
 
-"""Create PIXL tables"""
-import os
+if [ $# -ne 1 ]
+  then
+    echo "Add a name for the migration in quotes"
+    exit 1
+fi
 
-from core.db.models import Base
-from sqlalchemy import URL, create_engine
-from sqlalchemy.sql.ddl import CreateSchema
+export PIXL_DB_HOST=localhost
 
-url = URL.create(
-    drivername="postgresql+psycopg2",
-    username=os.environ["POSTGRES_USER"],
-    password=os.environ["POSTGRES_PASSWORD"],
-    database=os.environ["POSTGRES_DB"],
-)
+# create postgres
+(cd ../.. && \
+  docker compose --env-file test/.env -p migration-test up  --wait -d --build postgres)
 
-engine = create_engine(url, echo=True, echo_pool="debug")
+# run current migrations
+alembic upgrade head
 
-with engine.connect() as connection:
-    connection.execute(CreateSchema("pipeline", if_not_exists=True))
-    connection.commit()
+# generate new migrations
+alembic revision --autogenerate -m "$1"
 
-Base.metadata.create_all(engine)
+# take containers down
+(cd ../.. && docker compose --env-file test/.env -p migration-test down --volumes )
