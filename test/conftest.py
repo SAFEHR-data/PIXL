@@ -14,7 +14,6 @@
 """System/E2E test setup"""
 import logging
 import subprocess
-import time
 from pathlib import Path
 
 import pytest
@@ -65,9 +64,7 @@ def _setup_pixl_cli(ftps_server) -> None:
     run_subprocess(["pixl", "populate", str(RESOURCES_OMOP_DIR.absolute())], TEST_DIR)
     run_subprocess(["pixl", "start"], TEST_DIR)
     # poll here for two minutes to check for imaging to be processed, printing progress
-    print("JES: _setup_pixl_cli: waiting for orthanc anon")
     wait_for_stable_orthanc_anon(121, 5)
-    print("JES: _setup_pixl_cli: orthanc anon has become stable, continuing")
     yield
     run_subprocess(
         [
@@ -89,10 +86,6 @@ def _extract_radiology_reports(_setup_pixl_cli) -> None:
     TODO: should then poll for two minutes to ensure that the database is populated,
      as per ./scripts/check_entry_in_pixl_anon.sh
     """
-    print("JES: _extract_radiology_reports, waiting...")
-    time.sleep(1)
-    print("JES: _extract_radiology_reports, extracting...")
     run_subprocess(
         ["pixl", "extract-radiology-reports", str(RESOURCES_OMOP_DIR.absolute())], TEST_DIR
     )
-    print("JES: _extract_radiology_reports, extracted")

@@ -82,7 +82,6 @@ def test_ehr_anon_entries():
     ./scripts/check_entry_in_pixl_anon.sh
     """
     # Because we have to wait for a stable study, poll for 2 minutes
-    # wait_for_stable_orthanc_anon(121, 5)
     _wait_for_rows_in_ehr_anon()
 
 

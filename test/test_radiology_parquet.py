@@ -29,7 +29,6 @@ def test_radiology_parquet(host_export_root_dir: Path):
         ../exports/test-extract-uclh-omop-cdm/latest/radiology/radiology.parquet
     Test contents of radiology report parquet file in the export location
     """
-    # _wait_for_rows_in_db()
     expected_radiology_parquet_file = (
         host_export_root_dir
         / "test-extract-uclh-omop-cdm"

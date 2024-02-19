@@ -44,8 +44,6 @@ elif [ "$subcmd" = "teardown" ]; then
   teardown
 else
   setup
-  ifconfig -a
-  docker network ls
   pytest --verbose
   echo FINISHED PYTEST COMMAND
   teardown

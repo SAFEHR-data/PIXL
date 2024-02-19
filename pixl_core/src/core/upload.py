@@ -142,6 +142,7 @@ def _connect_to_ftp() -> FTP_TLS:
     try:
         ftp = ImplicitFtpTls()
         ftp.connect(ftp_host, int(ftp_port))
+        ftp.set_debuglevel(2)
         ftp.login(ftp_user, ftp_password)
         ftp.prot_p()
     except ftplib.all_errors as ftp_error:

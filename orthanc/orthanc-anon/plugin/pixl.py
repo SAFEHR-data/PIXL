@@ -74,6 +74,7 @@ def AzureAccessToken():
 
 TIMER = None
 
+
 def AzureDICOMTokenRefresh():
     """
     Refresh Azure DICOM token
