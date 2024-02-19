@@ -1,0 +1,10 @@
+project:
+    name: "myproject"
+    modalities: ["DX", "CR"]
+
+tag_operations:
+    base_profile: "orthanc/orthanc-anon/plugin/tag-operations.yaml" # WARNING: might change!
+
+destination:
+    dicom: "ftps"
+    parquet: "ftps"
