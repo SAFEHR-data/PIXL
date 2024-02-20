@@ -13,10 +13,8 @@
 #  limitations under the License.
 
 """Configuration of CLI from config file."""
-from pathlib import Path
 from typing import Optional
 
-import yaml
 from decouple import config
 
 API_SETTINGS = {"ehr_api": {}, "imaging_api": {}}  # type: dict
@@ -26,6 +24,18 @@ API_SETTINGS["ehr_api"]["default_rate"] = int(config("PIXL_EHR_API_RATE", defaul
 API_SETTINGS["imaging_api"]["host"] = config("PIXL_IMAGING_API_HOST", default="localhost")
 API_SETTINGS["imaging_api"]["port"] = int(config("PIXL_IMAGING_API_PORT", default=7007))
 API_SETTINGS["imaging_api"]["default_rate"] = int(config("PIXL_IMAGING_API_RATE", default=1))
+
+SERVICE_SETTINGS = {"rabbitmq": {}, "postgres": {}}  # type: dict
+SERVICE_SETTINGS["rabbitmq"]["host"] = config("RABBITMQ_HOST", default="localhost")
+SERVICE_SETTINGS["rabbitmq"]["port"] = int(config("RABBITMQ_PORT", default=7008))
+SERVICE_SETTINGS["rabbitmq"]["username"] = config("RABBITMQ_USERNAME", default="rabbitmq_username")
+SERVICE_SETTINGS["rabbitmq"]["password"] = config("RABBITMQ_PASSWORD", default="rabbitmq_password")
+
+SERVICE_SETTINGS["postgres"]["host"] = config("POSTGRES_HOST", default="localhost")
+SERVICE_SETTINGS["postgres"]["port"] = int(config("POSTGRES_PORT", default=7001))
+SERVICE_SETTINGS["postgres"]["username"] = config("PIXL_DB_USER", default="pixl_db_username")
+SERVICE_SETTINGS["postgres"]["password"] = config("PIXL_DB_PASSWORD", default="pixl_db_password")
+SERVICE_SETTINGS["postgres"]["database"] = config("PIXL_DB_NAME", default="pixl")
 
 
 class APIConfig:
@@ -57,17 +67,3 @@ def api_config_for_queue(queue_name: str) -> APIConfig:
         raise ValueError(msg)
 
     return APIConfig(API_SETTINGS[api_name])
-
-
-def _load_config(filename: str = "pixl_config.yml") -> dict:
-    """CLI configuration generated from a .yaml file"""
-    if not Path(filename).exists():
-        msg = f"Failed to find {filename}. It must be present in the current working directory"
-        raise FileNotFoundError(msg)
-
-    with Path(filename).open() as config_file:
-        config_dict = yaml.safe_load(config_file)
-    return dict(config_dict)
-
-
-cli_config = _load_config()

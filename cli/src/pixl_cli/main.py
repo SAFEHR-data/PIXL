@@ -25,7 +25,7 @@ import requests
 from core.patient_queue.producer import PixlProducer
 from core.patient_queue.subscriber import PixlBlockingConsumer
 
-from pixl_cli._config import api_config_for_queue, cli_config
+from pixl_cli._config import SERVICE_SETTINGS, api_config_for_queue
 from pixl_cli._database import filter_exported_or_add_to_db
 from pixl_cli._io import (
     copy_parquet_return_logfile_fields,
@@ -98,7 +98,7 @@ def populate(parquet_dir: Path, *, restart: bool, queues: str) -> None:
             sorted_messages = filter_exported_or_add_to_db(
                 sorted_messages, messages[0].project_name
             )
-        with PixlProducer(queue_name=queue, **cli_config["rabbitmq"]) as producer:
+        with PixlProducer(queue_name=queue, **SERVICE_SETTINGS["rabbitmq"]) as producer:
             producer.publish(sorted_messages)
 
 
@@ -296,7 +296,7 @@ def consume_all_messages_and_save_csv_file(queue_name: str, timeout_in_seconds: 
         f"{timeout_in_seconds} seconds"
     )
 
-    with PixlBlockingConsumer(queue_name=queue_name, **cli_config["rabbitmq"]) as consumer:
+    with PixlBlockingConsumer(queue_name=queue_name, **SERVICE_SETTINGS["rabbitmq"]) as consumer:
         state_filepath = state_filepath_for_queue(queue_name)
         if consumer.message_count > 0:
             logger.info("Found messages in the queue. Clearing the state file")
