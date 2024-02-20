@@ -80,7 +80,7 @@ class PixlFTPServer:
         :param home_root: The directory where the user's home directory will be created.
         The home dir is the directory where the user will be placed after login.
         """
-        self.host = "127.0.0.1"
+        self.host = "0.0.0.0"  # test to see if this is the problem on GHA
         self.port = int(config("FTP_PORT", default=20021))
 
         self.user_name = config("FTP_USER_NAME", default="pixl_user")
