@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
@@ -61,6 +61,52 @@ def copy_parquet_return_logfile_fields(parquet_path: Path) -> tuple[str, datetim
     extract = ParquetExport(project_name, omop_es_timestamp, HOST_EXPORT_ROOT_DIR)
     project_name_slug = extract.copy_to_exports(parquet_path)
     return project_name_slug, omop_es_timestamp
+
+
+def messages_from_csv(
+    filepath: Path, project_name: str, omop_es_timestamp: datetime
+) -> list[Message]:
+    """
+    Reads patient information from CSV and transforms that into messages.
+    :param filepath: Path for CSV file to be read
+    """
+    expected_col_names = [
+        "VAL_ID",
+        "ACCESSION_NUMBER",
+        "STUDY_INSTANCE_UID",
+        "STUDY_DATE",
+    ]
+
+    # First line is column names
+    messages_df = pd.read_csv(filepath, header=0, dtype=str)
+
+    if list(messages_df.columns)[:4] != expected_col_names:
+        msg = f"csv file expected to have at least {expected_col_names} as " f"column names"
+        raise ValueError(msg)
+
+    mrn_col_name, acc_num_col_name, _, dt_col_name = expected_col_names
+
+    messages = []
+
+    for _, row in messages_df.iterrows():
+        message = Message(
+            mrn=row[mrn_col_name],
+            accession_number=row[acc_num_col_name],
+            study_date=datetime.strptime(row[dt_col_name], "%d/%m/%Y %H:%M")
+            .replace(tzinfo=timezone.utc)
+            .date(),
+            procedure_occurrence_id=4,  # row[4], #procedure_occurrence_id
+            project_name=project_name,
+            omop_es_timestamp=omop_es_timestamp,
+        )
+        messages.append(message)
+
+    if len(messages) == 0:
+        msg = f"Failed to find any messages in {filepath}"
+        raise ValueError(msg)
+
+    logger.info(f"Created {len(messages)} messages from {filepath}")
+    return messages
 
 
 def messages_from_parquet(
