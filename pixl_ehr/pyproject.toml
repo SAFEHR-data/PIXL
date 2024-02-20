@@ -1,15 +1,11 @@
 [project]
 name = "pixl_ehr"
 version = "0.0.2"
-authors = [
-  { name="PIXL authors" },
-]
+authors = [{ name = "PIXL authors" }]
 description = "PIXL electronic health record extractor"
 readme = "README.md"
 requires-python = ">=3.10"
-classifiers = [
-    "Programming Language :: Python :: 3"
-]
+classifiers = ["Programming Language :: Python :: 3"]
 dependencies = [
     "core",
     "uvicorn==0.23.2",
@@ -18,7 +14,6 @@ dependencies = [
     "azure-identity==1.12.0",
     "azure-storage-blob==12.14.1",
     "pyarrow==14.0.1",
-    "PyYAML==6.0.1",
 ]
 
 [project.optional-dependencies]
