@@ -26,6 +26,15 @@ if TYPE_CHECKING:
     from typing_extensions import Any
 
 
+def load_config(filename: Path) -> Any:
+    """
+    Load configuration from a yaml file.
+    :param filename: Path to the yaml file
+    """
+    yaml_data = yaml.safe_load(filename.read_text())
+    return PixlConfig.parse_obj(yaml_data)
+
+
 class _Project(BaseModel):
     name: str
     modalities: list[str]
@@ -77,12 +86,3 @@ class PixlConfig(BaseModel):
     project: _Project
     tag_operations: _TagOperations
     destination: _Destination
-
-
-def load_config(filename: Path) -> Any:
-    """
-    Load configuration from a yaml file.
-    :param filename: Path to the yaml file
-    """
-    yaml_data = yaml.safe_load(filename.read_text())
-    return PixlConfig.parse_obj(yaml_data)
