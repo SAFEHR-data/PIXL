@@ -12,12 +12,16 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """A ligthweight FTPS server supporting implicit SSL for use in PIXL tests."""
+import logging
 from pathlib import Path
 
 from decouple import config
 from pyftpdlib.authorizers import DummyAuthorizer
 from pyftpdlib.handlers import TLS_FTPHandler
 from pyftpdlib.servers import ThreadedFTPServer
+
+logger = logging.getLogger(__name__)
+logger.setLevel("INFO")
 
 # User permission
 # from https://pyftpdlib.readthedocs.io/en/latest/api.html#pyftpdlib.authorizers.DummyAuthorizer.add_user
@@ -125,5 +129,6 @@ class PixlFTPServer:
         method.
         """
         address = (self.host, self.port)
+        print(f"Starting FTP server on {self.host}:{self.port}")
         self.server = ThreadedFTPServer(address, self.handler)
         return self.server
