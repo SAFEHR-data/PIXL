@@ -17,6 +17,8 @@ import subprocess
 from pathlib import Path
 
 import pytest
+
+from pytest_pixl.plugin import FtpHostAddress
 from utils import wait_for_stable_orthanc_anon
 
 pytest_plugins = "pytest_pixl"
@@ -77,6 +79,12 @@ def _setup_pixl_cli(ftps_server) -> None:
         ],
         TEST_DIR,
     )
+
+
+@pytest.fixture(scope="session")
+def ftp_host_address():
+    """Run FTP on docker host - docker containers do need to access it"""
+    return FtpHostAddress.DOCKERHOST
 
 
 @pytest.fixture(scope="session")

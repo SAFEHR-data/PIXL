@@ -26,6 +26,8 @@ from core.exports import ParquetExport
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
+from pytest_pixl.plugin import FtpHostAddress
+
 if TYPE_CHECKING:
     from collections.abc import Generator
 
@@ -77,6 +79,12 @@ def ftps_home_dir(ftps_server) -> Generator[Path, None, None]:
     pytest.tmp_path_factory, so no need to clean up.
     """
     return Path(ftps_server.home_dir)
+
+
+@pytest.fixture(scope="session")
+def ftp_host_address():
+    """Run FTP on localhost - no docker containers need to access it"""
+    return FtpHostAddress.LOCALHOST
 
 
 @pytest.fixture()

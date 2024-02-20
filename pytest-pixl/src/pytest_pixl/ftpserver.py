@@ -73,24 +73,14 @@ class PixlFTPServer:
     :type home_dir: str
     """
 
-    def __init__(self, home_root: Path) -> None:
+    def __init__(self, home_root: Path, host_address: str) -> None:
         """
         Initialise the FTPS server. Sets the hostname, port, username and password
         from the corresponding environment variables.
         :param home_root: The directory where the user's home directory will be created.
         The home dir is the directory where the user will be placed after login.
         """
-        if sys.platform == "linux":
-            # Docker on Linux is such that if we bind to localhost only,
-            # traffic from container to host can't get through. Binding to all interfaces
-            # (0.0.0.0) will also work, but is not ideal as you're opening up the test FTP
-            # to any passersby
-            host = "172.17.0.1"
-        else:
-            # On mac, localhost seems to work. Haven't tested Windows, you might have to
-            # rummage through the interfaces or docker networks to find the right IP address.
-            host = "127.0.0.1"
-        self.host = host
+        self.host = host_address
         self.port = int(config("FTP_PORT", default=20021))
 
         self.user_name = config("FTP_USER_NAME", default="pixl_user")
