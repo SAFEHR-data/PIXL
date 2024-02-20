@@ -3,9 +3,13 @@ from __future__ import annotations
 
 from enum import Enum
 from pathlib import Path
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
+import yaml
 from pydantic import BaseModel, validator
+
+if TYPE_CHECKING:
+    from typing_extensions import Any
 
 
 class _Project(BaseModel):
@@ -62,3 +66,12 @@ class PixlConfig(BaseModel):
     project: _Project
     tag_operations: _TagOperations
     destination: _Destination
+
+
+def load_config(filename: Path) -> Any:
+    """
+    Load configuration from a yaml file.
+    :param filename: Path to the yaml file
+    """
+    yaml_data = yaml.safe_load(filename.read_text())
+    return PixlConfig.parse_obj(yaml_data)
