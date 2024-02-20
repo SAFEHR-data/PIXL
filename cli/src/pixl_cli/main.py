@@ -28,10 +28,10 @@ from core.patient_queue.subscriber import PixlBlockingConsumer
 from pixl_cli._config import cli_config
 from pixl_cli._database import filter_exported_or_add_to_db
 from pixl_cli._io import (
-    config_from_log_file,
     copy_parquet_return_logfile_fields,
     messages_from_parquet,
     messages_from_state_file,
+    project_info,
 )
 from pixl_cli._logging import logger, set_log_level
 from pixl_cli._utils import clear_file, remove_file_if_it_exists
@@ -113,7 +113,7 @@ def extract_radiology_reports(parquet_dir: Path) -> None:
     PARQUET_DIR: Directory containing the extract_summary.json
     log file defining which extract to export radiology reports for.
     """
-    project_name, omop_es_datetime = config_from_log_file(parquet_dir)
+    project_name, omop_es_datetime = project_info(parquet_dir)
 
     # Call the EHR API
     api_config = api_config_for_queue("ehr")
