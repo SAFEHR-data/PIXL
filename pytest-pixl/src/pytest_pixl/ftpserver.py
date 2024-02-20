@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """A ligthweight FTPS server supporting implicit SSL for use in PIXL tests."""
-
+import sys
 from pathlib import Path
 
 from decouple import config
@@ -80,7 +80,17 @@ class PixlFTPServer:
         :param home_root: The directory where the user's home directory will be created.
         The home dir is the directory where the user will be placed after login.
         """
-        self.host = "0.0.0.0"  # test to see if this is the problem on GHA
+        if sys.platform == "linux":
+            # Docker on Linux is such that if we bind to localhost only,
+            # traffic from container to host can't get through. Binding to all interfaces
+            # (0.0.0.0) will also work, but is not ideal as you're opening up the test FTP
+            # to any passersby
+            host = "172.17.0.1"
+        else:
+            # On mac, localhost seems to work. Haven't tested Windows, you might have to
+            # rummage through the interfaces or docker networks to find the right IP address.
+            host = "127.0.0.1"
+        self.host = host
         self.port = int(config("FTP_PORT", default=20021))
 
         self.user_name = config("FTP_USER_NAME", default="pixl_user")
