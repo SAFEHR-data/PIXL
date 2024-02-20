@@ -253,7 +253,7 @@ PIXL data extracts include the below assumptions
 
 Files that are present at each step of the pipeline.
 
-A more detailed description of the relevant file types is available in [`docs/data/`](./docs/data/).
+A more detailed description of the relevant file types is available in [`docs/file_types/parquet_files.md`](./docs/file_types/parquet_files.md).
 
 ### Resources in source repo (for test only)
 
