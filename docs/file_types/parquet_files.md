@@ -37,7 +37,7 @@ implemented and documented in [`pixl_core`](../../pixl_core/README.md#uploading-
 Various _parquet_ files are provided throughout the repo to enable unit and system testing:
 
 - `cli/tests/resources/omop/` contains public and private parquet files together with an
-  `extract_summary.json` file to mimic the input received from OMOP-ES for the unit tests
+  `extract_summary.json` file to mimic the input received from OMOP-ES for the unit tests. (This directory is identical to that below and should be deleted at some point).
 - `test/resources/omop/` contains public and private parquet files together with an
   `extract_summary.json` file to mimic the input received from OMOP-ES for the system tests
 
