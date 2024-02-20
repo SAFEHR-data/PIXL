@@ -47,23 +47,23 @@ def messages_from_state_file(filepath: Path) -> list[Message]:
     return [deserialise(line) for line in filepath.open().readlines() if string_is_non_empty(line)]
 
 
-def project_info(parquet_path: Path) -> tuple[str, datetime]:
+def project_info(resources_path: Path) -> tuple[str, datetime]:
     """
     Get the project name and extract timestamp from the extract summary log file.
-    :param parquet_path: path to the input resources
+    :param resources_path: path to the input resources
     """
-    log_file = parquet_path / "extract_summary.json"
+    log_file = resources_path / "extract_summary.json"
     logs = json.load(log_file.open())
     project_name = logs["settings"]["cdm_source_name"]
     omop_es_timestamp = datetime.fromisoformat(logs["datetime"])
     return project_name, omop_es_timestamp
 
 
-def copy_parquet_return_logfile_fields(parquet_path: Path) -> tuple[str, datetime]:
+def copy_parquet_return_logfile_fields(resources_path: Path) -> tuple[str, datetime]:
     """Copy public parquet file to extracts directory, and return fields from logfile"""
-    project_name, omop_es_timestamp = project_info(parquet_path)
+    project_name, omop_es_timestamp = project_info(resources_path)
     extract = ParquetExport(project_name, omop_es_timestamp, HOST_EXPORT_ROOT_DIR)
-    project_name_slug = extract.copy_to_exports(parquet_path)
+    project_name_slug = extract.copy_to_exports(resources_path)
     return project_name_slug, omop_es_timestamp
 
 
