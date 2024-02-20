@@ -47,16 +47,16 @@ class APIConfig:
 
 def api_config_for_queue(queue_name: str) -> APIConfig:
     """Configuration for an API associated with a queue"""
-    config_key = f"{queue_name}_api"
+    api_name = f"{queue_name}_api"
 
-    if config_key not in API_SETTINGS:
+    if api_name not in API_SETTINGS:
         msg = (
-            f"Cannot update the rate for {queue_name}. {config_key} was"
+            f"Cannot update the rate for {queue_name}. {api_name} was"
             f" not specified in the configuration"
         )
         raise ValueError(msg)
 
-    return APIConfig(API_SETTINGS[config_key])
+    return APIConfig(API_SETTINGS[api_name])
 
 
 def _load_config(filename: str = "pixl_config.yml") -> dict:
