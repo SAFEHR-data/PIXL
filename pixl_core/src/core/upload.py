@@ -18,6 +18,7 @@ from __future__ import annotations
 import ftplib
 import logging
 import ssl
+import time
 from datetime import datetime, timezone
 from ftplib import FTP_TLS
 from pathlib import Path
@@ -68,6 +69,7 @@ def upload_dicom_image(zip_content: BinaryIO, pseudo_anon_id: str) -> None:
     # rename destination to {project-slug}/{study-pseduonymised-id}.zip
     remote_directory = get_project_slug_from_db(pseudo_anon_id)
 
+    time.sleep(5)  # debugging only
     # Create the remote directory if it doesn't exist
     ftp = _connect_to_ftp()
     _create_and_set_as_cwd(ftp, remote_directory)
@@ -93,6 +95,8 @@ def upload_dicom_image(zip_content: BinaryIO, pseudo_anon_id: str) -> None:
 def upload_parquet_files(parquet_export: ParquetExport) -> None:
     """Upload parquet to FTPS under <project name>/<extract datetime>/parquet."""
     logger.info("Starting FTPS upload of files for '%s'", parquet_export.project_slug)
+
+    time.sleep(5)  # for debugging only
 
     source_root_dir = parquet_export.current_extract_base
     # Create the remote directory if it doesn't exist
