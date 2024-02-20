@@ -1,23 +1,23 @@
 from pathlib import Path
 
 import pytest
-import yaml
-from core.config import PixlConfig
+from core.config import PixlConfig, load_config
 from pydantic import ValidationError
 
 EXAMPLE_CONFIG = Path(__file__).parents[2] / "config-template" / "example-config.yaml"
 
 
-def test_config():
+def test_config_from_file():
     """Test whether config file is correctly parsed and validated."""
-    config_data = yaml.safe_load(EXAMPLE_CONFIG.read_text())
-    config = PixlConfig.parse_obj(config_data)
+    config = load_config(EXAMPLE_CONFIG)
 
     assert config.project.name == "myproject"
     assert config.project.modalities == ["DX", "CR"]
     assert config.tag_operations.base_profile == Path(
         "orthanc/orthanc-anon/plugin/tag-operations.yaml"
     )
+    assert config.tag_operations.base_profile.exists()
+    assert config.tag_operations.extension_profile is None
     assert config.destination.dicom == "ftps"
     assert config.destination.parquet == "ftps"
 
