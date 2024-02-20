@@ -19,9 +19,9 @@ from core.patient_queue.message import Message
 from sqlalchemy import URL, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from pixl_cli._config import cli_config
+from pixl_cli._config import SERVICE_SETTINGS
 
-connection_config = cli_config["postgres"]
+connection_config = SERVICE_SETTINGS["postgres"]
 
 url = URL.create(
     drivername="postgresql+psycopg2",
