@@ -22,42 +22,55 @@ def test_config():
     assert config.destination.parquet == "ftps"
 
 
-def test_config_fails():
+BASE_YAML_DATA = {
+    "project": {"name": "myproject", "modalities": ["DX", "CR"]},
+    "tag_operations": {
+        "base_profile": "orthanc/orthanc-anon/plugin/tag-operations.yaml",
+        "extension_profile": None,
+    },
+    "destination": {"dicom": "ftps", "parquet": "ftps"},
+}
+
+
+def test_valid_extension_profile():
+    """Test that the config validation passes for valid extension profile."""
+    config_data = BASE_YAML_DATA
+    config_data["tag_operations"][
+        "extension_profile"
+    ] = "orthanc/orthanc-anon/plugin/tag-operations.yaml"
+
+    config = PixlConfig.parse_obj(config_data)
+    assert config.tag_operations.extension_profile.exists()
+
+
+def test_parquet_dicom_fails():
     """
-    Test that the config validation fails for non-valid values:
-        - 'dicomweb' not allowed for parquet destionation
-        - Invalid destinations
-        - Non-existing base_profile path
-        - Non-exisiting extension_profile path
+    Test that the config validation fails for non-valid values: 'dicomweb' not allowed for
+    parquet destionation
     """
+    config_data = BASE_YAML_DATA
+    config_data["destination"]["parquet"] = "dicomweb"
     with pytest.raises(ValidationError):
-        PixlConfig(
-            project={"name": "myproject", "modalities": ["DX", "CR"]},
-            tag_operations={
-                "base_profile": "orthanc/orthanc-anon/plugin/tag-operations.yaml",
-            },
-            destination={"dicom": "ftps", "parquet": "dicomweb"},
-        )
+        PixlConfig.parse_obj(config_data)
+
+
+def test_invalid_destinations():
+    """Test that the config validation fails for invalid destinations."""
+    config_data = BASE_YAML_DATA
+    config_data["destination"]["dicom"] = "nope"
+    config_data["destination"]["parquet"] = "nope"
     with pytest.raises(ValidationError):
-        PixlConfig(
-            project={"name": "myproject", "modalities": ["DX", "CR"]},
-            tag_operations={
-                "base_profile": "orthanc/orthanc-anon/plugin/tag-operations.yaml",
-            },
-            destination={"dicom": "nope", "parquet": "nope"},
-        )
+        PixlConfig.parse_obj(config_data)
+
+
+def test_invalid_paths():
+    """Test that the config validation fails for invalid tag-operation paths."""
+    config_data_wrong_base = BASE_YAML_DATA
+    config_data_wrong_base["tag_operations"]["base_profile"] = "/i/dont/exist.yaml"
     with pytest.raises(ValidationError):
-        PixlConfig(
-            project={"name": "myproject", "modalities": ["DX", "CR"]},
-            tag_operations={"base_profile": "/i/dont/exist.yaml"},
-            destination={"dicom": "ftps", "parquet": "ftps"},
-        )
+        PixlConfig.parse_obj(config_data_wrong_base)
+
+    config_data_wrong_extension = BASE_YAML_DATA
+    config_data_wrong_extension["tag_operations"]["extension_profile"] = "/i/dont/exist.yaml"
     with pytest.raises(ValidationError):
-        PixlConfig(
-            project={"name": "myproject", "modalities": ["DX", "CR"]},
-            tag_operations={
-                "base_profile": "orthanc/orthanc-anon/plugin/tag-operations.yaml",
-                "extension_profile": "/i/dont/exist.yaml",
-            },
-            destination={"dicom": "ftps", "parquet": "ftps"},
-        )
+        PixlConfig.parse_obj(config_data_wrong_extension)
