@@ -43,7 +43,7 @@ class FtpHostAddress(Enum):
 
     def to_host_ip_address(self):
         """Convert the test's requirement into a platform-dependent host IP address"""
-        if self.value == FtpHostAddress.DOCKERHOST and sys.platform == "linux":
+        if self == FtpHostAddress.DOCKERHOST and sys.platform == "linux":
             return "172.17.0.1"
         return "127.0.0.1"
 
