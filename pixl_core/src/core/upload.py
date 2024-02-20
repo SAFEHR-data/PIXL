@@ -93,7 +93,22 @@ def upload_dicom_image(zip_content: BinaryIO, pseudo_anon_id: str) -> None:
 
 
 def upload_parquet_files(parquet_export: ParquetExport) -> None:
-    """Upload parquet to FTPS under <project name>/<extract datetime>/parquet."""
+    """
+    Upload parquet to FTPS under <project name>/<extract datetime>/parquet.
+    :param parquet_export: instance of the ParquetExport class
+    The final directory structure will look like this:
+    <project-slug>
+    ├── <extract_datetime_slug>
+    │   └── parquet
+    │       ├── omop
+    │       │   └── public
+    │       │       └── PROCEDURE_OCCURRENCE.parquet
+    │       └── radiology
+    │           └── radiology.parquet
+    ├── <pseudonymised_ID_DICOM_dataset_1>.zip
+    └── <pseudonymised_ID_DICOM_dataset_2>.zip
+    ...
+    """
     logger.info("Starting FTPS upload of files for '%s'", parquet_export.project_slug)
 
     time.sleep(5)  # for debugging only
