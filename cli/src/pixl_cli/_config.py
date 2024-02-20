@@ -17,6 +17,15 @@ from pathlib import Path
 from typing import Optional
 
 import yaml
+from decouple import config
+
+API_SETTINGS = {"ehr_api": {}, "imaging_api": {}}  # type: dict
+API_SETTINGS["ehr_api"]["host"] = config("PIXL_EHR_API_HOST", default="localhost")
+API_SETTINGS["ehr_api"]["port"] = int(config("PIXL_EHR_API_PORT", default=7006))
+API_SETTINGS["ehr_api"]["default_rate"] = int(config("PIXL_EHR_API_RATE", default=1))
+API_SETTINGS["imaging_api"]["host"] = config("PIXL_IMAGING_API_HOST", default="localhost")
+API_SETTINGS["imaging_api"]["port"] = int(config("PIXL_IMAGING_API_PORT", default=7007))
+API_SETTINGS["imaging_api"]["default_rate"] = int(config("PIXL_IMAGING_API_RATE", default=1))
 
 
 class APIConfig:
@@ -40,14 +49,14 @@ def api_config_for_queue(queue_name: str) -> APIConfig:
     """Configuration for an API associated with a queue"""
     config_key = f"{queue_name}_api"
 
-    if config_key not in cli_config:
+    if config_key not in API_SETTINGS:
         msg = (
             f"Cannot update the rate for {queue_name}. {config_key} was"
             f" not specified in the configuration"
         )
         raise ValueError(msg)
 
-    return APIConfig(cli_config[config_key])
+    return APIConfig(API_SETTINGS[config_key])
 
 
 def _load_config(filename: str = "pixl_config.yml") -> dict:
