@@ -25,7 +25,7 @@ import requests
 from core.patient_queue.producer import PixlProducer
 from core.patient_queue.subscriber import PixlBlockingConsumer
 
-from pixl_cli._config import cli_config
+from pixl_cli._config import api_config_for_queue, cli_config
 from pixl_cli._database import filter_exported_or_add_to_db
 from pixl_cli._io import (
     copy_parquet_return_logfile_fields,
@@ -322,51 +322,3 @@ def inform_user_that_queue_will_be_populated_from(path: Path) -> None:  # noqa: 
         f"state files should be ignored, or delete this file to ignore. Press "
         f"Ctrl-C to exit and any key to continue"
     )
-
-
-class APIConfig:
-    """
-    Class to represent the configuration for an API
-
-    Attributes
-    ----------
-    host : str
-        Hostname for the API
-    port : int
-        Port for the API
-    default_rate : int
-        Default rate for the API
-
-    Methods
-    -------
-    base_url()
-        Return the base url for the API
-
-    """
-
-    def __init__(self, kwargs: dict) -> None:
-        """Initialise the APIConfig class"""
-        self.host: Optional[str] = None
-        self.port: Optional[int] = None
-        self.default_rate: Optional[int] = None
-
-        self.__dict__.update(kwargs)
-
-    @property
-    def base_url(self) -> str:
-        """Return the base url for the API"""
-        return f"http://{self.host}:{self.port}"
-
-
-def api_config_for_queue(queue_name: str) -> APIConfig:
-    """Configuration for an API associated with a queue"""
-    config_key = f"{queue_name}_api"
-
-    if config_key not in cli_config:
-        msg = (
-            f"Cannot update the rate for {queue_name}. {config_key} was"
-            f" not specified in the configuration"
-        )
-        raise ValueError(msg)
-
-    return APIConfig(cli_config[config_key])

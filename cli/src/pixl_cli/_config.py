@@ -14,8 +14,40 @@
 
 """Configuration of CLI from config file."""
 from pathlib import Path
+from typing import Optional
 
 import yaml
+
+
+class APIConfig:
+    """API Configuration"""
+
+    def __init__(self, kwargs: dict) -> None:
+        """Initialise the APIConfig class"""
+        self.host: Optional[str] = None
+        self.port: Optional[int] = None
+        self.default_rate: Optional[int] = None
+
+        self.__dict__.update(kwargs)
+
+    @property
+    def base_url(self) -> str:
+        """Return the base url for the API"""
+        return f"http://{self.host}:{self.port}"
+
+
+def api_config_for_queue(queue_name: str) -> APIConfig:
+    """Configuration for an API associated with a queue"""
+    config_key = f"{queue_name}_api"
+
+    if config_key not in cli_config:
+        msg = (
+            f"Cannot update the rate for {queue_name}. {config_key} was"
+            f" not specified in the configuration"
+        )
+        raise ValueError(msg)
+
+    return APIConfig(cli_config[config_key])
 
 
 def _load_config(filename: str = "pixl_config.yml") -> dict:
