@@ -23,10 +23,9 @@ from typing import TYPE_CHECKING, BinaryIO
 import pytest
 from core.db.models import Base, Extract, Image
 from core.exports import ParquetExport
+from pytest_pixl.plugin import FtpHostAddress
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
-
-from pytest_pixl.plugin import FtpHostAddress
 
 if TYPE_CHECKING:
     from collections.abc import Generator

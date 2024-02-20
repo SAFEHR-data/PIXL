@@ -17,7 +17,6 @@ import subprocess
 from pathlib import Path
 
 import pytest
-
 from pytest_pixl.plugin import FtpHostAddress
 from utils import wait_for_stable_orthanc_anon
 

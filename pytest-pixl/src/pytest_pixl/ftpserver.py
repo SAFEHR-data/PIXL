@@ -12,7 +12,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """A ligthweight FTPS server supporting implicit SSL for use in PIXL tests."""
-import sys
 from pathlib import Path
 
 from decouple import config
