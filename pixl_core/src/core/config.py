@@ -21,7 +21,6 @@ class _TagOperations(BaseModel):
     base_profile: Path
     extension_profile: Optional[Path]
 
-    @classmethod
     @validator("base_profile")
     def valid_base_path(cls, v: Path) -> Path:
         if not v.exists():
@@ -29,7 +28,6 @@ class _TagOperations(BaseModel):
             raise ValueError(msg)
         return v
 
-    @classmethod
     @validator("extension_profile")
     def valid_extenstion_path(cls, v: Path) -> Path:
         if isinstance(v, Path) & (not v.exists()):
@@ -51,7 +49,6 @@ class _Destination(BaseModel):
     dicom: _DestinationEnum
     parquet: _DestinationEnum
 
-    @classmethod
     @validator("parquet")
     def valid_parquet_destination(cls, v: str) -> str:
         if v == "dicomweb":
