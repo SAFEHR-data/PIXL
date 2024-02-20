@@ -14,7 +14,6 @@
 """PIXL command line interface functionality"""
 from __future__ import annotations
 
-import datetime
 import json
 import os
 from datetime import datetime, timezone
@@ -66,9 +65,9 @@ def cli(*, debug: bool) -> None:
     help="Restart from a saved state. Otherwise will use the given input file(s)",
 )
 @click.argument(
-    "parquet-dir", required=True, type=click.Path(path_type=Path, exists=True, file_okay=False)
+    "parquet-path", required=True, type=click.Path(path_type=Path, exists=True, file_okay=True)
 )
-def populate(parquet_dir: Path, *, restart: bool, queues: str) -> None:
+def populate(parquet_path: Path, *, restart: bool, queues: str) -> None:
     """
     Populate a (set of) queue(s) from a parquet file directory
     PARQUET_DIR: Directory containing the public and private parquet input files and an
@@ -83,14 +82,14 @@ def populate(parquet_dir: Path, *, restart: bool, queues: str) -> None:
             │   └── PROCEDURE_OCCURRENCE.parquet
             └── extract_summary.json
     """
-    logger.info(f"Populating queue(s) {queues} from {parquet_dir}")
-    if parquet_dir.suffix == ".csv":
+    logger.info(f"Populating queue(s) {queues} from {parquet_path}")
+    if parquet_path.is_file() and parquet_path.suffix == ".csv":
         project_name = "dummy"
-        omop_es_datetime = datetime.datetime.now(tz=datetime.timezone.utc)
-        messages = messages_from_csv(parquet_dir, project_name, omop_es_datetime)
+        omop_es_datetime = datetime.now(tz=timezone.utc)
+        messages = messages_from_csv(parquet_path, project_name, omop_es_datetime)
     else:
-        project_name, omop_es_datetime = copy_parquet_return_logfile_fields(parquet_dir)
-        messages = messages_from_parquet(parquet_dir, project_name, omop_es_datetime)
+        project_name, omop_es_datetime = copy_parquet_return_logfile_fields(parquet_path)
+        messages = messages_from_parquet(parquet_path, project_name, omop_es_datetime)
 
     for queue in queues.split(","):
         state_filepath = state_filepath_for_queue(queue)
