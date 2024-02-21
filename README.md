@@ -146,10 +146,10 @@ This is one of dev|test|staging|prod and referred to as `<environment>` in the d
 
 ### 2. Initialise environment configuration
 
-Create a local `.env` and `pixl_config.yml` file in the _PIXL_ directory:
+Create a local `.env` file in the _PIXL_ directory:
 
 ```bash
-cp .env.sample .env && cp pixl_config.yml.sample  pixl_config.yml
+cp .env.sample .env
 ```
 
 Add the missing configuration values to the new files:

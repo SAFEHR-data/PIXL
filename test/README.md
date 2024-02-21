@@ -20,10 +20,6 @@ You can run the system test with:
 
 ## File organisation
 
-### PIXL configuration
-
-A test `pixl_config.yml` file is provided to run the PIXL pipeline.
-
 ### Docker compose
 
 `./docker-compose.yml` contains the docker compose configuration for the system test.
