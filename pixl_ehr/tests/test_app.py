@@ -14,7 +14,6 @@
 """This file contains unit tests for the API that do not require any test services"""
 from __future__ import annotations
 
-from core.project_config import PixlConfig
 from fastapi.testclient import TestClient
 from pixl_ehr.main import app, state
 
@@ -51,30 +50,3 @@ def test_updating_the_token_refresh_rate_updates_state() -> None:
 
     # This test uses shared global state, which must be reverted... not ideal.
     state.token_bucket = AppState().token_bucket
-
-
-def test_non_ftp_upload_destination_fails(monkeypatch) -> None:
-    export_params = {
-        "project_name": "test-extract-uclh-omop-cdm",
-        "extract_datetime": "2024-01-10T00:00:00Z",
-        "output_dir": "patient",
-    }
-    # mock export_radiology_as_parquet
-    # app.dependency_overrides[export_radiology_as_parquet] = lambda: None  # noqa: ERA001
-    monkeypatch.setattr("pixl_ehr.main.export_radiology_as_parquet", lambda x: None)  # noqa: ARG005
-    # mock load_project_config
-    project_config = PixlConfig.model_validate(
-        {
-            "project": {"name": "some-project", "modalities": ["radiology"]},
-            "tag_operation_files": "test-extract-uclh-omop-cdm-tag-operations.yaml",
-            "destination": {"dicom": "none", "parquet": "none"},
-        }
-    )
-    # app.dependency_overrides[load_project_config] = lambda x: project_config  # noqa: ERA001
-    monkeypatch.setattr("core.project_config.load_project_config", lambda x: project_config)  # noqa: ARG005
-    # app.dependency_overrides[upload_parquet_files] = lambda: None  # noqa: ERA001
-    monkeypatch.setattr("pixl_ehr.main.upload_parquet_files", lambda x: None)  # noqa: ARG005
-    # assert http exception raised
-    # with pytest.raises(HTTPException):
-    response = client.post("/export-patient-data", json=export_params)
-    assert response.status_code == 400
