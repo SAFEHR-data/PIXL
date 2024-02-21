@@ -13,6 +13,7 @@
 #  limitations under the License.
 """Replacement for the 'interesting' bits of the system/E2E test"""
 import logging
+import os
 from pathlib import Path
 from time import sleep
 
@@ -48,6 +49,15 @@ class TestFtpsUpload:
     def test_ftps_parquet_upload(self):
         """The copied parquet files"""
         assert TestFtpsUpload.expected_public_parquet_dir.exists()
+
+        print(
+            f"JES - test is about to fail, what's in {TestFtpsUpload.expected_public_parquet_dir}?"
+        )
+        for f in os.walk(TestFtpsUpload.expected_public_parquet_dir):
+            print(f)
+        print("done printing")
+
+        # XXX FAILS WHY
         assert (
             TestFtpsUpload.expected_public_parquet_dir
             / "omop"

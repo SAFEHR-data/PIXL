@@ -13,6 +13,7 @@
 #  limitations under the License.
 """Check validity of radiology export"""
 import logging
+import os
 from pathlib import Path
 
 import pandas as pd
@@ -37,6 +38,12 @@ def test_radiology_parquet(host_export_root_dir: Path):
         / "radiology.parquet"
     )
 
+    print(f"JES - test is about to fail, what's in {host_export_root_dir}?")
+    for f in os.walk(host_export_root_dir):
+        print(f)
+    print("done printing")
+
+    # XXX FAILS why is file not found on thingy??
     exported_data = pd.read_parquet(expected_radiology_parquet_file)
 
     logger.warning(exported_data.head())
