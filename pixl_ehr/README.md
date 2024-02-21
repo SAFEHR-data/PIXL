@@ -27,13 +27,13 @@ On Windows, follow [these instructions](https://www.postgresqltutorial.com/postg
 Then install the Python dependencies with
 
 ```bash
-pip install -e ../pixl_core/ .
+pip install -e ../pixl_core/ -e .
 ```
 
 ## Test
 
 ```bash
-pip install -e ../pixl_core/ .[test]
+pip install -e ../pixl_core/ -e .[test]
 pytest -m "not processing"
 ```
 
