@@ -17,7 +17,6 @@ from __future__ import annotations
 import asyncio
 import importlib.metadata
 import logging
-import os
 from datetime import (
     datetime,  # noqa: TCH003, always import datetime otherwise pydantic throws error
 )
@@ -91,17 +90,7 @@ def export_patient_data(export_params: ExportRadiologyData) -> None:
     we are relying on the user waiting until processing has finished before running this.
     """
     logger.info("Exporting Patient Data for '%s'", export_params.project_name)
-    print(f"JES export_patient_data: {export_params.output_dir} should be empty:")
-    for f in os.walk(export_params.output_dir, followlinks=True):
-        print(f)
-    print("done printing")
     export_radiology_as_parquet(export_params)
-    print(
-        f"JES export_patient_data, done export_radiology_as_parquet: {export_params.output_dir} should NOT be empty:"
-    )
-    for f in os.walk(export_params.output_dir, followlinks=True):
-        print(f)
-    print("done printing")
 
     # Upload Parquet files to the appropriate endpoint
     upload_parquet_files(

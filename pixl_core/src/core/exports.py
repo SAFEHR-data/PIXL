@@ -15,9 +15,7 @@
 from __future__ import annotations
 
 import logging
-import os
 import shutil
-import traceback
 from typing import TYPE_CHECKING
 
 import slugify
@@ -82,41 +80,24 @@ class ParquetExport:
         """
         public_input = input_omop_dir / "public"
 
-        # should be called by pixl populate
-
-        print(f"JES - copy_to_exports - pre export, {self.export_dir} should be empty")
-        for f in os.walk(self.export_dir, followlinks=True):
-            print(f)
-        print("done printing")
+        logging.info("Copying public parquet files from %s to %s", public_input, self.public_output)
 
         # Make directory for exports if they don't exist
         ParquetExport._mkdir(self.public_output)
-        print(f"JES: Copying public parquet files from {public_input} to {self.public_output}")
 
         # Copy extract files, overwriting if it exists
         shutil.copytree(public_input, self.public_output, dirs_exist_ok=True)
 
         # Symlink this extract to the latest directory
         self.latest_symlink.unlink(missing_ok=True)
-        print(f"JES copy_to_exports: about to create symlink {self.latest_symlink}")
-        traceback.print_exc()
         self.latest_symlink.symlink_to(self.current_extract_base, target_is_directory=True)
-        print(f"JES - copy_to_exports - POST export, {self.export_dir} should have stuff")
-        for f in os.walk(self.export_dir, followlinks=True):
-            print(f)
-        print("done printing")
         return self.project_slug
 
     def export_radiology(self, export_df: pd.DataFrame) -> pathlib.Path:
         """Export radiology reports to parquet file"""
         self._mkdir(self.radiology_output)
         parquet_file = self.radiology_output / "radiology.parquet"
-        print(f"JES export_radiology: {self.radiology_output} should be empty:")
-        for f in os.walk(self.radiology_output, followlinks=True):
-            print(f)
-        print("done printing")
-        print(f"JES export_radiology: about to create radiology file {parquet_file}")
-        traceback.print_exc()
+        logging.info("Exporting radiology to %s", self.radiology_output)
         export_df.to_parquet(parquet_file)
         # We are not responsible for making the "latest" symlink, see `copy_to_exports`.
         # This avoids the confusion caused by EHR API (which calls export_radiology) having a

@@ -36,8 +36,8 @@ def run_subprocess(
     Run a command but capture the stderr and stdout better than the CalledProcessError
     string representation does
     """
+    logging.info("Running command %s", cmd)
     try:
-        logging.info("Running command %s", cmd)
         cp = subprocess.run(
             cmd,
             check=True,
@@ -46,15 +46,16 @@ def run_subprocess(
             timeout=timeout,
             capture_output=True,
         )
-        logging.info("Success, returncode = %s", cp.returncode)
-        logging.info("stdout =\n%s", cp.stdout)
-        logging.info("stderr =\n%s", cp.stderr)
-        return cp
     except subprocess.CalledProcessError as exception:
         logging.error("*** exception occurred running: '%s'", cmd)  # noqa: TRY400 will raise anyway
         logging.error("*** stdout:\n%s", exception.stdout.decode())  # noqa: TRY400
         logging.error("*** stderr:\n%s", exception.stderr.decode())  # noqa: TRY400
         raise
+    else:
+        logging.info("Success, returncode = %s", cp.returncode)
+        logging.info("stdout =\n%s", cp.stdout.decode())
+        logging.info("stderr =\n%s", cp.stderr.decode())
+        return cp
 
 
 TEST_DIR = Path(__file__).parent

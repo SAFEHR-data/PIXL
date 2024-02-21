@@ -218,6 +218,8 @@ jobs:
           cache: "pip"
 
       - name: Install Python dependencies
+        # The -e option is required here due to the way the
+        # code determines the export directory
         run: |
           pip install -e pixl_core/
           pip install -e cli/[test]
