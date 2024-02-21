@@ -14,8 +14,6 @@
 FROM osimis/orthanc:22.9.0-full-stable
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 
-ARG PROJECT_CONFIGS_DIR
-
 # Install requirements before copying modules
 COPY ./pixl_core/pyproject.toml ./pixl_core/pyproject.toml
 COPY ./pixl_dcmd/pyproject.toml ./pixl_dcmd/pyproject.toml
@@ -24,7 +22,6 @@ RUN --mount=type=cache,target=/root/.cache \
     && pip3 install pixl_dcmd/
 
 COPY ./orthanc/orthanc-anon/plugin/pixl.py /etc/orthanc/pixl.py
-COPY ./project_configs/ ${PROJECT_CONFIGS_DIR}
 
 COPY ./pixl_core/ ./pixl_core
 RUN --mount=type=cache,target=/root/.cache \
