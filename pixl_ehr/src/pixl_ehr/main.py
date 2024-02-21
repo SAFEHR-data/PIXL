@@ -27,10 +27,11 @@ from azure.identity import EnvironmentCredential
 from azure.storage.blob import BlobServiceClient
 from core.exports import ParquetExport
 from core.patient_queue import PixlConsumer
+from core.project_config import load_project_config
 from core.rest_api.router import router, state
 from core.upload import upload_parquet_files
 from decouple import config
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
@@ -92,12 +93,19 @@ def export_patient_data(export_params: ExportRadiologyData) -> None:
     logger.info("Exporting Patient Data for '%s'", export_params.project_name)
     export_radiology_as_parquet(export_params)
 
+    project_config = load_project_config(export_params.project_name)
     # Upload Parquet files to the appropriate endpoint
-    upload_parquet_files(
-        ParquetExport(
-            export_params.project_name, export_params.extract_datetime, export_params.output_dir
+
+    if project_config.destination.parquet == "ftps":
+        upload_parquet_files(
+            ParquetExport(
+                export_params.project_name, export_params.extract_datetime, export_params.output_dir
+            )
         )
-    )
+    else:
+        msg = f"Destination {project_config.destination.parquet} for parquet files unavailable"
+        logger.error(msg)
+        raise HTTPException(status_code=400, detail=msg)
 
 
 def export_radiology_as_parquet(export_params: ExportRadiologyData) -> None:
