@@ -82,6 +82,7 @@ def populate(parquet_dir: Path, *, restart: bool, queues: str) -> None:
     logger.info(f"Populating queue(s) {queues} from {parquet_dir}")
     project_name, omop_es_datetime = copy_parquet_return_logfile_fields(parquet_dir)
     messages = messages_from_parquet(parquet_dir, project_name, omop_es_datetime)
+    print(f"JES - populate - do we even see this?")
 
     for queue in queues.split(","):
         state_filepath = state_filepath_for_queue(queue)

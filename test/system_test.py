@@ -51,13 +51,13 @@ class TestFtpsUpload:
         assert TestFtpsUpload.expected_public_parquet_dir.exists()
 
         print(
-            f"JES - test is about to fail, what's in {TestFtpsUpload.expected_public_parquet_dir}?"
+            f"JES - test_ftps_parquet_upload - test is about to fail, what's in {TestFtpsUpload.expected_public_parquet_dir}?"
         )
         for f in os.walk(TestFtpsUpload.expected_public_parquet_dir, followlinks=True):
             print(f)
         print("done printing")
 
-        # XXX FAILS WHY
+        # XXX FAILS WHY - the actual file is missing the "omop/public"!!!
         assert (
             TestFtpsUpload.expected_public_parquet_dir
             / "omop"

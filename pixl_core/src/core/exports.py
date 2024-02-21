@@ -82,9 +82,17 @@ class ParquetExport:
         """
         public_input = input_omop_dir / "public"
 
+        # should be called by pixl populate
+
+        print(
+            f"JES - copy_to_exports - pre export, {self.export_dir} should be empty")
+        for f in os.walk(self.export_dir, followlinks=True):
+            print(f)
+        print("done printing")
+
         # Make directory for exports if they don't exist
         ParquetExport._mkdir(self.public_output)
-        logger.info("Copying public parquet files from %s to %s", public_input, self.public_output)
+        print(f"JES: Copying public parquet files from {public_input} to {self.public_output}")
 
         # Copy extract files, overwriting if it exists
         shutil.copytree(public_input, self.public_output, dirs_exist_ok=True)
@@ -94,6 +102,11 @@ class ParquetExport:
         print(f"JES copy_to_exports: about to create symlink {self.latest_symlink}")
         traceback.print_exc()
         self.latest_symlink.symlink_to(self.current_extract_base, target_is_directory=True)
+        print(
+            f"JES - copy_to_exports - POST export, {self.export_dir} should have stuff")
+        for f in os.walk(self.export_dir, followlinks=True):
+            print(f)
+        print("done printing")
         return self.project_slug
 
     def export_radiology(self, export_df: pd.DataFrame) -> pathlib.Path:
