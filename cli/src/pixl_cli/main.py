@@ -84,9 +84,8 @@ def populate(parquet_path: Path, *, restart: bool, queues: str) -> None:
     """
     logger.info(f"Populating queue(s) {queues} from {parquet_path}")
     if parquet_path.is_file() and parquet_path.suffix == ".csv":
-        project_name = "dummy"
         omop_es_datetime = datetime.now(tz=timezone.utc)
-        messages = messages_from_csv(parquet_path, project_name, omop_es_datetime)
+        messages = messages_from_csv(parquet_path, omop_es_datetime)
     else:
         project_name, omop_es_datetime = copy_parquet_return_logfile_fields(parquet_path)
         messages = messages_from_parquet(parquet_path, project_name, omop_es_datetime)

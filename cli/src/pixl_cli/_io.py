@@ -63,9 +63,7 @@ def copy_parquet_return_logfile_fields(parquet_path: Path) -> tuple[str, datetim
     return project_name_slug, omop_es_timestamp
 
 
-def messages_from_csv(
-    filepath: Path, project_name: str, omop_es_timestamp: datetime
-) -> list[Message]:
+def messages_from_csv(filepath: Path, omop_es_timestamp: datetime) -> list[Message]:
     """
     Reads patient information from CSV and transforms that into messages.
     :param filepath: Path for CSV file to be read
@@ -85,10 +83,15 @@ def messages_from_csv(
         msg = f"csv file expected to have at least {expected_col_names} as " f"column names"
         raise ValueError(msg)
 
-    procedure_id_col_name, mrn_col_name, acc_num_col_name, _, dt_col_name = expected_col_names
+    (
+        procedure_id_col_name,
+        mrn_col_name,
+        acc_num_col_name,
+        project_col_name,
+        dt_col_name,
+    ) = expected_col_names
 
     messages = []
-
     for _, row in messages_df.iterrows():
         message = Message(
             mrn=row[mrn_col_name],
@@ -99,7 +102,7 @@ def messages_from_csv(
             procedure_occurrence_id=row[
                 procedure_id_col_name
             ],  # 4 row[4], #procedure_occurrence_id
-            project_name=project_name,
+            project_name=row[project_col_name],
             omop_es_timestamp=omop_es_timestamp,
         )
         messages.append(message)
