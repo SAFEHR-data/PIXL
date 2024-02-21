@@ -61,7 +61,7 @@ _imaging_api_config = APIConfig(
     default_rate=int(config("PIXL_IMAGING_API_RATE", default=1)),
 )
 
-API_CONFIGS = {"ehr": _ehr_api_config, "imaging": _imaging_api_config}
+API_CONFIGS = {"ehr_api": _ehr_api_config, "imaging_api": _imaging_api_config}
 
 
 def api_config_for_queue(queue_name: str) -> APIConfig:
