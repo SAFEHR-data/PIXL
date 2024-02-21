@@ -89,6 +89,10 @@ class PixlConfig(BaseModel):
             msg = "There should be at least 1 tag operations file"
             raise ValueError(msg)
 
+        if len(tag_ops_files) > 1:
+            msg = "There should currently be at most 1 tag operations file."
+            raise ValueError(msg)
+
         # Pydantic will automatically check if the file exists
         return [
             PROJECT_CONFIGS_DIR / "tag-operations" / tag_ops_file for tag_ops_file in tag_ops_files

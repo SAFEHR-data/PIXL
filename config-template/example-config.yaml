@@ -16,12 +16,7 @@ project:
     name: "myproject"
     modalities: ["DX", "CR"]
 
-tag_operation_files:
-    [
-        "base-tag-operations.yaml",
-        "example-tag-operations.yaml",
-        "extension-tag-operations.yaml",
-    ]
+tag_operation_files: ["base-tag-operations.yaml"]
 
 destination:
     dicom: "ftps"
