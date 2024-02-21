@@ -13,7 +13,7 @@
 #  limitations under the License.
 
 project:
-    name: "myproject"
+    name: "project-slug"
     modalities: ["DX", "CR"]
 
 tag_operation_files: ["base-tag-operations.yaml"]

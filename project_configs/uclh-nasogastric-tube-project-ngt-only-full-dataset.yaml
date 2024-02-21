@@ -13,10 +13,11 @@
 #  limitations under the License.
 
 project:
-    name: "test-extract-uclh-omop-cdm"
+    name: "uclh-nasogastric-tube-project-ngt-only-full-dataset"
     modalities: ["DX", "CR"]
 
-tag_operation_files: ["test-extract-uclh-omop-cdm-tag-operations.yaml"]
+tag_operation_files:
+    ["uclh-nasogastric-tube-project-ngt-only-full-dataset-tag-operations.yaml"]
 
 destination:
     dicom: "ftps"

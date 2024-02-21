@@ -1,0 +1,593 @@
+#  Copyright (c) University College London Hospitals NHS Foundation Trust
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+- name: "Specific Character Set"
+  group: 0x0008
+  element: 0x0005
+  op: "keep"
+- name: "Image Type"
+  group: 0x0008
+  element: 0x0008
+  op: "keep"
+- name: "SOP Class UID"
+  group: 0x0008
+  element: 0x0016
+  op: "keep"
+- name: "SOP Instance UID"
+  group: 0x0008
+  element: 0x0018
+  op: "hash-uid"
+- name: "Study Date"
+  group: 0x0008
+  element: 0x0020
+  op: "delete"
+- name: "Series Date"
+  group: 0x0008
+  element: 0x0021
+  op: "delete"
+- name: "Acquisition Date"
+  group: 0x0008
+  element: 0x0022
+  op: "delete"
+- name: "Image Date"
+  group: 0x0008
+  element: 0x0023
+  op: "delete"
+- name: "Acquisition Date Time"
+  group: 0x0008
+  element: 0x002a
+  op: "delete"
+- name: "Study Time"
+  group: 0x0008
+  element: 0x0030
+  op: "delete"
+- name: "Series Time"
+  group: 0x0008
+  element: 0x0031
+  op: "delete"
+- name: "Acquisition Time"
+  group: 0x0008
+  element: 0x0032
+  op: "delete"
+- name: "Image Time"
+  group: 0x0008
+  element: 0x0033
+  op: "delete"
+- name: "Accession Number"
+  group: 0x0008
+  element: 0x0050
+  op: "secure-hash"
+- name: "Modality"
+  group: 0x0008
+  element: 0x0060
+  op: "keep"
+- name: "Modalities In Study"
+  group: 0x0008
+  element: 0x0061
+  op: "keep"
+- name: "Presentation Intent Type"
+  group: 0x0008
+  element: 0x0068
+  op: "delete"
+- name: "Manufacturer"
+  group: 0x0008
+  element: 0x0070
+  op: "keep"
+- name: "Institution Name"
+  group: 0x0008
+  element: 0x0080
+  op: "delete"
+- name: "Institution Address"
+  group: 0x0008
+  element: 0x0081
+  op: "delete"
+- name: "Referring Physicians Name"
+  group: 0x0008
+  element: 0x0090
+  op: "delete"
+- name: "Station Name"
+  group: 0x0008
+  element: 0x1010
+  op: "delete"
+- name: "Study Description"
+  group: 0x0008
+  element: 0x1030
+  op: "keep"
+- name: "Series Description"
+  group: 0x0008
+  element: 0x103e
+  op: "keep"
+- name: "Institutional Department Name"
+  group: 0x0008
+  element: 0x1040
+  op: "delete"
+- name: "Performing Physicians Name"
+  group: 0x0008
+  element: 0x1050
+  op: "delete"
+- name: "Operators Name"
+  group: 0x0008
+  element: 0x1070
+  op: "delete"
+- name: "Manufacturers Model Name"
+  group: 0x0008
+  element: 0x1090
+  op: "keep"
+- name: "Referenced Study Sequence"
+  group: 0x0008
+  element: 0x1110
+  op: "delete"
+- name: "Referenced Patient Sequence"
+  group: 0x0008
+  element: 0x1120
+  op: "delete"
+- name: "Source Image Sequence"
+  group: 0x0008
+  element: 0x2112
+  op: "delete"
+- name: "Anatomic Region Sequence"
+  group: 0x0008
+  element: 0x2218
+  op: "delete"
+- name: "Irradiation Event UID"
+  group: 0x0008
+  element: 0x3010
+  op: "delete"
+- name: "Patients Name"
+  group: 0x0010
+  element: 0x0010
+  op: "secure-hash"
+- name: "Patient ID"
+  group: 0x0010
+  element: 0x0020
+  op: "secure-hash"
+- name: "Issuer Of Patient ID"
+  group: 0x0010
+  element: 0x0021
+  op: "delete"
+- name: "Patients Birth Date"
+  group: 0x0010
+  element: 0x0030
+  op: "delete"
+- name: "Patients Birth Time"
+  group: 0x0010
+  element: 0x0032
+  op: "delete"
+- name: "Patients Sex"
+  group: 0x0010
+  element: 0x0040
+  op: "delete"
+- name: "Other Patient IDs"
+  group: 0x0010
+  element: 0x1000
+  op: "delete"
+- name: "Other Patient Names"
+  group: 0x0010
+  element: 0x1001
+  op: "delete"
+- name: "Patients Age"
+  group: 0x0010
+  element: 0x1010
+  op: "delete"
+- name: "Patients Size"
+  group: 0x0010
+  element: 0x1020
+  op: "keep"
+- name: "Patients Weight"
+  group: 0x0010
+  element: 0x1030
+  op: "keep"
+- name: "Patients Address"
+  group: 0x0010
+  element: 0x1040
+  op: "delete"
+- name: "Medical Alerts"
+  group: 0x0010
+  element: 0x2000
+  op: "delete"
+- name: "Contrast Allergies"
+  group: 0x0010
+  element: 0x2110
+  op: "delete"
+- name: "Patient Comments"
+  group: 0x0010
+  element: 0x4000
+  op: "delete"
+- name: "Private Creator Data Element"
+  group: 0x0011
+  element: 0x0010
+  op: "delete"
+- name: "Body Part Examined"
+  group: 0x0018
+  element: 0x0015
+  op: "keep"
+- name: "kVp"
+  group: 0x0018
+  element: 0x0060
+  op: "keep"
+- name: "Software Version"
+  group: 0x0018
+  element: 0x1020
+  op: "keep"
+- name: "Protocol Name"
+  group: 0x0018
+  element: 0x1030
+  op: "delete"
+- name: "Field Of View Dimension"
+  group: 0x0018
+  element: 0x1149
+  op: "keep"
+- name: "Exposure Time"
+  group: 0x0018
+  element: 0x1150
+  op: "keep"
+- name: "X Ray Tube Current"
+  group: 0x0018
+  element: 0x1151
+  op: "keep"
+- name: "Exposure"
+  group: 0x0018
+  element: 0x1152
+  op: "keep"
+- name: "Exposure In Uas"
+  group: 0x0018
+  element: 0x1153
+  op: "keep"
+- name: "Image Area Dose Product"
+  group: 0x0018
+  element: 0x115e
+  op: "keep"
+- name: "Imager Pixel Spacing"
+  group: 0x0018
+  element: 0x1164
+  op: "keep"
+- name: "Grid"
+  group: 0x0018
+  element: 0x1166
+  op: "keep"
+- name: "Focal Spot"
+  group: 0x0018
+  element: 0x1190
+  op: "keep"
+- name: "Acquisition Device Processing Description"
+  group: 0x0018
+  element: 0x1400
+  op: "keep"
+- name: "Exposure Index"
+  group: 0x0018
+  element: 0x1411
+  op: "keep"
+- name: "Target Exposure Index"
+  group: 0x0018
+  element: 0x1412
+  op: "keep"
+- name: "Deviation Index"
+  group: 0x0018
+  element: 0x1413
+  op: "keep"
+- name: "Positioner Type"
+  group: 0x0018
+  element: 0x1508
+  op: "keep"
+- name: "Collemator Shape"
+  group: 0x0018
+  element: 0x1700
+  op: "keep"
+- name: "Vertices Of The Polygonal Collimator"
+  group: 0x0018
+  element: 0x1720
+  op: "keep"
+- name: "View Position"
+  group: 0x0018
+  element: 0x5101
+  op: "keep"
+- name: "Sensitivity"
+  group: 0x0018
+  element: 0x6000
+  op: "keep"
+- name: "Detector Temperature"
+  group: 0x0018
+  element: 0x7001
+  op: "keep"
+- name: "Detector Type"
+  group: 0x0018
+  element: 0x7004
+  op: "keep"
+- name: "Detector Configuration"
+  group: 0x0018
+  element: 0x7005
+  op: "keep"
+- name: "Detector ID"
+  group: 0x0018
+  element: 0x700a
+  op: "keep"
+- name: "Detector Binning"
+  group: 0x0018
+  element: 0x701a
+  op: "keep"
+- name: "Detector Element Physical Size"
+  group: 0x0018
+  element: 0x7020
+  op: "keep"
+- name: "Detector Element Spacing"
+  group: 0x0018
+  element: 0x7022
+  op: "keep"
+- name: "Detector Active Shape"
+  group: 0x0018
+  element: 0x7024
+  op: "keep"
+- name: "Detector Active Dimensions"
+  group: 0x0018
+  element: 0x7026
+  op: "keep"
+- name: "Field Of View Origin"
+  group: 0x0018
+  element: 0x7030
+  op: "keep"
+- name: "Field Of View Rotation"
+  group: 0x0018
+  element: 0x7032
+  op: "keep"
+- name: "Field Of View Horizontal Flip"
+  group: 0x0018
+  element: 0x7034
+  op: "keep"
+- name: "Grid Focal Distance"
+  group: 0x0018
+  element: 0x704c
+  op: "keep"
+- name: "Exposure Control Mode"
+  group: 0x0018
+  element: 0x7060
+  op: "keep"
+- name: "Study Instance UID"
+  group: 0x0020
+  element: 0x000d
+  op: "hash-uid"
+- name: "Series Instance UID"
+  group: 0x0020
+  element: 0x000e
+  op: "hash-uid"
+- name: "Study ID"
+  group: 0x0020
+  element: 0x0010
+  op: "fixed"
+- name: "Series Number"
+  group: 0x0020
+  element: 0x0011
+  op: "keep"
+- name: "Image Number"
+  group: 0x0020
+  element: 0x0013
+  op: "keep"
+- name: "Patient Orientation"
+  group: 0x0020
+  element: 0x0020
+  op: "keep"
+- name: "Image Laterality"
+  group: 0x0020
+  element: 0x0062
+  op: "keep"
+- name: "Number Of Study Related Images"
+  group: 0x0020
+  element: 0x1208
+  op: "delete"
+- name: "Samples Per Pixel"
+  group: 0x0028
+  element: 0x0002
+  op: "keep"
+- name: "Photometric Interpretation"
+  group: 0x0028
+  element: 0x0004
+  op: "keep"
+- name: "Rows"
+  group: 0x0028
+  element: 0x0010
+  op: "keep"
+- name: "Columns"
+  group: 0x0028
+  element: 0x0011
+  op: "keep"
+- name: "Pixel Spacing"
+  group: 0x0028
+  element: 0x0030
+  op: "keep"
+- name: "Bits Allocated"
+  group: 0x0028
+  element: 0x0100
+  op: "keep"
+- name: "Bits Stored"
+  group: 0x0028
+  element: 0x0101
+  op: "keep"
+- name: "High Bit"
+  group: 0x0028
+  element: 0x0102
+  op: "keep"
+- name: "Pixel Representation"
+  group: 0x0028
+  element: 0x0103
+  op: "keep"
+- name: "Quality Control Image"
+  group: 0x0028
+  element: 0x0300
+  op: "keep"
+- name: "Burned In Annotation"
+  group: 0x0028
+  element: 0x0301
+  op: "keep"
+- name: "Pixel Spacing Calibration Type"
+  group: 0x0028
+  element: 0x0a02
+  op: "keep"
+- name: "Pixel Spacing Calibration Description"
+  group: 0x0028
+  element: 0x0a04
+  op: "keep"
+- name: "Pixel Intensity Relationship"
+  group: 0x0028
+  element: 0x1040
+  op: "keep"
+- name: "Pixel Intensity Relationship Sign"
+  group: 0x0028
+  element: 0x1041
+  op: "keep"
+- name: "Window Center"
+  group: 0x0028
+  element: 0x1050
+  op: "keep"
+- name: "Window Width"
+  group: 0x0028
+  element: 0x1051
+  op: "keep"
+- name: "Rescale Intercept"
+  group: 0x0028
+  element: 0x1052
+  op: "keep"
+- name: "Rescale Slope"
+  group: 0x0028
+  element: 0x1053
+  op: "keep"
+- name: "Rescale Type"
+  group: 0x0028
+  element: 0x1054
+  op: "keep"
+- name: "Window Center And Width Explanation"
+  group: 0x0028
+  element: 0x1055
+  op: "keep"
+- name: "Lossy Image Compression"
+  group: 0x0028
+  element: 0x2110
+  op: "keep"
+- name: "VOI LUT Sequence"
+  group: 0x0028
+  element: 0x3010
+  op: "keep"
+- name: "Current Patient Location"
+  group: 0x0038
+  element: 0x0300
+  op: "delete"
+- name: "Patient State"
+  group: 0x0038
+  element: 0x0500
+  op: "delete"
+- name: "Performed Procedure Start Date"
+  group: 0x0040
+  element: 0x0244
+  op: "delete"
+- name: "Performed Procedure Start Time"
+  group: 0x0040
+  element: 0x0245
+  op: "delete"
+- name: "Performed Procedure Step ID"
+  group: 0x0040
+  element: 0x0253
+  op: "delete"
+- name: "Performed Procedure Step Description"
+  group: 0x0040
+  element: 0x0254
+  op: "delete"
+- name: "Performed Action Item Sequence"
+  group: 0x0040
+  element: 0x0260
+  op: "delete"
+- name: "Request Attributes Sequence"
+  group: 0x0040
+  element: 0x0275
+  op: "delete"
+- name: "Acquisition Context Sequence"
+  group: 0x0040
+  element: 0x0555
+  op: "delete"
+- name: "Confidentiality Code"
+  group: 0x0040
+  element: 0x1008
+  op: "delete"
+- name: "Private Creator Data Element"
+  group: 0x0045
+  element: 0x0010
+  op: "delete"
+- name: "View Code Sequence"
+  group: 0x0054
+  element: 0x0220
+  op: "keep"
+- name: "Image Comments"
+  group: 0x0020
+  element: 0x4000
+  op: "delete"
+- name: "Instance Creator UID"
+  group: 0x0008
+  element: 0x0014
+  op: "hash-uid"
+- name: "Referenced SOP Instance UID"
+  group: 0x0008
+  element: 0x1155
+  op: "hash-uid"
+- name: "Frame of Reference UID"
+  group: 0x0020
+  element: 0x0052
+  op: "hash-uid"
+- name: "Synchronization Frame of Reference UID"
+  group: 0x0020
+  element: 0x0200
+  op: "hash-uid"
+- name: "Storage Media File-set UID"
+  group: 0x0088
+  element: 0x0140
+  op: "hash-uid"
+- name: "Referenced Frame of Reference UID"
+  group: 0x3006
+  element: 0x0024
+  op: "hash-uid"
+- name: "Related Frame of Reference UID"
+  group: 0x3006
+  element: 0x00C2
+  op: "hash-uid"
+- name: "UID"
+  group: 0x0040
+  element: 0xA124
+  op: "hash-uid"
+- name: "Study Comments [Retired]"
+  group: 0x0032
+  element: 0x4000
+  op: "delete"
+- name: "Ethnic Group"
+  group: 0x0010
+  element: 0x2160
+  op: "delete"
+- name: "Physicians Of Record"
+  group: 0x0008
+  element: 0x1048
+  op: "delete"
+- name: "Name Of Physicians Reading Study"
+  group: 0x0008
+  element: 0x1060
+  op: "delete"
+- name: "Device Serial Number"
+  group: 0x0018
+  element: 0x1000
+  op: "delete"
+- name: "Additional Patient History"
+  group: 0x0010
+  element: 0x21b0
+  op: "delete" 
+- name: "Pregnancy Status"
+  group: 0x0010
+  element: 0x21c0
+  op: "delete" 
+- name: "Pixel Data"
+  group: 0x7fe0
+  element: 0x0010
+  op: "keep" 
