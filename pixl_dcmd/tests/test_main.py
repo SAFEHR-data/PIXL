@@ -36,7 +36,7 @@ def tag_scheme() -> dict:
     """Read the tag scheme from orthanc raw."""
     tag_file = (
         pathlib.Path(__file__).parents[2]
-        / "project_configs/tag-operations/extract-uclh-omop-cdm-tag-operations.yaml"
+        / "project_configs/tag-operations/test-extract-uclh-omop-cdm-tag-operations.yaml"
     )
     return yaml.safe_load(tag_file.read_text())
 
