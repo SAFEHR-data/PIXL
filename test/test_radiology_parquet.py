@@ -39,11 +39,12 @@ def test_radiology_parquet(host_export_root_dir: Path):
     )
 
     print(f"JES - test is about to fail, what's in {host_export_root_dir}?")
-    for f in os.walk(host_export_root_dir):
+    for f in os.walk(host_export_root_dir, followlinks=True):
         print(f)
     print("done printing")
 
     # XXX FAILS why is file not found on thingy??
+    # It's because the symlink is not present!!!!
     exported_data = pd.read_parquet(expected_radiology_parquet_file)
 
     logger.warning(exported_data.head())

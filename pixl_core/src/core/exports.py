@@ -15,7 +15,9 @@
 from __future__ import annotations
 
 import logging
+import os
 import shutil
+import traceback
 from typing import TYPE_CHECKING
 
 import slugify
@@ -89,6 +91,8 @@ class ParquetExport:
 
         # Symlink this extract to the latest directory
         self.latest_symlink.unlink(missing_ok=True)
+        print(f"JES copy_to_exports: about to create symlink {self.latest_symlink}")
+        traceback.print_exc()
         self.latest_symlink.symlink_to(self.current_extract_base, target_is_directory=True)
         return self.project_slug
 
@@ -96,6 +100,12 @@ class ParquetExport:
         """Export radiology reports to parquet file"""
         self._mkdir(self.radiology_output)
         parquet_file = self.radiology_output / "radiology.parquet"
+        print(f"JES export_radiology: {self.radiology_output} should be empty:")
+        for f in os.walk(self.radiology_output, followlinks=True):
+            print(f)
+        print("done printing")
+        print(f"JES export_radiology: about to create radiology file {parquet_file}")
+        traceback.print_exc()
         export_df.to_parquet(parquet_file)
         # We are not responsible for making the "latest" symlink, see `copy_to_exports`.
         # This avoids the confusion caused by EHR API (which calls export_radiology) having a

@@ -53,7 +53,7 @@ class TestFtpsUpload:
         print(
             f"JES - test is about to fail, what's in {TestFtpsUpload.expected_public_parquet_dir}?"
         )
-        for f in os.walk(TestFtpsUpload.expected_public_parquet_dir):
+        for f in os.walk(TestFtpsUpload.expected_public_parquet_dir, followlinks=True):
             print(f)
         print("done printing")
 
