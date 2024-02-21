@@ -71,20 +71,21 @@ def messages_from_csv(
     :param filepath: Path for CSV file to be read
     """
     expected_col_names = [
-        "VAL_ID",
-        "ACCESSION_NUMBER",
-        "STUDY_INSTANCE_UID",
-        "STUDY_DATE",
+        "procedure_id",
+        "mrn",
+        "accession_number",
+        "project_name",
+        "omop-es-datetime",
     ]
 
     # First line is column names
     messages_df = pd.read_csv(filepath, header=0, dtype=str)
 
-    if list(messages_df.columns)[:4] != expected_col_names:
+    if list(messages_df.columns)[:5] != expected_col_names:
         msg = f"csv file expected to have at least {expected_col_names} as " f"column names"
         raise ValueError(msg)
 
-    mrn_col_name, acc_num_col_name, _, dt_col_name = expected_col_names
+    procedure_id_col_name, mrn_col_name, acc_num_col_name, _, dt_col_name = expected_col_names
 
     messages = []
 
@@ -95,7 +96,9 @@ def messages_from_csv(
             study_date=datetime.strptime(row[dt_col_name], "%d/%m/%Y %H:%M")
             .replace(tzinfo=timezone.utc)
             .date(),
-            procedure_occurrence_id=4,  # row[4], #procedure_occurrence_id
+            procedure_occurrence_id=row[
+                procedure_id_col_name
+            ],  # 4 row[4], #procedure_occurrence_id
             project_name=project_name,
             omop_es_timestamp=omop_es_timestamp,
         )

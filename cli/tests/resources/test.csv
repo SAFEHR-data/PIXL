@@ -1,2 +1,2 @@
-VAL_ID,ACCESSION_NUMBER,STUDY_INSTANCE_UID,STUDY_DATE
-patient_identifier,123456789,c,01/01/2022 00:01
+procedure_id,mrn,accession_number,project_name,omop-es-datetime
+0,patient_identifier,123456789,c,01/01/2022 00:01
