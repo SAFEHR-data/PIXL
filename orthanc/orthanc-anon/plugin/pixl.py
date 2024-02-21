@@ -30,15 +30,14 @@ from time import sleep
 from typing import TYPE_CHECKING
 
 import requests
-import yaml
 from core import upload
-from core.db.queries import get_project_slug, get_project_slug_from_hashid
+from core.db.queries import get_project_slug_from_hashid
 from core.project_config import load_project_config
 from decouple import config
 from pydicom import dcmread
 
 import orthanc
-import pixl_dcmd
+from pixl_dcmd.main import anonymise_dicom, write_dataset_to_bytes
 
 if TYPE_CHECKING:
     from typing import Any
@@ -282,52 +281,11 @@ def ReceivedInstanceCallback(receivedDicom: bytes, origin: str) -> Any:
 
     # Attempt to anonymise and drop the study if any exceptions occur
     try:
-        return AnonymiseCallback(dataset)
+        dataset = anonymise_dicom(dataset)
+        return orthanc.ReceivedInstanceAction.MODIFY, write_dataset_to_bytes(dataset)
     except Exception:  # noqa: BLE001
         orthanc.LogError("Failed to anonymize study due to\n" + traceback.format_exc())
         return orthanc.ReceivedInstanceAction.DISCARD, None
-
-
-def AnonymiseCallback(dataset):
-    """
-    Anonymisation of a dataset
-    Involves removing private tags and overlays and applying the
-    tag operations through functions in pixl_dcmd module
-    Returns writing anonymised dataset to disk
-    """
-    slug = get_project_slug(dataset.PatientID, dataset.AccessionNumber)
-    project_config = load_project_config(slug)
-    orthanc.LogError(f"Received instance for project {slug}")
-    # Drop anything that is not an X-Ray
-    if dataset.Modality not in project_config.project.modalities:
-        msg = f"Dropping DICOM Modality: {dataset.Modality}"
-        orthanc.LogError(msg)
-        return orthanc.ReceivedInstanceAction.DISCARD, None
-
-    orthanc.LogWarning("Anonymising received instance")
-    # Rip out all private tags/
-    dataset.remove_private_tags()
-    orthanc.LogInfo("Removed private tags")
-
-    # Rip out overlays/
-    dataset = pixl_dcmd.remove_overlays(dataset)
-    orthanc.LogInfo("Removed overlays")
-
-    # Apply anonymisation.
-    for tag_operation_file in project_config.tag_operation_files:
-        with tag_operation_file.open() as file:
-            # Load tag operations scheme from YAML.
-            tags = yaml.safe_load(file)
-            # Apply scheme to instance
-            dataset = pixl_dcmd.apply_tag_scheme(dataset, tags)
-            # Apply whitelist
-            dataset = pixl_dcmd.enforce_whitelist(dataset, tags)
-            orthanc.LogInfo(f"DICOM tag anonymisation applied according to {tag_operation_file}")
-
-    orthanc.LogWarning("DICOM tag anonymisation applied")
-
-    # Write anonymised instance to disk.
-    return orthanc.ReceivedInstanceAction.MODIFY, pixl_dcmd.write_dataset_to_bytes(dataset)
 
 
 orthanc.RegisterOnChangeCallback(OnChange)
