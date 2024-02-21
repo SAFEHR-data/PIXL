@@ -22,7 +22,7 @@ RUN --mount=type=cache,target=/root/.cache \
     && pip3 install pixl_dcmd/
 
 COPY ./orthanc/orthanc-anon/plugin/pixl.py /etc/orthanc/pixl.py
-COPY ./orthanc/orthanc-anon/plugin/tag-operations.yaml /etc/orthanc/tag-operations.yaml
+COPY ./project_configs/ /project_configs
 
 COPY ./pixl_core/ ./pixl_core
 RUN --mount=type=cache,target=/root/.cache \

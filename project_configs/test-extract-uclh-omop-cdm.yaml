@@ -1,0 +1,9 @@
+project:
+    name: "myproject"
+    modalities: ["DX", "CR"]
+
+tag_operation_files: ["test-extract-uclh-omop-cdm-tag-operations.yaml"]
+
+destination:
+    dicom: "ftps"
+    parquet: "ftps"
