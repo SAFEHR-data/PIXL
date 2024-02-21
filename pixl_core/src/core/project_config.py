@@ -29,7 +29,7 @@ PROJECT_CONFIGS_DIR = Path(config("PROJECT_CONFIGS_DIR"))
 logger = logging.getLogger(__name__)
 
 
-def load_project_config(project_slug: str) -> Any:
+def load_project_config(project_slug: str) -> PixlConfig | Any:
     """
     Load configuration for a project based on its slug.
     Project needs to have a corresponding yaml file in the `$PROJECT_CONFIGS_DIR` directory.
@@ -41,7 +41,7 @@ def load_project_config(project_slug: str) -> Any:
     return _load_project_config(configpath)
 
 
-def _load_project_config(filename: Path) -> Any:
+def _load_project_config(filename: Path) -> PixlConfig | Any:
     """
     Load configuration from a yaml file.
     :param filename: Path to the yaml file
