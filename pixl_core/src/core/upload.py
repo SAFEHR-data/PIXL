@@ -69,7 +69,6 @@ def upload_dicom_image(zip_content: BinaryIO, pseudo_anon_id: str) -> None:
     # rename destination to {project-slug}/{study-pseduonymised-id}.zip
     remote_directory = get_project_slug_from_db(pseudo_anon_id)
 
-    time.sleep(5)  # debugging only
     # Create the remote directory if it doesn't exist
     ftp = _connect_to_ftp()
     _create_and_set_as_cwd(ftp, remote_directory)
@@ -110,8 +109,6 @@ def upload_parquet_files(parquet_export: ParquetExport) -> None:
     ...
     """
     logger.info("Starting FTPS upload of files for '%s'", parquet_export.project_slug)
-
-    time.sleep(5)  # for debugging only
 
     source_root_dir = parquet_export.current_extract_base
     # Create the remote directory if it doesn't exist
@@ -161,7 +158,6 @@ def _connect_to_ftp() -> FTP_TLS:
     try:
         ftp = ImplicitFtpTls()
         ftp.connect(ftp_host, int(ftp_port))
-        ftp.set_debuglevel(2)
         ftp.login(ftp_user, ftp_password)
         ftp.prot_p()
     except ftplib.all_errors as ftp_error:
