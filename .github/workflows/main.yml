@@ -219,9 +219,9 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install pixl_core/
-          pip install cli/[test]
-          pip install pytest-pixl/
+          pip install -e pixl_core/
+          pip install -e cli/[test]
+          pip install -e pytest-pixl/
 
       - name: Build test services
         working-directory: test
