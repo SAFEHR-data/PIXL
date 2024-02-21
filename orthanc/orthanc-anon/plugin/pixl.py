@@ -138,7 +138,8 @@ def Send(resourceId: str) -> None:
     msg = f"Sending {resourceId}"
     logger.debug(msg)
 
-    slug = get_project_slug_from_hashid(_get_patient_id(resourceId))
+    hashed_patient_id = _get_patient_id(resourceId)
+    slug = get_project_slug_from_hashid(hashed_patient_id)
     project_config = load_project_config(slug)
 
     # send to destination
