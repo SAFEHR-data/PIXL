@@ -34,11 +34,12 @@ os.environ["EMAP_UDS_USER"] = "postgres"
 os.environ["EMAP_UDS_PASSWORD"] = "postgres"  # noqa: S105
 os.environ["EMAP_UDS_SCHEMA_NAME"] = "star"
 os.environ["COGSTACK_REDACT_URL"] = "test"
+os.environ["PROJECT_CONFIGS_DIR"] = (Path(__file__).parents[2] / "project_configs").as_posix()
 
 TEST_DIR = Path(__file__).parent
 
 
-@pytest.fixture(scope="package", autouse=True)
+@pytest.fixture(scope="package")
 def run_containers() -> subprocess.CompletedProcess[bytes]:
     """Run docker containers for tests which require them."""
     yield subprocess.run(
