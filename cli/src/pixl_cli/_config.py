@@ -37,7 +37,7 @@ SERVICE_SETTINGS = {
 class APIConfig:
     """API Configuration"""
 
-    def __init__(self, host: str, port: int, default_rate: Optional[int] = None) -> None:
+    def __init__(self, host: str, port: int, default_rate: float = 1) -> None:
         """Initialise the APIConfig class"""
         self.host = host
         self.port = port
@@ -49,19 +49,18 @@ class APIConfig:
         return f"http://{self.host}:{self.port}"
 
 
-_ehr_api_config = APIConfig(
-    host=config("PIXL_EHR_API_HOST", default="localhost"),
-    port=int(config("PIXL_EHR_API_PORT", default=7006)),
-    default_rate=int(config("PIXL_EHR_API_RATE", default=1)),
-)
-
-_imaging_api_config = APIConfig(
-    host=config("PIXL_IMAGING_API_HOST", default="localhost"),
-    port=int(config("PIXL_IMAGING_API_PORT", default=7007)),
-    default_rate=int(config("PIXL_IMAGING_API_RATE", default=1)),
-)
-
-API_CONFIGS = {"ehr_api": _ehr_api_config, "imaging_api": _imaging_api_config}
+API_CONFIGS = {
+    "ehr_api": APIConfig(
+        host=config("PIXL_EHR_API_HOST"),
+        port=int(config("PIXL_EHR_API_PORT")),
+        default_rate=float(config("PIXL_EHR_API_RATE", default=1)),
+    ),
+    "imaging_api": APIConfig(
+        host=config("PIXL_IMAGING_API_HOST"),
+        port=int(config("PIXL_IMAGING_API_PORT")),
+        default_rate=float(config("PIXL_EHR_API_RATE", default=1)),
+    )
+}
 
 
 def api_config_for_queue(queue_name: str) -> APIConfig:
