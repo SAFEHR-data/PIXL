@@ -196,6 +196,7 @@ jobs:
           key: ${{ runner.os }}-buildx-${{ github.ref }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-${{ github.ref }}-
+            ${{ runner.os }}-buildx-
           save-always: true
       - uses: docker/build-push-action@v5
         with:
