@@ -34,6 +34,7 @@ from decouple import config
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from slugify import slugify
 
 from ._databases import PIXLDatabase
 from ._processing import process_message
@@ -93,7 +94,8 @@ def export_patient_data(export_params: ExportRadiologyData) -> None:
     logger.info("Exporting Patient Data for '%s'", export_params.project_name)
     export_radiology_as_parquet(export_params)
 
-    project_config = load_project_config(export_params.project_name)
+    project_slug = slugify(export_params.project_name)
+    project_config = load_project_config(project_slug)
     # Upload Parquet files to the appropriate endpoint
 
     if project_config.destination.parquet == "ftps":
