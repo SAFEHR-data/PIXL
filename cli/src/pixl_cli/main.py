@@ -140,10 +140,9 @@ def extract_radiology_reports(parquet_dir: Path) -> None:
     "--rate",
     type=float,
     default=None,
-    help="Rate at which to process items from a queue (in items per second)."
-    "If None then will use the default rate defined in the config file",
+    help="Rate at which to process items from a queue (in items per second).",
 )
-def start(queues: str, rate: Optional[int]) -> None:
+def start(queues: str, rate: Optional[float]) -> None:
     """Start consumers for a set of queues"""
     if rate == 0:
         msg = "Cannot start extract with a rate of 0. Must be >0"
@@ -183,10 +182,7 @@ def _update_extract_rate(queue_name: str, rate: Optional[float]) -> None:
 
     if rate is None:
         if api_config.default_rate is None:
-            msg = (
-                "Cannot update the rate for %s. No default rate was specified.",
-                queue_name,
-            )
+            msg = f"Cannot update the rate for {queue_name}. No valid rate was specified."
             raise ValueError(msg)
         rate = float(api_config.default_rate)
         logger.info(f"Using the default extract rate of {rate}/second")
