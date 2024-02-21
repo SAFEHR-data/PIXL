@@ -28,7 +28,7 @@ def test_config_from_file():
     """Test whether config file is correctly parsed and validated."""
     project_config = _load_project_config(TEST_CONFIG)
 
-    assert project_config.project.name == "myproject"
+    assert project_config.project.name == "test-extract-uclh-omop-cdm"
     assert project_config.project.modalities == ["DX", "CR"]
     assert project_config.tag_operation_files == [
         PROJECT_CONFIGS_DIR / "tag-operations" / "test-extract-uclh-omop-cdm-tag-operations.yaml"
