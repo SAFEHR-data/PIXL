@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 def load_project_config(project_slug: str) -> Any:
     """
     Load configuration for a project based on its slug.
-    Project needs to have a corresponding yaml file in the /config directory.
+    Project needs to have a corresponding yaml file in the `$PROJECT_CONFIGS_DIR` directory.
     """
     configpath = PROJECT_CONFIGS_DIR / f"{project_slug}.yaml"
     logger.warning(f"Loading config for {project_slug} from {configpath}")  # noqa: G004
