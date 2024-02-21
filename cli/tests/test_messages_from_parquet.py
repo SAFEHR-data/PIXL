@@ -30,9 +30,9 @@ if TYPE_CHECKING:
 
 def test_messages_from_csv(resources: Path) -> None:
     """
-    Given a valid OMOP ES extract with 4 procedures, two of which are x-rays.
-    When the messages are generated from the directory and the output of logfile parsing
-    Then two messages should be generated
+    Given a csv with a single dataset.
+    When the messages are generated from the directory
+    Then one message should be generated
     """
     # Arrange
     test_csv = resources / "test.csv"
