@@ -38,7 +38,9 @@ def test_radiology_parquet(host_export_root_dir: Path):
         / "radiology.parquet"
     )
 
-    print(f"JES - test_radiology_parquet - test is about to fail, what's in {host_export_root_dir}?")
+    print(
+        f"JES - test_radiology_parquet - test is about to fail, what's in {host_export_root_dir}?"
+    )
     for f in os.walk(host_export_root_dir, followlinks=True):
         print(f)
     print("done printing")

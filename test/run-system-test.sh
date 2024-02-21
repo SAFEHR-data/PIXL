@@ -44,7 +44,7 @@ elif [ "$subcmd" = "teardown" ]; then
   teardown
 else
   setup
-  pytest --verbose
+  pytest --verbose --log-cli-level DEBUG
   echo FINISHED PYTEST COMMAND
   teardown
   echo SYSTEM TEST SUCCESSFUL

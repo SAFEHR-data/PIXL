@@ -84,8 +84,7 @@ class ParquetExport:
 
         # should be called by pixl populate
 
-        print(
-            f"JES - copy_to_exports - pre export, {self.export_dir} should be empty")
+        print(f"JES - copy_to_exports - pre export, {self.export_dir} should be empty")
         for f in os.walk(self.export_dir, followlinks=True):
             print(f)
         print("done printing")
@@ -102,8 +101,7 @@ class ParquetExport:
         print(f"JES copy_to_exports: about to create symlink {self.latest_symlink}")
         traceback.print_exc()
         self.latest_symlink.symlink_to(self.current_extract_base, target_is_directory=True)
-        print(
-            f"JES - copy_to_exports - POST export, {self.export_dir} should have stuff")
+        print(f"JES - copy_to_exports - POST export, {self.export_dir} should have stuff")
         for f in os.walk(self.export_dir, followlinks=True):
             print(f)
         print("done printing")

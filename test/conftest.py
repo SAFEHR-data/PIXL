@@ -38,7 +38,7 @@ def run_subprocess(
     """
     try:
         logging.info("Running command %s", cmd)
-        return subprocess.run(
+        cp = subprocess.run(
             cmd,
             check=True,
             cwd=working_dir,
@@ -46,6 +46,10 @@ def run_subprocess(
             timeout=timeout,
             capture_output=True,
         )
+        logging.info("Success, returncode = %s", cp.returncode)
+        logging.info("stdout =\n%s", cp.stdout)
+        logging.info("stderr =\n%s", cp.stderr)
+        return cp
     except subprocess.CalledProcessError as exception:
         logging.error("*** exception occurred running: '%s'", cmd)  # noqa: TRY400 will raise anyway
         logging.error("*** stdout:\n%s", exception.stdout.decode())  # noqa: TRY400
