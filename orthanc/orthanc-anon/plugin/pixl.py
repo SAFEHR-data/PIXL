@@ -313,15 +313,15 @@ def AnonymiseCallback(dataset):
     orthanc.LogInfo("Removed overlays")
 
     # Apply anonymisation.
-    for tag_operation in project_config.tag_operation_files:
-        with tag_operation.open() as file:
+    for tag_operation_file in project_config.tag_operation_files:
+        with tag_operation_file.open() as file:
             # Load tag operations scheme from YAML.
             tags = yaml.safe_load(file)
             # Apply scheme to instance
             dataset = pixl_dcmd.apply_tag_scheme(dataset, tags)
             # Apply whitelist
             dataset = pixl_dcmd.enforce_whitelist(dataset, tags)
-            orthanc.LogInfo(f"DICOM tag anonymisation applied according to {tag_operation}")
+            orthanc.LogInfo(f"DICOM tag anonymisation applied according to {tag_operation_file}")
 
     orthanc.LogWarning("DICOM tag anonymisation applied")
 

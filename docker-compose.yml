@@ -114,6 +114,7 @@ services:
       dockerfile: ./docker/orthanc-anon/Dockerfile
       args:
         <<: *build-args-common
+        PROJECT_CONFIGS_DIR: ${PROJECT_CONFIGS_DIR}
     command: /run/secrets
     environment:
       <<: [*proxy-common, *pixl-common-env, *ftp-host]
