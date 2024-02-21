@@ -129,6 +129,6 @@ class PixlFTPServer:
         method.
         """
         address = (self.host, self.port)
-        print(f"Starting FTP server on {self.host}:{self.port}")
+        logger.info("Starting FTP server on %s:%d", self.host, self.port)
         self.server = ThreadedFTPServer(address, self.handler)
         return self.server
