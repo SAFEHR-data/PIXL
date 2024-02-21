@@ -13,23 +13,22 @@
 #  limitations under the License.
 
 """Configuration of CLI from config file."""
-from typing import Optional
 
 from decouple import config
 
 SERVICE_SETTINGS = {
     "rabbitmq": {
-        "host": config("RABBITMQ_HOST", default="localhost"),
-        "port": int(config("RABBITMQ_PORT", default=7008)),
-        "username": config("RABBITMQ_USERNAME", default="rabbitmq_username"),
-        "password": config("RABBITMQ_PASSWORD", default="rabbitmq_password"),
+        "host": config("RABBITMQ_HOST"),
+        "port": int(config("RABBITMQ_PORT")),
+        "username": config("RABBITMQ_USERNAME"),
+        "password": config("RABBITMQ_PASSWORD"),
     },
     "postgres": {
-        "host": config("POSTGRES_HOST", default="localhost"),
-        "port": int(config("POSTGRES_PORT", default=7001)),
-        "username": config("PIXL_DB_USER", default="pixl_db_username"),
-        "password": config("PIXL_DB_PASSWORD", default="pixl_db_password"),
-        "database": config("PIXL_DB_NAME", default="pixl"),
+        "host": config("POSTGRES_HOST"),
+        "port": int(config("POSTGRES_PORT")),
+        "username": config("PIXL_DB_USER"),
+        "password": config("PIXL_DB_PASSWORD"),
+        "database": config("PIXL_DB_NAME"),
     },
 }  # type: dict
 
@@ -58,8 +57,8 @@ API_CONFIGS = {
     "imaging_api": APIConfig(
         host=config("PIXL_IMAGING_API_HOST"),
         port=int(config("PIXL_IMAGING_API_PORT")),
-        default_rate=float(config("PIXL_EHR_API_RATE", default=1)),
-    )
+        default_rate=float(config("PIXL_IMAGING_API_RATE", default=1)),
+    ),
 }
 
 
