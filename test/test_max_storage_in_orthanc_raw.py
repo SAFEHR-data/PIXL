@@ -23,21 +23,17 @@ images are no longer stored.
 Polling to allow for orthanc processing time.
 """
 
-from pathlib import Path
 import tempfile
+from pathlib import Path
 from time import sleep
 
-from decouple import config
-
 import requests
-
+from decouple import config
 from pytest_pixl.dicom import write_volume
 
 SECONDS_WAIT = 5
 
-raw_instances_url = "http://localhost:{0}/instances".format(
-    config("ORTHANC_RAW_WEB_PORT")
-)
+raw_instances_url = "http://localhost:{0}/instances".format(config("ORTHANC_RAW_WEB_PORT"))
 
 
 def test_max_storage_in_orthanc_raw():
@@ -69,7 +65,7 @@ def test_max_storage_in_orthanc_raw():
             upload_response = requests.post(
                 raw_instances_url,
                 auth=(config("ORTHANC_RAW_USERNAME"), config("ORTHANC_RAW_PASSWORD")),
-                data=open(dcm, "rb")
+                data=open(dcm, "rb"),
             )
             if upload_response.status_code != requests.codes.ok:
                 # orthanc will eventually refuse more instances because the test
@@ -79,7 +75,7 @@ def test_max_storage_in_orthanc_raw():
                     break
                 else:
                     # Something else happened preventing the upload
-                    raise(RuntimeError(f"Failed to upload {dcm} to orthanc-raw"))
+                    raise (RuntimeError(f"Failed to upload {dcm} to orthanc-raw"))
             n_dcm += 1
         print(f"Uploaded {n_dcm} new instances")
 
@@ -89,11 +85,7 @@ def test_max_storage_in_orthanc_raw():
             raw_instances_url,
             auth=(config("ORTHANC_RAW_USERNAME"), config("ORTHANC_RAW_PASSWORD")),
         ).json()
-        print(
-            "Waited for {seconds} seconds, orthanc-raw contains {n_instances} instances".format(
-                seconds=seconds, n_instances=len(new_instances)
-            )
-        )
+        print(f"Waited for {seconds} seconds, orthanc-raw contains {len(new_instances)} instances")
         if any([instance in new_instances for instance in original_instances]):
             sleep(SECONDS_WAIT)
         else:

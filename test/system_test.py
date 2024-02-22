@@ -106,4 +106,3 @@ def _wait_for_rows_in_ehr_anon(seconds_max=1, seconds_interval=1) -> None:
             return  # success
         sleep(seconds_interval)
     raise TimeoutError
-
