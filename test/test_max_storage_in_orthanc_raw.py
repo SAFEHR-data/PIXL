@@ -27,6 +27,7 @@ import tempfile
 from pathlib import Path
 from time import sleep
 
+import pytest
 import requests
 from decouple import config
 from pytest_pixl.dicom import write_volume
@@ -36,6 +37,7 @@ SECONDS_WAIT = 5
 raw_instances_url = "http://localhost:{0}/instances".format(config("ORTHANC_RAW_WEB_PORT"))
 
 
+@pytest.mark.usefixtures("_setup_pixl_cli")
 def test_max_storage_in_orthanc_raw():
     """
     This checks that orthanc-raw acknowledges the configured maximum storage size
