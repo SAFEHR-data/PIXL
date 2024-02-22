@@ -13,14 +13,12 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-for ext in ".yml" ".yaml" ".sh" "Dockerfile" ".py"
-do
-    # shellcheck disable=SC2044
-    for path in $(find . -name "*$ext")
-    do
-        if ! grep -q "Copyright" "$path"; then
-            echo -e "\n\e[31m»»» ⚠️  No copyright/license header in $path"
-            exit 1
-        fi
-    done || exit 1
+for ext in ".yml" ".yaml" ".sh" "Dockerfile" ".py"; do
+	# shellcheck disable=SC2044
+	for path in $(git diff --name-only --cached | grep "$ext"); do
+		if ! grep -q "Copyright" "$path"; then
+			echo -e "\n\e[31m»»» ⚠️  No copyright/license header in $path"
+			exit 1
+		fi
+	done || exit 1
 done
