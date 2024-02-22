@@ -217,7 +217,7 @@ jobs:
 
       - name: Install Python dependencies
         # The -e option is required here due to the way the
-        # code determines the export directory
+        # code determines the export directory. See issue #318.
         run: |
           pip install -e pixl_core/
           pip install -e cli/[test]
