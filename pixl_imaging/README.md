@@ -12,7 +12,7 @@ for the requested imaging study, if it didn't already exist.
 ## Installation
 
 ```bash
-pip install -e ../pixl_core/ .
+pip install -e ../pixl_core/ -e .
 ```
 
 ## Test

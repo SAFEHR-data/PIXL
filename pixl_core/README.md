@@ -24,7 +24,7 @@ pip install -e .
 ## Testing
 
 ```bash
-pip install -e .[test] && pip install ../pytest-pixl
+pip install -e .[test] && pip install -e ../pytest-pixl
 pytest
 ```
 
