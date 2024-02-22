@@ -12,11 +12,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """System/E2E test setup"""
-import logging
-import subprocess
 from pathlib import Path
 
 import pytest
+from pytest_pixl.helpers import run_subprocess
 from pytest_pixl.plugin import FtpHostAddress
 from utils import wait_for_stable_orthanc_anon
 
@@ -27,35 +26,6 @@ pytest_plugins = "pytest_pixl"
 def host_export_root_dir():
     """Intermediate export dir as seen from the host"""
     return Path(__file__).parents[1] / "exports"
-
-
-def run_subprocess(
-    cmd: list[str], working_dir: Path, *, shell=False, timeout=360
-) -> subprocess.CompletedProcess[bytes]:
-    """
-    Run a command but capture the stderr and stdout better than the CalledProcessError
-    string representation does
-    """
-    logging.info("Running command %s", cmd)
-    try:
-        cp = subprocess.run(
-            cmd,
-            check=True,
-            cwd=working_dir,
-            shell=shell,  # noqa: S603 input is trusted
-            timeout=timeout,
-            capture_output=True,
-        )
-    except subprocess.CalledProcessError as exception:
-        logging.error("*** exception occurred running: '%s'", cmd)  # noqa: TRY400 will raise anyway
-        logging.error("*** stdout:\n%s", exception.stdout.decode())  # noqa: TRY400
-        logging.error("*** stderr:\n%s", exception.stderr.decode())  # noqa: TRY400
-        raise
-    else:
-        logging.info("Success, returncode = %s", cp.returncode)
-        logging.info("stdout =\n%s", cp.stdout.decode())
-        logging.info("stderr =\n%s", cp.stderr.decode())
-        return cp
 
 
 TEST_DIR = Path(__file__).parent

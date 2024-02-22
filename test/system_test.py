@@ -17,7 +17,7 @@ from pathlib import Path
 from time import sleep
 
 import pytest
-from conftest import run_subprocess
+from pytest_pixl.helpers import run_subprocess
 
 pytest_plugins = "pytest_pixl"
 
