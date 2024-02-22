@@ -19,7 +19,7 @@ from datetime import datetime, timezone
 import pandas as pd
 import pytest
 from core.db.models import Image
-from core.db.queries import get_project_slug_from_db, update_exported_at
+from core.db.queries import get_project_slug_from_hashid, update_exported_at
 from core.upload import upload_dicom_image, upload_parquet_files
 
 
@@ -29,7 +29,7 @@ def test_upload_dicom_image(test_zip_content, not_yet_exported_dicom_image, ftps
     # ARRANGE
     # Get the pseudo identifier from the test image
     pseudo_anon_id = not_yet_exported_dicom_image.hashed_identifier
-    project_slug = get_project_slug_from_db(pseudo_anon_id)
+    project_slug = get_project_slug_from_hashid(pseudo_anon_id)
     expected_output_file = ftps_home_dir / project_slug / (pseudo_anon_id + ".zip")
 
     # ACT

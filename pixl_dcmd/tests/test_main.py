@@ -27,6 +27,7 @@ from pydicom.data import get_testdata_file
 from core.db.models import Image
 from pixl_dcmd.main import (
     apply_tag_scheme,
+    merge_tag_schemes,
     remove_overlays,
 )
 
@@ -36,7 +37,7 @@ def tag_scheme() -> dict:
     """Read the tag scheme from orthanc raw."""
     tag_file = (
         pathlib.Path(__file__).parents[2]
-        / "orthanc/orthanc-anon/plugin/tag-operations.yaml"
+        / "project_configs/tag-operations/test-extract-uclh-omop-cdm-tag-operations.yaml"
     )
     return yaml.safe_load(tag_file.read_text())
 
@@ -136,3 +137,11 @@ def test_can_nifti_convert_post_anonymisation(
     assert anon_nifti.shape == ident_nifti.shape
     assert np.all(anon_nifti.header.get_sform() == ident_nifti.header.get_sform())
     assert np.all(anon_nifti.get_fdata() == ident_nifti.get_fdata())
+
+
+def test_merge_tag_schemes_single_file():
+    tag_ops_file = (
+        pathlib.Path(__file__).parents[2]
+        / "project_configs/tag-operations/test-extract-uclh-omop-cdm-tag-operations.yaml"
+    )
+    merge_tag_schemes([tag_ops_file])

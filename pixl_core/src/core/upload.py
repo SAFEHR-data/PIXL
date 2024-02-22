@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     from core.exports import ParquetExport
 
 
-from core.db.queries import get_project_slug_from_db, update_exported_at
+from core.db.queries import get_project_slug_from_hashid, update_exported_at
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +66,7 @@ def upload_dicom_image(zip_content: BinaryIO, pseudo_anon_id: str) -> None:
     logger.info("Starting FTPS upload of '%s'", pseudo_anon_id)
 
     # rename destination to {project-slug}/{study-pseduonymised-id}.zip
-    remote_directory = get_project_slug_from_db(pseudo_anon_id)
+    remote_directory = get_project_slug_from_hashid(pseudo_anon_id)
 
     # Create the remote directory if it doesn't exist
     ftp = _connect_to_ftp()

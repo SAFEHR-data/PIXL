@@ -134,7 +134,7 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install pixl_core/ cli/[test]
+          pip install -e pixl_core/ -e cli/[test]
 
       - name: Run tests
         working-directory: cli/tests

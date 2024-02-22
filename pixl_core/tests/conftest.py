@@ -42,6 +42,7 @@ os.environ["FTP_HOST"] = "localhost"
 os.environ["FTP_USER_NAME"] = "pixl"
 os.environ["FTP_USER_PASSWORD"] = "longpassword"  # noqa: S105 Hardcoding password
 os.environ["FTP_PORT"] = "20021"
+os.environ["PROJECT_CONFIGS_DIR"] = str(TEST_DIR.parents[1] / "project_configs")
 
 
 @pytest.fixture(scope="package")

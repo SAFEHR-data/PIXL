@@ -26,18 +26,18 @@ import os
 import threading
 import traceback
 from io import BytesIO
-from pathlib import Path
 from time import sleep
 from typing import TYPE_CHECKING
 
 import requests
-import yaml
 from core import upload
+from core.db.queries import get_project_slug_from_hashid
+from core.project_config import load_project_config
 from decouple import config
 from pydicom import dcmread
 
 import orthanc
-import pixl_dcmd
+from pixl_dcmd.main import anonymise_dicom, write_dataset_to_bytes
 
 if TYPE_CHECKING:
     from typing import Any
@@ -132,6 +132,23 @@ def AzureDICOMTokenRefresh():
     return None
 
 
+def Send(resourceId: str) -> None:
+    """Send the resource to the appropriate destination"""
+    msg = f"Sending {resourceId}"
+    logger.debug(msg)
+
+    hashed_patient_id = _get_patient_id(resourceId)
+    slug = get_project_slug_from_hashid(hashed_patient_id)
+    project_config = load_project_config(slug)
+
+    # send to destination
+    if project_config.destination.dicom == "ftps":
+        SendViaFTPS(resourceId)
+    else:
+        msg = f"Invalid destination: {project_config.destination.dicom}"
+        raise ValueError(msg)
+
+
 def SendViaStow(resourceId):
     """
     Makes a POST API call to upload the resource to a dicom-web server
@@ -223,7 +240,7 @@ def OnChange(changeType, level, resource):  # noqa: ARG001
     """
     Three ChangeTypes included in this function:
     - If a study is stable and if ShouldAutoRoute returns true
-    then SendViaFTPS is called
+    then Send is called
     - If orthanc has started then message added to Orthanc LogWarning
     and AzureDICOMTokenRefresh called
     - If orthanc has stopped and TIMER is not none then message added
@@ -235,7 +252,7 @@ def OnChange(changeType, level, resource):  # noqa: ARG001
     if changeType == orthanc.ChangeType.STABLE_STUDY:
         msg = f"Stable study: {resource}"
         logger.info(msg)
-        SendViaFTPS(resource)
+        Send(resource)
 
     if changeType == orthanc.ChangeType.ORTHANC_STARTED and _azure_available():
         orthanc.LogWarning("Starting the scheduler")
@@ -262,50 +279,13 @@ def ReceivedInstanceCallback(receivedDicom: bytes, origin: str) -> Any:
     # Read the bytes as DICOM/
     dataset = dcmread(BytesIO(receivedDicom))
 
-    # Drop anything that is not an X-Ray
-    if dataset.Modality not in ("DX", "CR"):
-        msg = f"Dropping DICOM Modality: {dataset.Modality}"
-        orthanc.LogError(msg)
-        return orthanc.ReceivedInstanceAction.DISCARD, None
-
     # Attempt to anonymise and drop the study if any exceptions occur
     try:
-        return AnonymiseCallback(dataset)
+        dataset = anonymise_dicom(dataset)
+        return orthanc.ReceivedInstanceAction.MODIFY, write_dataset_to_bytes(dataset)
     except Exception:  # noqa: BLE001
         orthanc.LogError("Failed to anonymize study due to\n" + traceback.format_exc())
         return orthanc.ReceivedInstanceAction.DISCARD, None
-
-
-def AnonymiseCallback(dataset):
-    """
-    Anonymisation of a dataset
-    Involves removing private tags and overlays and applying the
-    tag operations through functions in pixl_dcmd module
-    Returns writing anonymised dataset to disk
-    """
-    orthanc.LogWarning("Anonymising received instance")
-    # Rip out all private tags/
-    dataset.remove_private_tags()
-    orthanc.LogInfo("Removed private tags")
-
-    # Rip out overlays/
-    dataset = pixl_dcmd.remove_overlays(dataset)
-    orthanc.LogInfo("Removed overlays")
-
-    # Apply anonymisation.
-    with Path("/etc/orthanc/tag-operations.yaml").open() as file:
-        # Load tag operations scheme from YAML.
-        tags = yaml.safe_load(file)
-        # Apply scheme to instance
-        dataset = pixl_dcmd.apply_tag_scheme(dataset, tags)
-        # Apply whitelist
-        dataset = pixl_dcmd.enforce_whitelist(dataset, tags)
-        orthanc.LogInfo("DICOM tag anonymisation applied")
-
-    orthanc.LogWarning("DICOM tag anonymisation applied")
-
-    # Write anonymised instance to disk.
-    return orthanc.ReceivedInstanceAction.MODIFY, pixl_dcmd.write_dataset_to_bytes(dataset)
 
 
 orthanc.RegisterOnChangeCallback(OnChange)
