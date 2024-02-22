@@ -12,13 +12,15 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+set -euo pipefail
 
-for ext in ".yml" ".yaml" ".sh" "Dockerfile" ".py"; do
-	# shellcheck disable=SC2044
-	for path in $(git diff --name-only --cached | grep "$ext"); do
-		if ! grep -q "Copyright" "$path"; then
-			echo -e "\n\e[31m»»» ⚠️  No copyright/license header in $path"
-			exit 1
-		fi
-	done || exit 1
+for f in "$@"; do
+    if ! grep -q '#.*Copyright.*University College London Hospitals NHS Foundation Trust' "$f"; then
+        echo "No copyright notice found in $f"
+        exit 1
+    fi
+    if ! grep -q '#.*Licensed under the Apache License, Version 2.0' "$f"; then
+        echo "No licence notice found in $f"
+        exit 1
+    fi
 done
