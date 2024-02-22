@@ -33,5 +33,5 @@ repos:
       - id: copyright-headers
         name: copyright-headers
         language: script
-        entry: ./.github/linters/check_headers_exist.sh
+        entry: bin/linters/check_headers_exist.sh
 
