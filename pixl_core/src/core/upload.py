@@ -18,7 +18,6 @@ from __future__ import annotations
 import ftplib
 import logging
 import ssl
-import time
 from datetime import datetime, timezone
 from ftplib import FTP_TLS
 from pathlib import Path
