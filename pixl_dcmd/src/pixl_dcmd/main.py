@@ -104,14 +104,6 @@ def merge_tag_schemes(tag_operation_files: list[Path]) -> Any:
         # Load tag operations scheme from YAML.
         tags = yaml.safe_load(file)
         return tags
-    # Apply anonymisation.
-    # all_tags = {}
-    # # Combine tags
-    # for tag_operation_file in tag_operation_files:
-    #     with tag_operation_file.open() as file:
-    #         # Load tag operations scheme from YAML.
-    #         tags = yaml.safe_load(file)
-    #         all_tags = {**all_tags, **tags}
 
 
 def remove_overlays(dataset: Dataset) -> Dataset:
