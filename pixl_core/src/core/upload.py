@@ -17,48 +17,22 @@ from __future__ import annotations
 
 import ftplib
 import logging
-import ssl
 from datetime import datetime, timezone
-from ftplib import FTP_TLS
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, BinaryIO
-
-from decouple import config
+from typing import TYPE_CHECKING, BinaryIO
 
 if TYPE_CHECKING:
-    from socket import socket
-
     from core.exports import ParquetExport
 
 
+from core._upload_ftps import (
+    _connect_to_ftp,
+    _create_and_set_as_cwd,
+    _create_and_set_as_cwd_multi_path,
+)
 from core.db.queries import get_project_slug_from_hashid, update_exported_at
 
 logger = logging.getLogger(__name__)
-
-
-class ImplicitFtpTls(ftplib.FTP_TLS):
-    """
-    FTP_TLS subclass that automatically wraps sockets in SSL to support implicit FTPS.
-
-    https://stackoverflow.com/questions/12164470/python-ftp-implicit-tls-connection-issue
-    """
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Create instance from parent class."""
-        super().__init__(*args, **kwargs)
-        self._sock: socket | None = None
-
-    @property
-    def sock(self) -> socket | None:
-        """Return the socket."""
-        return self._sock
-
-    @sock.setter
-    def sock(self, value: socket) -> None:
-        """When modifying the socket, ensure that it is ssl wrapped."""
-        if value is not None and not isinstance(value, ssl.SSLSocket):
-            value = self.context.wrap_socket(value)
-        self._sock = value
 
 
 def upload_dicom_image(zip_content: BinaryIO, pseudo_anon_id: str) -> None:
@@ -143,46 +117,3 @@ def upload_parquet_files(parquet_export: ParquetExport) -> None:
     # Close the FTP connection
     ftp.quit()
     logger.info("Finished FTPS upload of files for '%s'", parquet_export.project_slug)
-
-
-def _connect_to_ftp() -> FTP_TLS:
-    # Set your FTP server details
-    ftp_host = config("FTP_HOST")
-    ftp_port = config("FTP_PORT")  # FTPS usually uses port 21
-    ftp_user = config("FTP_USER_NAME")
-    ftp_password = config("FTP_USER_PASSWORD")
-
-    # Connect to the server and login
-    try:
-        ftp = ImplicitFtpTls()
-        ftp.connect(ftp_host, int(ftp_port))
-        ftp.login(ftp_user, ftp_password)
-        ftp.prot_p()
-    except ftplib.all_errors as ftp_error:
-        error_msg = "Failed to connect to FTPS server: '%s'"
-        raise ConnectionError(error_msg, ftp_error) from ftp_error
-    return ftp
-
-
-def _create_and_set_as_cwd_multi_path(ftp: FTP_TLS, remote_multi_dir: Path) -> None:
-    """Create (and cwd into) a multi dir path, analogously to mkdir -p"""
-    if remote_multi_dir.is_absolute():
-        # would require some special handling and we don't need it
-        err = "must be relative path"
-        raise ValueError(err)
-    logger.info("_create_and_set_as_cwd_multi_path %s", remote_multi_dir)
-    # path should be pretty normalised, so assume split is safe
-    sub_dirs = str(remote_multi_dir).split("/")
-    for sd in sub_dirs:
-        _create_and_set_as_cwd(ftp, sd)
-
-
-def _create_and_set_as_cwd(ftp: FTP_TLS, project_dir: str) -> None:
-    try:
-        ftp.cwd(project_dir)
-        logger.debug("'%s' exists on remote ftp, so moving into it", project_dir)
-    except ftplib.error_perm:
-        logger.info("creating '%s' on remote ftp and moving into it", project_dir)
-        # Directory doesn't exist, so create it
-        ftp.mkd(project_dir)
-        ftp.cwd(project_dir)
