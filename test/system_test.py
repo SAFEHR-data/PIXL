@@ -107,11 +107,3 @@ def _wait_for_rows_in_ehr_anon(seconds_max=1, seconds_interval=1) -> None:
         sleep(seconds_interval)
     raise TimeoutError
 
-
-def test_max_storage_in_orthanc_raw():
-    """
-    This checks that orthanc-raw acknowledges the configured maximum storage size
-    ./scripts/check_max_storage_in_orthanc_raw.sh
-    Run this last because it will force out original test images from orthanc-raw
-    ./scripts/check_max_storage_in_orthanc_raw.py
-    """
