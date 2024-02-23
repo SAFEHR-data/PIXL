@@ -14,10 +14,10 @@
 
 """Utilities for the system test"""
 import json
-import logging
 import shlex
 import subprocess
-from time import sleep
+
+from pytest_pixl.helpers import wait_for_condition
 
 
 def wait_for_stable_orthanc_anon(seconds_max, seconds_interval) -> None:
@@ -26,7 +26,10 @@ def wait_for_stable_orthanc_anon(seconds_max, seconds_interval) -> None:
     have been received.
     If they haven't within the time limit, raise a TimeoutError
     """
-    for seconds in range(0, seconds_max, seconds_interval):
+    instances = []
+
+    def are_two_instances() -> bool:
+        nonlocal instances
         instances_cmd = shlex.split(
             "docker exec system-test-orthanc-anon-1 "
             'curl -u "orthanc_anon_username:orthanc_anon_password" '
@@ -34,8 +37,14 @@ def wait_for_stable_orthanc_anon(seconds_max, seconds_interval) -> None:
         )
         instances_output = subprocess.run(instances_cmd, capture_output=True, check=True, text=True)  # noqa: S603
         instances = json.loads(instances_output.stdout)
-        logging.info("Waited for %s seconds, orthanc-anon instances: %s", seconds, instances)
-        if len(instances) == 2:
-            return  # success
-        sleep(seconds_interval)
-    raise TimeoutError
+        return len(instances) == 2
+
+    def list_instances() -> str:
+        return f"orthanc-anon instances: {instances}"
+
+    wait_for_condition(
+        are_two_instances,
+        seconds_max=seconds_max,
+        seconds_interval=seconds_interval,
+        progress_string_fn=list_instances,
+    )

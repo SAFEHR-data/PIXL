@@ -14,10 +14,9 @@
 """Replacement for the 'interesting' bits of the system/E2E test"""
 import logging
 from pathlib import Path
-from time import sleep
 
 import pytest
-from pytest_pixl.helpers import run_subprocess
+from pytest_pixl.helpers import run_subprocess, wait_for_condition
 
 pytest_plugins = "pytest_pixl"
 
@@ -62,18 +61,23 @@ class TestFtpsUpload:
     @pytest.mark.usefixtures("_extract_radiology_reports")
     def test_ftps_dicom_upload(self):
         """Test whether DICOM images have been uploaded"""
-        SECONDS_WAIT = 5
-
         zip_files = []
-        for seconds in range(0, 121, SECONDS_WAIT):
-            zip_files = list(TestFtpsUpload.expected_output_dir.glob("*.zip"))
-            logging.info("Waited for %s seconds. glob_list: %s", seconds, zip_files)
-            if len(zip_files) == 2:
-                break
-            sleep(SECONDS_WAIT)
 
-        # We expect 2 DICOM image studies to be uploaded
-        assert len(zip_files) == 2
+        def zip_file_list() -> str:
+            return f"zip files found: {zip_files}"
+
+        def two_zip_files_present() -> bool:
+            nonlocal zip_files
+            zip_files = list(TestFtpsUpload.expected_output_dir.glob("*.zip"))
+            # We expect 2 DICOM image studies to be uploaded
+            return len(zip_files) == 2
+
+        wait_for_condition(
+            two_zip_files_present,
+            seconds_max=121,
+            seconds_interval=5,
+            progress_string_fn=zip_file_list,
+        )
 
 
 @pytest.mark.usefixtures("_setup_pixl_cli")
@@ -88,8 +92,9 @@ def test_ehr_anon_entries():
 
 def _wait_for_rows_in_ehr_anon(seconds_max=1, seconds_interval=1) -> None:
     """Default values are designed to only perform a single check"""
+
     # This was converted from old shell script - might be better to check the data itself though?
-    for _ in range(0, seconds_max, seconds_interval):
+    def exists_two_rows() -> bool:
         sql_command = "select * from emap_data.ehr_anon"
         cp = run_subprocess(
             [
@@ -102,7 +107,6 @@ def _wait_for_rows_in_ehr_anon(seconds_max=1, seconds_interval=1) -> None:
             ],
             Path.cwd(),
         )
-        if cp.stdout.decode().find("(2 rows)") != -1:
-            return  # success
-        sleep(seconds_interval)
-    raise TimeoutError
+        return cp.stdout.decode().find("(2 rows)") != -1
+
+    wait_for_condition(exists_two_rows, seconds_max=seconds_max, seconds_interval=seconds_interval)
