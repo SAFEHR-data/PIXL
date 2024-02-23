@@ -188,6 +188,38 @@ For the deidentification of the EHR extracts, we rely on an instance running the
 [CogStack API](https://cogstack.org/) with a `/redact` endpoint. The URL of this instance should be
 set in `.env` as `COGSTACK_REDACT_URL`.
 
+### 3. Configure a new project
+
+<!-- TODO: flesh out -->
+- Copy the `template_config.yaml` file to a new file in the `projects/config` directory
+- The project slug should match the project name in the `extract_summary.json` log file
+- The filename of the project config should be `<project-slug>`.yaml
+- Project config should be created in `/projects/config/` **in a new _git_ branch**
+- Open PR in [PIXL](https://github.com/UCLH-Foundry/PIXL) to merge the new project config into `main`
+
+#### The config YAML file
+
+The configuration file defines:
+
+- Project name: the `<project-slug>` name of the Project
+- The DICOM dataset modalities to retain (e.g. `["DX", "CR"]` for X-Ray studies)
+- The anonymisation operations to be applied to the DICOM tags, by providing a file path to one or multiple YAML files
+- The endpoints used to upload the anonymised DICOM data and the public and radiology
+  [parquet files](./docs/file_types/parquet_files.md). We currently support the following endpoints:
+<!-- TODO: the `.env` variables might become obsolete with Azure keyvault -->
+    - `"none"`: no upload
+    - `"ftps"`: a secure FTP server (for both _DICOM_ and _parquet_ files)
+      Requires the `FTPS_*` environment variables to be set in `.env`
+    - `"azure"`: a secure Azure Blob Storage account (for both _DICOM_ and _parquet_ files)
+      Requires the `AZURE_*` environment variables to be set in `.env`
+    - `"dicomweb"`: a DICOMweb server (for _DICOM_ files only)
+      Requires the `DICOMWEB_*` environment variables to be set in `.env`
+
+#### Set up secrets in Azure keyvault
+
+<!-- TODO: add Azure keyvault setup instructions -->
+
+
 ## Run
 
 ### Start
