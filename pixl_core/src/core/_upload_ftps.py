@@ -22,8 +22,6 @@ import ssl
 from ftplib import FTP_TLS
 from typing import TYPE_CHECKING, Any
 
-from decouple import config
-
 if TYPE_CHECKING:
     from pathlib import Path
     from socket import socket
@@ -56,13 +54,7 @@ class ImplicitFtpTls(ftplib.FTP_TLS):
         self._sock = value
 
 
-def _connect_to_ftp() -> FTP_TLS:
-    # Set your FTP server details
-    ftp_host = config("FTP_HOST")
-    ftp_port = config("FTP_PORT")  # FTPS usually uses port 21
-    ftp_user = config("FTP_USER_NAME")
-    ftp_password = config("FTP_USER_PASSWORD")
-
+def _connect_to_ftp(ftp_host: str, ftp_port: int, ftp_user: str, ftp_password: str) -> FTP_TLS:
     # Connect to the server and login
     try:
         ftp = ImplicitFtpTls()
