@@ -64,9 +64,8 @@ def ftp_host_address():
 @pytest.fixture(scope="session")
 def _extract_radiology_reports(_setup_pixl_cli) -> None:
     """
-    run pixl extract-radiology-reports.
-    TODO: should then poll for two minutes to ensure that the database is populated,
-     as per ./scripts/check_entry_in_pixl_anon.sh
+    run pixl extract-radiology-reports. No subsequent wait is needed, because this API call
+    is synchronous (whether that is itself wise is another matter).
     """
     run_subprocess(
         ["pixl", "extract-radiology-reports", str(RESOURCES_OMOP_DIR.absolute())], TEST_DIR
