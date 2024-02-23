@@ -20,7 +20,9 @@ import pandas as pd
 import pytest
 from core.db.models import Image
 from core.db.queries import get_project_slug_from_hashid, update_exported_at
-from core.upload import upload_dicom_image, upload_parquet_files
+from core.upload import FTPSUploader
+
+FTPS_UPLOADER = FTPSUploader("test")
 
 
 @pytest.mark.usefixtures("ftps_server")
@@ -33,7 +35,7 @@ def test_upload_dicom_image(test_zip_content, not_yet_exported_dicom_image, ftps
     expected_output_file = ftps_home_dir / project_slug / (pseudo_anon_id + ".zip")
 
     # ACT
-    upload_dicom_image(test_zip_content, pseudo_anon_id)
+    FTPS_UPLOADER.upload_dicom_image(test_zip_content, pseudo_anon_id)
 
     # ASSERT
     assert expected_output_file.exists()
@@ -48,7 +50,7 @@ def test_upload_dicom_image_throws(test_zip_content, already_exported_dicom_imag
 
     # ASSERT
     with pytest.raises(RuntimeError, match="Image already exported"):
-        upload_dicom_image(test_zip_content, pseudo_anon_id)
+        FTPS_UPLOADER.upload_dicom_image(test_zip_content, pseudo_anon_id)
 
 
 def test_update_exported_and_save(rows_in_session) -> None:
@@ -78,7 +80,7 @@ def test_upload_parquet(parquet_export, ftps_home_dir) -> None:
     parquet_export.export_radiology(pd.DataFrame(list("dummy"), columns=["D"]))
 
     # ACT
-    upload_parquet_files(parquet_export)
+    FTPS_UPLOADER.upload_parquet_files(parquet_export)
     # ASSERT
     expected_public_parquet_dir = (
         ftps_home_dir / parquet_export.project_slug / parquet_export.extract_time_slug / "parquet"
@@ -99,4 +101,4 @@ def test_no_export_to_upload(parquet_export) -> None:
     """If there is nothing in the export directly, an exception is thrown"""
     parquet_export.public_output.mkdir(parents=True, exist_ok=True)
     with pytest.raises(FileNotFoundError):
-        upload_parquet_files(parquet_export)
+        FTPS_UPLOADER.upload_parquet_files(parquet_export)
