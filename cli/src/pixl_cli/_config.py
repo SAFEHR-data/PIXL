@@ -12,9 +12,15 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-"""Configuration of CLI from config file."""
+"""Configuration of CLI from environment variables."""
+
+from pathlib import Path
 
 from decouple import config
+from dotenv import load_dotenv
+
+# Make sure the local .env file is loaded
+load_dotenv(Path.cwd() / ".env")
 
 SERVICE_SETTINGS = {
     "rabbitmq": {
