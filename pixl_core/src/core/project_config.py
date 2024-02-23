@@ -22,7 +22,7 @@ from typing import Any
 
 import yaml
 from decouple import config
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, validator
 
 PROJECT_CONFIGS_DIR = Path(config("PROJECT_CONFIGS_DIR"))
 
@@ -68,7 +68,7 @@ class _Destination(BaseModel):
     dicom: _DestinationEnum
     parquet: _DestinationEnum
 
-    @field_validator("parquet")
+    @validator("parquet")
     def valid_parquet_destination(cls, v: str) -> str:
         if v == "dicomweb":
             msg = "Parquet destination cannot be dicomweb"
@@ -83,7 +83,7 @@ class PixlConfig(BaseModel):
     tag_operation_files: list[Path]
     destination: _Destination
 
-    @field_validator("tag_operation_files", mode="before")
+    @validator("tag_operation_files")
     def _valid_tag_operations(cls, tag_ops_files: list[str]) -> list[Path]:
         if not tag_ops_files or len(tag_ops_files) == 0:
             msg = "There should be at least 1 tag operations file"
