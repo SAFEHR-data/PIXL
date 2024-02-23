@@ -23,6 +23,7 @@ from typing import TYPE_CHECKING, BinaryIO
 import pytest
 from core.db.models import Base, Extract, Image
 from core.exports import ParquetExport
+from core.upload import FTPSUploader
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -38,10 +39,6 @@ os.environ["RABBITMQ_USERNAME"] = "guest"
 os.environ["RABBITMQ_PASSWORD"] = "guest"  # noqa: S105 Hardcoding password
 os.environ["RABBITMQ_HOST"] = "localhost"
 os.environ["RABBITMQ_PORT"] = "25672"
-os.environ["FTP_HOST"] = "localhost"
-os.environ["FTP_USER_NAME"] = "pixl"
-os.environ["FTP_USER_PASSWORD"] = "longpassword"  # noqa: S105 Hardcoding password
-os.environ["FTP_PORT"] = "20021"
 os.environ["PROJECT_CONFIGS_DIR"] = str(TEST_DIR.parents[1] / "project_configs")
 
 
@@ -69,6 +66,23 @@ def run_containers() -> subprocess.CompletedProcess[bytes]:
         shell=True,  # noqa: S602
         timeout=60,
     )
+
+
+class MockFTPSUploader(FTPSUploader):
+    """Mock FTPSUploader for testing."""
+
+    def __init__(self) -> None:
+        """Initialise the mock uploader with hardcoded values for FTPS config."""
+        self.host = "localhost"
+        self.user = "pixl"
+        self.password = "longpassword"  # noqa: S105 Hardcoding password
+        self.port = 20021
+
+
+@pytest.fixture()
+def ftps_uploader() -> MockFTPSUploader:
+    """Return a MockFTPSUploader object."""
+    return MockFTPSUploader()
 
 
 @pytest.fixture()
