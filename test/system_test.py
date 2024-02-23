@@ -82,19 +82,10 @@ class TestFtpsUpload:
 
 @pytest.mark.usefixtures("_setup_pixl_cli")
 def test_ehr_anon_entries():
-    """
-    ./scripts/check_entry_in_orthanc_anon_for_2_min.py
-    ./scripts/check_entry_in_pixl_anon.sh
-    """
-    # Because we have to wait for a stable study, poll for 2 minutes
-    _wait_for_rows_in_ehr_anon()
+    """Check data has reached ehr_anon."""
 
-
-def _wait_for_rows_in_ehr_anon(seconds_max=1, seconds_interval=1) -> None:
-    """Default values are designed to only perform a single check"""
-
-    # This was converted from old shell script - might be better to check the data itself though?
     def exists_two_rows() -> bool:
+        # This was converted from old shell script - better to check more than just row count?
         sql_command = "select * from emap_data.ehr_anon"
         cp = run_subprocess(
             [
@@ -109,4 +100,5 @@ def _wait_for_rows_in_ehr_anon(seconds_max=1, seconds_interval=1) -> None:
         )
         return cp.stdout.decode().find("(2 rows)") != -1
 
-    wait_for_condition(exists_two_rows, seconds_max=seconds_max, seconds_interval=seconds_interval)
+    # We already waited in _setup_pixl_cli, so should be true immediately.
+    wait_for_condition(exists_two_rows)
