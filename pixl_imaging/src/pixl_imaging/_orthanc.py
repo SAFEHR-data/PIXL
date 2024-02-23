@@ -53,7 +53,7 @@ class Orthanc(ABC):
         response = self._post(
             f"/modalities/{modality}/query",
             data=data,
-            timeout=config("PIXL_QUERY_TIMEOUT", cast=float),
+            timeout=config("PIXL_QUERY_TIMEOUT", default=120, cast=float),
         )
         logger.debug("Query response: %s", response)
 
