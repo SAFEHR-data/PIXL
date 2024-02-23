@@ -120,7 +120,7 @@ def extract_radiology_reports(parquet_dir: Path) -> None:
     response = requests.post(
         url=f"{api_config.base_url}/export-patient-data",
         json={"project_name": project_name, "extract_datetime": omop_es_datetime.isoformat()},
-        timeout=10,
+        timeout=300,
     )
 
     success_code = 200
