@@ -14,6 +14,7 @@
 
 project:
     name: "test-extract-uclh-omop-cdm"
+    azure_kv_alias: "test"
     modalities: ["DX", "CR"]
 
 tag_operation_files: ["test-extract-uclh-omop-cdm-tag-operations.yaml"]

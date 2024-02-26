@@ -26,6 +26,7 @@ from decouple import config
 
 if TYPE_CHECKING:
     from core.exports import ParquetExport
+    from core.project_config import PixlConfig
 
 
 from core._secrets import AzureKeyVault
@@ -43,7 +44,7 @@ class Uploader(ABC):
     """Upload strategy interface."""
 
     @abstractmethod
-    def __init__(self, project: str) -> None:
+    def __init__(self, project_config: PixlConfig) -> None:
         """
         Initialise the uploader for a specific project with the destination configuration and an
         AzureKeyvault instance. The keyvault is used to fetch the secrets required to connect to
@@ -52,22 +53,26 @@ class Uploader(ABC):
         :param project: The project name for which the uploader is being initialised. Used to fetch
             the correct secrets from the keyvault.
         """
-        self.project = project
+        self.project_config = project_config
         self.keyvault = AzureKeyVault()
 
 
 class FTPSUploader(Uploader):
     """Upload strategy for an FTPS server."""
 
-    def __init__(self, project: str) -> None:
+    def __init__(self, project_config: PixlConfig) -> None:
         """Initialise the uploader with the destination configuration."""
-        Uploader.__init__(self, project)
+        Uploader.__init__(self, project_config)
         self._set_config()
 
     def _set_config(self) -> None:
-        self.host = self.keyvault.fetch_secret(f"{self.project}--ftp--host")
-        self.user = self.keyvault.fetch_secret(f"{self.project}--ftp--username")
-        self.password = self.keyvault.fetch_secret(f"{self.project}--ftp--password")
+        # Use the Azure KV alias as prefix if it exists, otherwise use the project name
+        az_prefix = self.project_config.project.azure_kv_alias
+        az_prefix = az_prefix if az_prefix else self.project_config.project.name
+
+        self.host = self.keyvault.fetch_secret(f"{az_prefix}--ftp--host")
+        self.user = self.keyvault.fetch_secret(f"{az_prefix}--ftp--username")
+        self.password = self.keyvault.fetch_secret(f"{az_prefix}--ftp--password")
         self.port = config("FTP_PORT", default=21, cast=int)
 
     def upload_dicom_image(self, zip_content: BinaryIO, pseudo_anon_id: str) -> None:

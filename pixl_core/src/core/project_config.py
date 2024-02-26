@@ -18,7 +18,7 @@ from __future__ import annotations
 import logging
 from enum import Enum
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 import yaml
 from decouple import Config, RepositoryEmpty, RepositoryEnv
@@ -55,6 +55,7 @@ def _load_project_config(filename: Path) -> PixlConfig | Any:
 
 class _Project(BaseModel):
     name: str
+    azure_kv_alias: Optional[str]
     modalities: list[str]
 
 
