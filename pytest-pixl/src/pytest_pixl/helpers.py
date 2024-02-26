@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 def run_subprocess(
-    cmd: list[str], working_dir: Path, *, shell=False, timeout=360
+    cmd: list[str], working_dir: Optional[Path] = None, *, shell=False, timeout=360
 ) -> subprocess.CompletedProcess[bytes]:
     """
     Run a command but capture the stderr and stdout better than the CalledProcessError
