@@ -16,9 +16,10 @@
 
 from pathlib import Path
 
-from decouple import Config, RepositoryEnv
+from decouple import Config, RepositoryEmpty, RepositoryEnv
 
-config = Config(RepositoryEnv(Path.cwd() / ".env"))
+env_file = Path.cwd() / ".env"
+config = Config(RepositoryEnv(env_file)) if env_file.exists() else Config(RepositoryEmpty())
 
 SERVICE_SETTINGS = {
     "rabbitmq": {
