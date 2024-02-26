@@ -48,7 +48,7 @@ mccabe.max-complexity = 18
 exclude=["scripts"]
 
 [extend-per-file-ignores]
-"**/tests/*" = ["PLR2004"] #  Magic value used in comparison
+"**/test*/*" = ["PLR2004"] #  Magic value used in comparison
 "hasher/tests/*" = ["ARG001"] #  unused function argument
 "env.py" = ["INP001", "E402", "ERA001"]
 "alembic/versions/*" = ["D103", "INP001"]

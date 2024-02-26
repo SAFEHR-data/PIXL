@@ -72,6 +72,9 @@ def AzureAccessToken():
     return response.json()["access_token"]
 
 
+TIMER = None
+
+
 def AzureDICOMTokenRefresh():
     """
     Refresh Azure DICOM token
@@ -153,7 +156,7 @@ def SendViaStow(resourceId):
             auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD),
             headers=headers,
             data=json.dumps(payload),
-            timeout=10,
+            timeout=30,
         )
         msg = f"Sent {resourceId} via STOW"
         logger.info(msg)

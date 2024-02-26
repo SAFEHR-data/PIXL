@@ -18,6 +18,22 @@ You can run the system test with:
 ./run-system-test.sh
 ```
 
+Or to do all the setup but not run any tests:
+```bash
+./run-system-test.sh setup
+```
+
+You can then develop and run tests repeatedly with `pytest` or through your IDE.
+But you are responsible for knowing
+when to re-run the setup if something it depends on has changed.
+Currently, the postgres container doesn't get properly set/reset by the tests so you may have
+to re-run setup if you want to re-run certain tests.
+
+Run the following to teardown:
+```bash
+./run-system-test.sh teardown
+```
+
 ## File organisation
 
 ### Docker compose
