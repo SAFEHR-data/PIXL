@@ -223,6 +223,18 @@ jobs:
           pip install -e cli/[test]
           pip install -e pytest-pixl/
 
+      - name: Create .secrets.env
+        env:
+          EXPORT_AZ_CLIENT_ID: ${{ secrets.EXPORT_AZ_CLIENT_ID }}
+          EXPORT_AZ_CLIENT_PASSWORD: ${{ secrets.EXPORT_AZ_CLIENT_PASSWORD }}
+          EXPORT_AZ_TENANT_ID: ${{ secrets.EXPORT_AZ_TENANT_ID }}
+          EXPORT_AZ_KEY_VAULT_NAME: ${{ secrets.EXPORT_AZ_KEY_VAULT_NAME }}
+        run: |
+          echo EXPORT_AZ_CLIENT_ID=$EXPORT_AZ_CLIENT_ID >> .secrets.env
+          echo EXPORT_AZ_CLIENT_PASSWORD=$EXPORT_AZ_CLIENT_PASSWORD >> .secrets.env
+          echo EXPORT_AZ_TENANT_ID=$EXPORT_AZ_TENANT_ID >> .secrets.env
+          echo EXPORT_AZ_KEY_VAULT_NAME=$EXPORT_AZ_KEY_VAULT_NAME >> .secrets.env
+
       - name: Build test services
         working-directory: test
         run: |
