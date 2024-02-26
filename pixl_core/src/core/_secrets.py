@@ -48,17 +48,6 @@ class AzureKeyVault:
         credentials = DefaultAzureCredential()
         return SecretClient(vault_url=key_vault_uri, credential=credentials)
 
-    def _check_envvars(self) -> None:
-        """
-        Check if the required environment variables are set.
-        These need to be set system-wide, as the Azure SDK picks them up from the environment.
-        :raises OSError: if any of the environment variables are not set
-        """
-        _check_system_envvar("AZURE_CLIENT_ID")
-        _check_system_envvar("AZURE_CLIENT_SECRET")
-        _check_system_envvar("AZURE_TENANT_ID")
-        _check_system_envvar("AZURE_KEY_VAULT_NAME")
-
     def fetch_secret(self, secret_name: str) -> str:
         """
         Fetch a secret from the Azure Key Vault instance specified in the environment variables.
@@ -70,6 +59,17 @@ class AzureKeyVault:
             raise ValueError(msg)
 
         return str(secret)
+
+    def _check_envvars(self) -> None:
+        """
+        Check if the required environment variables are set.
+        These need to be set system-wide, as the Azure SDK picks them up from the environment.
+        :raises OSError: if any of the environment variables are not set
+        """
+        _check_system_envvar("AZURE_CLIENT_ID")
+        _check_system_envvar("AZURE_CLIENT_SECRET")
+        _check_system_envvar("AZURE_TENANT_ID")
+        _check_system_envvar("AZURE_KEY_VAULT_NAME")
 
 
 def _check_system_envvar(var_name: str) -> None:
