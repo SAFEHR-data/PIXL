@@ -83,7 +83,7 @@ def parquet_export(export_dir) -> ParquetExport:
     """
     return ParquetExport(
         project_name="i-am-a-project",
-        extract_datetime=datetime.datetime.now(tz=datetime.timezone.utc),
+        extract_datetime=datetime.now(tz=timezone.utc),
         export_dir=export_dir,
     )
 
@@ -99,7 +99,8 @@ def test_upload_parquet(parquet_export, ftps_home_dir, ftps_uploader) -> None:
     parquet_export.export_radiology(pd.DataFrame(list("dummy"), columns=["D"]))
 
     # ACT
-    parquet_export.upload()
+    ftps_uploader.upload_parquet_files(parquet_export)
+
     # ASSERT
     expected_public_parquet_dir = (
         ftps_home_dir / parquet_export.project_slug / parquet_export.extract_time_slug / "parquet"
