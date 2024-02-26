@@ -148,7 +148,7 @@ services:
             AZ_DICOM_TOKEN_REFRESH_SECS: "600"
             TIME_OFFSET: "${STUDY_TIME_OFFSET}"
             SALT_VALUE: ${SALT_VALUE}"
-            PROJECT_CONFIGS_DIR: ${PROJECT_CONFIGS_DIR:-/project_configs}
+            PROJECT_CONFIGS_DIR: ${PROJECT_CONFIGS_DIR:-/projects/configs}
         ports:
             - "${ORTHANC_ANON_DICOM_PORT}:4242"
             - "${ORTHANC_ANON_WEB_PORT}:8042"
@@ -157,7 +157,7 @@ services:
               source: orthanc-anon-data
               target: /var/lib/orthanc/db
             - ${PWD}/orthanc/orthanc-anon/config:/run/secrets:ro
-            - ${PWD}/project_configs:${PROJECT_CONFIGS_DIR:-/project_configs}:ro
+            - ${PWD}/projects/configs:${PROJECT_CONFIGS_DIR:-/projects/configs}:ro
         networks:
             - pixl-net
         # needed for same reason as ehr-api
@@ -268,7 +268,7 @@ services:
             AZ_STORAGE_ACCOUNT_NAME: ${PIXL_EHR_API_AZ_STORAGE_ACCOUNT_NAME}
             AZ_STORAGE_CONTAINER_NAME: ${PIXL_EHR_API_AZ_STORAGE_CONTAINER_NAME}
             COGSTACK_REDACT_URL: ${PIXL_EHR_COGSTACK_REDACT_URL}
-            PROJECT_CONFIGS_DIR: ${PROJECT_CONFIGS_DIR:-/project_configs}
+            PROJECT_CONFIGS_DIR: ${PROJECT_CONFIGS_DIR:-/projects/configs}
         env_file:
             - ./docker/common.env
         depends_on:
@@ -292,7 +292,7 @@ services:
             - "host.docker.internal:host-gateway"
         volumes:
             - ${PWD}/exports:/run/exports
-            - ${PWD}/project_configs:${PROJECT_CONFIGS_DIR:-/project_configs}:ro
+            - ${PWD}/projects/configs:${PROJECT_CONFIGS_DIR:-/projects/configs}:ro
 
     imaging-api:
         build:

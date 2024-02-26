@@ -39,7 +39,7 @@ os.environ["EMAP_UDS_USER"] = "postgres"
 os.environ["EMAP_UDS_PASSWORD"] = "postgres"  # noqa: S105
 os.environ["EMAP_UDS_SCHEMA_NAME"] = "star"
 os.environ["COGSTACK_REDACT_URL"] = "test"
-os.environ["PROJECT_CONFIGS_DIR"] = str(Path(__file__).parents[2] / "project_configs")
+os.environ["PROJECT_CONFIGS_DIR"] = str(Path(__file__).parents[2] / "projects/configs")
 
 TEST_DIR = Path(__file__).parent
 

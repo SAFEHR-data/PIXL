@@ -41,7 +41,7 @@ os.environ["RABBITMQ_USERNAME"] = "guest"
 os.environ["RABBITMQ_PASSWORD"] = "guest"  # noqa: S105 Hardcoding password
 os.environ["RABBITMQ_HOST"] = "localhost"
 os.environ["RABBITMQ_PORT"] = "25672"
-os.environ["PROJECT_CONFIGS_DIR"] = str(TEST_DIR.parents[1] / "project_configs")
+os.environ["PROJECT_CONFIGS_DIR"] = str(TEST_DIR.parents[1] / "projects/configs")
 
 os.environ["FTP_HOST"] = "localhost"
 os.environ["FTP_USER_NAME"] = "pixl"

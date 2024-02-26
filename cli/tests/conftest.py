@@ -22,7 +22,7 @@ from core.db.models import Base, Extract, Image
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-os.environ["PROJECT_CONFIGS_DIR"] = str(pathlib.Path(__file__).parents[2] / "project_configs")
+os.environ["PROJECT_CONFIGS_DIR"] = str(pathlib.Path(__file__).parents[2] / "projects/configs")
 
 # Set the necessary environment variables
 os.environ["PIXL_EHR_API_HOST"] = "localhost"

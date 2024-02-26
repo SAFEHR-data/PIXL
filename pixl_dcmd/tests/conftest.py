@@ -29,7 +29,7 @@ os.environ["HASHER_API_AZ_NAME"] = "test_hash_API"
 os.environ["HASHER_API_PORT"] = "test_hash_API_port"
 os.environ["TIME_OFFSET"] = "5"
 os.environ["PROJECT_CONFIGS_DIR"] = str(
-    pathlib.Path(__file__).parents[2] / "project_configs"
+    pathlib.Path(__file__).parents[2] / "projects/configs"
 )
 
 STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
