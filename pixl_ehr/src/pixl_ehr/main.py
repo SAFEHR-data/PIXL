@@ -66,7 +66,7 @@ async def startup_event() -> None:
 
 # Export root dir from inside the EHR container.
 # For the view from outside, see pixl_cli/_io.py: HOST_EXPORT_ROOT_DIR
-EHR_EXPORT_ROOT_DIR = Path("/run/exports")
+EHR_EXPORT_ROOT_DIR = Path("/run/projects/exports")
 
 
 class ExportRadiologyData(BaseModel):

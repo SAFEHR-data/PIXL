@@ -291,7 +291,7 @@ services:
         extra_hosts:
             - "host.docker.internal:host-gateway"
         volumes:
-            - ${PWD}/exports:/run/exports
+            - ${PWD}/projects/exports:/run/projects/exports
             - ${PWD}/projects/configs:${PROJECT_CONFIGS_DIR:-/projects/configs}:ro
 
     imaging-api:

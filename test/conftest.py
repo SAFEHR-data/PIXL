@@ -49,7 +49,7 @@ def _setup_pixl_cli(ftps_server) -> None:
             "system-test-ehr-api-1",
             "rm",
             "-r",
-            "/run/exports/test-extract-uclh-omop-cdm/",
+            "/run/projects/exports/test-extract-uclh-omop-cdm/",
         ],
         TEST_DIR,
     )

@@ -26,7 +26,7 @@ def test_radiology_parquet(host_export_root_dir: Path):
     """
     From:
     scripts/test_radiology_parquet.py \
-        ../exports/test-extract-uclh-omop-cdm/latest/radiology/radiology.parquet
+        ../projects/exports/test-extract-uclh-omop-cdm/latest/radiology/radiology.parquet
     Test contents of radiology report parquet file in the export location
     """
     expected_radiology_parquet_file = (
