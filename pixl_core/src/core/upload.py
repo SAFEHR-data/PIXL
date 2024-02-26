@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 
 
 class Uploader(ABC):
-    """Upload strategy interface for DICOM datasets."""
+    """Upload strategy interface."""
 
     @abstractmethod
     def __init__(self, project: str) -> None:

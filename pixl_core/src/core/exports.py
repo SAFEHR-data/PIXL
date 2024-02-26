@@ -48,7 +48,6 @@ class ParquetExport:
         self.export_dir = export_dir
         self.project_slug, self.extract_time_slug = self._get_slugs(project_name, extract_datetime)
         project_base = self.export_dir / self.project_slug
-        self.project_config = load_project_config(self.project_slug)
 
         self.current_extract_base = project_base / "all_extracts" / self.extract_time_slug
         self.public_output = self.current_extract_base / "omop" / "public"
@@ -115,7 +114,8 @@ class ParquetExport:
 
     def upload(self) -> None:
         """Upload the latest extract to the DSH."""
-        destination = self.project_config.destination.parquet
+        project_config = load_project_config(self.project_slug)
+        destination = project_config.destination.parquet
         if destination == "ftps":
             FTPSUploader(self.project_slug).upload_parquet_files(self)
         else:
