@@ -190,12 +190,24 @@ set in `.env` as `COGSTACK_REDACT_URL`.
 
 ### 3. Configure a new project
 
-<!-- TODO: flesh out -->
-- Copy the `template_config.yaml` file to a new file in the `projects/config` directory
-- The project slug should match the project name in the `extract_summary.json` log file
-- The filename of the project config should be `<project-slug>`.yaml
-- Project config should be created in `/projects/config/` **in a new _git_ branch**
-- Open PR in [PIXL](https://github.com/UCLH-Foundry/PIXL) to merge the new project config into `main`
+To configure a new project, follow these steps:
+
+1. Create a new `git` branch from `main`
+
+    ```sh
+    git checkout main
+    git pull
+    git switch -c <branch-name>
+    ```
+
+1. Copy the `template_config.yaml` file to a new file in the `projects/config` directory and fill
+   in the details.
+1. The filename of the project config should be `<project-slug>`.yaml
+
+    >[!NOTE]
+    > The project slug should match the project name in the `extract_summary.json` log file!
+
+1. [Open a PR in PIXL](https://github.com/UCLH-Foundry/PIXL/compare) to merge the new project config into `main`
 
 #### The config YAML file
 
@@ -206,7 +218,6 @@ The configuration file defines:
 - The anonymisation operations to be applied to the DICOM tags, by providing a file path to one or multiple YAML files
 - The endpoints used to upload the anonymised DICOM data and the public and radiology
   [parquet files](./docs/file_types/parquet_files.md). We currently support the following endpoints:
-<!-- TODO: the `.env` variables might become obsolete with Azure keyvault -->
     - `"none"`: no upload
     - `"ftps"`: a secure FTP server (for both _DICOM_ and _parquet_ files)
       Requires the `FTPS_*` environment variables to be set in `.env`
@@ -215,10 +226,16 @@ The configuration file defines:
     - `"dicomweb"`: a DICOMweb server (for _DICOM_ files only)
       Requires the `DICOMWEB_*` environment variables to be set in `.env`
 
-#### Set up secrets in Azure keyvault
+#### Project secrets
 
-<!-- TODO: add Azure keyvault setup instructions -->
+Any credentials required for uploading the project's results should be stored in an **Azure Key Vault**.
+PIXL will query this key vault for the required secrets at runtime. This requires the following
+environment variables to be set in `.secrets.env` so that PIXL can connect to the key vault:
 
+- `EXPORT_AZ_CLIENT_ID`
+- `EXPORT_AZ_CLIENT_PASSWORD`
+- `EXPORT_AZ_TENANT_ID`
+- `EXPORT_AZ_KEY_VAULT_NAME`
 
 ## Run
 
