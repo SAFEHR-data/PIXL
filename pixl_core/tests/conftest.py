@@ -22,7 +22,6 @@ from typing import TYPE_CHECKING, BinaryIO
 
 import pytest
 from core.db.models import Base, Extract, Image
-from core.exports import ParquetExport
 from core.upload import FTPSUploader
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
@@ -197,13 +196,3 @@ def already_exported_dicom_image(rows_in_session) -> Image:
 def export_dir(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
     """Tmp dir to for tests to extract to."""
     return tmp_path_factory.mktemp("export_base") / "exports"
-
-
-@pytest.fixture()
-def parquet_export(export_dir) -> ParquetExport:
-    """Return a ParquetExport object."""
-    return ParquetExport(
-        project_name="i-am-a-project",
-        extract_datetime=datetime.datetime.now(tz=datetime.timezone.utc),
-        export_dir=export_dir,
-    )

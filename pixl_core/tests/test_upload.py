@@ -20,6 +20,7 @@ import pandas as pd
 import pytest
 from core.db.models import Image
 from core.db.queries import get_project_slug_from_hashid, update_exported_at
+from core.exports import ParquetExport
 
 
 @pytest.mark.usefixtures("ftps_server")
@@ -70,6 +71,23 @@ def test_update_exported_and_save(rows_in_session) -> None:
     assert actual_export_time == expected_export_time
 
 
+@pytest.fixture()
+def parquet_export(export_dir) -> ParquetExport:
+    """
+    Return a ParquetExport object.
+
+    This fixture is deliberately not definied in conftest, because it imports the ParquetExport
+    class, which in turn loads the PixlConfig class, which in turn requres the PROJECT_CONFIGS_DIR
+    environment to be set. This environment variable is set in conftest, so the import needs to
+    happen after that.
+    """
+    return ParquetExport(
+        project_name="i-am-a-project",
+        extract_datetime=datetime.datetime.now(tz=datetime.timezone.utc),
+        export_dir=export_dir,
+    )
+
+
 @pytest.mark.usefixtures("ftps_server")
 def test_upload_parquet(parquet_export, ftps_home_dir, ftps_uploader) -> None:
     """Tests that parquet files are uploaded to the correct location"""
@@ -81,7 +99,7 @@ def test_upload_parquet(parquet_export, ftps_home_dir, ftps_uploader) -> None:
     parquet_export.export_radiology(pd.DataFrame(list("dummy"), columns=["D"]))
 
     # ACT
-    ftps_uploader.upload_parquet_files(parquet_export)
+    parquet_export.upload()
     # ASSERT
     expected_public_parquet_dir = (
         ftps_home_dir / parquet_export.project_slug / parquet_export.extract_time_slug / "parquet"
