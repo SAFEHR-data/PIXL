@@ -265,7 +265,7 @@ services:
     depends_on:
       queue:
         condition: service_healthy
-      orthanc-raw:
+      postgres:
         condition: service_healthy
     healthcheck:
       test: curl -f http://0.0.0.0:8000/heart-beat
@@ -288,6 +288,7 @@ services:
       PIXL_DB_PASSWORD: ${PIXL_DB_PASSWORD}
       PIXL_DICOM_TRANSFER_TIMEOUT: ${PIXL_DICOM_TRANSFER_TIMEOUT}
       PIXL_QUERY_TIMEOUT: ${PIXL_QUERY_TIMEOUT}
+      USE_TOKEN_BUCKET: ${USE_TOKEN_BUCKET}
     ports:
       - "${PIXL_IMAGING_API_PORT}:8000"
 

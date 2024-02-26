@@ -19,8 +19,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 import aio_pika
-
-from core.patient_queue.message import Message, deserialise
+from decouple import config
 
 from ._base import PixlBlockingInterface, PixlQueueInterface
 
@@ -30,7 +29,9 @@ if TYPE_CHECKING:
 
     from typing_extensions import Self
 
+    from core.patient_queue.message import Message
     from core.token_buffer.tokens import TokenBucket
+
 
 logger = logging.getLogger(__name__)
 
@@ -54,8 +55,10 @@ class PixlConsumer(PixlQueueInterface):
         """Establishes connection to queue."""
         self._connection = await aio_pika.connect_robust(self._url)
         self._channel = await self._connection.channel()
-        # Don't prefetch messages
-        await self._channel.set_qos(prefetch_count=1)
+        # Set number of messages in flight
+        max_in_flight = config("MAX_IN_FLIGHT", default=10)
+        logger.info("Pika will consume up to %s messages concurrently", max_in_flight)
+        await self._channel.set_qos(prefetch_count=max_in_flight)
         self._queue = await self._channel.declare_queue(self.queue_name)
         return self
 
@@ -66,26 +69,24 @@ class PixlConsumer(PixlQueueInterface):
         :param callback: Method to be called when new message arrives that needs to
                          be processed. Must take a dictionary and return None.
         """
+        message_count = 1
         async with self._queue.iterator() as queue_iter:
             # Pre-annotate the message type
             message: aio_pika.abc.AbstractIncomingMessage
             async for message in queue_iter:
-                if not self.token_bucket.has_token:
-                    await asyncio.sleep(0.01)
-                    await message.reject(requeue=True)
-                    continue
-
-                pixl_message = deserialise(message.body)
-                try:
-                    await asyncio.sleep(0.01)  # Avoid very fast callbacks
-                    await callback(pixl_message)
-                except Exception:
-                    logger.exception(
-                        "Failed to process %s" "Not re-queuing message",
-                        pixl_message,
-                    )
-                finally:
-                    await message.ack()
+                if config("USE_TOKEN_BUCKET", default=False):
+                    logger.info("Using token bucket")
+                    if not self.token_bucket.has_token:
+                        logger.info("Waiting for token")
+                        await asyncio.sleep(1)
+                        await message.reject(requeue=True)
+                        continue
+                logger.warning("Starting to process message %s", message_count)
+                await asyncio.sleep(5)
+                await message.ack()
+                logger.warning("Finished to processing message %s", message_count)
+                message_count += 1
+        logger.debug(callback)
 
     async def __aexit__(self, *args: object, **kwargs: Any) -> None:
         """Requirement for the asynchronous context manager"""
