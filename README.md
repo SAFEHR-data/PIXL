@@ -142,7 +142,7 @@ setfacl -R -m d:g::rwX /gae/pixl_dev
 
 ### 1. Choose deployment environment
 
-This is one of dev|test|staging|prod and referred to as `<environment>` in the docs.
+This is one of `dev|test|staging|prod` and referred to as `<environment>` in the docs.
 
 ### 2. Initialise environment configuration
 
