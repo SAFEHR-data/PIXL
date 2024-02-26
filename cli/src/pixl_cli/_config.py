@@ -16,11 +16,9 @@
 
 from pathlib import Path
 
-from decouple import config
-from dotenv import load_dotenv
+from decouple import Config, RepositoryEnv
 
-# Make sure the local .env file is loaded
-load_dotenv(Path.cwd() / ".env")
+config = Config(RepositoryEnv(Path.cwd() / ".env"))
 
 SERVICE_SETTINGS = {
     "rabbitmq": {
