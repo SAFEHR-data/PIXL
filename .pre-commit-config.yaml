@@ -30,3 +30,9 @@ repos:
         entry: mypy
         args: ['--config-file=setup.cfg']
         additional_dependencies: ['mypy', 'types-PyYAML', 'types-requests', 'types-python-slugify', 'types-psycopg2']
+      - id: copyright-headers
+        name: copyright-headers
+        language: script
+        types_or: [python, shell, yaml, dockerfile]
+        entry: bin/linters/check_headers_exist.sh
+
