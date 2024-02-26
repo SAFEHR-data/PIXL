@@ -72,6 +72,9 @@ def AzureAccessToken():
     return response.json()["access_token"]
 
 
+TIMER = None
+
+
 def AzureDICOMTokenRefresh():
     """
     Refresh Azure DICOM token

@@ -14,7 +14,6 @@
 from __future__ import annotations
 
 import pathlib
-import subprocess
 
 import nibabel
 import numpy as np
@@ -23,6 +22,7 @@ import pytest
 import sqlalchemy
 import yaml
 from pydicom.data import get_testdata_file
+from pytest_pixl.helpers import run_subprocess
 
 from core.db.models import Image
 from pixl_dcmd.main import (
@@ -109,15 +109,14 @@ def test_can_nifti_convert_post_anonymisation(
     # Convert the anonymised DICOMs to NIFTI with dcm2niix
     anon_nifti_dir = tmp_path / "nifti_anon"
     anon_nifti_dir.mkdir()
-    subprocess.run(
+    run_subprocess(
         ["dcm2niix", "-f", "anon", "-o", str(anon_nifti_dir), str(anon_dicom_dir)],
-        check=True,
     )
 
     # Convert the pre-anonymisation DICOMs to NIFTI with dcm2niix
     ident_nifti_dir = tmp_path / "nifti_ident"
     ident_nifti_dir.mkdir()
-    subprocess.run(
+    run_subprocess(
         [
             "dcm2niix",
             "-f",
@@ -126,7 +125,6 @@ def test_can_nifti_convert_post_anonymisation(
             str(ident_nifti_dir),
             str(directory_of_mri_dicoms),
         ],
-        check=True,
     )
 
     # Confirm that the shape, orientation and contents of the pre- and
