@@ -22,14 +22,10 @@ This module provides:
 from __future__ import annotations
 
 import os
-from io import BytesIO
-from pathlib import Path
 from typing import TYPE_CHECKING
 
-import yaml
-from pydicom import Dataset, dcmread, dcmwrite
-
 import orthanc
+from pixl_dcmd.tagrecording import record_dicom_headers
 
 if TYPE_CHECKING:
     from typing import Any
@@ -55,27 +51,9 @@ def OnHeartBeat(output, uri, **request):  # noqa: ARG001
 
 def ReceivedInstanceCallback(receivedDicom: bytes, _: str) -> Any:
     """Optionally record headers from the received DICOM instance."""
-    if not ShouldRecordHeaders():
-        return None
-    with Path("/etc/orthanc/recorded-headers.yaml").open() as f:
-        recording_config = yaml.safe_load(f)
-    dataset = dcmread(BytesIO(receivedDicom), force=True)
-    with _header_log_path().open("a") as f:
-        values = [str(dataset.get(tag, "NA")) for tag in recording_config["tags"]]
-        f.write(",".join(values) + "\n")
+    if ShouldRecordHeaders():
+        record_dicom_headers(receivedDicom)
     return orthanc.ReceivedInstanceAction.KEEP_AS_IS, None
-
-
-def write_dataset_to_bytes(dataset: Dataset) -> bytes:
-    """TODO: this is a clone from pixl_dcmd."""
-    with BytesIO() as buffer:
-        dcmwrite(buffer, dataset)
-        buffer.seek(0)
-        return buffer.read()
-
-
-def _header_log_path() -> Path:
-    return Path(os.environ.get("ORTHANC_RAW_HEADER_LOG_PATH", "/dev/null"))
 
 
 def ShouldRecordHeaders() -> bool:

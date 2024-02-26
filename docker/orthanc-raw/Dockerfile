@@ -21,15 +21,20 @@ RUN --mount=type=cache,target=/root/.cache \
 
 # Install requirements before copying modules
 COPY ./pixl_core/pyproject.toml ./pixl_core/pyproject.toml
+COPY ./pixl_dcmd/pyproject.toml ./pixl_dcmd/pyproject.toml
 RUN --mount=type=cache,target=/root/.cache \
-    pip3 install pixl_core/
+    pip3 install pixl_core/ \
+    && pip3 install pixl_dcmd/
 
 COPY ./pixl_core/ ./pixl_core
 RUN --mount=type=cache,target=/root/.cache \
     pip3 install ./pixl_core
 
+COPY ./pixl_dcmd/ ./pixl_dcmd
+RUN --mount=type=cache,target=/root/.cache \
+    pip3 install ./pixl_dcmd
+
 COPY ./orthanc/orthanc-raw/plugin/pixl.py /etc/orthanc/pixl.py
-COPY ./orthanc/orthanc-raw/plugin/recorded-headers.yaml /etc/orthanc/recorded-headers.yaml
 
 # Orthanc can't substitute environment veriables as integers so copy and replace before running
 COPY ./orthanc/orthanc-raw/config /run/secrets
