@@ -160,6 +160,9 @@ services:
             - ${PWD}/project_configs:${PROJECT_CONFIGS_DIR:-/project_configs}:ro
         networks:
             - pixl-net
+        # needed for same reason as ehr-api
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
         depends_on:
             postgres:
                 condition: service_healthy
@@ -283,6 +286,10 @@ services:
             retries: 5
         networks:
             - pixl-net
+        # needed for testing under GHA (linux), so this container
+        # can reach the test FTP server running on the docker host
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
         volumes:
             - ${PWD}/exports:/run/exports
             - ${PWD}/project_configs:${PROJECT_CONFIGS_DIR:-/project_configs}:ro

@@ -14,10 +14,15 @@
 from __future__ import annotations
 
 import os
-import subprocess
+import shlex
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
+from pytest_pixl.helpers import run_subprocess
+
+if TYPE_CHECKING:
+    import subprocess
 
 # configure environmental variables
 os.environ["LOG_LEVEL"] = "DEBUG"
@@ -42,17 +47,13 @@ TEST_DIR = Path(__file__).parent
 @pytest.fixture(scope="package")
 def run_containers() -> subprocess.CompletedProcess[bytes]:
     """Run docker containers for tests which require them."""
-    yield subprocess.run(
-        b"docker compose up --build --wait",
-        check=True,
-        cwd=TEST_DIR,
-        shell=True,  # noqa: S602
+    yield run_subprocess(
+        shlex.split("docker compose up --build --wait"),
+        TEST_DIR,
         timeout=120,
     )
-    subprocess.run(
-        b"docker compose down --volumes",
-        check=True,
-        cwd=TEST_DIR,
-        shell=True,  # noqa: S602
+    run_subprocess(
+        shlex.split("docker compose down --volumes"),
+        TEST_DIR,
         timeout=60,
     )

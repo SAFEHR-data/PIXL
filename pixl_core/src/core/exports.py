@@ -83,9 +83,10 @@ class ParquetExport:
         """
         public_input = input_omop_dir / "public"
 
+        logging.info("Copying public parquet files from %s to %s", public_input, self.public_output)
+
         # Make directory for exports if they don't exist
         ParquetExport._mkdir(self.public_output)
-        logger.info("Copying public parquet files from %s to %s", public_input, self.public_output)
 
         # Copy extract files, overwriting if it exists
         shutil.copytree(public_input, self.public_output, dirs_exist_ok=True)
@@ -99,6 +100,7 @@ class ParquetExport:
         """Export radiology reports to parquet file"""
         self._mkdir(self.radiology_output)
         parquet_file = self.radiology_output / "radiology.parquet"
+        logging.info("Exporting radiology to %s", self.radiology_output)
         export_df.to_parquet(parquet_file)
         # We are not responsible for making the "latest" symlink, see `copy_to_exports`.
         # This avoids the confusion caused by EHR API (which calls export_radiology) having a
