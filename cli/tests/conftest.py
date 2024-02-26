@@ -14,12 +14,15 @@
 """CLI testing fixtures."""
 from __future__ import annotations
 
+import os
 import pathlib
 
 import pytest
 from core.db.models import Base, Extract, Image
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
+
+os.environ["PROJECT_CONFIGS_DIR"] = str(pathlib.Path(__file__).parents[2] / "project_configs")
 
 
 @pytest.fixture(autouse=True)
