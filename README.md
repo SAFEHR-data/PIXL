@@ -142,7 +142,7 @@ setfacl -R -m d:g::rwX /gae/pixl_dev
 
 ### 1. Choose deployment environment
 
-This is one of dev|test|staging|prod and referred to as `<environment>` in the docs.
+This is one of `dev|test|staging|prod` and referred to as `<environment>` in the docs.
 
 ### 2. Initialise environment configuration
 
@@ -249,12 +249,14 @@ PIXL data extracts include the below assumptions
 - (MRN, Accession number) is unique identifier for a report/DICOM study pair
 - Patients have a single _relevant_ MRN
 
-
-
 ## File journey overview
+
 Files that are present at each step of the pipeline.
 
+A more detailed description of the relevant file types is available in [`docs/file_types/parquet_files.md`](./docs/file_types/parquet_files.md).
+
 ### Resources in source repo (for test only)
+
 ```
 test/resources/omop/public /*.parquet
 ....................private/*.parquet
@@ -262,7 +264,9 @@ test/resources/omop/public /*.parquet
 ```
 
 ### OMOP ES extract dir (input to PIXL)
+
 EXTRACT_DIR is the directory passed to `pixl populate`
+
 ```
 EXTRACT_DIR/public /*.parquet
 ............private/*.parquet
@@ -270,12 +274,14 @@ EXTRACT_DIR/public /*.parquet
 ```
 
 ### PIXL Export dir (PIXL intermediate)
+
 ```
 EXPORT_ROOT/PROJECT_SLUG/all_extracts/EXTRACT_DATETIME/radiology/radiology.parquet
 ....................................................../omop/public/*.parquet
 ```
 
 ### FTP server
+
 ```
 FTPROOT/PROJECT_SLUG/EXTRACT_DATETIME/parquet/radiology/radiology.parquet
 ..............................................omop/public/*.parquet

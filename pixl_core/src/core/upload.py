@@ -76,10 +76,11 @@ def upload_dicom_image(zip_content: BinaryIO, pseudo_anon_id: str) -> None:
 
     # Store the file using a binary handler
     try:
+        logger.info("Running command %s", command)
         ftp.storbinary(command, zip_content)
     except ftplib.all_errors as ftp_error:
         ftp.quit()
-        error_msg = "Failed to run STOR command '%s': '%s'"
+        error_msg = f"Failed to run STOR command : {command}"
         raise ConnectionError(error_msg, command, ftp_error) from ftp_error
 
     # Close the FTP connection
@@ -90,7 +91,22 @@ def upload_dicom_image(zip_content: BinaryIO, pseudo_anon_id: str) -> None:
 
 
 def upload_parquet_files(parquet_export: ParquetExport) -> None:
-    """Upload parquet to FTPS under <project name>/<extract datetime>/parquet."""
+    """
+    Upload parquet to FTPS under <project name>/<extract datetime>/parquet.
+    :param parquet_export: instance of the ParquetExport class
+    The final directory structure will look like this:
+    <project-slug>
+    ├── <extract_datetime_slug>
+    │   └── parquet
+    │       ├── omop
+    │       │   └── public
+    │       │       └── PROCEDURE_OCCURRENCE.parquet
+    │       └── radiology
+    │           └── radiology.parquet
+    ├── <pseudonymised_ID_DICOM_dataset_1>.zip
+    └── <pseudonymised_ID_DICOM_dataset_2>.zip
+    ...
+    """
     logger.info("Starting FTPS upload of files for '%s'", parquet_export.project_slug)
 
     source_root_dir = parquet_export.current_extract_base
@@ -144,8 +160,8 @@ def _connect_to_ftp() -> FTP_TLS:
         ftp.login(ftp_user, ftp_password)
         ftp.prot_p()
     except ftplib.all_errors as ftp_error:
-        error_msg = "Failed to connect to FTPS server: '%s'"
-        raise ConnectionError(error_msg, ftp_error) from ftp_error
+        error_msg = f"Failed to connect to FTPS server: {ftp_user}@{ftp_host}:{ftp_port}"
+        raise ConnectionError(error_msg) from ftp_error
     return ftp
 
 

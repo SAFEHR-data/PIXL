@@ -127,12 +127,15 @@ def extract_radiology_reports(parquet_dir: Path) -> None:
     response = requests.post(
         url=f"{api_config.base_url}/export-patient-data",
         json={"project_name": project_name, "extract_datetime": omop_es_datetime.isoformat()},
-        timeout=10,
+        timeout=300,
     )
 
     success_code = 200
     if response.status_code != success_code:
-        msg = f"Failed to run export-patient-data due to: {response.text}"
+        msg = (
+            f"Failed to run export-patient-data due to: "
+            f"error code {response.status_code} {response.text}"
+        )
         raise RuntimeError(msg)
 
 
