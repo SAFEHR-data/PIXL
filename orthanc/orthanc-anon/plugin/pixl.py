@@ -143,10 +143,25 @@ def Send(resourceId: str) -> None:
 
     # send to destination
     if project_config.destination.dicom == "ftps":
-        SendViaFTPS(resourceId)
+        msg = f"Sending {resourceId} via FTPS"
+        logger.debug(msg)
+
+        zip_content = _get_study_zip_archive(resourceId)
+        upload.FTPSUploader(slug).upload_dicom_image(zip_content, hashed_patient_id)
     else:
         msg = f"Invalid destination: {project_config.destination.dicom}"
         raise ValueError(msg)
+
+
+def _get_study_zip_archive(resourceId: str) -> BytesIO:
+    # Download zip archive of the DICOM resource
+    query = f"{ORTHANC_URL}/studies/{resourceId}/archive"
+    fail_msg = "Could not download archive of resource '%s'"
+    response_study = _query(resourceId, query, fail_msg)
+
+    # get the zip content
+    logger.debug("Downloaded data for resource %s", resourceId)
+    return BytesIO(response_study.content)
 
 
 def SendViaStow(resourceId):
@@ -176,25 +191,6 @@ def SendViaStow(resourceId):
         logger.info(msg)
     except requests.exceptions.RequestException:
         orthanc.LogError("Failed to send via STOW")
-
-
-def SendViaFTPS(resourceId: str) -> None:
-    """
-    Makes a POST API call to upload the resource to an FTPS server
-    using orthanc credentials as authorisation
-    """
-    msg = f"Sending {resourceId} via FTPS"
-    logger.debug(msg)
-    # Download zip archive of the DICOM resource
-    query = f"{ORTHANC_URL}/studies/{resourceId}/archive"
-    fail_msg = "Could not download archive of resource '%s'"
-    response_study = _query(resourceId, query, fail_msg)
-
-    # get the zip content
-    zip_content = response_study.content
-    logger.debug("Downloaded data for resource %s", resourceId)
-
-    upload.upload_dicom_image(BytesIO(zip_content), _get_patient_id(resourceId))
 
 
 def _get_patient_id(resourceId: str) -> str:
