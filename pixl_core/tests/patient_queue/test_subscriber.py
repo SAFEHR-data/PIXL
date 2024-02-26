@@ -48,10 +48,12 @@ async def test_create() -> None:
     with PixlProducer(queue_name=TEST_QUEUE) as pp:
         pp.publish(messages=[TEST_MESSAGE])
 
-    async with PixlConsumer(queue_name=TEST_QUEUE, token_bucket=TokenBucket()) as pc:
-        consume = AsyncMock()
+    consume = AsyncMock()
+    async with PixlConsumer(
+        queue_name=TEST_QUEUE, token_bucket=TokenBucket(), callback=consume
+    ) as pc:
         # Create a Task to run pc.run in the background
-        task = asyncio.create_task(pc.run(callback=consume))
+        task = asyncio.create_task(pc.run())
 
         # Wait for a short time to allow pc.run to start
         await asyncio.sleep(1)

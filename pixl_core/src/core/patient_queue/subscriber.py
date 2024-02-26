@@ -27,11 +27,11 @@ if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
     from pathlib import Path
 
+    from aio_pika.abc import AbstractIncomingMessage
     from typing_extensions import Self
 
     from core.patient_queue.message import Message
     from core.token_buffer.tokens import TokenBucket
-
 
 logger = logging.getLogger(__name__)
 
@@ -39,13 +39,19 @@ logger = logging.getLogger(__name__)
 class PixlConsumer(PixlQueueInterface):
     """Connector to RabbitMQ. Consumes messages from a queue"""
 
-    def __init__(self, queue_name: str, token_bucket: TokenBucket) -> None:
+    def __init__(
+        self,
+        queue_name: str,
+        token_bucket: TokenBucket,
+        callback: Callable[[Message], Awaitable[None]],
+    ) -> None:
         """
         Creating connection to RabbitMQ queue
         :param token_bucket: Token bucket for EHR queue
         """
         super().__init__(queue_name=queue_name)
         self.token_bucket = token_bucket
+        self._callback = callback
 
     @property
     def _url(self) -> str:
@@ -62,34 +68,29 @@ class PixlConsumer(PixlQueueInterface):
         self._queue = await self._channel.declare_queue(self.queue_name)
         return self
 
-    async def run(self, callback: Callable[[Message], Awaitable[None]]) -> None:
+    async def __aexit__(self, *args: object, **kwargs: Any) -> None:
+        """Requirement for the asynchronous context manager"""
+        return
+
+    async def _process_message(self, message: AbstractIncomingMessage) -> None:
+        if config("USE_TOKEN_BUCKET", default=False):
+            logger.info("Using token bucket")
+            if not self.token_bucket.has_token:
+                logger.info("Waiting for token")
+                await asyncio.sleep(1)
+                await message.reject(requeue=True)
+                return
+        logger.warning("Starting to process message %s", message.body)
+        await asyncio.sleep(5)
+        await message.ack()
+        logger.warning("Finished to processing message %s", message.body)
+
+    async def run(self) -> None:
         """
         Creates loop that waits for messages from producer and processes them as
         they appear.
-        :param callback: Method to be called when new message arrives that needs to
-                         be processed. Must take a dictionary and return None.
         """
-        message_count = 1
-        async with self._queue.iterator() as queue_iter:
-            # Pre-annotate the message type
-            message: aio_pika.abc.AbstractIncomingMessage
-            async for message in queue_iter:
-                if config("USE_TOKEN_BUCKET", default=False):
-                    logger.info("Using token bucket")
-                    if not self.token_bucket.has_token:
-                        logger.info("Waiting for token")
-                        await asyncio.sleep(1)
-                        await message.reject(requeue=True)
-                        continue
-                logger.warning("Starting to process message %s", message_count)
-                await asyncio.sleep(5)
-                await message.ack()
-                logger.warning("Finished to processing message %s", message_count)
-                message_count += 1
-        logger.debug(callback)
-
-    async def __aexit__(self, *args: object, **kwargs: Any) -> None:
-        """Requirement for the asynchronous context manager"""
+        await self._queue.consume(self._process_message)
 
 
 class PixlBlockingConsumer(PixlBlockingInterface):
