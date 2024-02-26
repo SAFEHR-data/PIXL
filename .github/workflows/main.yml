@@ -151,7 +151,7 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install pixl_core/ pixl_ehr/[test]
+          pip install pytest-pixl/ pixl_core/ pixl_ehr/[test]
 
       - name: Run tests
         working-directory: pixl_ehr/tests
