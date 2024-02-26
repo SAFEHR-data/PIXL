@@ -40,6 +40,11 @@ os.environ["RABBITMQ_HOST"] = "localhost"
 os.environ["RABBITMQ_PORT"] = "25672"
 os.environ["PROJECT_CONFIGS_DIR"] = str(TEST_DIR.parents[1] / "project_configs")
 
+os.environ["FTP_HOST"] = "localhost"
+os.environ["FTP_USER_NAME"] = "pixl"
+os.environ["FTP_PASSWORD"] = "longpassword"  # noqa: S105 Hardcoding password
+os.environ["FTP_PORT"] = "20021"
+
 
 @pytest.fixture(scope="package")
 def run_containers() -> subprocess.CompletedProcess[bytes]:
@@ -72,10 +77,10 @@ class MockFTPSUploader(FTPSUploader):
 
     def __init__(self) -> None:
         """Initialise the mock uploader with hardcoded values for FTPS config."""
-        self.host = "localhost"
-        self.user = "pixl"
-        self.password = "longpassword"  # noqa: S105 Hardcoding password
-        self.port = 20021
+        self.host = os.environ["FTP_HOST"]
+        self.user = os.environ["FTP_USER_NAME"]
+        self.password = os.environ["FTP_PASSWORD"]
+        self.port = int(os.environ["FTP_PORT"])
 
 
 @pytest.fixture()
