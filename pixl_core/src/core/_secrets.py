@@ -39,7 +39,7 @@ class AzureKeyVault:
         - AZURE_KEY_VAULT_NAME
         """
         self._check_envvars()
-        self.kv_name = config("EXPORT_AZ_KEY_VAULT_NAME")
+        self.kv_name = config("AZURE_KEY_VAULT_NAME")
         self.client = self._connect_to_keyvault()
 
     def _connect_to_keyvault(self) -> SecretClient:
