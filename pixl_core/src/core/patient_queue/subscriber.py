@@ -11,7 +11,9 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+
 """Subscriber for RabbitMQ"""
+
 from __future__ import annotations
 
 import asyncio
@@ -21,7 +23,8 @@ from typing import TYPE_CHECKING, Any
 import aio_pika
 from decouple import config
 
-from ._base import PixlBlockingInterface, PixlQueueInterface
+from core.patient_queue._base import PixlBlockingInterface, PixlQueueInterface
+from core.patient_queue.message import deserialise
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -62,35 +65,37 @@ class PixlConsumer(PixlQueueInterface):
         self._connection = await aio_pika.connect_robust(self._url)
         self._channel = await self._connection.channel()
         # Set number of messages in flight
-        max_in_flight = config("MAX_IN_FLIGHT", default=10)
+        max_in_flight = config("PIXL_MAX_MESSAGES_IN_FLIGHT", default=10)
         logger.info("Pika will consume up to %s messages concurrently", max_in_flight)
         await self._channel.set_qos(prefetch_count=max_in_flight)
         self._queue = await self._channel.declare_queue(self.queue_name)
         return self
 
-    async def __aexit__(self, *args: object, **kwargs: Any) -> None:
-        """Requirement for the asynchronous context manager"""
-        return
-
     async def _process_message(self, message: AbstractIncomingMessage) -> None:
-        if config("USE_TOKEN_BUCKET", default=False):
-            logger.info("Using token bucket")
-            if not self.token_bucket.has_token:
-                logger.info("Waiting for token")
-                await asyncio.sleep(1)
-                await message.reject(requeue=True)
-                return
-        logger.warning("Starting to process message %s", message.body)
-        await asyncio.sleep(5)
-        await message.ack()
-        logger.warning("Finished to processing message %s", message.body)
+        if not self.token_bucket.has_token:
+            await asyncio.sleep(0.01)
+            await message.reject(requeue=True)
+            return
+
+        pixl_message = deserialise(message.body)
+        try:
+            logger.warning("Starting message %s", pixl_message)
+            await self._callback(pixl_message)
+            logger.warning("Finished message %s", pixl_message)
+        except Exception:
+            logger.exception(
+                "Failed to process %s" "Not re-queuing message",
+                pixl_message,
+            )
+        finally:
+            await message.ack()
 
     async def run(self) -> None:
-        """
-        Creates loop that waits for messages from producer and processes them as
-        they appear.
-        """
+        """Processes messages from queue asynchronously."""
         await self._queue.consume(self._process_message)
+
+    async def __aexit__(self, *args: object, **kwargs: Any) -> None:
+        """Requirement for the asynchronous context manager"""
 
 
 class PixlBlockingConsumer(PixlBlockingInterface):

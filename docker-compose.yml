@@ -213,9 +213,9 @@ services:
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
     healthcheck:
       test: rabbitmq-diagnostics -q check_running
-      interval: 10s
-      timeout: 10s
-      retries: 10
+      interval: 30s
+      timeout: 30s
+      retries: 3
     ports:
       - "${RABBITMQ_PORT}:5672"
       - "${RABBITMQ_ADMIN_PORT}:15672"
@@ -265,7 +265,7 @@ services:
     depends_on:
       queue:
         condition: service_healthy
-      postgres:
+      orthanc-raw:
         condition: service_healthy
     healthcheck:
       test: curl -f http://0.0.0.0:8000/heart-beat
@@ -288,7 +288,7 @@ services:
       PIXL_DB_PASSWORD: ${PIXL_DB_PASSWORD}
       PIXL_DICOM_TRANSFER_TIMEOUT: ${PIXL_DICOM_TRANSFER_TIMEOUT}
       PIXL_QUERY_TIMEOUT: ${PIXL_QUERY_TIMEOUT}
-      USE_TOKEN_BUCKET: ${USE_TOKEN_BUCKET}
+      PIXL_MAX_MESSAGES_IN_FLIGHT: ${PIXL_MAX_MESSAGES_IN_FLIGHT}
     ports:
       - "${PIXL_IMAGING_API_PORT}:8000"
 

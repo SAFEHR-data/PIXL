@@ -20,24 +20,14 @@ cd "${PACKAGE_DIR}/test"
 docker compose --env-file .env -p system-test down --volumes
 #
 # Note: cannot run as single docker compose command due to different build contexts
-docker compose --env-file .env -p system-test up --wait vna-qr star
+docker compose --env-file .env -p system-test up --wait -d --build --remove-orphans
 # Warning: Requires to be run from the project root
 (cd .. && \
-  docker compose --env-file test/.env -p system-test up --wait --build imaging-api)
+  docker compose --env-file test/.env -p system-test up --wait -d --build)
 
 ./scripts/insert_test_data.sh
 
-echo "Default environment variables being used"
-pixl populate --queues imaging "${PACKAGE_DIR}/test/resources/omop"
-pixl start --queues imaging
-# wait for messages to be processed
-sleep 10
-docker compose --env-file .env -f ../docker-compose.yml -p system-test logs -t imaging-api
 
-
-echo "Using token bucket"
-(cd .. && \
-  docker compose --env-file test/.env --env-file test/use_tb.env -p system-test up --wait  imaging-api)
 pixl populate --queues imaging "${PACKAGE_DIR}/test/resources/omop"
 pixl start --queues imaging
 # wait for messages to be processed
