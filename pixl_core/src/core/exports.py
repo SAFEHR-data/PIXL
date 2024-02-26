@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     import pandas as pd
 
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 
 
 class ParquetExport:
@@ -83,7 +83,7 @@ class ParquetExport:
         """
         public_input = input_omop_dir / "public"
 
-        logging.info("Copying public parquet files from %s to %s", public_input, self.public_output)
+        logger.info("Copying public parquet files from %s to %s", public_input, self.public_output)
 
         # Make directory for exports if they don't exist
         ParquetExport._mkdir(self.public_output)
@@ -100,7 +100,7 @@ class ParquetExport:
         """Export radiology reports to parquet file"""
         self._mkdir(self.radiology_output)
         parquet_file = self.radiology_output / "radiology.parquet"
-        logging.info("Exporting radiology to %s", self.radiology_output)
+        logger.info("Exporting radiology to %s", self.radiology_output)
         export_df.to_parquet(parquet_file)
         # We are not responsible for making the "latest" symlink, see `copy_to_exports`.
         # This avoids the confusion caused by EHR API (which calls export_radiology) having a
@@ -118,8 +118,15 @@ class ParquetExport:
         """Upload the latest extract to the DSH."""
         project_config = load_project_config(self.project_slug)
         destination = project_config.destination.parquet
+
         if destination == "ftps":
-            FTPSUploader(self.project_slug).upload_parquet_files(self)
+            ftps_uploader = FTPSUploader(self.project_slug)
+            msg = (
+                f"Uploading parquet files for project {self.project_slug} to FTPS to host"
+                f"{ftps_uploader.host} via port {ftps_uploader.port}"
+            )
+            logger.warning(msg)
+            ftps_uploader.upload_parquet_files(self)
         else:
             msg = f"Destination {destination} for parquet files not supported"
             raise ValueError(msg)
