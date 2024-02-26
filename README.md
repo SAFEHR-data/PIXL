@@ -226,7 +226,7 @@ The configuration file defines:
     - `"dicomweb"`: a DICOMweb server (for _DICOM_ files only)
       Requires the `DICOMWEB_*` environment variables to be set in `.env`
 
-#### Project secrets
+#### Project secrets {#project-secrets}
 
 Any credentials required for uploading the project's results should be stored in an **Azure Key Vault**.
 PIXL will query this key vault for the required secrets at runtime. This requires the following
