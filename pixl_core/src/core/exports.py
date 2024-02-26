@@ -121,10 +121,7 @@ class ParquetExport:
 
         if destination == "ftps":
             ftps_uploader = FTPSUploader(project_config)
-            msg = (
-                f"Uploading parquet files for project {self.project_slug} to FTPS to host"
-                f"{ftps_uploader.host} via port {ftps_uploader.port}"
-            )
+            msg = f"Uploading parquet files for project {self.project_slug} via FTPS"
             logger.warning(msg)
             ftps_uploader.upload_parquet_files(self)
         else:
