@@ -9,11 +9,6 @@ stopped cleanly.
 
 `PIXL CLI` requires Python version 3.10.
 
-The CLI requires a `pixl_config.yml` file in the current working directory. A
-[sample file](../pixl_config.yml.sample) is provided in the root of the repository. If you want to
-run locally during development, we recommend running `pixl` from the [`./tests/`](./tests/)
-directory, which contains a mock `pixl_config.yml` file.
-
 Running the tests requires [docker](https://docs.docker.com/get-docker/) to be installed.
 
 ## Installation
@@ -40,6 +35,39 @@ See the commands and subcommands with
 ```bash
 pixl --help
 ```
+### Configuration
+
+The `rabbitmq` and `postgress` services are configured by setting the following environment variables
+(default values shown):
+
+```sh
+RABBITMQ_HOST=localhost
+RABBITMQ_PORT=7008
+RABBITMQ_USERNAME=rabbitmq_username
+RABBITMQ_PASSWORD=rabbitmq_password
+
+POSTGRES_HOST=localhost
+POSTGRES_PORT=7001
+PIXL_DB_USER=pixl_db_username
+PIXL_DB_PASSWORD=pixl_db_password
+PIXL_DB_NAME=pixl
+```
+
+The `rabbitmq` queues for the `ehr` and `imaging` APIs are configured by setting:
+
+```sh
+PIXL_EHR_API_HOST=localhost
+PIXL_EHR_API_PORT=7006
+PIXL_EHR_API_RATE=1
+
+PIXL_IMAGING_API_HOST=localhost
+PIXL_IMAGING_API_PORT=7007
+PIXL_IMAGING_API_RATE=1
+```
+
+where the `*_RATE` variables set the default querying rate for the message queues.
+
+### Running the pipeline
 
 Populate queue for Imaging and EHR extraction
 

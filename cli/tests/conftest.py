@@ -24,6 +24,26 @@ from sqlalchemy.orm import Session, sessionmaker
 
 os.environ["PROJECT_CONFIGS_DIR"] = str(pathlib.Path(__file__).parents[2] / "project_configs")
 
+# Set the necessary environment variables
+os.environ["PIXL_EHR_API_HOST"] = "localhost"
+os.environ["PIXL_EHR_API_RATE"] = "1"
+os.environ["PIXL_EHR_API_PORT"] = "7006"
+
+os.environ["PIXL_IMAGING_API_HOST"] = "localhost"
+os.environ["PIXL_IMAGING_API_RATE"] = "1"
+os.environ["PIXL_IMAGING_API_PORT"] = "7007"
+
+os.environ["RABBITMQ_HOST"] = "localhost"
+os.environ["RABBITMQ_USERNAME"] = "rabbitmq_username"
+os.environ["RABBITMQ_PASSWORD"] = "rabbitmq_password"  # noqa: S105
+os.environ["RABBITMQ_PORT"] = "7008"
+
+os.environ["PIXL_DB_USER"] = "pixl_db_username"
+os.environ["PIXL_DB_PASSWORD"] = "pixl_db_password"  # noqa: S105
+os.environ["POSTGRES_HOST"] = "locahost"
+os.environ["POSTGRES_PORT"] = "7001"
+os.environ["PIXL_DB_NAME"] = "pixl"
+
 
 @pytest.fixture(autouse=True)
 def export_dir(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:

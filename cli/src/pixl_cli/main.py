@@ -26,13 +26,13 @@ from core.patient_queue.producer import PixlProducer
 from core.patient_queue.subscriber import PixlBlockingConsumer
 from decouple import RepositoryEnv, UndefinedValueError, config
 
-from pixl_cli._config import cli_config
+from pixl_cli._config import SERVICE_SETTINGS, api_config_for_queue
 from pixl_cli._database import filter_exported_or_add_to_db
 from pixl_cli._io import (
-    config_from_log_file,
     copy_parquet_return_logfile_fields,
     messages_from_parquet,
     messages_from_state_file,
+    project_info,
 )
 from pixl_cli._logging import logger, set_log_level
 from pixl_cli._utils import clear_file, remove_file_if_it_exists
@@ -128,7 +128,7 @@ def populate(parquet_dir: Path, *, restart: bool, queues: str) -> None:
             sorted_messages = filter_exported_or_add_to_db(
                 sorted_messages, messages[0].project_name
             )
-        with PixlProducer(queue_name=queue, **cli_config["rabbitmq"]) as producer:
+        with PixlProducer(queue_name=queue, **SERVICE_SETTINGS["rabbitmq"]) as producer:
             producer.publish(sorted_messages)
 
 
@@ -143,7 +143,7 @@ def extract_radiology_reports(parquet_dir: Path) -> None:
     PARQUET_DIR: Directory containing the extract_summary.json
     log file defining which extract to export radiology reports for.
     """
-    project_name, omop_es_datetime = config_from_log_file(parquet_dir)
+    project_name, omop_es_datetime = project_info(parquet_dir)
 
     # Call the EHR API
     api_config = api_config_for_queue("ehr")
@@ -173,10 +173,9 @@ def extract_radiology_reports(parquet_dir: Path) -> None:
     "--rate",
     type=float,
     default=None,
-    help="Rate at which to process items from a queue (in items per second)."
-    "If None then will use the default rate defined in the config file",
+    help="Rate at which to process items from a queue (in items per second).",
 )
-def start(queues: str, rate: Optional[int]) -> None:
+def start(queues: str, rate: Optional[float]) -> None:
     """Start consumers for a set of queues"""
     if rate == 0:
         msg = "Cannot start extract with a rate of 0. Must be >0"
@@ -216,10 +215,7 @@ def _update_extract_rate(queue_name: str, rate: Optional[float]) -> None:
 
     if rate is None:
         if api_config.default_rate is None:
-            msg = (
-                "Cannot update the rate for %s. No default rate was specified.",
-                queue_name,
-            )
+            msg = f"Cannot update the rate for {queue_name}. No valid rate was specified."
             raise ValueError(msg)
         rate = float(api_config.default_rate)
         logger.info(f"Using the default extract rate of {rate}/second")
@@ -329,7 +325,7 @@ def consume_all_messages_and_save_csv_file(queue_name: str, timeout_in_seconds: 
         f"{timeout_in_seconds} seconds"
     )
 
-    with PixlBlockingConsumer(queue_name=queue_name, **cli_config["rabbitmq"]) as consumer:
+    with PixlBlockingConsumer(queue_name=queue_name, **SERVICE_SETTINGS["rabbitmq"]) as consumer:
         state_filepath = state_filepath_for_queue(queue_name)
         if consumer.message_count > 0:
             logger.info("Found messages in the queue. Clearing the state file")
@@ -355,51 +351,3 @@ def inform_user_that_queue_will_be_populated_from(path: Path) -> None:  # noqa: 
         f"state files should be ignored, or delete this file to ignore. Press "
         f"Ctrl-C to exit and any key to continue"
     )
-
-
-class APIConfig:
-    """
-    Class to represent the configuration for an API
-
-    Attributes
-    ----------
-    host : str
-        Hostname for the API
-    port : int
-        Port for the API
-    default_rate : int
-        Default rate for the API
-
-    Methods
-    -------
-    base_url()
-        Return the base url for the API
-
-    """
-
-    def __init__(self, kwargs: dict) -> None:
-        """Initialise the APIConfig class"""
-        self.host: Optional[str] = None
-        self.port: Optional[int] = None
-        self.default_rate: Optional[int] = None
-
-        self.__dict__.update(kwargs)
-
-    @property
-    def base_url(self) -> str:
-        """Return the base url for the API"""
-        return f"http://{self.host}:{self.port}"
-
-
-def api_config_for_queue(queue_name: str) -> APIConfig:
-    """Configuration for an API associated with a queue"""
-    config_key = f"{queue_name}_api"
-
-    if config_key not in cli_config:
-        msg = (
-            f"Cannot update the rate for {queue_name}. {config_key} was"
-            f" not specified in the configuration"
-        )
-        raise ValueError(msg)
-
-    return APIConfig(cli_config[config_key])
