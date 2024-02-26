@@ -61,6 +61,12 @@ x-ftp-host: &ftp-host
   FTP_USER_PASSWORD: ${FTP_USER_PASSWORD}
   FTP_PORT: ${FTP_PORT}
 
+x-azure-keyvault: &azure-keyvault
+  AZURE_CLIENT_ID: ${EXPORT_AZ_CLIENT_ID}
+  AZURE_CLIENT_SECRET: ${EXPORT_AZ_CLIENT_PASSWORD}
+  AZURE_TENANT_ID: ${EXPORT_AZ_TENANT_ID}
+  AZURE_KEY_VAULT_NAME: ${EXPORT_AZ_KEY_VAULT_NAME}
+
 x-logs-volume: &logs-volume
   type: volume
   source: logs
@@ -116,7 +122,7 @@ services:
         <<: *build-args-common
     command: /run/secrets
     environment:
-      <<: [*proxy-common, *pixl-common-env, *ftp-host]
+      <<: [*proxy-common, *pixl-common-env, *ftp-host, *azure-keyvault]
       ORTHANC_NAME: "PIXL: Anon"
       ORTHANC_USERNAME: ${ORTHANC_ANON_USERNAME}
       ORTHANC_PASSWORD: ${ORTHANC_ANON_PASSWORD}
@@ -231,10 +237,7 @@ services:
       args:
         <<: *build-args-common
     environment:
-      <<: [*pixl-db, *emap-db, *proxy-common, *pixl-common-env, *pixl-rabbit-mq, *ftp-host]
-      AZURE_CLIENT_ID: ${PIXL_EHR_API_AZ_CLIENT_ID}
-      AZURE_CLIENT_SECRET: ${PIXL_EHR_API_AZ_CLIENT_SECRET}
-      AZURE_TENANT_ID: ${PIXL_EHR_API_AZ_TENANT_ID}
+      <<: [*pixl-db, *emap-db, *proxy-common, *pixl-common-env, *pixl-rabbit-mq, *ftp-host, *azure-keyvault]
       AZ_STORAGE_ACCOUNT_NAME: ${PIXL_EHR_API_AZ_STORAGE_ACCOUNT_NAME}
       AZ_STORAGE_CONTAINER_NAME: ${PIXL_EHR_API_AZ_STORAGE_CONTAINER_NAME}
       COGSTACK_REDACT_URL: ${PIXL_EHR_COGSTACK_REDACT_URL}
