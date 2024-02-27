@@ -209,7 +209,7 @@ def generate_dicom_dataset(  # noqa: PLR0913, PLR0915
     ds.SeriesNumber = "901"
     ds.AcquisitionNumber = "9"
     ds.InstanceNumber = "1"
-    ds.ImagePositionPatient = image_position_patient
+    ds.ImagePositionPatient = list(image_position_patient)
     ds.ImageOrientationPatient = [
         -0.0065220510587,
         0.99990475177764,
