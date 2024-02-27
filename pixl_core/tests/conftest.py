@@ -37,6 +37,7 @@ pytest_plugins = "pytest_pixl"
 TEST_DIR = Path(__file__).parent
 STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
 
+os.environ["PIXL_MAX_MESSAGES_IN_FLIGHT"] = "10"
 os.environ["RABBITMQ_USERNAME"] = "guest"
 os.environ["RABBITMQ_PASSWORD"] = "guest"  # noqa: S105 Hardcoding password
 os.environ["RABBITMQ_HOST"] = "localhost"
