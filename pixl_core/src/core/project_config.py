@@ -41,10 +41,10 @@ def load_project_config(project_slug: str) -> PixlConfig | Any:
     logger.warning(f"Loading config for {project_slug} from {configpath}")  # noqa: G004
     if not configpath.exists():
         raise FileNotFoundError(f"No config for {project_slug}. Please submit PR and redeploy.")  # noqa: EM102, TRY003
-    return _load_project_config(configpath)
+    return _load_and_validate(configpath)
 
 
-def _load_project_config(filename: Path) -> PixlConfig | Any:
+def _load_and_validate(filename: Path) -> PixlConfig | Any:
     """
     Load configuration from a yaml file.
     :param filename: Path to the yaml file
