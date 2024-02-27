@@ -55,12 +55,6 @@ x-pixl-db: &pixl-db
     PIXL_DB_PASSWORD: ${PIXL_DB_PASSWORD}
     PIXL_DB_NAME: ${PIXL_DB_NAME}
 
-x-ftp-host: &ftp-host
-    FTP_HOST: ${FTP_HOST}
-    FTP_USER_NAME: ${FTP_USER_NAME}
-    FTP_USER_PASSWORD: ${FTP_USER_PASSWORD}
-    FTP_PORT: ${FTP_PORT}
-
 x-azure-keyvault: &azure-keyvault
     AZURE_CLIENT_ID: ${EXPORT_AZ_CLIENT_ID}
     AZURE_CLIENT_SECRET: ${EXPORT_AZ_CLIENT_PASSWORD}
@@ -121,7 +115,7 @@ services:
                 <<: *build-args-common
         command: /run/secrets
         environment:
-            <<: [*proxy-common, *pixl-common-env, *ftp-host, *azure-keyvault]
+            <<: [*proxy-common, *pixl-common-env, *azure-keyvault]
             ORTHANC_NAME: "PIXL: Anon"
             ORTHANC_USERNAME: ${ORTHANC_ANON_USERNAME}
             ORTHANC_PASSWORD: ${ORTHANC_ANON_PASSWORD}
@@ -262,7 +256,6 @@ services:
                     *proxy-common,
                     *pixl-common-env,
                     *pixl-rabbit-mq,
-                    *ftp-host,
                     *azure-keyvault,
                 ]
             AZ_STORAGE_ACCOUNT_NAME: ${PIXL_EHR_API_AZ_STORAGE_ACCOUNT_NAME}
