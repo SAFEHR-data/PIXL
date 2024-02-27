@@ -27,9 +27,34 @@ docker compose --env-file .env -p system-test up --wait -d --build --remove-orph
 
 ./scripts/insert_test_data.sh
 
+# Install pixl_cli and test dependencies
+pip install -e "${PACKAGE_DIR}/pixl_core" && \
+  pip install -e "${PACKAGE_DIR}/cli" && \
+  pip install -e "${PACKAGE_DIR}/pytest-pixl"
 
-pixl populate --queues imaging "${PACKAGE_DIR}/test/resources/omop"
-pixl start --queues imaging
-# wait for messages to be processed
-sleep 10
-docker compose --env-file .env -f ../docker-compose.yml -p system-test logs -t imaging-api
+
+pixl populate "${PACKAGE_DIR}/test/resources/omop"
+pixl start
+
+# need to wait until the DICOM image is "stable" so poll for 2 minutes to check
+./scripts/check_entry_in_orthanc_anon_for_2_min.py
+./scripts/check_entry_in_pixl_anon.sh
+
+# test export and upload
+pixl extract-radiology-reports "${PACKAGE_DIR}/test/resources/omop"
+./scripts/check_radiology_parquet.py \
+  ../exports/test-extract-uclh-omop-cdm/latest/radiology/radiology.parquet
+./scripts/check_ftps_upload.py
+
+
+ls -laR ../exports/
+docker exec system-test-ehr-api-1 rm -r /run/exports/test-extract-uclh-omop-cdm/
+
+# This checks that orthanc-raw acknowledges the configured maximum storage size
+./scripts/check_max_storage_in_orthanc_raw.sh
+
+# Run this last because it will force out original test images from orthanc-raw
+./scripts/check_max_storage_in_orthanc_raw.py
+
+cd "${PACKAGE_DIR}"
+docker compose -f docker-compose.yml -f test/docker-compose.yml -p system-test down --volumes
