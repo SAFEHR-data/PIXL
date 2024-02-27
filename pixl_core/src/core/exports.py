@@ -122,8 +122,8 @@ class ParquetExport:
         if destination == "ftps":
             ftps_uploader = FTPSUploader(project_config)
             msg = f"Uploading parquet files for project {self.project_slug} via FTPS"
-            logger.warning(msg)
+            logger.info(msg)
             ftps_uploader.upload_parquet_files(self)
         else:
-            msg = f"Destination {destination} for parquet files not supported"
-            raise ValueError(msg)
+            msg = f"Destination {destination} for parquet files not supported. Skipping upload."
+            logger.warning(msg)
