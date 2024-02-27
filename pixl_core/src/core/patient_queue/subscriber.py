@@ -65,7 +65,7 @@ class PixlConsumer(PixlQueueInterface):
         self._connection = await aio_pika.connect_robust(self._url)
         self._channel = await self._connection.channel()
         # Set number of messages in flight
-        max_in_flight = config("PIXL_MAX_MESSAGES_IN_FLIGHT")
+        max_in_flight = config("PIXL_MAX_MESSAGES_IN_FLIGHT", cast=int)
         logger.info("Pika will consume up to %s messages concurrently", max_in_flight)
         await self._channel.set_qos(prefetch_count=max_in_flight)
         self._queue = await self._channel.declare_queue(self.queue_name)
