@@ -55,7 +55,7 @@ class AzureKeyVault:
         """
         secret = self.client.get_secret(secret_name).value
         if secret is None:
-            msg = "Azure Key Vault secret is None"
+            msg = f"Azure Key Vault secret {secret_name} is None"
             raise ValueError(msg)
 
         return str(secret)
