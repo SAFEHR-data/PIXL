@@ -12,13 +12,16 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """A ligthweight FTPS server supporting implicit SSL for use in PIXL tests."""
-
+import logging
 from pathlib import Path
 
 from decouple import config
 from pyftpdlib.authorizers import DummyAuthorizer
 from pyftpdlib.handlers import TLS_FTPHandler
-from pyftpdlib.servers import FTPServer
+from pyftpdlib.servers import ThreadedFTPServer
+
+logger = logging.getLogger(__name__)
+logger.setLevel("INFO")
 
 # User permission
 # from https://pyftpdlib.readthedocs.io/en/latest/api.html#pyftpdlib.authorizers.DummyAuthorizer.add_user
@@ -73,19 +76,20 @@ class PixlFTPServer:
     :type home_dir: str
     """
 
-    def __init__(self, home_dir: str) -> None:
+    def __init__(self, home_root: Path, host_address: str) -> None:
         """
         Initialise the FTPS server. Sets the hostname, port, username and password
         from the corresponding environment variables.
-        :param home_dir: The home directory for the FTP server. This is the directory where the
-            user will be placed after login.
+        :param home_root: The directory where the user's home directory will be created.
+        The home dir is the directory where the user will be placed after login.
         """
-        self.host = config("FTP_HOST", default="127.0.0.1")
+        self.host = host_address
         self.port = int(config("FTP_PORT", default=20021))
 
         self.user_name = config("FTP_USER_NAME", default="pixl_user")
         self.user_password = config("FTP_USER_PASSWORD", default="longpassword")
-        self.home_dir = home_dir
+        self.home_dir: Path = home_root / self.user_name
+        self.home_dir.mkdir()
 
         self.certfile = Path(__file__).parents[1] / "resources" / "ssl" / "localhost.crt"
         self.keyfile = Path(__file__).parents[1] / "resources" / "ssl" / "localhost.key"
@@ -103,7 +107,7 @@ class PixlFTPServer:
         will be a directory on the local filesystem!
         """
         self.authorizer.add_user(
-            self.user_name, self.user_password, self.home_dir, perm=USER_PERMISSIONS
+            self.user_name, self.user_password, str(self.home_dir), perm=USER_PERMISSIONS
         )
 
     def _setup_TLS_handler(self) -> None:
@@ -119,11 +123,12 @@ class PixlFTPServer:
         assert certfile_path.exists(), f"Could not find cerfile at {certfile_path.absolute()}"
         assert keyfile_path.exists(), f"Could not find cerfile at {keyfile_path.absolute()}"
 
-    def _create_server(self) -> FTPServer:
+    def _create_server(self) -> ThreadedFTPServer:
         """
         Creates the FTPS server and returns it. The server can be started with the `serve_forever`
         method.
         """
         address = (self.host, self.port)
-        self.server = FTPServer(address, self.handler)
+        logger.info("Starting FTP server on %s:%d", self.host, self.port)
+        self.server = ThreadedFTPServer(address, self.handler)
         return self.server

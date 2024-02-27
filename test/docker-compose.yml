@@ -74,26 +74,3 @@ services:
             retries: 5
         networks:
             pixl-net:
-
-    ftp-server:
-        container_name: system-test-ftp-server
-        build:
-            context: ./dummy-services/ftp-server
-        ports:
-            - "127.0.0.1:20021:21"
-            - "21000-21010:21000-21010"
-        volumes:
-            # Mount for uploaded data
-            - "./dummy-services/ftp-server/mounts/data/:/home/${FTP_USER_NAME}/"
-        environment:
-            ADDRESS: ${FTP_HOST}
-            USERS: ${FTP_USER_NAME}|${FTP_USER_PASSWORD}|/home/${FTP_USER_NAME}
-            TLS_KEY: /etc/ssl/private/localhost.key
-            TLS_CERT: /etc/ssl/private/localhost.crt
-        healthcheck:
-            test: ping localhost:21 -w 2
-            interval: 10s
-            timeout: 5s
-            retries: 5
-        networks:
-            pixl-net:

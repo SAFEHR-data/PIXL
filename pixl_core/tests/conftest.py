@@ -16,17 +16,20 @@ from __future__ import annotations
 import datetime
 import os
 import pathlib
-import subprocess
+import shlex
 from pathlib import Path
 from typing import TYPE_CHECKING, BinaryIO
 
 import pytest
 from core.db.models import Base, Extract, Image
 from core.exports import ParquetExport
+from pytest_pixl.helpers import run_subprocess
+from pytest_pixl.plugin import FtpHostAddress
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 if TYPE_CHECKING:
+    import subprocess
     from collections.abc import Generator
 
 pytest_plugins = "pytest_pixl"
@@ -47,25 +50,19 @@ os.environ["FTP_PORT"] = "20021"
 @pytest.fixture(scope="package")
 def run_containers() -> subprocess.CompletedProcess[bytes]:
     """Run docker containers for tests which require them."""
-    subprocess.run(
-        b"docker compose down --volumes",
-        check=True,
-        cwd=TEST_DIR,
-        shell=True,  # noqa: S602
+    run_subprocess(
+        shlex.split("docker compose down --volumes"),
+        TEST_DIR,
         timeout=60,
     )
-    yield subprocess.run(
-        b"docker compose up --build --wait",
-        check=True,
-        cwd=TEST_DIR,
-        shell=True,  # noqa: S602
+    yield run_subprocess(
+        shlex.split("docker compose up --build --wait"),
+        TEST_DIR,
         timeout=60,
     )
-    subprocess.run(
-        b"docker compose down --volumes",
-        check=True,
-        cwd=TEST_DIR,
-        shell=True,  # noqa: S602
+    run_subprocess(
+        shlex.split("docker compose down --volumes"),
+        TEST_DIR,
         timeout=60,
     )
 
@@ -77,6 +74,12 @@ def ftps_home_dir(ftps_server) -> Generator[Path, None, None]:
     pytest.tmp_path_factory, so no need to clean up.
     """
     return Path(ftps_server.home_dir)
+
+
+@pytest.fixture(scope="session")
+def ftp_host_address():
+    """Run FTP on localhost - no docker containers need to access it"""
+    return FtpHostAddress.LOCALHOST
 
 
 @pytest.fixture()
