@@ -238,6 +238,14 @@ environment variables to be set in `.secrets.env` so that PIXL can connect to th
 - `EXPORT_AZ_TENANT_ID`: ID of the service principal's tenant. Also called its 'directory' ID. Mapped to `AZURE_TENANT_ID` in `docker-compose`
 - `EXPORT_AZ_KEY_VAULT_NAME` the name of the key vault, used to connect to the correct key vault
 
+Create the `.secrets.env` file in the _PIXL_ directory by copying the sample:
+
+```bash
+cp .secrets.env.sample .secrets.env
+```
+
+and fill in the missing values.
+
 <details><summary>Azure Keyvault setup</summary>
 
 ## Azure Keyvault setup
