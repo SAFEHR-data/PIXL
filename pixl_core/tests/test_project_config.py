@@ -16,7 +16,7 @@
 from pathlib import Path
 
 import pytest
-from core.project_config import PixlConfig, _load_project_config
+from core.project_config import PixlConfig, _load_and_validate
 from decouple import config
 from pydantic import ValidationError
 
@@ -26,7 +26,7 @@ TEST_CONFIG = PROJECT_CONFIGS_DIR / "test-extract-uclh-omop-cdm.yaml"
 
 def test_config_from_file():
     """Test whether config file is correctly parsed and validated."""
-    project_config = _load_project_config(TEST_CONFIG)
+    project_config = _load_and_validate(TEST_CONFIG)
 
     assert project_config.project.name == "test-extract-uclh-omop-cdm"
     assert project_config.project.modalities == ["DX", "CR"]
