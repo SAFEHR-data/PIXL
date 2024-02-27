@@ -278,7 +278,7 @@ az keyvault create --resource-group <resource-group-name> --name <key-vault-name
 Create Service Principal & grant access as per
 
 ```bash
-az ad sp create-for-rbac -n hasher-api --skip-assignment
+az ad sp create-for-rbac -n pixl-secrets --skip-assignment
 ```
 
 This will produce the following output
@@ -320,7 +320,7 @@ az keyvault secret set --vault-name "<key-vault-name>" --name "<secret-name>" --
 
 ### Step 5
 
-Save credentials in `.secrets.env` and a LastPass `PIXL Keyvault <environment> secrets` note.
+Save credentials in `.secrets.env` and a LastPass `PIXL Keyvault <project-slug> secrets` note.
 
 ```
 EXPORT_AZ_CLIENT_ID=<generated-app-ID>
