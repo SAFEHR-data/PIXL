@@ -32,7 +32,6 @@ from pixl_cli._io import (
     copy_parquet_return_logfile_fields,
     messages_from_csv,
     messages_from_parquet,
-    messages_from_parquet_file,
     messages_from_state_file,
     project_info,
 )
@@ -177,27 +176,6 @@ def start(queues: str, rate: Optional[float]) -> None:
 def update(queues: str, rate: Optional[float]) -> None:
     """Update one or a list of consumers with a defined rate"""
     _start_or_update_extract(queues=queues.split(","), rate=rate)
-
-
-@cli.command()
-@click.argument("project-name", required=True, type=str)
-@click.argument("images-parquet", required=True, type=click.Path(exists=True))
-def extract_images(project_name: str, images_parquet: Path) -> None:
-    """
-    Populate the imaging queue from a parquet file
-    IMAGES-PARQUET: Path to the parquet file containing the list of images to be extracted
-    """
-    logger.info(f"Populating imaging queue from {images_parquet}")
-    timestamp = datetime.now(tz=timezone.utc)
-    messages = messages_from_parquet_file(images_parquet, project_name, timestamp)
-
-    queue = "imaging"
-    sorted_messages = sorted(messages, key=attrgetter("study_date"))
-    # For imaging, we don't want to query again for images that have already been exported
-    if queue == "imaging" and messages:
-        sorted_messages = filter_exported_or_add_to_db(sorted_messages, messages[0].project_name)
-    with PixlProducer(queue_name=queue, **cli_config["rabbitmq"]) as producer:
-        producer.publish(sorted_messages)
 
 
 def _start_or_update_extract(queues: list[str], rate: Optional[float]) -> None:
