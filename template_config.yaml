@@ -19,5 +19,5 @@ project:
 tag_operation_files: ["base-tag-operations.yaml"] # DICOM tag anonymisation operations, can specify multiple files
 
 destination:
-    dicom: "ftps" # alternatives: "none", "dicomweb", "azure"
-    parquet: "ftps" # alternatives: "none", "azure"
+    dicom: "ftps" # alternatives: "none"
+    parquet: "ftps" # alternatives: "none"
