@@ -22,8 +22,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING, BinaryIO
 
-from decouple import config
-
 if TYPE_CHECKING:
     from core.exports import ParquetExport
     from core.project_config import PixlConfig
@@ -73,7 +71,7 @@ class FTPSUploader(Uploader):
         self.host = self.keyvault.fetch_secret(f"{az_prefix}--ftp--host")
         self.user = self.keyvault.fetch_secret(f"{az_prefix}--ftp--username")
         self.password = self.keyvault.fetch_secret(f"{az_prefix}--ftp--password")
-        self.port = config("FTP_PORT", default=21, cast=int)
+        self.port = self.keyvault.fetch_secret(f"{az_prefix}--ftp--port")
 
     def upload_dicom_image(self, zip_content: BinaryIO, pseudo_anon_id: str) -> None:
         """Upload a DICOM image to the FTPS server."""
