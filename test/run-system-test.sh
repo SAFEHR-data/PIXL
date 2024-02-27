@@ -18,22 +18,24 @@ PACKAGE_DIR="${BIN_DIR%/*}"
 cd "${PACKAGE_DIR}/test"
 
 setup() {
-	docker compose --env-file .env -p system-test down --volumes
-	#
-	# Note: cannot run as single docker compose command due to different build contexts
-	docker compose --env-file .env -p system-test up --wait -d --build --remove-orphans
-	# Warning: Requires to be run from the project root
-	(
-		cd "${PACKAGE_DIR}"
-		docker compose --env-file test/.env --env-file .secrets.env -p system-test up --wait -d --build
-	)
+    docker compose --env-file .env -p system-test down --volumes
+    #
+    # Note: cannot run as single docker compose command due to different build contexts
+    docker compose --env-file .env -p system-test up --wait -d --build --remove-orphans
+    # Warning: Requires to be run from the project root
+    (
+    	cd "${PACKAGE_DIR}"
+    	docker compose --env-file test/.env --env-file .secrets.env -p system-test up --wait -d --build
+    )
 
-	./scripts/insert_test_data.sh
+    ./scripts/insert_test_data.sh
 }
 
 teardown() {
-	(cd "${PACKAGE_DIR}" &&
-		docker compose -f docker-compose.yml -f test/docker-compose.yml -p system-test down --volumes)
+    (
+    	cd "${PACKAGE_DIR}"
+    	docker compose -f docker-compose.yml -f test/docker-compose.yml -p system-test down --volumes
+    )
 }
 
 # Allow user to perform just setup so that pytest may be run repeatedly without
@@ -41,13 +43,13 @@ teardown() {
 # for clearing up anything it creates (export temp dir?)
 subcmd=${1:-""}
 if [ "$subcmd" = "setup" ]; then
-	setup
+    setup
 elif [ "$subcmd" = "teardown" ]; then
-	teardown
+    teardown
 else
-	setup
-	pytest --verbose --log-cli-level INFO
-	echo FINISHED PYTEST COMMAND
-	teardown
-	echo SYSTEM TEST SUCCESSFUL
+    setup
+    pytest --verbose --log-cli-level INFO
+    echo FINISHED PYTEST COMMAND
+    teardown
+    echo SYSTEM TEST SUCCESSFUL
 fi
