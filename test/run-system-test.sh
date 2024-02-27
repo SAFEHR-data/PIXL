@@ -23,8 +23,10 @@ setup() {
 	# Note: cannot run as single docker compose command due to different build contexts
 	docker compose --env-file .env -p system-test up --wait -d --build --remove-orphans
 	# Warning: Requires to be run from the project root
-	(cd "${PACKAGE_DIR}" &&
-		docker compose --env-file test/.env --env-file .secrets.env -p system-test up --wait -d --build)
+	(
+		cd "${PACKAGE_DIR}"
+		docker compose --env-file test/.env --env-file .secrets.env -p system-test up --wait -d --build
+	)
 
 	./scripts/insert_test_data.sh
 }
