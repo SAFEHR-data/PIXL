@@ -55,19 +55,19 @@ def project_info(resources_path: Path) -> tuple[str, datetime]:
     log_file = resources_path / "extract_summary.json"
     logs = json.load(log_file.open())
     project_name = logs["settings"]["cdm_source_name"]
-    omop_es_timestamp = datetime.fromisoformat(logs["datetime"])
-    return project_name, omop_es_timestamp
+    extract_generated_timestamp = datetime.fromisoformat(logs["datetime"])
+    return project_name, extract_generated_timestamp
 
 
 def copy_parquet_return_logfile_fields(resources_path: Path) -> tuple[str, datetime]:
     """Copy public parquet file to extracts directory, and return fields from logfile"""
-    project_name, omop_es_timestamp = project_info(resources_path)
-    extract = ParquetExport(project_name, omop_es_timestamp, HOST_EXPORT_ROOT_DIR)
+    project_name, extract_generated_timestamp = project_info(resources_path)
+    extract = ParquetExport(project_name, extract_generated_timestamp, HOST_EXPORT_ROOT_DIR)
     project_name_slug = extract.copy_to_exports(resources_path)
-    return project_name_slug, omop_es_timestamp
+    return project_name_slug, extract_generated_timestamp
 
 
-def messages_from_csv(filepath: Path, omop_es_timestamp: datetime) -> list[Message]:
+def messages_from_csv(filepath: Path, extract_generated_timestamp: datetime) -> list[Message]:
     """
     Reads patient information from CSV and transforms that into messages.
     :param filepath: Path for CSV file to be read
@@ -105,7 +105,7 @@ def messages_from_csv(filepath: Path, omop_es_timestamp: datetime) -> list[Messa
                 procedure_id_col_name
             ],  # 4 row[4], #procedure_occurrence_id
             project_name=row[project_col_name],
-            omop_es_timestamp=omop_es_timestamp,
+            extract_generated_timestamp=extract_generated_timestamp,
         )
         messages.append(message)
 
@@ -118,7 +118,7 @@ def messages_from_csv(filepath: Path, omop_es_timestamp: datetime) -> list[Messa
 
 
 def messages_from_parquet(
-    dir_path: Path, project_name: str, omop_es_timestamp: datetime
+    dir_path: Path, project_name: str, extract_generated_timestamp: datetime
 ) -> list[Message]:
     """
     Reads patient information from parquet files within directory structure
@@ -126,7 +126,7 @@ def messages_from_parquet(
 
     :param dir_path: Path for parquet directory containing private and public
     :param project_name: Name of the project, should be a slug, so it can match the export directory
-    :param omop_es_timestamp: Datetime that OMOP ES ran the extract
+    :param extract_generated_timestamp: Datetime that OMOP ES ran the extract
     files
     """
     public_dir = dir_path / "public"
@@ -150,7 +150,9 @@ def messages_from_parquet(
             param: row[column] for param, column in map_column_to_message_params.items()
         }
         message = Message(
-            project_name=project_name, omop_es_timestamp=omop_es_timestamp, **message_params
+            project_name=project_name,
+            extract_generated_timestamp=extract_generated_timestamp,
+            **message_params,
         )
         messages.append(message)
 

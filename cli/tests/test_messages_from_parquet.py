@@ -49,7 +49,7 @@ def test_messages_from_csv(resources: Path) -> None:
             study_date=datetime.date.fromisoformat("2022-01-01"),
             procedure_occurrence_id="0",
             project_name="ms-pinpoint-test",
-            omop_es_timestamp=omop_es_datetime,
+            extract_generated_timestamp=omop_es_datetime,
         ),
     ]
     assert messages == expected_messages
@@ -76,7 +76,7 @@ def test_messages_from_parquet(resources: Path) -> None:
             study_date=datetime.date.fromisoformat("2020-05-23"),
             procedure_occurrence_id=4,
             project_name="test-extract-uclh-omop-cdm",
-            omop_es_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
+            extract_generated_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
         ),
         Message(
             mrn="987654321",
@@ -84,7 +84,7 @@ def test_messages_from_parquet(resources: Path) -> None:
             study_date=datetime.date.fromisoformat("2020-05-23"),
             procedure_occurrence_id=5,
             project_name="test-extract-uclh-omop-cdm",
-            omop_es_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
+            extract_generated_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
         ),
     ]
 
