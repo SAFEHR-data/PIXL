@@ -62,7 +62,7 @@ def _connect_to_ftp(ftp_host: str, ftp_port: int, ftp_user: str, ftp_password: s
         ftp.login(ftp_user, ftp_password)
         ftp.prot_p()
     except ftplib.all_errors as ftp_error:
-        error_msg = "Failed to connect to FTPS server: '%s'"
+        error_msg = "Failed to connect to FTPS server"
         raise ConnectionError(error_msg, ftp_error) from ftp_error
     return ftp
 
