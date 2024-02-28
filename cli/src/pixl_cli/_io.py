@@ -83,9 +83,7 @@ def messages_from_csv(filepath: Path, omop_es_timestamp: datetime) -> list[Messa
     # First line is column names
     messages_df = pd.read_csv(filepath, header=0, dtype=str)
 
-    if list(messages_df.columns)[:5] != expected_col_names:
-        msg = f"csv file expected to have at least {expected_col_names} as " f"column names"
-        raise ValueError(msg)
+    _raise_if_column_names_not_found(messages_df, expected_col_names)
 
     (
         procedure_id_col_name,
@@ -252,7 +250,7 @@ def _raise_if_column_names_not_found(
     for col in expected_col_names:
         if col not in list(cohort_data.columns):
             msg = (
-                f"parquet files are expected to have at least {expected_col_names} as "
+                f"Export specification files are expected to have at least {expected_col_names} as "
                 f"column names"
             )
             raise ValueError(msg)
