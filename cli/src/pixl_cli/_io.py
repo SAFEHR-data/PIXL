@@ -27,7 +27,7 @@ from pixl_cli._utils import string_is_non_empty
 
 # The export root dir from the point of view of the docker host (which is where the CLI runs)
 # For the view from inside, see pixl_ehr/main.py: EHR_EXPORT_ROOT_DIR
-HOST_EXPORT_ROOT_DIR = Path(__file__).parents[3] / "exports"
+HOST_EXPORT_ROOT_DIR = Path(__file__).parents[3] / "projects" / "exports"
 
 
 def messages_from_state_file(filepath: Path) -> list[Message]:
