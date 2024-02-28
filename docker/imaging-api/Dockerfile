@@ -29,8 +29,11 @@ WORKDIR /app
 COPY ./pixl_core/pyproject.toml ./pixl_core/pyproject.toml
 COPY ./pixl_imaging/pyproject.toml ./pixl_imaging/pyproject.toml
 RUN --mount=type=cache,target=/root/.cache \
-    pip3 install pixl_core/ \
-    && pip3 install pixl_imaging/
+    pip3 install pip-tools && \
+    pip-compile --generate-hashes -o pixl_core/requirements.txt pixl_core/pyproject.toml && \
+    pip-compile --generate-hashes -o pixl_imaging/requirements.txt pixl_imaging/pyproject.toml && \
+    pip3 install -r pixl_core/requirements.txt && \
+    pip3 install -r pixl_imaging/requirements.txt
 
 COPY ./pixl_core/ core/
 COPY ./pixl_imaging/ .
