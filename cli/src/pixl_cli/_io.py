@@ -134,33 +134,23 @@ def messages_from_parquet(
 
     cohort_data = _check_and_parse_parquet(private_dir, public_dir)
 
-    expected_col_names = [
-        "PrimaryMrn",
-        "AccessionNumber",
-        "person_id",
-        "procedure_date",
-        "procedure_occurrence_id",
-    ]
-    _raise_if_column_names_not_found(cohort_data, expected_col_names)
+    map_column_to_message_params = {
+        "mrn": "PrimaryMrn",
+        "accession_number": "AccessionNumber",
+        "study_date": "procedure_date",
+        "procedure_occurrence_id": "procedure_occurrence_id",
+    }
 
-    (
-        mrn_col_name,
-        acc_num_col_name,
-        _,
-        dt_col_name,
-        procedure_occurrence_id,
-    ) = expected_col_names
+    _raise_if_column_names_not_found(cohort_data, list(map_column_to_message_params.values()))
 
     messages = []
 
     for _, row in cohort_data.iterrows():
+        message_params = {
+            param: row[column] for param, column in map_column_to_message_params.items()
+        }
         message = Message(
-            mrn=row[mrn_col_name],
-            accession_number=row[acc_num_col_name],
-            study_date=row[dt_col_name],
-            procedure_occurrence_id=row[procedure_occurrence_id],
-            project_name=project_name,
-            omop_es_timestamp=omop_es_timestamp,
+            project_name=project_name, omop_es_timestamp=omop_es_timestamp, **message_params
         )
         messages.append(message)
 
@@ -184,34 +174,22 @@ def messages_from_parquet_file(
     """
     cohort_data = pd.read_parquet(file_path)
 
-    expected_col_names = [
-        "PrimaryMrn",
-        "AccessionNumber",
-        "person_id",
-        "procedure_date",
-        "procedure_occurrence_id",
-    ]
-    _raise_if_column_names_not_found(cohort_data, expected_col_names)
+    map_column_to_message_params = {
+        "mrn": "PrimaryMrn",
+        "accession_number": "AccessionNumber",
+        "study_date": "procedure_date",
+        "procedure_occurrence_id": "procedure_occurrence_id",
+    }
 
-    (
-        mrn_col_name,
-        acc_num_col_name,
-        _,
-        dt_col_name,
-        procedure_occurrence_id,
-    ) = expected_col_names
+    _raise_if_column_names_not_found(cohort_data, list(map_column_to_message_params.values()))
 
     messages = []
 
     for _, row in cohort_data.iterrows():
-        message = Message(
-            mrn=row[mrn_col_name],
-            accession_number=row[acc_num_col_name],
-            study_date=row[dt_col_name],
-            procedure_occurrence_id=row[procedure_occurrence_id],
-            project_name=project_name,
-            timestamp=timestamp,
-        )
+        message_params = {
+            param: row[column] for param, column in map_column_to_message_params.items()
+        }
+        message = Message(project_name=project_name, timestamp=timestamp, **message_params)
         messages.append(message)
 
     if len(messages) == 0:
