@@ -46,6 +46,11 @@ class ParquetExport:
                         different view of the filesystem than the docker containers do.
         """
         self.export_dir = export_dir
+        # Make sure the base export direcotry exsists
+        if not self.export_dir.exists():
+            msg = f"Export directory {self.export_dir} does not exist"
+            raise FileNotFoundError(msg)
+
         self.project_slug, self.extract_time_slug = self._get_slugs(project_name, extract_datetime)
         project_base = self.export_dir / self.project_slug
 
@@ -85,7 +90,7 @@ class ParquetExport:
 
         logger.info("Copying public parquet files from %s to %s", public_input, self.public_output)
 
-        # Make directory for exports if they don't exist
+        # Make directory for project exports
         ParquetExport._mkdir(self.public_output)
 
         # Copy extract files, overwriting if it exists
