@@ -16,14 +16,15 @@ import csv
 import os
 
 from pytest_pixl.dicom import generate_dicom_dataset
-from pixl_dcmd.main import write_dataset_to_bytes
 from pixl_dcmd.tagrecording import record_dicom_headers
 
 
-def test_record_dicom_headers(mock_header_record_path):
+def test_record_dicom_headers(tmpdir, mock_header_record_path):
     ds = generate_dicom_dataset()
-    ds_bytes = write_dataset_to_bytes(ds)
-    record_dicom_headers(ds_bytes)
+    ds.save_as(str(tmpdir / "test.dcm"), write_like_original=False)
+    with open(str(tmpdir / "test.dcm"), "rb") as f:
+        ds_bytes = f.read()
+        record_dicom_headers(ds_bytes)
     with open(os.environ.get("ORTHANC_RAW_HEADER_LOG_PATH", "/tmp"), "r") as f:
         reader = csv.reader(f)
         row = next(reader)
