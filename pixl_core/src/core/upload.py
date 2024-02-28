@@ -71,7 +71,7 @@ class FTPSUploader(Uploader):
         self.host = self.keyvault.fetch_secret(f"{az_prefix}--ftp--host")
         self.user = self.keyvault.fetch_secret(f"{az_prefix}--ftp--username")
         self.password = self.keyvault.fetch_secret(f"{az_prefix}--ftp--password")
-        self.port = self.keyvault.fetch_secret(f"{az_prefix}--ftp--port")
+        self.port = int(self.keyvault.fetch_secret(f"{az_prefix}--ftp--port"))
 
     def upload_dicom_image(self, zip_content: BinaryIO, pseudo_anon_id: str) -> None:
         """Upload a DICOM image to the FTPS server."""
