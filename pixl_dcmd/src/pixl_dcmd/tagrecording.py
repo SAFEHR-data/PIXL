@@ -28,7 +28,7 @@ def record_dicom_headers(receivedDicom: bytes) -> None:
         "resources/recorded-headers.yml"
     ).open() as f:
         recording_config = yaml.safe_load(f)
-    dataset = dcmread(BytesIO(receivedDicom), force=True)
+    dataset = dcmread(BytesIO(receivedDicom))
     with _header_log_path().open("a") as f:
         values = [str(dataset.get(tag, "NA")) for tag in recording_config["tags"]]
         f.write(",".join(values) + "\n")
