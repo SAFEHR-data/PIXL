@@ -203,4 +203,6 @@ def already_exported_dicom_image(rows_in_session) -> Image:
 @pytest.fixture(autouse=True)
 def export_dir(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
     """Tmp dir to for tests to extract to."""
-    return tmp_path_factory.mktemp("export_base") / "exports"
+    export_dir = tmp_path_factory.mktemp("export_base") / "exports"
+    export_dir.mkdir()
+    return export_dir
