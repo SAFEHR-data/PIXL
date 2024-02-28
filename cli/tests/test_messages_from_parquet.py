@@ -36,9 +36,9 @@ def test_messages_from_csv(resources: Path) -> None:
     """
     # Arrange
     test_csv = resources / "test.csv"
-    omop_es_datetime = datetime.datetime.now(tz=datetime.timezone.utc)
+    temp_study_datetime = datetime.datetime.now(tz=datetime.timezone.utc)
     # Act
-    messages = messages_from_csv(test_csv, omop_es_datetime)
+    messages = messages_from_csv(test_csv, temp_study_datetime)
     # Assert
     assert all(isinstance(msg, Message) for msg in messages)
 
@@ -46,10 +46,10 @@ def test_messages_from_csv(resources: Path) -> None:
         Message(
             mrn="patient_identifier",
             accession_number="123456789",
-            study_date=datetime.date.fromisoformat("2022-01-01"),
+            study_date=temp_study_datetime,
             procedure_occurrence_id="0",
             project_name="ms-pinpoint-test",
-            extract_generated_timestamp=omop_es_datetime,
+            extract_generated_timestamp=datetime.date.fromisoformat("2022-01-01"),
         ),
     ]
     assert messages == expected_messages
