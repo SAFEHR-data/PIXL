@@ -34,6 +34,12 @@ Run the following to teardown:
 ./run-system-test.sh teardown
 ```
 
+## The `pytest-pixl` plugin
+
+We provide a [`pytest` plugin](../pytest-pixl/README.md) with shared functionality for PIXL system
+and unit tests. This includes an `ftp_server` fixture to spin up a lightweight FTP server,
+to mock the FTP server used by the Data Safe Haven.
+
 ## File organisation
 
 ### Docker compose
