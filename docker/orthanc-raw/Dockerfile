@@ -16,9 +16,6 @@ SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 
 ARG ORTHANC_RAW_MAXIMUM_STORAGE_SIZE
 
-RUN --mount=type=cache,target=/root/.cache \
-    pip3 install pydicom pyyaml
-
 # Install requirements before copying modules
 COPY ./pixl_core/pyproject.toml ./pixl_core/pyproject.toml
 COPY ./pixl_dcmd/pyproject.toml ./pixl_dcmd/pyproject.toml
