@@ -15,6 +15,7 @@
 """Handles fetching of project secrets from the Azure Keyvault"""
 
 import subprocess
+from functools import lru_cache
 
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
@@ -51,14 +52,10 @@ class AzureKeyVault:
     def fetch_secret(self, secret_name: str) -> str:
         """
         Fetch a secret from the Azure Key Vault instance specified in the environment variables.
+        :param secret_name: the name of the secret to fetch
         :return: the requested secret's value
         """
-        secret = self.client.get_secret(secret_name).value
-        if secret is None:
-            msg = f"Azure Key Vault secret {secret_name} is None"
-            raise ValueError(msg)
-
-        return str(secret)
+        return _fetch_secret(self.client, secret_name)
 
     def _check_envvars(self) -> None:
         """
@@ -77,3 +74,24 @@ def _check_system_envvar(var_name: str) -> None:
     error_msg = f"Environment variable {var_name} not set"
     if not subprocess.check_output(f"echo ${var_name}", shell=True).decode().strip():  # noqa: S602
         raise OSError(error_msg)
+
+
+@lru_cache
+def _fetch_secret(client: SecretClient, secret_name: str) -> str:
+    """
+    Fetch a secret from the Azure Key Vault instance specified in the environment variables.
+    This method is cached to avoid unnecessary calls to the Key Vault using the LRU (least
+    recently used) strategy.
+
+    This helper is intentionally defined outside the Azure Keyvault to prevent memory leaks (see
+    ruff rule B019).
+
+    :param client: a SecretClient instance
+    :param secret_name: the name of the secret to fetch
+    :return: the requested secret's value
+    """
+    secret = client.get_secret(secret_name).value
+    if secret is None:
+        msg = f"Azure Key Vault secret {secret_name} is None"
+        raise ValueError(msg)
+    return str(secret)
