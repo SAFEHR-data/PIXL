@@ -16,7 +16,7 @@ project:
     name: "project-slug"
     modalities: ["DX", "CR"] # DICOM dataset modalities to retain
 
-tag_operation_files: ["base-tag-operations.yaml"] # DICOM tag anonymisation operations, can specify multiple files
+tag_operation_files: ["base-tag-operations.yaml"] # DICOM tag anonymisation operations, can specify multiple files in the future 
 
 destination:
     dicom: "ftps" # alternatives: "none"
