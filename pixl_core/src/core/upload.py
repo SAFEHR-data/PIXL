@@ -20,7 +20,7 @@ import logging
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import TYPE_CHECKING, BinaryIO
+from typing import TYPE_CHECKING, Any, BinaryIO
 
 if TYPE_CHECKING:
     from core.exports import ParquetExport
@@ -48,20 +48,39 @@ class Uploader(ABC):
         AzureKeyvault instance. The keyvault is used to fetch the secrets required to connect to
         the remote destination.
 
+        Child classes should implement the _set_config method to set the configuration for the
+        upload strategy.
+
         :param project: The project name for which the uploader is being initialised. Used to fetch
             the correct secrets from the keyvault.
         """
         self.project_config = project_config
         self.keyvault = AzureKeyVault()
+        self._set_config()
+
+    @abstractmethod
+    def _set_config(self) -> None:
+        """Set the configuration for the uploader."""
+
+    @abstractmethod
+    def upload_dicom_image(self, *args: Any, **kwargs: Any) -> None:
+        """
+        Abstract method to upload DICOM images. To be overwritten by child classes.
+        If an upload strategy does not support DICOM images, this method should raise a
+        NotImplementedError.
+        """
+
+    @abstractmethod
+    def upload_parquet_files(self, *args: Any, **kwargs: Any) -> None:
+        """
+        Abstract method to upload parquet files. To be overwritten by child classes.
+        If an upload strategy does not support parquet files, this method should raise a
+        NotImplementedError.
+        """
 
 
 class FTPSUploader(Uploader):
     """Upload strategy for an FTPS server."""
-
-    def __init__(self, project_config: PixlConfig) -> None:
-        """Initialise the uploader with the destination configuration."""
-        Uploader.__init__(self, project_config)
-        self._set_config()
 
     def _set_config(self) -> None:
         # Use the Azure KV alias as prefix if it exists, otherwise use the project name
