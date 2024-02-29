@@ -39,5 +39,5 @@ def test_check_env_fails(tmp_path):
     tmp_sample_env_file.write_text("NONEXISTENT_VARIABLE=")
 
     runner = CliRunner()
-    result = runner.invoke(check_env, tmp_sample_env_file.as_posix())
+    result = runner.invoke(check_env, str(tmp_sample_env_file))
     assert result.exit_code != 0
