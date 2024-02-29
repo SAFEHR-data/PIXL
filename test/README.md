@@ -12,7 +12,7 @@ consumers started.
 **Then** a row in the "anon" EMAP data instance of the PIXL postgres instance exists and the DICOM
 study exists in the "anon" PIXL Orthanc instance.
 
-You can run the system test with:
+After setting up your [.secrets.env](../README.md#project-secrets)), you can run the system test with:
 
 ```bash
 ./run-system-test.sh

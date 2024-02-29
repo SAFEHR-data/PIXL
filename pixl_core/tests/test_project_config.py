@@ -31,7 +31,7 @@ def test_config_from_file():
     assert project_config.project.name == "test-extract-uclh-omop-cdm"
     assert project_config.project.modalities == ["DX", "CR"]
     assert project_config.tag_operation_files == [
-        PROJECT_CONFIGS_DIR / "tag-operations" / "test-extract-uclh-omop-cdm-tag-operations.yaml"
+        PROJECT_CONFIGS_DIR / "tag-operations" / "test-extract-uclh-omop-cdm.yaml"
     ]
     assert project_config.destination.dicom == "ftps"
     assert project_config.destination.parquet == "ftps"
@@ -39,7 +39,7 @@ def test_config_from_file():
 
 BASE_YAML_DATA = {
     "project": {"name": "myproject", "modalities": ["DX", "CR"]},
-    "tag_operations": ["test-extract-uclh-omop-cdm-tag-operations.yaml"],
+    "tag_operations": ["test-extract-uclh-omop-cdm.yaml"],
     "destination": {"dicom": "ftps", "parquet": "ftps"},
 }
 

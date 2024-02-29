@@ -37,7 +37,7 @@ def tag_scheme() -> dict:
     """Read the tag scheme from orthanc raw."""
     tag_file = (
         pathlib.Path(__file__).parents[2]
-        / "projects/configs/tag-operations/test-extract-uclh-omop-cdm-tag-operations.yaml"
+        / "projects/configs/tag-operations/test-extract-uclh-omop-cdm.yaml"
     )
     return yaml.safe_load(tag_file.read_text())
 
@@ -140,6 +140,6 @@ def test_can_nifti_convert_post_anonymisation(
 def test_merge_tag_schemes_single_file():
     tag_ops_file = (
         pathlib.Path(__file__).parents[2]
-        / "projects/configs/tag-operations/test-extract-uclh-omop-cdm-tag-operations.yaml"
+        / "projects/configs/tag-operations/test-extract-uclh-omop-cdm.yaml"
     )
     merge_tag_schemes([tag_ops_file])

@@ -225,7 +225,7 @@ The configuration file defines:
     <!-- - `"dicomweb"`: a DICOMweb server (for _DICOM_ files only) -->
     <!--   Requires the `DICOMWEB_*` environment variables to be set in `.env` -->
 
-#### Project secrets {#project-secrets}
+#### Project secrets
 
 Any credentials required for uploading the project's results should be stored in an **Azure Key Vault**
 (set up instructions below).
