@@ -31,7 +31,6 @@ if TYPE_CHECKING:
     from socket import socket
 
     from core.exports import ParquetExport
-    from core.project_config import PixlConfig
 
 logger = logging.getLogger(__name__)
 
