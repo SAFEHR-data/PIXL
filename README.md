@@ -255,7 +255,7 @@ tenancy when ready to deploy to production.\_
 This Key Vault and secret must persist any infrastructure changes so should be separate from disposable
 infrastructure services. ServicePrincipal is required to connect to the Key Vault.
 
-The application uses the ServicePrincipal and password to authenticates with Azure via environment
+The application uses the ServicePrincipal and password to authenticate with Azure via environment
 variables. See [here](https://learn.microsoft.com/en-us/python/api/azure-identity/azure.identity.environmentcredential?view=azure-python)
 for more info.
 
