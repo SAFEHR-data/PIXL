@@ -24,11 +24,8 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
 COPY ./pixl_core/pyproject.toml ./pixl_core/pyproject.toml
 COPY ./pixl_dcmd/pyproject.toml ./pixl_dcmd/pyproject.toml
 RUN --mount=type=cache,target=/root/.cache \
-    pip3 install pip-tools && \
-    pip-compile --generate-hashes -o ./pixl_core/requirements.txt ./pixl_core/pyproject.toml && \
-    pip-compile --generate-hashes -o ./pixl_dcmd/requirements.txt ./pixl_dcmd/pyproject.toml && \
-    pip3 install -r ./pixl_core/requirements.txt && \
-    pip3 install -r ./pixl_dcmd/requirements.txt
+    pip3 install pixl_core/ \
+    && pip3 install pixl_dcmd/
 
 COPY ./pixl_core/ ./pixl_core
 RUN --mount=type=cache,target=/root/.cache \

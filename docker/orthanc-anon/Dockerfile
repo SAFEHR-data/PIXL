@@ -48,15 +48,11 @@ RUN cd /python3913 \
     && rm -fr /python3913
 
 # Install requirements before copying modules
-
 COPY ./pixl_core/pyproject.toml ./pixl_core/pyproject.toml
 COPY ./pixl_dcmd/pyproject.toml ./pixl_dcmd/pyproject.toml
 RUN --mount=type=cache,target=/root/.cache \
-    pip3 install pip-tools && \
-    pip-compile --generate-hashes -o ./pixl_core/requirements.txt ./pixl_core/pyproject.toml && \
-    pip-compile --generate-hashes -o ./pixl_dcmd/requirements.txt ./pixl_dcmd/pyproject.toml && \
-    pip3 install -r ./pixl_core/requirements.txt && \
-    pip3 install -r ./pixl_dcmd/requirements.txt
+    pip3 install pixl_core/ \
+    && pip3 install pixl_dcmd/
 
 COPY ./orthanc/orthanc-anon/plugin/pixl.py /etc/orthanc/pixl.py
 COPY ./orthanc/orthanc-anon/plugin/tag-operations.yaml /etc/orthanc/tag-operations.yaml
