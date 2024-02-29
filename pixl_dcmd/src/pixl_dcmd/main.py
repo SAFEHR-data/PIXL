@@ -93,7 +93,7 @@ def anonymise_dicom(dataset: Dataset) -> Dataset:
     return dataset
 
 
-def merge_tag_schemes(tag_operation_files: list[Path]) -> Any:
+def merge_tag_schemes(tag_operation_files: list[Path]) -> list[dict]:
     """
     NOT IMPLEMENTED, WORKS ONLY WITH A SINGLE TAG SCHEME
     Merge multiple tag schemes into a single dictionary.
@@ -103,6 +103,10 @@ def merge_tag_schemes(tag_operation_files: list[Path]) -> Any:
     with tag_operation_files[0].open() as file:
         # Load tag operations scheme from YAML.
         tags = yaml.safe_load(file)
+        if not isinstance(tags, list) or not all(
+            [isinstance(tag, dict) for tag in tags]
+        ):
+            raise ValueError("Tag operation file must contain a list of dictionaries")
         return tags
 
 
@@ -138,7 +142,7 @@ def remove_overlays(dataset: Dataset) -> Dataset:
     return dataset
 
 
-def enforce_whitelist(dataset: dict, tags: list[dict]) -> dict:
+def enforce_whitelist(dataset: Dataset, tags: list[dict]) -> Dataset:
     """Delete any tags not in the tagging scheme."""
     # For every element:
     logger.debug("Enforcing whitelist")
@@ -167,7 +171,7 @@ def enforce_whitelist(dataset: dict, tags: list[dict]) -> dict:
     return dataset
 
 
-def apply_tag_scheme(dataset: dict, tags: list[dict]) -> dict:
+def apply_tag_scheme(dataset: Dataset, tags: list[dict]) -> Dataset:
     """
     Apply anonymisation operations for a given set of tags to a dataset.
     The original study time is kept before any operations are applied.
