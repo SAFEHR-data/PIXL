@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING
 import slugify
 
 from core.project_config import load_project_config
-from core.upload import FTPSUploader
+from core.uploader.ftps import FTPSUploader
 
 if TYPE_CHECKING:
     import datetime

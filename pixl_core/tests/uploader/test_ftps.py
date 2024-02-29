@@ -94,7 +94,7 @@ def test_upload_parquet(parquet_export, ftps_home_dir, ftps_uploader) -> None:
     # ARRANGE
 
     parquet_export.copy_to_exports(
-        pathlib.Path(__file__).parents[2] / "test" / "resources" / "omop"
+        pathlib.Path(__file__).parents[3] / "test" / "resources" / "omop"
     )
     parquet_export.export_radiology(pd.DataFrame(list("dummy"), columns=["D"]))
 

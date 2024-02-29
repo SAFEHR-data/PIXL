@@ -30,9 +30,9 @@ from time import sleep
 from typing import TYPE_CHECKING
 
 import requests
-from core import upload
 from core.db.queries import get_project_slug_from_hashid
 from core.project_config import load_project_config
+from core.uploader.ftps import FTPSUploader
 from decouple import config
 from pydicom import dcmread
 
@@ -150,7 +150,7 @@ def Send(resourceId: str) -> None:
         logger.debug(msg)
 
         zip_content = _get_study_zip_archive(resourceId)
-        upload.FTPSUploader(project_config).upload_dicom_image(zip_content, hashed_patient_id)
+        FTPSUploader(project_config).upload_dicom_image(zip_content, hashed_patient_id)
     else:
         msg = f"Invalid destination: {project_config.destination.dicom}"
         raise ValueError(msg)

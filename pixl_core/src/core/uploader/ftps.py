@@ -11,72 +11,54 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-"""Functionality to upload files to a remote server."""
+
+"""Helper functions for setting up a connection to an FTPS server."""
 
 from __future__ import annotations
 
 import ftplib
 import logging
-from abc import ABC, abstractmethod
+import ssl
 from datetime import datetime, timezone
+from ftplib import FTP_TLS
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, BinaryIO
 
+from core.db.queries import get_project_slug_from_hashid, update_exported_at
+from core.uploader._base import Uploader
+
 if TYPE_CHECKING:
+    from socket import socket
+
     from core.exports import ParquetExport
     from core.project_config import PixlConfig
-
-
-from core._secrets import AzureKeyVault
-from core._upload_ftps import (
-    _connect_to_ftp,
-    _create_and_set_as_cwd,
-    _create_and_set_as_cwd_multi_path,
-)
-from core.db.queries import get_project_slug_from_hashid, update_exported_at
 
 logger = logging.getLogger(__name__)
 
 
-class Uploader(ABC):
-    """Upload strategy interface."""
+class ImplicitFtpTls(ftplib.FTP_TLS):
+    """
+    FTP_TLS subclass that automatically wraps sockets in SSL to support implicit FTPS.
 
-    @abstractmethod
-    def __init__(self, project_config: PixlConfig) -> None:
-        """
-        Initialise the uploader for a specific project with the destination configuration and an
-        AzureKeyvault instance. The keyvault is used to fetch the secrets required to connect to
-        the remote destination.
+    https://stackoverflow.com/questions/12164470/python-ftp-implicit-tls-connection-issue
+    """
 
-        Child classes should implement the _set_config method to set the configuration for the
-        upload strategy.
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Create instance from parent class."""
+        super().__init__(*args, **kwargs)
+        self._sock: socket | None = None
 
-        :param project: The project name for which the uploader is being initialised. Used to fetch
-            the correct secrets from the keyvault.
-        """
-        self.project_config = project_config
-        self.keyvault = AzureKeyVault()
-        self._set_config()
+    @property
+    def sock(self) -> socket | None:
+        """Return the socket."""
+        return self._sock
 
-    @abstractmethod
-    def _set_config(self) -> None:
-        """Set the configuration for the uploader."""
-
-    @abstractmethod
-    def upload_dicom_image(self, *args: Any, **kwargs: Any) -> None:
-        """
-        Abstract method to upload DICOM images. To be overwritten by child classes.
-        If an upload strategy does not support DICOM images, this method should raise a
-        NotImplementedError.
-        """
-
-    @abstractmethod
-    def upload_parquet_files(self, *args: Any, **kwargs: Any) -> None:
-        """
-        Abstract method to upload parquet files. To be overwritten by child classes.
-        If an upload strategy does not support parquet files, this method should raise a
-        NotImplementedError.
-        """
+    @sock.setter
+    def sock(self, value: socket) -> None:
+        """When modifying the socket, ensure that it is ssl wrapped."""
+        if value is not None and not isinstance(value, ssl.SSLSocket):
+            value = self.context.wrap_socket(value)
+        self._sock = value
 
 
 class FTPSUploader(Uploader):
@@ -174,3 +156,40 @@ class FTPSUploader(Uploader):
         # Close the FTP connection
         ftp.quit()
         logger.info("Finished FTPS upload of files for '%s'", parquet_export.project_slug)
+
+
+def _connect_to_ftp(ftp_host: str, ftp_port: int, ftp_user: str, ftp_password: str) -> FTP_TLS:
+    # Connect to the server and login
+    try:
+        ftp = ImplicitFtpTls()
+        ftp.connect(ftp_host, int(ftp_port))
+        ftp.login(ftp_user, ftp_password)
+        ftp.prot_p()
+    except ftplib.all_errors as ftp_error:
+        error_msg = "Failed to connect to FTPS server"
+        raise ConnectionError(error_msg, ftp_error) from ftp_error
+    return ftp
+
+
+def _create_and_set_as_cwd_multi_path(ftp: FTP_TLS, remote_multi_dir: Path) -> None:
+    """Create (and cwd into) a multi dir path, analogously to mkdir -p"""
+    if remote_multi_dir.is_absolute():
+        # would require some special handling and we don't need it
+        err = "must be relative path"
+        raise ValueError(err)
+    logger.info("_create_and_set_as_cwd_multi_path %s", remote_multi_dir)
+    # path should be pretty normalised, so assume split is safe
+    sub_dirs = str(remote_multi_dir).split("/")
+    for sd in sub_dirs:
+        _create_and_set_as_cwd(ftp, sd)
+
+
+def _create_and_set_as_cwd(ftp: FTP_TLS, project_dir: str) -> None:
+    try:
+        ftp.cwd(project_dir)
+        logger.debug("'%s' exists on remote ftp, so moving into it", project_dir)
+    except ftplib.error_perm:
+        logger.info("creating '%s' on remote ftp and moving into it", project_dir)
+        # Directory doesn't exist, so create it
+        ftp.mkd(project_dir)
+        ftp.cwd(project_dir)
