@@ -48,5 +48,5 @@ extend = "../ruff.toml"
 "./tests/**" = ["D100"]
 
 [tool.ruff.pep8-naming]
-# Allow Pydantic's `@validator` decorator to trigger class method treatment.
-classmethod-decorators = ["classmethod", "pydantic.validator"]
+# Allow Pydantic's `@field_validator` decorator to trigger class method treatment.
+classmethod-decorators = ["classmethod", "pydantic.field_validator"]

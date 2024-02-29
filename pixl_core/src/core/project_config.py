@@ -22,7 +22,7 @@ from typing import Any, Optional
 
 import yaml
 from decouple import Config, RepositoryEmpty, RepositoryEnv
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator
 
 # Make sure local .env file is loaded if it exists
 env_file = Path.cwd() / ".env"
@@ -72,7 +72,7 @@ class _Destination(BaseModel):
     dicom: _DestinationEnum
     parquet: _DestinationEnum
 
-    @validator("parquet")
+    @field_validator("parquet")
     def valid_parquet_destination(cls, v: str) -> str:
         if v == "dicomweb":
             msg = "Parquet destination cannot be dicomweb"
@@ -87,7 +87,7 @@ class PixlConfig(BaseModel):
     tag_operation_files: list[Path]
     destination: _Destination
 
-    @validator("tag_operation_files")
+    @field_validator("tag_operation_files")
     def _valid_tag_operations(cls, tag_ops_files: list[str]) -> list[Path]:
         if not tag_ops_files or len(tag_ops_files) == 0:
             msg = "There should be at least 1 tag operations file"
