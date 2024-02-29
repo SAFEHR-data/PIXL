@@ -205,9 +205,9 @@ To configure a new project, follow these steps:
 1. The filename of the project config should be `<project-slug>`.yaml
 
     >[!NOTE]
-    > The project slug should match the project name in the `extract_summary.json` log file!
+    > The project slug should match the [slugify](https://github.com/un33k/python-slugify)-ed project name in the `extract_summary.json` log file!
 
-1. [Open a PR in PIXL](https://github.com/UCLH-Foundry/PIXL/compare) to merge the new project config into `main`
+2. [Open a PR in PIXL](https://github.com/UCLH-Foundry/PIXL/compare) to merge the new project config into `main`
 
 #### The config YAML file
 
