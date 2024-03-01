@@ -76,7 +76,12 @@ def write_dataset_to_bytes(dataset: Dataset) -> bytes:
 
 
 def modify_dicom_tags(receivedDicom: bytes, origin: str) -> Any:
-    print("JES - modify_dicom_tags - entry")
+    if origin != orthanc.InstanceOrigin.DICOM_PROTOCOL:
+        # don't keep resetting the tag values if this was triggered by an API call!
+        print("JES - modify_dicom_tags - doing nothing as triggered by API")
+        return orthanc.ReceivedInstanceAction.KEEP_AS_IS, None
+    print(f"JES - modify_dicom_tags - entry origin = {origin}")
+    print(f"JES - len = {len(receivedDicom)}")
     dataset = dcmread(BytesIO(receivedDicom))
     private_creator_name = "UCLH PIXL"
     # See the orthanc.json config file for where this tag is given a nickname
@@ -88,12 +93,13 @@ def modify_dicom_tags(receivedDicom: bytes, origin: str) -> Any:
     group_id = 0x000B
     # The private block is the first free block >= 0x10. Other parts of the code assume
     # it is == 0x10 though :/
+    # https://dicom.nema.org/dicom/2013/output/chtml/part05/sect_7.8.html
+
+    print(f"JES - modify_dicom_tags - BEFORE {dataset!s}")
     private_block = dataset.private_block(group_id, private_creator_name, create=True)
     private_block.add_new(private_tag_offset, vr, unknown_value)
     # and try it the slightly different way
-    print(f"JES - modify_dicom_tags - {dataset!s}")
-    print(f"JES - len = {len(receivedDicom)}")
-    print("JES - modify_dicom_tags - exit")
+    print(f"JES - modify_dicom_tags - AFTER {dataset!s}")
     return orthanc.ReceivedInstanceAction.MODIFY, write_dataset_to_bytes(dataset)
     # return orthanc.ReceivedInstanceAction.KEEP_AS_IS, None
     # return orthanc.ReceivedInstanceAction.DISCARD, None
