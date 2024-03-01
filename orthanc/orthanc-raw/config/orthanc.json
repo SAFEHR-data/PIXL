@@ -19,6 +19,9 @@
       "SpecificCharacterSet",
       "BitsAllocated",
       "BitsStored"
+    ],
+    "Study": [
+      "UCLHPIXLProjectName"
     ]
   },
   "Name" : "${ORTHANC_NAME}",
