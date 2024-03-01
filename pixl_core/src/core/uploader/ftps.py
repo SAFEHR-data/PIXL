@@ -22,7 +22,7 @@ import ssl
 from datetime import datetime, timezone
 from ftplib import FTP_TLS
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, BinaryIO
+from typing import TYPE_CHECKING, Any, BinaryIO, Optional
 
 from core.db.queries import get_project_slug_from_hashid, update_exported_at
 from core.uploader._base import Uploader
@@ -31,7 +31,6 @@ if TYPE_CHECKING:
     from socket import socket
 
     from core.exports import ParquetExport
-    from core.project_config import PixlConfig
 
 logger = logging.getLogger(__name__)
 
@@ -64,14 +63,14 @@ class ImplicitFtpTls(ftplib.FTP_TLS):
 class FTPSUploader(Uploader):
     """Upload strategy for an FTPS server."""
 
-    def __init__(self, project_config: PixlConfig) -> None:
+    def __init__(self, project_slug: str, keyvault_alias: Optional[str]) -> None:
         """Create instance of parent class"""
-        super().__init__(project_config)
+        super().__init__(project_slug, keyvault_alias)
 
     def _set_config(self) -> None:
         # Use the Azure KV alias as prefix if it exists, otherwise use the project name
-        az_prefix = self.project_config.project.azure_kv_alias
-        az_prefix = az_prefix if az_prefix else self.project_config.project.name
+        az_prefix = self.keyvault_alias
+        az_prefix = az_prefix if az_prefix else self.project_slug
 
         self.host = self.keyvault.fetch_secret(f"{az_prefix}--ftp--host")
         self.user = self.keyvault.fetch_secret(f"{az_prefix}--ftp--username")

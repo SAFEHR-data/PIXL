@@ -17,13 +17,10 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any
-
-if TYPE_CHECKING:
-    from core.project_config import PixlConfig
-
+from typing import Any, Optional
 
 from core.uploader._secrets import AzureKeyVault
+from core.uploader.ftps import FTPSUploader
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +29,7 @@ class Uploader(ABC):
     """Upload strategy interface."""
 
     @abstractmethod
-    def __init__(self, project_config: PixlConfig) -> None:
+    def __init__(self, project_slug: str, keyvault_alias: Optional[str]) -> None:
         """
         Initialise the uploader for a specific project with the destination configuration and an
         AzureKeyvault instance. The keyvault is used to fetch the secrets required to connect to
@@ -41,10 +38,10 @@ class Uploader(ABC):
         Child classes should implement the _set_config method to set the configuration for the
         upload strategy.
 
-        :param project: The project name for which the uploader is being initialised. Used to fetch
-            the correct secrets from the keyvault.
+        :param :
         """
-        self.project_config = project_config
+        self.project_slug = project_slug
+        self.keyvault_alias = keyvault_alias
         self.keyvault = AzureKeyVault()
         self._set_config()
 
@@ -67,3 +64,13 @@ class Uploader(ABC):
         If an upload strategy does not support parquet files, this method should raise a
         NotImplementedError.
         """
+
+    @staticmethod
+    def create(project_slug: str, destination: str, keyvault_alias: Optional[str]) -> Uploader:
+        choices: dict[str, type[Uploader]] = {"ftps": FTPSUploader}
+        try:
+            return choices[destination](project_slug, keyvault_alias)
+
+        except KeyError:
+            error_msg = f"Destination '{destination}' is currently not supported"
+            raise NotImplementedError(error_msg) from None
