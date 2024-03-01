@@ -19,8 +19,8 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any, Optional
 
+from core.uploader._ftps import FTPSUploader
 from core.uploader._secrets import AzureKeyVault
-from core.uploader.ftps import FTPSUploader
 
 logger = logging.getLogger(__name__)
 
