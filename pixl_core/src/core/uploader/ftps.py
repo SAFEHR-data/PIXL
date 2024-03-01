@@ -31,6 +31,7 @@ if TYPE_CHECKING:
     from socket import socket
 
     from core.exports import ParquetExport
+    from core.project_config import PixlConfig
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +63,10 @@ class ImplicitFtpTls(ftplib.FTP_TLS):
 
 class FTPSUploader(Uploader):
     """Upload strategy for an FTPS server."""
+
+    def __init__(self, project_config: PixlConfig) -> None:
+        """Create instance of parent class"""
+        super().__init__(project_config)
 
     def _set_config(self) -> None:
         # Use the Azure KV alias as prefix if it exists, otherwise use the project name
