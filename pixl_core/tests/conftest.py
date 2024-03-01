@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING, BinaryIO
 
 import pytest
 from core.db.models import Base, Extract, Image
-from core.uploader.ftps import FTPSUploader
+from core.uploader._ftps import FTPSUploader
 from pytest_pixl.helpers import run_subprocess
 from pytest_pixl.plugin import FtpHostAddress
 from sqlalchemy import Engine, create_engine

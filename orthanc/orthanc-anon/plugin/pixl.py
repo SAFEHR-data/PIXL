@@ -32,7 +32,7 @@ from typing import TYPE_CHECKING
 import requests
 from core.db.queries import get_project_slug_from_hashid
 from core.project_config import load_project_config
-from core.uploader.ftps import FTPSUploader
+from core.uploader.base import Uploader
 from decouple import config
 from pydicom import dcmread
 
@@ -141,19 +141,15 @@ def Send(resourceId: str) -> None:
     logger.debug(msg)
 
     hashed_patient_id = _get_patient_id(resourceId)
-    slug = get_project_slug_from_hashid(hashed_patient_id)
-    project_config = load_project_config(slug)
+    project_slug = get_project_slug_from_hashid(hashed_patient_id)
+    project_config = load_project_config(project_slug)
+    destination = project_config.destination.dicom
 
-    # send to destination
-    if project_config.destination.dicom == "ftps":
-        msg = f"Sending {resourceId} via FTPS"
-        logger.debug(msg)
-
-        zip_content = _get_study_zip_archive(resourceId)
-        FTPSUploader(project_config).upload_dicom_image(zip_content, hashed_patient_id)
-    else:
-        msg = f"Invalid destination: {project_config.destination.dicom}"
-        raise ValueError(msg)
+    uploader = Uploader.create(project_slug, destination, project_config.project.azure_kv_alias)
+    msg = f"Sending {resourceId} via '{destination}'"
+    logger.debug(msg)
+    zip_content = _get_study_zip_archive(resourceId)
+    uploader.upload_dicom_image(zip_content, hashed_patient_id)
 
 
 def _get_study_zip_archive(resourceId: str) -> BytesIO:

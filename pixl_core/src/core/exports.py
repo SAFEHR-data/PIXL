@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING
 import slugify
 
 from core.project_config import load_project_config
-from core.uploader.ftps import FTPSUploader
+from core.uploader.base import Uploader
 
 if TYPE_CHECKING:
     import datetime
@@ -130,10 +130,12 @@ class ParquetExport:
                 "Skipping upload."
             )
             logger.info(msg)
-        if destination == "ftps":
-            msg = f"Uploading parquet files for project {self.project_slug} via FTPS"
-            logger.info(msg)
-            FTPSUploader(project_config).upload_parquet_files(self)
+
         else:
-            msg = f"Destination {destination} for parquet files not supported. Skipping upload."
-            logger.warning(msg)
+            uploader = Uploader.create(
+                self.project_slug, destination, project_config.project.azure_kv_alias
+            )
+
+            msg = f"Uploading parquet files for project {self.project_slug} via '{destination}'"
+            logger.info(msg)
+            uploader.upload_parquet_files(self)
