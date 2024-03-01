@@ -64,8 +64,6 @@ class _DestinationEnum(str, Enum):
 
     none = "none"
     ftps = "ftps"
-    azure = "azure"
-    dicomweb = "dicomweb"
 
 
 class _Destination(BaseModel):
