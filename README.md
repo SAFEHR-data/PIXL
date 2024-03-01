@@ -243,7 +243,7 @@ Create the `.secrets.env` file in the _PIXL_ directory by copying the sample:
 cp .secrets.env.sample .secrets.env
 ```
 
-and fill in the missing values.
+and fill in the missing values (for dev purposes find the `pixl_dev_secrets.env` note on LastPass).
 
 <details><summary>Azure Keyvault setup</summary>
 
@@ -260,7 +260,7 @@ variables. See [here](https://learn.microsoft.com/en-us/python/api/azure-identit
 for more info.
 
 The Key Vault and ServicePrincipal have already been created for the `dev` environment and details
-are stored in the `pixl-secrets` note in the shared PIXL folder on _LastPass_.
+are stored in the `pixl-dev-secrets.env` note in the shared PIXL folder on _LastPass_.
 
 The process for doing so using the `az` CLI tool is described below.
 This process must be repeated for `staging` & `prod` environments.
