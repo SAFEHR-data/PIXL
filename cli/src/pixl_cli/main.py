@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import json
 import os
-from datetime import datetime, timezone
 from operator import attrgetter
 from pathlib import Path
 from typing import Any, Optional
@@ -83,8 +82,7 @@ def populate(parquet_path: Path, *, restart: bool, queues: str) -> None:
     """
     logger.info(f"Populating queue(s) {queues} from {parquet_path}")
     if parquet_path.is_file() and parquet_path.suffix == ".csv":
-        omop_es_datetime = datetime.now(tz=timezone.utc)
-        messages = messages_from_csv(parquet_path, omop_es_datetime)
+        messages = messages_from_csv(parquet_path)
     else:
         project_name, omop_es_datetime = copy_parquet_return_logfile_fields(parquet_path)
         messages = messages_from_parquet(parquet_path, project_name, omop_es_datetime)

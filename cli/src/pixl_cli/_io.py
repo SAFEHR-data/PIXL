@@ -67,7 +67,7 @@ def copy_parquet_return_logfile_fields(resources_path: Path) -> tuple[str, datet
     return project_name_slug, extract_generated_timestamp
 
 
-def messages_from_csv(filepath: Path, study_date_time_temp: datetime) -> list[Message]:
+def messages_from_csv(filepath: Path) -> list[Message]:
     """
     Reads patient information from CSV and transforms that into messages.
     :param filepath: Path for CSV file to be read
@@ -77,7 +77,8 @@ def messages_from_csv(filepath: Path, study_date_time_temp: datetime) -> list[Me
         "mrn",
         "accession_number",
         "project_name",
-        "omop-es-datetime",
+        "extract_generated_timestamp",
+        "study_date",
     ]
 
     # First line is column names
@@ -90,6 +91,7 @@ def messages_from_csv(filepath: Path, study_date_time_temp: datetime) -> list[Me
         mrn_col_name,
         acc_num_col_name,
         project_col_name,
+        extract_col_name,
         dt_col_name,
     ) = expected_col_names
 
@@ -98,10 +100,12 @@ def messages_from_csv(filepath: Path, study_date_time_temp: datetime) -> list[Me
         message = Message(
             mrn=row[mrn_col_name],
             accession_number=row[acc_num_col_name],
-            study_date=study_date_time_temp,
+            study_date=datetime.strptime(row[dt_col_name], "%d/%m/%Y %H:%M")
+            .replace(tzinfo=timezone.utc)
+            .date(),
             procedure_occurrence_id=row[procedure_id_col_name],
             project_name=row[project_col_name],
-            extract_generated_timestamp=datetime.strptime(row[dt_col_name], "%d/%m/%Y %H:%M")
+            extract_generated_timestamp=datetime.strptime(row[extract_col_name], "%d/%m/%Y %H:%M")
             .replace(tzinfo=timezone.utc)
             .date(),
         )

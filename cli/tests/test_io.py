@@ -14,7 +14,6 @@
 
 """Test functions in _io.py."""
 
-from datetime import datetime, timezone
 
 import pytest
 from pixl_cli._io import messages_from_csv
@@ -24,7 +23,7 @@ def test_message_from_csv_raises_for_malformed_input(tmpdir):
     """Test that messages_from_csv raises for malformed input."""
     # Create a CSV file with the wrong column names
     csv_file = tmpdir.join("malformed.csv")
-    csv_file.write("procedure_id,mrn,accession_number,omop-es-datetime\n")
-    csv_file.write("1,123,1234,01/01/2021 00:00\n")
+    csv_file.write("procedure_id,mrn,accession_number,extract_generated_timestamp,study_date\n")
+    csv_file.write("1,123,1234,01/01/2021 00:00,01/01/2021\n")
     with pytest.raises(ValueError, match=".*expected to have at least.*"):
-        messages_from_csv(csv_file, datetime(2021, 1, 1, tzinfo=timezone.utc))
+        messages_from_csv(csv_file)
