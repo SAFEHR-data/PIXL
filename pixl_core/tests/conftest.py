@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING, BinaryIO
 
 import pytest
 from core.db.models import Base, Extract, Image
-from core.uploader._ftps import FTPSUploader
+from core.uploader.base import _FTPSUploader
 from pytest_pixl.helpers import run_subprocess
 from pytest_pixl.plugin import FtpHostAddress
 from sqlalchemy import Engine, create_engine
@@ -69,7 +69,7 @@ def run_containers() -> subprocess.CompletedProcess[bytes]:
     )
 
 
-class MockFTPSUploader(FTPSUploader):
+class MockFTPSUploader(_FTPSUploader):
     """Mock FTPSUploader for testing."""
 
     def __init__(self) -> None:
