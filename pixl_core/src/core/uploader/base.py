@@ -67,6 +67,7 @@ class Uploader(ABC):
 
     @staticmethod
     def create(project_slug: str, destination: str, keyvault_alias: Optional[str]) -> Uploader:
+        """Create an uploader instance based on the destination."""
         choices: dict[str, type[Uploader]] = {"ftps": FTPSUploader}
         try:
             return choices[destination](project_slug, keyvault_alias)
