@@ -43,8 +43,5 @@ extend = "./ruff.toml"
 [tool.ruff.extend-per-file-ignores]
 "./tests/**" = ["D100"]
 
-[tool.setuptools]
-include-package-data = true
-
 [tool.setuptools.package-data]
-pixl_dcmd = ["*.yml"]
+pixl_dcmd = ["resources/*.yml"]
