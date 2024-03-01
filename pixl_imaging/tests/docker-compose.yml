@@ -52,6 +52,7 @@ services:
       VNAQR_MODALITY: "UCVNAQR"
       PIXL_DICOM_TRANSFER_TIMEOUT: 30
       SKIP_ALEMBIC: "true"
+      PIXL_MAX_MESSAGES_IN_FLIGHT: 20
     ports:
       - "9001:8000"
 
