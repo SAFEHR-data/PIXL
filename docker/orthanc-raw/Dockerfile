@@ -16,6 +16,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 
 ARG ORTHANC_RAW_MAXIMUM_STORAGE_SIZE
 
+RUN pip3 install pydicom==2.4.4
 COPY ./orthanc/orthanc-raw/plugin/pixl.py /etc/orthanc/pixl.py
 # Orthanc can't substitute environment veriables as integers so copy and replace before running
 COPY ./orthanc/orthanc-raw/config /run/secrets

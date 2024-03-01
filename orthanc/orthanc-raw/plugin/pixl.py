@@ -21,9 +21,19 @@ This module provides:
 """
 from __future__ import annotations
 
+import logging
 import os
+from io import BytesIO
+from typing import Any
+
+from pydicom import dcmread, Dataset, dcmwrite
+from pydicom.tag import Tag
+from pydicom.dataset import PrivateBlock
 
 import orthanc
+
+logger = logging.getLogger()
+logger.setLevel("DEBUG")
 
 
 def OnChange(changeType, level, resourceId):  # noqa: ARG001
@@ -52,5 +62,43 @@ def ShouldAutoRoute():
     return os.environ.get("ORTHANC_AUTOROUTE_RAW_TO_ANON", "false").lower() == "true"
 
 
+def write_dataset_to_bytes(dataset: Dataset) -> bytes:
+    """
+    Write pydicom DICOM dataset to byte array
+
+    Original from:
+    https://pydicom.github.io/pydicom/stable/auto_examples/memory_dataset.html
+    """
+    with BytesIO() as buffer:
+        dcmwrite(buffer, dataset)
+        buffer.seek(0)
+        return buffer.read()
+
+
+def modify_dicom_tags(receivedDicom: bytes, origin: str) -> Any:
+    print("JES - modify_dicom_tags - entry")
+    dataset = dcmread(BytesIO(receivedDicom))
+    private_creator_name = "UCLH PIXL"
+    # See the orthanc.json config file for where this tag is given a nickname
+    private_tag_offset = 0x42
+    # LO = Long string max 64, LT = long text max 10240, support paragraphs etc
+    # https://dicom.nema.org/medical/dicom/current/output/chtml/part05/sect_6.2.html
+    vr = "LO"
+    unknown_value = "__pixl_unknown_value__"
+    group_id = 0x000B
+    # The private block is the first free block >= 0x10. Other parts of the code assume
+    # it is == 0x10 though :/
+    private_block = dataset.private_block(group_id, private_creator_name, create=True)
+    private_block.add_new(private_tag_offset, vr, unknown_value)
+    # and try it the slightly different way
+    print(f"JES - modify_dicom_tags - {dataset!s}")
+    print(f"JES - len = {len(receivedDicom)}")
+    print("JES - modify_dicom_tags - exit")
+    return orthanc.ReceivedInstanceAction.MODIFY, write_dataset_to_bytes(dataset)
+    # return orthanc.ReceivedInstanceAction.KEEP_AS_IS, None
+    # return orthanc.ReceivedInstanceAction.DISCARD, None
+
+
 orthanc.RegisterOnChangeCallback(OnChange)
+orthanc.RegisterReceivedInstanceCallback(modify_dicom_tags)
 orthanc.RegisterRestCallback("/heart-beat", OnHeartBeat)

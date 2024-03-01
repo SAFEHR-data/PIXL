@@ -62,6 +62,33 @@ class Orthanc(ABC):
 
         return None
 
+    def upload_instance(self, instance_id, data):
+        # /instances/{id}/export does not do what I'd hoped! It writes the given file to the server's filesystem
+        # This is wrong. It needs to be a URI-data encoded value inside JSON (RTFM)
+        # And it has to be (eg.) image data, not a DICOM file.
+        return self._post_bytes("/tools/create-dicom", data=data)
+
+    def delete_instance(self, instance_id):
+        return self._delete(f"/instances/{instance_id}")
+
+    def download_instance(self, instance_id) -> bytes:
+        return self._get_bytes(f"/instances/{instance_id}/file")
+
+    def modify_tags_by_study(self, study_id, tag_replacement: dict):
+        # you can't modify tags for an instance with the instance API, so do it this way
+        # KeepSource=false needed to stop it making a copy
+        # see https://orthanc.uclouvain.be/api/index.html#tag/Studies/paths/~1studies~1{id}~1modify/post
+        return self._post(
+            f"/studies/{study_id}/modify",
+            # would Force=true help???
+            dict(
+                PrivateCreator="UCLH PIXL",
+                Permissive=False,
+                KeepSource=False,
+                Replace=tag_replacement,
+            ),
+        )
+
     def retrieve_from_remote(self, query_id: str) -> str:
         response = self._post(
             f"/queries/{query_id}/retrieve",
@@ -75,6 +102,19 @@ class Orthanc(ABC):
 
     def _get(self, path: str) -> Any:
         return _deserialise(requests.get(f"{self._url}{path}", auth=self._auth, timeout=10))
+
+    def _delete(self, path: str) -> Any:
+        return requests.delete(f"{self._url}{path}", auth=self._auth, timeout=10)
+
+    def _post_bytes(self, path: str, data: bytes):
+        r = requests.post(f"{self._url}{path}", data=data, auth=self._auth, timeout=10)
+        r.raise_for_status()
+        return r
+
+    def _get_bytes(self, path: str) -> bytes:
+        r = requests.get(f"{self._url}{path}", auth=self._auth, timeout=10)
+        r.raise_for_status()
+        return r.content
 
     def _post(self, path: str, data: dict, timeout: Optional[float] = None) -> Any:
         return _deserialise(
