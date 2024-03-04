@@ -20,3 +20,24 @@ Contains base uploader class and
 
 Uploader class gets appropriate secret credentials from Azure key vault and uploads data
 """
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Optional
+
+from core.uploader._ftps import FTPSUploader
+
+if TYPE_CHECKING:
+    from core.uploader.base import Uploader
+
+
+# Intenitonally defined in __init__.py to avoid circular imports
+def get_uploader(project_slug: str, destination: str, keyvault_alias: Optional[str]) -> Uploader:
+    """Uploader Factory, returns uploader instance based on destination."""
+    choices: dict[str, type[Uploader]] = {"ftps": FTPSUploader}
+    try:
+        return choices[destination](project_slug, keyvault_alias)
+
+    except KeyError:
+        error_msg = f"Destination '{destination}' is currently not supported"
+        raise NotImplementedError(error_msg) from None

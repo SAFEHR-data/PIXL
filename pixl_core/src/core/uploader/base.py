@@ -19,7 +19,6 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any, Optional
 
-from core.uploader._ftps import FTPSUploader
 from core.uploader._secrets import AzureKeyVault
 
 logger = logging.getLogger(__name__)
@@ -64,14 +63,3 @@ class Uploader(ABC):
         If an upload strategy does not support parquet files, this method should raise a
         NotImplementedError.
         """
-
-    @staticmethod
-    def create(project_slug: str, destination: str, keyvault_alias: Optional[str]) -> Uploader:
-        """Create an uploader instance based on the destination."""
-        choices: dict[str, type[Uploader]] = {"ftps": FTPSUploader}
-        try:
-            return choices[destination](project_slug, keyvault_alias)
-
-        except KeyError:
-            error_msg = f"Destination '{destination}' is currently not supported"
-            raise NotImplementedError(error_msg) from None

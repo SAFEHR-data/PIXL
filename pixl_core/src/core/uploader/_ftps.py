@@ -25,7 +25,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, BinaryIO, Optional
 
 from core.db.queries import get_project_slug_from_hashid, update_exported_at
-from core.uploader._base import Uploader
+from core.uploader.base import Uploader
 
 if TYPE_CHECKING:
     from socket import socket
