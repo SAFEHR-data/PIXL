@@ -63,11 +63,11 @@ def test_populate_queue_and_start(
     omop_parquet_dir = str(resources / "omop")
     runner = CliRunner()
 
-    mocked_start = mocker.patch("pixl_cli.main.start")
+    mocked_start = mocker.patch("pixl_cli.main._start_or_update_extract")
     monkeypatch.setattr(pixl_cli.main, "PixlProducer", MockProducer)
 
     runner.invoke(populate, args=[omop_parquet_dir, "--queues", queue_name, "--no-start"])
     mocked_start.assert_not_called()
 
     runner.invoke(populate, args=[omop_parquet_dir, "--queues", queue_name])
-    mocked_start.assert_called_with(queues=queue_name, rate=None)
+    mocked_start.assert_called_with(queues=queue_name.split(","), rate=None)

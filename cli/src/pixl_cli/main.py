@@ -79,7 +79,7 @@ def cli(*, debug: bool) -> None:
     "parquet-path", required=True, type=click.Path(path_type=Path, exists=True, file_okay=True)
 )
 def populate(
-    parquet_path: Path, *, restart: bool, queues: str, start_processing: bool, rate: Optional[float]
+    parquet_path: Path, *, queues: str, restart: bool, start_processing: bool, rate: Optional[float]
 ) -> None:
     """
     Populate a (set of) queue(s) from a parquet file directory
@@ -121,7 +121,7 @@ def populate(
             producer.publish(sorted_messages)
 
     if start_processing:
-        start(queues=queues, rate=rate)
+        _start_or_update_extract(queues=queues.split(","), rate=rate)
 
 
 @cli.command()
