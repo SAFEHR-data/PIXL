@@ -59,8 +59,10 @@ async def startup_event() -> None:
     the task is consumer.run and the callback is _processing.process_message
     """
     background_tasks = set()
-    async with PixlConsumer(QUEUE_NAME, token_bucket=state.token_bucket) as consumer:
-        task = asyncio.create_task(consumer.run(callback=process_message))
+    async with PixlConsumer(
+        QUEUE_NAME, token_bucket=state.token_bucket, callback=process_message
+    ) as consumer:
+        task = asyncio.create_task(consumer.run())
         background_tasks.add(task)
         task.add_done_callback(background_tasks.discard)
 
