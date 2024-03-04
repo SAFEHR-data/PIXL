@@ -131,7 +131,9 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install pixl_core/ cli/[test]
+          pip install pixl_core/
+          pip install pytest-pixl/
+          pip install cli/[test]
 
       - name: Run tests
         working-directory: cli/tests
@@ -220,8 +222,8 @@ jobs:
         # code determines the export directory. See issue #318.
         run: |
           pip install -e pixl_core/
-          pip install -e cli/[test]
           pip install -e pytest-pixl/
+          pip install -e cli/[test]
 
       - name: Build test services
         working-directory: test
