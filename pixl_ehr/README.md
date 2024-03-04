@@ -32,15 +32,15 @@ pip install -e ../pixl_core/ -e .
 
 ## Test
 
+Install the test dependencies with
 ```bash
 pip install -e ../pixl_core/ -e .[test]
-pytest -m "not processing"
 ```
 
-and the processing tests with
+and run the tests with `pytest`:
 
 ```bash
-./tests/run-processing-tests.sh
+pytest
 ```
 
 To test the availability of a CogStack instance, we mock up a *FastAPI* server which simply takes in
