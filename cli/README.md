@@ -37,7 +37,7 @@ pixl --help
 ```
 ### Configuration
 
-The `rabbitmq` and `postgress` services are configured by setting the following environment variables
+The `rabbitmq` and `postgres` services are configured by setting the following environment variables
 (default values shown):
 
 ```sh
