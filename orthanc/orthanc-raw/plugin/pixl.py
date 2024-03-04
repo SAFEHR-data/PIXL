@@ -16,14 +16,19 @@ Facilitates routing of stable studies from orthanc-raw to orthanc-anon
 
 This module provides:
 -OnChange: route stable studies and if auto-routing enabled
--ShouldAutoRoute: checks whether auto-routing is enabled
+-should_auto_route: checks whether auto-routing is enabled
 -OnHeartBeat: extends the REST API
 """
 from __future__ import annotations
 
 import os
+from typing import TYPE_CHECKING
 
 import orthanc
+from pixl_dcmd.tagrecording import record_dicom_headers
+
+if TYPE_CHECKING:
+    from typing import Any
 
 
 def OnChange(changeType, level, resourceId):  # noqa: ARG001
@@ -31,9 +36,9 @@ def OnChange(changeType, level, resourceId):  # noqa: ARG001
     # Taken from:
     # https://book.orthanc-server.com/plugins/python.html#auto-routing-studies
     This routes any stable study to a modality named PIXL-Anon if
-    ShouldAutoRoute returns true
+    should_auto_route returns true
     """
-    if changeType == orthanc.ChangeType.STABLE_STUDY and ShouldAutoRoute():
+    if changeType == orthanc.ChangeType.STABLE_STUDY and should_auto_route():
         print("Stable study: %s" % resourceId)  # noqa: T201
         orthanc.RestApiPost("/modalities/PIXL-Anon/store", resourceId)
 
@@ -44,7 +49,22 @@ def OnHeartBeat(output, uri, **request):  # noqa: ARG001
     output.AnswerBuffer("OK\n", "text/plain")
 
 
-def ShouldAutoRoute():
+def ReceivedInstanceCallback(receivedDicom: bytes, _: str) -> Any:
+    """Optionally record headers from the received DICOM instance."""
+    if should_record_headers():
+        record_dicom_headers(receivedDicom)
+    return orthanc.ReceivedInstanceAction.KEEP_AS_IS, None
+
+
+def should_record_headers() -> bool:
+    """
+    Checks whether ORTHANC_RAW_RECORD_HEADERS environment variable is
+    set to true or false
+    """
+    return os.environ.get("ORTHANC_RAW_RECORD_HEADERS", "false").lower() == "true"
+
+
+def should_auto_route():
     """
     Checks whether ORTHANC_AUTOROUTE_RAW_TO_ANON environment variable is
     set to true or false
@@ -53,4 +73,5 @@ def ShouldAutoRoute():
 
 
 orthanc.RegisterOnChangeCallback(OnChange)
+orthanc.RegisterReceivedInstanceCallback(ReceivedInstanceCallback)
 orthanc.RegisterRestCallback("/heart-beat", OnHeartBeat)

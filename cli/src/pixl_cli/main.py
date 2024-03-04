@@ -29,6 +29,7 @@ from pixl_cli._config import SERVICE_SETTINGS, api_config_for_queue
 from pixl_cli._database import filter_exported_or_add_to_db
 from pixl_cli._io import (
     copy_parquet_return_logfile_fields,
+    messages_from_csv,
     messages_from_parquet,
     messages_from_state_file,
     project_info,
@@ -62,9 +63,9 @@ def cli(*, debug: bool) -> None:
     help="Restart from a saved state. Otherwise will use the given input file(s)",
 )
 @click.argument(
-    "parquet-dir", required=True, type=click.Path(path_type=Path, exists=True, file_okay=False)
+    "parquet-path", required=True, type=click.Path(path_type=Path, exists=True, file_okay=True)
 )
-def populate(parquet_dir: Path, *, restart: bool, queues: str) -> None:
+def populate(parquet_path: Path, *, restart: bool, queues: str) -> None:
     """
     Populate a (set of) queue(s) from a parquet file directory
     PARQUET_DIR: Directory containing the public and private parquet input files and an
@@ -79,9 +80,12 @@ def populate(parquet_dir: Path, *, restart: bool, queues: str) -> None:
             │   └── PROCEDURE_OCCURRENCE.parquet
             └── extract_summary.json
     """
-    logger.info(f"Populating queue(s) {queues} from {parquet_dir}")
-    project_name, omop_es_datetime = copy_parquet_return_logfile_fields(parquet_dir)
-    messages = messages_from_parquet(parquet_dir, project_name, omop_es_datetime)
+    logger.info(f"Populating queue(s) {queues} from {parquet_path}")
+    if parquet_path.is_file() and parquet_path.suffix == ".csv":
+        messages = messages_from_csv(parquet_path)
+    else:
+        project_name, omop_es_datetime = copy_parquet_return_logfile_fields(parquet_path)
+        messages = messages_from_parquet(parquet_path, project_name, omop_es_datetime)
 
     for queue in queues.split(","):
         state_filepath = state_filepath_for_queue(queue)
