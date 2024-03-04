@@ -19,12 +19,8 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
         procps \
         ca-certificates \
         iproute2 \
-        git \
-        curl \
-        libpq-dev \
         curl \
         gnupg \
-        g++ \
         locales
 
 WORKDIR /app
