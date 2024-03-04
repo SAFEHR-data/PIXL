@@ -141,9 +141,8 @@ pip install -e ../pixl_core/ -e .[test]
 
 ### Running tests
 
-Tests can be run with `pytest` from the `tests` directory.
+Tests can be run with `pytest`:
 
 ```bash
-cd tests
 pytest
 ```
