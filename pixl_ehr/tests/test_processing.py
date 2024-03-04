@@ -88,8 +88,8 @@ procedure_occurrence_id = 123456
 image_identifier = mrn + _test_accession_number(1)
 project_name_1 = "test project"
 project_name_2 = "other project"
-omop_es_timestamp_1 = datetime.datetime.fromisoformat("1234-01-01 00:00:00")
-omop_es_timestamp_2 = datetime.datetime.fromisoformat("1834-01-01 00:00:00")
+extract_generated_timestamp_1 = datetime.datetime.fromisoformat("1234-01-01 00:00:00")
+extract_generated_timestamp_2 = datetime.datetime.fromisoformat("1834-01-01 00:00:00")
 date_of_birth = "09/08/0007"
 sex = "testsexvalue"
 ethnicity = "testethnicity"
@@ -111,15 +111,15 @@ weight_vot_id, height_vot_id, gcs_vot_id = 2222222, 3333333, 4444444
 ls_id, lo_id, lr_id, ltd_id = 5555555, 6666666, 7777777, 8888888
 
 
-def _make_message(project_name, omop_es_timestamp, accession_number) -> Message:
-    slugified_project_name, _ = ParquetExport._get_slugs(project_name, omop_es_timestamp)  # noqa: SLF001
+def _make_message(project_name, extract_generated_timestamp, accession_number) -> Message:
+    slugified_project_name, _ = ParquetExport._get_slugs(project_name, extract_generated_timestamp)  # noqa: SLF001
     return Message(
         project_name=slugified_project_name,
         accession_number=accession_number,
         mrn=mrn,
         study_date=observation_datetime,
         procedure_occurrence_id=procedure_occurrence_id,
-        omop_es_timestamp=omop_es_timestamp,
+        extract_generated_timestamp=extract_generated_timestamp,
     )
 
 
@@ -129,22 +129,22 @@ def example_messages():
     return [
         _make_message(
             project_name=project_name_1,
-            omop_es_timestamp=omop_es_timestamp_1,
+            extract_generated_timestamp=extract_generated_timestamp_1,
             accession_number=_test_accession_number(1),
         ),
         _make_message(
             project_name=project_name_2,
-            omop_es_timestamp=omop_es_timestamp_1,
+            extract_generated_timestamp=extract_generated_timestamp_1,
             accession_number=_test_accession_number(2),
         ),
         _make_message(
             project_name=project_name_1,
-            omop_es_timestamp=omop_es_timestamp_2,
+            extract_generated_timestamp=extract_generated_timestamp_2,
             accession_number=_test_accession_number(3),
         ),
         _make_message(
             project_name=project_name_2,
-            omop_es_timestamp=omop_es_timestamp_2,
+            extract_generated_timestamp=extract_generated_timestamp_2,
             accession_number=_test_accession_number(4),
         ),
     ]
@@ -253,7 +253,7 @@ async def test_message_processing(example_messages) -> None:
         procedure_occurrence_id,
         report_text,
         message.project_name,
-        message.omop_es_timestamp,
+        message.extract_generated_timestamp,
     ]
     ## ACT
     await process_message(message)
@@ -309,7 +309,7 @@ async def test_radiology_export(example_messages, tmp_path) -> None:
     # ARRANGE
     message = example_messages[0]
     project_name = message.project_name
-    extract_date = message.omop_es_timestamp
+    extract_date = message.extract_generated_timestamp
     pe = ParquetExport(project_name, extract_date, tmp_path)
     await process_message(message)
 
@@ -317,7 +317,9 @@ async def test_radiology_export(example_messages, tmp_path) -> None:
     # Because the test is running in the EHR API container, can just call this directly
     export_radiology_as_parquet(
         ExportRadiologyData(
-            project_name=project_name, extract_datetime=omop_es_timestamp_1, output_dir=tmp_path
+            project_name=project_name,
+            extract_datetime=extract_generated_timestamp_1,
+            output_dir=tmp_path,
         )
     )
 
@@ -343,7 +345,7 @@ async def test_radiology_export_multiple_projects(example_messages, tmp_path) ->
     """
     # ARRANGE
     project_name = example_messages[0].project_name
-    extract_datetime = example_messages[0].omop_es_timestamp
+    extract_datetime = example_messages[0].extract_generated_timestamp
 
     for mess in example_messages:
         await process_message(mess)

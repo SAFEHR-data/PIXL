@@ -23,9 +23,9 @@ msg = Message(
     study_date=datetime.date.fromisoformat("2022-11-22"),
     procedure_occurrence_id="234",
     project_name="test project",
-    omop_es_timestamp=datetime.datetime.strptime("Dec 7 2023 2:08PM", "%b %d %Y %I:%M%p").replace(
-        tzinfo=datetime.timezone.utc
-    ),
+    extract_generated_timestamp=datetime.datetime.strptime(
+        "Dec 7 2023 2:08PM", "%b %d %Y %I:%M%p"
+    ).replace(tzinfo=datetime.timezone.utc),
 )
 
 
@@ -37,7 +37,7 @@ def test_serialise() -> None:
         b'"study_date": "2022-11-22", '
         b'"procedure_occurrence_id": "234", '
         b'"project_name": "test project", '
-        b'"omop_es_timestamp": "2023-12-07T14:08:00+00:00"}'
+        b'"extract_generated_timestamp": "2023-12-07T14:08:00+00:00"}'
     )
 
 
