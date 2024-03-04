@@ -26,9 +26,7 @@ import os
 from io import BytesIO
 from typing import Any
 
-from pydicom import dcmread, Dataset, dcmwrite
-from pydicom.tag import Tag
-from pydicom.dataset import PrivateBlock
+from pydicom import Dataset, dcmread, dcmwrite
 
 import orthanc
 

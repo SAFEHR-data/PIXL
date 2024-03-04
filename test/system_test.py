@@ -97,7 +97,8 @@ class TestFtpsUpload:
         all_dicom = list(unzip_dir.rglob("*.dcm"))
         assert len(all_dicom) == 1
         dcm = pydicom.dcmread(all_dicom[0])
-        private_tag = dcm.get_private_item(0x000B, 0x1042, "UCLH PIXL")
+        block = dcm.private_block(0x000B, "UCLH PIXL")
+        private_tag = block[0x01]
         assert private_tag is not None
         assert private_tag.value == TestFtpsUpload.project_slug
 
