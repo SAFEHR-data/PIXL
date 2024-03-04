@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING
 import slugify
 
 from core.project_config import load_project_config
-from core.uploader.base import Uploader
+from core.uploader import get_uploader
 
 if TYPE_CHECKING:
     import datetime
@@ -132,7 +132,7 @@ class ParquetExport:
             logger.info(msg)
 
         else:
-            uploader = Uploader.create(
+            uploader = get_uploader(
                 self.project_slug, destination, project_config.project.azure_kv_alias
             )
 

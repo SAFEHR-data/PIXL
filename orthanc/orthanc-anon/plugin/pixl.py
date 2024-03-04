@@ -32,7 +32,7 @@ from typing import TYPE_CHECKING
 import requests
 from core.db.queries import get_project_slug_from_hashid
 from core.project_config import load_project_config
-from core.uploader.base import Uploader
+from core.uploader import get_uploader
 from decouple import config
 from pydicom import dcmread
 
@@ -145,7 +145,7 @@ def Send(resourceId: str) -> None:
     project_config = load_project_config(project_slug)
     destination = project_config.destination.dicom
 
-    uploader = Uploader.create(project_slug, destination, project_config.project.azure_kv_alias)
+    uploader = get_uploader(project_slug, destination, project_config.project.azure_kv_alias)
     msg = f"Sending {resourceId} via '{destination}'"
     logger.debug(msg)
     zip_content = _get_study_zip_archive(resourceId)
