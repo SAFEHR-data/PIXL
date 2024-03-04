@@ -9,11 +9,11 @@ Specifically, it defines:
 - The [Token buffer](#token-buffer) for rate limiting requests to the upstream services
 - The [RabbitMQ queue](#patient-queue) implementation shared by the EHR and Imaging APIs
 - The PIXL `postgres` internal database for storing exported images and extracts from the messages
-    processed by the CLI driver
+  processed by the CLI driver
 - The [`ParquetExport`](./src/core/exports.py) class for exporting OMOP and EMAP extracts to
-    parquet files
+  parquet files
 - Handling of [uploads over FTPS](./src/core/upload.py), used to transfer images and parquet files
-    to the DSH (Data Safe Haven)
+  to the DSH (Data Safe Haven)
 
 ## Installation
 
@@ -58,6 +58,11 @@ The client of choice for RabbitMQ at this point in time is
 way of transferring messages. The former is geared towards high data throughput whereas the latter
 is geared towards stability. The asynchronous mode of transferring messages is a lot more complex as
 it is based on the [asyncio event loop](https://docs.python.org/3/library/asyncio-eventloop.html).
+
+We set the maximum number of message which can be being processed at once using the `PIXL_MAX_MESSAGES_IN_FLIGHT`
+variable in the `.env` file. Chest X-rays take about 5 seconds to return so the default of 100 allows for
+a maximum of 20 messages per second. The VNA should be able to cope with 12-15 per second, so this allows
+our rate limiting to fit within this range.
 
 ### OMOP ES files
 

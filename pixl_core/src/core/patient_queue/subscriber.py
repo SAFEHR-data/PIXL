@@ -11,7 +11,9 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+
 """Subscriber for RabbitMQ"""
+
 from __future__ import annotations
 
 import asyncio
@@ -19,17 +21,19 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 import aio_pika
+from decouple import config
 
-from core.patient_queue.message import Message, deserialise
-
-from ._base import PixlBlockingInterface, PixlQueueInterface
+from core.patient_queue._base import PixlBlockingInterface, PixlQueueInterface
+from core.patient_queue.message import deserialise
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
     from pathlib import Path
 
+    from aio_pika.abc import AbstractIncomingMessage
     from typing_extensions import Self
 
+    from core.patient_queue.message import Message
     from core.token_buffer.tokens import TokenBucket
 
 logger = logging.getLogger(__name__)
@@ -38,13 +42,19 @@ logger = logging.getLogger(__name__)
 class PixlConsumer(PixlQueueInterface):
     """Connector to RabbitMQ. Consumes messages from a queue"""
 
-    def __init__(self, queue_name: str, token_bucket: TokenBucket) -> None:
+    def __init__(
+        self,
+        queue_name: str,
+        token_bucket: TokenBucket,
+        callback: Callable[[Message], Awaitable[None]],
+    ) -> None:
         """
         Creating connection to RabbitMQ queue
         :param token_bucket: Token bucket for EHR queue
         """
         super().__init__(queue_name=queue_name)
         self.token_bucket = token_bucket
+        self._callback = callback
 
     @property
     def _url(self) -> str:
@@ -54,38 +64,35 @@ class PixlConsumer(PixlQueueInterface):
         """Establishes connection to queue."""
         self._connection = await aio_pika.connect_robust(self._url)
         self._channel = await self._connection.channel()
-        # Don't prefetch messages
-        await self._channel.set_qos(prefetch_count=1)
+        # Set number of messages in flight
+        max_in_flight = config("PIXL_MAX_MESSAGES_IN_FLIGHT", cast=int)
+        logger.info("Pika will consume up to %s messages concurrently", max_in_flight)
+        await self._channel.set_qos(prefetch_count=max_in_flight)
         self._queue = await self._channel.declare_queue(self.queue_name)
         return self
 
-    async def run(self, callback: Callable[[Message], Awaitable[None]]) -> None:
-        """
-        Creates loop that waits for messages from producer and processes them as
-        they appear.
-        :param callback: Method to be called when new message arrives that needs to
-                         be processed. Must take a dictionary and return None.
-        """
-        async with self._queue.iterator() as queue_iter:
-            # Pre-annotate the message type
-            message: aio_pika.abc.AbstractIncomingMessage
-            async for message in queue_iter:
-                if not self.token_bucket.has_token:
-                    await asyncio.sleep(0.01)
-                    await message.reject(requeue=True)
-                    continue
+    async def _process_message(self, message: AbstractIncomingMessage) -> None:
+        if not self.token_bucket.has_token:
+            await asyncio.sleep(0.01)
+            await message.reject(requeue=True)
+            return
 
-                pixl_message = deserialise(message.body)
-                try:
-                    await asyncio.sleep(0.01)  # Avoid very fast callbacks
-                    await callback(pixl_message)
-                except Exception:
-                    logger.exception(
-                        "Failed to process %s" "Not re-queuing message",
-                        pixl_message,
-                    )
-                finally:
-                    await message.ack()
+        pixl_message = deserialise(message.body)
+        try:
+            logger.warning("Starting message %s", pixl_message)
+            await self._callback(pixl_message)
+            logger.warning("Finished message %s", pixl_message)
+        except Exception:
+            logger.exception(
+                "Failed to process %s" "Not re-queuing message",
+                pixl_message,
+            )
+        finally:
+            await message.ack()
+
+    async def run(self) -> None:
+        """Processes messages from queue asynchronously."""
+        await self._queue.consume(self._process_message)
 
     async def __aexit__(self, *args: object, **kwargs: Any) -> None:
         """Requirement for the asynchronous context manager"""
