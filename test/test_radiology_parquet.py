@@ -50,21 +50,22 @@ def test_radiology_parquet(host_export_root_dir: Path):
     expected_rows = 2
     assert exported_data.shape[0] == expected_rows
 
-    assert exported_data.loc[0].procedure_occurrence_id == 4
-    assert exported_data.loc[0].image_report == "this is a radiology report 1" + DE_ID_SUFFIX
+    po_col = exported_data["procedure_occurrence_id"]
+    row_po_4 = exported_data[po_col == 4].iloc[0]
+    row_po_5 = exported_data[po_col == 5].iloc[0]
+    assert row_po_4.image_report == "this is a radiology report 1" + DE_ID_SUFFIX
 
     # blake2b-256 hash of string ('987654321' + 'AA12345601') with key = 'test_key'
     assert (
-        exported_data.loc[0].image_identifier
+        row_po_4.image_identifier
         == "a971b114b9133c81c03fb88c6a958f7d95eb1387f04c17ad7ff9ba7cf684c392"
     )
 
-    assert exported_data.loc[1].procedure_occurrence_id == 5
-    assert exported_data.loc[1].image_report == "this is a radiology report 2" + DE_ID_SUFFIX
+    assert row_po_5.image_report == "this is a radiology report 2" + DE_ID_SUFFIX
 
     # blake2b-256 hash of string ('987654321' + 'AA12345605') with key = 'test_key'
     assert (
-        exported_data.loc[1].image_identifier
+        row_po_5.image_identifier
         == "f71b228fa97d6c87db751e0bb35605fd9d4c1274834be4bc4bb0923ab8029b2a"
     )
 
