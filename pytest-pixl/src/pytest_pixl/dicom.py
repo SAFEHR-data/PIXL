@@ -39,32 +39,35 @@ def write_volume(filename_pattern: str):
     variables = json.loads(dicom_variables_path.open("r").read())
     rng = np.random.default_rng(0)
     for i, slice_info in enumerate(variables):
-        write_slice(
-            file_name=filename_pattern.format(slice=i),
+        ds = generate_dicom_dataset(
             pixel_data=rng.random(size=(256, 256)),
             **slice_info,
         )
+        file_name = filename_pattern.format(slice=i)
+        ds.save_as(file_name, write_like_original=False)
 
 
 # Remove the noqa comments once this function takes a sensible number of arguments
 # and hard-coded values are moved to JSON
-def write_slice(  # noqa: PLR0913, PLR0915
-    instance_creation_time: str,
-    sop_instance_uid: str,
-    instance_number: str,
-    image_position_patient: list[float],
-    slice_location: float,
-    window_centre: str,
-    window_width: str,
-    pixel_data: np.ndarray,
-    file_name: str,
-):
+def generate_dicom_dataset(  # noqa: PLR0913, PLR0915
+    instance_creation_time: str = "180048.910",
+    sop_instance_uid: str = "1.3.46.670589.11.38023.5.0.7404.2023012517580650156",
+    instance_number: str = "1",
+    image_position_patient: list[float] = (76, -139, 119),
+    slice_location: float = 82.0,
+    window_centre: str = "321",
+    window_width: str = "558",
+    pixel_data: np.ndarray = None,
+) -> Dataset:
     """
     Write a single fake DICOM image
 
     Elements that vary between slices are exposed as arguments.  Values for
     these can be obtained from the dicom_variables.json file.
     """
+    if pixel_data is None:
+        pixel_data = np.zeros((256, 256))
+
     # File meta info data elements
     file_meta = FileMetaDataset()
 
@@ -206,7 +209,7 @@ def write_slice(  # noqa: PLR0913, PLR0915
     ds.SeriesNumber = "901"
     ds.AcquisitionNumber = "9"
     ds.InstanceNumber = "1"
-    ds.ImagePositionPatient = image_position_patient
+    ds.ImagePositionPatient = list(image_position_patient)
     ds.ImageOrientationPatient = [
         -0.0065220510587,
         0.99990475177764,
@@ -314,4 +317,5 @@ def write_slice(  # noqa: PLR0913, PLR0915
     ds.file_meta = file_meta
     ds.is_implicit_VR = True
     ds.is_little_endian = True
-    ds.save_as(file_name, write_like_original=False)
+
+    return ds
