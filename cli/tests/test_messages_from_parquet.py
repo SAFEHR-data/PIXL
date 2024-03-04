@@ -24,14 +24,14 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-def test_messages_from_parquet(resources: Path) -> None:
+def test_messages_from_parquet(omop_resources: Path) -> None:
     """
     Given a valid OMOP ES extract with 4 procedures, two of which are x-rays.
     When the messages are generated from the directory and the output of logfile parsing
     Then two messages should be generated
     """
     # Arrange
-    omop_parquet_dir = resources / "omop"
+    omop_parquet_dir = omop_resources / "omop"
     project_name, omop_es_datetime = copy_parquet_return_logfile_fields(omop_parquet_dir)
     # Act
     messages = messages_from_parquet(omop_parquet_dir, project_name, omop_es_datetime)
