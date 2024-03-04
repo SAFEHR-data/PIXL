@@ -85,7 +85,7 @@ def modify_dicom_tags(receivedDicom: bytes, origin: str) -> Any:
     dataset = dcmread(BytesIO(receivedDicom))
     private_creator_name = "UCLH PIXL"
     # See the orthanc.json config file for where this tag is given a nickname
-    private_tag_offset = 0x42
+    private_tag_offset = 0x01
     # LO = Long string max 64, LT = long text max 10240, support paragraphs etc
     # https://dicom.nema.org/medical/dicom/current/output/chtml/part05/sect_6.2.html
     vr = "LO"
