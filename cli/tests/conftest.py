@@ -47,9 +47,9 @@ os.environ["PIXL_DB_NAME"] = "pixl"
 
 @pytest.fixture(autouse=True)
 def export_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
-    """Tmp dir to for tests to extract to."""
-    export_dir = tmp_path_factory.mktemp("export_base") / "exports"
-    export_dir.mkdir()
+    """Tmp dir for tests to extract to."""
+    export_dir = tmp_path_factory.mktemp("export_base") / "projects" / "exports"
+    export_dir.mkdir(parents=True)
     return export_dir
 
 
