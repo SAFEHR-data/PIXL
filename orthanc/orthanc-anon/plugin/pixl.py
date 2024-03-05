@@ -287,9 +287,6 @@ def AnonymiseCallback(dataset):
     Returns writing anonymised dataset to disk
     """
     orthanc.LogWarning("Anonymising received instance")
-    # Rip out all private tags/
-    dataset.remove_private_tags()
-    orthanc.LogInfo("Removed private tags")
 
     # Rip out overlays/
     dataset = pixl_dcmd.remove_overlays(dataset)
