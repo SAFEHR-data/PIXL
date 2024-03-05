@@ -87,7 +87,10 @@ parquet_dir
     └── PROCEDURE_OCCURRENCE.parquet
 ```
 
-Extraction will start automatically after populating the queues unless specified otherwise (see `pixl populate --help`)
+Extraction will start automatically after populating the queues.  If granular
+customisation of the rate per queue is required or a queue should not be started
+then supply the argument `--no-start` and use `pixl start...` to launch
+processing.
 
 
 Stop Imaging and EHR database extraction
