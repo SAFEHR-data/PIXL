@@ -11,7 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-FROM osimis/orthanc:22.9.0-full-stable
+FROM orthancteam/orthanc:24.2.3-full
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 # need some packages for building python 3.9.13
 RUN export DEBIAN_FRONTEND=noninteractive \

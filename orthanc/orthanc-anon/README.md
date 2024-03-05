@@ -24,7 +24,7 @@ The following assumptions are made:
 
 ### Configuration
 
-- The Docker image is based on `osimis/orthanc`.
+- The Docker image is based on `orthancteam/orthanc`.
 - Configuration is driven through customised JSON config. files stored in the [config](./config/)
 directory.
 - The files are populated with values from environment variables and injected into the container as
