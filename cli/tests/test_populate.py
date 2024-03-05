@@ -57,10 +57,10 @@ def test_populate_queue_parquet(
 
 
 def test_populate_queue_and_start(
-    mocker, monkeypatch, resources: Path, queue_name: str = "test_populate"
+    mocker, monkeypatch, omop_resources: Path, queue_name: str = "test_populate"
 ) -> None:
     """Checks that patient queue can be populated without error."""
-    omop_parquet_dir = str(resources / "omop")
+    omop_parquet_dir = str(omop_resources / "omop")
     runner = CliRunner()
 
     mocked_start = mocker.patch("pixl_cli.main._start_or_update_extract")
