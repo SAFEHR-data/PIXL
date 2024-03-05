@@ -47,6 +47,9 @@ RUN cd /python3913 \
     && make clean \
     && rm -fr /python3913
 
+# the system python has this package installed, so we need it for ours too so orthanc works ok
+RUN pip3 install envsubst
+
 # Install requirements before copying modules
 COPY ./pixl_core/pyproject.toml ./pixl_core/pyproject.toml
 COPY ./pixl_dcmd/pyproject.toml ./pixl_dcmd/pyproject.toml
