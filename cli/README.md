@@ -87,19 +87,8 @@ parquet_dir
     └── PROCEDURE_OCCURRENCE.parquet
 ```
 
-Start the imaging extraction
+Extraction will start automatically after populating the queues unless specified otherwise (see `pixl populate --help`)
 
-```bash
-pixl start --queues imaging
-```
-
-and equivalently the EHR extraction
-
-```bash
-pixl start --queues ehr
-```
-
-Use `pixl start --help` for information.
 
 Stop Imaging and EHR database extraction
 
