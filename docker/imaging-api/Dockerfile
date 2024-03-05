@@ -18,8 +18,14 @@ ARG TEST="false"
 
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
-    apt-get install --yes --no-install-recommends procps ca-certificates \
-    iproute2 git curl libpq-dev curl gnupg g++ locales
+    apt-get install --yes --no-install-recommends \
+        procps \
+        ca-certificates \
+        iproute2 \
+        libpq-dev \
+        curl \
+        gnupg \
+        locales
 RUN sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 RUN  apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
 
