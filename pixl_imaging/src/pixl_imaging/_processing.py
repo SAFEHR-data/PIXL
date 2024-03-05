@@ -77,7 +77,6 @@ async def process_message(message: Message) -> None:
             },
         )
 
-
     # Got to do /studies/{id}/modify
     # https://orthanc.uclouvain.be/api/index.html#tag/Studies/paths/~1studies~1{id}~1modify/post
     # do it with "Asynchronous": false, for simplicity? Or Synchronous = true for redundancy!
