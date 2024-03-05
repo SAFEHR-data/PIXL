@@ -199,6 +199,7 @@ services:
       ORTHANC_ANON_AE_TITLE: ${ORTHANC_ANON_AE_TITLE}
       ORTHANC_ANON_DICOM_PORT: "4242"
       ORTHANC_ANON_HOSTNAME: "orthanc-anon"
+      PROJECT_CONFIGS_DIR: /${PROJECT_CONFIGS_DIR:-/projects/configs}
     ports:
       - "${ORTHANC_RAW_DICOM_PORT}:4242"
       - "${ORTHANC_RAW_WEB_PORT}:8042"
@@ -206,6 +207,7 @@ services:
       - type: volume
         source: orthanc-raw-data
         target: /var/lib/orthanc/db
+      - ${PWD}/projects/configs:/${PROJECT_CONFIGS_DIR:-/projects/configs}:ro
     networks:
       - pixl-net
     depends_on:
