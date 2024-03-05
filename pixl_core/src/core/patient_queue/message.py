@@ -35,7 +35,7 @@ class Message:
     study_date: date
     procedure_occurrence_id: int
     project_name: str
-    omop_es_timestamp: datetime
+    extract_generated_timestamp: datetime
 
     def serialise(self, *, deserialisable: bool = True) -> bytes:
         """
@@ -52,13 +52,13 @@ class Message:
             " * accession number: %s\n"
             " * timestamp: %s\n"
             " * procedure_occurrence_id: %s\n",
-            " * project_name: %s\n * omop_es_timestamp: %s",
+            " * project_name: %s\n * extract_generated_timestamp: %s",
             self.mrn,
             self.accession_number,
             self.study_date,
             self.procedure_occurrence_id,
             self.project_name,
-            self.omop_es_timestamp,
+            self.extract_generated_timestamp,
         )
         logger.debug(msg)
 

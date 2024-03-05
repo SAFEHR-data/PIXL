@@ -15,12 +15,15 @@
 from __future__ import annotations
 
 import os
-import pathlib
+from typing import TYPE_CHECKING
 
 import pytest
 from core.db.models import Base, Extract, Image
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
+
+if TYPE_CHECKING:
+    import pathlib
 
 # Set the necessary environment variables
 os.environ["PIXL_EHR_API_HOST"] = "localhost"
@@ -47,12 +50,6 @@ os.environ["PIXL_DB_NAME"] = "pixl"
 def export_dir(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
     """Tmp dir to for tests to extract to."""
     return tmp_path_factory.mktemp("export_base") / "exports"
-
-
-@pytest.fixture()
-def resources() -> pathlib.Path:
-    """Test resources directory path."""
-    return pathlib.Path(__file__).parent / "resources"
 
 
 @pytest.fixture(scope="module")

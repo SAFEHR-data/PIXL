@@ -30,7 +30,7 @@ TEST_MESSAGE = Message(
     study_date="2022-11-22T13:33:00+00:00",
     procedure_occurrence_id="234",
     project_name="test project",
-    omop_es_timestamp="2023-12-07T14:08:00+00:00",
+    extract_generated_timestamp="2023-12-07T14:08:00+00:00",
 )
 
 
@@ -45,21 +45,22 @@ class ExpectedTestError(Exception):
 )
 async def test_create() -> None:
     """Checks consume is working."""
-    with PixlProducer(queue_name=TEST_QUEUE) as pp:
-        pp.publish(messages=[TEST_MESSAGE])
+    with PixlProducer(queue_name=TEST_QUEUE) as producer:
+        producer.publish(messages=[TEST_MESSAGE])
 
-    async with PixlConsumer(queue_name=TEST_QUEUE, token_bucket=TokenBucket()) as pc:
-        consume = AsyncMock()
+    consume = AsyncMock()
+    async with PixlConsumer(
+        queue_name=TEST_QUEUE, token_bucket=TokenBucket(), callback=consume
+    ) as consumer:
         # Create a Task to run pc.run in the background
-        task = asyncio.create_task(pc.run(callback=consume))
-
+        task = asyncio.create_task(consumer.run())
         # Wait for a short time to allow pc.run to start
         await asyncio.sleep(1)
         # Cancel before assertion so the task doesn't hang
         task.cancel()
         # need to close the connection and channel
-        await pc._channel.close()  # noqa: SLF001
-        await pc._connection.close()  # noqa: SLF001
+        await consumer._channel.close()  # noqa: SLF001
+        await consumer._connection.close()  # noqa: SLF001
         consume.assert_called_once()
     # Fail on purpose to check async test awaited
     raise ExpectedTestError
