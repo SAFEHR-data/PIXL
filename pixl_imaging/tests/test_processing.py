@@ -53,25 +53,25 @@ class WritableOrthanc(Orthanc):
         )
 
 
-def add_image_to_fake_vna(image_filename: str = "test.dcm") -> None:
+def add_image_to_fake_vna(tmp_path, image_filename: str = "test.dcm") -> None:
     path = get_testdata_file("CT_small.dcm")
     ds = dcmread(path)
     ds.AccessionNumber = ACCESSION_NUMBER
     ds.PatientID = PATIENT_ID
-    ds.save_as(image_filename)
+    ds.save_as(tmp_path / image_filename)
 
     vna = WritableOrthanc(
         url="http://vna-qr:8042",
         username=config("ORTHANC_VNA_USERNAME"),
         password=config("ORTHANC_VNA_PASSWORD"),
     )
-    vna.upload(image_filename)
+    vna.upload(tmp_path / image_filename)
 
 
 @pytest.mark.processing()
 @pytest.mark.asyncio()
-async def test_image_processing() -> None:
-    add_image_to_fake_vna()
+async def test_image_processing(tmp_path) -> None:
+    add_image_to_fake_vna(tmp_path)
     study = ImagingStudy.from_message(message)
     orthanc_raw = PIXLRawOrthanc()
 
