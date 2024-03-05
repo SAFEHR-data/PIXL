@@ -44,10 +44,10 @@ class MockProducer(PixlProducer):
 
 
 def test_populate_queue_parquet(
-    monkeypatch, resources: Path, queue_name: str = "test_populate"
+    monkeypatch, omop_resources: Path, queue_name: str = "test_populate"
 ) -> None:
     """Checks that patient queue can be populated without error."""
-    omop_parquet_dir = str(resources / "omop")
+    omop_parquet_dir = str(omop_resources / "omop")
     runner = CliRunner()
 
     monkeypatch.setattr(pixl_cli.main, "PixlProducer", MockProducer)
