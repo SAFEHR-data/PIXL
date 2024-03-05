@@ -21,11 +21,15 @@ This module provides:
 """
 from __future__ import annotations
 
+from io import BytesIO
 import logging
 import os
 from typing import TYPE_CHECKING
 
 import orthanc
+
+from pydicom import Dataset, dcmread, dcmwrite
+
 from pixl_dcmd.tagrecording import record_dicom_headers
 
 if TYPE_CHECKING:
