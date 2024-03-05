@@ -188,6 +188,148 @@ For the deidentification of the EHR extracts, we rely on an instance running the
 [CogStack API](https://cogstack.org/) with a `/redact` endpoint. The URL of this instance should be
 set in `.env` as `COGSTACK_REDACT_URL`.
 
+### 3. Configure a new project
+
+To configure a new project, follow these steps:
+
+1. Create a new `git` branch from `main`
+
+    ```sh
+    git checkout main
+    git pull
+    git switch -c <branch-name>
+    ```
+
+1. Copy the `template_config.yaml` file to a new file in the `projects/config` directory and fill
+   in the details.
+1. The filename of the project config should be `<project-slug>`.yaml
+
+    >[!NOTE]
+    > The project slug should match the [slugify](https://github.com/un33k/python-slugify)-ed project name in the `extract_summary.json` log file!
+
+2. [Open a PR in PIXL](https://github.com/UCLH-Foundry/PIXL/compare) to merge the new project config into `main`
+
+#### The config YAML file
+
+The configuration file defines:
+
+- Project name: the `<project-slug>` name of the Project
+- The DICOM dataset modalities to retain (e.g. `["DX", "CR"]` for X-Ray studies)
+- The anonymisation operations to be applied to the DICOM tags, by providing a file path to one or multiple YAML files
+- The endpoints used to upload the anonymised DICOM data and the public and radiology
+  [parquet files](./docs/file_types/parquet_files.md). We currently support the following endpoints:
+    - `"none"`: no upload
+    - `"ftps"`: a secure FTP server (for both _DICOM_ and _parquet_ files)
+    <!-- - `"azure"`: a secure Azure Dicom web service (for both _DICOM_ and _parquet_ files) -->
+    <!--   Requires the `AZURE_*` environment variables to be set in `.env` -->
+    <!-- - `"dicomweb"`: a DICOMweb server (for _DICOM_ files only) -->
+    <!--   Requires the `DICOMWEB_*` environment variables to be set in `.env` -->
+
+#### Project secrets
+
+Any credentials required for uploading the project's results should be stored in an **Azure Key Vault**
+(set up instructions below).
+PIXL will query this key vault for the required secrets at runtime. This requires the following
+environment variables to be set in `.secrets.env` so that PIXL can connect to the key vault:
+
+- `EXPORT_AZ_CLIENT_ID`: the service principal's client ID, mapped to `AZURE_CLIENT ID` in `docker-compose`
+- `EXPORT_AZ_CLIENT_PASSWORD`: the password, mapped to `AZURE_CLIENT_SECRET` in `docker-compose`
+- `EXPORT_AZ_TENANT_ID`: ID of the service principal's tenant. Also called its 'directory' ID. Mapped to `AZURE_TENANT_ID` in `docker-compose`
+- `EXPORT_AZ_KEY_VAULT_NAME` the name of the key vault, used to connect to the correct key vault
+
+Create the `.secrets.env` file in the _PIXL_ directory by copying the sample:
+
+```bash
+cp .secrets.env.sample .secrets.env
+```
+
+and fill in the missing values (for dev purposes find the `pixl_dev_secrets.env` note on LastPass).
+
+<details><summary>Azure Keyvault setup</summary>
+
+## Azure Keyvault setup
+
+_This is done for the \_UCLH_DIF_ `dev` tenancy, will need to be done once in the _UCLHAZ_ `prod`
+tenancy when ready to deploy to production.\_
+
+This Key Vault and secret must persist any infrastructure changes so should be separate from disposable
+infrastructure services. ServicePrincipal is required to connect to the Key Vault.
+
+The application uses the ServicePrincipal and password to authenticate with Azure via environment
+variables. See [here](https://learn.microsoft.com/en-us/python/api/azure-identity/azure.identity.environmentcredential?view=azure-python)
+for more info.
+
+The Key Vault and ServicePrincipal have already been created for the `dev` environment and details
+are stored in the `pixl-dev-secrets.env` note in the shared PIXL folder on _LastPass_.
+
+The process for doing so using the `az` CLI tool is described below.
+This process must be repeated for `staging` & `prod` environments.
+
+### Step 1
+
+Create the Azure Key Vault in an appropriate resource group:
+
+```bash
+az keyvault create --resource-group <resource-group-name> --name <key-vault-name> --location "UKSouth"
+```
+
+### Step 2
+
+Create Service Principal & grant access as per
+
+```bash
+az ad sp create-for-rbac -n pixl-secrets --skip-assignment
+```
+
+This will produce the following output
+
+```json
+{
+    "appId": "<generated-app-ID>",
+    "displayName": "<app-name>",
+    "name": "http://<app-name>",
+    "password": "<generated-password>",
+    "tenant": "<tenant-ID>"
+}
+```
+
+### Step 3
+
+Assign correct permissions to the newly created ServicePrincipal
+
+```bash
+az keyvault set-policy --name <key-vault-name> --spn <generated-app-ID> --secret-permissions backup delete get list set
+```
+
+### Step 4
+
+Create a secret and store in the Key Vault
+
+Use Python to create a secret:
+
+```python
+import secrets
+secrets.token_urlsafe(32)
+```
+
+copy the secret and paste as <secret-value> below
+
+```bash
+az keyvault secret set --vault-name "<key-vault-name>" --name "<secret-name>" --value "<secret-value>"
+```
+
+### Step 5
+
+Save credentials in `.secrets.env` and a LastPass `PIXL Keyvault <project-slug> secrets` note.
+
+```
+EXPORT_AZ_CLIENT_ID=<generated-app-ID>
+EXPORT_AZ_CLIENT_PASSWORD=<generated-password>
+EXPORT_AZ_TENANT_ID=<tenant-ID>
+EXPORT_AZ_KEY_VAULT_NAME=<key-vault-name>
+```
+</details>
+
 ## Run
 
 ### Start

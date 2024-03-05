@@ -26,18 +26,18 @@ import os
 import threading
 import traceback
 from io import BytesIO
-from pathlib import Path
 from time import sleep
 from typing import TYPE_CHECKING
 
 import requests
-import yaml
-from core import upload
+from core.db.queries import get_project_slug_from_hashid
+from core.project_config import load_project_config
+from core.uploader import get_uploader
 from decouple import config
 from pydicom import dcmread
 
 import orthanc
-import pixl_dcmd
+from pixl_dcmd.main import anonymise_dicom, write_dataset_to_bytes
 
 if TYPE_CHECKING:
     from typing import Any
@@ -135,6 +135,34 @@ def AzureDICOMTokenRefresh():
     return None
 
 
+def Send(resourceId: str) -> None:
+    """Send the resource to the appropriate destination"""
+    msg = f"Sending {resourceId}"
+    logger.debug(msg)
+
+    hashed_patient_id = _get_patient_id(resourceId)
+    project_slug = get_project_slug_from_hashid(hashed_patient_id)
+    project_config = load_project_config(project_slug)
+    destination = project_config.destination.dicom
+
+    uploader = get_uploader(project_slug, destination, project_config.project.azure_kv_alias)
+    msg = f"Sending {resourceId} via '{destination}'"
+    logger.debug(msg)
+    zip_content = _get_study_zip_archive(resourceId)
+    uploader.upload_dicom_image(zip_content, hashed_patient_id)
+
+
+def _get_study_zip_archive(resourceId: str) -> BytesIO:
+    # Download zip archive of the DICOM resource
+    query = f"{ORTHANC_URL}/studies/{resourceId}/archive"
+    fail_msg = "Could not download archive of resource '%s'"
+    response_study = _query(resourceId, query, fail_msg)
+
+    # get the zip content
+    logger.debug("Downloaded data for resource %s", resourceId)
+    return BytesIO(response_study.content)
+
+
 def SendViaStow(resourceId):
     """
     Makes a POST API call to upload the resource to a dicom-web server
@@ -162,25 +190,6 @@ def SendViaStow(resourceId):
         logger.info(msg)
     except requests.exceptions.RequestException:
         orthanc.LogError("Failed to send via STOW")
-
-
-def SendViaFTPS(resourceId: str) -> None:
-    """
-    Makes a POST API call to upload the resource to an FTPS server
-    using orthanc credentials as authorisation
-    """
-    msg = f"Sending {resourceId} via FTPS"
-    logger.debug(msg)
-    # Download zip archive of the DICOM resource
-    query = f"{ORTHANC_URL}/studies/{resourceId}/archive"
-    fail_msg = "Could not download archive of resource '%s'"
-    response_study = _query(resourceId, query, fail_msg)
-
-    # get the zip content
-    zip_content = response_study.content
-    logger.debug("Downloaded data for resource %s", resourceId)
-
-    upload.upload_dicom_image(BytesIO(zip_content), _get_patient_id(resourceId))
 
 
 def _get_patient_id(resourceId: str) -> str:
@@ -226,7 +235,7 @@ def OnChange(changeType, level, resource):  # noqa: ARG001
     """
     Three ChangeTypes included in this function:
     - If a study is stable and if should_auto_route returns true
-    then SendViaFTPS is called
+    then Send is called
     - If orthanc has started then message added to Orthanc LogWarning
     and AzureDICOMTokenRefresh called
     - If orthanc has stopped and TIMER is not none then message added
@@ -238,7 +247,7 @@ def OnChange(changeType, level, resource):  # noqa: ARG001
     if changeType == orthanc.ChangeType.STABLE_STUDY:
         msg = f"Stable study: {resource}"
         logger.info(msg)
-        SendViaFTPS(resource)
+        Send(resource)
 
     if changeType == orthanc.ChangeType.ORTHANC_STARTED and _azure_available():
         orthanc.LogWarning("Starting the scheduler")
@@ -265,47 +274,13 @@ def ReceivedInstanceCallback(receivedDicom: bytes, origin: str) -> Any:
     # Read the bytes as DICOM/
     dataset = dcmread(BytesIO(receivedDicom))
 
-    # Drop anything that is not an X-Ray
-    if dataset.Modality not in ("DX", "CR"):
-        msg = f"Dropping DICOM Modality: {dataset.Modality}"
-        orthanc.LogError(msg)
-        return orthanc.ReceivedInstanceAction.DISCARD, None
-
     # Attempt to anonymise and drop the study if any exceptions occur
     try:
-        return AnonymiseCallback(dataset)
+        dataset = anonymise_dicom(dataset)
+        return orthanc.ReceivedInstanceAction.MODIFY, write_dataset_to_bytes(dataset)
     except Exception:  # noqa: BLE001
         orthanc.LogError("Failed to anonymize study due to\n" + traceback.format_exc())
         return orthanc.ReceivedInstanceAction.DISCARD, None
-
-
-def AnonymiseCallback(dataset):
-    """
-    Anonymisation of a dataset
-    Involves removing private tags and overlays and applying the
-    tag operations through functions in pixl_dcmd module
-    Returns writing anonymised dataset to disk
-    """
-    orthanc.LogWarning("Anonymising received instance")
-
-    # Rip out overlays/
-    dataset = pixl_dcmd.remove_overlays(dataset)
-    orthanc.LogInfo("Removed overlays")
-
-    # Apply anonymisation.
-    with Path("/etc/orthanc/tag-operations.yaml").open() as file:
-        # Load tag operations scheme from YAML.
-        tags = yaml.safe_load(file)
-        # Apply scheme to instance
-        dataset = pixl_dcmd.apply_tag_scheme(dataset, tags)
-        # Apply whitelist
-        dataset = pixl_dcmd.enforce_whitelist(dataset, tags)
-        orthanc.LogInfo("DICOM tag anonymisation applied")
-
-    orthanc.LogWarning("DICOM tag anonymisation applied")
-
-    # Write anonymised instance to disk.
-    return orthanc.ReceivedInstanceAction.MODIFY, pixl_dcmd.write_dataset_to_bytes(dataset)
 
 
 orthanc.RegisterOnChangeCallback(OnChange)

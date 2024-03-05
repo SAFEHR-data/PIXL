@@ -24,6 +24,7 @@ import click
 import requests
 from core.patient_queue.producer import PixlProducer
 from core.patient_queue.subscriber import PixlBlockingConsumer
+from decouple import RepositoryEnv, UndefinedValueError, config
 
 from pixl_cli._config import SERVICE_SETTINGS, api_config_for_queue
 from pixl_cli._database import filter_exported_or_add_to_db
@@ -50,6 +51,35 @@ def cli(*, debug: bool) -> None:
 
 @cli.command()
 @click.option(
+    "--error",
+    is_flag=True,
+    show_default=True,
+    default=False,
+    help="Exit with error on missing env vars",
+)
+@click.option(
+    "--sample_env_file",
+    show_default=True,
+    default=None,
+    type=click.Path(exists=True),
+    help="Path to the sample env file",
+)
+def check_env(*, error: bool, sample_env_file: click.Path) -> None:
+    """Check that all variables from .env.sample are set either in .env or in environ"""
+    if not sample_env_file:
+        sample_env_file = Path(__file__).parents[3] / ".env.sample"
+    sample_config = RepositoryEnv(sample_env_file)
+    for key in sample_config.data:
+        try:
+            config(key)
+        except UndefinedValueError:  # noqa: PERF203
+            logger.warning("Environment variable %s is not set", key)
+            if error:
+                raise
+
+
+@cli.command()
+@click.option(
     "--queues",
     default="imaging,ehr",
     show_default=True,
@@ -62,10 +92,25 @@ def cli(*, debug: bool) -> None:
     default=True,
     help="Restart from a saved state. Otherwise will use the given input file(s)",
 )
+@click.option(
+    "--start/--no-start",
+    "start_processing",
+    show_default=True,
+    default=True,
+    help="Start processing from the queues after population is complete",
+)
+@click.option(
+    "--rate",
+    type=float,
+    default=None,
+    help="Rate at which to process items from a queue (in items per second).",
+)
 @click.argument(
     "parquet-path", required=True, type=click.Path(path_type=Path, exists=True, file_okay=True)
 )
-def populate(parquet_path: Path, *, restart: bool, queues: str) -> None:
+def populate(
+    parquet_path: Path, *, queues: str, restart: bool, start_processing: bool, rate: Optional[float]
+) -> None:
     """
     Populate a (set of) queue(s) from a parquet file directory
     PARQUET_DIR: Directory containing the public and private parquet input files and an
@@ -104,6 +149,9 @@ def populate(parquet_path: Path, *, restart: bool, queues: str) -> None:
             )
         with PixlProducer(queue_name=queue, **SERVICE_SETTINGS["rabbitmq"]) as producer:
             producer.publish(sorted_messages)
+
+    if start_processing:
+        _start_or_update_extract(queues=queues.split(","), rate=rate)
 
 
 @cli.command()

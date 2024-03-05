@@ -2,6 +2,7 @@
 .env
 local.env
 pixl_config.yml
+.secrets.env
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -146,6 +147,6 @@ dmypy.json
 .vscode
 
 # project specific files
-/exports/
+/projects/exports/
 **/test_producer.csv
 /test/dummy-services/ftp-server/mounts/data/*

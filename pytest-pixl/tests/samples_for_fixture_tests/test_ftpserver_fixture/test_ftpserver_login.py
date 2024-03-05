@@ -15,7 +15,7 @@
 
 from pathlib import Path
 
-from core.upload import _connect_to_ftp
+from core.uploader._ftps import _connect_to_ftp
 
 TEST_FILE_CONTENT = "test text"
 TEST_FILENAME = "testfile.txt"

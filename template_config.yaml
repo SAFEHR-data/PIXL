@@ -11,24 +11,13 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-FROM python:3.11.7-slim-bullseye
 
-RUN export DEBIAN_FRONTEND=noninteractive && \
-    apt-get update && \
-    apt-get install --yes --no-install-recommends \
-        procps \
-        ca-certificates \
-        iproute2 \
-        curl \
-        gnupg \
-        locales
+project:
+    name: "project-slug"
+    modalities: ["DX", "CR"] # DICOM dataset modalities to retain
 
-WORKDIR /app
+tag_operation_files: ["base-tag-operations.yaml"] # DICOM tag anonymisation operations, can specify multiple files in the future 
 
-COPY cogstack.py .
-COPY pyproject.toml .
-
-RUN --mount=type=cache,target=/root/.cache \
-    pip install -e .
-
-ENTRYPOINT ["uvicorn", "cogstack:app", "--host", "0.0.0.0", "--port", "8000"]
+destination:
+    dicom: "ftps" # alternatives: "none"
+    parquet: "ftps" # alternatives: "none"

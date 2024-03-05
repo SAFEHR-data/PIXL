@@ -42,5 +42,5 @@ Various _parquet_ files are provided throughout the repo to enable unit and syst
   `extract_summary.json` file to mimic the input received from OMOP-ES for the system tests
 
 During the system test, a `radiology.parquet` file is generated and temporarily stored in
-`exports/test-extract-uclh-omop-cdm/latest/radiology/radiology.parquet` to check the successful
+`projects/exports/test-extract-uclh-omop-cdm/latest/radiology/radiology.parquet` to check the successful
 de-identification before the DSH upload. This file is then deleted after the test.
