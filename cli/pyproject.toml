@@ -22,7 +22,8 @@ dependencies = [
 [project.optional-dependencies]
 test = [
     "pytest==7.4.*",
-    "pytest-pixl",
+    "pytest-mock==3.12.*",
+    "pytest-pixl"
 ]
 dev = [
     "mypy",
