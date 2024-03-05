@@ -68,9 +68,6 @@ def anonymise_dicom(dataset: Dataset) -> Dataset:
         raise ValueError(msg)
 
     logger.warning("Anonymising received instance")
-    # Rip out all private tags/
-    dataset.remove_private_tags()
-    logger.info("Removed private tags")
 
     # Rip out overlays/
     dataset = remove_overlays(dataset)
