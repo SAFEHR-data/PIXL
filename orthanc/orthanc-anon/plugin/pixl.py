@@ -235,7 +235,7 @@ def OnChange(changeType, level, resource):  # noqa: ARG001
     """
     Three ChangeTypes included in this function:
     - If a study is stable and if should_auto_route returns true
-    then SendViaFTPS is called
+    then Send is called
     - If orthanc has started then message added to Orthanc LogWarning
     and AzureDICOMTokenRefresh called
     - If orthanc has stopped and TIMER is not none then message added
