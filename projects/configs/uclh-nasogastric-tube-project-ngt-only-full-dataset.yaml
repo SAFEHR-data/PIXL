@@ -11,11 +11,14 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-from pathlib import Path
 
-# Avoid running samples for fixture tests directly with pytest
-collect_ignore = ["samples_for_fixture_tests"]
+project:
+    name: "uclh-nasogastric-tube-project-ngt-only-full-dataset"
+    modalities: ["DX", "CR"]
 
-pytest_plugins = ["pytester"]
+tag_operation_files:
+    ["uclh-nasogastric-tube-project-ngt-only-full-dataset.yaml"]
 
-TEST_DIR = Path(__file__).parent
+destination:
+    dicom: "ftps"
+    parquet: "ftps"

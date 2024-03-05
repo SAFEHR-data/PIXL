@@ -133,9 +133,10 @@ pip install -e ../pixl_core/ -e .[test]
 
 ### Running tests
 
-Tests can be run with `pytest` from the `tests` directory.
+The CLI tests require a running instance of the `rabbitmq` service, for which we provide a
+`docker-compose` [file](./tests/docker-compose.yml). The service is automatically started by the
+`run_containers` _pytest_ fixture. So to run the tests, run
 
 ```bash
-cd tests
 pytest
 ```

@@ -24,6 +24,7 @@ import click
 import requests
 from core.patient_queue.producer import PixlProducer
 from core.patient_queue.subscriber import PixlBlockingConsumer
+from decouple import RepositoryEnv, UndefinedValueError, config
 
 from pixl_cli._config import SERVICE_SETTINGS, api_config_for_queue
 from pixl_cli._database import filter_exported_or_add_to_db
@@ -46,6 +47,35 @@ os.environ["NO_PROXY"] = os.environ["no_proxy"] = "localhost"
 def cli(*, debug: bool) -> None:
     """PIXL command line interface"""
     set_log_level("WARNING" if not debug else "DEBUG")
+
+
+@cli.command()
+@click.option(
+    "--error",
+    is_flag=True,
+    show_default=True,
+    default=False,
+    help="Exit with error on missing env vars",
+)
+@click.option(
+    "--sample_env_file",
+    show_default=True,
+    default=None,
+    type=click.Path(exists=True),
+    help="Path to the sample env file",
+)
+def check_env(*, error: bool, sample_env_file: click.Path) -> None:
+    """Check that all variables from .env.sample are set either in .env or in environ"""
+    if not sample_env_file:
+        sample_env_file = Path(__file__).parents[3] / ".env.sample"
+    sample_config = RepositoryEnv(sample_env_file)
+    for key in sample_config.data:
+        try:
+            config(key)
+        except UndefinedValueError:  # noqa: PERF203
+            logger.warning("Environment variable %s is not set", key)
+            if error:
+                raise
 
 
 @cli.command()

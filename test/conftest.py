@@ -25,7 +25,7 @@ pytest_plugins = "pytest_pixl"
 @pytest.fixture()
 def host_export_root_dir():
     """Intermediate export dir as seen from the host"""
-    return Path(__file__).parents[1] / "exports"
+    return Path(__file__).parents[1] / "projects" / "exports"
 
 
 TEST_DIR = Path(__file__).parent
@@ -48,7 +48,7 @@ def _setup_pixl_cli(ftps_server) -> None:
             "system-test-ehr-api-1",
             "rm",
             "-r",
-            "/run/exports/test-extract-uclh-omop-cdm/",
+            "/run/projects/exports/test-extract-uclh-omop-cdm/",
         ],
         TEST_DIR,
     )

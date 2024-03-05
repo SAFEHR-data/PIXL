@@ -96,16 +96,12 @@ for convenience `latest` is a symlink to the most recent extract.
 ## Uploading to an FTPS server
 
 The `core.upload` module implements functionality to upload DICOM images and parquet files to an
-**FTPS server**. This requires the following environment variables to be set:
+several destinations. This requires the following environment variables to be set:
 
-- `FTP_HOST`: URL to the FTPS server
-- `FTP_PORT`: port on which the FTPS server is listening
-- `FTP_USER_NAME`: name of user with access to the FTPS server
-- `FTP_USER_PASSWORD`: password for the authorised user
-
-We provide mock values for these for the unit tests (see
-[`./tests/conftest.py`](./tests/conftest.py)). When running in production, these should be defined
-in the `.env` file (see [the example](../.env.sample)).
+The `Uploader` abstract class provides a consistent interface for uploading files. Child classes
+such as the `FTPSUploader` implement the actual upload functionality. The credentials required for
+uploading are queried from an **Azure Keyvault** instance (implemented in `_secrets.py`), for which
+the setup instructions are in the [top-level README](../README.md#project-secrets)
 
 When an extract is ready to be published to the DSH, the PIXL pipeline will upload the **Public**
 and **Radiology** [_parquet_ files](../docs/data/parquet_files.md) to the `<project-slug>` directory

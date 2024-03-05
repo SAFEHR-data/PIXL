@@ -15,8 +15,11 @@ from __future__ import annotations
 
 from io import BytesIO
 from os import PathLike
+from pathlib import Path
 from typing import Any, BinaryIO, Union
 from logging import getLogger
+from core.db.queries import get_project_slug
+from core.project_config import load_project_config
 
 import requests
 from decouple import config
@@ -25,6 +28,7 @@ from pydicom import Dataset, dcmwrite
 from pixl_dcmd._database import add_hashed_identifier_and_save, query_db
 from pixl_dcmd._datetime import combine_date_time, format_date_time
 from pixl_dcmd._deid_helpers import get_bounded_age, get_encrypted_uid
+import yaml
 
 DicomDataSetType = Union[Union[str, bytes, PathLike[Any]], BinaryIO]
 
@@ -42,6 +46,68 @@ def write_dataset_to_bytes(dataset: Dataset) -> bytes:
         dcmwrite(buffer, dataset)
         buffer.seek(0)
         return buffer.read()
+
+
+def anonymise_dicom(dataset: Dataset) -> Dataset:
+    """
+    Anonymises a DICOM dataset as Received by Orthanc.
+    Finds appropriate configuration based on project name and anonymises by
+    - dropping datasets of the wrong modality
+    - removing private tags
+    - removing overlays
+    - applying tag operations based on the config file
+    Returns anonymised dataset.
+    """
+    slug = get_project_slug(dataset.PatientID, dataset.AccessionNumber)
+    project_config = load_project_config(slug)
+    logger.error(f"Received instance for project {slug}")
+    # Drop anything that is not an X-Ray
+    if dataset.Modality not in project_config.project.modalities:
+        msg = f"Dropping DICOM Modality: {dataset.Modality}"
+        logger.error(msg)
+        raise ValueError(msg)
+
+    logger.warning("Anonymising received instance")
+    # Rip out all private tags/
+    dataset.remove_private_tags()
+    logger.info("Removed private tags")
+
+    # Rip out overlays/
+    dataset = remove_overlays(dataset)
+    logger.info("Removed overlays")
+
+    # Merge tag schemes
+    all_tags = merge_tag_schemes(project_config.tag_operation_files)
+
+    # Apply scheme to instance
+    dataset = apply_tag_scheme(dataset, all_tags)
+    # Apply whitelist
+    dataset = enforce_whitelist(dataset, all_tags)
+
+    logger.info(
+        f"DICOM tag anonymisation applied according to {project_config.tag_operation_files}"
+    )
+    logger.warning("DICOM tag anonymisation applied")
+
+    # Write anonymised instance to disk.
+    return dataset
+
+
+def merge_tag_schemes(tag_operation_files: list[Path]) -> list[dict]:
+    """
+    NOT IMPLEMENTED, WORKS ONLY WITH A SINGLE TAG SCHEME
+    Merge multiple tag schemes into a single dictionary.
+    """
+    if len(tag_operation_files) > 1:
+        raise NotImplementedError("Multiple tag schemes not supported")
+    with tag_operation_files[0].open() as file:
+        # Load tag operations scheme from YAML.
+        tags = yaml.safe_load(file)
+        if not isinstance(tags, list) or not all(
+            [isinstance(tag, dict) for tag in tags]
+        ):
+            raise ValueError("Tag operation file must contain a list of dictionaries")
+        return tags
 
 
 def remove_overlays(dataset: Dataset) -> Dataset:
@@ -76,7 +142,7 @@ def remove_overlays(dataset: Dataset) -> Dataset:
     return dataset
 
 
-def enforce_whitelist(dataset: dict, tags: dict) -> dict:
+def enforce_whitelist(dataset: Dataset, tags: list[dict]) -> Dataset:
     """Delete any tags not in the tagging scheme."""
     # For every element:
     logger.debug("Enforcing whitelist")
@@ -105,7 +171,7 @@ def enforce_whitelist(dataset: dict, tags: dict) -> dict:
     return dataset
 
 
-def apply_tag_scheme(dataset: dict, tags: dict) -> dict:
+def apply_tag_scheme(dataset: Dataset, tags: list[dict]) -> Dataset:
     """
     Apply anonymisation operations for a given set of tags to a dataset.
     The original study time is kept before any operations are applied.

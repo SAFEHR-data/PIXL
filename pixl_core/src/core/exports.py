@@ -20,6 +20,9 @@ from typing import TYPE_CHECKING
 
 import slugify
 
+from core.project_config import load_project_config
+from core.uploader import get_uploader
+
 if TYPE_CHECKING:
     import datetime
     import pathlib
@@ -27,7 +30,7 @@ if TYPE_CHECKING:
     import pandas as pd
 
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 
 
 class ParquetExport:
@@ -80,9 +83,14 @@ class ParquetExport:
         """
         public_input = input_omop_dir / "public"
 
-        logging.info("Copying public parquet files from %s to %s", public_input, self.public_output)
+        logger.info("Copying public parquet files from %s to %s", public_input, self.public_output)
 
-        # Make directory for exports if they don't exist
+        # Make sure the base export direcotry exsists
+        if not self.export_dir.exists():
+            msg = f"Export directory {self.export_dir} does not exist"
+            raise FileNotFoundError(msg)
+
+        # Make directory for project exports
         ParquetExport._mkdir(self.public_output)
 
         # Copy extract files, overwriting if it exists
@@ -97,7 +105,7 @@ class ParquetExport:
         """Export radiology reports to parquet file"""
         self._mkdir(self.radiology_output)
         parquet_file = self.radiology_output / "radiology.parquet"
-        logging.info("Exporting radiology to %s", self.radiology_output)
+        logger.info("Exporting radiology to %s", self.radiology_output)
         export_df.to_parquet(parquet_file)
         # We are not responsible for making the "latest" symlink, see `copy_to_exports`.
         # This avoids the confusion caused by EHR API (which calls export_radiology) having a
@@ -110,3 +118,24 @@ class ParquetExport:
     def _mkdir(directory: pathlib.Path) -> pathlib.Path:
         directory.mkdir(parents=True, exist_ok=True)
         return directory
+
+    def upload(self) -> None:
+        """Upload the latest extract to the DSH."""
+        project_config = load_project_config(self.project_slug)
+        destination = project_config.destination.parquet
+
+        if destination == "none":
+            msg = (
+                f"Destination for parquet files for project {self.project_slug} is 'none'."
+                "Skipping upload."
+            )
+            logger.info(msg)
+
+        else:
+            uploader = get_uploader(
+                self.project_slug, destination, project_config.project.azure_kv_alias
+            )
+
+            msg = f"Uploading parquet files for project {self.project_slug} via '{destination}'"
+            logger.info(msg)
+            uploader.upload_parquet_files(self)

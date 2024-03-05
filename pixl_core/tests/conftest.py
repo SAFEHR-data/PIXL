@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING, BinaryIO
 
 import pytest
 from core.db.models import Base, Extract, Image
-from core.exports import ParquetExport
+from core.uploader._ftps import FTPSUploader
 from pytest_pixl.helpers import run_subprocess
 from pytest_pixl.plugin import FtpHostAddress
 from sqlalchemy import Engine, create_engine
@@ -42,9 +42,11 @@ os.environ["RABBITMQ_USERNAME"] = "guest"
 os.environ["RABBITMQ_PASSWORD"] = "guest"  # noqa: S105 Hardcoding password
 os.environ["RABBITMQ_HOST"] = "localhost"
 os.environ["RABBITMQ_PORT"] = "25672"
+os.environ["PROJECT_CONFIGS_DIR"] = str(TEST_DIR.parents[1] / "projects/configs")
+
 os.environ["FTP_HOST"] = "localhost"
 os.environ["FTP_USER_NAME"] = "pixl"
-os.environ["FTP_USER_PASSWORD"] = "longpassword"  # noqa: S105 Hardcoding password
+os.environ["FTP_PASSWORD"] = "longpassword"  # noqa: S105 Hardcoding password
 os.environ["FTP_PORT"] = "20021"
 
 
@@ -66,6 +68,23 @@ def run_containers() -> subprocess.CompletedProcess[bytes]:
         TEST_DIR,
         timeout=60,
     )
+
+
+class MockFTPSUploader(FTPSUploader):
+    """Mock FTPSUploader for testing."""
+
+    def __init__(self) -> None:
+        """Initialise the mock uploader with hardcoded values for FTPS config."""
+        self.host = os.environ["FTP_HOST"]
+        self.user = os.environ["FTP_USER_NAME"]
+        self.password = os.environ["FTP_PASSWORD"]
+        self.port = int(os.environ["FTP_PORT"])
+
+
+@pytest.fixture()
+def ftps_uploader() -> MockFTPSUploader:
+    """Return a MockFTPSUploader object."""
+    return MockFTPSUploader()
 
 
 @pytest.fixture()
@@ -185,14 +204,6 @@ def already_exported_dicom_image(rows_in_session) -> Image:
 @pytest.fixture(autouse=True)
 def export_dir(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
     """Tmp dir to for tests to extract to."""
-    return tmp_path_factory.mktemp("export_base") / "exports"
-
-
-@pytest.fixture()
-def parquet_export(export_dir) -> ParquetExport:
-    """Return a ParquetExport object."""
-    return ParquetExport(
-        project_name="i-am-a-project",
-        extract_datetime=datetime.datetime.now(tz=datetime.timezone.utc),
-        export_dir=export_dir,
-    )
+    export_dir = tmp_path_factory.mktemp("export_base") / "exports"
+    export_dir.mkdir()
+    return export_dir

@@ -131,9 +131,9 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install pixl_core/
-          pip install pytest-pixl/
-          pip install cli/[test]
+          pip install -e pixl_core/
+          pip install -e pytest-pixl/
+          pip install -e cli/[test]
 
       - name: Run tests
         working-directory: cli/tests
@@ -225,6 +225,9 @@ jobs:
           pip install -e pytest-pixl/
           pip install -e cli/[test]
 
+      - name: Create .secrets.env
+        run: touch .secrets.env
+
       - name: Build test services
         working-directory: test
         run: |
@@ -236,6 +239,11 @@ jobs:
 
       - name: Run tests
         working-directory: test
+        env:
+          EXPORT_AZ_CLIENT_ID: ${{ secrets.EXPORT_AZ_CLIENT_ID }}
+          EXPORT_AZ_CLIENT_PASSWORD: ${{ secrets.EXPORT_AZ_CLIENT_PASSWORD }}
+          EXPORT_AZ_TENANT_ID: ${{ secrets.EXPORT_AZ_TENANT_ID }}
+          EXPORT_AZ_KEY_VAULT_NAME: ${{ secrets.EXPORT_AZ_KEY_VAULT_NAME }}
         run: |
           ./run-system-test.sh
           echo FINISHED SYSTEM TEST SCRIPT
