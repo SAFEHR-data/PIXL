@@ -1,4 +1,29 @@
 {
+  "Dictionary": {
+    "000b,1001": ["LO", "UCLHPIXLProjectName", 1, 1, "UCLH PIXL"]
+  },
+  "ExtraMainDicomTags" : {
+    "Instance": [
+      "Rows",
+      "Columns",
+      "ImageType",
+      "SOPClassUID",
+      "ContentDate",
+      "ContentTime",
+      "FrameOfReferenceUID",
+      "PatientID",
+      "PatientName",
+      "UCLHPIXLProjectName",
+      "AccessionNumber",
+      "PixelSpacing",
+      "SpecificCharacterSet",
+      "BitsAllocated",
+      "BitsStored"
+    ],
+    "Study": [
+      "UCLHPIXLProjectName"
+    ]
+  },
   "Name" : "${ORTHANC_NAME}",
   "RemoteAccessAllowed" : true,
   "RegisteredUsers": {
