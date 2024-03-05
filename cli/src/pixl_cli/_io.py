@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
@@ -55,20 +55,72 @@ def project_info(resources_path: Path) -> tuple[str, datetime]:
     log_file = resources_path / "extract_summary.json"
     logs = json.load(log_file.open())
     project_name = logs["settings"]["cdm_source_name"]
-    omop_es_timestamp = datetime.fromisoformat(logs["datetime"])
-    return project_name, omop_es_timestamp
+    extract_generated_timestamp = datetime.fromisoformat(logs["datetime"])
+    return project_name, extract_generated_timestamp
 
 
 def copy_parquet_return_logfile_fields(resources_path: Path) -> tuple[str, datetime]:
     """Copy public parquet file to extracts directory, and return fields from logfile"""
-    project_name, omop_es_timestamp = project_info(resources_path)
-    extract = ParquetExport(project_name, omop_es_timestamp, HOST_EXPORT_ROOT_DIR)
+    project_name, extract_generated_timestamp = project_info(resources_path)
+    extract = ParquetExport(project_name, extract_generated_timestamp, HOST_EXPORT_ROOT_DIR)
     project_name_slug = extract.copy_to_exports(resources_path)
-    return project_name_slug, omop_es_timestamp
+    return project_name_slug, extract_generated_timestamp
+
+
+def messages_from_csv(filepath: Path) -> list[Message]:
+    """
+    Reads patient information from CSV and transforms that into messages.
+    :param filepath: Path for CSV file to be read
+    """
+    expected_col_names = [
+        "procedure_id",
+        "mrn",
+        "accession_number",
+        "project_name",
+        "extract_generated_timestamp",
+        "study_date",
+    ]
+
+    # First line is column names
+    messages_df = pd.read_csv(filepath, header=0, dtype=str)
+
+    _raise_if_column_names_not_found(messages_df, expected_col_names)
+
+    (
+        procedure_id_col_name,
+        mrn_col_name,
+        acc_num_col_name,
+        project_col_name,
+        extract_col_name,
+        dt_col_name,
+    ) = expected_col_names
+
+    messages = []
+    for _, row in messages_df.iterrows():
+        message = Message(
+            mrn=row[mrn_col_name],
+            accession_number=row[acc_num_col_name],
+            study_date=datetime.strptime(row[dt_col_name], "%d/%m/%Y %H:%M")
+            .replace(tzinfo=timezone.utc)
+            .date(),
+            procedure_occurrence_id=row[procedure_id_col_name],
+            project_name=row[project_col_name],
+            extract_generated_timestamp=datetime.strptime(row[extract_col_name], "%d/%m/%Y %H:%M")
+            .replace(tzinfo=timezone.utc)
+            .date(),
+        )
+        messages.append(message)
+
+    if len(messages) == 0:
+        msg = f"Failed to find any messages in {filepath}"
+        raise ValueError(msg)
+
+    logger.info(f"Created {len(messages)} messages from {filepath}")
+    return messages
 
 
 def messages_from_parquet(
-    dir_path: Path, project_name: str, omop_es_timestamp: datetime
+    dir_path: Path, project_name: str, extract_generated_timestamp: datetime
 ) -> list[Message]:
     """
     Reads patient information from parquet files within directory structure
@@ -76,7 +128,7 @@ def messages_from_parquet(
 
     :param dir_path: Path for parquet directory containing private and public
     :param project_name: Name of the project, should be a slug, so it can match the export directory
-    :param omop_es_timestamp: Datetime that OMOP ES ran the extract
+    :param extract_generated_timestamp: Datetime that OMOP ES ran the extract
     files
     """
     public_dir = dir_path / "public"
@@ -84,33 +136,25 @@ def messages_from_parquet(
 
     cohort_data = _check_and_parse_parquet(private_dir, public_dir)
 
-    expected_col_names = [
-        "PrimaryMrn",
-        "AccessionNumber",
-        "person_id",
-        "procedure_date",
-        "procedure_occurrence_id",
-    ]
-    _raise_if_column_names_not_found(cohort_data, expected_col_names)
+    map_column_to_message_params = {
+        "mrn": "PrimaryMrn",
+        "accession_number": "AccessionNumber",
+        "study_date": "procedure_date",
+        "procedure_occurrence_id": "procedure_occurrence_id",
+    }
 
-    (
-        mrn_col_name,
-        acc_num_col_name,
-        _,
-        dt_col_name,
-        procedure_occurrence_id,
-    ) = expected_col_names
+    _raise_if_column_names_not_found(cohort_data, list(map_column_to_message_params.values()))
 
     messages = []
 
     for _, row in cohort_data.iterrows():
+        message_params = {
+            param: row[column] for param, column in map_column_to_message_params.items()
+        }
         message = Message(
-            mrn=row[mrn_col_name],
-            accession_number=row[acc_num_col_name],
-            study_date=row[dt_col_name],
-            procedure_occurrence_id=row[procedure_occurrence_id],
             project_name=project_name,
-            omop_es_timestamp=omop_es_timestamp,
+            extract_generated_timestamp=extract_generated_timestamp,
+            **message_params,
         )
         messages.append(message)
 
@@ -119,6 +163,44 @@ def messages_from_parquet(
         raise ValueError(msg)
 
     logger.info(f"Created {len(messages)} messages from {dir_path}")
+    return messages
+
+
+def messages_from_parquet_file(
+    file_path: Path,
+    project_name: str,
+    timestamp: datetime,
+) -> list[Message]:
+    """
+    Reads patient information from a parquet file and transforms that into messages.
+
+    :param file_path: Path for parquet file
+    """
+    cohort_data = pd.read_parquet(file_path)
+
+    map_column_to_message_params = {
+        "mrn": "PrimaryMrn",
+        "accession_number": "AccessionNumber",
+        "study_date": "procedure_date",
+        "procedure_occurrence_id": "procedure_occurrence_id",
+    }
+
+    _raise_if_column_names_not_found(cohort_data, list(map_column_to_message_params.values()))
+
+    messages = []
+
+    for _, row in cohort_data.iterrows():
+        message_params = {
+            param: row[column] for param, column in map_column_to_message_params.items()
+        }
+        message = Message(project_name=project_name, timestamp=timestamp, **message_params)
+        messages.append(message)
+
+    if len(messages) == 0:
+        msg = f"Failed to find any messages in {file_path}"
+        raise ValueError(msg)
+
+    logger.info(f"Created {len(messages)} messages from {file_path}")
     return messages
 
 
@@ -150,7 +232,7 @@ def _raise_if_column_names_not_found(
     for col in expected_col_names:
         if col not in list(cohort_data.columns):
             msg = (
-                f"parquet files are expected to have at least {expected_col_names} as "
+                f"Export specification files are expected to have at least {expected_col_names} as "
                 f"column names"
             )
             raise ValueError(msg)

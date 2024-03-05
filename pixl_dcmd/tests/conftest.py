@@ -16,6 +16,7 @@ from __future__ import annotations
 import datetime
 import os
 import pathlib
+from typing import Optional
 import pytest
 import requests
 from core.db.models import Base, Extract, Image
@@ -155,3 +156,15 @@ def mock_response(monkeypatch):
         return MockResponse(input.split("=")[1])
 
     monkeypatch.setattr(requests, "get", mock_get)
+
+
+@pytest.fixture()
+def mock_header_record_path(monkeypatch, tmpdir):
+    """Return path to temporary directory instead of getting value from envvar."""
+
+    def mock_get(key, default) -> Optional[str]:
+        if key == "ORTHANC_RAW_HEADER_LOG_PATH":
+            return str(tmpdir.join("test_header_log.csv"))
+        return os.environ.get(key, default)
+
+    monkeypatch.setattr(os.environ, "get", mock_get)

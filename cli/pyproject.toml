@@ -16,7 +16,8 @@ dependencies = [
 
 [project.optional-dependencies]
 test = [
-    "pytest==7.4.*"
+    "pytest==7.4.*",
+    "pytest-pixl",
 ]
 dev = [
     "mypy",

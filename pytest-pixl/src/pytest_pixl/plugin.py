@@ -12,10 +12,13 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """Pytest fixtures."""
+
 import sys
 import threading
 from collections.abc import Generator
 from enum import Enum
+from importlib import resources
+from pathlib import Path
 
 import pytest
 
@@ -64,3 +67,11 @@ def ftps_server(
     thread.start()
     yield ftps_server
     ftps_server.server.close_all()
+
+
+@pytest.fixture()
+def omop_resources() -> Path:
+    """Dummy OMOP resources for tests."""
+    traversable = resources.files("pytest_pixl").joinpath("data/omop-resources")
+    with resources.as_file(traversable) as path:
+        return path

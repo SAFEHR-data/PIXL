@@ -24,7 +24,7 @@ TEST_MESSAGE = Message(
     study_date="2022-11-22T13:33:00+00:00",
     procedure_occurrence_id="234",
     project_name="test project",
-    omop_es_timestamp="2023-12-07T14:08:00+00:00",
+    extract_generated_timestamp="2023-12-07T14:08:00+00:00",
 )
 
 

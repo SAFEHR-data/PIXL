@@ -217,7 +217,7 @@ def _query(resourceId: str, query: str, fail_msg: str) -> requests.Response:
         return response
 
 
-def ShouldAutoRoute() -> bool:
+def should_auto_route() -> bool:
     """
     Checks whether ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT environment variable is
     set to true or false
@@ -234,14 +234,14 @@ def _azure_available() -> bool:
 def OnChange(changeType, level, resource):  # noqa: ARG001
     """
     Three ChangeTypes included in this function:
-    - If a study is stable and if ShouldAutoRoute returns true
-    then Send is called
+    - If a study is stable and if should_auto_route returns true
+    then SendViaFTPS is called
     - If orthanc has started then message added to Orthanc LogWarning
     and AzureDICOMTokenRefresh called
     - If orthanc has stopped and TIMER is not none then message added
     to Orthanc LogWarning and TIMER cancelled
     """
-    if not ShouldAutoRoute():
+    if not should_auto_route():
         return
 
     if changeType == orthanc.ChangeType.STABLE_STUDY:

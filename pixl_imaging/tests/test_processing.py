@@ -37,7 +37,7 @@ message = Message(
     ),
     procedure_occurrence_id="234",
     project_name="test project",
-    omop_es_timestamp=datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
+    extract_generated_timestamp=datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
 )
 
 

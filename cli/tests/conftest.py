@@ -15,14 +15,14 @@
 from __future__ import annotations
 
 import os
-import pathlib
+from pathlib import Path
 
 import pytest
 from core.db.models import Base, Extract, Image
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-os.environ["PROJECT_CONFIGS_DIR"] = str(pathlib.Path(__file__).parents[2] / "projects/configs")
+os.environ["PROJECT_CONFIGS_DIR"] = str(Path(__file__).parents[2] / "projects/configs")
 
 # Set the necessary environment variables
 os.environ["PIXL_EHR_API_HOST"] = "localhost"
@@ -46,17 +46,11 @@ os.environ["PIXL_DB_NAME"] = "pixl"
 
 
 @pytest.fixture(autouse=True)
-def export_dir(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
+def export_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
     """Tmp dir to for tests to extract to."""
     export_dir = tmp_path_factory.mktemp("export_base") / "exports"
     export_dir.mkdir()
     return export_dir
-
-
-@pytest.fixture()
-def resources() -> pathlib.Path:
-    """Test resources directory path."""
-    return pathlib.Path(__file__).parent / "resources"
 
 
 @pytest.fixture(scope="module")

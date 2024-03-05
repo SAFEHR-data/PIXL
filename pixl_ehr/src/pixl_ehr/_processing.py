@@ -98,7 +98,7 @@ class PatientEHRData:
             image_identifier=message.mrn + message.accession_number,
             procedure_occurrence_id=message.procedure_occurrence_id,
             project_name=message.project_name,
-            extract_datetime=message.omop_es_timestamp,
+            extract_datetime=message.extract_generated_timestamp,
             acquisition_datetime=message.study_date,
         )
 
