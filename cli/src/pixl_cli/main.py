@@ -62,10 +62,25 @@ def cli(*, debug: bool) -> None:
     default=True,
     help="Restart from a saved state. Otherwise will use the given input file(s)",
 )
+@click.option(
+    "--start/--no-start",
+    "start_processing",
+    show_default=True,
+    default=True,
+    help="Start processing from the queues after population is complete",
+)
+@click.option(
+    "--rate",
+    type=float,
+    default=None,
+    help="Rate at which to process items from a queue (in items per second).",
+)
 @click.argument(
     "parquet-path", required=True, type=click.Path(path_type=Path, exists=True, file_okay=True)
 )
-def populate(parquet_path: Path, *, restart: bool, queues: str) -> None:
+def populate(
+    parquet_path: Path, *, queues: str, restart: bool, start_processing: bool, rate: Optional[float]
+) -> None:
     """
     Populate a (set of) queue(s) from a parquet file directory
     PARQUET_DIR: Directory containing the public and private parquet input files and an
@@ -104,6 +119,9 @@ def populate(parquet_path: Path, *, restart: bool, queues: str) -> None:
             )
         with PixlProducer(queue_name=queue, **SERVICE_SETTINGS["rabbitmq"]) as producer:
             producer.publish(sorted_messages)
+
+    if start_processing:
+        _start_or_update_extract(queues=queues.split(","), rate=rate)
 
 
 @cli.command()

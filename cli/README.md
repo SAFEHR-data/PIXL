@@ -37,7 +37,7 @@ pixl --help
 ```
 ### Configuration
 
-The `rabbitmq` and `postgress` services are configured by setting the following environment variables
+The `rabbitmq` and `postgres` services are configured by setting the following environment variables
 (default values shown):
 
 ```sh
@@ -87,19 +87,11 @@ parquet_dir
     └── PROCEDURE_OCCURRENCE.parquet
 ```
 
-Start the imaging extraction
+Extraction will start automatically after populating the queues.  If granular
+customisation of the rate per queue is required or a queue should not be started
+then supply the argument `--no-start` and use `pixl start...` to launch
+processing.
 
-```bash
-pixl start --queues imaging
-```
-
-and equivalently the EHR extraction
-
-```bash
-pixl start --queues ehr
-```
-
-Use `pixl start --help` for information.
 
 Stop Imaging and EHR database extraction
 
