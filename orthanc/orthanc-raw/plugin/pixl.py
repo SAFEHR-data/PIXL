@@ -21,15 +21,14 @@ This module provides:
 """
 from __future__ import annotations
 
-from io import BytesIO
 import logging
 import os
+from io import BytesIO
 from typing import TYPE_CHECKING
-
-import orthanc
 
 from pydicom import Dataset, dcmread, dcmwrite
 
+import orthanc
 from pixl_dcmd.tagrecording import record_dicom_headers
 
 if TYPE_CHECKING:
@@ -94,12 +93,16 @@ def write_dataset_to_bytes(dataset: Dataset) -> bytes:
 
 
 def modify_dicom_tags(receivedDicom: bytes, origin: str) -> Any:
+    """
+    A new incoming DICOM file needs to have the project name private tag added here, so
+    that the API will later allow us to edit it.
+    However, we don't know its correct value at this point, so just create it with an obvious
+    placeholder value.
+    """
     if origin != orthanc.InstanceOrigin.DICOM_PROTOCOL:
         # don't keep resetting the tag values if this was triggered by an API call!
-        print("JES - modify_dicom_tags - doing nothing as triggered by API")
+        print("modify_dicom_tags - doing nothing as change triggered by API")  # noqa: T201
         return orthanc.ReceivedInstanceAction.KEEP_AS_IS, None
-    print(f"JES - modify_dicom_tags - entry origin = {origin}")
-    print(f"JES - len = {len(receivedDicom)}")
     dataset = dcmread(BytesIO(receivedDicom))
     private_creator_name = "UCLH PIXL"
     # See the orthanc.json config file for where this tag is given a nickname
@@ -113,14 +116,14 @@ def modify_dicom_tags(receivedDicom: bytes, origin: str) -> Any:
     # it is == 0x10 though :/
     # https://dicom.nema.org/dicom/2013/output/chtml/part05/sect_7.8.html
 
-    print(f"JES - modify_dicom_tags - BEFORE {dataset!s}")
     private_block = dataset.private_block(group_id, private_creator_name, create=True)
     private_block.add_new(private_tag_offset, vr, unknown_value)
     # and try it the slightly different way
-    print(f"JES - modify_dicom_tags - AFTER {dataset!s}")
+    print(  # noqa: T201
+        f"modify_dicom_tags - added new private "
+        f"block starting at 0x{private_block.block_start:x}"
+    )
     return orthanc.ReceivedInstanceAction.MODIFY, write_dataset_to_bytes(dataset)
-    # return orthanc.ReceivedInstanceAction.KEEP_AS_IS, None
-    # return orthanc.ReceivedInstanceAction.DISCARD, None
 
 
 orthanc.RegisterOnChangeCallback(OnChange)

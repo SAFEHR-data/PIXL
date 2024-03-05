@@ -42,7 +42,6 @@ async def process_message(message: Message) -> None:
         return
 
     proj_name = message.project_name
-    # study.orthanc_query_dict
     # What exists in the VNA for the patient and accession number?
     query_id = orthanc_raw.query_remote(study.orthanc_query_dict, modality=config("VNAQR_MODALITY"))
     if query_id is None:
@@ -73,23 +72,10 @@ async def process_message(message: Message) -> None:
         orthanc_raw.modify_tags_by_study(
             study,
             {
-                # This works with AccessionNumber, but not PatientName or UCLHPIXLProjectName :(
+                # The tag here needs to be defined in orthanc's dictionary
                 "UCLHPIXLProjectName": proj_name,
             },
         )
-
-    # instances_with_tags = orthanc_raw.query_local(
-    #     study.get_orthanc_query_dict(query_level="Instance")
-    # )
-    # logger.info("Local instances with matching tags: %s", instances_with_tags)
-    # for instance_id in instances_with_tags:
-        # logger.info("Downloading instance ID %s", instance_id)
-        # file_data = orthanc_raw.download_instance(instance_id)
-        # logger.info("File data, len = %s", len(file_data))
-        # logger.info("Re-uploading instance ID %s", instance_id)
-        # orthanc_raw.upload_instance(instance_id, file_data)
-        # logger.info("Deleting instance ID %s", instance_id)
-        # orthanc_raw.delete_instance(instance_id)
 
     # Got to do /studies/{id}/modify
     # https://orthanc.uclouvain.be/api/index.html#tag/Studies/paths/~1studies~1{id}~1modify/post
@@ -110,14 +96,10 @@ class ImagingStudy:
         return ImagingStudy(message=message)
 
     @property
-    def orthanc_query_dict(self, query_level="Study") -> dict:
-        return self.get_orthanc_query_dict()
-
-    def get_orthanc_query_dict(self, query_level="Study") -> dict:
+    def orthanc_query_dict(self) -> dict:
         return {
-            "Level": query_level,
+            "Level": "Study",
             "Query": {
-                # "Something": self.message.project_name,
                 "PatientID": self.message.mrn,
                 "AccessionNumber": self.message.accession_number,
             },

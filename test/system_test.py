@@ -84,7 +84,7 @@ class TestFtpsUpload:
             unzip_dir = tmp_path_factory.mktemp("unzip_dir", numbered=True)
             self._check_dcm_tags_from_zip(z, unzip_dir)
 
-    def _check_dcm_tags_from_zip(self, zip_path, unzip_dir):
+    def _check_dcm_tags_from_zip(self, zip_path, unzip_dir) -> None:
         """
         Check that private tag exists - this may be the wrong place if it's not expected to survive
         anonymisation.
