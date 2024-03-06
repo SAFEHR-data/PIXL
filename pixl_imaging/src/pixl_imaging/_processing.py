@@ -64,6 +64,7 @@ async def process_message(message: Message) -> None:
         await sleep(0.1)
         job_state = orthanc_raw.job_state(job_id=job_id)
 
+    # Now that instance has arrived in orthanc raw, we can set its project name tag via the API
     studies_with_tags = orthanc_raw.query_local(study.orthanc_query_dict)
     logger.info("Local instances with matching tags: %s", studies_with_tags)
 

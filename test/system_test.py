@@ -80,15 +80,15 @@ class TestFtpsUpload:
             progress_string_fn=zip_file_list,
         )
 
+        assert zip_files
         for z in zip_files:
             unzip_dir = tmp_path_factory.mktemp("unzip_dir", numbered=True)
             self._check_dcm_tags_from_zip(z, unzip_dir)
 
     def _check_dcm_tags_from_zip(self, zip_path, unzip_dir) -> None:
         """
-        Check that private tag exists - this may be the wrong place if it's not expected to survive
-        anonymisation.
-        But shouldn't we be testing patient name etc anyway?
+        Check that private tag has survived anonymisation with the correct value.
+        Where are we testing patient name etc?
         """
         run_subprocess(
             ["unzip", zip_path],
@@ -98,7 +98,8 @@ class TestFtpsUpload:
         assert len(all_dicom) == 1
         dcm = pydicom.dcmread(all_dicom[0])
         block = dcm.private_block(0x000B, "UCLH PIXL")
-        private_tag = block[0x01]
+        tag_offset = 0x01
+        private_tag = block[tag_offset]
         assert private_tag is not None
         assert private_tag.value == TestFtpsUpload.project_slug
 
