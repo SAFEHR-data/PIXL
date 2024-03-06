@@ -13,7 +13,6 @@
       "FrameOfReferenceUID",
       "PatientID",
       "PatientName",
-      "UCLHPIXLProjectName",
       "AccessionNumber",
       "PixelSpacing",
       "SpecificCharacterSet",
