@@ -1,7 +1,4 @@
 {
-  "Dictionary": {
-    "000b,1001": ["LO", "UCLHPIXLProjectName", 1, 1, "UCLH PIXL"]
-  },
   "ExtraMainDicomTags" : {
     "Instance": [
       "Rows",
