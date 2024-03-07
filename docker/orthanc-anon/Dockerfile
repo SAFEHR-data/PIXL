@@ -21,6 +21,9 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get install --yes --no-install-recommends python3-venv
 RUN python3 -m venv /.venv
 
+# Install curl, used in system tests
+RUN apt-get --assume-yes install curl
+
 # Install requirements before copying modules
 COPY ./pixl_core/pyproject.toml /pixl_core/pyproject.toml
 COPY ./pixl_dcmd/pyproject.toml /pixl_dcmd/pyproject.toml
