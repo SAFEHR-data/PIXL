@@ -47,6 +47,8 @@ RUN cd /python3913 \
     && make clean \
     && rm -fr /python3913
 
+RUN pip3 install --no-cache-dir envsubst
+
 # Install requirements before copying modules
 COPY ./pixl_core/pyproject.toml ./pixl_core/pyproject.toml
 COPY ./pixl_dcmd/pyproject.toml ./pixl_dcmd/pyproject.toml
