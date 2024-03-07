@@ -113,6 +113,7 @@ services:
       dockerfile: ./docker/orthanc-anon/Dockerfile
       args:
         <<: *build-args-common
+    platform: linux/amd64
     command: /run/secrets
     environment:
       <<: [*proxy-common, *pixl-common-env, *azure-keyvault]
@@ -179,6 +180,7 @@ services:
       args:
         <<: *build-args-common
         ORTHANC_RAW_MAXIMUM_STORAGE_SIZE: ${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE}
+    platform: linux/amd64
     command: /run/secrets
     environment:
       <<: [*pixl-db, *proxy-common, *pixl-common-env]
