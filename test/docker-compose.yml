@@ -37,10 +37,15 @@ services:
         volumes:
             - ${PWD}/vna_config/:/run/secrets:ro
         healthcheck:
-            test: ["CMD", "curl", "-f", "-u", "orthanc:orthanc", "http://vna-qr:8042/patients"]
-            interval: 10s
-            timeout: 30s
-            retries: 5
+            test:
+                [
+                    "CMD-SHELL",
+                    "/probes/test-aliveness.py --user=orthanc, --pwd=orthanc",
+                ]
+            start_period: 10s
+            retries: 2
+            interval: 3s
+            timeout: 2s
         networks:
             pixl-net:
 
