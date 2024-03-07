@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     from core.patient_queue.message import Message
 
 logger = logging.getLogger("uvicorn")
-logger.setLevel(os.environ.get("LOG_LEVEL", "INFO"))
+logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))
 
 
 async def process_message(message: Message) -> None:
@@ -41,7 +41,6 @@ async def process_message(message: Message) -> None:
         logger.info("Study exists in cache")
         return
 
-    proj_name = message.project_name
     # Tell orthanc to query VNA for the patient and accession number
     query_id = orthanc_raw.query_remote(study.orthanc_query_dict, modality=config("VNAQR_MODALITY"))
     if query_id is None:
@@ -80,7 +79,7 @@ async def process_message(message: Message) -> None:
             study,
             {
                 # The tag here needs to be defined in orthanc's dictionary
-                "UCLHPIXLProjectName": proj_name,
+                "UCLHPIXLProjectName": message.project_name,
             },
         )
 
