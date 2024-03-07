@@ -13,20 +13,31 @@
 #  limitations under the License.
 FROM orthancteam/orthanc:24.3.3
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
+
+# Create a virtual environment, recommended since python 3.11 and Debian bookworm based images
+# where you get a warning when installing system-wide packages.
+RUN export DEBIAN_FRONTEND=noninteractive && \
+    apt-get update && \
+    apt-get install --yes --no-install-recommends python3-venv
+RUN python3 -m venv /.venv
+
 # Install requirements before copying modules
 COPY ./pixl_core/pyproject.toml /pixl_core/pyproject.toml
 COPY ./pixl_dcmd/pyproject.toml /pixl_dcmd/pyproject.toml
 
 RUN --mount=type=cache,target=/root/.cache \
-    pip3 install pixl_core/ \
-    && pip3 install pixl_dcmd/
+    /.venv/bin/pip install pixl_core/ \
+    && /.venv/bin/pip install pixl_dcmd/
 
 COPY ./orthanc/orthanc-anon/plugin/pixl.py /etc/orthanc/pixl.py
 
 COPY ./pixl_core/ /pixl_core
 RUN --mount=type=cache,target=/root/.cache \
-    pip3 install ./pixl_core
+    /.venv/bin/pip install ./pixl_core
 
 COPY ./pixl_dcmd/ /pixl_dcmd
 RUN --mount=type=cache,target=/root/.cache \
-    pip3 install ./pixl_dcmd
+    /.venv/bin/pip install ./pixl_dcmd
+
+ENV PYTHONPATH=/.venv/lib64/python3.11/site-packages/
+
