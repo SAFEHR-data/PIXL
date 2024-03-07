@@ -40,7 +40,7 @@ services:
             test:
                 [
                     "CMD-SHELL",
-                    "/probes/test-aliveness.py --user=orthanc, --pwd=orthanc",
+                    "/probes/test-aliveness.py --user=orthanc --pwd=orthanc",
                 ]
             start_period: 10s
             retries: 2

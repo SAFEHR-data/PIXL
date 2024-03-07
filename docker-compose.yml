@@ -164,7 +164,7 @@ services:
     healthcheck:
       test: 
         [
-          "CMD-SHELL", "/probes/test-aliveness.py --user=${ORTHANC_RAW_USERNAME} --pwd=${ORTHANC_RAW_PASSWORD}"
+          "CMD-SHELL", "/probes/test-aliveness.py --user=$ORTHANC_USERNAME --pwd=$ORTHANC_PASSWORD"
         ]
       start_period: 10s
       retries: 2
@@ -216,7 +216,7 @@ services:
     healthcheck:
       test: 
         [
-          "CMD-SHELL", "/probes/test-aliveness.py --user=${ORTHANC_RAW_USERNAME} --pwd=${ORTHANC_RAW_PASSWORD}"
+          "CMD-SHELL", "/probes/test-aliveness.py --user=$ORTHANC_USERNAME --pwd=$ORTHANC_PASSWORD"
         ]
       start_period: 10s
       retries: 2
