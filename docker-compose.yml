@@ -163,16 +163,13 @@ services:
     healthcheck:
       test:
         [
-          "CMD",
-          "curl",
-          "-f",
-          "-u",
-          "${ORTHANC_ANON_USERNAME}:${ORTHANC_ANON_PASSWORD}",
-          "http://orthanc-anon:8042/heart-beat",
+          "CMD-SHELL",
+          "/probes/test-aliveness.py --user=$ORTHANC_USERNAME --pwd=$ORTHANC_PASSWORD"
         ]
-      interval: 10s
-      timeout: 30s
-      retries: 5
+      start_period: 10s
+      retries: 2
+      interval: 3s
+      timeout: 2s
     restart: "no"
 
   orthanc-raw:
@@ -218,16 +215,13 @@ services:
     healthcheck:
       test:
         [
-          "CMD",
-          "curl",
-          "-f",
-          "-u",
-          "${ORTHANC_RAW_USERNAME}:${ORTHANC_RAW_PASSWORD}",
-          "http://orthanc-raw:8042/heart-beat",
+          "CMD-SHELL",
+          "/probes/test-aliveness.py --user=$ORTHANC_USERNAME --pwd=$ORTHANC_PASSWORD"
         ]
-      interval: 10s
-      timeout: 30s
-      retries: 5
+      start_period: 10s
+      retries: 2
+      interval: 3s
+      timeout: 2s
     restart: "no"
 
   queue:
