@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     from core.patient_queue.message import Message
 
 logger = logging.getLogger("uvicorn")
-logger.setLevel(os.environ.get("LOG_LEVEL", "DEBUG"))
+logger.setLevel(os.environ.get("LOG_LEVEL", "INFO"))
 
 
 async def process_message(message: Message) -> None:

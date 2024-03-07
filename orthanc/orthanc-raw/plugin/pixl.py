@@ -21,7 +21,6 @@ This module provides:
 """
 from __future__ import annotations
 
-import logging
 import os
 from io import BytesIO
 from typing import TYPE_CHECKING
@@ -33,9 +32,6 @@ from pixl_dcmd.tagrecording import record_dicom_headers
 
 if TYPE_CHECKING:
     from typing import Any
-
-logger = logging.getLogger()
-logger.setLevel("DEBUG")
 
 
 def OnChange(changeType, level, resourceId):  # noqa: ARG001
