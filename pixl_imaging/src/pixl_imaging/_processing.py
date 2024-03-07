@@ -42,7 +42,7 @@ async def process_message(message: Message) -> None:
         return
 
     proj_name = message.project_name
-    # What exists in the VNA for the patient and accession number?
+    # Tell orthanc to query VNA for the patient and accession number
     query_id = orthanc_raw.query_remote(study.orthanc_query_dict, modality=config("VNAQR_MODALITY"))
     if query_id is None:
         logger.error("Failed to find %s in the VNA", study)
@@ -67,6 +67,12 @@ async def process_message(message: Message) -> None:
     # Now that instance has arrived in orthanc raw, we can set its project name tag via the API
     studies_with_tags = orthanc_raw.query_local(study.orthanc_query_dict)
     logger.info("Local instances with matching tags: %s", studies_with_tags)
+
+    if len(studies_with_tags) != 1:
+        logger.error(
+            "Got %s studies with matching accession number and patient ID, expected 1",
+            len(studies_with_tags),
+        )
 
     for study in studies_with_tags:
         logger.info("Study ID %s", study)
