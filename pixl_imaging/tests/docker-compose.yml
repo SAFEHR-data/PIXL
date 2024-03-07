@@ -57,7 +57,8 @@ services:
       - "9001:8000"
 
   vna-qr:
-    image: orthancteam/orthanc:24.2.3-full
+    image: orthancteam/orthanc:24.3.3
+    platform: linux/amd64
     environment:
       ORTHANC_NAME: "VNAQR"
       ORTHANC_USERNAME: "orthanc"
