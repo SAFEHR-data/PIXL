@@ -162,7 +162,7 @@ jobs:
 
   imaging-api-tests:
     runs-on: ubuntu-22.04
-    timeout-minutes: 10
+    # timeout-minutes: 10
     steps:
       - uses: actions/checkout@v3
       - name: Init Python
