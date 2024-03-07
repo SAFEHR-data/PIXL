@@ -11,7 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-FROM osimis/orthanc:22.9.0-full-stable
+FROM orthancteam/orthanc:24.3.3
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 
 ARG ORTHANC_RAW_MAXIMUM_STORAGE_SIZE

@@ -11,42 +11,8 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-FROM osimis/orthanc:22.9.0-full-stable
+FROM orthancteam/orthanc:24.3.3
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
-# need some packages for building python 3.9.13
-RUN export DEBIAN_FRONTEND=noninteractive \
-    && apt update \
-    && apt install --yes --no-install-recommends \
-           build-essential \
-           libbz2-dev \
-           libffi-dev \
-           libgdbm-dev \
-           libncurses5-dev \
-           libnss3-dev \
-           libreadline-dev \
-           libsqlite3-dev \
-           libssl-dev \
-           zlib1g-dev \
-    && apt-get autoremove \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
-# Default for Debian Bullseye (11) is python 3.9.2, which has a bug in ftplib that is
-# affecting us.
-# See https://bugs.python.org/issue43285 for more details. It only happens in the system
-# test, when docker is using NAT to implement host.docker.internal
-# Install 3.9.13 alongside the existing version (removing the original python beforehand
-# seems to break orthanc)
-ADD https://www.python.org/ftp/python/3.9.13/Python-3.9.13.tgz /python3913/
-RUN cd /python3913 \
-    && tar -xvf Python-3.9.13.tgz \
-    && cd Python-3.9.13 \
-    && ./configure --enable-optimizations \
-    && make -j `nproc` \
-    && make install \
-    && make clean \
-    && rm -fr /python3913
-
 # Install requirements before copying modules
 COPY ./pixl_core/pyproject.toml ./pixl_core/pyproject.toml
 COPY ./pixl_dcmd/pyproject.toml ./pixl_dcmd/pyproject.toml
