@@ -25,7 +25,7 @@ pytest_plugins = "pytest_pixl"
 @pytest.fixture()
 def host_export_root_dir():
     """Intermediate export dir as seen from the host"""
-    return Path(__file__).parents[1] / "exports"
+    return Path(__file__).parents[1] / "projects" / "exports"
 
 
 TEST_DIR = Path(__file__).parent
@@ -38,7 +38,6 @@ def _setup_pixl_cli(ftps_server) -> None:
     """Run pixl populate/start. Cleanup intermediate export dir on exit."""
     # CLI calls need to have CWD = test dir so they can find the pixl_config.yml file
     run_subprocess(["pixl", "populate", str(RESOURCES_OMOP_DIR.absolute())], TEST_DIR)
-    run_subprocess(["pixl", "start"], TEST_DIR)
     # poll here for two minutes to check for imaging to be processed, printing progress
     wait_for_stable_orthanc_anon(121, 5)
     yield
@@ -49,7 +48,7 @@ def _setup_pixl_cli(ftps_server) -> None:
             "system-test-ehr-api-1",
             "rm",
             "-r",
-            "/run/exports/test-extract-uclh-omop-cdm/",
+            "/run/projects/exports/test-extract-uclh-omop-cdm/",
         ],
         TEST_DIR,
     )

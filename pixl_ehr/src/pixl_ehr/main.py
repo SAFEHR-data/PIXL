@@ -28,9 +28,8 @@ from azure.storage.blob import BlobServiceClient
 from core.exports import ParquetExport
 from core.patient_queue import PixlConsumer
 from core.rest_api.router import router, state
-from core.upload import upload_parquet_files
 from decouple import config
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
@@ -69,7 +68,7 @@ async def startup_event() -> None:
 
 # Export root dir from inside the EHR container.
 # For the view from outside, see pixl_cli/_io.py: HOST_EXPORT_ROOT_DIR
-EHR_EXPORT_ROOT_DIR = Path("/run/exports")
+EHR_EXPORT_ROOT_DIR = Path("/run/projects/exports")
 
 
 class ExportRadiologyData(BaseModel):
@@ -95,11 +94,16 @@ def export_patient_data(export_params: ExportRadiologyData) -> None:
     export_radiology_as_parquet(export_params)
 
     # Upload Parquet files to the appropriate endpoint
-    upload_parquet_files(
-        ParquetExport(
-            export_params.project_name, export_params.extract_datetime, export_params.output_dir
-        )
+    parquet_export = ParquetExport(
+        export_params.project_name, export_params.extract_datetime, export_params.output_dir
     )
+
+    try:
+        parquet_export.upload()
+    except ValueError as e:
+        msg = "Destination for parquet files unavailable"
+        logger.exception(msg)
+        raise HTTPException(status_code=400, detail=msg) from e
 
 
 def export_radiology_as_parquet(export_params: ExportRadiologyData) -> None:

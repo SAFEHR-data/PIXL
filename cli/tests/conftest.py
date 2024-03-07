@@ -15,15 +15,14 @@
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import pytest
 from core.db.models import Base, Extract, Image
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-if TYPE_CHECKING:
-    import pathlib
+os.environ["PROJECT_CONFIGS_DIR"] = str(Path(__file__).parents[2] / "projects/configs")
 
 # Set the necessary environment variables
 os.environ["PIXL_EHR_API_HOST"] = "localhost"
@@ -47,9 +46,11 @@ os.environ["PIXL_DB_NAME"] = "pixl"
 
 
 @pytest.fixture(autouse=True)
-def export_dir(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
-    """Tmp dir to for tests to extract to."""
-    return tmp_path_factory.mktemp("export_base") / "exports"
+def export_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """Tmp dir for tests to extract to."""
+    export_dir = tmp_path_factory.mktemp("export_base") / "projects" / "exports"
+    export_dir.mkdir(parents=True)
+    return export_dir
 
 
 @pytest.fixture(scope="module")

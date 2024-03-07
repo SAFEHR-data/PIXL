@@ -1,4 +1,4 @@
-#  Copyright (c) University College London Hospitals NHS Foundation Trust
+#  Copyright (c) 2022 University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -11,24 +11,14 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-FROM python:3.12.2-slim-bullseye
 
-RUN export DEBIAN_FRONTEND=noninteractive && \
-    apt-get update && \
-    apt-get install --yes --no-install-recommends \
-        procps \
-        ca-certificates \
-        iproute2 \
-        curl \
-        gnupg \
-        locales
+project:
+    name: "test-extract-uclh-omop-cdm"
+    azure_kv_alias: "test"
+    modalities: ["DX", "CR"]
 
-WORKDIR /app
+tag_operation_files: ["test-extract-uclh-omop-cdm.yaml"]
 
-COPY cogstack.py .
-COPY pyproject.toml .
-
-RUN --mount=type=cache,target=/root/.cache \
-    pip install -e .
-
-ENTRYPOINT ["uvicorn", "cogstack:app", "--host", "0.0.0.0", "--port", "8000"]
+destination:
+    dicom: "ftps"
+    parquet: "ftps"

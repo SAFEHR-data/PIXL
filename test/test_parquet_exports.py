@@ -17,8 +17,21 @@ from pathlib import Path
 
 import pandas as pd
 import pytest
+from conftest import RESOURCES_DIR
 
 logger = logging.getLogger(__name__)
+
+
+@pytest.mark.usefixtures("_setup_pixl_cli")
+def test_public_parquet(host_export_root_dir: Path):
+    """Tests whether the public parquet files have been exported to the right place"""
+    expected_public_dir = (
+        host_export_root_dir / "test-extract-uclh-omop-cdm" / "latest" / "omop" / "public"
+    )
+    expected_files = sorted([x.stem for x in (RESOURCES_DIR / "omop" / "public").glob("*.parquet")])
+
+    assert expected_public_dir.exists()
+    assert expected_files == sorted([x.stem for x in expected_public_dir.glob("*.parquet")])
 
 
 @pytest.mark.usefixtures("_extract_radiology_reports")
@@ -26,7 +39,7 @@ def test_radiology_parquet(host_export_root_dir: Path):
     """
     From:
     scripts/test_radiology_parquet.py \
-        ../exports/test-extract-uclh-omop-cdm/latest/radiology/radiology.parquet
+        ../projects/exports/test-extract-uclh-omop-cdm/latest/radiology/radiology.parquet
     Test contents of radiology report parquet file in the export location
     """
     expected_radiology_parquet_file = (

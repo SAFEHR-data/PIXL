@@ -1,16 +1,14 @@
 [project]
 name = "core"
 version = "0.0.1"
-authors = [
-  { name="PIXL core functionality" },
-]
+authors = [{ name = "PIXL core functionality" }]
 description = ""
 readme = "README.md"
 requires-python = ">=3.9"
-classifiers = [
-    "Programming Language :: Python :: 3"
-]
+classifiers = ["Programming Language :: Python :: 3"]
 dependencies = [
+    "azure-identity==1.12.0",
+    "azure-keyvault==4.2.0",
     "fastapi==0.109.1",
     "token-bucket==0.3.0",
     "python-decouple==3.6",
@@ -24,6 +22,8 @@ dependencies = [
     "psycopg2-binary==2.9.9",
     "pandas==1.5.1",
     "pyarrow==14.0.1",
+    "PyYAML==6.0.1",
+    "pydantic==2.6.3",
 ]
 
 [project.optional-dependencies]
@@ -33,11 +33,7 @@ test = [
     "httpx==0.24.*",
     "pytest-pixl",
 ]
-dev = [
-    "mypy",
-    "pre-commit",
-    "ruff",
-]
+dev = ["mypy", "pre-commit", "ruff"]
 
 [build-system]
 requires = ["setuptools>=61.0"]
@@ -51,3 +47,7 @@ extend = "../ruff.toml"
 
 [tool.ruff.extend-per-file-ignores]
 "./tests/**" = ["D100"]
+
+[tool.ruff.pep8-naming]
+# Allow Pydantic's `@field_validator` decorator to trigger class method treatment.
+classmethod-decorators = ["classmethod", "pydantic.field_validator"]

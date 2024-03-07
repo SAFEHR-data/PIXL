@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2024-02-15T18:20:13.960Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36" etag="RU35IoXzkKkN_UoMWYfX" version="23.1.5" type="device">
+<mxfile host="app.diagrams.net" modified="2024-03-01T17:06:05.226Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:123.0) Gecko/20100101 Firefox/123.0" etag="6tRpdPUihoiWMnjVc0ee" version="23.1.4" type="device">
   <diagram name="Page-1" id="b1Yz4LJFlwyoJpQOb2CD">
-    <mxGraphModel dx="1630" dy="750" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="2202" dy="997" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -72,7 +72,7 @@
             <mxPoint x="680" y="515" as="sourcePoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="_ttCTsgdB5R_nMDoaYhi-1" value="Calls" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="KNKUc1UJHXEjSF4-eD5e-48">
+        <mxCell id="_ttCTsgdB5R_nMDoaYhi-1" value="Calls" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="KNKUc1UJHXEjSF4-eD5e-48" vertex="1" connectable="0">
           <mxGeometry x="-0.1276" y="1" relative="1" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
@@ -85,7 +85,7 @@
             <mxPoint x="560" y="515" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="KNKUc1UJHXEjSF4-eD5e-40" value="&lt;h1&gt;Destination&lt;/h1&gt;&lt;div&gt;&lt;ul&gt;&lt;li style=&quot;text-align: left;&quot;&gt;FTPS&lt;/li&gt;&lt;li style=&quot;text-align: left;&quot;&gt;Azure&lt;/li&gt;&lt;li style=&quot;text-align: left;&quot;&gt;DicomWeb&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
+        <mxCell id="KNKUc1UJHXEjSF4-eD5e-40" value="&lt;h1&gt;Destination&lt;/h1&gt;&lt;div&gt;&lt;ul&gt;&lt;li style=&quot;text-align: left;&quot;&gt;FTPS&lt;/li&gt;&lt;li style=&quot;text-align: left;&quot;&gt;&lt;i&gt;other options in future&lt;/i&gt;&lt;br&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
           <mxGeometry x="900" y="420" width="220" height="190" as="geometry" />
         </mxCell>
         <mxCell id="KNKUc1UJHXEjSF4-eD5e-46" value="" style="group;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1" connectable="0">
@@ -97,13 +97,13 @@
         <mxCell id="KNKUc1UJHXEjSF4-eD5e-42" value="&lt;h2&gt;&lt;font color=&quot;#ff9999&quot;&gt;Azure Key Vault&lt;/font&gt;&lt;/h2&gt;" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;strokeColor=#FF9999;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="KNKUc1UJHXEjSF4-eD5e-46" vertex="1">
           <mxGeometry x="115.14" y="10" width="204.86" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="KNKUc1UJHXEjSF4-eD5e-43" value="&lt;pre&gt;-&amp;nbsp;my_project__FTP_HOST&lt;/pre&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=1;whiteSpace=wrap;html=1;movable=1;resizable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="KNKUc1UJHXEjSF4-eD5e-42" vertex="1">
+        <mxCell id="KNKUc1UJHXEjSF4-eD5e-43" value="&lt;pre&gt;-&amp;nbsp;project--ftp--host&lt;/pre&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=1;whiteSpace=wrap;html=1;movable=1;resizable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="KNKUc1UJHXEjSF4-eD5e-42" vertex="1">
           <mxGeometry y="30" width="204.86" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="KNKUc1UJHXEjSF4-eD5e-44" value="&lt;pre style=&quot;border-color: var(--border-color);&quot;&gt;-&amp;nbsp;my_project__FTP_USER&lt;/pre&gt;" style="text;strokeColor=#FF9999;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=1;whiteSpace=wrap;html=1;movable=1;resizable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="KNKUc1UJHXEjSF4-eD5e-42" vertex="1">
+        <mxCell id="KNKUc1UJHXEjSF4-eD5e-44" value="&lt;pre style=&quot;border-color: var(--border-color);&quot;&gt;-&amp;nbsp;project--ftp--username&lt;/pre&gt;" style="text;strokeColor=#FF9999;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=1;whiteSpace=wrap;html=1;movable=1;resizable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="KNKUc1UJHXEjSF4-eD5e-42" vertex="1">
           <mxGeometry y="60" width="204.86" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="KNKUc1UJHXEjSF4-eD5e-45" value="&lt;pre style=&quot;border-color: var(--border-color);&quot;&gt;-&amp;nbsp;my_project__FTP_PASSWORD&lt;/pre&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=1;whiteSpace=wrap;html=1;movable=1;resizable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="KNKUc1UJHXEjSF4-eD5e-42" vertex="1">
+        <mxCell id="KNKUc1UJHXEjSF4-eD5e-45" value="&lt;pre style=&quot;border-color: var(--border-color);&quot;&gt;-&amp;nbsp;project--ftp--password&lt;/pre&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=1;whiteSpace=wrap;html=1;movable=1;resizable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="KNKUc1UJHXEjSF4-eD5e-42" vertex="1">
           <mxGeometry y="90" width="204.86" height="30" as="geometry" />
         </mxCell>
         <mxCell id="KNKUc1UJHXEjSF4-eD5e-49" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" source="KNKUc1UJHXEjSF4-eD5e-47" target="KNKUc1UJHXEjSF4-eD5e-41" edge="1">
@@ -115,8 +115,8 @@
         <mxCell id="KNKUc1UJHXEjSF4-eD5e-51" value="&lt;pre&gt;my_project.[toml|yaml|...]&lt;/pre&gt;" style="swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
           <mxGeometry x="-40" y="240" width="340" height="365" as="geometry" />
         </mxCell>
-        <mxCell id="KNKUc1UJHXEjSF4-eD5e-52" value="&lt;pre&gt;– project: &quot;My Project&quot;&lt;/pre&gt;&lt;pre&gt;&lt;br&gt;&lt;/pre&gt;&lt;pre&gt;– dicom-anon-tag-operations:&lt;/pre&gt;&lt;pre&gt;  – base profile&lt;/pre&gt;&lt;pre&gt;  – [extension profile] (optional)&lt;/pre&gt;&lt;pre&gt;&lt;br&gt;&lt;/pre&gt;&lt;pre&gt;– destination:&lt;/pre&gt;&lt;pre&gt;  – Dicom:&lt;/pre&gt;&lt;pre&gt;    – Type: &quot;None&quot; | &quot;Az&quot; | &quot;DW&quot; | &quot;FTPS&quot;&lt;/pre&gt;&lt;pre&gt;  - parquet:&lt;/pre&gt;&lt;pre&gt;&lt;pre style=&quot;border-color: var(--border-color);&quot;&gt;&lt;pre style=&quot;border-color: var(--border-color);&quot;&gt;    – Type: &quot;None&quot; | &quot;Az&quot; | &quot;FTPS&quot;&lt;/pre&gt;&lt;pre&gt;&lt;br&gt;&lt;/pre&gt;&lt;/pre&gt;&lt;/pre&gt;" style="text;html=1;align=left;verticalAlign=top;resizable=1;points=[];autosize=1;strokeColor=none;fillColor=none;movable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="KNKUc1UJHXEjSF4-eD5e-51" vertex="1">
-          <mxGeometry x="10" y="25" width="320" height="340" as="geometry" />
+        <mxCell id="KNKUc1UJHXEjSF4-eD5e-52" value="&lt;pre&gt;– project: &quot;My Project&quot;&lt;/pre&gt;&lt;pre&gt;- modalities: [&quot;DX&quot;, &quot;CR&quot;] &lt;/pre&gt;&lt;pre&gt;– dicom-anon-tag-operations:&lt;/pre&gt;&lt;pre&gt;  – base profile&lt;/pre&gt;&lt;pre&gt;  – [extension profile] (optional)&lt;/pre&gt;&lt;pre&gt;&lt;br&gt;&lt;/pre&gt;&lt;pre&gt;– destination:&lt;/pre&gt;&lt;pre&gt;  – Dicom:&lt;/pre&gt;&lt;pre&gt;    – Type: &quot;None&quot; | &quot;FTPS&quot;&lt;/pre&gt;&lt;pre&gt;  - parquet:&lt;/pre&gt;&lt;pre&gt;&lt;pre style=&quot;border-color: var(--border-color);&quot;&gt;&lt;pre style=&quot;border-color: var(--border-color);&quot;&gt;    – Type: &quot;None&quot; | &quot;FTPS&quot;&lt;/pre&gt;&lt;pre&gt;&lt;br&gt;&lt;/pre&gt;&lt;/pre&gt;&lt;/pre&gt;" style="text;html=1;align=left;verticalAlign=top;resizable=1;points=[];autosize=1;strokeColor=none;fillColor=none;movable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="KNKUc1UJHXEjSF4-eD5e-51" vertex="1">
+          <mxGeometry x="10" y="25" width="270" height="340" as="geometry" />
         </mxCell>
         <mxCell id="KNKUc1UJHXEjSF4-eD5e-63" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.487;entryY=-0.021;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="KNKUc1UJHXEjSF4-eD5e-6" target="KNKUc1UJHXEjSF4-eD5e-10" edge="1">
           <mxGeometry relative="1" as="geometry">
@@ -126,10 +126,10 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="_ttCTsgdB5R_nMDoaYhi-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="KNKUc1UJHXEjSF4-eD5e-6" target="KNKUc1UJHXEjSF4-eD5e-47">
+        <mxCell id="_ttCTsgdB5R_nMDoaYhi-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0;entryDx=0;entryDy=0;" parent="1" source="KNKUc1UJHXEjSF4-eD5e-6" target="KNKUc1UJHXEjSF4-eD5e-47" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="_ttCTsgdB5R_nMDoaYhi-3" value="Get project&lt;br&gt;name" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="_ttCTsgdB5R_nMDoaYhi-2">
+        <mxCell id="_ttCTsgdB5R_nMDoaYhi-3" value="Get project&lt;br&gt;name" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="_ttCTsgdB5R_nMDoaYhi-2" vertex="1" connectable="0">
           <mxGeometry x="0.3411" relative="1" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>

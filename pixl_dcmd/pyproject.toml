@@ -1,21 +1,16 @@
 [project]
 name = "pixl_dcmd"
 version = "0.0.2"
-authors = [
-    { name="PIXL authors" },
-]
+authors = [{ name = "PIXL authors" }]
 description = "DICOM header anonymisation functions"
 readme = "README.md"
 requires-python = "~=3.9"
-classifiers = [
-    "Programming Language :: Python :: 3"
-]
+classifiers = ["Programming Language :: Python :: 3"]
 dependencies = [
     "arrow==1.2.3",
     "pydicom==2.4.4",
     "pydicom-data",
     "logger==1.4",
-    "pyyaml==6.0.1",
     "requests==2.31.0",
     "python-decouple==3.6",
     "types-requests~=2.28",

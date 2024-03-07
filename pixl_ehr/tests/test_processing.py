@@ -235,6 +235,7 @@ def insert_data_into_emap_star_schema() -> None:
 
 @pytest.mark.processing()
 @pytest.mark.asyncio()
+@pytest.mark.usefixtures("run_containers")
 async def test_message_processing(example_messages) -> None:
     """
     GIVEN some patient metadata in Emap
@@ -299,6 +300,7 @@ async def test_message_processing(example_messages) -> None:
 
 @pytest.mark.processing()
 @pytest.mark.asyncio()
+@pytest.mark.usefixtures("run_containers")
 async def test_radiology_export(example_messages, tmp_path) -> None:
     """
     GIVEN a message processed by the EHR API
@@ -336,6 +338,7 @@ async def test_radiology_export(example_messages, tmp_path) -> None:
 
 @pytest.mark.processing()
 @pytest.mark.asyncio()
+@pytest.mark.usefixtures("run_containers")
 async def test_radiology_export_multiple_projects(example_messages, tmp_path) -> None:
     """
     GIVEN EHR API has processed four messages, each from a different project+extract combination
