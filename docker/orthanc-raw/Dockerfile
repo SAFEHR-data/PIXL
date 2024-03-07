@@ -17,12 +17,13 @@ SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 ARG ORTHANC_RAW_MAXIMUM_STORAGE_SIZE
 
 RUN export DEBIAN_FRONTEND=noninteractive && \
-    apt update && \
-    apt install --yes --no-install-recommends python3-venv
+    apt-get update && \
+    apt-get install --yes --no-install-recommends python3-venv
 
 # Install requirements before copying modules
-COPY ./pixl_core/pyproject.toml ./pixl_core/pyproject.toml
-COPY ./pixl_dcmd/pyproject.toml ./pixl_dcmd/pyproject.toml
+COPY ./pixl_core/pyproject.toml /pixl_core/pyproject.toml
+COPY ./pixl_dcmd/pyproject.toml /pixl_dcmd/pyproject.toml
+
 RUN --mount=type=cache,target=/root/.cache \
     pip3 install pixl_core/ \
     && pip3 install pixl_dcmd/
