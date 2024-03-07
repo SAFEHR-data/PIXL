@@ -11,58 +11,36 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-FROM orthancteam/orthanc:24.2.3-full
+FROM orthancteam/orthanc:24.3.3
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
-# need some packages for building python 3.9.13
-RUN export DEBIAN_FRONTEND=noninteractive \
-    && apt update \
-    && apt install --yes --no-install-recommends \
-           build-essential \
-           libbz2-dev \
-           libffi-dev \
-           libgdbm-dev \
-           libncurses5-dev \
-           libnss3-dev \
-           libreadline-dev \
-           libsqlite3-dev \
-           libssl-dev \
-           zlib1g-dev \
-    && apt-get autoremove \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
 
-# Default for Debian Bullseye (11) is python 3.9.2, which has a bug in ftplib that is
-# affecting us.
-# See https://bugs.python.org/issue43285 for more details. It only happens in the system
-# test, when docker is using NAT to implement host.docker.internal
-# Install 3.9.13 alongside the existing version (removing the original python beforehand
-# seems to break orthanc)
-ADD https://www.python.org/ftp/python/3.9.13/Python-3.9.13.tgz /python3913/
-RUN cd /python3913 \
-    && tar -xvf Python-3.9.13.tgz \
-    && cd Python-3.9.13 \
-    && ./configure --enable-optimizations \
-    && make -j `nproc` \
-    && make install \
-    && make clean \
-    && rm -fr /python3913
+# Create a virtual environment, recommended since python 3.11 and Debian bookworm based images
+# where you get a warning when installing system-wide packages.
+RUN export DEBIAN_FRONTEND=noninteractive && \
+    apt-get update && \
+    apt-get install --yes --no-install-recommends python3-venv
+RUN python3 -m venv /.venv
 
-# the system python has this package installed, so we need it for ours too so orthanc works ok
-RUN pip3 install envsubst
+# Install curl, used in system tests
+RUN apt-get --assume-yes install curl
 
 # Install requirements before copying modules
-COPY ./pixl_core/pyproject.toml ./pixl_core/pyproject.toml
-COPY ./pixl_dcmd/pyproject.toml ./pixl_dcmd/pyproject.toml
+COPY ./pixl_core/pyproject.toml /pixl_core/pyproject.toml
+COPY ./pixl_dcmd/pyproject.toml /pixl_dcmd/pyproject.toml
+
 RUN --mount=type=cache,target=/root/.cache \
-    pip3 install pixl_core/ \
-    && pip3 install pixl_dcmd/
+    /.venv/bin/pip install pixl_core/ \
+    && /.venv/bin/pip install pixl_dcmd/
 
 COPY ./orthanc/orthanc-anon/plugin/pixl.py /etc/orthanc/pixl.py
 
-COPY ./pixl_core/ ./pixl_core
+COPY ./pixl_core/ /pixl_core
 RUN --mount=type=cache,target=/root/.cache \
-    pip3 install ./pixl_core
+    /.venv/bin/pip install ./pixl_core
 
-COPY ./pixl_dcmd/ ./pixl_dcmd
+COPY ./pixl_dcmd/ /pixl_dcmd
 RUN --mount=type=cache,target=/root/.cache \
-    pip3 install ./pixl_dcmd
+    /.venv/bin/pip install ./pixl_dcmd
+
+ENV PYTHONPATH=/.venv/lib64/python3.11/site-packages/
+
