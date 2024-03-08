@@ -23,6 +23,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
         gnupg \
         locales
 
+RUN useradd pixl
 WORKDIR /app
 
 COPY cogstack.py .

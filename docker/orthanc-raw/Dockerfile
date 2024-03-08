@@ -21,6 +21,9 @@ ARG ORTHANC_RAW_MAXIMUM_STORAGE_SIZE
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
     apt-get install --yes --no-install-recommends python3-venv
+
+RUN useradd pixl
+
 RUN python3 -m venv /.venv
 
 # Install requirements before copying modules

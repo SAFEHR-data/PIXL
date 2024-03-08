@@ -44,6 +44,8 @@ RUN --mount=type=cache,target=/root/.cache \
     pip install core/ . && \
     if [ "$TEST" = "true" ]; then pip install core/[test] .[test]; fi
 
+RUN useradd pixl
+
 HEALTHCHECK CMD /usr/bin/curl -f http://0.0.0.0:8000/heart-beat || exit 1
 
 ENTRYPOINT ["uvicorn", "pixl_ehr.main:app", "--host", "0.0.0.0", "--port", "8000"]
