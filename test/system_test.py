@@ -86,10 +86,7 @@ class TestFtpsUpload:
             self._check_dcm_tags_from_zip(z, unzip_dir)
 
     def _check_dcm_tags_from_zip(self, zip_path, unzip_dir) -> None:
-        """
-        Check that private tag has survived anonymisation with the correct value.
-        Where are we testing patient name etc?
-        """
+        """Check that private tag has survived anonymisation with the correct value."""
         run_subprocess(
             ["unzip", zip_path],
             working_dir=unzip_dir,
