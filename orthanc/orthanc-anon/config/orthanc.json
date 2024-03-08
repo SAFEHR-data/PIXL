@@ -1,22 +1,4 @@
 {
-  "ExtraMainDicomTags" : {
-    "Instance": [
-      "Rows",
-      "Columns",
-      "ImageType",
-      "SOPClassUID",
-      "ContentDate",
-      "ContentTime",
-      "FrameOfReferenceUID",
-      "PatientID",
-      "PatientName",
-      "AccessionNumber",
-      "PixelSpacing",
-      "SpecificCharacterSet",
-      "BitsAllocated",
-      "BitsStored"
-    ]
-  },
   "Name" : "${ORTHANC_NAME}",
   "RemoteAccessAllowed" : true,
   "RegisteredUsers": {
