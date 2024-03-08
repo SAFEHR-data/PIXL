@@ -22,7 +22,7 @@ for this instance have been shared with the PACS team.
 
 ### Configuration
 
-- The Docker image is a vanilla deployment of `osimis/orthanc` with an additional argument
+- The Docker image is a vanilla deployment of `orthancteam/orthanc` with an additional argument
 `ORTHANC_RAW_MAXIMUM_STORAGE_SIZE` to limit the storage size of the instance.
 - All configuration is driven through customised JSON config files stored in the [config](./config/)
 directory.
