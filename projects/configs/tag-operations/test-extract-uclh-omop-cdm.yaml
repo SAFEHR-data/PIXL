@@ -595,7 +595,7 @@
   group: 0x000b
   element: 0x0010
   op: "keep"
-- name: "Private Creator Data Element"
+- name: "UCLH Project Name"
   group: 0x000b
   element: 0x1001
   op: "keep"
