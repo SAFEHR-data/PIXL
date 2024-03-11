@@ -81,6 +81,9 @@ class Orthanc(ABC):
             requests.post(f"{self._url}{path}", json=data, auth=self._auth, timeout=timeout)
         )
 
+    def send_existing_study_to_anon(self, study_id: str) -> None:
+        self._post("/send-existing-study-to-anon", data={"StudyID": study_id})
+
 
 def _deserialise(response: requests.Response) -> Any:
     """Decode an Orthanc rest API response"""
