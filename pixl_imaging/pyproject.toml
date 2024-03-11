@@ -39,7 +39,7 @@ markers = ["processing"]
 extend = "../ruff.toml"
 
 [tool.ruff.extend-per-file-ignores]
-"./tests/**" = ["D1", "S105"]
+"./tests/**" = ["D1", "S105", "SLF001"]
 "./alembic/**" = [
     "INP001",  # is part of an implicit namespace package. Add an `__init__.py`
     "D103",  # Missing docstring in public function

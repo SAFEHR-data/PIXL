@@ -74,17 +74,26 @@ def _add_image_to_fake_vna() -> None:
     pathlib.Path(image_filename).unlink(missing_ok=True)
 
 
+@pytest.fixture()
+def orthanc_raw() -> PIXLRawOrthanc:
+    """Set up orthanc raw and remove all studies in teardown."""
+    orthanc_raw = PIXLRawOrthanc()
+    yield orthanc_raw
+    all_studies = orthanc_raw._get("/studies")
+    for study in all_studies:
+        orthanc_raw._delete(f"/studies/{study}")
+
+
 @pytest.mark.processing()
 @pytest.mark.asyncio()
 @pytest.mark.usefixtures("_add_image_to_fake_vna")
-async def test_image_saved() -> None:
+async def test_image_saved(orthanc_raw) -> None:
     """
     Given the VNA has images, and orthanc raw has no images
     When we run process_message
     Then orthanc raw will contain the new image
     """
     study = ImagingStudy.from_message(message)
-    orthanc_raw = PIXLRawOrthanc()
 
     assert not study.query_local(orthanc_raw)
     await process_message(message)
@@ -94,25 +103,34 @@ async def test_image_saved() -> None:
 @pytest.mark.processing()
 @pytest.mark.asyncio()
 @pytest.mark.usefixtures("_add_image_to_fake_vna")
-async def test_existing_message_sent_twice() -> None:
+async def test_heart_beat(orthanc_raw) -> None:
+    """Test that the heart-beat rest endpoint works."""
+    all_studies = orthanc_raw._get("/studies")
+    assert len(all_studies) == 0
+    orthanc_raw._get("/heart-beat")
+
+
+@pytest.mark.processing()
+@pytest.mark.asyncio()
+@pytest.mark.usefixtures("_add_image_to_fake_vna")
+async def test_existing_message_sent_twice(orthanc_raw) -> None:
     """
     Given the VNA has images, and orthanc raw has no images
     When we run process_message on the same message twice
     Then orthanc raw will contain the new image, and it isn't updated on the second processing
     """
     study = ImagingStudy.from_message(message)
-    orthanc_raw = PIXLRawOrthanc()
 
     await process_message(message)
     assert study.query_local(orthanc_raw)
 
     query_for_update_time = {**study.orthanc_query_dict, "Expand": True}
     first_processing_resource = orthanc_raw.query_local(query_for_update_time)
-    assert len(first_processing_resource == 1)
+    assert len(first_processing_resource) == 1
 
     await process_message(message)
     second_processing_resource = orthanc_raw.query_local(query_for_update_time)
-    assert len(second_processing_resource == 1)
+    assert len(second_processing_resource) == 1
 
     # Check update time hasn't changed
     assert first_processing_resource[0]["LastUpdate"] == second_processing_resource[0]["LastUpdate"]

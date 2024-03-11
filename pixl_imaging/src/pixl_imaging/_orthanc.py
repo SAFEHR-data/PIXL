@@ -84,6 +84,9 @@ class Orthanc(ABC):
             requests.post(f"{self._url}{path}", json=data, auth=self._auth, timeout=timeout)
         )
 
+    def _delete(self, path: str, timeout: Optional[float] = 10) -> None:
+        return _deserialise(requests.delete(f"{self._url}{path}", auth=self._auth, timeout=timeout))
+
     def send_existing_study_to_anon(self, resource_id: str) -> None:
         """Send study to orthanc anon."""
         self._post("/send-to-anon", data={"ResourceId": resource_id})
