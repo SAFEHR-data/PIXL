@@ -75,22 +75,3 @@ def _query_existing_image(pixl_session: Session, hashed_value: str) -> Image:
         )
         .one()
     )
-
-
-def get_project_slug(patientid: str, accession_number: str) -> str:
-    """Get the project slug from the PIXL database for a given patientid."""
-    PixlSession = sessionmaker(engine)
-    with PixlSession() as pixl_session, pixl_session.begin():
-        return str(
-            pixl_session.query(Extract)
-            .join(Image, Extract.extract_id == Image.extract_id)
-            .filter(
-                Image.mrn == patientid,
-                Image.accession_number == accession_number,
-            )
-            .filter(
-                Extract.extract_id == Image.extract_id,
-            )
-            .one()
-            .slug
-        )

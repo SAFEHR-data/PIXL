@@ -18,7 +18,7 @@ from os import PathLike
 from pathlib import Path
 from typing import Any, BinaryIO, Union
 from logging import getLogger
-from core.db.queries import get_project_slug
+
 from core.project_config import load_project_config
 
 import requests
@@ -58,7 +58,7 @@ def anonymise_dicom(dataset: Dataset) -> Dataset:
     - applying tag operations based on the config file
     Returns anonymised dataset.
     """
-    slug = get_project_slug(dataset.PatientID, dataset.AccessionNumber)
+    slug = dataset.get_private_item(0x000B, 0x01, "UCLH PIXL").value
     project_config = load_project_config(slug)
     logger.error(f"Received instance for project {slug}")
     # Drop anything that is not an X-Ray
