@@ -87,6 +87,7 @@ services:
       ORTHANC_ANON_AE_TITLE: "unused"
       ORTHANC_ANON_DICOM_PORT: "4242"
       ORTHANC_ANON_HOSTNAME: "orthanc-anon"
+      ORTHANC_AUTOROUTE_RAW_TO_ANON: "false"
       ENV: "test"
     ports:
       - "4244:4242"

@@ -72,17 +72,17 @@ def should_auto_route():
     return os.environ.get("ORTHANC_AUTOROUTE_RAW_TO_ANON", "false").lower() == "true"
 
 
-def SendExistingStudyToAnon(output, uri, **request):  # noqa: ARG001
+def SendResourceToAnon(output, uri, **request):  # noqa: ARG001
     """Send an existing study to the anon modality"""
-    orthanc.LogInfo(f"Received request to send study to anon modality: {request}")
+    orthanc.LogWarning(f"Received request to send study to anon modality: {request}")
     if not should_auto_route():
         orthanc.LogWarning("Auto-routing is not enabled, dropping request {request}")
         output.answerBuffer("Auto-routing is not enabled", "text/plain")
         return
     try:
-        orthanc.RestApiPost("/modalities/PIXL-Anon/store", request["StudyId"])
+        orthanc.RestApiPost("/modalities/PIXL-Anon/store", request["ResourceId"])
         output.AnswerBuffer("OK", "text/plain")
-        orthanc.LogInfo(f"Succesfully sent study to anon modality: {request['StudyId']}")
+        orthanc.LogInfo(f"Succesfully sent study to anon modality: {request['ResourceId']}")
     except:  # noqa: E722
         orthanc.LogException("Failed to send study to anon")
         output.AnswerBuffer("Failed to send study to anon", "text/plain")
@@ -91,4 +91,4 @@ def SendExistingStudyToAnon(output, uri, **request):  # noqa: ARG001
 orthanc.RegisterOnChangeCallback(OnChange)
 orthanc.RegisterReceivedInstanceCallback(ReceivedInstanceCallback)
 orthanc.RegisterRestCallback("/heart-beat", OnHeartBeat)
-orthanc.RegisterRestCallback("/send-existing-study-to-anon", SendExistingStudyToAnon)
+orthanc.RegisterRestCallback("/send-to-anon", SendResourceToAnon)

@@ -18,7 +18,7 @@ import os
 from asyncio import sleep
 from dataclasses import dataclass
 from time import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from decouple import config
 
@@ -32,13 +32,15 @@ logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))
 
 
 async def process_message(message: Message) -> None:
+    """Process message from queue."""
     logger.debug("Processing: %s", message)
 
     study = ImagingStudy.from_message(message)
     orthanc_raw = PIXLRawOrthanc()
 
-    if study.exists_in(orthanc_raw):
-        logger.info("Study exists in cache")
+    existing_resource_ids = study.query_local(orthanc_raw)
+    if len(existing_resource_ids) > 0:
+        orthanc_raw.send_existing_study_to_anon(existing_resource_ids[0])
         return
 
     query_id = orthanc_raw.query_remote(study.orthanc_query_dict, modality=config("VNAQR_MODALITY"))
@@ -72,10 +74,12 @@ class ImagingStudy:
 
     @classmethod
     def from_message(cls, message: Message) -> ImagingStudy:
+        """Build an imaging study from a queue message."""
         return ImagingStudy(message=message)
 
     @property
     def orthanc_query_dict(self) -> dict:
+        """Build a dictionary to query a study."""
         return {
             "Level": "Study",
             "Query": {
@@ -84,6 +88,6 @@ class ImagingStudy:
             },
         }
 
-    def exists_in(self, node: Orthanc) -> bool:
+    def query_local(self, node: Orthanc) -> Any:
         """Does this study exist in an Orthanc instance/node?"""
-        return len(node.query_local(self.orthanc_query_dict)) > 0
+        return node.query_local(self.orthanc_query_dict)

@@ -35,7 +35,7 @@ message = Message(
     study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
         tzinfo=datetime.timezone.utc
     ),
-    procedure_occurrence_id="234",
+    procedure_occurrence_id=234,
     project_name="test project",
     extract_generated_timestamp=datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
 )
@@ -70,17 +70,43 @@ def add_image_to_fake_vna(image_filename: str = "test.dcm") -> None:
 
 @pytest.mark.processing()
 @pytest.mark.asyncio()
-async def test_image_processing() -> None:
+async def test_image_saved() -> None:
+    """
+    Given the VNA has images, and orthanc raw has no images
+    When we run process_message
+    Then orthanc raw will contain the new image
+    """
     add_image_to_fake_vna()
     study = ImagingStudy.from_message(message)
     orthanc_raw = PIXLRawOrthanc()
 
-    assert not study.exists_in(orthanc_raw)
+    assert not study.query_local(orthanc_raw)
     await process_message(message)
-    assert study.exists_in(orthanc_raw)
+    assert study.query_local(orthanc_raw)
 
-    # TODO: check time last updated after processing again # noqa: FIX002
-    # is not incremented
-    # https://github.com/UCLH-Foundry/PIXL/issues/156
+
+@pytest.mark.processing()
+@pytest.mark.asyncio()
+async def test_existing_message_sent_twice() -> None:
+    """
+    Given the VNA has images, and orthanc raw has no images
+    When we run process_message on the same message twice
+    Then orthanc raw will contain the new image, and it isn't updated on the second processing
+    """
+    add_image_to_fake_vna()
+    study = ImagingStudy.from_message(message)
+    orthanc_raw = PIXLRawOrthanc()
+
     await process_message(message)
-    assert study.exists_in(orthanc_raw)
+    assert study.query_local(orthanc_raw)
+
+    query_for_update_time = {**study.orthanc_query_dict, "Expand": True}
+    first_processing_resource = orthanc_raw.query_local(query_for_update_time)
+    assert len(first_processing_resource == 1)
+
+    await process_message(message)
+    second_processing_resource = orthanc_raw.query_local(query_for_update_time)
+    assert len(second_processing_resource == 1)
+
+    # Check update time hasn't changed
+    assert first_processing_resource[0]["LastUpdate"] == second_processing_resource[0]["LastUpdate"]
