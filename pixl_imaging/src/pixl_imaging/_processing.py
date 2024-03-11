@@ -20,6 +20,7 @@ from dataclasses import dataclass
 from time import time
 from typing import TYPE_CHECKING
 
+from core.dicom_tags import DICOM_TAG_PROJECT_NAME
 from decouple import config
 
 from pixl_imaging._orthanc import Orthanc, PIXLRawOrthanc
@@ -75,11 +76,12 @@ async def process_message(message: Message) -> None:
 
     for study in studies_with_tags:
         logger.info("Study ID %s", study)
-        orthanc_raw.modify_tags_by_study(
-            study,
-            {
+        orthanc_raw.modify_private_tags_by_study(
+            study_id=study,
+            private_creator=DICOM_TAG_PROJECT_NAME.creator_string,
+            tag_replacement={
                 # The tag here needs to be defined in orthanc's dictionary
-                "UCLHPIXLProjectName": message.project_name,
+                DICOM_TAG_PROJECT_NAME.tag_nickname: message.project_name,
             },
         )
 

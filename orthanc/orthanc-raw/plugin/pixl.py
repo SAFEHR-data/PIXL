@@ -25,6 +25,7 @@ import os
 from io import BytesIO
 from typing import TYPE_CHECKING
 
+from core.dicom_tags import DICOM_TAG_PROJECT_NAME
 from pydicom import Dataset, dcmread, dcmwrite
 
 import orthanc
@@ -100,14 +101,14 @@ def modify_dicom_tags(receivedDicom: bytes, origin: str) -> Any:
         print("modify_dicom_tags - doing nothing as change triggered by API")  # noqa: T201
         return orthanc.ReceivedInstanceAction.KEEP_AS_IS, None
     dataset = dcmread(BytesIO(receivedDicom))
-    private_creator_name = "UCLH PIXL"
+    private_creator_name = DICOM_TAG_PROJECT_NAME.creator_string
     # See the orthanc.json config file for where this tag is given a nickname
-    private_tag_offset = 0x01
+    private_tag_offset = DICOM_TAG_PROJECT_NAME.offset_id
     # LO = Long string max 64, LT = long text max 10240, support paragraphs etc
     # https://dicom.nema.org/medical/dicom/current/output/chtml/part05/sect_6.2.html
     vr = "LO"
     unknown_value = "__pixl_unknown_value__"
-    group_id = 0x000B
+    group_id = DICOM_TAG_PROJECT_NAME.group_id
     # The private block is the first free block >= 0x10. Other parts of the code assume
     # it is == 0x10 though :/
     # https://dicom.nema.org/dicom/2013/output/chtml/part05/sect_7.8.html

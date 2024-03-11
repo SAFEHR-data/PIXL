@@ -17,6 +17,7 @@ from pathlib import Path
 
 import pydicom
 import pytest
+from core.dicom_tags import DICOM_TAG_PROJECT_NAME
 from pytest_pixl.helpers import run_subprocess, wait_for_condition
 
 pytest_plugins = "pytest_pixl"
@@ -94,8 +95,10 @@ class TestFtpsUpload:
         all_dicom = list(unzip_dir.rglob("*.dcm"))
         assert len(all_dicom) == 1
         dcm = pydicom.dcmread(all_dicom[0])
-        block = dcm.private_block(0x000B, "UCLH PIXL")
-        tag_offset = 0x01
+        block = dcm.private_block(
+            DICOM_TAG_PROJECT_NAME.group_id, DICOM_TAG_PROJECT_NAME.creator_string
+        )
+        tag_offset = DICOM_TAG_PROJECT_NAME.offset_id
         private_tag = block[tag_offset]
         assert private_tag is not None
         assert private_tag.value == TestFtpsUpload.project_slug

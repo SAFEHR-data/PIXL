@@ -21,6 +21,8 @@ from logging import getLogger
 
 from core.project_config import load_project_config
 
+from core.dicom_tags import DICOM_TAG_PROJECT_NAME
+
 import requests
 from decouple import config
 from pydicom import Dataset, dcmwrite
@@ -58,7 +60,11 @@ def anonymise_dicom(dataset: Dataset) -> Dataset:
     - applying tag operations based on the config file
     Returns anonymised dataset.
     """
-    slug = dataset.get_private_item(0x000B, 0x01, "UCLH PIXL").value
+    slug = dataset.get_private_item(
+        DICOM_TAG_PROJECT_NAME.group_id,
+        DICOM_TAG_PROJECT_NAME.offset_id,
+        DICOM_TAG_PROJECT_NAME.creator_string,
+    ).value
     project_config = load_project_config(slug)
     logger.error(f"Received instance for project {slug}")
     # Drop anything that is not an X-Ray
