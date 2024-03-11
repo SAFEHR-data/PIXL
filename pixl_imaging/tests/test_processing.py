@@ -76,7 +76,7 @@ def _add_image_to_fake_vna() -> None:
 
 @pytest.mark.processing()
 @pytest.mark.asyncio()
-@pytest.mark.usefixtures(_add_image_to_fake_vna)
+@pytest.mark.usefixtures("_add_image_to_fake_vna")
 async def test_image_saved() -> None:
     """
     Given the VNA has images, and orthanc raw has no images
@@ -93,7 +93,7 @@ async def test_image_saved() -> None:
 
 @pytest.mark.processing()
 @pytest.mark.asyncio()
-@pytest.mark.usefixtures(_add_image_to_fake_vna)
+@pytest.mark.usefixtures("_add_image_to_fake_vna")
 async def test_existing_message_sent_twice() -> None:
     """
     Given the VNA has images, and orthanc raw has no images
