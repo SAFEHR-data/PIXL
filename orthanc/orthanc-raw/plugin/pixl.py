@@ -104,18 +104,18 @@ def modify_dicom_tags(receivedDicom: bytes, origin: str) -> Any:
     private_creator_name = DICOM_TAG_PROJECT_NAME.creator_string
     # See the orthanc.json config file for where this tag is given a nickname
     private_tag_offset = DICOM_TAG_PROJECT_NAME.offset_id
-    # LO = Long string max 64, LT = long text max 10240, support paragraphs etc
+    # LO = Long string max 64
     # https://dicom.nema.org/medical/dicom/current/output/chtml/part05/sect_6.2.html
     vr = "LO"
     unknown_value = "__pixl_unknown_value__"
     group_id = DICOM_TAG_PROJECT_NAME.group_id
-    # The private block is the first free block >= 0x10. Other parts of the code assume
-    # it is == 0x10 though :/
+    # The private block is the first free block >= 0x10.
+    # We can't directly control it, but the orthanc config requires it to be
+    # hardcoded to 0x10
     # https://dicom.nema.org/dicom/2013/output/chtml/part05/sect_7.8.html
 
     private_block = dataset.private_block(group_id, private_creator_name, create=True)
     private_block.add_new(private_tag_offset, vr, unknown_value)
-    # and try it the slightly different way
     print(  # noqa: T201
         f"modify_dicom_tags - added new private "
         f"block starting at 0x{private_block.block_start:x}"
