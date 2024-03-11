@@ -19,43 +19,6 @@ volumes:
 
 
 services:
-
-  imaging-api:
-    container_name: pixl-test-imaging-api
-    build:
-      context: ../../
-      dockerfile: ./docker/imaging-api/Dockerfile
-      args:
-        TEST: true
-    depends_on:
-      queue:
-        condition: service_healthy
-      orthanc-raw:
-        condition: service_started
-    healthcheck:
-      test: curl -f http://0.0.0.0:8000/heart-beat
-      interval: 5s
-      timeout: 5s
-      retries: 10
-    environment:
-      LOG_LEVEL: DEBUG
-      RABBITMQ_PASSWORD: guest
-      RABBITMQ_USERNAME: guest
-      RABBITMQ_HOST: queue
-      RABBITMQ_PORT: 5672
-      ORTHANC_RAW_USERNAME: "orthanc"
-      ORTHANC_RAW_PASSWORD: "orthanc"
-      ORTHANC_RAW_AE_TITLE: "PIXLRAW"
-      ORTHANC_VNA_USERNAME: "orthanc"
-      ORTHANC_VNA_PASSWORD: "orthanc"
-      ORTHANC_VNA_AE_TITLE: "VNAQR"
-      VNAQR_MODALITY: "UCVNAQR"
-      PIXL_DICOM_TRANSFER_TIMEOUT: 30
-      SKIP_ALEMBIC: "true"
-      PIXL_MAX_MESSAGES_IN_FLIGHT: 20
-    ports:
-      - "9001:8000"
-
   vna-qr:
     image: orthancteam/orthanc:24.3.3
     environment:
@@ -88,7 +51,6 @@ services:
       ORTHANC_ANON_DICOM_PORT: "4242"
       ORTHANC_ANON_HOSTNAME: "orthanc-anon"
       ORTHANC_AUTOROUTE_RAW_TO_ANON: "false"
-      ENV: "test"
     ports:
       - "4244:4242"
       - "8044:8042"

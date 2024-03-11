@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import datetime
 import os
+import pathlib
 
 import pytest
 from core.patient_queue.message import Message
@@ -53,7 +54,10 @@ class WritableOrthanc(Orthanc):
         )
 
 
-def add_image_to_fake_vna(image_filename: str = "test.dcm") -> None:
+@pytest.fixture(scope="module")
+def _add_image_to_fake_vna() -> None:
+    """Add single fake image to VNA."""
+    image_filename = "test.dcm"
     path = get_testdata_file("CT_small.dcm")
     ds = dcmread(path)
     ds.AccessionNumber = ACCESSION_NUMBER
@@ -61,22 +65,24 @@ def add_image_to_fake_vna(image_filename: str = "test.dcm") -> None:
     ds.save_as(image_filename)
 
     vna = WritableOrthanc(
-        url="http://vna-qr:8042",
+        url=config("ORTHANC_VNA_URL"),
         username=config("ORTHANC_VNA_USERNAME"),
         password=config("ORTHANC_VNA_PASSWORD"),
     )
     vna.upload(image_filename)
+    yield
+    pathlib.Path(image_filename).unlink(missing_ok=True)
 
 
 @pytest.mark.processing()
 @pytest.mark.asyncio()
+@pytest.mark.usefixtures(_add_image_to_fake_vna)
 async def test_image_saved() -> None:
     """
     Given the VNA has images, and orthanc raw has no images
     When we run process_message
     Then orthanc raw will contain the new image
     """
-    add_image_to_fake_vna()
     study = ImagingStudy.from_message(message)
     orthanc_raw = PIXLRawOrthanc()
 
@@ -87,13 +93,13 @@ async def test_image_saved() -> None:
 
 @pytest.mark.processing()
 @pytest.mark.asyncio()
+@pytest.mark.usefixtures(_add_image_to_fake_vna)
 async def test_existing_message_sent_twice() -> None:
     """
     Given the VNA has images, and orthanc raw has no images
     When we run process_message on the same message twice
     Then orthanc raw will contain the new image, and it isn't updated on the second processing
     """
-    add_image_to_fake_vna()
     study = ImagingStudy.from_message(message)
     orthanc_raw = PIXLRawOrthanc()
 

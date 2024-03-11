@@ -109,7 +109,7 @@ def _deserialise(response: requests.Response) -> Any:
 class PIXLRawOrthanc(Orthanc):
     def __init__(self) -> None:
         super().__init__(
-            url="http://orthanc-raw:8042",
+            url=config("ORTHANC_RAW_URL"),
             username=config("ORTHANC_RAW_USERNAME"),
             password=config("ORTHANC_RAW_PASSWORD"),
         )
