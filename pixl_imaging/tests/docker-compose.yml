@@ -44,7 +44,7 @@ services:
       ORTHANC_USERNAME: "orthanc"
       ORTHANC_PASSWORD: "orthanc"
       ORTHANC_AE_TITLE: "PIXLRAW"
-      VNAQR_AE_TITLE : "VNAQR"
+      VNAQR_AE_TITLE: "VNAQR"
       VNAQR_DICOM_PORT: "4242"
       VNAQR_IP_ADDR: "vna-qr"
       ORTHANC_ANON_AE_TITLE: "unused"
@@ -56,6 +56,7 @@ services:
       - "4244:4242"
       - "8044:8042"
     volumes:
+      # Overriding config for the test
       - ${PWD}/orthanc_raw_config/:/run/secrets:ro
 
   queue:

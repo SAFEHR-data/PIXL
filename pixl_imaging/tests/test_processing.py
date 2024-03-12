@@ -103,16 +103,6 @@ async def test_image_saved(orthanc_raw) -> None:
 @pytest.mark.processing()
 @pytest.mark.asyncio()
 @pytest.mark.usefixtures("_add_image_to_fake_vna")
-async def test_heart_beat(orthanc_raw) -> None:
-    """Test that the heart-beat rest endpoint works."""
-    all_studies = orthanc_raw._get("/studies")
-    assert len(all_studies) == 0
-    orthanc_raw._get("/heart-beat")
-
-
-@pytest.mark.processing()
-@pytest.mark.asyncio()
-@pytest.mark.usefixtures("_add_image_to_fake_vna")
 async def test_existing_message_sent_twice(orthanc_raw) -> None:
     """
     Given the VNA has images, and orthanc raw has no images

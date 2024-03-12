@@ -14,6 +14,13 @@
 #  limitations under the License.
 
 import os
+from collections.abc import Generator
+from logging import getLogger
+
+import pytest
+from _pytest.monkeypatch import MonkeyPatch
+
+logger = getLogger(__name__)
 
 os.environ["TEST"] = "true"
 os.environ["LOGLEVEL"] = "DEBUG"
@@ -34,3 +41,14 @@ os.environ["PIXL_DICOM_TRANSFER_TIMEOUT"] = "30"
 os.environ["SKIP_ALEMBIC"] = "true"
 os.environ["PIXL_MAX_MESSAGES_IN_FLIGHT"] = "20"
 os.environ["ORTHANC_AUTOROUTE_RAW_TO_ANON"] = "false"
+
+
+@pytest.fixture(autouse=True)
+def _patch_send_existing_study_to_anon(monkeypatch: Generator[MonkeyPatch, None, None]) -> None:
+    """Patch send_existing_study_to_anon in Orthanc as orthanc raw doesn't use the pixl plugin."""
+
+    def patched_send(self, resource_id: str) -> None:
+        """Replaces send_existing_study_to_anon."""
+        logger.info("Intercepted request to send '%s' to anon", resource_id)
+
+    monkeypatch.setattr("pixl_imaging._orthanc.Orthanc.send_existing_study_to_anon", patched_send)
