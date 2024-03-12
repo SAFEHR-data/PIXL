@@ -21,7 +21,9 @@ This module provides:
 """
 from __future__ import annotations
 
+import json
 import os
+import traceback
 from typing import TYPE_CHECKING
 
 import orthanc
@@ -80,11 +82,13 @@ def SendResourceToAnon(output, uri, **request):  # noqa: ARG001
         output.answerBuffer("Auto-routing is not enabled", "text/plain")
         return
     try:
-        orthanc.RestApiPost("/modalities/PIXL-Anon/store", request["ResourceId"])
+        body = json.loads(request["body"])
+        resource_id = body["ResourceId"]
+        orthanc.RestApiPost("/modalities/PIXL-Anon/store", resource_id)
         output.AnswerBuffer("OK", "text/plain")
-        orthanc.LogInfo(f"Succesfully sent study to anon modality: {request['ResourceId']}")
+        orthanc.LogInfo(f"Succesfully sent study to anon modality: {resource_id}")
     except:  # noqa: E722
-        orthanc.LogException("Failed to send study to anon")
+        orthanc.LogWarning(f"Failed to send study to anon:\n{traceback.format_exc()}")
         output.AnswerBuffer("Failed to send study to anon", "text/plain")
 
 
