@@ -30,7 +30,6 @@ from time import sleep
 from typing import TYPE_CHECKING
 
 import requests
-from core.db.queries import get_project_slug_from_hashid
 from core.project_config import load_project_config
 from core.uploader import get_uploader
 from decouple import config
@@ -140,8 +139,7 @@ def Send(resourceId: str) -> None:
     msg = f"Sending {resourceId}"
     logger.debug(msg)
 
-    hashed_patient_id = _get_patient_id(resourceId)
-    project_slug = get_project_slug_from_hashid(hashed_patient_id)
+    hashed_patient_id, project_slug = _get_patient_id(resourceId)
     project_config = load_project_config(project_slug)
     destination = project_config.destination.dicom
 
@@ -149,7 +147,7 @@ def Send(resourceId: str) -> None:
     msg = f"Sending {resourceId} via '{destination}'"
     logger.debug(msg)
     zip_content = _get_study_zip_archive(resourceId)
-    uploader.upload_dicom_image(zip_content, hashed_patient_id)
+    uploader.upload_dicom_image(zip_content, hashed_patient_id, project_slug)
 
 
 def _get_study_zip_archive(resourceId: str) -> BytesIO:
@@ -192,17 +190,17 @@ def SendViaStow(resourceId):
         orthanc.LogError("Failed to send via STOW")
 
 
-def _get_patient_id(resourceId: str) -> str:
+def _get_patient_id(resourceId: str) -> [str, str]:
     """
     Queries the Orthanc instance to get the PatientID for a given resource.
     When anonymisation has been applied, the PatientID is the pseudo-anonymised ID.
     """
-    query = f"{ORTHANC_URL}/studies/{resourceId}"
+    query = f"{ORTHANC_URL}/studies/{resourceId}/shared-tags?simplify=true"
     fail_msg = "Could not query study for resource '%s'"
 
     response_study = _query(resourceId, query, fail_msg)
     json_response = json.loads(response_study.content.decode())
-    return str(json_response["PatientMainDicomTags"]["PatientID"])
+    return json_response["PatientID"], json_response["UCLHPIXLProjectName"]
 
 
 def _query(resourceId: str, query: str, fail_msg: str) -> requests.Response:

@@ -24,7 +24,7 @@ from ftplib import FTP_TLS
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, BinaryIO, Optional
 
-from core.db.queries import get_project_slug_from_hashid, update_exported_at
+from core.db.queries import update_exported_at
 from core.uploader.base import Uploader
 
 if TYPE_CHECKING:
@@ -77,12 +77,13 @@ class FTPSUploader(Uploader):
         self.password = self.keyvault.fetch_secret(f"{az_prefix}--ftp--password")
         self.port = int(self.keyvault.fetch_secret(f"{az_prefix}--ftp--port"))
 
-    def upload_dicom_image(self, zip_content: BinaryIO, pseudo_anon_id: str) -> None:
+    def upload_dicom_image(
+        self, zip_content: BinaryIO, pseudo_anon_id: str, remote_directory: str
+    ) -> None:
         """Upload a DICOM image to the FTPS server."""
         logger.info("Starting FTPS upload of '%s'", pseudo_anon_id)
 
         # rename destination to {project-slug}/{study-pseduonymised-id}.zip
-        remote_directory = get_project_slug_from_hashid(pseudo_anon_id)
 
         # Create the remote directory if it doesn't exist
         ftp = _connect_to_ftp(self.host, self.port, self.user, self.password)

@@ -20,7 +20,7 @@ from decouple import config
 from sqlalchemy import URL, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from core.db.models import Extract, Image
+from core.db.models import Image
 
 url = URL.create(
     drivername="postgresql+psycopg2",
@@ -32,30 +32,6 @@ url = URL.create(
 )
 
 engine = create_engine(url)
-
-
-def get_project_slug_from_hashid(hashed_value: str) -> str:
-    """
-    Get the project slug from the PIXL database for a given hashed identifier.
-    Throws an exception if the image has already been exported.
-    """
-    PixlSession = sessionmaker(engine)
-    with PixlSession() as pixl_session, pixl_session.begin():
-        existing_image = _query_existing_image(pixl_session, hashed_value)
-
-        if existing_image.exported_at is not None:
-            msg = "Image already exported"
-            raise RuntimeError(msg)
-
-        existing_extract = (
-            pixl_session.query(Extract)
-            .filter(
-                Extract.extract_id == existing_image.extract_id,
-            )
-            .one()
-        )
-
-        return str(existing_extract.slug)
 
 
 def update_exported_at(hashed_value: str, date_time: datetime) -> None:

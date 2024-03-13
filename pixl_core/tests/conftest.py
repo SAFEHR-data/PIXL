@@ -30,7 +30,6 @@ from sqlalchemy.orm import Session, sessionmaker
 
 if TYPE_CHECKING:
     import subprocess
-    from collections.abc import Generator
 
 pytest_plugins = "pytest_pixl"
 
@@ -88,7 +87,7 @@ def ftps_uploader() -> MockFTPSUploader:
 
 
 @pytest.fixture()
-def ftps_home_dir(ftps_server) -> Generator[Path, None, None]:
+def ftps_home_dir(ftps_server) -> Path:
     """
     Return the FTPS server home directory, the ftps_server fixture already uses
     pytest.tmp_path_factory, so no need to clean up.
