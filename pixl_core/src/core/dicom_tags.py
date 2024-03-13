@@ -40,7 +40,7 @@ class PrivateDicomTag:
 
 
 DICOM_TAG_PROJECT_NAME = PrivateDicomTag(
-    group_id=0x000B,
+    group_id=0x000D,
     offset_id=0x01,
     creator_string="UCLH PIXL",
     tag_nickname="UCLHPIXLProjectName",
