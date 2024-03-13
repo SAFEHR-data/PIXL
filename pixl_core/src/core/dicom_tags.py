@@ -30,17 +30,32 @@ class PrivateDicomTag:
     We don't specify the private block ID (eg. 0x10) because its value can vary to avoid collisions
     - the private creator string is used to locate the block.
     Unfortunately, Orthanc seems to require you to hardcode it if you want to be able to use
-    the API to update the tag value.
+    the API to update the tag value. So we have to take what we're given and log an error if
+    it's not 0x10.
     """
 
     group_id: int
     offset_id: int
+    required_private_block: int
     creator_string: str
     tag_nickname: str
+
+    def acceptable_private_block(self, actual_private_block: int) -> bool:
+        """
+        Detect whether the private block given to us is acceptable
+        :param actual_private_block: one byte private block ID
+        """
+        if not 0x10 <= actual_private_block <= 0xFF:  # noqa: PLR2004 see DICOM spec
+            err_str = f"private block must be from 0x10 to 0xff, got {actual_private_block}"
+            raise ValueError(err_str)
+        if self.required_private_block is None:
+            return True
+        return self.required_private_block == actual_private_block
 
 
 DICOM_TAG_PROJECT_NAME = PrivateDicomTag(
     group_id=0x000D,
+    required_private_block=0x10,
     offset_id=0x01,
     creator_string="UCLH PIXL",
     tag_nickname="UCLHPIXLProjectName",

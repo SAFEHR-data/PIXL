@@ -116,10 +116,17 @@ def modify_dicom_tags(receivedDicom: bytes, origin: str) -> Any:
 
     private_block = dataset.private_block(group_id, private_creator_name, create=True)
     private_block.add_new(private_tag_offset, vr, unknown_value)
+
     print(  # noqa: T201
         f"modify_dicom_tags - added new private "
         f"block starting at 0x{private_block.block_start:x}"
     )
+    if not DICOM_TAG_PROJECT_NAME.acceptable_private_block(private_block.block_start >> 8):
+        print(  # noqa: T201
+            "ERROR: The private block does not match the value hardcoded in the orthanc "
+            "config. This can be because there was an unexpected pre-existing private block"
+            f"in group {group_id}"
+        )
     return orthanc.ReceivedInstanceAction.MODIFY, write_dataset_to_bytes(dataset)
 
 
