@@ -34,6 +34,14 @@ url = URL.create(
 engine = create_engine(url)
 
 
+def have_already_exported_image(image_hashed_id: str) -> bool:
+    """Check if the given image has already been exported."""
+    PixlSession = sessionmaker(engine)
+    with PixlSession() as pixl_session, pixl_session.begin():
+        existing_image = _query_existing_image(pixl_session, image_hashed_id)
+        return existing_image.exported_at is not None
+
+
 def update_exported_at(hashed_value: str, date_time: datetime) -> None:
     """Update the `exported_at` field for an image in the PIXL database"""
     PixlSession = sessionmaker(engine)
