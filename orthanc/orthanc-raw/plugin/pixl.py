@@ -22,7 +22,11 @@ This module provides:
 from __future__ import annotations
 
 import os
+from io import BytesIO
 from typing import TYPE_CHECKING
+
+from core.dicom_tags import DICOM_TAG_PROJECT_NAME
+from pydicom import Dataset, dcmread, dcmwrite
 
 import orthanc
 from pixl_dcmd.tagrecording import record_dicom_headers
@@ -49,11 +53,11 @@ def OnHeartBeat(output, uri, **request):  # noqa: ARG001
     output.AnswerBuffer("OK\n", "text/plain")
 
 
-def ReceivedInstanceCallback(receivedDicom: bytes, _: str) -> Any:
+def ReceivedInstanceCallback(receivedDicom: bytes, origin: str) -> Any:
     """Optionally record headers from the received DICOM instance."""
     if should_record_headers():
         record_dicom_headers(receivedDicom)
-    return orthanc.ReceivedInstanceAction.KEEP_AS_IS, None
+    return modify_dicom_tags(receivedDicom, origin)
 
 
 def should_record_headers() -> bool:
@@ -70,6 +74,60 @@ def should_auto_route():
     set to true or false
     """
     return os.environ.get("ORTHANC_AUTOROUTE_RAW_TO_ANON", "false").lower() == "true"
+
+
+def write_dataset_to_bytes(dataset: Dataset) -> bytes:
+    """
+    Write pydicom DICOM dataset to byte array
+
+    Original from:
+    https://pydicom.github.io/pydicom/stable/auto_examples/memory_dataset.html
+    """
+    with BytesIO() as buffer:
+        dcmwrite(buffer, dataset)
+        buffer.seek(0)
+        return buffer.read()
+
+
+def modify_dicom_tags(receivedDicom: bytes, origin: str) -> Any:
+    """
+    A new incoming DICOM file needs to have the project name private tag added here, so
+    that the API will later allow us to edit it.
+    However, we don't know its correct value at this point, so just create it with an obvious
+    placeholder value.
+    """
+    if origin != orthanc.InstanceOrigin.DICOM_PROTOCOL:
+        # don't keep resetting the tag values if this was triggered by an API call!
+        print("modify_dicom_tags - doing nothing as change triggered by API")  # noqa: T201
+        return orthanc.ReceivedInstanceAction.KEEP_AS_IS, None
+    dataset = dcmread(BytesIO(receivedDicom))
+    private_creator_name = DICOM_TAG_PROJECT_NAME.creator_string
+    # See the orthanc.json config file for where this tag is given a nickname
+    private_tag_offset = DICOM_TAG_PROJECT_NAME.offset_id
+    # LO = Long string max 64
+    # https://dicom.nema.org/medical/dicom/current/output/chtml/part05/sect_6.2.html
+    vr = "LO"
+    unknown_value = "__pixl_unknown_value__"
+    group_id = DICOM_TAG_PROJECT_NAME.group_id
+    # The private block is the first free block >= 0x10.
+    # We can't directly control it, but the orthanc config requires it to be
+    # hardcoded to 0x10
+    # https://dicom.nema.org/dicom/2013/output/chtml/part05/sect_7.8.html
+
+    private_block = dataset.private_block(group_id, private_creator_name, create=True)
+    private_block.add_new(private_tag_offset, vr, unknown_value)
+
+    print(  # noqa: T201
+        f"modify_dicom_tags - added new private "
+        f"block starting at 0x{private_block.block_start:x}"
+    )
+    if not DICOM_TAG_PROJECT_NAME.acceptable_private_block(private_block.block_start >> 8):
+        print(  # noqa: T201
+            "ERROR: The private block does not match the value hardcoded in the orthanc "
+            "config. This can be because there was an unexpected pre-existing private block"
+            f"in group {group_id}"
+        )
+    return orthanc.ReceivedInstanceAction.MODIFY, write_dataset_to_bytes(dataset)
 
 
 orthanc.RegisterOnChangeCallback(OnChange)

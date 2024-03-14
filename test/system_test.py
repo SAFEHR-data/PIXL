@@ -15,7 +15,9 @@
 import logging
 from pathlib import Path
 
+import pydicom
 import pytest
+from core.dicom_tags import DICOM_TAG_PROJECT_NAME
 from pytest_pixl.helpers import run_subprocess, wait_for_condition
 
 pytest_plugins = "pytest_pixl"
@@ -59,7 +61,7 @@ class TestFtpsUpload:
         ).exists()
 
     @pytest.mark.usefixtures("_extract_radiology_reports")
-    def test_ftps_dicom_upload(self):
+    def test_ftps_dicom_upload(self, tmp_path_factory):
         """Test whether DICOM images have been uploaded"""
         zip_files = []
 
@@ -78,6 +80,28 @@ class TestFtpsUpload:
             seconds_interval=5,
             progress_string_fn=zip_file_list,
         )
+
+        assert zip_files
+        for z in zip_files:
+            unzip_dir = tmp_path_factory.mktemp("unzip_dir", numbered=True)
+            self._check_dcm_tags_from_zip(z, unzip_dir)
+
+    def _check_dcm_tags_from_zip(self, zip_path, unzip_dir) -> None:
+        """Check that private tag has survived anonymisation with the correct value."""
+        run_subprocess(
+            ["unzip", zip_path],
+            working_dir=unzip_dir,
+        )
+        all_dicom = list(unzip_dir.rglob("*.dcm"))
+        assert len(all_dicom) == 1
+        dcm = pydicom.dcmread(all_dicom[0])
+        block = dcm.private_block(
+            DICOM_TAG_PROJECT_NAME.group_id, DICOM_TAG_PROJECT_NAME.creator_string
+        )
+        tag_offset = DICOM_TAG_PROJECT_NAME.offset_id
+        private_tag = block[tag_offset]
+        assert private_tag is not None
+        assert private_tag.value == TestFtpsUpload.project_slug
 
 
 @pytest.mark.usefixtures("_setup_pixl_cli")

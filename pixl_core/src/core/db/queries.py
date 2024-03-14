@@ -20,7 +20,7 @@ from decouple import config
 from sqlalchemy import URL, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from core.db.models import Extract, Image
+from core.db.models import Image
 
 url = URL.create(
     drivername="postgresql+psycopg2",
@@ -34,28 +34,12 @@ url = URL.create(
 engine = create_engine(url)
 
 
-def get_project_slug_from_hashid(hashed_value: str) -> str:
-    """
-    Get the project slug from the PIXL database for a given hashed identifier.
-    Throws an exception if the image has already been exported.
-    """
+def have_already_exported_image(image_hashed_id: str) -> bool:
+    """Check if the given image has already been exported."""
     PixlSession = sessionmaker(engine)
     with PixlSession() as pixl_session, pixl_session.begin():
-        existing_image = _query_existing_image(pixl_session, hashed_value)
-
-        if existing_image.exported_at is not None:
-            msg = "Image already exported"
-            raise RuntimeError(msg)
-
-        existing_extract = (
-            pixl_session.query(Extract)
-            .filter(
-                Extract.extract_id == existing_image.extract_id,
-            )
-            .one()
-        )
-
-        return str(existing_extract.slug)
+        existing_image = _query_existing_image(pixl_session, image_hashed_id)
+        return existing_image.exported_at is not None
 
 
 def update_exported_at(hashed_value: str, date_time: datetime) -> None:
@@ -75,22 +59,3 @@ def _query_existing_image(pixl_session: Session, hashed_value: str) -> Image:
         )
         .one()
     )
-
-
-def get_project_slug(patientid: str, accession_number: str) -> str:
-    """Get the project slug from the PIXL database for a given patientid."""
-    PixlSession = sessionmaker(engine)
-    with PixlSession() as pixl_session, pixl_session.begin():
-        return str(
-            pixl_session.query(Extract)
-            .join(Image, Extract.extract_id == Image.extract_id)
-            .filter(
-                Image.mrn == patientid,
-                Image.accession_number == accession_number,
-            )
-            .filter(
-                Extract.extract_id == Image.extract_id,
-            )
-            .one()
-            .slug
-        )

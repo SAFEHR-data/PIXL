@@ -24,7 +24,7 @@ from ftplib import FTP_TLS
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, BinaryIO, Optional
 
-from core.db.queries import get_project_slug_from_hashid, update_exported_at
+from core.db.queries import have_already_exported_image, update_exported_at
 from core.uploader.base import Uploader
 
 if TYPE_CHECKING:
@@ -77,17 +77,24 @@ class FTPSUploader(Uploader):
         self.password = self.keyvault.fetch_secret(f"{az_prefix}--ftp--password")
         self.port = int(self.keyvault.fetch_secret(f"{az_prefix}--ftp--port"))
 
-    def upload_dicom_image(self, zip_content: BinaryIO, pseudo_anon_id: str) -> None:
+    def upload_dicom_image(
+        self,
+        zip_content: BinaryIO,
+        pseudo_anon_image_id: str,
+        remote_directory: str,
+    ) -> None:
         """Upload a DICOM image to the FTPS server."""
-        logger.info("Starting FTPS upload of '%s'", pseudo_anon_id)
+        logger.info("Starting FTPS upload of '%s'", pseudo_anon_image_id)
 
-        # rename destination to {project-slug}/{study-pseduonymised-id}.zip
-        remote_directory = get_project_slug_from_hashid(pseudo_anon_id)
+        # name destination to {project-slug}/{study-pseudonymised-id}.zip
+        if have_already_exported_image(pseudo_anon_image_id):
+            msg = "Image already exported"
+            raise RuntimeError(msg)
 
         # Create the remote directory if it doesn't exist
         ftp = _connect_to_ftp(self.host, self.port, self.user, self.password)
         _create_and_set_as_cwd(ftp, remote_directory)
-        command = f"STOR {pseudo_anon_id}.zip"
+        command = f"STOR {pseudo_anon_image_id}.zip"
         logger.debug("Running %s", command)
 
         # Store the file using a binary handler
@@ -102,8 +109,8 @@ class FTPSUploader(Uploader):
         ftp.quit()
 
         # Update the exported_at timestamp in the PIXL database
-        update_exported_at(pseudo_anon_id, datetime.now(tz=timezone.utc))
-        logger.info("Finished FTPS upload of '%s'", pseudo_anon_id)
+        update_exported_at(pseudo_anon_image_id, datetime.now(tz=timezone.utc))
+        logger.info("Finished FTPS upload of '%s'", pseudo_anon_image_id)
 
     def upload_parquet_files(self, parquet_export: ParquetExport) -> None:
         """

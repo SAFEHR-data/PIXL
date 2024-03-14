@@ -62,6 +62,27 @@ class Orthanc(ABC):
 
         return None
 
+    def modify_private_tags_by_study(
+        self,
+        *,
+        study_id,
+        private_creator,
+        tag_replacement: dict,
+    ) -> Any:
+        # According to the docs, you can't modify tags for an instance using the instance API
+        # (the best you can do is download a modified version), so do it via the studies API.
+        # KeepSource=false needed to stop it making a copy
+        # https://orthanc.uclouvain.be/api/index.html#tag/Studies/paths/~1studies~1{id}~1modify/post
+        return self._post(
+            f"/studies/{study_id}/modify",
+            {
+                "PrivateCreator": private_creator,
+                "Permissive": False,
+                "KeepSource": False,
+                "Replace": tag_replacement,
+            },
+        )
+
     def retrieve_from_remote(self, query_id: str) -> str:
         response = self._post(
             f"/queries/{query_id}/retrieve",
