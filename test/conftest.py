@@ -34,6 +34,9 @@ TEST_DIR = Path(__file__).parent
 RESOURCES_DIR = TEST_DIR / "resources"
 RESOURCES_OMOP_DIR = RESOURCES_DIR / "omop"
 
+PIXL_USER_UID = 7001
+PIXL_USER_GID = 7001
+
 
 @pytest.fixture(scope="session")
 def _setup_pixl_cli(ftps_server, host_export_root_dir) -> None:
@@ -49,20 +52,29 @@ def _setup_pixl_cli(ftps_server, host_export_root_dir) -> None:
         except subprocess.CalledProcessError:
             pass
 
-    print("JES: running id and passwd")
-    run_subprocess(["id"])
-    run_subprocess(["cat", "/etc/passwd"])
     # In production, it will be documented that the exports directory must be writable
     # by the "pixl" user. For the system test we must do it here.
     if os.getenv("GITHUB_ACTIONS") == "true":
-        run_subprocess(["sudo", "--non-interactive", "adduser", "pixl"])
+        run_subprocess(
+            [
+                "sudo",
+                "--non-interactive",
+                "useradd",
+                "--uid",
+                PIXL_USER_UID,
+                "--gid",
+                PIXL_USER_GID,
+                "pixl",
+            ]
+        )
+        # this directory is part of the git repo so will already exist
         run_subprocess(
             ["sudo", "--non-interactive", "chown", "-R", "pixl:pixl", host_export_root_dir]
         )
     print("JES: after create user pixl")
     run_subprocess(["cat", "/etc/passwd"])
 
-    print("JES: after wards ls -laR")
+    print("JES: afterwards ls -laR")
     run_subprocess(["ls", "-laR", host_export_root_dir.parents[0]])
     # CLI calls need to have CWD = test dir so they can find the pixl_config.yml file
     run_subprocess(["pixl", "populate", str(RESOURCES_OMOP_DIR.absolute())], TEST_DIR)
