@@ -59,6 +59,16 @@ def _setup_pixl_cli(ftps_server, host_export_root_dir) -> None:
             [
                 "sudo",
                 "--non-interactive",
+                "groupadd",
+                "--gid",
+                str(PIXL_USER_GID),
+                "pixl",
+            ]
+        )
+        run_subprocess(
+            [
+                "sudo",
+                "--non-interactive",
                 "useradd",
                 "--uid",
                 str(PIXL_USER_UID),
