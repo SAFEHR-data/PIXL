@@ -14,8 +14,8 @@
 version: "3.8"
 
 x-pixl-uid-gid: &pixl-uid-gid
-    PIXL_USER_UID: 7001
-    PIXL_USER_GID: 7001
+    PIXL_USER_UID: ${PIXL_USER_UID}
+    PIXL_USER_GID: ${PIXL_USER_GID}
 
 volumes:
     vna-qr-data:

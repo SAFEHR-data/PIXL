@@ -27,8 +27,8 @@ x-proxy-common: &proxy-common
   NO_PROXY: *no-proxy
   no_proxy: *no-proxy
 x-pixl-uid-gid: &pixl-uid-gid
-  PIXL_USER_UID: 7001
-  PIXL_USER_GID: 7001
+  PIXL_USER_UID: ${PIXL_USER_UID}
+  PIXL_USER_GID: ${PIXL_USER_GID}
 
 x-build-args-common: &build-args-common
   <<: [*proxy-common, *pixl-uid-gid]
