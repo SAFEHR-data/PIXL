@@ -24,7 +24,9 @@ RUN sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 # clean up
 RUN  apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN useradd pixl
+ARG PIXL_USER_UID
+ARG PIXL_USER_GID
+RUN groupadd --gid $PIXL_USER_GID pixl && useradd --uid $PIXL_USER_UID --gid $PIXL_USER_GID pixl
 WORKDIR /app
 # Install requirements before copying modules
 COPY ./hasher/pyproject.toml .

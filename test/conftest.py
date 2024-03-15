@@ -34,8 +34,8 @@ TEST_DIR = Path(__file__).parent
 RESOURCES_DIR = TEST_DIR / "resources"
 RESOURCES_OMOP_DIR = RESOURCES_DIR / "omop"
 
-PIXL_USER_UID = 7001
-PIXL_USER_GID = 7001
+PIXL_USER_UID = os.getenv("PIXL_USER_UID")
+PIXL_USER_GID = os.getenv("PIXL_USER_GID")
 
 
 @pytest.fixture(scope="session")

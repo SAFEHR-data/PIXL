@@ -23,7 +23,9 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
         gnupg \
         locales
 
-RUN useradd pixl
+ARG PIXL_USER_UID
+ARG PIXL_USER_GID
+RUN groupadd --gid $PIXL_USER_GID pixl && useradd --uid $PIXL_USER_UID --gid $PIXL_USER_GID pixl
 WORKDIR /app
 
 COPY cogstack.py .
