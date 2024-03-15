@@ -61,9 +61,9 @@ def _setup_pixl_cli(ftps_server, host_export_root_dir) -> None:
                 "--non-interactive",
                 "useradd",
                 "--uid",
-                PIXL_USER_UID,
+                str(PIXL_USER_UID),
                 "--gid",
-                PIXL_USER_GID,
+                str(PIXL_USER_GID),
                 "pixl",
             ]
         )
