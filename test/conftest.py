@@ -49,12 +49,18 @@ def _setup_pixl_cli(ftps_server, host_export_root_dir) -> None:
         except subprocess.CalledProcessError:
             pass
 
+    print("JES: running id and passwd")
+    run_subprocess(["id"])
+    run_subprocess(["cat", "/etc/passwd"])
     # In production, it will be documented that the exports directory must be writable
     # by the "pixl" user. For the system test we must do it here.
     if os.getenv("GITHUB_ACTIONS") == "true":
+        run_subprocess(["sudo", "--non-interactive", "adduser", "pixl"])
         run_subprocess(
             ["sudo", "--non-interactive", "chown", "-R", "pixl:pixl", host_export_root_dir]
         )
+    print("JES: after create user pixl")
+    run_subprocess(["cat", "/etc/passwd"])
 
     print("JES: after wards ls -laR")
     run_subprocess(["ls", "-laR", host_export_root_dir.parents[0]])
