@@ -204,15 +204,6 @@ jobs:
       - name: Create .secrets.env
         run: touch .secrets.env
 
-      - name: Build test services
-        working-directory: test
-        run: |
-          docker compose build
-
-      - name: Build services
-        run: |
-          docker compose build
-
       - name: Run tests
         working-directory: test
         env:
