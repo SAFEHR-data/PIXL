@@ -26,9 +26,12 @@ x-proxy-common: &proxy-common
   https_proxy: *https-proxy
   NO_PROXY: *no-proxy
   no_proxy: *no-proxy
+x-pixl-uid-gid: &pixl-uid-gid
+  PIXL_USER_UID: 7001
+  PIXL_USER_GID: 7001
 
 x-build-args-common: &build-args-common
-  <<: [*proxy-common]
+  <<: [*proxy-common, *pixl-uid-gid]
 
 x-pixl-common-env: &pixl-common-env
   ENV: ${ENV}
