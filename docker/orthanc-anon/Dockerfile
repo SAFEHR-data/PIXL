@@ -26,6 +26,7 @@ RUN apt-get --assume-yes install curl
 
 ARG PIXL_USER_UID
 ARG PIXL_USER_GID
+RUN echo JES $PIXL_USER_GID $PIXL_USER_UID JES WTF
 RUN groupadd --gid $PIXL_USER_GID pixl && useradd --uid $PIXL_USER_UID --gid $PIXL_USER_GID pixl
 
 # Install requirements before copying modules
