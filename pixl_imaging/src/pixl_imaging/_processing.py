@@ -41,6 +41,7 @@ async def process_message(message: Message) -> None:
 
     existing_resource_ids = study.query_local(orthanc_raw)
     if len(existing_resource_ids) > 0:
+        await _add_project_to_study(message.project_name, orthanc_raw, existing_resource_ids)
         orthanc_raw.send_existing_study_to_anon(existing_resource_ids[0])
         return
 
@@ -70,24 +71,29 @@ async def process_message(message: Message) -> None:
     studies_with_tags = orthanc_raw.query_local(study.orthanc_query_dict)
     logger.info("Local instances with matching tags: %s", studies_with_tags)
 
+    await _add_project_to_study(message.project_name, orthanc_raw, studies_with_tags)
+
+    return
+
+
+async def _add_project_to_study(
+    project_name: str, orthanc_raw: PIXLRawOrthanc, studies_with_tags: list[str]
+) -> None:
     if len(studies_with_tags) != 1:
         logger.error(
             "Got %s studies with matching accession number and patient ID, expected 1",
             len(studies_with_tags),
         )
-
     for study in studies_with_tags:
-        logger.info("Study ID %s", study)
+        logger.debug("Study ID %s", study)
         orthanc_raw.modify_private_tags_by_study(
             study_id=study,
             private_creator=DICOM_TAG_PROJECT_NAME.creator_string,
             tag_replacement={
                 # The tag here needs to be defined in orthanc's dictionary
-                DICOM_TAG_PROJECT_NAME.tag_nickname: message.project_name,
+                DICOM_TAG_PROJECT_NAME.tag_nickname: project_name,
             },
         )
-
-    return
 
 
 @dataclass

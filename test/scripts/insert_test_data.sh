@@ -42,7 +42,7 @@ docker exec system-test-fake-star-db /bin/bash -c "psql -U postgres -d emap -c \
 # Uses an accession number of "AA12345601" for MRN 987654321
 curl -X POST -u "orthanc:orthanc" "http://localhost:8043/instances" \
   --data-binary @"$SCRIPT_DIR/../resources/Dicom1.dcm"
-# Uses an accession number of "AA12345605"  for MRN 987654321
+# Uses an accession number of "AA12345605"  for MRN 987654321, already has project name added
 # Send to orthanc raw to ensure that we can resend an existing message without querying VNA again
 curl -X POST -u "orthanc_raw_username:orthanc_raw_password" "http://localhost:7005/instances" \
   --data-binary @"$SCRIPT_DIR/../resources/Dicom2.dcm"
