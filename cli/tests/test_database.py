@@ -32,7 +32,7 @@ def _make_message(project_name: str, accession_number: str, mrn: str) -> Message
         mrn=mrn,
         study_date=STUDY_DATE,
         procedure_occurrence_id=1,
-        extract_generated_timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
+        extract_generated_timestamp=datetime.datetime.now(tz=datetime.UTC),
     )
 
 
@@ -56,7 +56,7 @@ def rows_in_session(db_session) -> Session:
         study_date=STUDY_DATE,
         mrn="mrn",
         extract=extract,
-        exported_at=datetime.datetime.now(tz=datetime.timezone.utc),
+        exported_at=datetime.datetime.now(tz=datetime.UTC),
     )
     image_not_exported = Image(
         accession_number="234",
