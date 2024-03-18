@@ -91,7 +91,7 @@ def _update_or_resend_existing_study_(
             resource["RequestedTags"].get(DICOM_TAG_PROJECT_NAME.tag_nickname),
             resource["RequestedTags"].get(
                 "Unknown Tag & Data"
-            ),  # Fallback in case not defined, assume this is only in imaging_api tests
+            ),  # Fallback for testing where we're not using the entire plugin, remains undefined
         )
         try:
             if project_name not in project_tags:
