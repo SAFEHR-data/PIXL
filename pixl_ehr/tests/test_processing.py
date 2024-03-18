@@ -38,7 +38,7 @@ from psycopg2.errors import UniqueViolation
 
 pytest_plugins = ("pytest_asyncio",)
 
-logger = getLogger(__file__)
+logger = getLogger(__name__)
 
 
 @dataclasses.dataclass
