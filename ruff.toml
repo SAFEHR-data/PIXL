@@ -2,7 +2,7 @@ line-length = 100
 fix = true
 force-exclude = true
 namespace-packages = ["orthanc/orthanc-anon/plugin", "orthanc/orthanc-raw/plugin"]
-ignore = [
+lint.ignore = [
     "ANN001", # missing type function argument
     "ANN003", # missing type annotation **
     "ANN101", # missng type annotation for `self`
@@ -30,7 +30,7 @@ ignore = [
     "TD004",  # missing colon in #TODO
     "S608",   # possible SQL injection vectors (#FIXME)
 ]
-per-file-ignores = {"*test*" = [
+lint.per-file-ignores = {"*test*" = [
     "ARG001", # Unused function argument, fixtures can be used for their side effects
     "INP001",
     "S101",
@@ -40,14 +40,14 @@ per-file-ignores = {"*test*" = [
 ], "postgres/*" = [
     "INP001",
 ]}
-select = [
+lint.select = [
     "ALL",
 ]
-target-version = "py310"
-mccabe.max-complexity = 18
+target-version = "py311"
+lint.mccabe.max-complexity = 18
 exclude=["scripts"]
 
-[extend-per-file-ignores]
+[lint.extend-per-file-ignores]
 "**/test*/*" = ["PLR2004"] #  Magic value used in comparison
 "hasher/tests/*" = ["ARG001"] #  unused function argument
 "env.py" = ["INP001", "E402", "ERA001"]

@@ -12,6 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """Tests for check_env function of CLI."""
+
 from pathlib import Path
 
 from click.testing import CliRunner

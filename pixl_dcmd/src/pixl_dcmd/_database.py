@@ -13,6 +13,7 @@
 #  limitations under the License.
 
 """Interaction with the PIXL database."""
+
 from decouple import config
 
 from core.db.models import Image

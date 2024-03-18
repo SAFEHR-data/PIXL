@@ -12,10 +12,11 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """Reading and writing files from PIXL CLI."""
+
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pandas as pd
@@ -101,12 +102,12 @@ def messages_from_csv(filepath: Path) -> list[Message]:
             mrn=row[mrn_col_name],
             accession_number=row[acc_num_col_name],
             study_date=datetime.strptime(row[dt_col_name], "%d/%m/%Y %H:%M")
-            .replace(tzinfo=timezone.utc)
+            .replace(tzinfo=UTC)
             .date(),
             procedure_occurrence_id=row[procedure_id_col_name],
             project_name=row[project_col_name],
             extract_generated_timestamp=datetime.strptime(row[extract_col_name], "%d/%m/%Y %H:%M")
-            .replace(tzinfo=timezone.utc)
+            .replace(tzinfo=UTC)
             .date(),
         )
         messages.append(message)

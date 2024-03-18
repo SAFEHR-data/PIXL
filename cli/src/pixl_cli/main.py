@@ -12,6 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """PIXL command line interface functionality"""
+
 from __future__ import annotations
 
 import json
@@ -72,7 +73,7 @@ def check_env(*, error: bool, sample_env_file: click.Path) -> None:
     for key in sample_config.data:
         try:
             config(key)
-        except UndefinedValueError:  # noqa: PERF203
+        except UndefinedValueError:
             logger.warning("Environment variable %s is not set", key)
             if error:
                 raise

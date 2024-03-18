@@ -18,6 +18,7 @@ This module:
 -Modifies a DICOM instance received by Orthanc and applies anonymisation
 -Upload the resource to a dicom-web server
 """
+
 from __future__ import annotations
 
 import json

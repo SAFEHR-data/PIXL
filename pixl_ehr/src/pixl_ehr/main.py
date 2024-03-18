@@ -12,6 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """pixl_ehr module is an EHR extraction service app"""
+
 from __future__ import annotations
 
 import asyncio
@@ -155,7 +156,7 @@ async def az_copy_current(csv_filename: str = "extract.csv") -> None:
         csv_filename,
     )
 
-    with Path(file=csv_filename, mode="rb").open() as data:
+    with Path(file=csv_filename, mode="rb").open() as data:  # noqa: ASYNC101
         blob_client.upload_blob(data)
 
     logger.info("Uploaded successfully!")

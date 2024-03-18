@@ -14,7 +14,6 @@
 
 """Test functions in _io.py."""
 
-
 import pytest
 from pixl_cli._io import messages_from_csv
 

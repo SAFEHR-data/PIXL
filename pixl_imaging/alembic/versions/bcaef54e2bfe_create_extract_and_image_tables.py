@@ -18,6 +18,7 @@ Revises:
 Create Date: 2024-02-12 14:43:36.716242
 
 """
+
 from collections.abc import Sequence
 from typing import Union
 

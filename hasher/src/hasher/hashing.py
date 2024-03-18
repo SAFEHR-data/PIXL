@@ -20,6 +20,7 @@ This module provides:
 - generate_salt: generate a random text string in hexadecimal to be used as a salt
 
 """
+
 from __future__ import annotations
 
 import logging
