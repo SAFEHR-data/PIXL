@@ -19,43 +19,6 @@ volumes:
 
 
 services:
-
-  imaging-api:
-    container_name: pixl-test-imaging-api
-    build:
-      context: ../../
-      dockerfile: ./docker/imaging-api/Dockerfile
-      args:
-        TEST: true
-    depends_on:
-      queue:
-        condition: service_healthy
-      orthanc-raw:
-        condition: service_started
-    healthcheck:
-      test: curl -f http://0.0.0.0:8000/heart-beat
-      interval: 5s
-      timeout: 5s
-      retries: 10
-    environment:
-      LOG_LEVEL: DEBUG
-      RABBITMQ_PASSWORD: guest
-      RABBITMQ_USERNAME: guest
-      RABBITMQ_HOST: queue
-      RABBITMQ_PORT: 5672
-      ORTHANC_RAW_USERNAME: "orthanc"
-      ORTHANC_RAW_PASSWORD: "orthanc"
-      ORTHANC_RAW_AE_TITLE: "PIXLRAW"
-      ORTHANC_VNA_USERNAME: "orthanc"
-      ORTHANC_VNA_PASSWORD: "orthanc"
-      ORTHANC_VNA_AE_TITLE: "VNAQR"
-      VNAQR_MODALITY: "UCVNAQR"
-      PIXL_DICOM_TRANSFER_TIMEOUT: 30
-      SKIP_ALEMBIC: "true"
-      PIXL_MAX_MESSAGES_IN_FLIGHT: 20
-    ports:
-      - "9001:8000"
-
   vna-qr:
     image: orthancteam/orthanc:24.3.3
     environment:
@@ -81,17 +44,19 @@ services:
       ORTHANC_USERNAME: "orthanc"
       ORTHANC_PASSWORD: "orthanc"
       ORTHANC_AE_TITLE: "PIXLRAW"
-      VNAQR_AE_TITLE : "VNAQR"
+      VNAQR_AE_TITLE: "VNAQR"
       VNAQR_DICOM_PORT: "4242"
       VNAQR_IP_ADDR: "vna-qr"
       ORTHANC_ANON_AE_TITLE: "unused"
       ORTHANC_ANON_DICOM_PORT: "4242"
       ORTHANC_ANON_HOSTNAME: "orthanc-anon"
-      ENV: "test"
+      ORTHANC_AUTOROUTE_RAW_TO_ANON: "false"
+      PROJECT_CONFIGS_DIR: "/projects/configs"
     ports:
       - "4244:4242"
       - "8044:8042"
     volumes:
+      # Overriding config for the test
       - ${PWD}/orthanc_raw_config/:/run/secrets:ro
 
   queue:

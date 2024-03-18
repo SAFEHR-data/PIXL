@@ -21,7 +21,9 @@ This module provides:
 """
 from __future__ import annotations
 
+import json
 import os
+import traceback
 from io import BytesIO
 from typing import TYPE_CHECKING
 
@@ -130,6 +132,25 @@ def modify_dicom_tags(receivedDicom: bytes, origin: str) -> Any:
     return orthanc.ReceivedInstanceAction.MODIFY, write_dataset_to_bytes(dataset)
 
 
+def SendResourceToAnon(output, uri, **request):  # noqa: ARG001
+    """Send an existing study to the anon modality"""
+    orthanc.LogWarning(f"Received request to send study to anon modality: {request}")
+    if not should_auto_route():
+        orthanc.LogWarning("Auto-routing is not enabled, dropping request {request}")
+        output.answerBuffer("Auto-routing is not enabled", "text/plain")
+        return
+    try:
+        body = json.loads(request["body"])
+        resource_id = body["ResourceId"]
+        orthanc.RestApiPost("/modalities/PIXL-Anon/store", resource_id)
+        output.AnswerBuffer("OK", "text/plain")
+        orthanc.LogInfo(f"Succesfully sent study to anon modality: {resource_id}")
+    except:  # noqa: E722
+        orthanc.LogWarning(f"Failed to send study to anon:\n{traceback.format_exc()}")
+        output.AnswerBuffer("Failed to send study to anon", "text/plain")
+
+
 orthanc.RegisterOnChangeCallback(OnChange)
 orthanc.RegisterReceivedInstanceCallback(ReceivedInstanceCallback)
 orthanc.RegisterRestCallback("/heart-beat", OnHeartBeat)
+orthanc.RegisterRestCallback("/send-to-anon", SendResourceToAnon)

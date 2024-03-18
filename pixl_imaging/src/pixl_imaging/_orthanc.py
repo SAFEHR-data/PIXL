@@ -43,7 +43,8 @@ class Orthanc(ABC):
         """Accessible modalities from this Orthanc instance"""
         return self._get("/modalities")
 
-    def query_local(self, data: dict) -> Any:
+    def query_local(self, data: dict) -> list[str] | list[dict]:
+        """Query local Orthanc instance for resourceId."""
         return self._post("/tools/find", data=data)
 
     def query_remote(self, data: dict, modality: str) -> Optional[str]:
@@ -97,10 +98,19 @@ class Orthanc(ABC):
     def _get(self, path: str) -> Any:
         return _deserialise(requests.get(f"{self._url}{path}", auth=self._auth, timeout=10))
 
-    def _post(self, path: str, data: dict, timeout: Optional[float] = None) -> Any:
+    def _post(
+        self, path: str, data: dict, timeout: Optional[float] = None
+    ) -> list[str] | list[dict]:
         return _deserialise(
             requests.post(f"{self._url}{path}", json=data, auth=self._auth, timeout=timeout)
         )
+
+    def _delete(self, path: str, timeout: Optional[float] = 10) -> None:
+        return _deserialise(requests.delete(f"{self._url}{path}", auth=self._auth, timeout=timeout))
+
+    def send_existing_study_to_anon(self, resource_id: str) -> None:
+        """Send study to orthanc anon."""
+        self._post("/send-to-anon", data={"ResourceId": resource_id})
 
 
 def _deserialise(response: requests.Response) -> Any:
@@ -123,7 +133,7 @@ def _deserialise(response: requests.Response) -> Any:
 class PIXLRawOrthanc(Orthanc):
     def __init__(self) -> None:
         super().__init__(
-            url="http://orthanc-raw:8042",
+            url=config("ORTHANC_RAW_URL"),
             username=config("ORTHANC_RAW_USERNAME"),
             password=config("ORTHANC_RAW_PASSWORD"),
         )
