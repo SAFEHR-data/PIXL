@@ -243,7 +243,7 @@ Create the `.secrets.env` file in the _PIXL_ directory by copying the sample:
 cp .secrets.env.sample .secrets.env
 ```
 
-and fill in the missing values (for dev purposes find the `pixl_dev_secrets.env` note on LastPass).
+and fill in the missing values (for dev purposes find the `pixl-dev-secrets.env` note on LastPass).
 
 <details><summary>Azure Keyvault setup</summary>
 

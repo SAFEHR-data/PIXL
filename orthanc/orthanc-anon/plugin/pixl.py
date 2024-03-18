@@ -30,7 +30,6 @@ from time import sleep
 from typing import TYPE_CHECKING
 
 import requests
-from core.db.queries import get_project_slug_from_hashid
 from core.project_config import load_project_config
 from core.uploader import get_uploader
 from decouple import config
@@ -135,21 +134,24 @@ def AzureDICOMTokenRefresh():
     return None
 
 
-def Send(resourceId: str) -> None:
-    """Send the resource to the appropriate destination"""
-    msg = f"Sending {resourceId}"
+def Send(study_id: str) -> None:
+    """
+    Send the resource to the appropriate destination.
+    Throws an exception if the image has already been exported.
+    """
+    msg = f"Sending {study_id}"
     logger.debug(msg)
-
-    hashed_patient_id = _get_patient_id(resourceId)
-    project_slug = get_project_slug_from_hashid(hashed_patient_id)
+    # Because we're post-anonymisation, the "PatientID" tag returned is actually
+    # the hashed image ID (MRN + Accession number).
+    hashed_image_id, project_slug = _get_tags_by_study(study_id)
     project_config = load_project_config(project_slug)
     destination = project_config.destination.dicom
 
     uploader = get_uploader(project_slug, destination, project_config.project.azure_kv_alias)
-    msg = f"Sending {resourceId} via '{destination}'"
+    msg = f"Sending {study_id} via '{destination}'"
     logger.debug(msg)
-    zip_content = _get_study_zip_archive(resourceId)
-    uploader.upload_dicom_image(zip_content, hashed_patient_id)
+    zip_content = _get_study_zip_archive(study_id)
+    uploader.upload_dicom_image(zip_content, hashed_image_id, project_slug)
 
 
 def _get_study_zip_archive(resourceId: str) -> BytesIO:
@@ -192,17 +194,20 @@ def SendViaStow(resourceId):
         orthanc.LogError("Failed to send via STOW")
 
 
-def _get_patient_id(resourceId: str) -> str:
+def _get_tags_by_study(study_id: str) -> [str, str]:
     """
-    Queries the Orthanc instance to get the PatientID for a given resource.
-    When anonymisation has been applied, the PatientID is the pseudo-anonymised ID.
+    Queries the Orthanc server at the study level, returning the
+    PatientID and UCLHPIXLProjectName DICOM tags.
+    BEWARE: post-anonymisation, the PatientID is NOT
+    the patient ID, it's the pseudo-anonymised ID generated
+    from the hash of the concatenated Patient ID (MRN) and Accession Number fields.
     """
-    query = f"{ORTHANC_URL}/studies/{resourceId}"
+    query = f"{ORTHANC_URL}/studies/{study_id}/shared-tags?simplify=true"
     fail_msg = "Could not query study for resource '%s'"
 
-    response_study = _query(resourceId, query, fail_msg)
+    response_study = _query(study_id, query, fail_msg)
     json_response = json.loads(response_study.content.decode())
-    return str(json_response["PatientMainDicomTags"]["PatientID"])
+    return json_response["PatientID"], json_response["UCLHPIXLProjectName"]
 
 
 def _query(resourceId: str, query: str, fail_msg: str) -> requests.Response:

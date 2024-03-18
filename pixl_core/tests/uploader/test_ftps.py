@@ -19,8 +19,9 @@ from datetime import datetime, timezone
 import pandas as pd
 import pytest
 from core.db.models import Image
-from core.db.queries import get_project_slug_from_hashid, update_exported_at
+from core.db.queries import update_exported_at
 from core.exports import ParquetExport
+from sqlalchemy.exc import NoResultFound
 
 
 @pytest.mark.usefixtures("ftps_server")
@@ -31,28 +32,46 @@ def test_upload_dicom_image(
     # ARRANGE
     # Get the pseudo identifier from the test image
     pseudo_anon_id = not_yet_exported_dicom_image.hashed_identifier
-    project_slug = get_project_slug_from_hashid(pseudo_anon_id)
+    project_slug = "some-project-slug"
     expected_output_file = ftps_home_dir / project_slug / (pseudo_anon_id + ".zip")
 
     # ACT
-    ftps_uploader.upload_dicom_image(test_zip_content, pseudo_anon_id)
+    ftps_uploader.upload_dicom_image(test_zip_content, pseudo_anon_id, project_slug)
 
     # ASSERT
     assert expected_output_file.exists()
 
 
 @pytest.mark.usefixtures("ftps_server")
-def test_upload_dicom_image_throws(
+def test_upload_dicom_image_already_exported(
     test_zip_content, already_exported_dicom_image, ftps_uploader
 ) -> None:
     """Tests that exception thrown if DICOM image already exported"""
     # ARRANGE
     # Get the pseudo identifier from the test image
     pseudo_anon_id = already_exported_dicom_image.hashed_identifier
+    project_slug = "some-project-slug"
 
     # ASSERT
     with pytest.raises(RuntimeError, match="Image already exported"):
-        ftps_uploader.upload_dicom_image(test_zip_content, pseudo_anon_id)
+        ftps_uploader.upload_dicom_image(test_zip_content, pseudo_anon_id, project_slug)
+
+
+@pytest.mark.usefixtures("ftps_server")
+def test_upload_dicom_image_unknown(test_zip_content, ftps_uploader) -> None:
+    """
+    Tests that a different exception is thrown if image is not recognised in the PIXL DB.
+
+    This supports the correctness of test_upload_dicom_image_already_exported,
+    which tests if the image is known, but has already been uploaded before uploading.
+    """
+    # ARRANGE
+    pseudo_anon_id = "doesnotexist"
+    project_slug = "some-project-slug"
+
+    # ASSERT
+    with pytest.raises(NoResultFound):
+        ftps_uploader.upload_dicom_image(test_zip_content, pseudo_anon_id, project_slug)
 
 
 def test_update_exported_and_save(rows_in_session) -> None:

@@ -55,20 +55,21 @@ class WritableOrthanc(Orthanc):
 
 
 @pytest.fixture(scope="module")
-def _add_image_to_fake_vna() -> None:
+def _add_image_to_fake_vna(tmp_path) -> None:
     """Add single fake image to VNA."""
     image_filename = "test.dcm"
     path = get_testdata_file("CT_small.dcm")
     ds = dcmread(path)
     ds.AccessionNumber = ACCESSION_NUMBER
     ds.PatientID = PATIENT_ID
-    ds.save_as(image_filename)
+    ds.save_as(tmp_path / image_filename)
 
     vna = WritableOrthanc(
         url=config("ORTHANC_VNA_URL"),
         username=config("ORTHANC_VNA_USERNAME"),
         password=config("ORTHANC_VNA_PASSWORD"),
     )
+    vna.upload(tmp_path / image_filename)
     vna.upload(image_filename)
     yield
     pathlib.Path(image_filename).unlink(missing_ok=True)
