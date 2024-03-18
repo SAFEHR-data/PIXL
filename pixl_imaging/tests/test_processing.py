@@ -55,7 +55,7 @@ class WritableOrthanc(Orthanc):
 
 
 @pytest.fixture(scope="module")
-def _add_image_to_fake_vna() -> None:
+def _add_image_to_fake_vna(run_containers) -> None:
     """Add single fake image to VNA."""
     image_filename = "test.dcm"
     path = get_testdata_file("CT_small.dcm")
@@ -75,7 +75,7 @@ def _add_image_to_fake_vna() -> None:
 
 
 @pytest.fixture()
-def orthanc_raw() -> PIXLRawOrthanc:
+def orthanc_raw(run_containers) -> PIXLRawOrthanc:
     """Set up orthanc raw and remove all studies in teardown."""
     orthanc_raw = PIXLRawOrthanc()
     yield orthanc_raw

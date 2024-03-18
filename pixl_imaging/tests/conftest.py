@@ -14,11 +14,15 @@
 #  limitations under the License.
 
 import os
+import shlex
+import subprocess
 from collections.abc import Generator
 from logging import getLogger
+from pathlib import Path
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
+from pytest_pixl.helpers import run_subprocess
 
 logger = getLogger(__name__)
 
@@ -52,3 +56,21 @@ def _patch_send_existing_study_to_anon(monkeypatch: Generator[MonkeyPatch, None,
         logger.info("Intercepted request to send '%s' to anon", resource_id)
 
     monkeypatch.setattr("pixl_imaging._orthanc.Orthanc.send_existing_study_to_anon", patched_send)
+
+
+TEST_DIR = Path(__file__).parent
+
+
+@pytest.fixture(scope="package")
+def run_containers() -> subprocess.CompletedProcess[bytes]:
+    """Run docker containers for tests which require them."""
+    yield run_subprocess(
+        shlex.split("docker compose up --build --wait"),
+        TEST_DIR,
+        timeout=120,
+    )
+    run_subprocess(
+        shlex.split("docker compose down --volumes"),
+        TEST_DIR,
+        timeout=60,
+    )
