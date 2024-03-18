@@ -39,10 +39,8 @@ async def process_message(message: Message) -> None:
     study = ImagingStudy.from_message(message)
     orthanc_raw = PIXLRawOrthanc()
 
-    existing_resource_ids = study.query_local(orthanc_raw)
-    if len(existing_resource_ids) > 0:
-        await _add_project_to_study(message.project_name, orthanc_raw, existing_resource_ids)
-        orthanc_raw.send_existing_study_to_anon(existing_resource_ids[0])
+    study_exists = _update_or_resend_existing_study_(message.project_name, orthanc_raw, study)
+    if study_exists:
         return
 
     # Tell orthanc to query VNA for the patient and accession number
@@ -71,12 +69,44 @@ async def process_message(message: Message) -> None:
     studies_with_tags = orthanc_raw.query_local(study.orthanc_query_dict)
     logger.info("Local instances with matching tags: %s", studies_with_tags)
 
-    await _add_project_to_study(message.project_name, orthanc_raw, studies_with_tags)
+    _add_project_to_study(message.project_name, orthanc_raw, studies_with_tags)
 
     return
 
 
-async def _add_project_to_study(
+def _update_or_resend_existing_study_(
+    project_name: str, orthanc_raw: PIXLRawOrthanc, study: ImagingStudy
+) -> bool:
+    """
+    If study exists in orthanc_raw, add project name or send directly to orthanc raw.
+
+    Return True if exists, otherwise False.
+    """
+    existing_resources = study.query_local(orthanc_raw, project_tag=True)
+    if len(existing_resources) == 0:
+        return False
+    different_project: list[str] = []
+    for resource in existing_resources:
+        project_tags = (
+            resource["RequestedTags"].get(DICOM_TAG_PROJECT_NAME.tag_nickname),
+            resource["RequestedTags"].get(
+                "Unknown Tag & Data"
+            ),  # Fallback in case not defined, assume this is only in imaging_api tests
+        )
+        try:
+            if project_name not in project_tags:
+                different_project.append(resource["ID"])
+        except KeyError:
+            different_project.append(resource["ID"])
+
+    if different_project:
+        _add_project_to_study(project_name, orthanc_raw, different_project)
+        return True
+    orthanc_raw.send_existing_study_to_anon(existing_resources[0]["ID"])
+    return True
+
+
+def _add_project_to_study(
     project_name: str, orthanc_raw: PIXLRawOrthanc, studies_with_tags: list[str]
 ) -> None:
     if len(studies_with_tags) != 1:
@@ -118,6 +148,19 @@ class ImagingStudy:
             },
         }
 
-    def query_local(self, node: Orthanc) -> Any:
-        """Does this study exist in an Orthanc instance/node?"""
-        return node.query_local(self.orthanc_query_dict)
+    @property
+    def orthanc_dict_with_project_name(self) -> dict:
+        """Dictionary to query a study, returning the PIXL_PROJECT tags for each study."""
+        return {
+            **self.orthanc_query_dict,
+            "RequestedTags": [DICOM_TAG_PROJECT_NAME.tag_nickname],
+            "Expand": True,
+        }
+
+    def query_local(self, node: Orthanc, *, project_tag: bool = False) -> Any:
+        """Does this study exist in an Orthanc instance/node, optionally query for project tag."""
+        query_dict = self.orthanc_query_dict
+        if project_tag:
+            query_dict = self.orthanc_dict_with_project_name
+
+        return node.query_local(query_dict)

@@ -2,6 +2,7 @@
   "Dictionary": {
     "000d,1001": ["LO", "UCLHPIXLProjectName", 1, 1, "UCLH PIXL"]
   },
+  "DefaultPrivateCreator" : "UCLH PIXL",
   "Name" : "${ORTHANC_NAME}",
   "RemoteAccessAllowed" : true,
   "RegisteredUsers": {
