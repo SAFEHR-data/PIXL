@@ -45,9 +45,9 @@ markers = ["pika"]
 [tool.ruff]
 extend = "../ruff.toml"
 
-[tool.ruff.extend-per-file-ignores]
+[tool.ruff.lint.extend-per-file-ignores]
 "./tests/**" = ["D100"]
 
-[tool.ruff.pep8-naming]
+[tool.ruff.lint.pep8-naming]
 # Allow Pydantic's `@field_validator` decorator to trigger class method treatment.
 classmethod-decorators = ["classmethod", "pydantic.field_validator"]

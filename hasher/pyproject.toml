@@ -38,6 +38,6 @@ build-backend = "setuptools.build_meta"
 [tool.ruff]
 extend = "../ruff.toml"
 
-[tool.ruff.extend-per-file-ignores]
+[tool.ruff.lint.extend-per-file-ignores]
 "./tests/**" = ["D1"]
 "./src/hasher/endpoints.py" = ["D103"]

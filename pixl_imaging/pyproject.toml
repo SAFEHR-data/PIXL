@@ -38,7 +38,7 @@ markers = ["processing"]
 [tool.ruff]
 extend = "../ruff.toml"
 
-[tool.ruff.extend-per-file-ignores]
+[tool.ruff.lint.extend-per-file-ignores]
 "./tests/**" = ["D1"]
 "./alembic/**" = [
     "INP001",  # is part of an implicit namespace package. Add an `__init__.py`
