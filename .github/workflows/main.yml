@@ -173,7 +173,7 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install pixl_core/ pixl_imaging/[test]
+          pip install pixl_core/ pixl_imaging/[test] pytest-pixl/
 
       - name: Run tests
         working-directory: pixl_imaging/tests
