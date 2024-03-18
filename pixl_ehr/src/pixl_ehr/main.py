@@ -156,7 +156,7 @@ async def az_copy_current(csv_filename: str = "extract.csv") -> None:
         csv_filename,
     )
 
-    with Path(file=csv_filename, mode="rb").open() as data:
+    with Path(file=csv_filename, mode="rb").open() as data:  # noqa: ASYNC101
         blob_client.upload_blob(data)
 
     logger.info("Uploaded successfully!")
