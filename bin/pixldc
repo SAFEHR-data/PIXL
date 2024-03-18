@@ -13,6 +13,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """A wrapper around docker compose that sets the correct directory and environment"""
+
 import argparse
 import logging
 import os

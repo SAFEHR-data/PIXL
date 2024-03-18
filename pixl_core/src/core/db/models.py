@@ -13,6 +13,7 @@
 #  limitations under the License.
 
 """Interaction with PIXL database"""
+
 from __future__ import annotations
 
 from typing import Optional

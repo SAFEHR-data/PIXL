@@ -17,6 +17,7 @@ services being up
     - pixl postgres db
     - emap star
 """
+
 from __future__ import annotations
 
 import contextlib

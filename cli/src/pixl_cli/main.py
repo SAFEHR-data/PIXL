@@ -12,6 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """PIXL command line interface functionality"""
+
 from __future__ import annotations
 
 import json

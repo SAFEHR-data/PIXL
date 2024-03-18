@@ -13,6 +13,7 @@
 #  limitations under the License.
 
 """Test database interaction methods for the cli."""
+
 import datetime
 
 import pytest
