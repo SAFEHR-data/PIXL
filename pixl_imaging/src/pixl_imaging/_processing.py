@@ -18,7 +18,7 @@ import os
 from asyncio import sleep
 from dataclasses import dataclass
 from time import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
 from decouple import config
@@ -33,13 +33,14 @@ logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))
 
 
 async def process_message(message: Message) -> None:
+    """Process message from queue."""
     logger.debug("Processing: %s", message)
 
     study = ImagingStudy.from_message(message)
     orthanc_raw = PIXLRawOrthanc()
 
-    if study.exists_in(orthanc_raw):
-        logger.info("Study exists in cache")
+    study_exists = _update_or_resend_existing_study_(message.project_name, orthanc_raw, study)
+    if study_exists:
         return
 
     # Tell orthanc to query VNA for the patient and accession number
@@ -68,24 +69,61 @@ async def process_message(message: Message) -> None:
     studies_with_tags = orthanc_raw.query_local(study.orthanc_query_dict)
     logger.info("Local instances with matching tags: %s", studies_with_tags)
 
+    _add_project_to_study(message.project_name, orthanc_raw, studies_with_tags)
+
+    return
+
+
+def _update_or_resend_existing_study_(
+    project_name: str, orthanc_raw: PIXLRawOrthanc, study: ImagingStudy
+) -> bool:
+    """
+    If study exists in orthanc_raw, add project name or send directly to orthanc raw.
+
+    Return True if exists, otherwise False.
+    """
+    existing_resources = study.query_local(orthanc_raw, project_tag=True)
+    if len(existing_resources) == 0:
+        return False
+    different_project: list[str] = []
+    for resource in existing_resources:
+        project_tags = (
+            resource["RequestedTags"].get(DICOM_TAG_PROJECT_NAME.tag_nickname),
+            resource["RequestedTags"].get(
+                "Unknown Tag & Data"
+            ),  # Fallback for testing where we're not using the entire plugin, remains undefined
+        )
+        try:
+            if project_name not in project_tags:
+                different_project.append(resource["ID"])
+        except KeyError:
+            different_project.append(resource["ID"])
+
+    if different_project:
+        _add_project_to_study(project_name, orthanc_raw, different_project)
+        return True
+    orthanc_raw.send_existing_study_to_anon(existing_resources[0]["ID"])
+    return True
+
+
+def _add_project_to_study(
+    project_name: str, orthanc_raw: PIXLRawOrthanc, studies_with_tags: list[str]
+) -> None:
     if len(studies_with_tags) != 1:
         logger.error(
             "Got %s studies with matching accession number and patient ID, expected 1",
             len(studies_with_tags),
         )
-
     for study in studies_with_tags:
-        logger.info("Study ID %s", study)
+        logger.debug("Study ID %s", study)
         orthanc_raw.modify_private_tags_by_study(
             study_id=study,
             private_creator=DICOM_TAG_PROJECT_NAME.creator_string,
             tag_replacement={
                 # The tag here needs to be defined in orthanc's dictionary
-                DICOM_TAG_PROJECT_NAME.tag_nickname: message.project_name,
+                DICOM_TAG_PROJECT_NAME.tag_nickname: project_name,
             },
         )
-
-    return
 
 
 @dataclass
@@ -96,10 +134,12 @@ class ImagingStudy:
 
     @classmethod
     def from_message(cls, message: Message) -> ImagingStudy:
+        """Build an imaging study from a queue message."""
         return ImagingStudy(message=message)
 
     @property
     def orthanc_query_dict(self) -> dict:
+        """Build a dictionary to query a study."""
         return {
             "Level": "Study",
             "Query": {
@@ -108,6 +148,19 @@ class ImagingStudy:
             },
         }
 
-    def exists_in(self, node: Orthanc) -> bool:
-        """Does this study exist in an Orthanc instance/node?"""
-        return len(node.query_local(self.orthanc_query_dict)) > 0
+    @property
+    def orthanc_dict_with_project_name(self) -> dict:
+        """Dictionary to query a study, returning the PIXL_PROJECT tags for each study."""
+        return {
+            **self.orthanc_query_dict,
+            "RequestedTags": [DICOM_TAG_PROJECT_NAME.tag_nickname],
+            "Expand": True,
+        }
+
+    def query_local(self, node: Orthanc, *, project_tag: bool = False) -> Any:
+        """Does this study exist in an Orthanc instance/node, optionally query for project tag."""
+        query_dict = self.orthanc_query_dict
+        if project_tag:
+            query_dict = self.orthanc_dict_with_project_name
+
+        return node.query_local(query_dict)

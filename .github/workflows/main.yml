@@ -173,12 +173,12 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install pixl_core/ pixl_imaging/[test]
+          pip install pixl_core/ pixl_imaging/[test] pytest-pixl/
 
       - name: Run tests
         working-directory: pixl_imaging/tests
         run: |
-          ./run-tests.sh
+          pytest
 
   system-test:
     if: ${{ ! github.event.pull_request.draft || contains(github.event.pull_request.title, '[force-system-test]') }}

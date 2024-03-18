@@ -39,7 +39,11 @@ markers = ["processing"]
 extend = "../ruff.toml"
 
 [tool.ruff.lint.extend-per-file-ignores]
-"./tests/**" = ["D1"]
+"./tests/**" = [
+    "D1",  # Documentation of methods
+    "S105",  # Hardcoded passwords
+    "SLF001"  # Access private members of a class
+]
 "./alembic/**" = [
     "INP001",  # is part of an implicit namespace package. Add an `__init__.py`
     "D103",  # Missing docstring in public function

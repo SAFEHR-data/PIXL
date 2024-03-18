@@ -219,7 +219,7 @@ services:
           "CMD-SHELL", "/probes/test-aliveness.py --user=$ORTHANC_USERNAME --pwd=$ORTHANC_PASSWORD"
         ]
       start_period: 10s
-      retries: 2
+      retries: 10
       interval: 3s
       timeout: 2s
     restart: "no"
@@ -306,6 +306,7 @@ services:
       - pixl-net
     environment:
       <<: [*pixl-rabbit-mq, *proxy-common]
+      ORTHANC_RAW_URL: ${ORTHANC_RAW_URL}
       ORTHANC_RAW_USERNAME: ${ORTHANC_RAW_USERNAME}
       ORTHANC_RAW_PASSWORD: ${ORTHANC_RAW_PASSWORD}
       ORTHANC_RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}

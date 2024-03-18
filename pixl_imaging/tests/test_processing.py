@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import datetime
 import os
+import pathlib
 
 import pytest
 from core.patient_queue.message import Message
@@ -36,7 +37,7 @@ message = Message(
     study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
         tzinfo=datetime.timezone.utc
     ),
-    procedure_occurrence_id="234",
+    procedure_occurrence_id=234,
     project_name="test project",
     extract_generated_timestamp=datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
 )
@@ -54,34 +55,73 @@ class WritableOrthanc(Orthanc):
         )
 
 
-def add_image_to_fake_vna(tmp_path, image_filename: str = "test.dcm") -> None:
+@pytest.fixture(scope="module")
+def _add_image_to_fake_vna(run_containers) -> None:
+    """Add single fake image to VNA."""
+    image_filename = "test.dcm"
     path = get_testdata_file("CT_small.dcm")
     ds = dcmread(path)
     ds.AccessionNumber = ACCESSION_NUMBER
     ds.PatientID = PATIENT_ID
-    ds.save_as(tmp_path / image_filename)
+    ds.save_as(image_filename)
 
     vna = WritableOrthanc(
-        url="http://vna-qr:8042",
+        url=config("ORTHANC_VNA_URL"),
         username=config("ORTHANC_VNA_USERNAME"),
         password=config("ORTHANC_VNA_PASSWORD"),
     )
-    vna.upload(tmp_path / image_filename)
+    vna.upload(image_filename)
+    yield
+    pathlib.Path(image_filename).unlink(missing_ok=True)
+
+
+@pytest.fixture()
+def orthanc_raw(run_containers) -> PIXLRawOrthanc:
+    """Set up orthanc raw and remove all studies in teardown."""
+    orthanc_raw = PIXLRawOrthanc()
+    yield orthanc_raw
+    all_studies = orthanc_raw._get("/studies")
+    for study in all_studies:
+        orthanc_raw._delete(f"/studies/{study}")
 
 
 @pytest.mark.processing()
 @pytest.mark.asyncio()
-async def test_image_processing(tmp_path) -> None:
-    add_image_to_fake_vna(tmp_path)
+@pytest.mark.usefixtures("_add_image_to_fake_vna")
+async def test_image_saved(orthanc_raw) -> None:
+    """
+    Given the VNA has images, and orthanc raw has no images
+    When we run process_message
+    Then orthanc raw will contain the new image
+    """
     study = ImagingStudy.from_message(message)
-    orthanc_raw = PIXLRawOrthanc()
 
-    assert not study.exists_in(orthanc_raw)
+    assert not study.query_local(orthanc_raw)
     await process_message(message)
-    assert study.exists_in(orthanc_raw)
+    assert study.query_local(orthanc_raw)
 
-    # TODO: check time last updated after processing again # noqa: FIX002
-    # is not incremented
-    # https://github.com/UCLH-Foundry/PIXL/issues/156
+
+@pytest.mark.processing()
+@pytest.mark.asyncio()
+@pytest.mark.usefixtures("_add_image_to_fake_vna")
+async def test_existing_message_sent_twice(orthanc_raw) -> None:
+    """
+    Given the VNA has images, and orthanc raw has no images
+    When we run process_message on the same message twice
+    Then orthanc raw will contain the new image, and it isn't updated on the second processing
+    """
+    study = ImagingStudy.from_message(message)
+
     await process_message(message)
-    assert study.exists_in(orthanc_raw)
+    assert study.query_local(orthanc_raw)
+
+    query_for_update_time = {**study.orthanc_query_dict, "Expand": True}
+    first_processing_resource = orthanc_raw.query_local(query_for_update_time)
+    assert len(first_processing_resource) == 1
+
+    await process_message(message)
+    second_processing_resource = orthanc_raw.query_local(query_for_update_time)
+    assert len(second_processing_resource) == 1
+
+    # Check update time hasn't changed
+    assert first_processing_resource[0]["LastUpdate"] == second_processing_resource[0]["LastUpdate"]
