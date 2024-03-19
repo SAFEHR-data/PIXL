@@ -212,6 +212,19 @@ jobs:
           EXPORT_AZ_TENANT_ID: ${{ secrets.EXPORT_AZ_TENANT_ID }}
           EXPORT_AZ_KEY_VAULT_NAME: ${{ secrets.EXPORT_AZ_KEY_VAULT_NAME }}
         run: |
+          
+          # These two variables are needed for creating the pixl user and group on the GHA runner.
+          # Don't worry about passing them into pytest if you're running pytest manually or through your
+          # IDE - they're only used inside an "if GITHUB_ACTIONS" block anyway.
+          # We could do this in the setup function, but we don't at that point know the location of the
+          # exports dir (how the exports dir is determined is due to change anyway)
+          source .env
+          export PIXL_USER_UID PIXL_USER_GID
+          sudo --non-interactive groupadd --gid $PIXL_USER_GID pixl
+          sudo --non-interactive useradd --uid $PIXL_USER_UID --gid pixl --groups docker pixl
+          sudo --non-interactive chown -R pixl:docker host_export_root_dir
+          sudo --non-interactive chmod -R ug+rwx host_export_root_dir
+          
           sudo -u pixl -g pixl ./run-system-test.sh
           echo FINISHED SYSTEM TEST SCRIPT
 

@@ -55,28 +55,28 @@ def _setup_pixl_cli(ftps_server, host_export_root_dir) -> None:
     # In production, it will be documented that the exports directory must be writable
     # by the "pixl" user. For the system test we must do it here.
     if os.getenv("GITHUB_ACTIONS") == "true":
-        run_subprocess(
-            [
-                "sudo",
-                "--non-interactive",
-                "groupadd",
-                "--gid",
-                str(PIXL_USER_GID),
-                "pixl",
-            ]
-        )
-        run_subprocess(
-            [
-                "sudo",
-                "--non-interactive",
-                "useradd",
-                "--uid",
-                str(PIXL_USER_UID),
-                "--gid",
-                str(PIXL_USER_GID),
-                "pixl",
-            ]
-        )
+        # run_subprocess(
+        #     [
+        #         "sudo",
+        #         "--non-interactive",
+        #         "groupadd",
+        #         "--gid",
+        #         str(PIXL_USER_GID),
+        #         "pixl",
+        #     ]
+        # )
+        # run_subprocess(
+        #     [
+        #         "sudo",
+        #         "--non-interactive",
+        #         "useradd",
+        #         "--uid",
+        #         str(PIXL_USER_UID),
+        #         "--gid",
+        #         str(PIXL_USER_GID),
+        #         "pixl",
+        #     ]
+        # )
         # this directory is part of the git repo so will already exist
         run_subprocess(
             ["sudo", "--non-interactive", "chown", "-R", "pixl:pixl", host_export_root_dir]
