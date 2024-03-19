@@ -24,7 +24,7 @@ from pydicom.sequence import Sequence
 
 def write_volume(filename_pattern: str):
     """
-    Write a volumes worth of fake DICOM images
+    Write a volume's worth of fake DICOM images
 
     Args:
         filename_pattern: The pattern to use for the filenames. This should
@@ -32,9 +32,10 @@ def write_volume(filename_pattern: str):
         /tmp/slice{slice:03d}.dcm
 
     """
-    # dicom_variables.json contains per slice information for a 3D image (geometry, windowing, etc.)
+    # per_slice_dicom_variables.json contains per slice information for a 3D image (geometry,
+    # windowing, etc.)
     dicom_variables_path = importlib.resources.files("pytest_pixl").joinpath(
-        "data/dicom_variables.json"
+        "data/volume_dicom_variables.json"
     )
     variables = json.loads(dicom_variables_path.open("r").read())
     rng = np.random.default_rng(0)
