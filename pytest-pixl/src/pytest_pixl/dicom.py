@@ -18,9 +18,9 @@ from __future__ import annotations
 
 import importlib
 import json
-from typing import Optional
 
 import numpy as np
+from pydicom.datadict import dictionary_has_tag
 from pydicom.dataset import Dataset
 
 
@@ -42,31 +42,40 @@ def write_volume(filename_pattern: str):
     variables = json.loads(dicom_variables_path.open("r").read())
     rng = np.random.default_rng(0)
     for i, slice_info in enumerate(variables):
-        ds = generate_dicom_dataset(
-            pixel_data=rng.random(size=(256, 256)),
-            **slice_info,
-        )
+        slice_info["pixel_data"] = rng.random(size=(256, 256))
+        ds = generate_dicom_dataset(slice_info)
         file_name = filename_pattern.format(slice=i)
         ds.save_as(file_name, write_like_original=False)
 
 
-# Remove the noqa comments once this function takes a sensible number of arguments
-def generate_dicom_dataset(  # noqa: PLR0913
-    instance_creation_time: str = "180048.910",
-    sop_instance_uid: str = "1.3.46.670589.11.38023.5.0.7404.2023012517580650156",
-    instance_number: str = "1",
-    image_position_patient: tuple[float, float, float] = (76.0, -139.0, 119.0),
-    slice_location: float = 82.0,
-    window_centre: str = "321",
-    window_width: str = "558",
-    pixel_data: Optional[np.ndarray] = None,
-) -> Dataset:
+TAGS_DICT = {
+    "instance_creation_time": "180048.910",
+    "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580650156",
+    "instance_number": "1",
+    "image_position_patient": (76.0, -139.0, 119.0),
+    "slice_location": 82.0,
+    "window_centre": "321",
+    "window_width": "558",
+    "pixel_data": None,
+}
+
+
+def generate_dicom_dataset(tag_values: dict = TAGS_DICT, **kwargs) -> Dataset:
     """
     Write a single fake DICOM image with customisable tags.
 
     Elements that vary between slices are exposed as arguments.  Values for
     these can be obtained from the dicom_variables.json file.
     """
+    instance_creation_time = tag_values["instance_creation_time"]
+    sop_instance_uid = tag_values["sop_instance_uid"]
+    instance_number = tag_values["instance_number"]
+    image_position_patient = tag_values["image_position_patient"]
+    slice_location = tag_values["slice_location"]
+    window_centre = tag_values["window_centre"]
+    window_width = tag_values["window_width"]
+    pixel_data = tag_values["pixel_data"]
+
     if pixel_data is None:
         pixel_data = np.zeros((256, 256))
 
@@ -82,6 +91,15 @@ def generate_dicom_dataset(  # noqa: PLR0913
     ds.WindowCenter = window_centre
     ds.WindowWidth = window_width
     ds.PixelData = pixel_data.tobytes()
+
+    # Handle any additional tags
+    for key, value in kwargs.items():
+        # Check if tag is DICOOM compliant
+        if dictionary_has_tag(key):
+            setattr(ds, key, value)
+        else:
+            msg = f"Tag {key} is not a valid DICOM tag"
+            raise ValueError(msg)
 
     return ds
 
