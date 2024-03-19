@@ -15,6 +15,7 @@
 PIXL core models
 This module defines the data models used by the PIXL core service
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

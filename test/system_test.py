@@ -12,6 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """Replacement for the 'interesting' bits of the system/E2E test"""
+
 import logging
 from pathlib import Path
 

@@ -12,6 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """Check validity of radiology export"""
+
 import logging
 from pathlib import Path
 

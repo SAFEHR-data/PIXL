@@ -13,6 +13,7 @@
 #  limitations under the License.
 
 """Project-specific configuration for Pixl."""
+
 from __future__ import annotations
 
 import logging

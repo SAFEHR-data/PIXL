@@ -12,6 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """Test functionality to upload files to an endpoint."""
+
 import filecmp
 import pathlib
 from datetime import datetime, timezone

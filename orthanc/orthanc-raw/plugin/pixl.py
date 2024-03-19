@@ -19,6 +19,7 @@ This module provides:
 -should_auto_route: checks whether auto-routing is enabled
 -OnHeartBeat: extends the REST API
 """
+
 from __future__ import annotations
 
 import json

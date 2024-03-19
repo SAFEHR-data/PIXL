@@ -13,6 +13,7 @@
 #  limitations under the License.
 
 """Test datetime helpers."""
+
 import pytest
 
 from pixl_dcmd._datetime import combine_date_time, format_date_time

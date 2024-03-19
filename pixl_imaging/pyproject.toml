@@ -38,7 +38,7 @@ markers = ["processing"]
 [tool.ruff]
 extend = "../ruff.toml"
 
-[tool.ruff.extend-per-file-ignores]
+[tool.ruff.lint.extend-per-file-ignores]
 "./tests/**" = [
     "D1",  # Documentation of methods
     "S105",  # Hardcoded passwords

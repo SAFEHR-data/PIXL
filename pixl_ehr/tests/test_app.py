@@ -12,6 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """This file contains unit tests for the API that do not require any test services"""
+
 from __future__ import annotations
 
 from fastapi.testclient import TestClient

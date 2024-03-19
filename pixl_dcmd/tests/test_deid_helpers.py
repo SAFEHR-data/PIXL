@@ -13,6 +13,7 @@
 #  limitations under the License.
 
 """Tests for anonymisation of DICOM data."""
+
 import pytest
 
 from pixl_dcmd._deid_helpers import get_bounded_age, get_encrypted_uid

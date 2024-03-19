@@ -39,7 +39,7 @@ pytest_pixl = ["*.key", "*.crt"]
 [tool.ruff]
 extend = "../ruff.toml"
 
-[tool.ruff.extend-per-file-ignores]
+[tool.ruff.lint.extend-per-file-ignores]
 "./tests/**" = ["D100"]
 
 [project.entry-points.pytest11]

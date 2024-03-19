@@ -12,6 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """Alembic configuration"""
+
 from logging.config import fileConfig
 
 from decouple import Config, RepositoryEnv

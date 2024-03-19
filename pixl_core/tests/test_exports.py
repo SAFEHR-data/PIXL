@@ -12,6 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """Test copying of OMOP ES data for later export."""
+
 from __future__ import annotations
 
 import datetime
