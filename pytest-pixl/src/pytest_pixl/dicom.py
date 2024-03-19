@@ -32,7 +32,7 @@ def write_volume(filename_pattern: str):
         /tmp/slice{slice:03d}.dcm
 
     """
-    # per_slice_dicom_variables.json contains per slice information for a 3D image (geometry,
+    # volume_dicom_variables.json contains per slice information for a 3D image (geometry,
     # windowing, etc.)
     dicom_variables_path = importlib.resources.files("pytest_pixl").joinpath(
         "data/volume_dicom_variables.json"
@@ -40,7 +40,7 @@ def write_volume(filename_pattern: str):
     variables = json.loads(dicom_variables_path.open("r").read())
     rng = np.random.default_rng(0)
     for i, slice_info in enumerate(variables):
-        ds = generate_dicom_dataset(
+        ds = _generate_dicom_dataset(
             pixel_data=rng.random(size=(256, 256)),
             **slice_info,
         )
@@ -48,9 +48,30 @@ def write_volume(filename_pattern: str):
         ds.save_as(file_name, write_like_original=False)
 
 
+def generate_dicom_dataset() -> Dataset:
+    """Write a single fake DICOM image with customisable tags."""
+    return _generate_default_dicom_dataset()
+
+
+def _generate_default_dicom_dataset() -> Dataset:
+    """
+    Write a single fake DICOM image, with default values taken from
+    data/defualt_dicom_tags.json.
+    """
+    default_variables_path = importlib.resources.files("pytest_pixl").joinpath(
+        "data/default_dicom_tags.json"
+    )
+    variables = json.loads(default_variables_path.open("r").read())
+    ds = Dataset.from_json(variables)
+    # Not sure why these weren't carried over to the JSON
+    ds.is_implicit_VR = True
+    ds.is_little_endian = True
+    return ds
+
+
 # Remove the noqa comments once this function takes a sensible number of arguments
 # and hard-coded values are moved to JSON
-def generate_dicom_dataset(  # noqa: PLR0913, PLR0915
+def _generate_dicom_dataset(  # noqa: PLR0913, PLR0915
     instance_creation_time: str = "180048.910",
     sop_instance_uid: str = "1.3.46.670589.11.38023.5.0.7404.2023012517580650156",
     instance_number: str = "1",
