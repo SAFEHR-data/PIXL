@@ -19,6 +19,49 @@ the following environment variables:
 - `dicom.write_volume`: write a volume of MRI DICOMs for testing
 - `dicom.generate_dicom_dataset`: generate a DICOM dataset for testing
 
+`generate_dicom_dataset()` on its own will generate a DICOM dataset with default values for all tags,
+with the default tags defined in [`default_dicom_tags.json`](./src/pytest_pixl/data/default_dicom_tags.json)
+(see [Default DICOM tags](#default-dicom-tags) for more details).
+
+Alternatively, you can pass a dictionary of tags to `generate_dicom_dataset()` to override the default values.
+Currently we only handle the following dictionary keys
+
+- `instance_creation_time`
+- `sop_instance_uid`
+- `instance_number`
+- `image_position_patient`
+- `slice_location`
+- `window_centre`
+- `window_width`
+- `pixel_data`
+
+This is useful for example when generating DICOM datasets for a volume of slices.
+See for example `dicom.write_volume()`.
+
+In addition to the tags dictionary, `generate_dicom_dataset()` has a `**kwargs` parameter that
+allows you to set any arbitrary DICOM tag. Note, however, that this needs to be a valid DICOM tag, as checked by [`pydicom.datadict.dictionary_has_tag()`](https://pydicom.github.io/pydicom/stable/reference/generated/pydicom.datadict.dictionary_has_tag.html). For example:
+
+```python
+generate_dicom_dataset(Manufacturer="cool company", Modality="CT")
+```
+
+For [private tags](https://dicom.nema.org/dicom/2013/output/chtml/part05/sect_7.8.html),
+use `add_private_tags(ds, manufacturer, private_tags)`, where `ds` is a `pydicom.Dataset`,
+`manufacturer` is the name to which the private tags belong and `private_tags` is a list
+of `tuple`s with the following format:
+
+```
+[(tag, VR, value), ...]
+```
+
+where `tag` can be a `str`, `int` or `Tuple[int, int]`, `VR` is a `str` and `value` is a `str`.
+Note that this requires the [VR](https://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html)
+of the tag to be known.
+```python
+ds = generate_dicom_dataset()
+add_private_tags(ds, "cool company", [(0x011, "SH", "Private tag value"), ("0x012", "LO", "Another private tag value")]
+```
+
 ## Data
 
 ### Default DICOM tags
