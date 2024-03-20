@@ -26,10 +26,13 @@ logger = logging.getLogger("uvicorn")
 
 
 class Orthanc(ABC):
-    def __init__(self, url: str, username: str, password: str) -> None:
+    def __init__(
+        self, url: str, username: str, password: str, session: requests.Session = None
+    ) -> None:
         self._url = url.rstrip("/")
         self._username = username
         self._password = password
+        self.session = session or requests.Session()
 
         self._auth = HTTPBasicAuth(username=username, password=password)
 
@@ -96,17 +99,19 @@ class Orthanc(ABC):
         return str(self._get(f"/jobs/{job_id}")["State"])
 
     def _get(self, path: str) -> Any:
-        return _deserialise(requests.get(f"{self._url}{path}", auth=self._auth, timeout=10))
+        return _deserialise(self.session.get(f"{self._url}{path}", auth=self._auth, timeout=10))
 
     def _post(
         self, path: str, data: dict, timeout: Optional[float] = None
     ) -> list[str] | list[dict]:
         return _deserialise(
-            requests.post(f"{self._url}{path}", json=data, auth=self._auth, timeout=timeout)
+            self.session.post(f"{self._url}{path}", json=data, auth=self._auth, timeout=timeout)
         )
 
     def _delete(self, path: str, timeout: Optional[float] = 10) -> None:
-        return _deserialise(requests.delete(f"{self._url}{path}", auth=self._auth, timeout=timeout))
+        return _deserialise(
+            self.session.delete(f"{self._url}{path}", auth=self._auth, timeout=timeout)
+        )
 
     def send_existing_study_to_anon(self, resource_id: str) -> None:
         """Send study to orthanc anon."""
@@ -131,11 +136,12 @@ def _deserialise(response: requests.Response) -> Any:
 
 
 class PIXLRawOrthanc(Orthanc):
-    def __init__(self) -> None:
+    def __init__(self, session: requests.Session = None) -> None:
         super().__init__(
             url=config("ORTHANC_RAW_URL"),
             username=config("ORTHANC_RAW_USERNAME"),
             password=config("ORTHANC_RAW_PASSWORD"),
+            session=session,
         )
 
     @property

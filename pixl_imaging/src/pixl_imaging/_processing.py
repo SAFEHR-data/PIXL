@@ -20,6 +20,7 @@ from dataclasses import dataclass
 from time import time
 from typing import TYPE_CHECKING, Any
 
+import requests
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
 from decouple import config
 
@@ -37,39 +38,42 @@ async def process_message(message: Message) -> None:
     logger.debug("Processing: %s", message)
 
     study = ImagingStudy.from_message(message)
-    orthanc_raw = PIXLRawOrthanc()
 
-    study_exists = _update_or_resend_existing_study_(message.project_name, orthanc_raw, study)
-    if study_exists:
-        return
+    with requests.Session() as session:
+        orthanc_raw = PIXLRawOrthanc(session)
+        study_exists = _update_or_resend_existing_study_(message.project_name, orthanc_raw, study)
+        if study_exists:
+            return
 
-    # Tell orthanc to query VNA for the patient and accession number
-    query_id = orthanc_raw.query_remote(study.orthanc_query_dict, modality=config("VNAQR_MODALITY"))
-    if query_id is None:
-        logger.error("Failed to find %s in the VNA", study)
-        raise RuntimeError
+        # Tell orthanc to query VNA for the patient and accession number
+        query_id = orthanc_raw.query_remote(
+            study.orthanc_query_dict, modality=config("VNAQR_MODALITY")
+        )
+        if query_id is None:
+            logger.error("Failed to find %s in the VNA", study)
+            raise RuntimeError
 
-    # Get image from VNA for patient and accession number
-    job_id = orthanc_raw.retrieve_from_remote(query_id=query_id)  # C-Move
-    job_state = "Pending"
-    start_time = time()
+        # Get image from VNA for patient and accession number
+        job_id = orthanc_raw.retrieve_from_remote(query_id=query_id)  # C-Move
+        job_state = "Pending"
+        start_time = time()
 
-    while job_state != "Success":
-        if (time() - start_time) > config("PIXL_DICOM_TRANSFER_TIMEOUT", cast=float):
-            msg = (
-                f"Failed to transfer {message} within "
-                f"{config('PIXL_DICOM_TRANSFER_TIMEOUT')} seconds"
-            )
-            raise TimeoutError(msg)
+        while job_state != "Success":
+            if (time() - start_time) > config("PIXL_DICOM_TRANSFER_TIMEOUT", cast=float):
+                msg = (
+                    f"Failed to transfer {message} within "
+                    f"{config('PIXL_DICOM_TRANSFER_TIMEOUT')} seconds"
+                )
+                raise TimeoutError(msg)
 
-        await sleep(0.1)
-        job_state = orthanc_raw.job_state(job_id=job_id)
+            await sleep(0.1)
+            job_state = orthanc_raw.job_state(job_id=job_id)
 
-    # Now that instance has arrived in orthanc raw, we can set its project name tag via the API
-    studies_with_tags = orthanc_raw.query_local(study.orthanc_query_dict)
-    logger.info("Local instances with matching tags: %s", studies_with_tags)
+        # Now that instance has arrived in orthanc raw, we can set its project name tag via the API
+        studies_with_tags = orthanc_raw.query_local(study.orthanc_query_dict)
+        logger.info("Local instances with matching tags: %s", studies_with_tags)
 
-    _add_project_to_study(message.project_name, orthanc_raw, studies_with_tags)
+        _add_project_to_study(message.project_name, orthanc_raw, studies_with_tags)
 
     return
 
