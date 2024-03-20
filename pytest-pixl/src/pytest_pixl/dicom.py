@@ -101,7 +101,7 @@ def generate_dicom_dataset(tag_values: dict = TAGS_DICT, **kwargs) -> Dataset:
 
     # Handle any additional tags
     for key, value in kwargs.items():
-        # Check if tag is DICOOM compliant
+        # Check if tag is DICOM compliant
         if dictionary_has_tag(key):
             setattr(ds, key, value)
         else:
