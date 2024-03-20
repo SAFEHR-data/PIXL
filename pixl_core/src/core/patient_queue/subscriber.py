@@ -96,9 +96,7 @@ class PixlConsumer(PixlQueueInterface):
         await self._queue.consume(self._process_message)
 
     async def __aexit__(self, *args: object, **kwargs: Any) -> None:
-        """Exit context manager."""
-        await self._channel.close()
-        await self._connection.close()
+        """Required for context manager, but we don't want to exit the connection."""
 
 
 class PixlBlockingConsumer(PixlBlockingInterface):
