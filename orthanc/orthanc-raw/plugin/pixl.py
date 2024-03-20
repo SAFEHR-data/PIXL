@@ -138,17 +138,21 @@ def SendResourceToAnon(output, uri, **request):  # noqa: ARG001
     orthanc.LogWarning(f"Received request to send study to anon modality: {request}")
     if not should_auto_route():
         orthanc.LogWarning("Auto-routing is not enabled, dropping request {request}")
-        output.answerBuffer("Auto-routing is not enabled", "text/plain")
+        output.AnswerBuffer(
+            json.dumps({"Message": "Auto-routing is not enabled"}), "application/json"
+        )
         return
     try:
         body = json.loads(request["body"])
         resource_id = body["ResourceId"]
         orthanc.RestApiPost("/modalities/PIXL-Anon/store", resource_id)
-        output.AnswerBuffer("OK", "text/plain")
+        output.AnswerBuffer(json.dumps({"Message": "OK"}), "application/json")
         orthanc.LogInfo(f"Succesfully sent study to anon modality: {resource_id}")
     except:  # noqa: E722
         orthanc.LogWarning(f"Failed to send study to anon:\n{traceback.format_exc()}")
-        output.AnswerBuffer("Failed to send study to anon", "text/plain")
+        output.AnswerBuffer(
+            json.dumps({"Message": "Failed to send study to anon"}), "application/json"
+        )
 
 
 orthanc.RegisterOnChangeCallback(OnChange)
