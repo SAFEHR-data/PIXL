@@ -35,6 +35,8 @@ class PrivateDicomTag:
     it's not 0x10.
     """
 
+    PLACEHOLDER_VALUE = "__pixl_unknown_value__"
+
     group_id: int
     offset_id: int
     required_private_block: int
