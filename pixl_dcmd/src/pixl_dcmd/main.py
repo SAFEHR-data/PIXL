@@ -96,6 +96,10 @@ def anonymise_dicom(dataset: Dataset) -> Dataset:
     return dataset
 
 
+# TODO: implement this, so that we can merge multiple tag schemes, including those for specific
+# manufacturers
+# NOTE that the tag schemes are LISTs of dictionaries! So will need to come up with a clever way
+# to merge them.
 def merge_tag_schemes(tag_operation_files: list[Path]) -> list[dict]:
     """
     NOT IMPLEMENTED, WORKS ONLY WITH A SINGLE TAG SCHEME
