@@ -16,7 +16,9 @@ project:
     name: "project-slug"
     modalities: ["DX", "CR"] # DICOM dataset modalities to retain
 
-tag_operation_files: ["base-tag-operations.yaml"] # DICOM tag anonymisation operations, can specify multiple files in the future 
+tag_operation_files: # DICOM tag anonymisation operations
+    base: "base-tag-operations.yaml" # Base schema
+    manufacturer_overrides: "mri-diffusion.yaml" # Manufactuer-dependendent overrides
 
 destination:
     dicom: "ftps" # alternatives: "none"
