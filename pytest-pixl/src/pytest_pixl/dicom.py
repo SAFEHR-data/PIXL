@@ -66,6 +66,13 @@ def generate_dicom_dataset(tag_values: dict = TAGS_DICT, **kwargs) -> Dataset:
 
     Elements that vary between slices are exposed as arguments.  Values for
     these can be obtained from the dicom_variables.json file.
+
+    :param tag_values: A dictionary of tag values to use for the DICOM image. Uses a default set of
+        tags if not provided.
+    :param kwargs: Additional tags to set in the DICOM image. These need to be valid DICOM tags.
+        E.g. generate_dicom_dataset(Manufacturer="cool company", Modality="CT")
+    :return: A pydicom Dataset object representing the DICOM image.
+    :raises ValueError: If an invalid DICOM tag is provided.
     """
     instance_creation_time = tag_values["instance_creation_time"]
     sop_instance_uid = tag_values["sop_instance_uid"]
