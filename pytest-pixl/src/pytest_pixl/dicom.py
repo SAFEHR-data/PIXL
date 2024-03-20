@@ -24,7 +24,7 @@ from pydicom.datadict import dictionary_has_tag
 from pydicom.dataset import Dataset
 
 
-def write_volume(filename_pattern: str):
+def write_volume(filename_pattern: str) -> None:
     """
     Write a volume's worth of fake DICOM images
 
