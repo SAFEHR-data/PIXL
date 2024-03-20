@@ -30,16 +30,20 @@ def test_config_from_file():
 
     assert project_config.project.name == "test-extract-uclh-omop-cdm"
     assert project_config.project.modalities == ["DX", "CR"]
-    assert project_config.tag_operation_files == [
-        PROJECT_CONFIGS_DIR / "tag-operations" / "test-extract-uclh-omop-cdm.yaml"
-    ]
+    assert (
+        project_config.tag_operation_files.base
+        == PROJECT_CONFIGS_DIR / "tag-operations" / "test-extract-uclh-omop-cdm.yaml"
+    )
     assert project_config.destination.dicom == "ftps"
     assert project_config.destination.parquet == "ftps"
 
 
 BASE_YAML_DATA = {
     "project": {"name": "myproject", "modalities": ["DX", "CR"]},
-    "tag_operations": ["test-extract-uclh-omop-cdm.yaml"],
+    "tag_operations": {
+        "base": "test-extract-uclh-omop-cdm.yaml",
+        "manufacturer_overrides": "mri-diffusion.yaml",
+    },
     "destination": {"dicom": "ftps", "parquet": "ftps"},
 }
 
@@ -67,6 +71,6 @@ def test_invalid_destinations():
 def test_invalid_paths():
     """Test that the config validation fails for invalid tag-operation paths."""
     config_data_wrong_base = BASE_YAML_DATA
-    config_data_wrong_base["tag_operations"][0] = "/i/dont/exist.yaml"
+    config_data_wrong_base["tag_operations"]["base"] = "/i/dont/exist.yaml"
     with pytest.raises(ValidationError):
         PixlConfig.model_validate(config_data_wrong_base)

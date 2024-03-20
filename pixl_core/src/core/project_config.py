@@ -60,6 +60,24 @@ class _Project(BaseModel):
     modalities: list[str]
 
 
+class _TagOperations(BaseModel):
+    base: Path
+    manufacturer_overrides: Path
+
+    @field_validator("base")
+    def valid_base_tag_operations(cls, base_file: str) -> Path:
+        if not base_file:
+            msg = "At least the base tag operations file should be defined."
+            raise ValueError(msg)
+        # Pydantic will automatically check if the file exists
+        return PROJECT_CONFIGS_DIR / "tag-operations" / base_file
+
+    @field_validator("manufacturer_overrides")
+    def valid_manufacturer_overrides(cls, tags_file: str) -> Path:
+        # Pydantic will automatically check if the file exists
+        return PROJECT_CONFIGS_DIR / "tag-operations" / tags_file
+
+
 class _DestinationEnum(str, Enum):
     """Defines the valid upload destinations."""
 
@@ -83,20 +101,5 @@ class PixlConfig(BaseModel):
     """Project-specific configuration for Pixl."""
 
     project: _Project
-    tag_operation_files: list[Path]
+    tag_operation_files: _TagOperations
     destination: _Destination
-
-    @field_validator("tag_operation_files")
-    def _valid_tag_operations(cls, tag_ops_files: list[str]) -> list[Path]:
-        if not tag_ops_files or len(tag_ops_files) == 0:
-            msg = "There should be at least 1 tag operations file"
-            raise ValueError(msg)
-
-        if len(tag_ops_files) > 1:
-            msg = "There should currently be at most 1 tag operations file."
-            raise ValueError(msg)
-
-        # Pydantic will automatically check if the file exists
-        return [
-            PROJECT_CONFIGS_DIR / "tag-operations" / tag_ops_file for tag_ops_file in tag_ops_files
-        ]
