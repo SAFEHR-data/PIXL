@@ -62,7 +62,8 @@ class PixlConsumer(PixlQueueInterface):
 
     async def __aenter__(self) -> Self:
         """Establishes connection to queue."""
-        self._connection = await aio_pika.connect_robust(self._url)
+        # connect is non-blocking, to allow fastapi to receive REST requests need to use this
+        self._connection = await aio_pika.connect(self._url)
         self._channel = await self._connection.channel()
         # Set number of messages in flight
         max_in_flight = config("PIXL_MAX_MESSAGES_IN_FLIGHT", cast=int)
@@ -95,7 +96,9 @@ class PixlConsumer(PixlQueueInterface):
         await self._queue.consume(self._process_message)
 
     async def __aexit__(self, *args: object, **kwargs: Any) -> None:
-        """Requirement for the asynchronous context manager"""
+        """Exit context manager."""
+        self._connect_channel.close()
+        self._connection.close()
 
 
 class PixlBlockingConsumer(PixlBlockingInterface):
