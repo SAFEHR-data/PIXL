@@ -46,20 +46,40 @@ generate_dicom_dataset(Manufacturer="cool company", Modality="CT")
 ```
 
 For [private tags](https://dicom.nema.org/dicom/2013/output/chtml/part05/sect_7.8.html),
-use `add_private_tags(ds, manufacturer, private_tags)`, where `ds` is a `pydicom.Dataset`,
-`manufacturer` is the name to which the private tags belong and `private_tags` is a list
-of `tuple`s with the following format:
+use `add_private_tags(ds, private_tags)`, where `ds` is a `pydicom.Dataset`,
+and `private_tags` is a list of `tuple`s with the following format:
 
 ```
-[(tag, VR, value), ...]
+[(tag_id, VR, value), ...]
 ```
 
 where `tag` can be a `str`, `int` or `Tuple[int, int]`, `VR` is a `str` and `value` is a `str`.
 Note that this requires the [VR](https://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html)
 of the tag to be known.
+
+For example, if we want to add the following tags, which are relevant for
+[Philips Diffusion images](https://github.com/rordenlab/dcm2niix/tree/master/Philips#diffusion-direction):
+
+```
+(2001,1003) FL 1000
+(2005,10b0) FL 1.0
+(2005,10b1) FL 1.0
+(2005,10b2) FL 0.0
+```
+
+we could use the following code:
+
 ```python
 ds = generate_dicom_dataset()
-add_private_tags(ds, "cool company", [(0x011, "SH", "Private tag value"), ("0x012", "LO", "Another private tag value")]
+add_private_tags(
+    ds,
+    [
+        ((0x2001, 0x1003), "FL", 1000),
+        ((0x2005, 0x10B0), "FL", 1.0),
+        ((0x2005, 0x10B1), "FL", 1.0),
+        ((0x2005, 0x10B2), "FL", 0.0),
+    ],
+)
 ```
 
 ## Data
