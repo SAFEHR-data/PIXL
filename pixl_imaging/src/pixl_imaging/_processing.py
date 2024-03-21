@@ -65,7 +65,7 @@ async def process_message(message: Message) -> None:
 
     # Now that instance has arrived in orthanc raw, we can set its project name tag via the API
     studies_with_tags = orthanc_raw.query_local(study.orthanc_query_dict)
-    logger.info("Local instances with matching tags: %s", studies_with_tags)
+    logger.debug("Local instances with matching tags: %s", studies_with_tags)
 
     _add_project_to_study(message.project_name, orthanc_raw, studies_with_tags)
 
