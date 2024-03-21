@@ -60,12 +60,14 @@ class _Project(BaseModel):
     modalities: list[str]
 
 
-class _TagOperations(BaseModel):
+class TagOperations(BaseModel):
+    """Tag operations files for a project. At least a base file is required."""
+
     base: Path
     manufacturer_overrides: Optional[Path]
 
     @field_validator("base")
-    def valid_base_tag_operations(cls, base_file: str) -> Path:
+    def _valid_base_tag_operations(cls, base_file: str) -> Path:
         if not base_file:
             msg = "At least the base tag operations file should be defined."
             raise ValueError(msg)
@@ -73,7 +75,7 @@ class _TagOperations(BaseModel):
         return PROJECT_CONFIGS_DIR / "tag-operations" / base_file
 
     @field_validator("manufacturer_overrides")
-    def valid_manufacturer_overrides(cls, tags_file: str) -> Optional[Path]:
+    def _valid_manufacturer_overrides(cls, tags_file: str) -> Optional[Path]:
         # Pydantic will automatically check if the file exists
         if not tags_file:
             return None
@@ -103,5 +105,5 @@ class PixlConfig(BaseModel):
     """Project-specific configuration for Pixl."""
 
     project: _Project
-    tag_operation_files: _TagOperations
+    tag_operation_files: TagOperations
     destination: _Destination
