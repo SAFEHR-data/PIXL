@@ -14,8 +14,11 @@
 
 """Handles fetching of project secrets from the Azure Keyvault"""
 
+from __future__ import annotations
+
 import subprocess
 from functools import lru_cache
+from typing import Any
 
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
@@ -76,7 +79,6 @@ def _check_system_envvar(var_name: str) -> None:
         raise OSError(error_msg)
 
 
-@lru_cache
 def _fetch_secret(client: SecretClient, secret_name: str) -> str:
     """
     Fetch a secret from the Azure Key Vault instance specified in the environment variables.
@@ -90,7 +92,14 @@ def _fetch_secret(client: SecretClient, secret_name: str) -> str:
     :param secret_name: the name of the secret to fetch
     :return: the requested secret's value
     """
-    secret = client.get_secret(secret_name).value
+
+    @lru_cache
+    def _secret(name: str) -> Any:
+        """Cache using only hashable arguments, can use the client as it is in the parent scope."""
+        return client.get_secret(name).value
+
+    secret = _secret(secret_name)
+
     if secret is None:
         msg = f"Azure Key Vault secret {secret_name} is None"
         raise ValueError(msg)
