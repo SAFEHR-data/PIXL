@@ -73,7 +73,7 @@ def anonymise_dicom(dataset: Dataset) -> Dataset:
     else:
         logger.debug(f"String slug '{raw_slug}'")
         # temporary dumb replacement to see if this is a string
-        slug = raw_slug.replace("b'", "").replace("'", "")
+        slug = raw_slug
 
     project_config = load_project_config(slug)
     logger.info(f"Received instance for project {slug}")
