@@ -26,7 +26,7 @@ import json
 import os
 import traceback
 from io import BytesIO
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
 from pydicom import Dataset, dcmread, dcmwrite
@@ -47,7 +47,17 @@ def OnChange(changeType, level, resourceId):  # noqa: ARG001
     """
     if changeType == orthanc.ChangeType.STABLE_STUDY and should_auto_route():
         print("Stable study: %s" % resourceId)  # noqa: T201
-        orthanc.RestApiPost("/modalities/PIXL-Anon/store", resourceId)
+        # Although this can throw, since we have nowhere to report errors
+        # back to (eg. an HTTP client), don't try to handle anything here.
+        # The client will have to detect that it hasn't happened and retry.
+        orthanc_anon_store_study(resourceId)
+
+
+def orthanc_anon_store_study(resource_id):
+    """Call the API to send the specified resource (study) to the orthanc anon server."""
+    # RestApiPost raises an orthanc.OrthancException if it fails
+    orthanc.RestApiPost("/modalities/PIXL-Anon/store", resource_id)
+    orthanc.LogInfo(f"Successfully sent study to anon modality: {resource_id}")
 
 
 def OnHeartBeat(output, uri, **request):  # noqa: ARG001
@@ -132,22 +142,62 @@ def modify_dicom_tags(receivedDicom: bytes, origin: str) -> Any:
     return orthanc.ReceivedInstanceAction.MODIFY, write_dataset_to_bytes(dataset)
 
 
+def log_and_return_http(
+    output, http_code: int, http_message: str, log_message: Optional[str] = None
+):
+    """
+    Log and make an HTTP response in case of success or failure. For failure, log
+    a stack/exception trace as well.
+
+    :param output: the orthanc output object as given to the callback function
+    :param http_code: HTTP code to return
+    :param http_message: message to return in HTTP body
+    :param log_message: message to log, if different to http_message.
+                        If None, do not log at all if success
+    """
+    if http_code == 200:  # noqa: PLR2004
+        if log_message:
+            orthanc.LogInfo(log_message)
+        output.AnswerBuffer(http_message, "text/plain")
+    else:
+        orthanc.LogWarning(f"{log_message or http_message}:\n{traceback.format_exc()}")
+        # length needed in bytes not chars
+        output.SendHttpStatus(http_code, http_message, len(http_message.encode()))
+
+
 def SendResourceToAnon(output, uri, **request):  # noqa: ARG001
     """Send an existing study to the anon modality"""
     orthanc.LogWarning(f"Received request to send study to anon modality: {request}")
     if not should_auto_route():
-        orthanc.LogWarning("Auto-routing is not enabled, dropping request {request}")
-        output.answerBuffer("Auto-routing is not enabled", "text/plain")
+        log_and_return_http(
+            output,
+            200,
+            "Auto-routing is not enabled",
+            f"Auto-routing is not enabled, dropping request {request}",
+        )
         return
     try:
         body = json.loads(request["body"])
         resource_id = body["ResourceId"]
-        orthanc.RestApiPost("/modalities/PIXL-Anon/store", resource_id)
-        output.AnswerBuffer("OK", "text/plain")
-        orthanc.LogInfo(f"Succesfully sent study to anon modality: {resource_id}")
-    except:  # noqa: E722
-        orthanc.LogWarning(f"Failed to send study to anon:\n{traceback.format_exc()}")
-        output.AnswerBuffer("Failed to send study to anon", "text/plain")
+    except (json.decoder.JSONDecodeError, KeyError):
+        err_str = "Body needs to be JSON with key ResourceId"
+        log_and_return_http(output, 400, err_str)
+    except:
+        err_str = "Other error decoding request"
+        log_and_return_http(output, 500, err_str)
+        raise
+
+    try:
+        orthanc_anon_store_study(resource_id)
+    except orthanc.OrthancException:
+        err_str = "Failed contacting downstream server"
+        log_and_return_http(output, 502, err_str)
+    except:
+        err_str = "Misc error sending study to anon"
+        log_and_return_http(output, 500, err_str)
+        raise
+    else:
+        log_and_return_http(output, 200, "OK")
 
 
 orthanc.RegisterOnChangeCallback(OnChange)
