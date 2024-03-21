@@ -49,5 +49,9 @@ async def startup_event() -> None:
     switching between them at await points
     the task is consumer.run and the callback is _processing.process_message
     """
-    task_manager.set_result(PixlConsumer(token_bucket=state.token_bucket, queue_name=QUEUE_NAME))
-    task = asyncio.create_task((await task_manager).run(callback=process_message))  # noqa: F841, RUF006
+    task_manager.set_result(
+        PixlConsumer(
+            token_bucket=state.token_bucket, queue_name=QUEUE_NAME, callback=process_message
+        )
+    )
+    task = asyncio.create_task((await task_manager).run())  # noqa: F841, RUF006

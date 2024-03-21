@@ -45,6 +45,7 @@ class PixlConsumer(PixlQueueInterface):
         self,
         queue_name: str,
         token_bucket: TokenBucket,
+        callback: Callable[[Message], Awaitable[None]],
     ) -> None:
         """
         Creating connection to RabbitMQ queue
@@ -52,12 +53,13 @@ class PixlConsumer(PixlQueueInterface):
         """
         super().__init__(queue_name=queue_name)
         self.token_bucket = token_bucket
+        self._callback = callback
 
     @property
     def _url(self) -> str:
         return f"amqp://{self._username}:{self._password}@{self._host}:{self._port}/"
 
-    async def run(self, callback: Callable[[Message], Awaitable[None]]) -> None:
+    async def run(self) -> None:
         """Processes messages from queue asynchronously."""
         # Run until cancelled, if disconnects, will reconnect at the start of the try loop
         while True:
@@ -72,7 +74,7 @@ class PixlConsumer(PixlQueueInterface):
                 await channel.set_qos(prefetch_count=max_in_flight)
                 queue = await channel.declare_queue(self.queue_name)
 
-                await queue.consume(callback)
+                await queue.consume(self._process_message)
                 # Raises CancelledError if task is cancelled
                 await asyncio.Future()
             except asyncio.CancelledError:
