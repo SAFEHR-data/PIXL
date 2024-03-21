@@ -38,6 +38,8 @@ app.include_router(router)
 
 logger = logging.getLogger("uvicorn")
 
+task_manager: asyncio.Future = asyncio.Future()
+
 
 @app.on_event("startup")
 async def startup_event() -> None:
@@ -47,11 +49,5 @@ async def startup_event() -> None:
     switching between them at await points
     the task is consumer.run and the callback is _processing.process_message
     """
-    background_tasks = set()
-    async with PixlConsumer(
-        QUEUE_NAME, token_bucket=state.token_bucket, callback=process_message
-    ) as consumer:
-        task = asyncio.create_task(consumer.run())
-
-        background_tasks.add(task)
-        task.add_done_callback(background_tasks.discard)
+    task_manager.set_result(PixlConsumer(token_bucket=state.token_bucket, queue_name=QUEUE_NAME))
+    task = asyncio.create_task((await task_manager).run(callback=process_message))  # noqa: F841, RUF006
