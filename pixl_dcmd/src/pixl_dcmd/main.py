@@ -14,23 +14,21 @@
 from __future__ import annotations
 
 from io import BytesIO
+from logging import getLogger
 from os import PathLike
 from pathlib import Path
-from typing import Any, BinaryIO, Union
-from logging import getLogger
-
-from core.project_config import load_project_config
-
-from core.dicom_tags import DICOM_TAG_PROJECT_NAME
+from typing import Any, BinaryIO, Optional, Union
 
 import requests
+import yaml
+from core.dicom_tags import DICOM_TAG_PROJECT_NAME
+from core.project_config import TagOperations, load_project_config
 from decouple import config
 from pydicom import Dataset, dcmwrite
 
 from pixl_dcmd._database import add_hashed_identifier_and_save, query_db
 from pixl_dcmd._datetime import combine_date_time, format_date_time
 from pixl_dcmd._deid_helpers import get_bounded_age, get_encrypted_uid
-import yaml
 
 DicomDataSetType = Union[Union[str, bytes, PathLike[Any]], BinaryIO]
 
@@ -96,27 +94,40 @@ def anonymise_dicom(dataset: Dataset) -> Dataset:
     return dataset
 
 
-# TODO: implement this, so that we can merge multiple tag schemes, including those for specific
-# manufacturers
-# NOTE that the tag schemes are LISTs of dictionaries! So will need to come up with a clever way
-# to merge them.
-def merge_tag_schemes(tag_operation_files: list[Path]) -> list[dict]:
+def merge_tag_schemes(
+    tag_operation_files: TagOperations, manufacturer: Optional[str] = None
+) -> list[dict]:
     """Merge multiple tag schemes into a single scheme."""
-    all_tags: dict[tuple, dict] = {}
+    base_tags = _load_scheme(tag_operation_files.base)
+    all_tags = _scheme_list_to_dict(base_tags)
 
-    for tag_operation_file in tag_operation_files:
-        with tag_operation_file.open() as file:
-            # Load tag operations scheme from YAML.
-            tags = yaml.safe_load(file)
-            if not isinstance(tags, list) or not all(
-                [isinstance(tag, dict) for tag in tags]
-            ):
-                raise ValueError(
-                    "Tag operation file must contain a list of dictionaries"
-                )
-            all_tags.update(_scheme_list_to_dict(tags))
+    if tag_operation_files.manufacturer_overrides is None:
+        return list(all_tags.values())
+
+    manufacturer_overrides = _load_scheme(tag_operation_files.manufacturer_overrides)
+
+    # Keep only the overrides for the specified manufacturer
+    manufacturer_tags = [
+        tag
+        for override in manufacturer_overrides
+        if override["manufacturer"] == manufacturer
+        for tag in override["tags"]
+    ]
+
+    all_tags.update(_scheme_list_to_dict(manufacturer_tags))
 
     return list(all_tags.values())
+
+
+def _load_scheme(tag_operation_file: Path) -> list[dict]:
+    with tag_operation_file.open() as file:
+        # Load tag operations scheme from YAML.
+        tags = yaml.safe_load(file)
+        if not isinstance(tags, list) or not all(
+            [isinstance(tag, dict) for tag in tags]
+        ):
+            raise ValueError("Tag operation file must contain a list of dictionaries")
+        return tags
 
 
 def _scheme_list_to_dict(tags: list[dict]) -> dict[tuple, dict]:
