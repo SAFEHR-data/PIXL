@@ -62,7 +62,7 @@ class _Project(BaseModel):
 
 class _TagOperations(BaseModel):
     base: Path
-    manufacturer_overrides: Path
+    manufacturer_overrides: Optional[Path]
 
     @field_validator("base")
     def valid_base_tag_operations(cls, base_file: str) -> Path:
@@ -73,8 +73,10 @@ class _TagOperations(BaseModel):
         return PROJECT_CONFIGS_DIR / "tag-operations" / base_file
 
     @field_validator("manufacturer_overrides")
-    def valid_manufacturer_overrides(cls, tags_file: str) -> Path:
+    def valid_manufacturer_overrides(cls, tags_file: str) -> Optional[Path]:
         # Pydantic will automatically check if the file exists
+        if not tags_file:
+            return None
         return PROJECT_CONFIGS_DIR / "tag-operations" / tags_file
 
 
