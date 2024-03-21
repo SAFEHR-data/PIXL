@@ -67,7 +67,7 @@ def anonymise_dicom(dataset: Dataset) -> Dataset:
     ).value
     project_config = load_project_config(slug)
     logger.error(f"Received instance for project {slug}")
-    # Drop anything that is not an X-Ray
+
     if dataset.Modality not in project_config.project.modalities:
         msg = f"Dropping DICOM Modality: {dataset.Modality}"
         logger.error(msg)
@@ -101,20 +101,30 @@ def anonymise_dicom(dataset: Dataset) -> Dataset:
 # NOTE that the tag schemes are LISTs of dictionaries! So will need to come up with a clever way
 # to merge them.
 def merge_tag_schemes(tag_operation_files: list[Path]) -> list[dict]:
+    """Merge multiple tag schemes into a single scheme."""
+    all_tags: dict[tuple, dict] = {}
+
+    for tag_operation_file in tag_operation_files:
+        with tag_operation_file.open() as file:
+            # Load tag operations scheme from YAML.
+            tags = yaml.safe_load(file)
+            if not isinstance(tags, list) or not all(
+                [isinstance(tag, dict) for tag in tags]
+            ):
+                raise ValueError(
+                    "Tag operation file must contain a list of dictionaries"
+                )
+            all_tags.update(_scheme_list_to_dict(tags))
+
+    return list(all_tags.values())
+
+
+def _scheme_list_to_dict(tags: list[dict]) -> dict[tuple, dict]:
     """
-    NOT IMPLEMENTED, WORKS ONLY WITH A SINGLE TAG SCHEME
-    Merge multiple tag schemes into a single dictionary.
+    Convert a list of tag dictionaries to a dictionary of dictionaries.
+    Each group/element pair uniquely identifies a tag.
     """
-    if len(tag_operation_files) > 1:
-        raise NotImplementedError("Multiple tag schemes not supported")
-    with tag_operation_files[0].open() as file:
-        # Load tag operations scheme from YAML.
-        tags = yaml.safe_load(file)
-        if not isinstance(tags, list) or not all(
-            [isinstance(tag, dict) for tag in tags]
-        ):
-            raise ValueError("Tag operation file must contain a list of dictionaries")
-        return tags
+    return {(tag["group"], tag["element"]): tag for tag in tags}
 
 
 def remove_overlays(dataset: Dataset) -> Dataset:
