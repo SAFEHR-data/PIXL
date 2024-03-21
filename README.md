@@ -215,12 +215,14 @@ The configuration file defines:
 
 - Project name: the `<project-slug>` name of the Project
 - The DICOM dataset modalities to retain (e.g. `["DX", "CR"]` for X-Ray studies)
-- The anonymisation operations to be applied to the DICOM tags, by providing a file path to one or multiple YAML files.
+- The [anonymisation operations](/pixl_dcmd/README.md#tag-scheme-anonymisation) to be applied to the DICOM tags,
+  by providing a file path to one or multiple YAML files.
   We currently allow two types of files:
     - `base`: the base set of DICOM tags to be retained in the anonymised dataset
     - `manufacturer_overrides`: any manufacturer-specific overrides to the base set of DICOM tags. This is useful for
         manufacturers that store sensitive information in non-standard DICOM tags. Multiple manufacturers
         can be specified in the YAML file as follows:
+
     ```yaml
     - manufacturer: "Philips"
       tags:
@@ -235,6 +237,7 @@ The configuration file defines:
         op: "keep"
         # ...
     ```
+
 - The endpoints used to upload the anonymised DICOM data and the public and radiology
   [parquet files](./docs/file_types/parquet_files.md). We currently support the following endpoints:
     - `"none"`: no upload
