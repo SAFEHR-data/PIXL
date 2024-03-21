@@ -20,26 +20,28 @@ import numpy as np
 import pydicom
 import pytest
 import sqlalchemy
-import yaml
 from pydicom.data import get_testdata_file
 from pytest_pixl.helpers import run_subprocess
 
 from core.db.models import Image
+from core.project_config import TagOperations
 from pixl_dcmd.main import (
     apply_tag_scheme,
     merge_tag_schemes,
     remove_overlays,
+    _load_scheme,
+)
+
+BASE_TAGS_FILE = (
+    pathlib.Path(__file__).parents[2]
+    / "projects/configs/tag-operations/test-extract-uclh-omop-cdm.yaml"
 )
 
 
 @pytest.fixture(scope="module")
-def tag_scheme() -> dict:
+def tag_scheme() -> list[dict]:
     """Read the tag scheme from orthanc raw."""
-    tag_file = (
-        pathlib.Path(__file__).parents[2]
-        / "projects/configs/tag-operations/test-extract-uclh-omop-cdm.yaml"
-    )
-    return yaml.safe_load(tag_file.read_text())
+    return _load_scheme(BASE_TAGS_FILE)
 
 
 def test_remove_overlay_plane() -> None:
@@ -137,12 +139,35 @@ def test_can_nifti_convert_post_anonymisation(
     assert np.all(anon_nifti.get_fdata() == ident_nifti.get_fdata())
 
 
-def test_merge_tag_schemes_single_file():
-    tag_ops_file = (
+BASE_ONLY_TAG_OPS = TagOperations(base="base.yaml", manufacturer_overrides=None)
+
+
+@pytest.fixture(scope="module")
+def base_only_tag_scheme() -> TagOperations:
+    return TagOperations(base=BASE_TAGS_FILE, manufacturer_overrides=None)
+
+
+@pytest.fixture(scope="module")
+def manufacturer_overrides_tag_scheme() -> TagOperations:
+    manufacturer_overrides = (
         pathlib.Path(__file__).parents[2]
-        / "projects/configs/tag-operations/test-extract-uclh-omop-cdm.yaml"
+        / "projects/configs/tag-operations/mri-diffusion.yaml"
     )
-    merge_tag_schemes([tag_ops_file])
+
+    return TagOperations(
+        base=BASE_TAGS_FILE, manufacturer_overrides=manufacturer_overrides
+    )
+
+
+def test_merge_base_only_tags(base_only_tag_scheme):
+    """
+    GIVEN TagOperations with only a base file
+    WHEN the tag schemes are merged
+    THEN the result should be the same as the base file
+    """
+    tags = merge_tag_schemes(base_only_tag_scheme)
+    expected = _load_scheme(BASE_TAGS_FILE)
+    assert tags == expected
 
 
 def test_merge_multiple_tag_schemes():
