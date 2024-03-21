@@ -65,8 +65,14 @@ def anonymise_dicom(dataset: Dataset) -> Dataset:
         DICOM_TAG_PROJECT_NAME.offset_id,
         DICOM_TAG_PROJECT_NAME.creator_string,
     ).value
-    # temporary dumb replacement to see if this is a string
-    slug = raw_slug.replace("b'", "").replace("'", "")
+
+    if isinstance(raw_slug, bytes):
+        print(f"Bytes slug {raw_slug!r}")
+        slug = raw_slug.decode("utf-8").strip()
+    else:
+        print(f"String slug {raw_slug}")
+        # temporary dumb replacement to see if this is a string
+        slug = raw_slug.replace("b'", "").replace("'", "")
 
     project_config = load_project_config(slug)
     logger.error(f"Received instance for project {slug}")
