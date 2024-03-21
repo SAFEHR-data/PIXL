@@ -47,7 +47,7 @@ os.environ["NO_PROXY"] = os.environ["no_proxy"] = "localhost"
 @click.option("--debug/--no-debug", default=False)
 def cli(*, debug: bool) -> None:
     """PIXL command line interface"""
-    set_log_level("WARNING" if not debug else "DEBUG")
+    set_log_level("INFO" if not debug else "DEBUG")
 
 
 @cli.command()
