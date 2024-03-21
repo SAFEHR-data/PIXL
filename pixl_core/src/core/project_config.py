@@ -39,7 +39,7 @@ def load_project_config(project_slug: str) -> PixlConfig | Any:
     Project needs to have a corresponding yaml file in the `$PROJECT_CONFIGS_DIR` directory.
     """
     configpath = PROJECT_CONFIGS_DIR / f"{project_slug}.yaml"
-    logger.warning(f"Loading config for {project_slug} from {configpath}")  # noqa: G004
+    logger.debug(f"Loading config for {project_slug} from {configpath}")  # noqa: G004
     if not configpath.exists():
         raise FileNotFoundError(f"No config for {project_slug}. Please submit PR and redeploy.")  # noqa: EM102, TRY003
     return _load_and_validate(configpath)
