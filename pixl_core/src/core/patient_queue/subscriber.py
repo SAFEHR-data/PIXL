@@ -79,17 +79,17 @@ class PixlConsumer(PixlQueueInterface):
             return
 
         pixl_message = deserialise(message.body)
+        # Early acknoledge as we don't requeue anyway at this point
+        await message.ack()
+        logger.info("Starting message %s", pixl_message)
         try:
-            logger.warning("Starting message %s", pixl_message)
             await self._callback(pixl_message)
-            logger.warning("Finished message %s", pixl_message)
+            logger.info("Finished message %s", pixl_message)
         except Exception:
             logger.exception(
                 "Failed to process %s" "Not re-queuing message",
                 pixl_message,
             )
-        finally:
-            await message.ack()
 
     async def run(self) -> None:
         """Processes messages from queue asynchronously."""

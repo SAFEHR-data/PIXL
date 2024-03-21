@@ -65,8 +65,8 @@ async def process_message(message: Message) -> None:
                     f"{config('PIXL_DICOM_TRANSFER_TIMEOUT')} seconds"
                 )
                 raise TimeoutError(msg)
-
-            await sleep(0.1)
+            # wait for job to be created
+            await sleep(1)
             job_state = orthanc_raw.job_state(job_id=job_id)
 
         # Now that instance has arrived in orthanc raw, we can set its project name tag via the API
