@@ -67,7 +67,7 @@ def anonymise_dicom(dataset: Dataset) -> Dataset:
     ).value
     project_config = load_project_config(slug)
     logger.error(f"Received instance for project {slug}")
-    # Drop anything that is not an X-Ray
+
     if dataset.Modality not in project_config.project.modalities:
         msg = f"Dropping DICOM Modality: {dataset.Modality}"
         logger.error(msg)
