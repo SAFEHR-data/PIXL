@@ -15,7 +15,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import importlib.metadata
 import logging
 
@@ -23,6 +22,7 @@ from core.patient_queue.subscriber import PixlConsumer
 from core.rest_api.router import router, state
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+from starlette.concurrency import run_in_threadpool
 
 from ._processing import process_message
 
@@ -38,8 +38,6 @@ app.include_router(router)
 
 logger = logging.getLogger("uvicorn")
 
-task_manager: asyncio.Future = asyncio.Future()
-
 
 @app.on_event("startup")
 async def startup_event() -> None:
@@ -49,9 +47,7 @@ async def startup_event() -> None:
     switching between them at await points
     the task is consumer.run and the callback is _processing.process_message
     """
-    task_manager.set_result(
-        PixlConsumer(
-            token_bucket=state.token_bucket, queue_name=QUEUE_NAME, callback=process_message
-        )
+    consumer = PixlConsumer(
+        token_bucket=state.token_bucket, queue_name=QUEUE_NAME, callback=process_message
     )
-    task = asyncio.create_task((await task_manager).run())  # noqa: F841, RUF006
+    await run_in_threadpool(consumer.run)
