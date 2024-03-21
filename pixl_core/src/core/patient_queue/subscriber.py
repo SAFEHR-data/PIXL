@@ -80,10 +80,10 @@ class PixlConsumer(PixlQueueInterface):
         pixl_message = deserialise(message.body)
         # Early acknowledge as we don't requeue anyway at this point
         await message.ack()
-        logger.warning("Starting message %s", pixl_message)
+        logger.info("Starting message %s", pixl_message)
         try:
             await self._callback(pixl_message)
-            logger.warning("Finished message %s", pixl_message)
+            logger.info("Finished message %s", pixl_message)
         except Exception:
             logger.exception(
                 "Failed to process %s" "Not re-queuing message",

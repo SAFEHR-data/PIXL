@@ -14,7 +14,6 @@
 from __future__ import annotations
 
 import logging
-import os
 from asyncio import sleep
 from dataclasses import dataclass
 from time import time
@@ -29,7 +28,6 @@ if TYPE_CHECKING:
     from core.patient_queue.message import Message
 
 logger = logging.getLogger("uvicorn")
-logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))
 
 
 async def process_message(message: Message) -> None:

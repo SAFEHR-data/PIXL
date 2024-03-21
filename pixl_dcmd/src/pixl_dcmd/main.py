@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any, BinaryIO, Union
 from logging import getLogger
 
+from core.exceptions import PixlSkipMessageError
 from core.project_config import load_project_config
 
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
@@ -65,24 +66,23 @@ def anonymise_dicom(dataset: Dataset) -> Dataset:
         DICOM_TAG_PROJECT_NAME.offset_id,
         DICOM_TAG_PROJECT_NAME.creator_string,
     ).value
-
+    # Get both strings and bytes, which is fun
     if isinstance(raw_slug, bytes):
-        print(f"Bytes slug {raw_slug!r}")
+        logger.debug(f"Bytes slug {raw_slug!r}")
         slug = raw_slug.decode("utf-8").strip()
     else:
-        print(f"String slug {raw_slug}")
+        logger.debug(f"String slug '{raw_slug}'")
         # temporary dumb replacement to see if this is a string
         slug = raw_slug.replace("b'", "").replace("'", "")
 
     project_config = load_project_config(slug)
-    logger.error(f"Received instance for project {slug}")
+    logger.info(f"Received instance for project {slug}")
     # Drop anything that is not an X-Ray
     if dataset.Modality not in project_config.project.modalities:
         msg = f"Dropping DICOM Modality: {dataset.Modality}"
-        logger.error(msg)
-        raise ValueError(msg)
+        raise PixlSkipMessageError(msg)
 
-    logger.warning("Anonymising received instance")
+    logger.info("Anonymising received instance")
 
     # Rip out overlays/
     dataset = remove_overlays(dataset)
@@ -99,8 +99,6 @@ def anonymise_dicom(dataset: Dataset) -> Dataset:
     logger.info(
         f"DICOM tag anonymisation applied according to {project_config.tag_operation_files}"
     )
-    logger.warning("DICOM tag anonymisation applied")
-
     # Write anonymised instance to disk.
     return dataset
 
@@ -235,7 +233,7 @@ def apply_tag_scheme(dataset: Dataset, tags: list[dict]) -> Dataset:
             else:
                 message = f"Missing: {name} (0x{grp:04x},0x{el:04x})\
                  - Operation ({op})"
-                logger.warning(f"\t{message}")
+                logger.debug(f"\t{message}")
 
         # If this tag should be deleted.
         elif op == "delete":
@@ -419,7 +417,7 @@ def apply_tag_scheme(dataset: Dataset, tags: list[dict]) -> Dataset:
             else:
                 message = f"Missing: {name} (0x{grp:04x},0x{el:04x})\
                  - Operation ({op})"
-                logger.warning(f"\t{message}")
+                logger.debug(f"\t{message}")
 
     return dataset
 

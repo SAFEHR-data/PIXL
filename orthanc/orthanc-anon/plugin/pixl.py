@@ -31,6 +31,7 @@ from time import sleep
 from typing import TYPE_CHECKING
 
 import requests
+from core.exceptions import PixlSkipMessageError
 from core.project_config import load_project_config
 from core.uploader import get_uploader
 from decouple import config
@@ -284,8 +285,10 @@ def ReceivedInstanceCallback(receivedDicom: bytes, origin: str) -> Any:
     try:
         dataset = anonymise_dicom(dataset)
         return orthanc.ReceivedInstanceAction.MODIFY, write_dataset_to_bytes(dataset)
+    except PixlSkipMessageError as error:
+        logger.debug("Skipping series: %s", error)
     except Exception:  # noqa: BLE001
-        orthanc.LogError("Failed to anonymize study due to\n" + traceback.format_exc())
+        orthanc.LogError("Failed to anonymize series due to\n" + traceback.format_exc())
         return orthanc.ReceivedInstanceAction.DISCARD, None
 
 
