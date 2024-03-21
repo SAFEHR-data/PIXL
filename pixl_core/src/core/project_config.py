@@ -25,6 +25,8 @@ import yaml
 from decouple import Config, RepositoryEmpty, RepositoryEnv
 from pydantic import BaseModel, field_validator
 
+from core.exceptions import PixlSkipMessageError
+
 # Make sure local .env file is loaded if it exists
 env_file = Path.cwd() / ".env"
 config = Config(RepositoryEnv(env_file)) if env_file.exists() else Config(RepositoryEmpty())
@@ -40,9 +42,11 @@ def load_project_config(project_slug: str) -> PixlConfig | Any:
     """
     configpath = PROJECT_CONFIGS_DIR / f"{project_slug}.yaml"
     logger.debug(f"Loading config for {project_slug} from {configpath}")  # noqa: G004
-    if not configpath.exists():
-        raise FileNotFoundError(f"No config for {project_slug}. Please submit PR and redeploy.")  # noqa: EM102, TRY003
-    return _load_and_validate(configpath)
+    try:
+        return _load_and_validate(configpath)
+    except FileNotFoundError as error:
+        msg = f"No config for {project_slug}. Please submit PR and redeploy."
+        raise PixlSkipMessageError(msg) from error
 
 
 def _load_and_validate(filename: Path) -> PixlConfig | Any:
