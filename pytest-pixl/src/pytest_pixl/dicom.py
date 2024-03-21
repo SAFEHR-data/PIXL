@@ -14,17 +14,22 @@
 
 """Functions to write test DICOM files."""
 
+from __future__ import annotations
+
 import importlib
 import json
+from pathlib import Path
+from typing import Any, TypeAlias, Union
 
 import numpy as np
+from pydicom import Sequence
+from pydicom.datadict import dictionary_has_tag
 from pydicom.dataset import Dataset, FileMetaDataset
-from pydicom.sequence import Sequence
 
 
-def write_volume(filename_pattern: str):
+def write_volume(filename_pattern: str) -> None:
     """
-    Write a volumes worth of fake DICOM images
+    Write a volume's worth of fake DICOM images
 
     Args:
         filename_pattern: The pattern to use for the filenames. This should
@@ -32,41 +37,128 @@ def write_volume(filename_pattern: str):
         /tmp/slice{slice:03d}.dcm
 
     """
-    # dicom_variables.json contains per slice information for a 3D image (geometry, windowing, etc.)
+    # volume_dicom_variables.json contains per slice information for a 3D image (geometry,
+    # windowing, etc.)
     dicom_variables_path = importlib.resources.files("pytest_pixl").joinpath(
-        "data/dicom_variables.json"
+        "data/volume_dicom_variables.json"
     )
     variables = json.loads(dicom_variables_path.open("r").read())
     rng = np.random.default_rng(0)
     for i, slice_info in enumerate(variables):
-        ds = generate_dicom_dataset(
-            pixel_data=rng.random(size=(256, 256)),
-            **slice_info,
-        )
+        slice_info["pixel_data"] = rng.random(size=(256, 256))
+        ds = generate_dicom_dataset(slice_info)
         file_name = filename_pattern.format(slice=i)
         ds.save_as(file_name, write_like_original=False)
 
 
-# Remove the noqa comments once this function takes a sensible number of arguments
-# and hard-coded values are moved to JSON
-def generate_dicom_dataset(  # noqa: PLR0913, PLR0915
-    instance_creation_time: str = "180048.910",
-    sop_instance_uid: str = "1.3.46.670589.11.38023.5.0.7404.2023012517580650156",
-    instance_number: str = "1",
-    image_position_patient: list[float] = (76, -139, 119),
-    slice_location: float = 82.0,
-    window_centre: str = "321",
-    window_width: str = "558",
-    pixel_data: np.ndarray = None,
-) -> Dataset:
+TAGS_DICT = {
+    "instance_creation_time": "180048.910",
+    "sop_instance_uid": "1.3.46.670589.11.38023.5.0.7404.2023012517580650156",
+    "instance_number": "1",
+    "image_position_patient": (76.0, -139.0, 119.0),
+    "slice_location": 82.0,
+    "window_centre": "321",
+    "window_width": "558",
+    "pixel_data": None,
+}
+
+
+def generate_dicom_dataset(tag_values: dict = TAGS_DICT, **kwargs) -> Dataset:
     """
-    Write a single fake DICOM image
+    Write a single fake DICOM image with customisable tags.
 
     Elements that vary between slices are exposed as arguments.  Values for
     these can be obtained from the dicom_variables.json file.
+
+    :param tag_values: A dictionary of tag values to use for the DICOM image. Uses a default set of
+        tags if not provided.
+    :param kwargs: Additional tags to set in the DICOM image. These need to be valid DICOM tags.
+        E.g. generate_dicom_dataset(Manufacturer="cool company", Modality="CT")
+    :return: A pydicom Dataset object representing the DICOM image.
+    :raises ValueError: If an invalid DICOM tag is provided.
     """
+    instance_creation_time = tag_values["instance_creation_time"]
+    sop_instance_uid = tag_values["sop_instance_uid"]
+    instance_number = tag_values["instance_number"]
+    image_position_patient = tag_values["image_position_patient"]
+    slice_location = tag_values["slice_location"]
+    window_centre = tag_values["window_centre"]
+    window_width = tag_values["window_width"]
+    pixel_data = tag_values["pixel_data"]
+
     if pixel_data is None:
         pixel_data = np.zeros((256, 256))
+
+    ds = _generate_default_dicom_dataset()
+    ds.InstanceCreationTime = instance_creation_time
+    ds.SOPInstanceUID = sop_instance_uid
+
+    # Referenced Performed Procedure Step Sequence: Referenced Performed Procedure Step 1
+    ds.ReferencedPerformedProcedureStepSequence[0].InstanceNumber = instance_number
+
+    ds.ImagePositionPatient = list(image_position_patient)
+    ds.SliceLocation = slice_location
+    ds.WindowCenter = window_centre
+    ds.WindowWidth = window_width
+    ds.PixelData = pixel_data.tobytes()
+
+    # Handle any additional tags
+    for key, value in kwargs.items():
+        # Check if tag is DICOM compliant
+        if dictionary_has_tag(key):
+            setattr(ds, key, value)
+        else:
+            msg = f"Tag {key} is not a valid DICOM tag"
+            raise ValueError(msg)
+
+    return ds
+
+
+def _generate_default_dicom_dataset() -> Dataset:
+    """
+    Write a single fake DICOM image, with default values taken from
+    data/defualt_dicom_tags.json.
+    """
+    default_variables_path = importlib.resources.files("pytest_pixl").joinpath(
+        "data/default_dicom_tags.json"
+    )
+    variables = json.loads(default_variables_path.open("r").read())
+    ds = Dataset.from_json(variables)
+    # Not sure why these weren't carried over to the JSON
+    ds.is_implicit_VR = True
+    ds.is_little_endian = True
+    return ds
+
+
+# Type alias for a DICOM tag
+Tag: TypeAlias = tuple[Union[int, str, tuple[int, int]], str, Any]
+
+
+def add_private_tags(ds: Dataset, private_tags: list[Tag]) -> None:
+    """
+    Add private tags to an existing DICOM dataset.
+
+    This uses pydicom.Dataset.private_block
+
+    :param ds: The DICOM dataset to add the private tags to.
+    :type ds: pydicom.Dataset
+    :param private_tags: A list of custom tags to add to the DICOM dataset. Each tag should be a
+        tuple of the form (tag_id, VR, value).
+    :type private_tags: list[tuple[Union[int, str, tuple[int, int]], str, Any]]
+    """
+    for tag_id, vr, value in private_tags:
+        ds.add_new(tag_id, vr, value)
+
+
+def _create_default_json(json_file: Path) -> None:  # noqa: PLR0915 (too many statements)
+    """
+    Create a DICOM dataset with default values and save it to a JSON file.
+    This was used to create the default_dicom_tags.json file, and is not intended to be actively
+    used, but is included here for reference.
+
+    :param json_file: The path to save the JSON file to.
+    """
+    pixel_data = np.zeros((256, 256))
 
     # File meta info data elements
     file_meta = FileMetaDataset()
@@ -76,10 +168,10 @@ def generate_dicom_dataset(  # noqa: PLR0913, PLR0915
     ds.SpecificCharacterSet = "ISO_IR 100"
     ds.ImageType = ["ORIGINAL", "PRIMARY", "M_FFE", "M", "FFE"]
     ds.InstanceCreationDate = "20230125"
-    ds.InstanceCreationTime = instance_creation_time
+    ds.InstanceCreationTime = "180048.910"
     ds.InstanceCreatorUID = "1.3.46.670589.11.89.5"
     ds.SOPClassUID = "1.2.840.10008.5.1.4.1.1.4"
-    ds.SOPInstanceUID = sop_instance_uid
+    ds.SOPInstanceUID = "1.3.46.670589.11.38023.5.0.7404.2023012517580650156"
     ds.StudyDate = "20230101"
     ds.SeriesDate = "20230101"
     ds.AcquisitionDate = "20230101"
@@ -121,7 +213,7 @@ def generate_dicom_dataset(  # noqa: PLR0913, PLR0915
     refd_performed_procedure_step1.ReferencedSOPInstanceUID = (
         "1.3.46.670589.11.38023.5.0.14068.2023012517090204001"
     )
-    refd_performed_procedure_step1.InstanceNumber = instance_number
+    refd_performed_procedure_step1.InstanceNumber = "1"
 
     # Referenced Image Sequence
     refd_image_sequence = Sequence()
@@ -209,7 +301,7 @@ def generate_dicom_dataset(  # noqa: PLR0913, PLR0915
     ds.SeriesNumber = "901"
     ds.AcquisitionNumber = "9"
     ds.InstanceNumber = "1"
-    ds.ImagePositionPatient = list(image_position_patient)
+    ds.ImagePositionPatient = [76, -139, 119]
     ds.ImageOrientationPatient = [
         -0.0065220510587,
         0.99990475177764,
@@ -223,7 +315,7 @@ def generate_dicom_dataset(  # noqa: PLR0913, PLR0915
     ds.TemporalPositionIdentifier = "1"
     ds.NumberOfTemporalPositions = "1"
     ds.PositionReferenceIndicator = ""
-    ds.SliceLocation = slice_location
+    ds.SliceLocation = 82.0
     ds.SamplesPerPixel = 1
     ds.PhotometricInterpretation = "MONOCHROME2"
     ds.Rows = 256
@@ -233,8 +325,8 @@ def generate_dicom_dataset(  # noqa: PLR0913, PLR0915
     ds.BitsStored = 12
     ds.HighBit = 11
     ds.PixelRepresentation = 0
-    ds.WindowCenter = window_centre
-    ds.WindowWidth = window_width
+    ds.WindowCenter = "321"
+    ds.WindowWidth = "558"
     ds.RescaleIntercept = "0.0"
     ds.RescaleSlope = "5.47863247863247"
     ds.RescaleType = "normalized"
@@ -312,10 +404,12 @@ def generate_dicom_dataset(  # noqa: PLR0913, PLR0915
     real_world_value_mapping1.RealWorldValueSlope = 5.478632478632479
 
     ds.PresentationLUTShape = "IDENTITY"
-    ds.PixelData = pixel_data
+    ds.PixelData = pixel_data.tobytes()
 
     ds.file_meta = file_meta
     ds.is_implicit_VR = True
     ds.is_little_endian = True
 
-    return ds
+    # Export as JSON dictionary
+    with Path(json_file, encoding="utf-8").open("w") as f:
+        json.dump(ds.to_json_dict(), f, ensure_ascii=False, indent=4)
