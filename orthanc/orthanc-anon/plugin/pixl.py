@@ -286,9 +286,10 @@ def ReceivedInstanceCallback(receivedDicom: bytes, origin: str) -> Any:
         dataset = anonymise_dicom(dataset)
         return orthanc.ReceivedInstanceAction.MODIFY, write_dataset_to_bytes(dataset)
     except PixlSkipMessageError as error:
-        logger.debug("Skipping series: %s", error)
+        logger.debug("Skipping instance: %s", error)
+        return orthanc.ReceivedInstanceAction.DISCARD, None
     except Exception:  # noqa: BLE001
-        orthanc.LogError("Failed to anonymize series due to\n" + traceback.format_exc())
+        orthanc.LogError("Failed to anonymize instance due to\n" + traceback.format_exc())
         return orthanc.ReceivedInstanceAction.DISCARD, None
 
 
