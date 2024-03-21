@@ -31,6 +31,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from aio_pika.abc import AbstractIncomingMessage
+    from typing_extensions import Self
 
     from core.patient_queue.message import Message
     from core.token_buffer.tokens import TokenBucket
@@ -59,33 +60,16 @@ class PixlConsumer(PixlQueueInterface):
     def _url(self) -> str:
         return f"amqp://{self._username}:{self._password}@{self._host}:{self._port}/"
 
-    async def run(self) -> None:
-        """Processes messages from queue asynchronously."""
-        # Run until cancelled, if disconnects, will reconnect at the start of the try loop
-        while True:
-            connection = None
-            try:
-                # connect may be less blocking than connect_robust?
-                connection = await aio_pika.connect(self._url, loop=asyncio.get_event_loop())
-                channel = await connection.channel()
-                # Set number of messages in flight
-                max_in_flight = config("PIXL_MAX_MESSAGES_IN_FLIGHT", cast=int)
-                logger.info("Pika will consume up to %s messages concurrently", max_in_flight)
-                await channel.set_qos(prefetch_count=max_in_flight)
-                queue = await channel.declare_queue(self.queue_name)
-
-                await queue.consume(self._process_message)
-                # Raises CancelledError if task is cancelled
-                await asyncio.Future()
-            except asyncio.CancelledError:
-                logger.exception("Processing messages cancelled")
-                break
-            except Exception:
-                logger.exception("Unexpected error, waiting to reconnect")
-                await asyncio.sleep(10)
-            finally:
-                if connection:
-                    await connection.close()
+    async def __aenter__(self) -> Self:
+        """Establishes connection to queue."""
+        self._connection = await aio_pika.connect_robust(self._url)
+        self._channel = await self._connection.channel()
+        # Set number of messages in flight
+        max_in_flight = config("PIXL_MAX_MESSAGES_IN_FLIGHT", cast=int)
+        logger.info("Pika will consume up to %s messages concurrently", max_in_flight)
+        await self._channel.set_qos(prefetch_count=max_in_flight)
+        self._queue = await self._channel.declare_queue(self.queue_name)
+        return self
 
     async def _process_message(self, message: AbstractIncomingMessage) -> None:
         if not self.token_bucket.has_token:
@@ -94,17 +78,29 @@ class PixlConsumer(PixlQueueInterface):
             return
 
         pixl_message = deserialise(message.body)
-        # Early acknoledge as we don't requeue anyway at this point
+        # Early acknowledge as we don't requeue anyway at this point
         await message.ack()
-        logger.info("Starting message %s", pixl_message)
+        logger.warning("Starting message %s", pixl_message)
         try:
             await self._callback(pixl_message)
-            logger.info("Finished message %s", pixl_message)
+            logger.warning("Finished message %s", pixl_message)
         except Exception:
             logger.exception(
                 "Failed to process %s" "Not re-queuing message",
                 pixl_message,
             )
+        finally:
+            await message.ack()
+
+    async def run(self) -> None:
+        """Processes messages from queue synchronously for now."""
+        async with self._queue.iterator() as queue_iter:
+            message: aio_pika.abc.AbstractIncomingMessage
+            async for message in queue_iter:
+                await self._process_message(message)
+
+    async def __aexit__(self, *args: object, **kwargs: Any) -> None:
+        """Requirement for the asynchronous context manager"""
 
 
 class PixlBlockingConsumer(PixlBlockingInterface):

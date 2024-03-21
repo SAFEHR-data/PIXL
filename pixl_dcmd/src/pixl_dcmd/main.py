@@ -60,15 +60,11 @@ def anonymise_dicom(dataset: Dataset) -> Dataset:
     - applying tag operations based on the config file
     Returns anonymised dataset.
     """
-    slug = (
-        dataset.get_private_item(
-            DICOM_TAG_PROJECT_NAME.group_id,
-            DICOM_TAG_PROJECT_NAME.offset_id,
-            DICOM_TAG_PROJECT_NAME.creator_string,
-        )
-        .value.decode("utf-8")
-        .strip()
-    )
+    slug = dataset.get_private_item(
+        DICOM_TAG_PROJECT_NAME.group_id,
+        DICOM_TAG_PROJECT_NAME.offset_id,
+        DICOM_TAG_PROJECT_NAME.creator_string,
+    ).value
     project_config = load_project_config(slug)
     logger.error(f"Received instance for project {slug}")
     # Drop anything that is not an X-Ray
