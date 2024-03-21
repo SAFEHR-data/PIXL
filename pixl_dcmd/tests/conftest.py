@@ -24,9 +24,7 @@ from typing import Optional
 import pytest
 import pytest_pixl.dicom
 import requests
-import yaml
 from core.db.models import Base, Extract, Image
-from core.project_config import TagOperations
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -173,44 +171,3 @@ def mock_header_record_path(monkeypatch, tmpdir):
         return os.environ.get(key, default)
 
     monkeypatch.setattr(os.environ, "get", mock_get)
-
-
-@pytest.fixture(scope="module")
-def tag_ops_with_manufacturer_overrides(tmp_path_factory):
-    base_tags = [
-        {"name": "tag1", "group": 0x001, "element": 0x1000, "op": "delete"},
-        {"name": "tag2", "group": 0x002, "element": 0x1001, "op": "delete"},
-        {"name": "tag3", "group": 0x003, "element": 0x1002, "op": "delete"},
-    ]
-    manufacturer_overrides_tags = [
-        {
-            "manufacturer": "manufacturer_1",
-            "tags": [
-                # Override tag1 for manufacturer 1
-                {"name": "tag1", "group": 0x001, "element": 0x1000, "op": "keep"},
-                {"name": "tag4", "group": 0x004, "element": 0x1011, "op": "delete"},
-                {"name": "tag5", "group": 0x005, "element": 0x1012, "op": "delete"},
-            ],
-        },
-        {
-            "manufacturer": "manufacturer_2",
-            "tags": [
-                {"name": "tag6", "group": 0x006, "element": 0x1100, "op": "keep"},
-                {"name": "tag7", "group": 0x007, "element": 0x1111, "op": "delete"},
-                # Override tag3 for manufacturer 2
-                {"name": "tag3", "group": 0x003, "element": 0x1002, "op": "keep"},
-            ],
-        },
-    ]
-
-    tmpdir = tmp_path_factory.mktemp("tag-operations")
-    base_tags_path = tmpdir / "base.yaml"
-    with open(base_tags_path, "w") as f:
-        f.write(yaml.dump(base_tags))
-    manufacturer_overrides_path = tmpdir / "manufacturer_overrides.yaml"
-    with open(manufacturer_overrides_path, "w") as f:
-        f.write(yaml.dump(manufacturer_overrides_tags))
-
-    return TagOperations(
-        base=base_tags_path, manufacturer_overrides=manufacturer_overrides_path
-    )
