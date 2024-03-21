@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import subprocess
 from functools import lru_cache
-from typing import Any
 
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
@@ -43,14 +42,6 @@ class AzureKeyVault:
         - AZURE_KEY_VAULT_NAME
         """
         self._check_envvars()
-        self.kv_name = config("AZURE_KEY_VAULT_NAME")
-        self.client = self._connect_to_keyvault()
-
-    def _connect_to_keyvault(self) -> SecretClient:
-        key_vault_uri = f"https://{self.kv_name}.vault.azure.net"
-
-        credentials = DefaultAzureCredential()
-        return SecretClient(vault_url=key_vault_uri, credential=credentials)
 
     def fetch_secret(self, secret_name: str) -> str:
         """
@@ -58,7 +49,7 @@ class AzureKeyVault:
         :param secret_name: the name of the secret to fetch
         :return: the requested secret's value
         """
-        return _fetch_secret(self.client, secret_name)
+        return _fetch_secret(secret_name)
 
     def _check_envvars(self) -> None:
         """
@@ -79,7 +70,8 @@ def _check_system_envvar(var_name: str) -> None:
         raise OSError(error_msg)
 
 
-def _fetch_secret(client: SecretClient, secret_name: str) -> str:
+@lru_cache
+def _fetch_secret(secret_name: str) -> str:
     """
     Fetch a secret from the Azure Key Vault instance specified in the environment variables.
     This method is cached to avoid unnecessary calls to the Key Vault using the LRU (least
@@ -88,17 +80,16 @@ def _fetch_secret(client: SecretClient, secret_name: str) -> str:
     This helper is intentionally defined outside the Azure Keyvault to prevent memory leaks (see
     ruff rule B019).
 
-    :param client: a SecretClient instance
     :param secret_name: the name of the secret to fetch
     :return: the requested secret's value
     """
+    kv_name = config("AZURE_KEY_VAULT_NAME")
+    key_vault_uri = f"https://{kv_name}.vault.azure.net"
 
-    @lru_cache
-    def _secret(name: str) -> Any:
-        """Cache using only hashable arguments, can use the client as it is in the parent scope."""
-        return client.get_secret(name).value
+    credentials = DefaultAzureCredential()
+    client = SecretClient(vault_url=key_vault_uri, credential=credentials)
 
-    secret = _secret(secret_name)
+    secret = client.get_secret(secret_name).value
 
     if secret is None:
         msg = f"Azure Key Vault secret {secret_name} is None"
