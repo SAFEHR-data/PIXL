@@ -78,7 +78,9 @@ def anonymise_dicom(dataset: Dataset) -> Dataset:
     logger.info("Removed overlays")
 
     # Merge tag schemes
-    all_tags = merge_tag_schemes(project_config.tag_operation_files)
+    all_tags = merge_tag_schemes(
+        project_config.tag_operation_files, manufacturer=dataset.Manufacturer
+    )
 
     # Apply scheme to instance
     dataset = apply_tag_scheme(dataset, all_tags)
