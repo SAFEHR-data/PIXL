@@ -18,7 +18,7 @@ project:
 
 tag_operation_files:
     base: "uclh-nasogastric-tube-project-ngt-only-full-dataset.yaml"
-
+    manufacturer_overrides: null
 destination:
     dicom: "ftps"
     parquet: "ftps"
