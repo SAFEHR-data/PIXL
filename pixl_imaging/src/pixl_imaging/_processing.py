@@ -33,7 +33,7 @@ from loguru import logger
 
 async def process_message(message: Message) -> None:
     """Process message from queue."""
-    logger.debug("Processing: %s", message)
+    logger.debug("Processing: {}", message)
 
     study = ImagingStudy.from_message(message)
     orthanc_raw = PIXLRawOrthanc()
@@ -75,11 +75,11 @@ async def process_message(message: Message) -> None:
         try:
             job_state = orthanc_raw.job_state(job_id=job_id)
         except requests.exceptions.HTTPError:
-            logger.debug("Could not find job for study: %s", message.accession_number)
+            logger.debug("Could not find job for study: {}", message.accession_number)
 
     # Now that instance has arrived in orthanc raw, we can set its project name tag via the API
     studies_with_tags = orthanc_raw.query_local(study.orthanc_query_dict)
-    logger.debug("Local instances with matching tags: %s", studies_with_tags)
+    logger.debug("Local instances with matching tags: {}", studies_with_tags)
 
     _add_project_to_study(message.project_name, orthanc_raw, studies_with_tags)
 
@@ -123,11 +123,11 @@ def _add_project_to_study(
 ) -> None:
     if len(studies_with_tags) != 1:
         logger.error(
-            "Got %s studies with matching accession number and patient ID, expected 1",
+            "Got {} studies with matching accession number and patient ID, expected 1",
             len(studies_with_tags),
         )
     for study in studies_with_tags:
-        logger.debug("Study ID %s", study)
+        logger.debug("Study ID {}", study)
         orthanc_raw.modify_private_tags_by_study(
             study_id=study,
             private_creator=DICOM_TAG_PROJECT_NAME.creator_string,
