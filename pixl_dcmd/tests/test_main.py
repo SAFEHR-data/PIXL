@@ -145,12 +145,10 @@ def test_merge_tag_schemes_single_file():
     merge_tag_schemes([tag_ops_file])
 
 
-def test_merge_multiple_tag_schemes():
+def test_merge_multiple_tag_schemes_not_implemented():
     base_tag_ops_file = (
         pathlib.Path(__file__).parents[2]
         / "projects/configs/tag-operations/test-extract-uclh-omop-cdm.yaml"
     )
-    # Merging the same file twice should be the same as merging it once
-    expected = merge_tag_schemes([base_tag_ops_file])
-    result = merge_tag_schemes([base_tag_ops_file, base_tag_ops_file])
-    assert result == expected
+    with pytest.raises(NotImplementedError):
+        merge_tag_schemes([base_tag_ops_file, base_tag_ops_file])
