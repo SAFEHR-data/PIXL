@@ -18,7 +18,7 @@ project:
 
 tag_operation_files: # DICOM tag anonymisation operations
     base: "base-tag-operations.yaml" # Base schema
-    manufacturer_overrides: "mri-diffusion.yaml" # Manufactuer-dependendent overrides
+    manufacturer_overrides: none # Manufactuer-dependendent overrides
 
 destination:
     dicom: "ftps" # alternatives: "none"
