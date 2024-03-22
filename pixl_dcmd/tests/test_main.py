@@ -29,6 +29,7 @@ from pixl_dcmd.main import (
     apply_tag_scheme,
     merge_tag_schemes,
     remove_overlays,
+    _scheme_list_to_dict,
 )
 
 
@@ -39,7 +40,7 @@ def tag_scheme() -> dict:
         pathlib.Path(__file__).parents[2]
         / "projects/configs/tag-operations/test-extract-uclh-omop-cdm.yaml"
     )
-    return yaml.safe_load(tag_file.read_text())
+    return _scheme_list_to_dict(yaml.safe_load(tag_file.read_text()))
 
 
 def test_remove_overlay_plane() -> None:
