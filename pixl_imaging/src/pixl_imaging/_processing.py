@@ -15,9 +15,7 @@ from __future__ import annotations
 
 import logging
 import os
-from asyncio import sleep
 from dataclasses import dataclass
-from time import time
 from typing import TYPE_CHECKING, Any
 
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
@@ -50,20 +48,12 @@ async def process_message(message: Message) -> None:
         raise RuntimeError
 
     # Get image from VNA for patient and accession number
-    job_id = orthanc_raw.retrieve_from_remote(query_id=query_id)  # C-Move
-    job_state = "Pending"
-    start_time = time()
-
-    while job_state != "Success":
-        if (time() - start_time) > config("PIXL_DICOM_TRANSFER_TIMEOUT", cast=float):
-            msg = (
-                f"Failed to transfer {message} within "
-                f"{config('PIXL_DICOM_TRANSFER_TIMEOUT')} seconds"
-            )
-            raise TimeoutError(msg)
-
-        await sleep(0.1)
-        job_state = orthanc_raw.job_state(job_id=job_id)
+    timeout = config("PIXL_DICOM_TRANSFER_TIMEOUT", cast=float)
+    try:
+        await orthanc_raw.wait_for_job_success(query_id, timeout)
+    except TimeoutError as te:
+        msg = f"Failed to transfer {message} within {timeout} seconds"
+        raise TimeoutError(msg) from te
 
     # Now that instance has arrived in orthanc raw, we can set its project name tag via the API
     studies_with_tags = orthanc_raw.query_local(study.orthanc_query_dict)
