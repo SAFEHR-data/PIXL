@@ -72,6 +72,7 @@ class _Destination(BaseModel):
     parquet: _DestinationEnum
 
     @field_validator("parquet")
+    @classmethod
     def valid_parquet_destination(cls, v: str) -> str:
         if v == "dicomweb":
             msg = "Parquet destination cannot be dicomweb"
