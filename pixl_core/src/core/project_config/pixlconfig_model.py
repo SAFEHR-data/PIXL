@@ -56,7 +56,7 @@ def _load_and_validate(filename: Path) -> PixlConfig | Any:
 
 class _Project(BaseModel):
     name: str
-    azure_kv_alias: Optional[str]
+    azure_kv_alias: Optional[str] = None
     modalities: list[str]
 
 
@@ -67,6 +67,7 @@ class TagOperations(BaseModel):
     manufacturer_overrides: Optional[Path]
 
     @field_validator("base")
+    @classmethod
     def _valid_tag_operations(cls, tag_ops_files: list[str]) -> list[Path]:
         if isinstance(tag_ops_files, str):
             tag_ops_files = [tag_ops_files]
@@ -74,17 +75,28 @@ class TagOperations(BaseModel):
             msg = "There should be at least 1 tag operations file"
             raise ValueError(msg)
 
-        # Pydantic will automatically check if the file exists
-        return [
+        # Pydantic does not appear to automatically check if the file exists
+        files = [
             PROJECT_CONFIGS_DIR / "tag-operations" / tag_ops_file for tag_ops_file in tag_ops_files
         ]
+        for f in files:
+            if not f.exists():
+                # For pydantic, you must raise a ValueError (or AssertionError)
+                raise ValueError from FileNotFoundError(f)
+        return files
 
     @field_validator("manufacturer_overrides")
+    @classmethod
     def _valid_manufacturer_overrides(cls, tags_file: str) -> Optional[Path]:
-        # Pydantic will automatically check if the file exists
         if not tags_file:
             return None
-        return PROJECT_CONFIGS_DIR / "tag-operations" / tags_file
+
+        tags_file_path = PROJECT_CONFIGS_DIR / "tag-operations" / tags_file
+        # Pydantic does not appear to automatically check if the file exists
+        if not tags_file_path.exists():
+            # For pydantic, you must raise a ValueError (or AssertionError)
+            raise ValueError from FileNotFoundError(tags_file_path)
+        return tags_file_path
 
 
 class _DestinationEnum(str, Enum):
@@ -99,6 +111,7 @@ class _Destination(BaseModel):
     parquet: _DestinationEnum
 
     @field_validator("parquet")
+    @classmethod
     def valid_parquet_destination(cls, v: str) -> str:
         if v == "dicomweb":
             msg = "Parquet destination cannot be dicomweb"
