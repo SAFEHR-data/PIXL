@@ -16,16 +16,15 @@ from __future__ import annotations
 from io import BytesIO
 from logging import getLogger
 from os import PathLike
-from pathlib import Path
-from typing import Any, BinaryIO, Optional, Union
+from typing import Any, BinaryIO, Union
 
 import requests
-import yaml
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
-from core.project_config import TagOperations, load_project_config
+from core.project_config import load_project_config
 from decouple import config
 from pydicom import Dataset, dcmwrite
 
+from pixl_dcmd._tagschemes import merge_tag_schemes
 from pixl_dcmd._database import add_hashed_identifier_and_save, query_db
 from pixl_dcmd._datetime import combine_date_time, format_date_time
 from pixl_dcmd._deid_helpers import get_bounded_age, get_encrypted_uid
@@ -94,65 +93,6 @@ def anonymise_dicom(dataset: Dataset) -> Dataset:
 
     # Write anonymised instance to disk.
     return dataset
-
-
-def merge_tag_schemes(
-    tag_operation_files: TagOperations, manufacturer: Optional[str] = None
-) -> list[dict]:
-    """Merge multiple tag schemes into a single scheme."""
-    all_tags = _load_base_tags(tag_operation_files.base)
-
-    if tag_operation_files.manufacturer_overrides is not None:
-        manufacturer_tags = _load_manufacturer_overrides(
-            tag_operation_files.manufacturer_overrides, manufacturer
-        )
-        all_tags.update(manufacturer_tags)
-
-    return list(all_tags.values())
-
-
-def _load_scheme(tag_operation_file: Path) -> list[dict]:
-    with tag_operation_file.open() as file:
-        # Load tag operations scheme from YAML.
-        tags = yaml.safe_load(file)
-        if not isinstance(tags, list) or not all(
-            [isinstance(tag, dict) for tag in tags]
-        ):
-            raise ValueError("Tag operation file must contain a list of dictionaries")
-        return tags
-
-
-def _load_base_tags(base_tags_files: list[Path]) -> dict[tuple, dict]:
-    base_tags = [
-        _scheme_list_to_dict(_load_scheme(scheme)) for scheme in base_tags_files
-    ]
-    merged_tags = {}
-    for tags in base_tags:
-        merged_tags.update(tags)
-    return merged_tags
-
-
-def _load_manufacturer_overrides(
-    manufacturer_overrides_file: Path, manufacturer: Optional[str]
-) -> dict[tuple, dict]:
-    manufacturer_overrides = _load_scheme(manufacturer_overrides_file)
-
-    # Keep only the overrides for the specified manufacturer
-    tag_list = [
-        tag
-        for override in manufacturer_overrides
-        if override["manufacturer"] == manufacturer
-        for tag in override["tags"]
-    ]
-    return _scheme_list_to_dict(tag_list)
-
-
-def _scheme_list_to_dict(tags: list[dict]) -> dict[tuple, dict]:
-    """
-    Convert a list of tag dictionaries to a dictionary of dictionaries.
-    Each group/element pair uniquely identifies a tag.
-    """
-    return {(tag["group"], tag["element"]): tag for tag in tags}
 
 
 def remove_overlays(dataset: Dataset) -> Dataset:
