@@ -63,16 +63,19 @@ class _Project(BaseModel):
 class TagOperations(BaseModel):
     """Tag operations files for a project. At least a base file is required."""
 
-    base: Path
+    base: list[Path]
     manufacturer_overrides: Optional[Path]
 
     @field_validator("base")
-    def _valid_base_tag_operations(cls, base_file: str) -> Path:
-        if not base_file:
-            msg = "At least the base tag operations file should be defined."
+    def _valid_tag_operations(cls, tag_ops_files: list[str]) -> list[Path]:
+        if not tag_ops_files or len(tag_ops_files) == 0:
+            msg = "There should be at least 1 tag operations file"
             raise ValueError(msg)
+
         # Pydantic will automatically check if the file exists
-        return PROJECT_CONFIGS_DIR / "tag-operations" / base_file
+        return [
+            PROJECT_CONFIGS_DIR / "tag-operations" / tag_ops_file for tag_ops_file in tag_ops_files
+        ]
 
     @field_validator("manufacturer_overrides")
     def _valid_manufacturer_overrides(cls, tags_file: str) -> Optional[Path]:
