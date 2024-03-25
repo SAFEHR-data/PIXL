@@ -60,7 +60,7 @@ class _Project(BaseModel):
     modalities: list[str]
 
 
-class TagOperations(BaseModel):
+class TagOperationFiles(BaseModel):
     """Tag operations files for a project. At least a base file is required."""
 
     base: list[Path]
@@ -123,5 +123,5 @@ class PixlConfig(BaseModel):
     """Project-specific configuration for Pixl."""
 
     project: _Project
-    tag_operation_files: TagOperations
+    tag_operation_files: TagOperationFiles
     destination: _Destination
