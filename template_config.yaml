@@ -17,7 +17,8 @@ project:
     modalities: ["DX", "CR"] # DICOM dataset modalities to retain
 
 tag_operation_files: # DICOM tag anonymisation operations
-    base: "base-tag-operations.yaml" # Base schema
+    base:
+        - "base-tag-operations.yaml" # Base schema
     manufacturer_overrides: none # Manufactuer-dependendent overrides
 
 destination:

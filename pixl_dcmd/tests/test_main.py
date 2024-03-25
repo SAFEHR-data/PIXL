@@ -139,7 +139,7 @@ def test_can_nifti_convert_post_anonymisation(
     assert np.all(anon_nifti.get_fdata() == ident_nifti.get_fdata())
 
 
-BASE_ONLY_TAG_OPS = TagOperations(base="base.yaml", manufacturer_overrides=None)
+BASE_ONLY_TAG_OPS = TagOperations(base=["base.yaml"], manufacturer_overrides=None)
 
 
 @pytest.fixture()
@@ -201,7 +201,7 @@ def tag_ops_with_manufacturer_overrides(tmp_path_factory):
         f.write(yaml.dump(manufacturer_overrides_tags))
 
     return TagOperations(
-        base=str(base_tags_path),
+        base=[str(base_tags_path)],
         manufacturer_overrides=str(manufacturer_overrides_path),
     )
 

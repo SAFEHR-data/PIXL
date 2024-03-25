@@ -18,7 +18,8 @@ project:
     modalities: ["DX", "CR"]
 
 tag_operation_files:
-    base: "test-extract-uclh-omop-cdm.yaml"
+    base:
+        - "test-extract-uclh-omop-cdm.yaml"
     manufacturer_overrides: "mri-diffusion.yaml"
 
 destination:

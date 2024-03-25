@@ -63,11 +63,11 @@ class _Project(BaseModel):
 class TagOperations(BaseModel):
     """Tag operations files for a project. At least a base file is required."""
 
-    base: str | list[Path]
+    base: list[Path]
     manufacturer_overrides: Optional[Path]
 
     @field_validator("base")
-    def _valid_tag_operations(cls, tag_ops_files: str | list[str]) -> list[Path]:
+    def _valid_tag_operations(cls, tag_ops_files: list[str]) -> list[Path]:
         if isinstance(tag_ops_files, str):
             tag_ops_files = [tag_ops_files]
         if not tag_ops_files or len(tag_ops_files) == 0:
