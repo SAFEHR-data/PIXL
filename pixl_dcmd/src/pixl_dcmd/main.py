@@ -31,7 +31,7 @@ from dicomanonymizer.simpledicomanonymizer import (
     actions_map_name_functions,
 )
 
-from pixl_dcmd._database import add_hashed_identifier_and_save, query_db
+from pixl_dcmd._database import add_hashed_identifier_and_save_to_db, query_db
 import yaml
 
 DicomDataSetType = Union[Union[str, bytes, PathLike[Any]], BinaryIO]
@@ -202,11 +202,10 @@ def _secure_hash(dataset: Dataset, tag: tuple, mrn: str, accession_number: str) 
             # Query PIXL database
             existing_image = query_db(mrn, accession_number)
             # Insert the hashed_value into the PIXL database
-            add_hashed_identifier_and_save(existing_image, hashed_value)
+            add_hashed_identifier_and_save_to_db(existing_image, hashed_value)
         elif dataset[grp, el].VR == "SH":
             pat_value = str(dataset[grp, el].value)
             hashed_value = _hash_values(pat_value, 16)
-            # Do we want to store other hashed values in the db?
 
         dataset[grp, el].value = hashed_value
 
