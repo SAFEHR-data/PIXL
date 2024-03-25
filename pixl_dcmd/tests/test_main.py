@@ -14,34 +14,32 @@
 from __future__ import annotations
 
 import pathlib
+from pathlib import Path
 
 import nibabel
 import numpy as np
 import pydicom
 import pytest
 import sqlalchemy
-import yaml
 from core.db.models import Image
-from core.project_config import TagOperations
+from core.project_config import load_project_config, load_tag_operations
+from decouple import config
 from pixl_dcmd.main import (
-    _load_scheme,
     apply_tag_scheme,
-    merge_tag_schemes,
     remove_overlays,
 )
 from pydicom.data import get_testdata_file
 from pytest_pixl.helpers import run_subprocess
 
-BASE_TAGS_FILE = (
-    pathlib.Path(__file__).parents[2]
-    / "projects/configs/tag-operations/test-extract-uclh-omop-cdm.yaml"
-)
+PROJECT_CONFIGS_DIR = Path(config("PROJECT_CONFIGS_DIR"))
+TEST_CONFIG = "test-extract-uclh-omop-cdm"
 
 
 @pytest.fixture(scope="module")
 def tag_scheme() -> list[dict]:
-    """Read the tag scheme from orthanc raw."""
-    return _load_scheme(BASE_TAGS_FILE)
+    """Base tag scheme for testing."""
+    tag_ops = load_tag_operations(load_project_config(TEST_CONFIG))
+    return tag_ops.base.tags
 
 
 def test_remove_overlay_plane() -> None:
@@ -137,90 +135,3 @@ def test_can_nifti_convert_post_anonymisation(
     assert anon_nifti.shape == ident_nifti.shape
     assert np.all(anon_nifti.header.get_sform() == ident_nifti.header.get_sform())
     assert np.all(anon_nifti.get_fdata() == ident_nifti.get_fdata())
-
-
-BASE_ONLY_TAG_OPS = TagOperations(base=["base.yaml"], manufacturer_overrides=None)
-
-
-@pytest.fixture()
-def base_only_tag_scheme() -> TagOperations:
-    return TagOperations(base=str(BASE_TAGS_FILE), manufacturer_overrides=None)
-
-
-def test_merge_base_only_tags(base_only_tag_scheme):
-    """
-    GIVEN TagOperations with only a base file
-    WHEN the tag schemes are merged
-    THEN the result should be the same as the base file
-    """
-    tags = merge_tag_schemes(base_only_tag_scheme)
-    expected = _load_scheme(BASE_TAGS_FILE)
-    assert tags == expected
-
-
-@pytest.fixture(scope="module")
-def tag_ops_with_manufacturer_overrides(tmp_path_factory):
-    """
-    TagOperations with a base file and manufacturer overrides, where the base file has 3 tags
-    and the manufacturer overrides ovverrides 1 of them and has 2 extra tags.
-    This is intetnionally not added in conftest.py because the `PROJECT_CONFIG_DIR` envvar nees to
-    be set before importing core.project_config.TagOperations.
-    """
-    base_tags = [
-        {"name": "tag1", "group": 0x001, "element": 0x1000, "op": "delete"},
-        {"name": "tag2", "group": 0x002, "element": 0x1001, "op": "delete"},
-        {"name": "tag3", "group": 0x003, "element": 0x1002, "op": "delete"},
-    ]
-    manufacturer_overrides_tags = [
-        {
-            "manufacturer": "manufacturer_1",
-            "tags": [
-                # Override tag1 for manufacturer 1
-                {"name": "tag1", "group": 0x001, "element": 0x1000, "op": "keep"},
-                {"name": "tag4", "group": 0x004, "element": 0x1011, "op": "delete"},
-                {"name": "tag5", "group": 0x005, "element": 0x1012, "op": "delete"},
-            ],
-        },
-        {
-            "manufacturer": "manufacturer_2",
-            "tags": [
-                {"name": "tag6", "group": 0x006, "element": 0x1100, "op": "keep"},
-                {"name": "tag7", "group": 0x007, "element": 0x1111, "op": "delete"},
-                # Override tag3 for manufacturer 2
-                {"name": "tag3", "group": 0x003, "element": 0x1002, "op": "keep"},
-            ],
-        },
-    ]
-
-    tmpdir = tmp_path_factory.mktemp("tag-operations")
-    base_tags_path = tmpdir / "base.yaml"
-    with open(base_tags_path, "w") as f:
-        f.write(yaml.dump(base_tags))
-    manufacturer_overrides_path = tmpdir / "manufacturer_overrides.yaml"
-    with open(manufacturer_overrides_path, "w") as f:
-        f.write(yaml.dump(manufacturer_overrides_tags))
-
-    return TagOperations(
-        base=[str(base_tags_path)],
-        manufacturer_overrides=str(manufacturer_overrides_path),
-    )
-
-
-def test_manufacturer_overrides_tag_scheme(tag_ops_with_manufacturer_overrides):
-    """
-    GIVEN TagOperations with a base file and manufacturer overrides, where the base file has 3 tags
-        and the manufacturer overrides ovverrides 1 of them and has 2 extra tags
-    WHEN the tag schemes are merged
-    THEN the result should be the base file with the manufacturer overrides applied
-    """
-    tags = merge_tag_schemes(
-        tag_ops_with_manufacturer_overrides, manufacturer="manufacturer_1"
-    )
-
-    # Check that we have the tags
-    assert len(tags) == 5
-    assert [tag["name"] for tag in tags] == ["tag1", "tag2", "tag3", "tag4", "tag5"]
-
-    # Check that the overridden tag has the correct value
-    overridden_tag = next(tag for tag in tags if tag["name"] == "tag1")
-    assert overridden_tag["op"] == "keep"
