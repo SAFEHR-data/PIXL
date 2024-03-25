@@ -39,7 +39,7 @@ TEST_CONFIG = "test-extract-uclh-omop-cdm"
 def tag_scheme() -> list[dict]:
     """Base tag scheme for testing."""
     tag_ops = load_tag_operations(load_project_config(TEST_CONFIG))
-    return tag_ops.base.tags
+    return tag_ops.base[0]
 
 
 def test_remove_overlay_plane() -> None:
