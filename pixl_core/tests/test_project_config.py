@@ -17,6 +17,7 @@ from pathlib import Path
 
 import pytest
 from core.project_config import PixlConfig, load_project_config
+from core.project_config.tagoperations import TagScheme, load_tag_operations
 from decouple import config
 from pydantic import ValidationError
 
@@ -84,3 +85,19 @@ def test_invalid_paths(base_yaml_data):
 def test_all_real_configs(yaml_file):
     """Test that all production configs are valid"""
     load_project_config(yaml_file.stem)
+
+
+def test_load_tag_operations():
+    """Test whether tag operations are correctly loaded."""
+    project_config = load_project_config(TEST_CONFIG)
+    tag_operations = load_tag_operations(project_config)
+    assert len(tag_operations.base) == 1
+    assert isinstance(tag_operations.base[0], TagScheme)
+    assert isinstance(tag_operations.manufacturer_overrides, TagScheme)
+
+
+@pytest.mark.parametrize(("yaml_file"), PROJECT_CONFIGS_DIR.glob("*.yaml"))
+def test_all_real_tagoperations(yaml_file):
+    """Test that all production configs are valid"""
+    project_config = load_project_config(yaml_file.stem)
+    load_tag_operations(project_config)
