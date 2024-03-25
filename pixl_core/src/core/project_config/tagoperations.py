@@ -38,7 +38,7 @@ class TagScheme(BaseModel):
 
 def _load_scheme(tag_operation_file: Path) -> TagScheme | Any:
     yaml_data = yaml.safe_load(tag_operation_file.read_text())
-    return TagScheme.model_validate(yaml_data)
+    return TagScheme(tags=yaml_data)
 
 
 def load_tag_operations(pixl_config: PixlConfig) -> TagOperations:
@@ -54,9 +54,7 @@ def load_tag_operations(pixl_config: PixlConfig) -> TagOperations:
             pixl_config.tag_operation_files.manufacturer_overrides
         )
 
-    return TagOperations(
-        project_config=pixl_config, base=base, manufacturer_overrides=manufacturer_overrides
-    )
+    return TagOperations(base=base, manufacturer_overrides=manufacturer_overrides)
 
 
 class TagOperations(BaseModel):
@@ -69,6 +67,5 @@ class TagOperations(BaseModel):
     :param manufacturer_overrides: Manufacturer overrides for tag schemes.
     """
 
-    project_config: PixlConfig
     base: list[TagScheme]
     manufacturer_overrides: Optional[TagScheme]
