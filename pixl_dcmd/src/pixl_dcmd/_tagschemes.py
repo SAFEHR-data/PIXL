@@ -29,7 +29,7 @@ def merge_tag_schemes(
 
     # Merge base tag schemes
     for base_tags in tag_operations.base:
-        all_tags.update(_scheme_list_to_dict(base_tags.tags))
+        all_tags.update(_scheme_list_to_dict(base_tags))
 
     if tag_operations.manufacturer_overrides is not None:
         manufacturer_tags = [
@@ -38,7 +38,7 @@ def merge_tag_schemes(
             if override["manufacturer"] == manufacturer
             for tag in override["tags"]
         ]
-        all_tags.update(manufacturer_tags)
+        all_tags.update(_scheme_list_to_dict(manufacturer_tags))
 
     return list(all_tags.values())
 
