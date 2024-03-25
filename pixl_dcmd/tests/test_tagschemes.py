@@ -43,7 +43,7 @@ def test_merge_base_only_tags(base_only_tag_scheme):
     assert tags == expected
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture()
 def tag_ops_with_manufacturer_overrides(tmp_path_factory):
     """
     TagOperations with a base file and manufacturer overrides, where the base file has 3 tags

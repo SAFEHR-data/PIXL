@@ -69,8 +69,6 @@ class TagOperationFiles(BaseModel):
     @field_validator("base")
     @classmethod
     def _valid_tag_operations(cls, tag_ops_files: list[str]) -> list[Path]:
-        if isinstance(tag_ops_files, str):
-            tag_ops_files = [tag_ops_files]
         if not tag_ops_files or len(tag_ops_files) == 0:
             msg = "There should be at least 1 tag operations file"
             raise ValueError(msg)
