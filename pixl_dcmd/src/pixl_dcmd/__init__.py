@@ -16,17 +16,21 @@ from __future__ import annotations
 import logging
 
 from pixl_dcmd.main import (
-    apply_tag_scheme,
+    anonymise_dicom_recursively,
+    anonymise_dicom_per_project_config,
+    convert_schema_to_actions,
     enforce_whitelist,
-    remove_overlays,
+    merge_tag_schemes,
     write_dataset_to_bytes,
 )
 
 __all__ = [
-    "remove_overlays",
-    "write_dataset_to_bytes",
-    "apply_tag_scheme",
+    "anonymise_dicom_recursively",
+    "anonymise_dicom_per_project_config",
+    "convert_schema_to_actions",
     "enforce_whitelist",
+    "merge_tag_schemes",
+    "write_dataset_to_bytes",
 ]
 
 logger = logging.getLogger(__name__)

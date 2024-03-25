@@ -27,9 +27,10 @@ from pytest_pixl.helpers import run_subprocess
 
 from core.db.models import Image
 from pixl_dcmd.main import (
-    apply_tag_scheme,
+    anonymise_dicom_recursively,
+    convert_schema_to_actions,
+    enforce_whitelist,
     merge_tag_schemes,
-    remove_overlays,
     _scheme_list_to_dict,
 )
 
@@ -51,7 +52,7 @@ def test_remove_overlay_plane() -> None:
     )
     assert (0x6000, 0x3000) in ds
 
-    ds_minus_overlays = remove_overlays(ds)
+    ds_minus_overlays = enforce_whitelist(ds, {})
     assert (0x6000, 0x3000) not in ds_minus_overlays
 
 
@@ -67,7 +68,8 @@ def test_image_already_exported_throws(rows_in_session, tag_scheme):
     input_dataset = pydicom.dcmread(exported_dicom)
 
     with pytest.raises(sqlalchemy.exc.NoResultFound):
-        apply_tag_scheme(input_dataset, tag_scheme)
+        tag_actions = convert_schema_to_actions(input_dataset, tag_scheme)
+        anonymise_dicom_recursively(input_dataset, ["DX"], tag_actions)
 
 
 def test_pseudo_identifier_processing(rows_in_session, tag_scheme):
@@ -84,7 +86,8 @@ def test_pseudo_identifier_processing(rows_in_session, tag_scheme):
     mrn = "987654321"
     fake_hash = "-".join(list(f"{mrn}{accession_number}"))
     print("fake_hash = ", fake_hash)
-    output_dataset = apply_tag_scheme(input_dataset, tag_scheme)
+    tag_actions = convert_schema_to_actions(input_dataset, tag_scheme)
+    output_dataset = anonymise_dicom_recursively(input_dataset, ["DX"], tag_actions)
     image = (
         rows_in_session.query(Image)
         .filter(Image.accession_number == "AA12345605")
@@ -106,7 +109,8 @@ def test_can_nifti_convert_post_anonymisation(
     # Get test DICOMs from the fixture, anonymise and save
     for dcm_path in directory_of_mri_dicoms.glob("*.dcm"):
         dcm_identifiable = pydicom.dcmread(dcm_path)
-        dcm_anon = apply_tag_scheme(dcm_identifiable, tag_scheme)
+        tag_actions = convert_schema_to_actions(dcm_identifiable, tag_scheme)
+        dcm_anon = anonymise_dicom_recursively(dcm_identifiable, ["MR"], tag_actions)
         pydicom.dcmwrite(anon_dicom_dir / dcm_path.name, dcm_anon)
 
     # Convert the anonymised DICOMs to NIFTI with dcm2niix
@@ -158,7 +162,7 @@ def test_merge_multiple_tag_schemes():
     assert result == expected
 
 
-def test_nested_private_tag_deleted(monkeypatch):
+def test_nested_private_tag_deleted():
     """
     GIVEN a dicom image that has a sequence tag (marked keep) with a private tag (marked delete)
     WHEN the dicom tag scheme is applied
@@ -181,9 +185,9 @@ def test_nested_private_tag_deleted(monkeypatch):
         (0x0009, 0x0010): "keep",
         (0x0009, 0x0011): "delete",
     }
-    monkeypatch.setattr("pixl_dcmd.main._scheme_list_to_dict", lambda x: tag_scheme)
+
     # Apply the tag scheme
-    output_dataset = apply_tag_scheme(input_dataset, tag_scheme)
+    output_dataset = anonymise_dicom_recursively(input_dataset, ["DX"], tag_scheme)
 
     # Check that the nested private tag has been deleted
     assert (0x0009, 0x0011) not in output_dataset
