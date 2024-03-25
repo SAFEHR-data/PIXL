@@ -144,7 +144,7 @@ BASE_ONLY_TAG_OPS = TagOperations(base="base.yaml", manufacturer_overrides=None)
 
 @pytest.fixture()
 def base_only_tag_scheme() -> TagOperations:
-    return TagOperations(base=BASE_TAGS_FILE, manufacturer_overrides=None)
+    return TagOperations(base=str(BASE_TAGS_FILE), manufacturer_overrides=None)
 
 
 def test_merge_base_only_tags(base_only_tag_scheme):
@@ -201,7 +201,8 @@ def tag_ops_with_manufacturer_overrides(tmp_path_factory):
         f.write(yaml.dump(manufacturer_overrides_tags))
 
     return TagOperations(
-        base=base_tags_path, manufacturer_overrides=manufacturer_overrides_path
+        base=str(base_tags_path),
+        manufacturer_overrides=str(manufacturer_overrides_path),
     )
 
 
