@@ -60,5 +60,44 @@ class TagOperations(BaseModel):
     :param manufacturer_overrides: Manufacturer overrides for tag schemes.
     """
 
-    base: list[TagScheme]
-    manufacturer_overrides: Optional[TagScheme]
+    base: list[list[dict]]
+    manufacturer_overrides: Optional[list[dict]]
+
+    @field_validator("base")
+    @classmethod
+    def _valid_base_tags(cls, base_tags: list[list[dict]]) -> list[list[dict]]:
+        if not isinstance(base_tags, list):
+            msg = "Tags must be a list of dictionaries."
+            raise TypeError(msg)
+        for scheme in base_tags:
+            for tag in scheme:
+                _check_tag_format(tag)
+        return base_tags
+
+    @field_validator("manufacturer_overrides")
+    @classmethod
+    def _valid_manufacturer_overrides(
+        cls, manufacturer_overrides: Optional[list[dict]]
+    ) -> Optional[list[dict]]:
+        if manufacturer_overrides is None:
+            return None
+        if not isinstance(manufacturer_overrides, list):
+            msg = "Tags must be a list of dictionaries."
+            raise TypeError(msg)
+        for override in manufacturer_overrides:
+            if "manufacturer" not in override or "tags" not in override:
+                msg = "Manufacturer overrides must have 'manufacturer' and 'tags' keys."
+                raise ValueError(msg)
+            for tag in override["tags"]:
+                _check_tag_format(tag)
+
+        return manufacturer_overrides
+
+
+def _check_tag_format(tag: dict) -> None:
+    if "group" not in tag or "element" not in tag:
+        invalid_tag_keys_msg = "Tag must have 'group' and 'element' keys."
+        raise ValueError(invalid_tag_keys_msg)
+    if not isinstance(tag["group"], int) or not isinstance(tag["element"], int):
+        invalid_tag_values_msg = "Tag 'group' and 'element' must be integers."
+        raise TypeError(invalid_tag_values_msg)
