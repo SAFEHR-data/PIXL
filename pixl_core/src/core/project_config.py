@@ -56,7 +56,7 @@ def _load_and_validate(filename: Path) -> PixlConfig | Any:
 
 class _Project(BaseModel):
     name: str
-    azure_kv_alias: Optional[str]
+    azure_kv_alias: Optional[str] = None
     modalities: list[str]
 
 
@@ -72,6 +72,7 @@ class _Destination(BaseModel):
     parquet: _DestinationEnum
 
     @field_validator("parquet")
+    @classmethod
     def valid_parquet_destination(cls, v: str) -> str:
         if v == "dicomweb":
             msg = "Parquet destination cannot be dicomweb"
@@ -87,6 +88,7 @@ class PixlConfig(BaseModel):
     destination: _Destination
 
     @field_validator("tag_operation_files")
+    @classmethod
     def _valid_tag_operations(cls, tag_ops_files: list[str]) -> list[Path]:
         if not tag_ops_files or len(tag_ops_files) == 0:
             msg = "There should be at least 1 tag operations file"
@@ -96,7 +98,12 @@ class PixlConfig(BaseModel):
             msg = "There should currently be at most 1 tag operations file."
             raise ValueError(msg)
 
-        # Pydantic will automatically check if the file exists
-        return [
+        # Pydantic does not appear to automatically check if the file exists
+        files = [
             PROJECT_CONFIGS_DIR / "tag-operations" / tag_ops_file for tag_ops_file in tag_ops_files
         ]
+        for f in files:
+            if not f.exists():
+                # For pydantic, you must raise a ValueError (or AssertionError)
+                raise ValueError from FileNotFoundError(f)
+        return files
