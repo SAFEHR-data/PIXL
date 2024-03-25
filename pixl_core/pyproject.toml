@@ -47,7 +47,3 @@ extend = "../ruff.toml"
 
 [tool.ruff.lint.extend-per-file-ignores]
 "./tests/**" = ["D100"]
-
-[tool.ruff.lint.pep8-naming]
-# Allow Pydantic's `@field_validator` decorator to trigger class method treatment.
-classmethod-decorators = ["classmethod", "pydantic.field_validator"]
