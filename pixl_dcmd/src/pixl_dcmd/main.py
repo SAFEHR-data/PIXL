@@ -100,23 +100,13 @@ def merge_tag_schemes(
     tag_operation_files: TagOperations, manufacturer: Optional[str] = None
 ) -> list[dict]:
     """Merge multiple tag schemes into a single scheme."""
-    base_tags = _load_scheme(tag_operation_files.base)
-    all_tags = _scheme_list_to_dict(base_tags)
+    all_tags = _load_base_tags(tag_operation_files.base)
 
-    if tag_operation_files.manufacturer_overrides is None:
-        return list(all_tags.values())
-
-    manufacturer_overrides = _load_scheme(tag_operation_files.manufacturer_overrides)
-
-    # Keep only the overrides for the specified manufacturer
-    manufacturer_tags = [
-        tag
-        for override in manufacturer_overrides
-        if override["manufacturer"] == manufacturer
-        for tag in override["tags"]
-    ]
-
-    all_tags.update(_scheme_list_to_dict(manufacturer_tags))
+    if tag_operation_files.manufacturer_overrides is not None:
+        manufacturer_tags = _load_manufacturer_overrides(
+            tag_operation_files.manufacturer_overrides, manufacturer
+        )
+        all_tags.update(manufacturer_tags)
 
     return list(all_tags.values())
 
@@ -130,6 +120,31 @@ def _load_scheme(tag_operation_file: Path) -> list[dict]:
         ):
             raise ValueError("Tag operation file must contain a list of dictionaries")
         return tags
+
+
+def _load_base_tags(base_tags_files: list[Path]) -> dict[tuple, dict]:
+    base_tags = [
+        _scheme_list_to_dict(_load_scheme(scheme)) for scheme in base_tags_files
+    ]
+    merged_tags = {}
+    for tags in base_tags:
+        merged_tags.update(tags)
+    return merged_tags
+
+
+def _load_manufacturer_overrides(
+    manufacturer_overrides_file: Path, manufacturer: Optional[str]
+) -> dict[tuple, dict]:
+    manufacturer_overrides = _load_scheme(manufacturer_overrides_file)
+
+    # Keep only the overrides for the specified manufacturer
+    tag_list = [
+        tag
+        for override in manufacturer_overrides
+        if override["manufacturer"] == manufacturer
+        for tag in override["tags"]
+    ]
+    return _scheme_list_to_dict(tag_list)
 
 
 def _scheme_list_to_dict(tags: list[dict]) -> dict[tuple, dict]:
