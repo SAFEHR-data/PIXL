@@ -22,7 +22,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Optional
 
 import yaml
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -34,6 +34,28 @@ class TagScheme(BaseModel):
     """Tag scheme for a single tag operation."""
 
     tags: list[dict]
+
+    @field_validator("tags")
+    @classmethod
+    def _valid_tags(cls, tags: list[dict]) -> list[dict]:
+        if not isinstance(tags, list):
+            msg = "Tags must be a list of dictionaries."
+            raise TypeError(msg)
+        for tag in tags:
+            _check_tag_format(tag)
+        return tags
+
+
+def _check_tag_format(tag: dict) -> None:
+    if not isinstance(tag, dict):
+        invalid_tag_msg = "Tag must be a dictionary."
+        raise TypeError(invalid_tag_msg)
+    if "group" not in tag or "element" not in tag:
+        invalid_tag_keys_msg = "Tag must have 'group' and 'element' keys."
+        raise ValueError(invalid_tag_keys_msg)
+    if not isinstance(tag["group"], int) or not isinstance(tag["element"], int):
+        invalid_tag_values_msg = "Tag 'group' and 'element' must be integers."
+        raise TypeError(invalid_tag_values_msg)
 
 
 def _load_scheme(tag_operation_file: Path) -> TagScheme | Any:
