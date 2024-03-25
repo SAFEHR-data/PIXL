@@ -83,10 +83,7 @@ def _update_or_resend_existing_study_(
                 "Unknown Tag & Data"
             ),  # Fallback for testing where we're not using the entire plugin, remains undefined
         )
-        try:
-            if project_name not in project_tags:
-                different_project.append(resource["ID"])
-        except KeyError:
+        if project_name not in project_tags:
             different_project.append(resource["ID"])
 
     if different_project:
