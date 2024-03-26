@@ -20,7 +20,7 @@ from typing import Any, BinaryIO, Union
 
 import requests
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
-from core.project_config import load_project_config
+from core.project_config import load_project_config, load_tag_operations
 from decouple import config
 from pydicom import Dataset, dcmwrite
 
@@ -63,7 +63,7 @@ def anonymise_dicom(dataset: Dataset) -> Dataset:
         DICOM_TAG_PROJECT_NAME.creator_string,
     ).value
     project_config = load_project_config(slug)
-    logger.error(f"Received instance for project {slug}")
+    logger.warning(f"Received instance for project {slug}")
 
     if dataset.Modality not in project_config.project.modalities:
         msg = f"Dropping DICOM Modality: {dataset.Modality}"
@@ -77,9 +77,8 @@ def anonymise_dicom(dataset: Dataset) -> Dataset:
     logger.info("Removed overlays")
 
     # Merge tag schemes
-    all_tags = merge_tag_schemes(
-        project_config.tag_operation_files, manufacturer=dataset.Manufacturer
-    )
+    tag_operations = load_tag_operations(project_config)
+    all_tags = merge_tag_schemes(tag_operations, manufacturer=dataset.Manufacturer)
 
     # Apply scheme to instance
     dataset = apply_tag_scheme(dataset, all_tags)
