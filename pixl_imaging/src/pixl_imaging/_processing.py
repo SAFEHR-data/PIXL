@@ -46,8 +46,8 @@ async def process_message(message: Message) -> None:
     # Tell orthanc to query VNA for the patient and accession number
     query_id = orthanc_raw.query_remote(study.orthanc_query_dict, modality=config("VNAQR_MODALITY"))
     if query_id is None:
-        logger.error("Failed to find %s in the VNA", study)
-        raise RuntimeError
+        msg = f"Failed to find {message} in the VNA"
+        raise PixlSkipMessageError(msg)
 
     # Get image from VNA for patient and accession number
     job_id = orthanc_raw.retrieve_from_remote(query_id=query_id)  # C-Move
