@@ -43,6 +43,17 @@ def test_merge_base_only_tags(base_only_tag_scheme):
     assert tags == expected
 
 
+def test_merge_all_tags():
+    """
+    GIVEN A project config defining tag operations from a base file and manufacturer overrides
+    WHEN the tag schemes are merged
+    THEN the tag schemes should be merged without error
+    """
+    project_config = load_project_config(TEST_CONFIG)
+    tag_operations = load_tag_operations(project_config)
+    assert merge_tag_schemes(tag_operations)
+
+
 @pytest.fixture()
 def tag_ops_with_manufacturer_overrides(tmp_path_factory):
     """
