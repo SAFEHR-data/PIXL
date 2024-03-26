@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING, Any
 
 import requests
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
+from core.exceptions import PixlSkipMessageError
 from decouple import config
 
 from pixl_imaging._orthanc import Orthanc, PIXLRawOrthanc
@@ -54,12 +55,16 @@ async def process_message(message: Message) -> None:
     start_time = time()
 
     while job_state != "Success":
+        if job_state == "Failure":
+            msg = f"Job failed for {message.accession_number}"
+            raise PixlSkipMessageError(msg)
+
         if (time() - start_time) > config("PIXL_DICOM_TRANSFER_TIMEOUT", cast=float):
             msg = (
                 f"Failed to transfer {message} within "
                 f"{config('PIXL_DICOM_TRANSFER_TIMEOUT')} seconds"
             )
-            raise TimeoutError(msg)
+            raise PixlSkipMessageError(msg)
 
         await sleep(1)
         try:

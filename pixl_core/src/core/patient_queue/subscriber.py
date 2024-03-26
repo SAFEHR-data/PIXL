@@ -23,6 +23,7 @@ from typing import TYPE_CHECKING, Any
 import aio_pika
 from decouple import config
 
+from core.exceptions import PixlSkipMessageError
 from core.patient_queue._base import PixlBlockingInterface, PixlQueueInterface
 from core.patient_queue.message import deserialise
 
@@ -82,6 +83,8 @@ class PixlConsumer(PixlQueueInterface):
         try:
             await self._callback(pixl_message)
             logger.info("Finished message %s", pixl_message)
+        except PixlSkipMessageError as exception:
+            logger.warning("Failed message %s", exception)
         except Exception:
             logger.exception(
                 "Failed to process %s" "Not re-queuing message",
