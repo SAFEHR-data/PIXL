@@ -73,7 +73,7 @@ class PixlConsumer(PixlQueueInterface):
 
     async def _process_message(self, message: AbstractIncomingMessage) -> None:
         if not self.token_bucket.has_token:
-            await asyncio.sleep(0.01)
+            await asyncio.sleep(1)
             await message.reject(requeue=True)
             return
 

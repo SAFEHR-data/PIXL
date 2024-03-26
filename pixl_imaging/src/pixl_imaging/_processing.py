@@ -19,6 +19,7 @@ from dataclasses import dataclass
 from time import time
 from typing import TYPE_CHECKING, Any
 
+import requests
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
 from decouple import config
 
@@ -60,8 +61,11 @@ async def process_message(message: Message) -> None:
             )
             raise TimeoutError(msg)
 
-        await sleep(0.1)
-        job_state = orthanc_raw.job_state(job_id=job_id)
+        await sleep(1)
+        try:
+            job_state = orthanc_raw.job_state(job_id=job_id)
+        except requests.exceptions.HTTPError:
+            logger.debug("Could not find job for study: %s", message.accession_number)
 
     # Now that instance has arrived in orthanc raw, we can set its project name tag via the API
     studies_with_tags = orthanc_raw.query_local(study.orthanc_query_dict)
