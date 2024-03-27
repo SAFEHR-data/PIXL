@@ -10,6 +10,17 @@ several services orchestrated by [Docker Compose](https://docs.docker.com/compos
 
 To get access to the GAE, [see the documentation on Slab](https://uclh.slab.com/posts/gae-access-7hkddxap)
 
+## Development
+
+[Follow the developer setup instructions](./docs/setup/developer.md).
+
+Before raising a PR, make sure to **run all tests** for each PIXL module
+and not just the component you have been working on as this will help us catch unintentional
+regressions without spending GitHub actions minutes :-)
+
+In addition, make sure to [have `pre-commit` installed](/docs/setup/developer.md#linting) to
+automatically check your code before committing.
+
 ## Services
 
 ### [PIXL core](./pixl_core/README.md)
@@ -217,27 +228,6 @@ non-null reports
 ```sql
 select count(*) from emap_data.ehr_anon where xray_report is not null;
 ```
-
-## Develop
-
-See each service's README for instructions for individual developing and testing instructions.
-Most modules require [`docker`](https://docs.docker.com/desktop/) and `docker-compose` to be installed to run tests.
-
-For Python development we use [ruff](https://docs.astral.sh/ruff/) alongside [pytest](https://www.pytest.org/).
-There is support (sometimes through plugins) for these tools in most IDEs & editors.
-
-Before raising a PR, make sure to **run all tests** for each PIXL module
-and not just the component you have been working on as this will help us catch unintentional regressions without spending GH actions minutes :-)
-
-We run [pre-commit](https://pre-commit.com/) as part of the GitHub Actions CI. To install and run it locally, do:
-
-```sh
-pip install pre-commit
-pre-commit install
-```
-
-The configuration can be found in [`.pre-commit-config.yml`](./.pre-commit-config.yaml)
-
 ## Assumptions
 
 PIXL data extracts include the below assumptions
