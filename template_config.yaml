@@ -17,7 +17,10 @@ project:
     modalities: ["DX", "CR"] # DICOM dataset modalities to retain
     azure_kv_alias: null  # Optional field to allow for a common secret prefix to be used
 
-tag_operation_files: ["base-tag-operations.yaml"] # DICOM tag anonymisation operations, can specify multiple files in the future 
+tag_operation_files: # DICOM tag anonymisation operations
+    base:
+        - "base-tag-operations.yaml" # Base schema
+    manufacturer_overrides: none # Manufactuer-dependendent overrides
 
 destination:
     dicom: "ftps" # alternatives: "none"
