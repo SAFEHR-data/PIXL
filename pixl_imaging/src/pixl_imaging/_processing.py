@@ -18,7 +18,7 @@ from dataclasses import dataclass
 from time import time
 from typing import TYPE_CHECKING, Any
 
-import requests
+import aiohttp
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
 from core.exceptions import PixlRequeueMessageError, PixlSkipMessageError
 from decouple import config
@@ -38,24 +38,26 @@ async def process_message(message: Message) -> None:
     study = ImagingStudy.from_message(message)
     orthanc_raw = PIXLRawOrthanc()
 
-    jobs = orthanc_raw.get_jobs()
+    jobs = await orthanc_raw.get_jobs()
     for job in jobs:
         if job["State"] == "Pending":
             msg = "Pending messages in orthanc raw"
             raise PixlRequeueMessageError(msg)
 
-    study_exists = _update_or_resend_existing_study_(message.project_name, orthanc_raw, study)
+    study_exists = await _update_or_resend_existing_study_(message.project_name, orthanc_raw, study)
     if study_exists:
         return
 
     # Tell orthanc to query VNA for the patient and accession number
-    query_id = orthanc_raw.query_remote(study.orthanc_query_dict, modality=config("VNAQR_MODALITY"))
+    query_id = await orthanc_raw.query_remote(
+        study.orthanc_query_dict, modality=config("VNAQR_MODALITY")
+    )
     if query_id is None:
         msg = f"Failed to find {message.identifier} in the VNA"
         raise PixlSkipMessageError(msg)
 
     # Get image from VNA for patient and accession number
-    job_id = orthanc_raw.retrieve_from_remote(query_id=query_id)  # C-Move
+    job_id = await orthanc_raw.retrieve_from_remote(query_id=query_id)  # C-Move
     job_state = "Pending"
     start_time = time()
 
@@ -73,20 +75,20 @@ async def process_message(message: Message) -> None:
 
         await sleep(1)
         try:
-            job_state = orthanc_raw.job_state(job_id=job_id)
-        except requests.exceptions.HTTPError:
+            job_state = await orthanc_raw.job_state(job_id=job_id)
+        except aiohttp.exceptions.HTTPError:
             logger.debug("Could not find job for study: {}", message.identifier)
 
     # Now that instance has arrived in orthanc raw, we can set its project name tag via the API
-    studies_with_tags = orthanc_raw.query_local(study.orthanc_query_dict)
+    studies_with_tags = await orthanc_raw.query_local(study.orthanc_query_dict)
     logger.debug("Local instances with matching tags: {}", studies_with_tags)
 
-    _add_project_to_study(message.project_name, orthanc_raw, studies_with_tags)
+    await _add_project_to_study(message.project_name, orthanc_raw, studies_with_tags)
 
     return
 
 
-def _update_or_resend_existing_study_(
+async def _update_or_resend_existing_study_(
     project_name: str, orthanc_raw: PIXLRawOrthanc, study: ImagingStudy
 ) -> bool:
     """
@@ -94,7 +96,7 @@ def _update_or_resend_existing_study_(
 
     Return True if exists, otherwise False.
     """
-    existing_resources = study.query_local(orthanc_raw, project_tag=True)
+    existing_resources = await study.query_local(orthanc_raw, project_tag=True)
     if len(existing_resources) == 0:
         return False
     different_project: list[str] = []
@@ -112,13 +114,13 @@ def _update_or_resend_existing_study_(
             different_project.append(resource["ID"])
 
     if different_project:
-        _add_project_to_study(project_name, orthanc_raw, different_project)
+        await _add_project_to_study(project_name, orthanc_raw, different_project)
         return True
-    orthanc_raw.send_existing_study_to_anon(existing_resources[0]["ID"])
+    await orthanc_raw.send_existing_study_to_anon(existing_resources[0]["ID"])
     return True
 
 
-def _add_project_to_study(
+async def _add_project_to_study(
     project_name: str, orthanc_raw: PIXLRawOrthanc, studies_with_tags: list[str]
 ) -> None:
     if len(studies_with_tags) != 1:
@@ -128,7 +130,7 @@ def _add_project_to_study(
         )
     for study in studies_with_tags:
         logger.debug("Study ID {}", study)
-        orthanc_raw.modify_private_tags_by_study(
+        await orthanc_raw.modify_private_tags_by_study(
             study_id=study,
             private_creator=DICOM_TAG_PROJECT_NAME.creator_string,
             tag_replacement={
@@ -169,10 +171,10 @@ class ImagingStudy:
             "Expand": True,
         }
 
-    def query_local(self, node: Orthanc, *, project_tag: bool = False) -> Any:
+    async def query_local(self, node: Orthanc, *, project_tag: bool = False) -> Any:
         """Does this study exist in an Orthanc instance/node, optionally query for project tag."""
         query_dict = self.orthanc_query_dict
         if project_tag:
             query_dict = self.orthanc_dict_with_project_name
 
-        return node.query_local(query_dict)
+        return await node.query_local(query_dict)

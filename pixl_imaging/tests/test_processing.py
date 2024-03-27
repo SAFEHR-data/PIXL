@@ -76,13 +76,13 @@ def _add_image_to_fake_vna(run_containers) -> None:
 
 
 @pytest.fixture()
-def orthanc_raw(run_containers) -> PIXLRawOrthanc:
+async def orthanc_raw(run_containers) -> PIXLRawOrthanc:
     """Set up orthanc raw and remove all studies in teardown."""
     orthanc_raw = PIXLRawOrthanc()
     yield orthanc_raw
-    all_studies = orthanc_raw._get("/studies")
+    all_studies = await orthanc_raw._get("/studies")
     for study in all_studies:
-        orthanc_raw._delete(f"/studies/{study}")
+        await orthanc_raw._delete(f"/studies/{study}")
 
 
 @pytest.mark.processing()
@@ -98,7 +98,7 @@ async def test_image_saved(orthanc_raw) -> None:
 
     assert not study.query_local(orthanc_raw)
     await process_message(message)
-    assert study.query_local(orthanc_raw)
+    assert await study.query_local(orthanc_raw)
 
 
 @pytest.mark.processing()
@@ -113,14 +113,14 @@ async def test_existing_message_sent_twice(orthanc_raw) -> None:
     study = ImagingStudy.from_message(message)
 
     await process_message(message)
-    assert study.query_local(orthanc_raw)
+    assert await study.query_local(orthanc_raw)
 
     query_for_update_time = {**study.orthanc_query_dict, "Expand": True}
-    first_processing_resource = orthanc_raw.query_local(query_for_update_time)
+    first_processing_resource = await orthanc_raw.query_local(query_for_update_time)
     assert len(first_processing_resource) == 1
 
     await process_message(message)
-    second_processing_resource = orthanc_raw.query_local(query_for_update_time)
+    second_processing_resource = await orthanc_raw.query_local(query_for_update_time)
     assert len(second_processing_resource) == 1
 
     # Check update time hasn't changed
