@@ -82,7 +82,6 @@ class PixlConsumer(PixlQueueInterface):
         logger.info("Starting message %s", pixl_message)
         try:
             await self._callback(pixl_message)
-            logger.info("Finished message %s", pixl_message)
         except PixlRequeueMessageError as requeue:
             logger.debug(requeue)
             await message.reject(requeue=True)
@@ -95,8 +94,9 @@ class PixlConsumer(PixlQueueInterface):
                 pixl_message,
             )
             await message.reject(requeue=False)
-
-        await message.ack()
+        else:
+            logger.info("Finished message %s", pixl_message)
+            await message.ack()
 
     async def run(self) -> None:
         """Processes messages from queue asynchronously."""
