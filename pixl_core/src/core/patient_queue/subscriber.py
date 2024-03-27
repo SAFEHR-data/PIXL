@@ -96,8 +96,9 @@ class PixlConsumer(PixlQueueInterface):
                 "Failed to process %s" "Not re-queuing message",
                 pixl_message,
             )
-        finally:
-            await message.ack()
+            await message.reject(requeue=False)
+
+        await message.ack()
 
     async def run(self) -> None:
         """Processes messages from queue asynchronously."""
