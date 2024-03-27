@@ -51,6 +51,21 @@ def write_dataset_to_bytes(dataset: Dataset) -> bytes:
         return buffer.read()
 
 
+def should_exclude_series(dataset: Dataset) -> bool:
+    slug = dataset.get_private_item(
+        DICOM_TAG_PROJECT_NAME.group_id,
+        DICOM_TAG_PROJECT_NAME.offset_id,
+        DICOM_TAG_PROJECT_NAME.creator_string,
+    ).value
+
+    series_description = dataset.get("SeriesDescription")
+    cfg = load_project_config(slug)
+    if cfg.is_series_excluded(series_description):
+        logger.warning("FILTERING OUT series description: %s", series_description)
+        return True
+    return False
+
+
 def anonymise_dicom(dataset: Dataset) -> Dataset:
     """
     Anonymises a DICOM dataset as Received by Orthanc.
