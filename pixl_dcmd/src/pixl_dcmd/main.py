@@ -52,11 +52,7 @@ def write_dataset_to_bytes(dataset: Dataset) -> bytes:
 
 
 def should_exclude_series(dataset: Dataset) -> bool:
-    slug = dataset.get_private_item(
-        DICOM_TAG_PROJECT_NAME.group_id,
-        DICOM_TAG_PROJECT_NAME.offset_id,
-        DICOM_TAG_PROJECT_NAME.creator_string,
-    ).value
+    slug = get_project_name_as_string(dataset)
 
     series_description = dataset.get("SeriesDescription")
     cfg = load_project_config(slug)
@@ -76,18 +72,7 @@ def anonymise_dicom(dataset: Dataset) -> Dataset:
     - applying tag operations based on the config file
     Returns anonymised dataset.
     """
-    raw_slug = dataset.get_private_item(
-        DICOM_TAG_PROJECT_NAME.group_id,
-        DICOM_TAG_PROJECT_NAME.offset_id,
-        DICOM_TAG_PROJECT_NAME.creator_string,
-    ).value
-    # Get both strings and bytes, which is fun
-    if isinstance(raw_slug, bytes):
-        logger.debug(f"Bytes slug {raw_slug!r}")
-        slug = raw_slug.decode("utf-8").strip()
-    else:
-        logger.debug(f"String slug '{raw_slug}'")
-        slug = raw_slug
+    slug = get_project_name_as_string(dataset)
 
     project_config = load_project_config(slug)
     logger.debug(f"Received instance for project {slug}")
@@ -115,6 +100,22 @@ def anonymise_dicom(dataset: Dataset) -> Dataset:
     )
     # Write anonymised instance to disk.
     return dataset
+
+
+def get_project_name_as_string(dataset: Dataset) -> str:
+    raw_slug = dataset.get_private_item(
+        DICOM_TAG_PROJECT_NAME.group_id,
+        DICOM_TAG_PROJECT_NAME.offset_id,
+        DICOM_TAG_PROJECT_NAME.creator_string,
+    ).value
+    # Get both strings and bytes, which is fun
+    if isinstance(raw_slug, bytes):
+        logger.debug(f"Bytes slug {raw_slug!r}")
+        slug = raw_slug.decode("utf-8").strip()
+    else:
+        logger.debug(f"String slug '{raw_slug}'")
+        slug = raw_slug
+    return slug
 
 
 def remove_overlays(dataset: Dataset) -> Dataset:

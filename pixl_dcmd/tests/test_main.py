@@ -124,8 +124,7 @@ def dicom_series_to_exclude() -> list[Dataset]:
 
 
 def _make_dicom(series_description) -> Dataset:
-    ds = generate_dicom_dataset()
-    ds.SeriesDescription = series_description
+    ds = generate_dicom_dataset(SeriesDescription=series_description)
     DICOM_TAG_PROJECT_NAME.add_to_dicom_dataset(ds, "test-extract-uclh-omop-cdm")
     return ds
 

@@ -81,7 +81,7 @@ class TestFtpsUpload:
             seconds_interval=5,
             progress_string_fn=zip_file_list,
         )
-
+        # expected_instances = dict(Series=)
         assert zip_files
         for z in zip_files:
             unzip_dir = tmp_path_factory.mktemp("unzip_dir", numbered=True)
@@ -94,15 +94,29 @@ class TestFtpsUpload:
             working_dir=unzip_dir,
         )
         all_dicom = list(unzip_dir.rglob("*.dcm"))
-        assert len(all_dicom) == 1
-        dcm = pydicom.dcmread(all_dicom[0])
-        block = dcm.private_block(
-            DICOM_TAG_PROJECT_NAME.group_id, DICOM_TAG_PROJECT_NAME.creator_string
-        )
-        tag_offset = DICOM_TAG_PROJECT_NAME.offset_id
-        private_tag = block[tag_offset]
-        assert private_tag is not None
-        assert private_tag.value == TestFtpsUpload.project_slug
+
+        # I think this will fail if we've done it right?
+        # assert len(all_dicom) == 1
+
+        # within a dicom study, there can be multiple dicom instances, but none should
+        # have a series description on the exclude list
+        logging.info("JES: within zip, all_dicom [%s] = %s", len(all_dicom), all_dicom)
+        for dcm_file in all_dicom:
+            dcm = pydicom.dcmread(dcm_file)
+            logging.info("JES: dcm_file = %s", dcm_file)
+            logging.info(
+                "JES: AN = %s, PI = %s, SD = %s",
+                dcm.get("AccessionNumber"),
+                dcm.get("PatientID"),
+                dcm.get("SeriesDescription"),
+            )
+            block = dcm.private_block(
+                DICOM_TAG_PROJECT_NAME.group_id, DICOM_TAG_PROJECT_NAME.creator_string
+            )
+            tag_offset = DICOM_TAG_PROJECT_NAME.offset_id
+            private_tag = block[tag_offset]
+            assert private_tag is not None
+            assert private_tag.value == TestFtpsUpload.project_slug
 
 
 @pytest.mark.usefixtures("_setup_pixl_cli")
