@@ -19,7 +19,6 @@ from typing import Any, Optional
 import aiohttp
 from decouple import config
 from loguru import logger
-from requests.auth import HTTPBasicAuth
 
 
 class Orthanc(ABC):
@@ -28,7 +27,7 @@ class Orthanc(ABC):
         self._username = username
         self._password = password
 
-        self._auth = HTTPBasicAuth(username=username, password=password)
+        self._auth = aiohttp.BasicAuth(login=username, password=password)
 
     @property
     @abstractmethod
@@ -52,14 +51,14 @@ class Orthanc(ABC):
         """Query a particular modality, available from this node"""
         logger.debug("Running query on modality: {} with {}", modality, data)
 
-        response = self._post(
+        response = await self._post(
             f"/modalities/{modality}/query",
             data=data,
             timeout=config("PIXL_QUERY_TIMEOUT", default=10, cast=float),
         )
         logger.debug("Query response: {}", response)
-
-        if len(await self._get(f"/queries/{response['ID']}/answers")) > 0:
+        query_answers = await self._get(f"/queries/{response['ID']}/answers")
+        if len(query_answers) > 0:
             return str(response["ID"])
 
         return None
@@ -95,7 +94,8 @@ class Orthanc(ABC):
     async def job_state(self, job_id: str) -> str:
         """Get job state from orthanc."""
         # See: https://book.orthanc-server.com/users/advanced-rest.html#jobs-monitoring
-        return str(await self._get(f"/jobs/{job_id}")["State"])
+        job = await self._get(f"/jobs/{job_id}")
+        return str(job["State"])
 
     async def _get(self, path: str) -> Any:
         async with (
@@ -145,6 +145,8 @@ async def _deserialise(response: aiohttp.ClientResponse) -> Any:
 
 
 class PIXLRawOrthanc(Orthanc):
+    """Orthanc Raw connection."""
+
     def __init__(self) -> None:
         super().__init__(
             url=config("ORTHANC_RAW_URL"),

@@ -96,7 +96,7 @@ async def test_image_saved(orthanc_raw) -> None:
     """
     study = ImagingStudy.from_message(message)
 
-    assert not study.query_local(orthanc_raw)
+    assert not await study.query_local(orthanc_raw)
     await process_message(message)
     assert await study.query_local(orthanc_raw)
 
