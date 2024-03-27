@@ -20,7 +20,7 @@
   "MaximumStorageMode" : "Recycle",
   // Enable concurrency
   "ConcurrentJobs" : 50,  // default 2
-  "DicomThreadsCount" : 10,  // default 5
+  "DicomThreadsCount" : 50,  // default 5
   "HttpThreadsCount": 200,  // default 50, REST api can't make connection if this is too low
   // overwrite instances with the same UID if we get them for a second time
   "OverwriteInstances" : true,
