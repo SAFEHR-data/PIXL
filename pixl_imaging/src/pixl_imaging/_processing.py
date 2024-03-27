@@ -14,7 +14,6 @@
 from __future__ import annotations
 
 import logging
-import os
 from asyncio import sleep
 from dataclasses import dataclass
 from time import time
@@ -29,7 +28,6 @@ if TYPE_CHECKING:
     from core.patient_queue.message import Message
 
 logger = logging.getLogger("uvicorn")
-logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))
 
 
 async def process_message(message: Message) -> None:
@@ -67,7 +65,7 @@ async def process_message(message: Message) -> None:
 
     # Now that instance has arrived in orthanc raw, we can set its project name tag via the API
     studies_with_tags = orthanc_raw.query_local(study.orthanc_query_dict)
-    logger.info("Local instances with matching tags: %s", studies_with_tags)
+    logger.debug("Local instances with matching tags: %s", studies_with_tags)
 
     _add_project_to_study(message.project_name, orthanc_raw, studies_with_tags)
 

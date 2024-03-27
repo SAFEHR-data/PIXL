@@ -21,6 +21,7 @@ import logging
 
 from core.patient_queue.subscriber import PixlConsumer
 from core.rest_api.router import router, state
+from decouple import config
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
@@ -37,6 +38,7 @@ app = FastAPI(
 app.include_router(router)
 
 logger = logging.getLogger("uvicorn")
+logger.setLevel(config("LOG_LEVEL", default="INFO"))
 
 
 @app.on_event("startup")
