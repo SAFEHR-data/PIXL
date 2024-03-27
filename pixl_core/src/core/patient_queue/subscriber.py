@@ -87,8 +87,6 @@ class PixlConsumer(PixlQueueInterface):
             logger.debug(requeue)
             await message.reject(requeue=True)
             await asyncio.sleep(1)
-            # early exit to avoid ack
-            return
         except PixlSkipMessageError as exception:
             logger.warning("Failed message: %s", exception)
         except Exception:
