@@ -21,6 +21,10 @@ regressions without spending GitHub actions minutes :-)
 In addition, make sure to [have `pre-commit` installed](/docs/setup/developer.md#linting) to
 automatically check your code before committing.
 
+## Design
+
+[`docs/design`](./docs/design/) contains the design documentation for the PIXL system.
+
 ## Services
 
 ### [PIXL core](./pixl_core/README.md)
