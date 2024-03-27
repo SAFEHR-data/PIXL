@@ -38,6 +38,11 @@ class Message:
     project_name: str
     extract_generated_timestamp: datetime
 
+    @property
+    def identifier(self) -> str:
+        """Identifier for message"""
+        return f"{self.mrn=} {self.accession_number=}"
+
     def serialise(self, *, deserialisable: bool = True) -> bytes:
         """
         Serialise the message into a JSON string and convert to bytes.

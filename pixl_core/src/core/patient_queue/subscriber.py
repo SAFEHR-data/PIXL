@@ -90,7 +90,7 @@ class PixlConsumer(PixlQueueInterface):
             # early exit to avoid ack
             return
         except PixlSkipMessageError as exception:
-            logger.warning("Failed message %s", exception)
+            logger.warning("Failed message: %s", exception)
         except Exception:
             logger.exception(
                 "Failed to process %s" "Not re-queuing message",

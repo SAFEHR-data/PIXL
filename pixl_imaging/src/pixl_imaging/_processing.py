@@ -33,7 +33,7 @@ from loguru import logger
 
 async def process_message(message: Message) -> None:
     """Process message from queue."""
-    logger.debug("Processing: {}", message)
+    logger.debug("Processing: {}", message.identifier)
 
     study = ImagingStudy.from_message(message)
     orthanc_raw = PIXLRawOrthanc()
@@ -51,7 +51,7 @@ async def process_message(message: Message) -> None:
     # Tell orthanc to query VNA for the patient and accession number
     query_id = orthanc_raw.query_remote(study.orthanc_query_dict, modality=config("VNAQR_MODALITY"))
     if query_id is None:
-        msg = f"Failed to find {message} in the VNA"
+        msg = f"Failed to find {message.identifier} in the VNA"
         raise PixlSkipMessageError(msg)
 
     # Get image from VNA for patient and accession number
@@ -61,12 +61,12 @@ async def process_message(message: Message) -> None:
 
     while job_state != "Success":
         if job_state == "Failure":
-            msg = f"Job failed for {message.accession_number}"
+            msg = f"Job failed for {message.identifier}"
             raise PixlSkipMessageError(msg)
 
         if (time() - start_time) > config("PIXL_DICOM_TRANSFER_TIMEOUT", cast=float):
             msg = (
-                f"Failed to transfer {message} within "
+                f"Failed to transfer {message.identifier} within "
                 f"{config('PIXL_DICOM_TRANSFER_TIMEOUT')} seconds"
             )
             raise PixlSkipMessageError(msg)
@@ -75,7 +75,7 @@ async def process_message(message: Message) -> None:
         try:
             job_state = orthanc_raw.job_state(job_id=job_id)
         except requests.exceptions.HTTPError:
-            logger.debug("Could not find job for study: {}", message.accession_number)
+            logger.debug("Could not find job for study: {}", message.identifier)
 
     # Now that instance has arrived in orthanc raw, we can set its project name tag via the API
     studies_with_tags = orthanc_raw.query_local(study.orthanc_query_dict)
