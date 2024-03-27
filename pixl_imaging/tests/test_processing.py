@@ -115,6 +115,7 @@ async def test_existing_message_sent_twice(orthanc_raw) -> None:
     """
     study = ImagingStudy.from_message(message)
 
+    assert not study.query_local(orthanc_raw)
     await process_message(message)
     assert study.query_local(orthanc_raw)
 
