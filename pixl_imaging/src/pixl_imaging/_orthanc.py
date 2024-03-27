@@ -43,6 +43,10 @@ class Orthanc(ABC):
         """Accessible modalities from this Orthanc instance"""
         return self._get("/modalities")
 
+    def get_jobs(self) -> list[dict[str, Any]]:
+        """Get expanded details for all jobs."""
+        return self._get("/jobs?expand")
+
     def query_local(self, data: dict) -> list[str] | list[dict]:
         """Query local Orthanc instance for resourceId."""
         return self._post("/tools/find", data=data)

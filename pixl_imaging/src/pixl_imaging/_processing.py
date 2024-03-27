@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING, Any
 
 import requests
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
-from core.exceptions import PixlSkipMessageError
+from core.exceptions import PixlRequeueMessageError, PixlSkipMessageError
 from decouple import config
 
 from pixl_imaging._orthanc import Orthanc, PIXLRawOrthanc
@@ -38,6 +38,12 @@ async def process_message(message: Message) -> None:
 
     study = ImagingStudy.from_message(message)
     orthanc_raw = PIXLRawOrthanc()
+
+    jobs = orthanc_raw.get_jobs()
+    for job in jobs:
+        if job["State"] == "Pending":
+            msg = "Pending messages in orthanc raw"
+            raise PixlRequeueMessageError(msg)
 
     study_exists = _update_or_resend_existing_study_(message.project_name, orthanc_raw, study)
     if study_exists:
