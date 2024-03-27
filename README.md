@@ -261,7 +261,7 @@ test/resources/omop/public /*.parquet
 
 ### OMOP ES extract dir (input to PIXL)
 
-EXTRACT_DIR is the directory passed to `pixl populate`
+EXTRACT_DIR is the directory passed to `pixl populate` as the input `PARQUET_PATH` argument.
 
 ```
 EXTRACT_DIR/public /*.parquet
@@ -271,12 +271,21 @@ EXTRACT_DIR/public /*.parquet
 
 ### PIXL Export dir (PIXL intermediate)
 
+The directory where PIXL will copy the public OMOP extract files and radiology reports to.
+These files will subsequently be uploaded to the `parquet` destination specified in the
+[project config](#3-configure-a-new-project).
+
 ```
 EXPORT_ROOT/PROJECT_SLUG/all_extracts/EXTRACT_DATETIME/radiology/radiology.parquet
 ....................................................../omop/public/*.parquet
 ```
 
-### FTP server
+### Destination
+
+#### FTP server
+
+If the `parquet` destination is set to `ftps`, the public extract files and radiology report will
+be uploaded to the FTP server at the following path:
 
 ```
 FTPROOT/PROJECT_SLUG/EXTRACT_DATETIME/parquet/radiology/radiology.parquet
