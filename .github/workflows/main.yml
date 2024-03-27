@@ -226,7 +226,7 @@ jobs:
           pip install -e cli/[test]
 
       - name: Create .secrets.env
-        run: touch .secrets.env
+        run: touch test/.secrets.env
 
       - name: Build test services
         working-directory: test

@@ -23,6 +23,7 @@ This module provides:
 from __future__ import annotations
 
 import json
+import logging
 import os
 import traceback
 from io import BytesIO
@@ -37,6 +38,8 @@ from pixl_dcmd.tagrecording import record_dicom_headers
 if TYPE_CHECKING:
     from typing import Any
 
+logger = logging.getLogger(__name__)
+
 
 def OnChange(changeType, level, resourceId):  # noqa: ARG001
     """
@@ -46,7 +49,7 @@ def OnChange(changeType, level, resourceId):  # noqa: ARG001
     should_auto_route returns true
     """
     if changeType == orthanc.ChangeType.STABLE_STUDY and should_auto_route():
-        print("Stable study: %s" % resourceId)  # noqa: T201
+        print("Sending study: %s" % resourceId)  # noqa: T201
         # Although this can throw, since we have nowhere to report errors
         # back to (eg. an HTTP client), don't try to handle anything here.
         # The client will have to detect that it hasn't happened and retry.
@@ -111,7 +114,7 @@ def modify_dicom_tags(receivedDicom: bytes, origin: str) -> Any:
     """
     if origin != orthanc.InstanceOrigin.DICOM_PROTOCOL:
         # don't keep resetting the tag values if this was triggered by an API call!
-        print("modify_dicom_tags - doing nothing as change triggered by API")  # noqa: T201
+        logger.debug("modify_dicom_tags - doing nothing as change triggered by API")
         return orthanc.ReceivedInstanceAction.KEEP_AS_IS, None
     dataset = dcmread(BytesIO(receivedDicom))
     # See the orthanc.json config file for where this tag is given a nickname
@@ -124,9 +127,8 @@ def modify_dicom_tags(receivedDicom: bytes, origin: str) -> Any:
         dataset, DICOM_TAG_PROJECT_NAME.PLACEHOLDER_VALUE
     )
 
-    print(  # noqa: T201
-        f"modify_dicom_tags - added new private "
-        f"block starting at 0x{private_block.block_start:x}"
+    logger.debug(
+        "modify_dicom_tags - added new private block starting at 0x%x", private_block.block_start
     )
     return orthanc.ReceivedInstanceAction.MODIFY, write_dataset_to_bytes(dataset)
 
@@ -144,14 +146,15 @@ def log_and_return_http(
     :param log_message: message to log, if different to http_message.
                         If None, do not log at all if success
     """
+    http_json_str = json.dumps({"Message": http_message})
     if http_code == 200:  # noqa: PLR2004
         if log_message:
             orthanc.LogInfo(log_message)
-        output.AnswerBuffer(http_message, "text/plain")
+        output.AnswerBuffer(http_json_str, "text/plain")
     else:
         orthanc.LogWarning(f"{log_message or http_message}:\n{traceback.format_exc()}")
         # length needed in bytes not chars
-        output.SendHttpStatus(http_code, http_message, len(http_message.encode()))
+        output.SendHttpStatus(http_code, http_json_str, len(http_json_str.encode()))
 
 
 def SendResourceToAnon(output, uri, **request):  # noqa: ARG001
