@@ -30,9 +30,10 @@ from io import BytesIO
 from typing import TYPE_CHECKING, Optional
 
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
-from pydicom import Dataset, dcmread, dcmwrite
+from pydicom import dcmread
 
 import orthanc
+from pixl_dcmd.main import write_dataset_to_bytes
 from pixl_dcmd.tagrecording import record_dicom_headers
 
 if TYPE_CHECKING:
@@ -90,19 +91,6 @@ def should_auto_route():
     set to true or false
     """
     return os.environ.get("ORTHANC_AUTOROUTE_RAW_TO_ANON", "false").lower() == "true"
-
-
-def write_dataset_to_bytes(dataset: Dataset) -> bytes:
-    """
-    Write pydicom DICOM dataset to byte array
-
-    Original from:
-    https://pydicom.github.io/pydicom/stable/auto_examples/memory_dataset.html
-    """
-    with BytesIO() as buffer:
-        dcmwrite(buffer, dataset)
-        buffer.seek(0)
-        return buffer.read()
 
 
 def modify_dicom_tags(receivedDicom: bytes, origin: str) -> Any:
