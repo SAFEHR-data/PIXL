@@ -17,9 +17,9 @@ from pathlib import Path
 
 import pytest
 from core.project_config import load_project_config
-from core.project_config.tagoperations import TagOperations, load_tag_operations
+from core.project_config.tag_operations import TagOperations, load_tag_operations
 from decouple import config
-from pixl_dcmd._tagschemes import merge_tag_schemes
+from pixl_dcmd._tag_schemes import merge_tag_schemes
 
 PROJECT_CONFIGS_DIR = Path(config("PROJECT_CONFIGS_DIR"))
 TEST_CONFIG = "test-extract-uclh-omop-cdm"

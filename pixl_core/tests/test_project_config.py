@@ -18,7 +18,7 @@ from pathlib import Path
 import pytest
 import yaml
 from core.project_config import PixlConfig, load_project_config
-from core.project_config.tagoperations import load_tag_operations
+from core.project_config.tag_operations import load_tag_operations
 from decouple import config
 from pydantic import ValidationError
 

@@ -24,7 +24,7 @@ from core.project_config import load_project_config, load_tag_operations
 from decouple import config
 from pydicom import Dataset, dcmwrite
 
-from pixl_dcmd._tagschemes import merge_tag_schemes
+from pixl_dcmd._tag_schemes import merge_tag_schemes
 from pixl_dcmd._database import add_hashed_identifier_and_save, query_db
 from pixl_dcmd._datetime import combine_date_time, format_date_time
 from pixl_dcmd._deid_helpers import get_bounded_age, get_encrypted_uid

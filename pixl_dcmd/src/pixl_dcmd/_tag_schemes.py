@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from core.project_config.tagoperations import TagOperations
+from core.project_config.tag_operations import TagOperations
 
 
 def merge_tag_schemes(

@@ -27,7 +27,7 @@ from pydantic import BaseModel, field_validator
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from core.project_config.pixlconfig_model import PixlConfig
+    from core.project_config.pixl_config_model import PixlConfig
 
 
 def _load_scheme(tag_operation_file: Path) -> list[dict] | Any:
