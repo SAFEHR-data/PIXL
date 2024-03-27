@@ -14,10 +14,9 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from json import JSONDecodeError
 from typing import Any, Optional
 
-import requests
+import aiohttp
 from decouple import config
 from loguru import logger
 from requests.auth import HTTPBasicAuth
@@ -37,19 +36,19 @@ class Orthanc(ABC):
         """Application entity title (AET) of this Orthanc instance"""
 
     @property
-    def modalities(self) -> Any:
+    async def modalities(self) -> Any:
         """Accessible modalities from this Orthanc instance"""
-        return self._get("/modalities")
+        return await self._get("/modalities")
 
-    def get_jobs(self) -> list[dict[str, Any]]:
+    async def get_jobs(self) -> list[dict[str, Any]]:
         """Get expanded details for all jobs."""
-        return self._get("/jobs?expand")
+        return await self._get("/jobs?expand")
 
-    def query_local(self, data: dict) -> list[str] | list[dict]:
+    async def query_local(self, data: dict) -> list[str] | list[dict]:
         """Query local Orthanc instance for resourceId."""
-        return self._post("/tools/find", data=data)
+        return await self._post("/tools/find", data=data)
 
-    def query_remote(self, data: dict, modality: str) -> Optional[str]:
+    async def query_remote(self, data: dict, modality: str) -> Optional[str]:
         """Query a particular modality, available from this node"""
         logger.debug("Running query on modality: {} with {}", modality, data)
 
@@ -60,12 +59,12 @@ class Orthanc(ABC):
         )
         logger.debug("Query response: {}", response)
 
-        if len(self._get(f"/queries/{response['ID']}/answers")) > 0:
+        if len(await self._get(f"/queries/{response['ID']}/answers")) > 0:
             return str(response["ID"])
 
         return None
 
-    def modify_private_tags_by_study(
+    async def modify_private_tags_by_study(
         self,
         *,
         study_id,
@@ -76,7 +75,7 @@ class Orthanc(ABC):
         # (the best you can do is download a modified version), so do it via the studies API.
         # KeepSource=false needed to stop it making a copy
         # https://orthanc.uclouvain.be/api/index.html#tag/Studies/paths/~1studies~1{id}~1modify/post
-        return self._post(
+        return await self._post(
             f"/studies/{study_id}/modify",
             {
                 "PrivateCreator": private_creator,
@@ -86,50 +85,63 @@ class Orthanc(ABC):
             },
         )
 
-    def retrieve_from_remote(self, query_id: str) -> str:
-        response = self._post(
+    async def retrieve_from_remote(self, query_id: str) -> str:
+        response = await self._post(
             f"/queries/{query_id}/retrieve",
             data={"TargetAet": self.aet, "Synchronous": False},
         )
         return str(response["ID"])
 
-    def job_state(self, job_id: str) -> str:
+    async def job_state(self, job_id: str) -> str:
+        """Get job state from orthanc."""
         # See: https://book.orthanc-server.com/users/advanced-rest.html#jobs-monitoring
-        return str(self._get(f"/jobs/{job_id}")["State"])
+        return str(await self._get(f"/jobs/{job_id}")["State"])
 
-    def _get(self, path: str) -> Any:
-        return _deserialise(requests.get(f"{self._url}{path}", auth=self._auth, timeout=10))
+    async def _get(self, path: str) -> Any:
+        async with (
+            aiohttp.ClientSession() as session,
+            session.get(f"{self._url}{path}", auth=self._auth, timeout=10) as response,
+        ):
+            return await _deserialise(response)
 
-    def _post(
+    async def _post(
         self, path: str, data: dict, timeout: Optional[float] = None
     ) -> list[str] | list[dict]:
-        return _deserialise(
-            requests.post(f"{self._url}{path}", json=data, auth=self._auth, timeout=timeout)
-        )
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                f"{self._url}{path}", json=data, auth=self._auth, timeout=timeout
+            ) as response,
+        ):
+            return await _deserialise(response)
 
-    def _delete(self, path: str, timeout: Optional[float] = 10) -> None:
-        return _deserialise(requests.delete(f"{self._url}{path}", auth=self._auth, timeout=timeout))
+    async def _delete(self, path: str, timeout: Optional[float] = 10) -> None:
+        async with (
+            aiohttp.ClientSession() as session,
+            session.delete(f"{self._url}{path}", auth=self._auth, timeout=timeout) as response,
+        ):
+            await _deserialise(response)
 
-    def send_existing_study_to_anon(self, resource_id: str) -> None:
+    async def send_existing_study_to_anon(self, resource_id: str) -> None:
         """Send study to orthanc anon."""
-        self._post("/send-to-anon", data={"ResourceId": resource_id})
+        await self._post("/send-to-anon", data={"ResourceId": resource_id})
 
 
-def _deserialise(response: requests.Response) -> Any:
+async def _deserialise(response: aiohttp.ClientResponse) -> Any:
     """Decode an Orthanc rest API response"""
     success_code = 200
-    if response.status_code != success_code:
+    if response.status != success_code:
         msg = (
             f"Failed request. "
-            f"Status code: {response.status_code}"
-            f"Content: {response.content.decode()}"
+            f"Status code: {response.status}"
+            f"Content: {await response.text()}"
         )
-        raise requests.HTTPError(msg)
+        raise aiohttp.ClientResponseError(msg)
     try:
-        return response.json()
-    except (JSONDecodeError, ValueError) as exc:
-        msg = f"Failed to parse {response} as json"
-        raise requests.HTTPError(msg) from exc
+        return await response.json()
+    except (aiohttp.ContentTypeError, ValueError) as exc:
+        msg = "Failed to parse response as json"
+        raise aiohttp.ClientResponseError(msg) from exc
 
 
 class PIXLRawOrthanc(Orthanc):

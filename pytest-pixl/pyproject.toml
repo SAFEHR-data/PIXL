@@ -11,6 +11,7 @@ classifiers = [
     "Programming Language :: Python :: 3"
 ]
 dependencies = [
+    "aiohttp==3.9.3",
     "pydicom==2.4.4",
     "pyftpdlib==1.5.9",
     "python-decouple==3.6",
