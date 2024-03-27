@@ -12,15 +12,13 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-project:
-    name: "uclh-nasogastric-tube-project-ngt-only-full-dataset"
-    azure_kv_alias: null
-    modalities: ["DX", "CR"]
+"""Custom exceptions for PIXL."""
 
-tag_operation_files:
-    base:
-        - "uclh-nasogastric-tube-project-ngt-only-full-dataset.yaml"
-    manufacturer_overrides: null
-destination:
-    dicom: "ftps"
-    parquet: "ftps"
+
+class PixlSkipMessageError(RuntimeError):
+    """
+    Expected application error.
+
+    Exception that will be caught and whose message will be displayed
+    (without a stack trace).
+    """

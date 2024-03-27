@@ -47,7 +47,7 @@ os.environ["NO_PROXY"] = os.environ["no_proxy"] = "localhost"
 @click.option("--debug/--no-debug", default=False)
 def cli(*, debug: bool) -> None:
     """PIXL command line interface"""
-    set_log_level("WARNING" if not debug else "DEBUG")
+    set_log_level("INFO" if not debug else "DEBUG")
 
 
 @cli.command()
@@ -59,7 +59,7 @@ def cli(*, debug: bool) -> None:
     help="Exit with error on missing env vars",
 )
 @click.option(
-    "--sample_env_file",
+    "--sample-env-file",
     show_default=True,
     default=None,
     type=click.Path(exists=True),
@@ -126,6 +126,9 @@ def populate(
             │   └── PROCEDURE_OCCURRENCE.parquet
             └── extract_summary.json
     """
+    if start_processing:
+        _start_or_update_extract(queues=queues.split(","), rate=rate)
+
     logger.info(f"Populating queue(s) {queues} from {parquet_path}")
     if parquet_path.is_file() and parquet_path.suffix == ".csv":
         messages = messages_from_csv(parquet_path)
@@ -150,9 +153,6 @@ def populate(
             )
         with PixlProducer(queue_name=queue, **SERVICE_SETTINGS["rabbitmq"]) as producer:
             producer.publish(sorted_messages)
-
-    if start_processing:
-        _start_or_update_extract(queues=queues.split(","), rate=rate)
 
 
 @cli.command()
