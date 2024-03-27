@@ -14,10 +14,9 @@
 from __future__ import annotations
 
 from io import BytesIO
-from os import PathLike
-from pathlib import Path
-from typing import Any, BinaryIO, Union
 from logging import getLogger
+from os import PathLike
+from typing import Any, BinaryIO, Union
 
 from core.exceptions import PixlSkipMessageError
 from core.project_config import load_project_config
@@ -25,13 +24,14 @@ from core.project_config import load_project_config
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
 
 import requests
+from core.project_config import load_tag_operations
 from decouple import config
 from pydicom import Dataset, dcmwrite
 
+from pixl_dcmd._tag_schemes import merge_tag_schemes
 from pixl_dcmd._database import add_hashed_identifier_and_save, query_db
 from pixl_dcmd._datetime import combine_date_time, format_date_time
 from pixl_dcmd._deid_helpers import get_bounded_age, get_encrypted_uid
-import yaml
 
 DicomDataSetType = Union[Union[str, bytes, PathLike[Any]], BinaryIO]
 
@@ -87,7 +87,8 @@ def anonymise_dicom(dataset: Dataset) -> Dataset:
     logger.info("Removed overlays")
 
     # Merge tag schemes
-    all_tags = merge_tag_schemes(project_config.tag_operation_files)
+    tag_operations = load_tag_operations(project_config)
+    all_tags = merge_tag_schemes(tag_operations, manufacturer=dataset.Manufacturer)
 
     # Apply scheme to instance
     dataset = apply_tag_scheme(dataset, all_tags)
@@ -99,33 +100,6 @@ def anonymise_dicom(dataset: Dataset) -> Dataset:
     )
     # Write anonymised instance to disk.
     return dataset
-
-
-def merge_tag_schemes(tag_operation_files: list[Path]) -> list[dict]:
-    """Merge multiple tag schemes into a single scheme."""
-    all_tags: dict[tuple, dict] = {}
-
-    for tag_operation_file in tag_operation_files:
-        with tag_operation_file.open() as file:
-            # Load tag operations scheme from YAML.
-            tags = yaml.safe_load(file)
-            if not isinstance(tags, list) or not all(
-                [isinstance(tag, dict) for tag in tags]
-            ):
-                raise ValueError(
-                    "Tag operation file must contain a list of dictionaries"
-                )
-            all_tags.update(_scheme_list_to_dict(tags))
-
-    return list(all_tags.values())
-
-
-def _scheme_list_to_dict(tags: list[dict]) -> dict[tuple, dict]:
-    """
-    Convert a list of tag dictionaries to a dictionary of dictionaries.
-    Each group/element pair uniquely identifies a tag.
-    """
-    return {(tag["group"], tag["element"]): tag for tag in tags}
 
 
 def remove_overlays(dataset: Dataset) -> Dataset:
