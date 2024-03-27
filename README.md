@@ -209,6 +209,8 @@ From the _PIXL_ directory:
 bin/pixldc pixl_dev up
 ```
 
+Once the services are running, you can interact with the services using the [`pixl` CLI](./cli/README.md).
+
 ### Stop
 
 From the _PIXL_ directory:
