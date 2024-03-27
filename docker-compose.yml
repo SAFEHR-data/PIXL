@@ -33,6 +33,7 @@ x-build-args-common: &build-args-common
 x-pixl-common-env: &pixl-common-env
   ENV: ${ENV}
   DEBUG: ${DEBUG}
+  LOG_LEVEL: ${LOG_LEVEL}
 
 x-pixl-rabbit-mq: &pixl-rabbit-mq
   RABBITMQ_HOST: "queue" # Name of the queue service
@@ -162,7 +163,7 @@ services:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: 
+      test:
         [
           "CMD-SHELL", "/probes/test-aliveness.py --user=$ORTHANC_USERNAME --pwd=$ORTHANC_PASSWORD"
         ]
@@ -214,7 +215,7 @@ services:
       orthanc-anon:
         condition: service_started
     healthcheck:
-      test: 
+      test:
         [
           "CMD-SHELL", "/probes/test-aliveness.py --user=$ORTHANC_USERNAME --pwd=$ORTHANC_PASSWORD"
         ]
@@ -305,7 +306,7 @@ services:
     networks:
       - pixl-net
     environment:
-      <<: [*pixl-rabbit-mq, *proxy-common]
+      <<: [*pixl-rabbit-mq, *proxy-common, *pixl-common-env]
       ORTHANC_RAW_URL: ${ORTHANC_RAW_URL}
       ORTHANC_RAW_USERNAME: ${ORTHANC_RAW_USERNAME}
       ORTHANC_RAW_PASSWORD: ${ORTHANC_RAW_PASSWORD}
