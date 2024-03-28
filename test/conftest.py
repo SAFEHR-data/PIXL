@@ -13,6 +13,8 @@
 #  limitations under the License.
 """System/E2E test setup"""
 
+# ruff: noqa: C408 dict() makes test data easier to read and write
+
 from pathlib import Path
 
 import pytest
@@ -53,17 +55,71 @@ def _populate_vna(tmp_path_factory) -> None:
     # more detailed series testing is found in pixl_dcmd tests, but here
     # we just stick an instance to each study, one of which is expected to be propagated through
     # Move VNA population to here from insert_test_data.sh so it's all in one place?
-    _upload_dicom_instance(dicom_dir, "whatever", "AA12345601", "987654321")
-    _upload_dicom_instance(dicom_dir, "positioning", "AA12345605", "987654321")
+    acc_num_1 = "AA12345601"
+    acc_num_2 = "AA12345605"
+    patient_id_1 = "987654321"
 
+    # studies are also defined by the StudyID, the StudyInstanceUID
+    def study_instance_uid(offset: int) -> str:
+        baseline = "1.3.46.670589.11.38023.5.0.14068.2023012517090166000"
+        offset_str = f"{offset:04d}"
+        return dict(StudyInstanceUID=baseline[: -len(offset_str)] + offset_str)
 
-def _upload_dicom_instance(
-    dicom_dir: Path, series_description, accession_number, patient_id
-) -> None:
-    ds = generate_dicom_dataset(
-        SeriesDescription=series_description, AccessionNumber=accession_number, PatientID=patient_id
+    def series_instance_uid(offset: int) -> str:
+        baseline = "1.3.46.670589.11.38023.5.0.7404.2023012517551898153"
+        offset_str = f"{offset:04d}"
+        return dict(SeriesInstanceUID=baseline[: -len(offset_str)] + offset_str)
+
+    def sop_instance_uid(offset: int) -> str:
+        baseline = "1.3.46.670589.11.38023.5.0.7404.2023012517580650156"
+        offset_str = f"{offset:04d}"
+        return dict(SOPInstanceUID=baseline[: -len(offset_str)] + offset_str)
+
+    study_1 = dict(
+        AccessionNumber=acc_num_1,
+        PatientID=patient_id_1,
+        StudyID="12340001",
+        **study_instance_uid(1),
     )
-    test_dcm_file = dicom_dir / f"{patient_id}_{accession_number}_{series_description}.dcm"
+    study_2 = dict(
+        AccessionNumber=acc_num_2,
+        PatientID=patient_id_1,
+        StudyID="12340002",
+        **study_instance_uid(2),
+    )
+
+    # series are also defined by the SeriesInstanceUID, SeriesNumber
+    # SeriesNumber doesn't have to be gloablly unique, only within a study,
+    # however I'm assuming SeriesInstanceUID does. So that must be generated when
+    # a series is attached to a study
+    series_1 = dict(SeriesDescription="whatever1", SeriesNumber=901)
+    series_2 = dict(SeriesDescription="whatever2", SeriesNumber=902)
+    series_exclude_3 = dict(SeriesDescription="positioning", SeriesNumber=903)
+
+    # instances are also defined by the SOPInstanceUID
+    instance_1 = dict(**study_1, **series_1, **series_instance_uid(1), **sop_instance_uid(1))
+    instance_2 = dict(**study_1, **series_2, **series_instance_uid(2), **sop_instance_uid(2))
+    instance_3 = dict(
+        **study_1, **series_exclude_3, **series_instance_uid(3), **sop_instance_uid(3)
+    )
+    instance_4 = dict(**study_2, **series_1, **series_instance_uid(4), **sop_instance_uid(4))
+    instance_5 = dict(
+        **study_2, **series_exclude_3, **series_instance_uid(5), **sop_instance_uid(5)
+    )
+
+    _upload_dicom_instance(dicom_dir, **instance_1)
+    _upload_dicom_instance(dicom_dir, **instance_2)
+    _upload_dicom_instance(dicom_dir, **instance_3)
+    _upload_dicom_instance(dicom_dir, **instance_4)
+    _upload_dicom_instance(dicom_dir, **instance_5)
+
+
+def _upload_dicom_instance(dicom_dir: Path, **kwargs) -> None:
+    ds = generate_dicom_dataset(**kwargs)
+    test_dcm_file = (
+        dicom_dir
+        / f"{kwargs['PatientID']}_{kwargs['AccessionNumber']}_{kwargs['SeriesDescription']}.dcm"
+    )
     ds.save_as(str(test_dcm_file), write_like_original=False)
     # I think we can skip writing to disk!
     _upload_to_vna(test_dcm_file)
