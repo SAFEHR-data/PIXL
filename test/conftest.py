@@ -92,13 +92,17 @@ def _populate_vna(tmp_path_factory) -> None:
     # SeriesNumber doesn't have to be gloablly unique, only within a study,
     # however I'm assuming SeriesInstanceUID does. So that must be generated when
     # a series is attached to a study
-    series_1 = dict(SeriesDescription="whatever1", SeriesNumber=901)
-    series_2 = dict(SeriesDescription="whatever2", SeriesNumber=902)
-    series_exclude_3 = dict(SeriesDescription="positioning", SeriesNumber=903)
+    series_1 = dict(SeriesDescription="whatever1", SeriesNumber=901, Modality="DX")
+    # excluded by modality filter
+    series_exclude_2 = dict(SeriesDescription="whatever2", SeriesNumber=902, Modality="MR")
+    # excluded by series description
+    series_exclude_3 = dict(SeriesDescription="positioning", SeriesNumber=903, Modality="DX")
 
     # instances are also defined by the SOPInstanceUID
     instance_1 = dict(**study_1, **series_1, **series_instance_uid(1), **sop_instance_uid(1))
-    instance_2 = dict(**study_1, **series_2, **series_instance_uid(2), **sop_instance_uid(2))
+    instance_2 = dict(
+        **study_1, **series_exclude_2, **series_instance_uid(2), **sop_instance_uid(2)
+    )
     instance_3 = dict(
         **study_1, **series_exclude_3, **series_instance_uid(3), **sop_instance_uid(3)
     )

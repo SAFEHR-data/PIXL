@@ -283,8 +283,6 @@ def ReceivedInstanceCallback(receivedDicom: bytes, origin: str) -> Any:
 
     # Do before anonymisation in case someone decides to delete the
     # Series Description tag as part of anonymisation.
-    # XXXX: If this throws, does image get discarded? We probably want to do a pre-upload check that
-    # all sensitive fields look like hashes.
     if should_exclude_series(dataset):
         orthanc.LogWarning("DICOM instance discarded due to its series description")
         return orthanc.ReceivedInstanceAction.DISCARD, None

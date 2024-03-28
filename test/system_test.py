@@ -79,44 +79,66 @@ class TestFtpsUpload:
             two_zip_files_present,
             seconds_max=121,
             seconds_interval=5,
+            seconds_condition_stays_true_for=15,
             progress_string_fn=zip_file_list,
         )
-        # expected_instances = dict(Series=)
+        expected_studies = {
+            "a971b114b9133c81c03fb88c6a958f7d95eb1387f04c17ad7ff9ba7cf684c392": [
+                # hash of AA12345601
+                {"AccessionNumber": "ad630a8a84d72d71", "SeriesDescription": "whatever1"},
+                {"AccessionNumber": "ad630a8a84d72d71", "SeriesDescription": "AP"},
+            ],
+            "f71b228fa97d6c87db751e0bb35605fd9d4c1274834be4bc4bb0923ab8029b2a": [
+                # hash of AA12345605,
+                {"AccessionNumber": "c2f4b59b0291c6fe", "SeriesDescription": "whatever1"},
+            ],
+        }
         assert zip_files
         for z in zip_files:
             unzip_dir = tmp_path_factory.mktemp("unzip_dir", numbered=True)
-            self._check_dcm_tags_from_zip(z, unzip_dir)
+            self._check_dcm_tags_from_zip(z, unzip_dir, expected_studies)
 
-    def _check_dcm_tags_from_zip(self, zip_path, unzip_dir) -> None:
+    def _check_dcm_tags_from_zip(self, zip_path, unzip_dir, expected_studies) -> None:
         """Check that private tag has survived anonymisation with the correct value."""
+        expected_instances = expected_studies[zip_path.stem]
         run_subprocess(
             ["unzip", zip_path],
             working_dir=unzip_dir,
         )
-        all_dicom = list(unzip_dir.rglob("*.dcm"))
+        dicom_in_zip = list(unzip_dir.rglob("*.dcm"))
 
-        # I think this will fail if we've done it right?
-        # assert len(all_dicom) == 1
-
-        # within a dicom study, there can be multiple dicom instances, but none should
-        # have a series description on the exclude list
-        logging.info("JES: within zip, all_dicom [%s] = %s", len(all_dicom), all_dicom)
-        for dcm_file in all_dicom:
+        # One zip file == one study.
+        # There can be multiple instances in the zip file, one per file
+        logging.info("JES: within zip, dicom_in_zip [%s] = %s", len(dicom_in_zip), dicom_in_zip)
+        for dcm_file in dicom_in_zip:
             dcm = pydicom.dcmread(dcm_file)
+            # The actual dicom filename and dir structure isn't checked - should it be?
             logging.info("JES: dcm_file = %s", dcm_file)
-            logging.info(
-                "JES: AN = %s, PI = %s, SD = %s",
-                dcm.get("AccessionNumber"),
-                dcm.get("PatientID"),
-                dcm.get("SeriesDescription"),
-            )
+            assert dcm.get("PatientID") == zip_path.stem  # PatientID stores study id post anon
+            actual_info = {
+                "AccessionNumber": dcm.get("AccessionNumber"),
+                "SeriesDescription": dcm.get("SeriesDescription"),
+            }
+            logging.info("Actual info = %s", actual_info)
+            assert actual_info in expected_instances
             block = dcm.private_block(
                 DICOM_TAG_PROJECT_NAME.group_id, DICOM_TAG_PROJECT_NAME.creator_string
             )
             tag_offset = DICOM_TAG_PROJECT_NAME.offset_id
             private_tag = block[tag_offset]
             assert private_tag is not None
-            assert private_tag.value == TestFtpsUpload.project_slug
+            if isinstance(private_tag.value, bytes):
+                # Allow this for the time being, until it has been investigated
+                # See https://github.com/UCLH-Foundry/PIXL/issues/363
+                logging.error(
+                    "TEMPORARILY IGNORE: tag value %s should be of type str, but is of type bytes",
+                    {private_tag.value},
+                )
+                assert private_tag.value.decode() == TestFtpsUpload.project_slug
+            else:
+                assert private_tag.value == TestFtpsUpload.project_slug
+        # nothing got left out
+        assert len(dicom_in_zip) == len(expected_instances)
 
 
 @pytest.mark.usefixtures("_setup_pixl_cli")
