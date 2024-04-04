@@ -19,6 +19,7 @@
   "MaximumStorageSize" : ${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE}, // MB, replaced in Dockerfile because its an integer
   "MaximumStorageMode" : "Recycle",
   // Enable concurrency
+  "JobsHistorySize": 100  // default 10
   "ConcurrentJobs" : 50,  // default 2
   "DicomThreadsCount" : 50,  // default 5
   "HttpThreadsCount": 200,  // default 50, REST api can't make connection if this is too low
