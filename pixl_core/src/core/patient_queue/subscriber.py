@@ -82,7 +82,7 @@ class PixlConsumer(PixlQueueInterface):
         try:
             await self._callback(pixl_message)
         except PixlRequeueMessageError as requeue:
-            logger.debug("Requeue message: {} from {}", pixl_message, requeue)
+            logger.trace("Requeue message: {} from {}", pixl_message, requeue)
             await asyncio.sleep(1)
             await message.reject(requeue=True)
         except PixlSkipMessageError as exception:
