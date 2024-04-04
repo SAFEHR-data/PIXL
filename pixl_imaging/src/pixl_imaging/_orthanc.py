@@ -23,6 +23,9 @@ from loguru import logger
 
 class Orthanc(ABC):
     def __init__(self, url: str, username: str, password: str) -> None:
+        if not url:
+            msg = "URL for orthanc is required"
+            raise ValueError(msg)
         self._url = url.rstrip("/")
         self._username = username
         self._password = password
