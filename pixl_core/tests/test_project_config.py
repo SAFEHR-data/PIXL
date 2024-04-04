@@ -16,23 +16,22 @@
 from pathlib import Path
 
 import pytest
-from core.project_config import PixlConfig, _load_and_validate
+import yaml
+from core.project_config import PixlConfig, load_project_config
+from core.project_config.tag_operations import load_tag_operations
 from decouple import config
 from pydantic import ValidationError
 
 PROJECT_CONFIGS_DIR = Path(config("PROJECT_CONFIGS_DIR"))
-TEST_CONFIG = PROJECT_CONFIGS_DIR / "test-extract-uclh-omop-cdm.yaml"
+TEST_CONFIG = "test-extract-uclh-omop-cdm"
 
 
 def test_config_from_file():
     """Test whether config file is correctly parsed and validated."""
-    project_config = _load_and_validate(TEST_CONFIG)
+    project_config = load_project_config(TEST_CONFIG)
 
     assert project_config.project.name == "test-extract-uclh-omop-cdm"
     assert project_config.project.modalities == ["DX", "CR"]
-    assert project_config.tag_operation_files == [
-        PROJECT_CONFIGS_DIR / "tag-operations" / "test-extract-uclh-omop-cdm.yaml"
-    ]
     assert project_config.destination.dicom == "ftps"
     assert project_config.destination.parquet == "ftps"
 
@@ -42,7 +41,10 @@ def base_yaml_data():
     """Good data (excluding optional fields)"""
     return {
         "project": {"name": "myproject", "modalities": ["DX", "CR"]},
-        "tag_operation_files": ["test-extract-uclh-omop-cdm.yaml"],
+        "tag_operation_files": {
+            "base": ["test-extract-uclh-omop-cdm.yaml"],
+            "manufacturer_overrides": "mri-diffusion.yaml",
+        },
         "destination": {"dicom": "ftps", "parquet": "ftps"},
     }
 
@@ -72,19 +74,10 @@ def test_invalid_destinations(base_yaml_data):
         PixlConfig.model_validate(config_data)
 
 
-def test_too_many_paths(base_yaml_data):
-    """Test that the config validation fails if there are >1 tag operation files"""
-    config_data_extra_file = base_yaml_data
-    tof = config_data_extra_file["tag_operation_files"]
-    tof.append(tof[0])
-    with pytest.raises(ValidationError, match="at most 1"):
-        PixlConfig.model_validate(config_data_extra_file)
-
-
 def test_invalid_paths(base_yaml_data):
     """Test that the config validation fails for invalid tag-operation paths."""
     config_data_wrong_base = base_yaml_data
-    config_data_wrong_base["tag_operation_files"][0] = "/i/dont/exist.yaml"
+    config_data_wrong_base["tag_operation_files"]["base"][0] = "/i/dont/exist.yaml"
     with pytest.raises(ValidationError):
         PixlConfig.model_validate(config_data_wrong_base)
 
@@ -92,4 +85,53 @@ def test_invalid_paths(base_yaml_data):
 @pytest.mark.parametrize(("yaml_file"), PROJECT_CONFIGS_DIR.glob("*.yaml"))
 def test_all_real_configs(yaml_file):
     """Test that all production configs are valid"""
-    _load_and_validate(yaml_file)
+    load_project_config(yaml_file.stem)
+
+
+def test_load_tag_operations():
+    """Test whether tag operations are correctly loaded."""
+    project_config = load_project_config(TEST_CONFIG)
+    assert load_tag_operations(project_config)
+
+
+@pytest.mark.parametrize(("yaml_file"), PROJECT_CONFIGS_DIR.glob("*.yaml"))
+def test_all_real_tagoperations(yaml_file):
+    """Test that all production configs are valid"""
+    project_config = load_project_config(yaml_file.stem)
+    load_tag_operations(project_config)
+
+
+def test_load_tag_operations_no_manufacturer_overrides(base_yaml_data):
+    """Test whether tag operations are correctly loaded when no overrides are present."""
+    # Arrange
+    base_yaml_data["tag_operation_files"]["manufacturer_overrides"] = None
+    project_config = PixlConfig.model_validate(base_yaml_data)
+
+    # Act
+    tag_operations = load_tag_operations(project_config)
+
+    # Assert
+    assert tag_operations.manufacturer_overrides is None
+
+
+@pytest.fixture()
+def invalid_base_tags(tmp_path_factory, base_yaml_data) -> PixlConfig:
+    """TagOperations with invalid base tags."""
+    base_tags = [
+        {"I": "tag1", "am": 0x001, "not": 0x1000, "valid": "delete"},
+    ]
+
+    tmpdir = tmp_path_factory.mktemp("tag-operations")
+    base_tags_path = tmpdir / "base.yaml"
+    with base_tags_path.open("w") as f:
+        f.write(yaml.dump(base_tags))
+
+    invalid_base_yaml_data = base_yaml_data
+    invalid_base_yaml_data["tag_operation_files"]["base"] = [str(base_tags_path)]
+    return PixlConfig.model_validate(invalid_base_yaml_data)
+
+
+def test_invalid_base_tags_fails(invalid_base_tags):
+    """Test that invalid base tags raise an error."""
+    with pytest.raises(ValidationError):
+        load_tag_operations(invalid_base_tags)

@@ -14,11 +14,15 @@
 """CLI testing fixtures."""
 
 from __future__ import annotations
+
 import datetime
 import os
 import pathlib
+import tempfile
 from typing import Optional
+
 import pytest
+import pytest_pixl.dicom
 import requests
 from core.db.models import Base, Extract, Image
 from core.dicom_tags import (
@@ -31,8 +35,6 @@ from core.project_config import load_project_config, load_tag_operations
 from pydicom.dataset import Dataset
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
-import tempfile
-import pytest_pixl.dicom
 
 os.environ["SALT_VALUE"] = "test_salt"
 os.environ["HASHER_API_AZ_NAME"] = "test_hash_API"

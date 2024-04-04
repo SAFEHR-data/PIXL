@@ -1,4 +1,4 @@
-#  Copyright (c) 2022 University College London Hospitals NHS Foundation Trust
+#  Copyright (c) University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -12,15 +12,11 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-project:
-    name: "uclh-nasogastric-tube-project-ngt-only-full-dataset"
-    azure_kv_alias: null
-    modalities: ["DX", "CR"]
+"""Project-specific configuration for Pixl."""
 
-tag_operation_files:
-    base:
-        - "uclh-nasogastric-tube-project-ngt-only-full-dataset.yaml"
-    manufacturer_overrides: null
-destination:
-    dicom: "ftps"
-    parquet: "ftps"
+#
+# Avoid breaking older imports
+from core.project_config.pixl_config_model import PixlConfig, load_project_config
+from core.project_config.tag_operations import TagOperations, load_tag_operations
+
+__all__ = ["PixlConfig", "load_project_config", "TagOperations", "load_tag_operations"]

@@ -78,21 +78,24 @@ class PixlConsumer(PixlQueueInterface):
             return
 
         pixl_message = deserialise(message.body)
+        # Early acknowledge as we don't requeue anyway at this point
+        await message.ack()
+        logger.info("Starting message %s", pixl_message)
         try:
-            logger.warning("Starting message %s", pixl_message)
             await self._callback(pixl_message)
-            logger.warning("Finished message %s", pixl_message)
+            logger.info("Finished message %s", pixl_message)
         except Exception:
             logger.exception(
                 "Failed to process %s" "Not re-queuing message",
                 pixl_message,
             )
-        finally:
-            await message.ack()
 
     async def run(self) -> None:
-        """Processes messages from queue asynchronously."""
-        await self._queue.consume(self._process_message)
+        """Processes messages from queue synchronously for now."""
+        async with self._queue.iterator() as queue_iter:
+            message: aio_pika.abc.AbstractIncomingMessage
+            async for message in queue_iter:
+                await self._process_message(message)
 
     async def __aexit__(self, *args: object, **kwargs: Any) -> None:
         """Requirement for the asynchronous context manager"""

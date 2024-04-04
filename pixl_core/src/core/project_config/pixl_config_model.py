@@ -25,6 +25,8 @@ import yaml
 from decouple import Config, RepositoryEmpty, RepositoryEnv
 from pydantic import BaseModel, field_validator
 
+from core.exceptions import PixlSkipMessageError
+
 # Make sure local .env file is loaded if it exists
 env_file = Path.cwd() / ".env"
 config = Config(RepositoryEnv(env_file)) if env_file.exists() else Config(RepositoryEmpty())
@@ -38,10 +40,12 @@ def load_project_config(project_slug: str) -> PixlConfig | Any:
     Project needs to have a corresponding yaml file in the `$PROJECT_CONFIGS_DIR` directory.
     """
     configpath = Path(config("PROJECT_CONFIGS_DIR")) / f"{project_slug}.yaml"
-    logger.warning(f"Loading config for {project_slug} from {configpath}")  # noqa: G004
-    if not configpath.exists():
-        raise FileNotFoundError(f"No config for {project_slug}. Please submit PR and redeploy.")  # noqa: EM102, TRY003
-    return _load_and_validate(configpath)
+    logger.debug(f"Loading config for {project_slug} from {configpath}")  # noqa: G004
+    try:
+        return _load_and_validate(configpath)
+    except FileNotFoundError as error:
+        msg = f"No config for {project_slug}. Please submit PR and redeploy."
+        raise PixlSkipMessageError(msg) from error
 
 
 def _load_and_validate(filename: Path) -> PixlConfig | Any:
@@ -57,6 +61,43 @@ class _Project(BaseModel):
     name: str
     azure_kv_alias: Optional[str] = None
     modalities: list[str]
+
+
+class TagOperationFiles(BaseModel):
+    """Tag operations files for a project. At least a base file is required."""
+
+    base: list[Path]
+    manufacturer_overrides: Optional[Path]
+
+    @field_validator("base")
+    @classmethod
+    def _valid_tag_operations(cls, tag_ops_files: list[str]) -> list[Path]:
+        if not tag_ops_files or len(tag_ops_files) == 0:
+            msg = "There should be at least 1 tag operations file"
+            raise ValueError(msg)
+
+        # Pydantic does not appear to automatically check if the file exists
+        files = [
+            PROJECT_CONFIGS_DIR / "tag-operations" / tag_ops_file for tag_ops_file in tag_ops_files
+        ]
+        for f in files:
+            if not f.exists():
+                # For pydantic, you must raise a ValueError (or AssertionError)
+                raise ValueError from FileNotFoundError(f)
+        return files
+
+    @field_validator("manufacturer_overrides")
+    @classmethod
+    def _valid_manufacturer_overrides(cls, tags_file: str) -> Optional[Path]:
+        if not tags_file:
+            return None
+
+        tags_file_path = PROJECT_CONFIGS_DIR / "tag-operations" / tags_file
+        # Pydantic does not appear to automatically check if the file exists
+        if not tags_file_path.exists():
+            # For pydantic, you must raise a ValueError (or AssertionError)
+            raise ValueError from FileNotFoundError(tags_file_path)
+        return tags_file_path
 
 
 class _DestinationEnum(str, Enum):
@@ -83,27 +124,5 @@ class PixlConfig(BaseModel):
     """Project-specific configuration for Pixl."""
 
     project: _Project
-    tag_operation_files: list[Path]
+    tag_operation_files: TagOperationFiles
     destination: _Destination
-
-    @field_validator("tag_operation_files")
-    @classmethod
-    def _valid_tag_operations(cls, tag_ops_files: list[str]) -> list[Path]:
-        if not tag_ops_files or len(tag_ops_files) == 0:
-            msg = "There should be at least 1 tag operations file"
-            raise ValueError(msg)
-
-        if len(tag_ops_files) > 1:
-            msg = "There should currently be at most 1 tag operations file."
-            raise ValueError(msg)
-
-        # Pydantic does not appear to automatically check if the file exists
-        files = [
-            Path(config("PROJECT_CONFIGS_DIR")) / "tag-operations" / tag_ops_file
-            for tag_ops_file in tag_ops_files
-        ]
-        for f in files:
-            if not f.exists():
-                # For pydantic, you must raise a ValueError (or AssertionError)
-                raise ValueError from FileNotFoundError(f)
-        return files
