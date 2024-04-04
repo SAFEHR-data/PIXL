@@ -72,6 +72,26 @@ def _mri_diffusion_tags(manufacturer: str = "Philips") -> list[PrivateDicomTag]:
 
 
 @pytest.fixture()
+def vanilla_dicom_image() -> Dataset:
+    """
+    A DICOM image with diffusion data to test the anonymisation process.
+    Private tags were added to match the tag operations defined in the project config, so we can
+    test whether the anonymisation process works as expected when defining overrides.
+    """
+    ds = generate_dicom_dataset(Modality="DX")
+
+    # Make sure the project name tag is added for anonymisation to work
+    add_private_tag(ds, DICOM_TAG_PROJECT_NAME)
+    # Update the project name tag to a known value
+    block = ds.private_block(
+        DICOM_TAG_PROJECT_NAME.group_id, DICOM_TAG_PROJECT_NAME.creator_string
+    )
+    ds[block.get_tag(DICOM_TAG_PROJECT_NAME.offset_id)].value = TEST_PROJECT_SLUG
+
+    return ds
+
+
+@pytest.fixture()
 def mri_diffusion_dicom_image() -> Dataset:
     """
     A DICOM image with diffusion data to test the anonymisation process.
@@ -106,8 +126,22 @@ def test_remove_overlay_plane() -> None:
     assert (0x6000, 0x3000) not in ds_minus_overlays
 
 
-# TODO: Produce more complete test coverage for anonymisation
-# https://github.com/UCLH-Foundry/PIXL/issues/132
+def test_anonymisation(row_for_dicom_testing, vanilla_dicom_image: Dataset) -> None:
+    """
+    Test whether anonymisation works as expected on a vanilla DICOM dataset
+    """
+
+    orig_patient_id = vanilla_dicom_image.PatientID
+    orig_patient_name = vanilla_dicom_image.PatientName
+
+    # Sanity check: study date should be present before anonymisation
+    assert vanilla_dicom_image.StudyDate is not None
+
+    anon_ds = anonymise_dicom(vanilla_dicom_image)
+
+    assert anon_ds.PatientID != orig_patient_id
+    assert anon_ds.PatientName != orig_patient_name
+    assert "StudyDate" not in anon_ds
 
 
 def test_anonymisation_with_overrides(
