@@ -95,7 +95,7 @@ class PixlConsumer(PixlQueueInterface):
             )
             await message.reject(requeue=False)
         else:
-            logger.info("Finished message {}", pixl_message)
+            logger.success("Finished message {}", pixl_message)
             await message.ack()
 
     async def run(self) -> None:
