@@ -79,10 +79,12 @@ def _add_image_to_fake_vna(run_containers) -> None:
 async def orthanc_raw(run_containers) -> PIXLRawOrthanc:
     """Set up orthanc raw and remove all studies in teardown."""
     orthanc_raw = PIXLRawOrthanc()
-    yield orthanc_raw
-    all_studies = await orthanc_raw._get("/studies")
-    for study in all_studies:
-        await orthanc_raw._delete(f"/studies/{study}")
+    try:
+        return orthanc_raw
+    finally:
+        all_studies = await orthanc_raw._get("/studies")
+        for study in all_studies:
+            await orthanc_raw._delete(f"/studies/{study}")
 
 
 @pytest.mark.processing()
