@@ -51,7 +51,7 @@ os.environ["ORTHANC_AUTOROUTE_RAW_TO_ANON"] = "false"
 def _patch_send_existing_study_to_anon(monkeypatch: Generator[MonkeyPatch, None, None]) -> None:
     """Patch send_existing_study_to_anon in Orthanc as orthanc raw doesn't use the pixl plugin."""
 
-    def patched_send(self, resource_id: str) -> None:
+    async def patched_send(self, resource_id: str) -> None:
         """Replaces send_existing_study_to_anon."""
         logger.info("Intercepted request to send '%s' to anon", resource_id)
 
