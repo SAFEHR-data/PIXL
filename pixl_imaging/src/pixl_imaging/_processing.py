@@ -18,7 +18,7 @@ from dataclasses import dataclass
 from time import time
 from typing import TYPE_CHECKING, Any
 
-from aiohttp.web_exceptions import HTTPException
+from aiohttp import ClientResponseError
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
 from core.exceptions import PixlRequeueMessageError, PixlSkipMessageError
 from decouple import config
@@ -76,7 +76,7 @@ async def process_message(message: Message) -> None:
         await sleep(1)
         try:
             job_state = await orthanc_raw.job_state(job_id=job_id)
-        except HTTPException:
+        except ClientResponseError:
             logger.debug("Could not find job for study: {}", message.identifier)
 
     # Now that instance has arrived in orthanc raw, we can set its project name tag via the API
