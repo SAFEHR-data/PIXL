@@ -14,7 +14,7 @@ and not just the component you have been working on as this will help us catch u
 
 We run [pre-commit](https://pre-commit.com/) as part of the GitHub Actions CI. To install and run it locally, do:
 
-```sh
+```shell
 pip install pre-commit
 pre-commit install
 ```

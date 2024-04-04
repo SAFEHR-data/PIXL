@@ -124,7 +124,7 @@ To configure a new project, follow these steps:
 
 1. Create a new `git` branch from `main`
 
-    ```sh
+    ```shell
     git checkout main
     git pull
     git switch -c <branch-name>
