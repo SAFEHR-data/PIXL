@@ -54,9 +54,9 @@ def tag_scheme() -> list[dict]:
 def _mri_diffusion_tags(manufacturer: str = "Philips") -> list[PrivateDicomTag]:
     """
     Private DICOM tags for testing the anonymisation process.
+    These tags from `/projects/configs/tag-operations/mri-diffusion.yaml` so we can test
+    whether the manufacturer overrides work during anonymisation
     """
-    # Private tags from `/projects/configs/tag-operations/mri-diffusion.yaml` so we can test
-    # whether the manufactuer overrides work during anonymisation
     project_config = load_project_config(TEST_PROJECT_SLUG)
     tag_ops = load_tag_operations(project_config)
     manufacturer_overrides = [
@@ -75,6 +75,8 @@ def _mri_diffusion_tags(manufacturer: str = "Philips") -> list[PrivateDicomTag]:
 def mri_diffusion_dicom_image() -> Dataset:
     """
     A DICOM image with diffusion data to test the anonymisation process.
+    Private tags were added to match the tag operations defined in the project config, so we can
+    test whether the anonymisation process works as expected when defining overrides.
     """
     manufacturer = "Philips"
     ds = generate_dicom_dataset(Manufacturer=manufacturer, Modality="DX")
@@ -108,24 +110,29 @@ def test_remove_overlay_plane() -> None:
 # https://github.com/UCLH-Foundry/PIXL/issues/132
 
 
-def test_anonymisation(
+def test_anonymisation_with_overrides(
     row_for_dicom_testing, mri_diffusion_dicom_image: Dataset
 ) -> None:
     """
-    Test that the anonymisation process works.
-    GIVEN a dicom image
+    Test that the anonymisation process works with manufacturer overrides.
+    GIVEN a dicom image with manufacturer-specific private tags
     WHEN the anonymisation is applied
-    THEN all tag operations should be applied
+    THEN all tag operations should be applied, obeying any manufacturer overrides
     """
 
     # Sanity check
+    # (0x2001, 0x1003) is one of the tags whitelisted by the overrides for Philips manufacturer
     assert (0x2001, 0x1003) in mri_diffusion_dicom_image
+    original_patient_id = mri_diffusion_dicom_image.PatientID
+    original_private_tag = mri_diffusion_dicom_image[(0x2001, 0x1003)]
 
     anon_ds = anonymise_dicom(mri_diffusion_dicom_image)
 
     # Whitelisted tags should still be present
     assert (0x0010, 0x0020) in anon_ds
     assert (0x2001, 0x1003) in anon_ds
+    assert anon_ds.PatientID != original_patient_id
+    assert mri_diffusion_dicom_image[(0x2001, 0x1003)] == original_private_tag
 
 
 def test_image_already_exported_throws(rows_in_session, tag_scheme):
