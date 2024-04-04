@@ -125,10 +125,6 @@ class Orthanc(ABC):
         ):
             await _deserialise(response)
 
-    async def send_existing_study_to_anon(self, resource_id: str) -> None:
-        """Send study to orthanc anon."""
-        await self._post("/send-to-anon", data={"ResourceId": resource_id})
-
 
 async def _deserialise(response: aiohttp.ClientResponse) -> Any:
     """Decode an Orthanc rest API response"""
@@ -149,3 +145,7 @@ class PIXLRawOrthanc(Orthanc):
     @property
     def aet(self) -> str:
         return str(config("ORTHANC_RAW_AE_TITLE"))
+
+    async def send_existing_study_to_anon(self, resource_id: str) -> list[str] | list[dict]:
+        """Send study to orthanc anon."""
+        return await self._post("/send-to-anon", data={"ResourceId": resource_id})

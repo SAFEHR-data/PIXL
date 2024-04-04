@@ -55,7 +55,9 @@ def _patch_send_existing_study_to_anon(monkeypatch: Generator[MonkeyPatch, None,
         """Replaces send_existing_study_to_anon."""
         logger.info("Intercepted request to send '%s' to anon", resource_id)
 
-    monkeypatch.setattr("pixl_imaging._orthanc.Orthanc.send_existing_study_to_anon", patched_send)
+    monkeypatch.setattr(
+        "pixl_imaging._orthanc.PIXLRawOrthanc.send_existing_study_to_anon", patched_send
+    )
 
 
 TEST_DIR = Path(__file__).parent
