@@ -14,7 +14,6 @@
 from __future__ import annotations
 
 import logging
-import os
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from dataclasses import dataclass
@@ -38,7 +37,7 @@ if TYPE_CHECKING:
     from core.patient_queue.message import Message
 
 logger = logging.getLogger("uvicorn")
-logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))
+logger.setLevel(config("LOG_LEVEL", default="INFO"))
 
 _this_dir = Path(Path(__file__).parent)
 
