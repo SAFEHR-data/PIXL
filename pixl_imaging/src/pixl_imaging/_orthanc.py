@@ -129,19 +129,8 @@ class Orthanc(ABC):
 
 async def _deserialise(response: aiohttp.ClientResponse) -> Any:
     """Decode an Orthanc rest API response"""
-    success_code = 200
-    if response.status != success_code:
-        msg = (
-            f"Failed request. "
-            f"Status code: {response.status}"
-            f"Content: {await response.text()}"
-        )
-        raise aiohttp.ClientResponseError(msg)
-    try:
-        return await response.json()
-    except (aiohttp.ContentTypeError, ValueError) as exc:
-        msg = "Failed to parse response as json"
-        raise aiohttp.ClientResponseError(msg) from exc
+    await response.raise_for_status()
+    return await response.json()
 
 
 class PIXLRawOrthanc(Orthanc):
