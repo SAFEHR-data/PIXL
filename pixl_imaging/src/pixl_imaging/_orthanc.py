@@ -132,7 +132,7 @@ class Orthanc(ABC):
 
 async def _deserialise(response: aiohttp.ClientResponse) -> Any:
     """Decode an Orthanc rest API response"""
-    await response.raise_for_status()
+    response.raise_for_status()
     return await response.json()
 
 
