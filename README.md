@@ -14,10 +14,7 @@ To get access to the GAE, [see the documentation on Slab](https://uclh.slab.com/
 
 [Follow the developer setup instructions](./docs/setup/developer.md).
 
-Before raising a PR, make sure to **run all tests** for each PIXL module
-and not just the component you have been working on as this will help us catch unintentional
-regressions without spending GitHub actions minutes :-)
-
+Before raising a PR, make sure to **run the tests** for the PIXL module you have been working on .
 In addition, make sure to [have `pre-commit` installed](/docs/setup/developer.md#linting) to
 automatically check your code before committing.
 
