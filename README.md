@@ -399,7 +399,7 @@ and not just the component you have been working on as this will help us catch u
 
 You can run all tests from the root of the repo with:
 
-```sh
+```shell
 pytest
 ```
 
@@ -407,7 +407,7 @@ The `pytest.ini` file in the root of the repo contains the configuration for run
 
 We run [pre-commit](https://pre-commit.com/) as part of the GitHub Actions CI. To install and run it locally, do:
 
-```sh
+```shell
 pip install pre-commit
 pre-commit install
 ```
