@@ -43,9 +43,6 @@ from pytest_pixl.helpers import run_subprocess
 PROJECT_CONFIGS_DIR = Path(config("PROJECT_CONFIGS_DIR"))
 TEST_PROJECT_SLUG = "test-extract-uclh-omop-cdm"
 
-EXPORTED_MRN = "987654321"
-EXPORTED_ACCESSION_NUMBER = "AA12345601"
-
 
 @pytest.fixture(scope="module")
 def tag_scheme() -> list[dict]:
@@ -75,7 +72,7 @@ def _mri_diffusion_tags(manufacturer: str = "Philips") -> list[PrivateDicomTag]:
 
 
 @pytest.fixture()
-def mri_diffusion_dicom_image(rows_in_session) -> Dataset:
+def mri_diffusion_dicom_image() -> Dataset:
     """
     A DICOM image with diffusion data to test the anonymisation process.
     """
@@ -92,10 +89,6 @@ def mri_diffusion_dicom_image(rows_in_session) -> Dataset:
         DICOM_TAG_PROJECT_NAME.group_id, DICOM_TAG_PROJECT_NAME.creator_string
     )
     ds[block.get_tag(DICOM_TAG_PROJECT_NAME.offset_id)].value = TEST_PROJECT_SLUG
-
-    # Make sure MRN and accession number match the values in the database
-    ds[0x0010, 0x0020].value = EXPORTED_MRN
-    ds[0x0008, 0x0050].value = EXPORTED_ACCESSION_NUMBER
 
     return ds
 
@@ -115,7 +108,9 @@ def test_remove_overlay_plane() -> None:
 # https://github.com/UCLH-Foundry/PIXL/issues/132
 
 
-def test_anonymisation(rows_in_session, mri_diffusion_dicom_image: Dataset) -> None:
+def test_anonymisation(
+    row_for_dicom_testing, mri_diffusion_dicom_image: Dataset
+) -> None:
     """
     Test that the anonymisation process works.
     GIVEN a dicom image
@@ -129,6 +124,7 @@ def test_anonymisation(rows_in_session, mri_diffusion_dicom_image: Dataset) -> N
     anon_ds = anonymise_dicom(mri_diffusion_dicom_image)
 
     # Whitelisted tags should still be present
+    assert (0x0010, 0x0020) in anon_ds
     assert (0x2001, 0x1003) in anon_ds
 
 
