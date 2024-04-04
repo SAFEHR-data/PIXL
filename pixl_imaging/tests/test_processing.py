@@ -96,9 +96,11 @@ async def test_image_saved(orthanc_raw) -> None:
     """
     study = ImagingStudy.from_message(message)
 
-    assert not await study.query_local(orthanc_raw)
+    orthanc = await orthanc_raw
+
+    assert not await study.query_local(orthanc)
     await process_message(message)
-    assert await study.query_local(orthanc_raw)
+    assert await study.query_local(orthanc)
 
 
 @pytest.mark.processing()
@@ -111,16 +113,17 @@ async def test_existing_message_sent_twice(orthanc_raw) -> None:
     Then orthanc raw will contain the new image, and it isn't updated on the second processing
     """
     study = ImagingStudy.from_message(message)
+    orthanc = await orthanc_raw
 
     await process_message(message)
-    assert await study.query_local(orthanc_raw)
+    assert await study.query_local(orthanc)
 
     query_for_update_time = {**study.orthanc_query_dict, "Expand": True}
-    first_processing_resource = await orthanc_raw.query_local(query_for_update_time)
+    first_processing_resource = await orthanc.query_local(query_for_update_time)
     assert len(first_processing_resource) == 1
 
     await process_message(message)
-    second_processing_resource = await orthanc_raw.query_local(query_for_update_time)
+    second_processing_resource = await orthanc.query_local(query_for_update_time)
     assert len(second_processing_resource) == 1
 
     # Check update time hasn't changed

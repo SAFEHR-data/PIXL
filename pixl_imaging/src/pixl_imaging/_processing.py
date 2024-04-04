@@ -76,7 +76,7 @@ async def process_message(message: Message) -> None:
         await sleep(1)
         try:
             job_state = await orthanc_raw.job_state(job_id=job_id)
-        except aiohttp.exceptions.HTTPError:
+        except aiohttp.web_exceptions.HTTPError:
             logger.debug("Could not find job for study: {}", message.identifier)
 
     # Now that instance has arrived in orthanc raw, we can set its project name tag via the API
