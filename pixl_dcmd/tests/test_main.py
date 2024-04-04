@@ -22,6 +22,12 @@ import pydicom
 import pytest
 import sqlalchemy
 from core.db.models import Image
+from core.dicom_tags import (
+    DICOM_TAG_PROJECT_NAME,
+    PrivateDicomTag,
+    add_private_tag,
+    create_private_tag,
+)
 from core.project_config import load_project_config, load_tag_operations
 from decouple import config
 from pixl_dcmd.main import (
@@ -31,17 +37,67 @@ from pixl_dcmd.main import (
 )
 from pydicom.data import get_testdata_file
 from pydicom.dataset import Dataset
+from pytest_pixl.dicom import generate_dicom_dataset
 from pytest_pixl.helpers import run_subprocess
 
 PROJECT_CONFIGS_DIR = Path(config("PROJECT_CONFIGS_DIR"))
-TEST_CONFIG = "test-extract-uclh-omop-cdm"
+TEST_PROJECT_SLUG = "test-extract-uclh-omop-cdm"
+
+EXPORTED_MRN = "987654321"
+EXPORTED_ACCESSION_NUMBER = "AA12345601"
 
 
 @pytest.fixture(scope="module")
 def tag_scheme() -> list[dict]:
     """Base tag scheme for testing."""
-    tag_ops = load_tag_operations(load_project_config(TEST_CONFIG))
+    tag_ops = load_tag_operations(load_project_config(TEST_PROJECT_SLUG))
     return tag_ops.base[0]
+
+
+def _mri_diffusion_tags(manufacturer: str = "Philips") -> list[PrivateDicomTag]:
+    """
+    Private DICOM tags for testing the anonymisation process.
+    """
+    # Private tags from `/projects/configs/tag-operations/mri-diffusion.yaml` so we can test
+    # whether the manufactuer overrides work during anonymisation
+    project_config = load_project_config(TEST_PROJECT_SLUG)
+    tag_ops = load_tag_operations(project_config)
+    manufacturer_overrides = [
+        override
+        for override in tag_ops.manufacturer_overrides
+        if override["manufacturer"] == manufacturer
+    ][0]
+
+    return [
+        create_private_tag(tag["group"], tag["element"], vr="SH", value="test")
+        for tag in manufacturer_overrides["tags"]
+    ]
+
+
+@pytest.fixture()
+def mri_diffusion_dicom_image(rows_in_session) -> Dataset:
+    """
+    A DICOM image with diffusion data to test the anonymisation process.
+    """
+    manufacturer = "Philips"
+    ds = generate_dicom_dataset(Manufacturer=manufacturer, Modality="DX")
+    tags = _mri_diffusion_tags(manufacturer)
+    for tag in tags:
+        add_private_tag(ds, tag)
+
+    # Make sure the project name tag is added for anonymisation to work
+    add_private_tag(ds, DICOM_TAG_PROJECT_NAME)
+    # Update the project name tag to a known value
+    block = ds.private_block(
+        DICOM_TAG_PROJECT_NAME.group_id, DICOM_TAG_PROJECT_NAME.creator_string
+    )
+    ds[block.get_tag(DICOM_TAG_PROJECT_NAME.offset_id)].value = TEST_PROJECT_SLUG
+
+    # Make sure MRN and accession number match the values in the database
+    ds[0x0010, 0x0020].value = EXPORTED_MRN
+    ds[0x0008, 0x0050].value = EXPORTED_ACCESSION_NUMBER
+
+    return ds
 
 
 def test_remove_overlay_plane() -> None:
