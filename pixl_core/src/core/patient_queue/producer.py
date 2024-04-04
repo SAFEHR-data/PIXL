@@ -15,7 +15,6 @@
 
 from __future__ import annotations
 
-import logging
 from time import sleep
 from typing import TYPE_CHECKING
 
@@ -24,7 +23,7 @@ from ._base import PixlBlockingInterface
 if TYPE_CHECKING:
     from core.patient_queue.message import Message
 
-LOGGER = logging.getLogger(__name__)
+from loguru import logger
 
 
 class PixlProducer(PixlBlockingInterface):
@@ -35,20 +34,20 @@ class PixlProducer(PixlBlockingInterface):
         Sends a list of serialised messages to a queue.
         :param messages: list of messages to be sent to queue
         """
-        LOGGER.debug("Publishing %i messages to queue: %s", len(messages), self.queue_name)
+        logger.debug("Publishing {} messages to queue: {}", len(messages), self.queue_name)
         if len(messages) > 0:
             for msg in messages:
-                LOGGER.debug("Serialising message")
+                logger.debug("Serialising message")
                 serialised_msg = msg.serialise()
-                LOGGER.debug("Preparing to publish")
+                logger.debug("Preparing to publish")
                 self._channel.basic_publish(
                     exchange="", routing_key=self.queue_name, body=serialised_msg
                 )
                 # RabbitMQ can miss-order messages if there is not a sufficient delay
                 sleep(0.1)
-                LOGGER.debug("Message %s published to queue %s", msg, self.queue_name)
+                logger.debug("Message {} published to queue {}", msg, self.queue_name)
         else:
-            LOGGER.debug("List of messages is empty so nothing will be published to queue.")
+            logger.debug("List of messages is empty so nothing will be published to queue.")
 
     def clear_queue(self) -> None:
         """

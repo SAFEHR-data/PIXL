@@ -17,7 +17,6 @@
 from __future__ import annotations
 
 import asyncio
-import logging
 from typing import TYPE_CHECKING, Any
 
 import aio_pika
@@ -37,7 +36,7 @@ if TYPE_CHECKING:
     from core.patient_queue.message import Message
     from core.token_buffer.tokens import TokenBucket
 
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 
 class PixlConsumer(PixlQueueInterface):
@@ -67,7 +66,7 @@ class PixlConsumer(PixlQueueInterface):
         self._channel = await self._connection.channel()
         # Set number of messages in flight
         max_in_flight = config("PIXL_MAX_MESSAGES_IN_FLIGHT", cast=int)
-        logger.info("Pika will consume up to %s messages concurrently", max_in_flight)
+        logger.info("Pika will consume up to {} messages concurrently", max_in_flight)
         await self._channel.set_qos(prefetch_count=max_in_flight)
         self._queue = await self._channel.declare_queue(self.queue_name)
         return self
@@ -79,24 +78,24 @@ class PixlConsumer(PixlQueueInterface):
             return
 
         pixl_message = deserialise(message.body)
-        logger.info("Starting message %s", pixl_message)
+        logger.info("Starting message {}", pixl_message)
         try:
             await self._callback(pixl_message)
         except PixlRequeueMessageError as requeue:
-            logger.debug("Requeue message: %s from %s", pixl_message, requeue)
+            logger.debug("Requeue message: {} from {}", pixl_message, requeue)
             await asyncio.sleep(1)
             await message.reject(requeue=True)
         except PixlSkipMessageError as exception:
-            logger.warning("Failed message: %s", exception)
+            logger.warning("Failed message: {}", exception)
             await message.reject(requeue=False)
-        except Exception:
+        except Exception:  # noqa: BLE001
             logger.exception(
-                "Failed to process %s. Not re-queuing message",
+                "Failed to process {}. Not re-queuing message",
                 pixl_message,
             )
             await message.reject(requeue=False)
         else:
-            logger.info("Finished message %s", pixl_message)
+            logger.info("Finished message {}", pixl_message)
             await message.ack()
 
     async def run(self) -> None:

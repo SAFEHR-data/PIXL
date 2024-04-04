@@ -15,7 +15,6 @@
 
 from __future__ import annotations
 
-import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
@@ -24,7 +23,7 @@ from jsonpickle import decode, encode
 if TYPE_CHECKING:
     from datetime import date, datetime
 
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 
 @dataclass
@@ -54,11 +53,11 @@ class Message:
         """
         msg = (
             "Serialising message with\n"
-            " * patient id: %s\n"
-            " * accession number: %s\n"
-            " * timestamp: %s\n"
-            " * procedure_occurrence_id: %s\n",
-            " * project_name: %s\n * extract_generated_timestamp: %s",
+            " * patient id: {}\n"
+            " * accession number: {}\n"
+            " * timestamp: {}\n"
+            " * procedure_occurrence_id: {}\n",
+            " * project_name: {}\n * extract_generated_timestamp: {}",
             self.mrn,
             self.accession_number,
             self.study_date,

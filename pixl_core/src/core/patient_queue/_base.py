@@ -13,13 +13,11 @@
 #  limitations under the License.
 from __future__ import annotations
 
-import logging
 import os
 from typing import Any
 
 import pika
-
-LOGGER = logging.getLogger(__name__)
+from loguru import logger
 
 
 class PixlQueueInterface:
@@ -69,7 +67,7 @@ class PixlBlockingInterface(PixlQueueInterface):
                 self._channel = self._connection.channel()
             self._queue = self._channel.queue_declare(queue=self.queue_name)
 
-        LOGGER.info("Connected to %s", self._queue)
+        logger.info("Connected to {}", self._queue)
         return self
 
     def __exit__(self, *args: object, **kwargs: Any) -> None:
@@ -86,5 +84,5 @@ class PixlBlockingInterface(PixlQueueInterface):
         try:
             return int(self._queue.method.message_count)
         except (ValueError, TypeError):
-            LOGGER.exception("Failed to determine the number of messages. Returning 0")
+            logger.exception("Failed to determine the number of messages. Returning 0")
             return 0
