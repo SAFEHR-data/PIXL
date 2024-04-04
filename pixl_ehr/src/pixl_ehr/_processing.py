@@ -37,7 +37,11 @@ if TYPE_CHECKING:
     from core.patient_queue.message import Message
 
 logger = logging.getLogger("uvicorn")
-logger.setLevel(config("LOG_LEVEL", default="INFO"))
+log_level = config("LOG_LEVEL")
+if not log_level:
+    log_level = "INFO"
+
+logger.setLevel(log_level)
 
 _this_dir = Path(Path(__file__).parent)
 
