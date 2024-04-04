@@ -17,7 +17,10 @@ project:
     azure_kv_alias: "test"
     modalities: ["DX", "CR"]
 
-tag_operation_files: ["test-extract-uclh-omop-cdm.yaml"]
+tag_operation_files:
+    base:
+        - "test-extract-uclh-omop-cdm.yaml"
+    manufacturer_overrides: "mri-diffusion.yaml"
 
 destination:
     dicom: "ftps"
