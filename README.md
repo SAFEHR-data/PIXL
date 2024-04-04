@@ -18,6 +18,23 @@ Before raising a PR, make sure to **run the tests** for the PIXL module you have
 In addition, make sure to [have `pre-commit` installed](/docs/setup/developer.md#linting) to
 automatically check your code before committing.
 
+You can run all tests from the root of the repo with:
+
+```shell
+pytest
+```
+
+The `pytest.ini` file in the root of the repo contains the configuration for running all tests at once.
+
+We run [pre-commit](https://pre-commit.com/) as part of the GitHub Actions CI. To install and run it locally, do:
+
+```shell
+pip install pre-commit
+pre-commit install
+```
+
+The configuration can be found in [`.pre-commit-config.yml`](./.pre-commit-config.yaml)
+
 ## Design
 
 [`docs/design`](./docs/design/) contains the design documentation for the PIXL system.
@@ -231,6 +248,7 @@ non-null reports
 ```sql
 select count(*) from emap_data.ehr_anon where xray_report is not null;
 ```
+
 ## Assumptions
 
 PIXL data extracts include the below assumptions
