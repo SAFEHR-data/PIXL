@@ -27,7 +27,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Optional
 
 if TYPE_CHECKING:
-    from pydicom.dataset import Dataset
+    from pydicom.dataset import Dataset, PrivateBlock
 
 
 @dataclass
@@ -75,7 +75,7 @@ DICOM_TAG_PROJECT_NAME = PrivateDicomTag(
 )
 
 
-def add_private_tag(dataset: Dataset, private_tag: PrivateDicomTag) -> None:
+def add_private_tag(dataset: Dataset, private_tag: PrivateDicomTag) -> PrivateBlock:
     """
     Add a private tag to an existing DICOM dataset.
 
@@ -84,11 +84,13 @@ def add_private_tag(dataset: Dataset, private_tag: PrivateDicomTag) -> None:
     :param ds: The DICOM dataset to add the private tags to.
     :type ds: pydicom.Dataset
     :param private_tag: A custom tag to add to the DICOM dataset.
+
     """
     private_block = dataset.private_block(
         private_tag.group_id, private_tag.creator_string, create=True
     )
     private_block.add_new(private_tag.offset_id, private_tag.vr, private_tag.unknown_value)
+    return private_block
 
 
 def create_private_tag(group_id: int, element_id: int, vr: str, value: Any) -> PrivateDicomTag:
