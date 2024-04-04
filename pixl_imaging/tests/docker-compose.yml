@@ -58,15 +58,3 @@ services:
     volumes:
       # Overriding config for the test
       - ${PWD}/orthanc_raw_config/:/run/secrets:ro
-
-  queue:
-    container_name: pixl-test-queue
-    image: rabbitmq:3.12.9-management
-    healthcheck:
-      test: rabbitmq-diagnostics -q check_running
-      interval: 5s
-      timeout: 5s
-      retries: 20
-    ports:
-      - "5672:5672"
-      - "15672:15672"
