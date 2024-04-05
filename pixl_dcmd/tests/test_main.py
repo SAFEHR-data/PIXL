@@ -52,8 +52,8 @@ def test_remove_overlay_plane() -> None:
     )
     assert (0x6000, 0x3000) in ds
 
-    ds_minus_overlays = enforce_whitelist(ds, {})
-    assert (0x6000, 0x3000) not in ds_minus_overlays
+    enforce_whitelist(ds, {})
+    assert (0x6000, 0x3000) not in ds
 
 
 # TODO: Produce more complete test coverage for anonymisation
@@ -80,21 +80,21 @@ def test_pseudo_identifier_processing(rows_in_session, tag_scheme):
       and the pipeline db row should now have the fake hash
     """
     exported_dicom = pathlib.Path(__file__).parents[2] / "test/resources/Dicom2.dcm"
-    input_dataset = pydicom.dcmread(exported_dicom)
+    dataset = pydicom.dcmread(exported_dicom)
 
     accession_number = "AA12345605"
     mrn = "987654321"
     fake_hash = "-".join(list(f"{mrn}{accession_number}"))
     print("fake_hash = ", fake_hash)
-    tag_actions = convert_schema_to_actions(input_dataset, tag_scheme)
-    output_dataset = anonymise_dicom_recursively(input_dataset, ["DX"], tag_actions)
+    tag_actions = convert_schema_to_actions(dataset, tag_scheme)
+    anonymise_dicom_recursively(dataset, ["DX"], tag_actions)
     image = (
         rows_in_session.query(Image)
         .filter(Image.accession_number == "AA12345605")
         .one()
     )
     print("after tags applied")
-    assert output_dataset[0x0010, 0x0020].value == fake_hash
+    assert dataset[0x0010, 0x0020].value == fake_hash
     assert image.hashed_identifier == fake_hash
 
 
@@ -110,8 +110,8 @@ def test_can_nifti_convert_post_anonymisation(
     for dcm_path in directory_of_mri_dicoms.glob("*.dcm"):
         dcm_identifiable = pydicom.dcmread(dcm_path)
         tag_actions = convert_schema_to_actions(dcm_identifiable, tag_scheme)
-        dcm_anon = anonymise_dicom_recursively(dcm_identifiable, ["MR"], tag_actions)
-        pydicom.dcmwrite(anon_dicom_dir / dcm_path.name, dcm_anon)
+        anonymise_dicom_recursively(dcm_identifiable, ["MR"], tag_actions)
+        pydicom.dcmwrite(anon_dicom_dir / dcm_path.name, dcm_identifiable)
 
     # Convert the anonymised DICOMs to NIFTI with dcm2niix
     anon_nifti_dir = tmp_path / "nifti_anon"
@@ -170,14 +170,12 @@ def test_nested_private_tag_deleted():
     """
     # Create a test DICOM with a nested private tag
     exported_dicom = pathlib.Path(__file__).parents[2] / "test/resources/Dicom1.dcm"
-    input_dataset = pydicom.dcmread(exported_dicom)
-    input_dataset.add_new((0x0009, 0x0010), "SQ", [Dataset(), Dataset()])
-    input_dataset[(0x0009, 0x0010)][0].add_new(
+    dataset = pydicom.dcmread(exported_dicom)
+    dataset.add_new((0x0009, 0x0010), "SQ", [Dataset(), Dataset()])
+    dataset[(0x0009, 0x0010)][0].add_new(
         (0x0009, 0x0011), "PN", "Nested_Patient_delete"
     )
-    input_dataset[(0x0009, 0x0010)][0].add_new(
-        (0x0009, 0x0010), "PN", "Nested_Patient_keep"
-    )
+    dataset[(0x0009, 0x0010)][0].add_new((0x0009, 0x0010), "PN", "Nested_Patient_keep")
 
     # assert (0x0009, 0x0011) in ds
     # Create a tag scheme that deletes the nested private tag
@@ -185,42 +183,40 @@ def test_nested_private_tag_deleted():
         (0x0009, 0x0010): "keep",
         (0x0009, 0x0011): "delete",
     }
-    tag_actions = convert_schema_to_actions(input_dataset, tag_scheme)
+    tag_actions = convert_schema_to_actions(dataset, tag_scheme)
 
     # Apply the tag scheme
-    output_dataset = anonymise_dicom_recursively(input_dataset, ["DX"], tag_actions)
+    anonymise_dicom_recursively(dataset, ["DX"], tag_actions)
 
     # Check that the nested private tag has been deleted
-    assert (0x0009, 0x0011) not in output_dataset
-    assert (0x0009, 0x0010) in output_dataset
-    assert (0x0009, 0x0011) not in output_dataset[(0x0009, 0x0010)]
-    assert (0x0009, 0x0011) not in output_dataset[(0x0009, 0x0010)][0]
+    assert (0x0009, 0x0011) not in dataset
+    assert (0x0009, 0x0010) in dataset
+    assert (0x0009, 0x0011) not in dataset[(0x0009, 0x0010)]
+    assert (0x0009, 0x0011) not in dataset[(0x0009, 0x0010)][0]
 
 
 def test_enforce_whitelist_recursively():
     # Create a test DICOM with a nested private tag
     exported_dicom = pathlib.Path(__file__).parents[2] / "test/resources/Dicom1.dcm"
-    input_dataset = pydicom.dcmread(exported_dicom)
-    input_dataset.add_new((0x0009, 0x0010), "SQ", [Dataset(), Dataset()])
-    input_dataset[(0x0009, 0x0010)][0].add_new(
+    dataset = pydicom.dcmread(exported_dicom)
+    dataset.add_new((0x0009, 0x0010), "SQ", [Dataset(), Dataset()])
+    dataset[(0x0009, 0x0010)][0].add_new(
         (0x0009, 0x0011), "PN", "Nested_Patient_delete"
     )
-    input_dataset[(0x0009, 0x0010)][0].add_new(
-        (0x0009, 0x0010), "PN", "Nested_Patient_keep"
-    )
+    dataset[(0x0009, 0x0010)][0].add_new((0x0009, 0x0010), "PN", "Nested_Patient_keep")
 
     # assert (0x0009, 0x0011) in ds
     # Create a tag scheme that deletes the nested private tag
     tag_scheme = {
         (0x0009, 0x0010): "keep",
     }
-    tag_actions = convert_schema_to_actions(input_dataset, tag_scheme)
+    tag_actions = convert_schema_to_actions(dataset, tag_scheme)
 
     # Apply the tag scheme
-    output_dataset = anonymise_dicom_recursively(input_dataset, ["DX"], tag_actions)
+    anonymise_dicom_recursively(dataset, ["DX"], tag_actions)
 
     # Check that the nested private tag has been deleted
-    assert (0x0009, 0x0011) not in output_dataset
-    assert (0x0009, 0x0010) in output_dataset
-    assert (0x0009, 0x0011) not in output_dataset[(0x0009, 0x0010)]
-    assert (0x0009, 0x0011) not in output_dataset[(0x0009, 0x0010)][0]
+    assert (0x0009, 0x0011) not in dataset
+    assert (0x0009, 0x0010) in dataset
+    assert (0x0009, 0x0011) not in dataset[(0x0009, 0x0010)]
+    assert (0x0009, 0x0011) not in dataset[(0x0009, 0x0010)][0]

@@ -25,7 +25,7 @@ from core.dicom_tags import DICOM_TAG_PROJECT_NAME
 
 import requests
 from decouple import config
-from pydicom import Dataset, Sequence, dcmwrite
+from pydicom import Dataset, dcmwrite
 from dicomanonymizer.simpledicomanonymizer import (
     actions_map_name_functions,
     anonymize_dataset,
@@ -52,9 +52,9 @@ def write_dataset_to_bytes(dataset: Dataset) -> bytes:
         return buffer.read()
 
 
-def anonymise_dicom_per_project_config(dataset: Dataset) -> Dataset:
+def anonymise_dicom_per_project_config(dataset: Dataset) -> None:
     """
-    Anonymises a DICOM dataset as Received by Orthanc.
+    Anonymises a DICOM dataset as Received by Orthanc in place.
     Finds appropriate configuration based on project name and anonymises by
     - dropping datasets of the wrong modality
     - removing private tags
@@ -88,7 +88,10 @@ def anonymise_dicom_per_project_config(dataset: Dataset) -> Dataset:
 
 def anonymise_dicom_recursively(
     dataset: Dataset, modalities: list[str], tag_actions: dict[tuple, Callable]
-) -> Dataset:
+) -> None:
+    """
+    Recursively anonymise a DICOM dataset in place.
+    """
     if (0x0008, 0x0060) in dataset and dataset.Modality not in modalities:
         msg = f"Dropping DICOM Modality: {dataset.Modality}"
         logger.error(msg)
@@ -100,17 +103,12 @@ def anonymise_dicom_recursively(
 
     for elem in dataset.iterall():
         if elem.VR == "SQ":
-            anon_seq = [
+            for sq_el in elem.value:
                 anonymise_dicom_recursively(sq_el, modalities, tag_actions)
-                for sq_el in elem.value
-            ]
-            if anon_seq and not len(anon_seq) > 0:
-                elem.value = Sequence(anon_seq)
 
-    # Apply whitelist recursively
-    dataset = enforce_whitelist(dataset, tag_actions)
+    # Apply whitelist
+    enforce_whitelist(dataset, tag_actions)
     # Write anonymised instance to disk.
-    return dataset
 
 
 def merge_tag_schemes(tag_operation_files: list[Path]) -> dict[tuple, str]:
@@ -213,8 +211,8 @@ def _hash_values(pat_value: str, hash_len: int = 0) -> str:
     return response.text
 
 
-def enforce_whitelist(dataset: Dataset, tags: dict[tuple, Callable]) -> Dataset:
-    """Delete any tags not in the tagging scheme. Iterates through Sequences."""
+def enforce_whitelist(dataset: Dataset, tags: dict[tuple, Callable]) -> None:
+    """Delete any tags not in the tagging schemе in place. Iterates through Sequences."""
     # For every element:
     logger.debug("Enforcing whitelist")
     for de in dataset:
@@ -238,5 +236,3 @@ def enforce_whitelist(dataset: Dataset, tags: dict[tuple, Callable]) -> Dataset:
                 name=de.keyword, grp=del_grp, el=del_el
             )
             logger.debug(f"\t{message}")
-
-    return dataset
