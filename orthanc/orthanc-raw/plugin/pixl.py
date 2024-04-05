@@ -29,11 +29,10 @@ import traceback
 from io import BytesIO
 from typing import TYPE_CHECKING
 
-from core.dicom_tags import DICOM_TAG_PROJECT_NAME
+from core.dicom_tags import DICOM_TAG_PROJECT_NAME, add_private_tag
 from pydicom import Dataset, dcmread, dcmwrite
 
 import orthanc
-from pixl_core.src.core.dicom_tags import add_private_tag
 from pixl_dcmd.tagrecording import record_dicom_headers
 
 if TYPE_CHECKING:
