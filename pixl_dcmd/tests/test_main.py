@@ -99,13 +99,14 @@ def test_pseudo_identifier_processing(rows_in_session, tag_scheme):
 
 
 def test_can_nifti_convert_post_anonymisation(
-    row_for_dicom_testing, tmp_path, directory_of_mri_dicoms, tag_scheme
+    row_for_dicom_testing, tmp_path, directory_of_mri_dicoms, tag_scheme, monkeypatch
 ):
     """Can a DICOM image that has passed through our tag processing be converted to NIFTI"""
     # Create a directory to store anonymised DICOM files
     anon_dicom_dir = tmp_path / "anon"
     anon_dicom_dir.mkdir()
 
+    monkeypatch.setattr("pixl_dcmd.main.enforce_whitelist", lambda x, y: None)
     # Get test DICOMs from the fixture, anonymise and save
     for dcm_path in directory_of_mri_dicoms.glob("*.dcm"):
         dcm_identifiable = pydicom.dcmread(dcm_path)
