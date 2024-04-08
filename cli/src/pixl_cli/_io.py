@@ -167,44 +167,6 @@ def messages_from_parquet(
     return messages
 
 
-def messages_from_parquet_file(
-    file_path: Path,
-    project_name: str,
-    timestamp: datetime,
-) -> list[Message]:
-    """
-    Reads patient information from a parquet file and transforms that into messages.
-
-    :param file_path: Path for parquet file
-    """
-    cohort_data = pd.read_parquet(file_path)
-
-    map_column_to_message_params = {
-        "mrn": "PrimaryMrn",
-        "accession_number": "AccessionNumber",
-        "study_date": "procedure_date",
-        "procedure_occurrence_id": "procedure_occurrence_id",
-    }
-
-    _raise_if_column_names_not_found(cohort_data, list(map_column_to_message_params.values()))
-
-    messages = []
-
-    for _, row in cohort_data.iterrows():
-        message_params = {
-            param: row[column] for param, column in map_column_to_message_params.items()
-        }
-        message = Message(project_name=project_name, timestamp=timestamp, **message_params)
-        messages.append(message)
-
-    if len(messages) == 0:
-        msg = f"Failed to find any messages in {file_path}"
-        raise ValueError(msg)
-
-    logger.info(f"Created {len(messages)} messages from {file_path}")
-    return messages
-
-
 def _check_and_parse_parquet(private_dir: Path, public_dir: Path) -> pd.DataFrame:
     for d in [public_dir, private_dir]:
         if not d.is_dir():
