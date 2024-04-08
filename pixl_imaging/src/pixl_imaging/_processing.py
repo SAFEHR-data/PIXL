@@ -71,6 +71,7 @@ async def process_message(message: Message) -> None:
                 f"Failed to transfer {message.identifier} within "
                 f"{config('PIXL_DICOM_TRANSFER_TIMEOUT')} seconds"
             )
+            # Delete any partially transferred studies?
             raise PixlSkipMessageError(msg)
 
         await sleep(1)
@@ -80,10 +81,10 @@ async def process_message(message: Message) -> None:
             logger.debug("Could not find job '{}' for study: {}", job_id, message.identifier)
 
     # Now that instance has arrived in orthanc raw, we can set its project name tag via the API
-    studies_with_tags = await orthanc_raw.query_local(study.orthanc_query_dict)
-    logger.debug("Local instances with matching tags: {}", studies_with_tags)
+    studies = await orthanc_raw.query_local(study.orthanc_query_dict)
+    logger.debug("Local instances for study: {}", studies)
 
-    await _add_project_to_study(message.project_name, orthanc_raw, studies_with_tags)
+    await _add_project_to_study(message.project_name, orthanc_raw, studies)
 
     return
 
@@ -100,6 +101,17 @@ async def _update_or_resend_existing_study_(
     if len(existing_resources) == 0:
         return False
     different_project: list[str] = []
+
+    if len(existing_resources) > 1:
+        sorted_resources = sorted(existing_resources, key=lambda x: x["LastUpdate"])
+        logger.debug(
+            "Found more than one resource for study, only keeping the last updated resource: {}",
+            sorted_resources,
+        )
+        existing_resources = sorted_resources.pop(-1)
+        for resource in sorted_resources:
+            await orthanc_raw.delete(f"/studies/{resource}")
+
     for resource in existing_resources:
         project_tags = (
             resource["RequestedTags"].get(DICOM_TAG_PROJECT_NAME.tag_nickname),
@@ -121,15 +133,15 @@ async def _update_or_resend_existing_study_(
 
 
 async def _add_project_to_study(
-    project_name: str, orthanc_raw: PIXLRawOrthanc, studies_with_tags: list[str]
+    project_name: str, orthanc_raw: PIXLRawOrthanc, studies: list[str]
 ) -> None:
-    if len(studies_with_tags) != 1:
+    if len(studies) > 1:
         logger.error(
             "Got {} studies with matching accession number and patient ID, expected 1",
-            len(studies_with_tags),
+            studies,
         )
-    for study in studies_with_tags:
-        logger.debug("Study ID {}", study)
+    for study in studies:
+        logger.debug("Adding private tag to study ID {}", study)
         await orthanc_raw.modify_private_tags_by_study(
             study_id=study,
             private_creator=DICOM_TAG_PROJECT_NAME.creator_string,

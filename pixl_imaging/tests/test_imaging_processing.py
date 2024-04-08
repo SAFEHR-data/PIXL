@@ -84,7 +84,7 @@ async def orthanc_raw(run_containers) -> PIXLRawOrthanc:
     finally:
         all_studies = await orthanc_raw._get("/studies")
         for study in all_studies:
-            await orthanc_raw._delete(f"/studies/{study}")
+            await orthanc_raw.delete(f"/studies/{study}")
 
 
 @pytest.mark.processing()

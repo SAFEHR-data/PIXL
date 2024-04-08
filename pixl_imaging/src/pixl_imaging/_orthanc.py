@@ -118,7 +118,7 @@ class Orthanc(ABC):
         ):
             return await _deserialise(response)
 
-    async def _delete(self, path: str, timeout: Optional[float] = 10) -> None:
+    async def delete(self, path: str, timeout: Optional[float] = 10) -> None:
         async with (
             aiohttp.ClientSession() as session,
             session.delete(f"{self._url}{path}", auth=self._auth, timeout=timeout) as response,
