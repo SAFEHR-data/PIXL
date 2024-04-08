@@ -19,6 +19,7 @@ from __future__ import annotations
 import importlib
 import json
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 from pydicom import Sequence
