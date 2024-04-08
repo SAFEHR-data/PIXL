@@ -14,32 +14,32 @@
 from __future__ import annotations
 
 import pathlib
+from pathlib import Path
 
 import nibabel
 import numpy as np
 import pydicom
 import pytest
 import sqlalchemy
-import yaml
+from core.db.models import Image
+from core.project_config import load_project_config, load_tag_operations
+from decouple import config
+from pixl_dcmd.main import (
+    apply_tag_scheme,
+    remove_overlays,
+)
 from pydicom.data import get_testdata_file
 from pytest_pixl.helpers import run_subprocess
 
-from core.db.models import Image
-from pixl_dcmd.main import (
-    apply_tag_scheme,
-    merge_tag_schemes,
-    remove_overlays,
-)
+PROJECT_CONFIGS_DIR = Path(config("PROJECT_CONFIGS_DIR"))
+TEST_CONFIG = "test-extract-uclh-omop-cdm"
 
 
 @pytest.fixture(scope="module")
-def tag_scheme() -> dict:
-    """Read the tag scheme from orthanc raw."""
-    tag_file = (
-        pathlib.Path(__file__).parents[2]
-        / "projects/configs/tag-operations/test-extract-uclh-omop-cdm.yaml"
-    )
-    return yaml.safe_load(tag_file.read_text())
+def tag_scheme() -> list[dict]:
+    """Base tag scheme for testing."""
+    tag_ops = load_tag_operations(load_project_config(TEST_CONFIG))
+    return tag_ops.base[0]
 
 
 def test_remove_overlay_plane() -> None:
@@ -135,11 +135,3 @@ def test_can_nifti_convert_post_anonymisation(
     assert anon_nifti.shape == ident_nifti.shape
     assert np.all(anon_nifti.header.get_sform() == ident_nifti.header.get_sform())
     assert np.all(anon_nifti.get_fdata() == ident_nifti.get_fdata())
-
-
-def test_merge_tag_schemes_single_file():
-    tag_ops_file = (
-        pathlib.Path(__file__).parents[2]
-        / "projects/configs/tag-operations/test-extract-uclh-omop-cdm.yaml"
-    )
-    merge_tag_schemes([tag_ops_file])

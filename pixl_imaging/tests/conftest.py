@@ -67,7 +67,7 @@ def run_containers() -> subprocess.CompletedProcess[bytes]:
     yield run_subprocess(
         shlex.split("docker compose up --build --wait"),
         TEST_DIR,
-        timeout=120,
+        timeout=180,
     )
     run_subprocess(
         shlex.split("docker compose down --volumes"),

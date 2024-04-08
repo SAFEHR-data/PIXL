@@ -23,6 +23,7 @@ This module provides:
 from __future__ import annotations
 
 import json
+import logging
 import os
 import traceback
 from io import BytesIO
@@ -37,6 +38,8 @@ from pixl_dcmd.tagrecording import record_dicom_headers
 if TYPE_CHECKING:
     from typing import Any
 
+logger = logging.getLogger(__name__)
+
 
 def OnChange(changeType, level, resourceId):  # noqa: ARG001
     """
@@ -46,7 +49,7 @@ def OnChange(changeType, level, resourceId):  # noqa: ARG001
     should_auto_route returns true
     """
     if changeType == orthanc.ChangeType.STABLE_STUDY and should_auto_route():
-        print("Stable study: %s" % resourceId)  # noqa: T201
+        print("Sending study: %s" % resourceId)  # noqa: T201
         orthanc.RestApiPost("/modalities/PIXL-Anon/store", resourceId)
 
 
@@ -101,7 +104,7 @@ def modify_dicom_tags(receivedDicom: bytes, origin: str) -> Any:
     """
     if origin != orthanc.InstanceOrigin.DICOM_PROTOCOL:
         # don't keep resetting the tag values if this was triggered by an API call!
-        print("modify_dicom_tags - doing nothing as change triggered by API")  # noqa: T201
+        logger.debug("modify_dicom_tags - doing nothing as change triggered by API")
         return orthanc.ReceivedInstanceAction.KEEP_AS_IS, None
     dataset = dcmread(BytesIO(receivedDicom))
     private_creator_name = DICOM_TAG_PROJECT_NAME.creator_string
@@ -120,9 +123,8 @@ def modify_dicom_tags(receivedDicom: bytes, origin: str) -> Any:
     private_block = dataset.private_block(group_id, private_creator_name, create=True)
     private_block.add_new(private_tag_offset, vr, unknown_value)
 
-    print(  # noqa: T201
-        f"modify_dicom_tags - added new private "
-        f"block starting at 0x{private_block.block_start:x}"
+    logger.debug(
+        "modify_dicom_tags - added new private block starting at 0x%x", private_block.block_start
     )
     if not DICOM_TAG_PROJECT_NAME.acceptable_private_block(private_block.block_start >> 8):
         print(  # noqa: T201
@@ -138,17 +140,21 @@ def SendResourceToAnon(output, uri, **request):  # noqa: ARG001
     orthanc.LogWarning(f"Received request to send study to anon modality: {request}")
     if not should_auto_route():
         orthanc.LogWarning("Auto-routing is not enabled, dropping request {request}")
-        output.answerBuffer("Auto-routing is not enabled", "text/plain")
+        output.AnswerBuffer(
+            json.dumps({"Message": "Auto-routing is not enabled"}), "application/json"
+        )
         return
     try:
         body = json.loads(request["body"])
         resource_id = body["ResourceId"]
         orthanc.RestApiPost("/modalities/PIXL-Anon/store", resource_id)
-        output.AnswerBuffer("OK", "text/plain")
+        output.AnswerBuffer(json.dumps({"Message": "OK"}), "application/json")
         orthanc.LogInfo(f"Succesfully sent study to anon modality: {resource_id}")
     except:  # noqa: E722
         orthanc.LogWarning(f"Failed to send study to anon:\n{traceback.format_exc()}")
-        output.AnswerBuffer("Failed to send study to anon", "text/plain")
+        output.AnswerBuffer(
+            json.dumps({"Message": "Failed to send study to anon"}), "application/json"
+        )
 
 
 orthanc.RegisterOnChangeCallback(OnChange)

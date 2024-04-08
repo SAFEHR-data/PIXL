@@ -1,0 +1,39 @@
+#  Copyright (c) University College London Hospitals NHS Foundation Trust
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
+# Example tags obtained from https://github.com/rordenlab/dcm2niix/blob/master/Philips/README.md#diffusion-direction
+- manufacturer: "Philips"
+  tags:
+      - group: 0x2001
+        element: 0x1003
+        op: "keep"
+      - group: 0x2005
+        element: 0x10b0
+        op: "keep"
+      - group: 0x2005
+        element: 0x10b1
+        op: "keep"
+      - group: 0x2005
+        element: 0x10b2
+        op: "keep"
+
+# Example tags obtained from https://github.com/rordenlab/dcm2niix/blob/master/Siemens/README.md#siemens-x-series
+- manufacturer: "Siemens"
+  tags:
+      - group: 0x0019
+        element: 0x100c
+        op: "keep"
+      - group: 0x0019
+        element: 0x100e
+        op: "keep"

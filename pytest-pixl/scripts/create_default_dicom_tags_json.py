@@ -1,4 +1,4 @@
-#  Copyright (c) 2022 University College London Hospitals NHS Foundation Trust
+#  Copyright (c) University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -12,15 +12,9 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-project:
-    name: "uclh-nasogastric-tube-project-ngt-only-full-dataset"
-    azure_kv_alias: null
-    modalities: ["DX", "CR"]
+from pytest_pixl.dicom import _create_default_json
+from pathlib import Path
 
-tag_operation_files:
-    base:
-        - "uclh-nasogastric-tube-project-ngt-only-full-dataset.yaml"
-    manufacturer_overrides: null
-destination:
-    dicom: "ftps"
-    parquet: "ftps"
+json_file = Path(__file__) / "../src/pytest_pixl/data/default_dicom_tags.json"
+_create_default_json(json_file)
+

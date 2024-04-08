@@ -14,23 +14,24 @@
 from __future__ import annotations
 
 from io import BytesIO
-from os import PathLike
-from pathlib import Path
-from typing import Any, BinaryIO, Union
 from logging import getLogger
+from os import PathLike
+from typing import Any, BinaryIO, Union
 
+from core.exceptions import PixlSkipMessageError
 from core.project_config import load_project_config
 
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
 
 import requests
+from core.project_config import load_tag_operations
 from decouple import config
 from pydicom import Dataset, dcmwrite
 
+from pixl_dcmd._tag_schemes import merge_tag_schemes
 from pixl_dcmd._database import add_hashed_identifier_and_save, query_db
 from pixl_dcmd._datetime import combine_date_time, format_date_time
 from pixl_dcmd._deid_helpers import get_bounded_age, get_encrypted_uid
-import yaml
 
 DicomDataSetType = Union[Union[str, bytes, PathLike[Any]], BinaryIO]
 
@@ -60,27 +61,34 @@ def anonymise_dicom(dataset: Dataset) -> Dataset:
     - applying tag operations based on the config file
     Returns anonymised dataset.
     """
-    slug = dataset.get_private_item(
+    raw_slug = dataset.get_private_item(
         DICOM_TAG_PROJECT_NAME.group_id,
         DICOM_TAG_PROJECT_NAME.offset_id,
         DICOM_TAG_PROJECT_NAME.creator_string,
     ).value
+    # Get both strings and bytes, which is fun
+    if isinstance(raw_slug, bytes):
+        logger.debug(f"Bytes slug {raw_slug!r}")
+        slug = raw_slug.decode("utf-8").strip()
+    else:
+        logger.debug(f"String slug '{raw_slug}'")
+        slug = raw_slug
+
     project_config = load_project_config(slug)
-    logger.error(f"Received instance for project {slug}")
-    # Drop anything that is not an X-Ray
+    logger.debug(f"Received instance for project {slug}")
     if dataset.Modality not in project_config.project.modalities:
         msg = f"Dropping DICOM Modality: {dataset.Modality}"
-        logger.error(msg)
-        raise ValueError(msg)
+        raise PixlSkipMessageError(msg)
 
-    logger.warning("Anonymising received instance")
+    logger.info("Anonymising received instance")
 
     # Rip out overlays/
     dataset = remove_overlays(dataset)
     logger.info("Removed overlays")
 
     # Merge tag schemes
-    all_tags = merge_tag_schemes(project_config.tag_operation_files)
+    tag_operations = load_tag_operations(project_config)
+    all_tags = merge_tag_schemes(tag_operations, manufacturer=dataset.Manufacturer)
 
     # Apply scheme to instance
     dataset = apply_tag_scheme(dataset, all_tags)
@@ -90,27 +98,8 @@ def anonymise_dicom(dataset: Dataset) -> Dataset:
     logger.info(
         f"DICOM tag anonymisation applied according to {project_config.tag_operation_files}"
     )
-    logger.warning("DICOM tag anonymisation applied")
-
     # Write anonymised instance to disk.
     return dataset
-
-
-def merge_tag_schemes(tag_operation_files: list[Path]) -> list[dict]:
-    """
-    NOT IMPLEMENTED, WORKS ONLY WITH A SINGLE TAG SCHEME
-    Merge multiple tag schemes into a single dictionary.
-    """
-    if len(tag_operation_files) > 1:
-        raise NotImplementedError("Multiple tag schemes not supported")
-    with tag_operation_files[0].open() as file:
-        # Load tag operations scheme from YAML.
-        tags = yaml.safe_load(file)
-        if not isinstance(tags, list) or not all(
-            [isinstance(tag, dict) for tag in tags]
-        ):
-            raise ValueError("Tag operation file must contain a list of dictionaries")
-        return tags
 
 
 def remove_overlays(dataset: Dataset) -> Dataset:
@@ -226,7 +215,7 @@ def apply_tag_scheme(dataset: Dataset, tags: list[dict]) -> Dataset:
             else:
                 message = f"Missing: {name} (0x{grp:04x},0x{el:04x})\
                  - Operation ({op})"
-                logger.warning(f"\t{message}")
+                logger.debug(f"\t{message}")
 
         # If this tag should be deleted.
         elif op == "delete":
@@ -410,7 +399,7 @@ def apply_tag_scheme(dataset: Dataset, tags: list[dict]) -> Dataset:
             else:
                 message = f"Missing: {name} (0x{grp:04x},0x{el:04x})\
                  - Operation ({op})"
-                logger.warning(f"\t{message}")
+                logger.debug(f"\t{message}")
 
     return dataset
 
