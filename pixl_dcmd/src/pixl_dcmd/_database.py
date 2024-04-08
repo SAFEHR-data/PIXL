@@ -38,7 +38,7 @@ def add_hashed_identifier_and_save(existing_image: Image, hashed_value: str) -> 
         existing_image.hashed_identifier = hashed_value
         pixl_session.add(existing_image)
 
-        updated_image = (
+        updated_image: Image = (
             pixl_session.query(Image)
             .filter(
                 Image.accession_number == existing_image.accession_number,
@@ -54,7 +54,7 @@ def add_hashed_identifier_and_save(existing_image: Image, hashed_value: str) -> 
 def query_db(mrn: str, accession_number: str) -> Image:
     PixlSession = sessionmaker(engine)
     with PixlSession() as pixl_session, pixl_session.begin():
-        existing_image = (
+        existing_image: Image = (
             pixl_session.query(Image)
             .filter(
                 Image.accession_number == accession_number,
