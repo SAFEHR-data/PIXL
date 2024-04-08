@@ -29,7 +29,7 @@ import traceback
 from io import BytesIO
 from typing import TYPE_CHECKING
 
-from core.dicom_tags import DICOM_TAG_PROJECT_NAME
+from core.dicom_tags import DICOM_TAG_PROJECT_NAME, add_private_tag
 from pydicom import Dataset, dcmread, dcmwrite
 
 import orthanc
@@ -107,21 +107,9 @@ def modify_dicom_tags(receivedDicom: bytes, origin: str) -> Any:
         logger.debug("modify_dicom_tags - doing nothing as change triggered by API")
         return orthanc.ReceivedInstanceAction.KEEP_AS_IS, None
     dataset = dcmread(BytesIO(receivedDicom))
-    private_creator_name = DICOM_TAG_PROJECT_NAME.creator_string
-    # See the orthanc.json config file for where this tag is given a nickname
-    private_tag_offset = DICOM_TAG_PROJECT_NAME.offset_id
-    # LO = Long string max 64
-    # https://dicom.nema.org/medical/dicom/current/output/chtml/part05/sect_6.2.html
-    vr = "LO"
-    unknown_value = "__pixl_unknown_value__"
-    group_id = DICOM_TAG_PROJECT_NAME.group_id
-    # The private block is the first free block >= 0x10.
-    # We can't directly control it, but the orthanc config requires it to be
-    # hardcoded to 0x10
-    # https://dicom.nema.org/dicom/2013/output/chtml/part05/sect_7.8.html
 
-    private_block = dataset.private_block(group_id, private_creator_name, create=True)
-    private_block.add_new(private_tag_offset, vr, unknown_value)
+    # Add project name as private tag, at this point, the value is unknown
+    private_block = add_private_tag(dataset, DICOM_TAG_PROJECT_NAME)
 
     logger.debug(
         "modify_dicom_tags - added new private block starting at 0x%x", private_block.block_start
@@ -130,7 +118,7 @@ def modify_dicom_tags(receivedDicom: bytes, origin: str) -> Any:
         print(  # noqa: T201
             "ERROR: The private block does not match the value hardcoded in the orthanc "
             "config. This can be because there was an unexpected pre-existing private block"
-            f"in group {group_id}"
+            f"in group {DICOM_TAG_PROJECT_NAME.group_id}"
         )
     return orthanc.ReceivedInstanceAction.MODIFY, write_dataset_to_bytes(dataset)
 
