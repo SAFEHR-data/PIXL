@@ -19,7 +19,7 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any, Optional
 
-from core.uploader._secrets import AzureKeyVault
+from core.project_config.secrets import AzureKeyVault
 
 logger = logging.getLogger(__name__)
 
