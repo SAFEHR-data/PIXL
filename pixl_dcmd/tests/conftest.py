@@ -37,17 +37,21 @@ os.environ["PROJECT_CONFIGS_DIR"] = str(
 )
 
 STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
+TEST_PROJECT_SLUG = "test-extract-uclh-omop-cdm"
+
+EXPORTED_MRN = "987654321"
+EXPORTED_ACCESSION_NUMBER = "AA12345601"
 
 
 @pytest.fixture()
 def rows_in_session(db_session) -> Session:
     """Insert a test row for each table, returning the session for use in tests."""
-    extract = Extract(slug="i-am-a-project")
+    extract = Extract(slug=TEST_PROJECT_SLUG)
 
     image_exported = Image(
-        accession_number="AA12345601",
+        accession_number=EXPORTED_ACCESSION_NUMBER,
         study_date=STUDY_DATE,
-        mrn="987654321",
+        mrn=EXPORTED_MRN,
         extract=extract,
         exported_at=datetime.datetime.now(tz=datetime.timezone.utc),
     )

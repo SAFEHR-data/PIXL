@@ -52,10 +52,11 @@ def update_exported_at(hashed_value: str, date_time: datetime) -> None:
 
 
 def _query_existing_image(pixl_session: Session, hashed_value: str) -> Image:
-    return (
+    existing_image: Image = (
         pixl_session.query(Image)
         .filter(
             Image.hashed_identifier == hashed_value,
         )
         .one()
     )
+    return existing_image

@@ -12,6 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """List the newest studies"""
+
 from __future__ import annotations
 
 import argparse
@@ -35,10 +36,10 @@ class Study:
 class Orthanc:
     def __init__(
         self,
-        url=f"http://localhost:{os.environ['ORTHANC_PORT']}",
-        username=os.environ["ORTHANC_USERNAME"],
-        password=os.environ["ORTHANC_PASSWORD"],
-    ):
+        url: str = f"http://localhost:{os.environ['ORTHANC_PORT']}",
+        username: str = os.environ["ORTHANC_USERNAME"],
+        password: str = os.environ["ORTHANC_PASSWORD"],
+    ) -> None:
         self._url = url.rstrip("/")
         self._username = username
         self._password = password
@@ -58,13 +59,11 @@ class Orthanc:
 
     def received_time(self, study: Study) -> datetime:
         """Get the received time of this study"""
-        r = requests.get(
-            f"{self._url}/studies/{study.uid}/metadata/LastUpdate", auth=self._auth
-        )
+        r = requests.get(f"{self._url}/studies/{study.uid}/metadata/LastUpdate", auth=self._auth)
         time_string = r.content.decode()  # UTC e.g. 20230218T125518
         return datetime.strptime(time_string, "%Y%m%d" + "T" + "%H%M%S")
 
-    def accession_number(self, study: Study) -> str:
+    def accession_number(self, study: Study) -> Any:
         data = self._get(f"/studies/{study.uid}")
         return data["MainDicomTags"]["AccessionNumber"]
 
@@ -75,9 +74,7 @@ class Orthanc:
         return _deserialise(requests.get(f"{self._url}{path}", auth=self._auth))
 
     def _post(self, path: str, data: dict) -> Any:
-        return _deserialise(
-            requests.post(f"{self._url}{path}", json=data, auth=self._auth)
-        )
+        return _deserialise(requests.post(f"{self._url}{path}", json=data, auth=self._auth))
 
 
 def _deserialise(response: requests.Response) -> Any:
@@ -96,9 +93,7 @@ def _deserialise(response: requests.Response) -> Any:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "number_to_list", type=int, help="Number of the newest studies to list"
-    )
+    parser.add_argument("number_to_list", type=int, help="Number of the newest studies to list")
     return parser.parse_args()
 
 
@@ -113,7 +108,7 @@ if __name__ == "__main__":
     for study in studies:
         study.received_time = orthanc.received_time(study)
 
-    sorted_studies = sorted(studies, key=lambda x: x.received_time, reverse=True)
+    sorted_studies = sorted(studies, key=lambda x: x.received_time, reverse=True)  # type: ignore
     for i, study in enumerate(sorted_studies):
         if i == args.number_to_list:
             break

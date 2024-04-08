@@ -23,7 +23,7 @@ from typing import TYPE_CHECKING, Optional
 import requests
 
 if TYPE_CHECKING:
-    from datetime import datetime
+    from datetime import date, datetime
 
     from core.patient_queue.message import Message
 from decouple import config
@@ -32,9 +32,6 @@ from pixl_ehr._databases import EMAPStar, PIXLDatabase
 from pixl_ehr._queries import SQLQuery
 
 from .report_deid import deidentify_text
-
-if TYPE_CHECKING:
-    from core.patient_queue.message import Message
 
 logger = logging.getLogger("uvicorn")
 log_level = config("LOG_LEVEL")
@@ -78,7 +75,7 @@ class PatientEHRData:
     procedure_occurrence_id: int
     project_name: str
     extract_datetime: datetime
-    acquisition_datetime: Optional[datetime]
+    acquisition_date: Optional[date]
 
     age: Optional[int] = None
     sex: Optional[str] = None
@@ -102,7 +99,7 @@ class PatientEHRData:
             procedure_occurrence_id=message.procedure_occurrence_id,
             project_name=message.project_name,
             extract_datetime=message.extract_generated_timestamp,
-            acquisition_datetime=message.study_date,
+            acquisition_date=message.study_date,
         )
 
         logger.debug("Created %s from message data", self)
@@ -176,7 +173,7 @@ class PatientEHRData:
             self.accession_number, endpoint_path="hash-accession-number"
         )
         self.image_identifier = pixl_hash(self.image_identifier, endpoint_path="hash")
-        self.acquisition_datetime = None
+        self.acquisition_date = None
 
         return self
 

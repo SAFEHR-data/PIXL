@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 @pytest.mark.usefixtures("_setup_pixl_cli")
-def test_public_parquet(host_export_root_dir: Path):
+def test_public_parquet(host_export_root_dir: Path) -> None:
     """Tests whether the public parquet files have been exported to the right place"""
     expected_public_dir = (
         host_export_root_dir / "test-extract-uclh-omop-cdm" / "latest" / "omop" / "public"
@@ -36,7 +36,7 @@ def test_public_parquet(host_export_root_dir: Path):
 
 
 @pytest.mark.usefixtures("_extract_radiology_reports")
-def test_radiology_parquet(host_export_root_dir: Path):
+def test_radiology_parquet(host_export_root_dir: Path) -> None:
     """
     From:
     scripts/test_radiology_parquet.py \

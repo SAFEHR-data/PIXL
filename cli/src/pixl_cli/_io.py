@@ -45,7 +45,11 @@ def messages_from_state_file(filepath: Path) -> list[Message]:
         msg = f"Invalid file suffix for {filepath}. Expected .state"
         raise ValueError(msg)
 
-    return [deserialise(line) for line in filepath.open().readlines() if string_is_non_empty(line)]
+    return [
+        deserialise(line.encode())
+        for line in filepath.open().readlines()
+        if string_is_non_empty(line)
+    ]
 
 
 def project_info(resources_path: Path) -> tuple[str, datetime]:
@@ -106,9 +110,9 @@ def messages_from_csv(filepath: Path) -> list[Message]:
             .date(),
             procedure_occurrence_id=row[procedure_id_col_name],
             project_name=row[project_col_name],
-            extract_generated_timestamp=datetime.strptime(row[extract_col_name], "%d/%m/%Y %H:%M")
-            .replace(tzinfo=UTC)
-            .date(),
+            extract_generated_timestamp=datetime.strptime(
+                row[extract_col_name], "%d/%m/%Y %H:%M"
+            ).replace(tzinfo=UTC),
         )
         messages.append(message)
 
@@ -164,44 +168,6 @@ def messages_from_parquet(
         raise ValueError(msg)
 
     logger.info(f"Created {len(messages)} messages from {dir_path}")
-    return messages
-
-
-def messages_from_parquet_file(
-    file_path: Path,
-    project_name: str,
-    timestamp: datetime,
-) -> list[Message]:
-    """
-    Reads patient information from a parquet file and transforms that into messages.
-
-    :param file_path: Path for parquet file
-    """
-    cohort_data = pd.read_parquet(file_path)
-
-    map_column_to_message_params = {
-        "mrn": "PrimaryMrn",
-        "accession_number": "AccessionNumber",
-        "study_date": "procedure_date",
-        "procedure_occurrence_id": "procedure_occurrence_id",
-    }
-
-    _raise_if_column_names_not_found(cohort_data, list(map_column_to_message_params.values()))
-
-    messages = []
-
-    for _, row in cohort_data.iterrows():
-        message_params = {
-            param: row[column] for param, column in map_column_to_message_params.items()
-        }
-        message = Message(project_name=project_name, timestamp=timestamp, **message_params)
-        messages.append(message)
-
-    if len(messages) == 0:
-        msg = f"Failed to find any messages in {file_path}"
-        raise ValueError(msg)
-
-    logger.info(f"Created {len(messages)} messages from {file_path}")
     return messages
 
 

@@ -21,7 +21,7 @@ import subprocess
 from pytest_pixl.helpers import wait_for_condition
 
 
-def wait_for_stable_orthanc_anon(seconds_max, seconds_interval) -> None:
+def wait_for_stable_orthanc_anon(seconds_max: int, seconds_interval: int) -> None:
     """
     Query the orthanc-anon REST API to check that the correct number of instances
     have been received.

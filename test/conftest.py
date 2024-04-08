@@ -13,9 +13,12 @@
 #  limitations under the License.
 """System/E2E test setup"""
 
+from collections.abc import Generator
 from pathlib import Path
+from typing import Any
 
 import pytest
+from pytest_pixl.ftpserver import PixlFTPServer
 from pytest_pixl.helpers import run_subprocess
 from pytest_pixl.plugin import FtpHostAddress
 from utils import wait_for_stable_orthanc_anon
@@ -24,7 +27,7 @@ pytest_plugins = "pytest_pixl"
 
 
 @pytest.fixture()
-def host_export_root_dir():
+def host_export_root_dir() -> Path:
     """Intermediate export dir as seen from the host"""
     return Path(__file__).parents[1] / "projects" / "exports"
 
@@ -35,7 +38,7 @@ RESOURCES_OMOP_DIR = RESOURCES_DIR / "omop"
 
 
 @pytest.fixture(scope="session")
-def _setup_pixl_cli(ftps_server) -> None:
+def _setup_pixl_cli(ftps_server: PixlFTPServer) -> Generator:
     """Run pixl populate/start. Cleanup intermediate export dir on exit."""
     # CLI calls need to have CWD = test dir so they can find the pixl_config.yml file
     run_subprocess(["pixl", "populate", str(RESOURCES_OMOP_DIR.absolute())], TEST_DIR)
@@ -56,13 +59,13 @@ def _setup_pixl_cli(ftps_server) -> None:
 
 
 @pytest.fixture(scope="session")
-def ftp_host_address():
+def ftp_host_address() -> Any:
     """Run FTP on docker host - docker containers do need to access it"""
     return FtpHostAddress.DOCKERHOST
 
 
 @pytest.fixture(scope="session")
-def _extract_radiology_reports(_setup_pixl_cli) -> None:
+def _extract_radiology_reports(_setup_pixl_cli) -> None:  # type: ignore [no-untyped-def]
     """
     run pixl extract-radiology-reports. No subsequent wait is needed, because this API call
     is synchronous (whether that is itself wise is another matter).

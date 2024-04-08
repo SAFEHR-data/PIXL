@@ -42,11 +42,11 @@ class Orthanc(ABC):
         """Accessible modalities from this Orthanc instance"""
         return await self._get("/modalities")
 
-    async def get_jobs(self) -> list[dict[str, Any]]:
+    async def get_jobs(self) -> Any:
         """Get expanded details for all jobs."""
         return await self._get("/jobs?expand")
 
-    async def query_local(self, data: dict) -> list[str] | list[dict]:
+    async def query_local(self, data: dict) -> Any:
         """Query local Orthanc instance for resourceId."""
         return await self._post("/tools/find", data=data)
 
@@ -69,8 +69,8 @@ class Orthanc(ABC):
     async def modify_private_tags_by_study(
         self,
         *,
-        study_id,
-        private_creator,
+        study_id: str,
+        private_creator: str,
         tag_replacement: dict,
     ) -> Any:
         # According to the docs, you can't modify tags for an instance using the instance API
@@ -107,9 +107,7 @@ class Orthanc(ABC):
         ):
             return await _deserialise(response)
 
-    async def _post(
-        self, path: str, data: dict, timeout: Optional[float] = None
-    ) -> list[str] | list[dict]:
+    async def _post(self, path: str, data: dict, timeout: Optional[float] = None) -> Any:
         async with (
             aiohttp.ClientSession() as session,
             session.post(
@@ -146,6 +144,6 @@ class PIXLRawOrthanc(Orthanc):
     def aet(self) -> str:
         return str(config("ORTHANC_RAW_AE_TITLE"))
 
-    async def send_existing_study_to_anon(self, resource_id: str) -> list[str] | list[dict]:
+    async def send_existing_study_to_anon(self, resource_id: str) -> Any:
         """Send study to orthanc anon."""
         return await self._post("/send-to-anon", data={"ResourceId": resource_id})
