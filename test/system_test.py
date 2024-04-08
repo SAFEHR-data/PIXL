@@ -80,7 +80,7 @@ class TestFtpsUpload:
 
         def two_zip_files_present() -> bool:
             nonlocal zip_files
-            zip_files = list(str(TestFtpsUpload.expected_output_dir.glob("*.zip")))
+            zip_files = [str(x) for x in TestFtpsUpload.expected_output_dir.glob("*.zip"))]
             # We expect 2 DICOM image studies to be uploaded
             return len(zip_files) == 2
 
