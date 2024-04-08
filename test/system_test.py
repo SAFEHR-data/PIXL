@@ -28,6 +28,14 @@ pytest_plugins = "pytest_pixl"
 class TestFtpsUpload:
     """tests adapted from ./scripts/check_ftps_upload.py"""
 
+    def __init__(self) -> None:
+        """Shared test data for the two different kinds of FTP upload test."""
+        self.ftp_home_dir: Path
+        self.project_slug: str
+        self.extract_time_slug: str
+        self.expected_output_dir: Path
+        self.expected_public_parquet_dir: Path
+
     @pytest.fixture(scope="class", autouse=True)
     def _setup(self, ftps_server: PixlFTPServer) -> None:
         """Shared test data for the two different kinds of FTP upload test"""
@@ -72,7 +80,7 @@ class TestFtpsUpload:
 
         def two_zip_files_present() -> bool:
             nonlocal zip_files
-            zip_files = list(TestFtpsUpload.expected_output_dir.glob("*.zip"))
+            zip_files = list(str(TestFtpsUpload.expected_output_dir.glob("*.zip")))
             # We expect 2 DICOM image studies to be uploaded
             return len(zip_files) == 2
 
