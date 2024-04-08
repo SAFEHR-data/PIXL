@@ -19,6 +19,7 @@ from __future__ import annotations
 import importlib
 import json
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 from pydicom import Sequence
@@ -62,7 +63,7 @@ TAGS_DICT = {
 }
 
 
-def generate_dicom_dataset(tag_values: dict = TAGS_DICT, **kwargs) -> Dataset:
+def generate_dicom_dataset(tag_values: dict = TAGS_DICT, **kwargs: Any) -> Dataset:
     """
     Write a single fake DICOM image with customisable tags.
 
