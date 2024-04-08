@@ -24,7 +24,7 @@ from typing import TYPE_CHECKING, Optional
 import requests
 
 if TYPE_CHECKING:
-    from datetime import datetime
+    from datetime import date, datetime
 
     from core.patient_queue.message import Message
 from decouple import config
@@ -33,9 +33,6 @@ from pixl_ehr._databases import EMAPStar, PIXLDatabase
 from pixl_ehr._queries import SQLQuery
 
 from .report_deid import deidentify_text
-
-if TYPE_CHECKING:
-    from core.patient_queue.message import Message
 
 logger = logging.getLogger("uvicorn")
 logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))
@@ -75,7 +72,7 @@ class PatientEHRData:
     procedure_occurrence_id: int
     project_name: str
     extract_datetime: datetime
-    acquisition_datetime: Optional[datetime]
+    acquisition_datetime: Optional[date]
 
     age: Optional[int] = None
     sex: Optional[str] = None

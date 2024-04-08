@@ -19,6 +19,7 @@ from pathlib import Path
 import pydicom
 import pytest
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
+from pytest_pixl.ftpserver import PixlFTPServer
 from pytest_pixl.helpers import run_subprocess, wait_for_condition
 
 pytest_plugins = "pytest_pixl"
@@ -28,7 +29,7 @@ class TestFtpsUpload:
     """tests adapted from ./scripts/check_ftps_upload.py"""
 
     @pytest.fixture(scope="class", autouse=True)
-    def _setup(self, ftps_server) -> None:
+    def _setup(self, ftps_server: PixlFTPServer) -> None:
         """Shared test data for the two different kinds of FTP upload test"""
         TestFtpsUpload.ftp_home_dir = ftps_server.home_dir
         logging.info("ftp home dir: %s", TestFtpsUpload.ftp_home_dir)
@@ -47,7 +48,7 @@ class TestFtpsUpload:
         # No cleanup of ftp uploads needed because it's in a temp dir
 
     @pytest.mark.usefixtures("_extract_radiology_reports")
-    def test_ftps_parquet_upload(self):
+    def test_ftps_parquet_upload(self) -> None:
         """The copied parquet files"""
         assert TestFtpsUpload.expected_public_parquet_dir.exists()
 
@@ -62,9 +63,9 @@ class TestFtpsUpload:
         ).exists()
 
     @pytest.mark.usefixtures("_extract_radiology_reports")
-    def test_ftps_dicom_upload(self, tmp_path_factory):
+    def test_ftps_dicom_upload(self, tmp_path_factory: pytest.TempPathFactory) -> None:
         """Test whether DICOM images have been uploaded"""
-        zip_files = []
+        zip_files: list[str] = []
 
         def zip_file_list() -> str:
             return f"zip files found: {zip_files}"
@@ -87,7 +88,7 @@ class TestFtpsUpload:
             unzip_dir = tmp_path_factory.mktemp("unzip_dir", numbered=True)
             self._check_dcm_tags_from_zip(z, unzip_dir)
 
-    def _check_dcm_tags_from_zip(self, zip_path, unzip_dir) -> None:
+    def _check_dcm_tags_from_zip(self, zip_path: str, unzip_dir: Path) -> None:
         """Check that private tag has survived anonymisation with the correct value."""
         run_subprocess(
             ["unzip", zip_path],
@@ -106,7 +107,7 @@ class TestFtpsUpload:
 
 
 @pytest.mark.usefixtures("_setup_pixl_cli")
-def test_ehr_anon_entries():
+def test_ehr_anon_entries() -> None:
     """Check data has reached ehr_anon."""
 
     def exists_two_rows() -> bool:
@@ -123,7 +124,7 @@ def test_ehr_anon_entries():
             ],
             Path.cwd(),
         )
-        return cp.stdout.decode().find("(2 rows)") != -1
+        return bool(cp.stdout.decode().find("(2 rows)") != -1)
 
     # We already waited in _setup_pixl_cli, so should be true immediately.
     wait_for_condition(exists_two_rows)

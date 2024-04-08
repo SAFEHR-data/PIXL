@@ -106,9 +106,9 @@ def messages_from_csv(filepath: Path) -> list[Message]:
             .date(),
             procedure_occurrence_id=row[procedure_id_col_name],
             project_name=row[project_col_name],
-            extract_generated_timestamp=datetime.strptime(row[extract_col_name], "%d/%m/%Y %H:%M")
-            .replace(tzinfo=UTC)
-            .date(),
+            extract_generated_timestamp=datetime.strptime(
+                row[extract_col_name], "%d/%m/%Y %H:%M"
+            ).replace(tzinfo=UTC),
         )
         messages.append(message)
 

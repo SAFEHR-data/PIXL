@@ -44,7 +44,7 @@ class FtpHostAddress(Enum):
     LOCALHOST = 1
     DOCKERHOST = 2
 
-    def to_host_ip_address(self):
+    def to_host_ip_address(self) -> str:
         """Convert the test's requirement into a platform-dependent host IP address"""
         if self == FtpHostAddress.DOCKERHOST and sys.platform == "linux":
             return "172.17.0.1"
@@ -53,7 +53,7 @@ class FtpHostAddress(Enum):
 
 @pytest.fixture(scope="session")
 def ftps_server(
-    tmp_path_factory, ftp_host_address: FtpHostAddress
+    tmp_path_factory: pytest.TempPathFactory, ftp_host_address: FtpHostAddress
 ) -> Generator[PixlFTPServer, None, None]:
     """
     Spins up an FTPS server in a separate process for testing. Configuration is controlled by the
