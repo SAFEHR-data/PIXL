@@ -110,7 +110,7 @@ async def _update_or_resend_existing_study_(
         )
         existing_resources = sorted_resources.pop(-1)
         for resource in sorted_resources:
-            await orthanc_raw.delete(f"/studies/{resource}")
+            await orthanc_raw.delete(f"/studies/{resource['ID']}")
 
     for resource in existing_resources:
         project_tags = (
