@@ -30,7 +30,6 @@ from core.exceptions import PixlSkipMessageError
 # Make sure local .env file is loaded if it exists
 env_file = Path.cwd() / ".env"
 config = Config(RepositoryEnv(env_file)) if env_file.exists() else Config(RepositoryEmpty())
-PROJECT_CONFIGS_DIR = Path(config("PROJECT_CONFIGS_DIR"))
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +39,7 @@ def load_project_config(project_slug: str) -> PixlConfig | Any:
     Load configuration for a project based on its slug.
     Project needs to have a corresponding yaml file in the `$PROJECT_CONFIGS_DIR` directory.
     """
-    configpath = PROJECT_CONFIGS_DIR / f"{project_slug}.yaml"
+    configpath = Path(config("PROJECT_CONFIGS_DIR")) / f"{project_slug}.yaml"
     logger.debug(f"Loading config for {project_slug} from {configpath}")  # noqa: G004
     try:
         return _load_and_validate(configpath)
@@ -79,7 +78,8 @@ class TagOperationFiles(BaseModel):
 
         # Pydantic does not appear to automatically check if the file exists
         files = [
-            PROJECT_CONFIGS_DIR / "tag-operations" / tag_ops_file for tag_ops_file in tag_ops_files
+            Path(config("PROJECT_CONFIGS_DIR")) / "tag-operations" / tag_ops_file
+            for tag_ops_file in tag_ops_files
         ]
         for f in files:
             if not f.exists():
@@ -93,7 +93,7 @@ class TagOperationFiles(BaseModel):
         if not tags_file:
             return None
 
-        tags_file_path = PROJECT_CONFIGS_DIR / "tag-operations" / tags_file
+        tags_file_path = Path(config("PROJECT_CONFIGS_DIR")) / "tag-operations" / tags_file
         # Pydantic does not appear to automatically check if the file exists
         if not tags_file_path.exists():
             # For pydantic, you must raise a ValueError (or AssertionError)
