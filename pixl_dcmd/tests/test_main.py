@@ -135,7 +135,7 @@ def test_anonymisation(row_for_dicom_testing, vanilla_dicom_image: Dataset) -> N
     orig_patient_name = vanilla_dicom_image.PatientName
 
     # Sanity check: study date should be present before anonymisation
-    assert vanilla_dicom_image.StudyDate is not None
+    assert "StudyDate" in vanilla_dicom_image
 
     anon_ds = anonymise_dicom(vanilla_dicom_image)
 
