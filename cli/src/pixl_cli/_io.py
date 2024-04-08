@@ -45,7 +45,11 @@ def messages_from_state_file(filepath: Path) -> list[Message]:
         msg = f"Invalid file suffix for {filepath}. Expected .state"
         raise ValueError(msg)
 
-    return [deserialise(line) for line in filepath.open().readlines() if string_is_non_empty(line)]
+    return [
+        deserialise(line.encode())
+        for line in filepath.open().readlines()
+        if string_is_non_empty(line)
+    ]
 
 
 def project_info(resources_path: Path) -> tuple[str, datetime]:
