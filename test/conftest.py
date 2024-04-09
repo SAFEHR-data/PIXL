@@ -54,10 +54,6 @@ def _populate_vna(tmp_path_factory) -> None:
     dicom_dir = tmp_path_factory.mktemp("dicom_series")
     # more detailed series testing is found in pixl_dcmd tests, but here
     # we just stick an instance to each study, one of which is expected to be propagated through
-    # Move VNA population to here from insert_test_data.sh so it's all in one place?
-    acc_num_1 = "AA12345601"
-    acc_num_2 = "AA12345605"
-    patient_id_1 = "987654321"
 
     # studies are also defined by the StudyID, the StudyInstanceUID
     def study_instance_uid(offset: int) -> str:
@@ -76,29 +72,34 @@ def _populate_vna(tmp_path_factory) -> None:
         return dict(SOPInstanceUID=baseline[: -len(offset_str)] + offset_str)
 
     study_1 = dict(
-        AccessionNumber=acc_num_1,
-        PatientID=patient_id_1,
+        AccessionNumber="AA12345601",
+        PatientID="987654321",
         StudyID="12340001",
         **study_instance_uid(1),
     )
     study_2 = dict(
-        AccessionNumber=acc_num_2,
-        PatientID=patient_id_1,
+        AccessionNumber="AA12345605",
+        PatientID="987654321",
         StudyID="12340002",
         **study_instance_uid(2),
     )
 
-    # series are also defined by the SeriesInstanceUID, SeriesNumber
-    # SeriesNumber doesn't have to be gloablly unique, only within a study,
+    # Series are also defined by the SeriesInstanceUID and SeriesNumber.
+    # SeriesNumber doesn't have to be globally unique, only within a study,
     # however I'm assuming SeriesInstanceUID does. So that must be generated when
-    # a series is attached to a study
-    series_1 = dict(SeriesDescription="whatever1", SeriesNumber=901, Modality="DX")
+    # a series is attached to a study.
+    series_0 = dict(SeriesDescription="AP", SeriesNumber=900, Modality="DX")
+    series_1 = dict(SeriesDescription="include123", SeriesNumber=901, Modality="DX")
     # excluded by modality filter
-    series_exclude_2 = dict(SeriesDescription="whatever2", SeriesNumber=902, Modality="MR")
+    series_exclude_2 = dict(SeriesDescription="exclude123", SeriesNumber=902, Modality="MR")
     # excluded by series description
     series_exclude_3 = dict(SeriesDescription="positioning", SeriesNumber=903, Modality="DX")
 
     # instances are also defined by the SOPInstanceUID
+
+    # to replace Dicom1.dcm
+    instance_0 = dict(**study_1, **series_0, **series_instance_uid(0), **sop_instance_uid(0))
+
     instance_1 = dict(**study_1, **series_1, **series_instance_uid(1), **sop_instance_uid(1))
     instance_2 = dict(
         **study_1, **series_exclude_2, **series_instance_uid(2), **sop_instance_uid(2)
@@ -111,6 +112,7 @@ def _populate_vna(tmp_path_factory) -> None:
         **study_2, **series_exclude_3, **series_instance_uid(5), **sop_instance_uid(5)
     )
 
+    _upload_dicom_instance(dicom_dir, **instance_0)
     _upload_dicom_instance(dicom_dir, **instance_1)
     _upload_dicom_instance(dicom_dir, **instance_2)
     _upload_dicom_instance(dicom_dir, **instance_3)
