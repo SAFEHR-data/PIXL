@@ -218,7 +218,7 @@ def apply_tag_scheme(dataset: Dataset, tags: list[dict]) -> Dataset:
 
     # For every entry in the YAML:
     for i in range(len(tags)):
-        name = tags[i]["name"]
+        name = tags[i]["name"] if "name" in tags[i] else "Unknown"  # name is optional
         grp = tags[i]["group"]
         el = tags[i]["element"]
         op = tags[i]["op"]

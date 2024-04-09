@@ -29,7 +29,7 @@ import traceback
 from io import BytesIO
 from typing import TYPE_CHECKING, Optional
 
-from core.dicom_tags import DICOM_TAG_PROJECT_NAME
+from core.dicom_tags import DICOM_TAG_PROJECT_NAME, add_private_tag
 from pydicom import dcmread
 
 import orthanc
@@ -111,9 +111,8 @@ def modify_dicom_tags(receivedDicom: bytes, origin: str) -> Any:
     # hardcoded to 0x10
     # https://dicom.nema.org/dicom/2013/output/chtml/part05/sect_7.8.html
 
-    private_block = DICOM_TAG_PROJECT_NAME.add_to_dicom_dataset(
-        dataset, DICOM_TAG_PROJECT_NAME.PLACEHOLDER_VALUE
-    )
+    # Add project name as private tag, at this point, the value is unknown
+    private_block = add_private_tag(dataset, DICOM_TAG_PROJECT_NAME)
 
     logger.debug(
         "modify_dicom_tags - added new private block starting at 0x%x", private_block.block_start

@@ -12,6 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """C-Move all studies from Orthanc Raw to Anon"""
+
 from __future__ import annotations
 
 import argparse
@@ -29,11 +30,11 @@ os.environ["NO_PROXY"] = os.environ["no_proxy"] = "localhost"
 class Orthanc:
     def __init__(
         self,
-        url=f"http://localhost:{os.environ['ORTHANC_PORT']}",
-        username=os.environ["ORTHANC_USERNAME"],
-        password=os.environ["ORTHANC_PASSWORD"],
-        anon_aet=os.environ["ORTHANC_ANON_AE_TITLE"],
-    ):
+        url: str = f"http://localhost:{os.environ['ORTHANC_PORT']}",
+        username: str = os.environ["ORTHANC_USERNAME"],
+        password: str = os.environ["ORTHANC_PASSWORD"],
+        anon_aet: str = os.environ["ORTHANC_ANON_AE_TITLE"],
+    ) -> None:
         self._url = url.rstrip("/")
         self._username = username
         self._password = password
@@ -45,13 +46,11 @@ class Orthanc:
         data = {"TargetAet": self._anon_aet}
         print(self._post(f"/queries/{_query_id}/retrieve", data=data))
 
-    def query_remote(self, data: dict) -> str:
+    def query_remote(self, data: dict) -> Any:
         return self._post("/modalities/PIXL-Raw/query", data=data)["ID"]
 
     def _post(self, path: str, data: dict) -> Any:
-        return _deserialise(
-            requests.post(f"{self._url}{path}", json=data, auth=self._auth)
-        )
+        return _deserialise(requests.post(f"{self._url}{path}", json=data, auth=self._auth))
 
 
 def _deserialise(response: requests.Response) -> Any:

@@ -22,7 +22,6 @@ from datetime import (
     datetime,  # noqa: TCH003, always import datetime otherwise pydantic throws error
 )
 from pathlib import Path
-from typing import Optional
 
 from azure.identity import EnvironmentCredential
 from azure.storage.blob import BlobServiceClient
@@ -77,7 +76,7 @@ class ExportRadiologyData(BaseModel):
 
     project_name: str
     extract_datetime: datetime
-    output_dir: Optional[Path] = EHR_EXPORT_ROOT_DIR
+    output_dir: Path = EHR_EXPORT_ROOT_DIR
 
 
 @app.post(

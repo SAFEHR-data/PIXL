@@ -22,7 +22,7 @@ from pytest_pixl.helpers import wait_for_condition
 
 
 def wait_for_stable_orthanc_anon(
-    seconds_max, seconds_interval, seconds_condition_stays_true_for
+    seconds_max: int, seconds_interval: int, seconds_condition_stays_true_for: int
 ) -> None:
     """
     Query the orthanc-anon REST API to check that the correct number of instances

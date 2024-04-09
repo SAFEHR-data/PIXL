@@ -45,7 +45,7 @@ class Orthanc(ABC):
         """Accessible modalities from this Orthanc instance"""
         return self._get("/modalities")
 
-    def query_local(self, data: dict) -> list[str] | list[dict]:
+    def query_local(self, data: dict) -> Any:
         """Query local Orthanc instance for resourceId."""
         return self._post("/tools/find", data=data)
 
@@ -68,8 +68,8 @@ class Orthanc(ABC):
     def modify_private_tags_by_study(
         self,
         *,
-        study_id,
-        private_creator,
+        study_id: str,
+        private_creator: str,
         tag_replacement: dict,
     ) -> Any:
         # According to the docs, you can't modify tags for an instance using the instance API
@@ -112,14 +112,12 @@ class Orthanc(ABC):
     def _get(self, path: str) -> Any:
         return _deserialise(requests.get(f"{self._url}{path}", auth=self._auth, timeout=10))
 
-    def _post(
-        self, path: str, data: dict, timeout: Optional[float] = None
-    ) -> list[str] | list[dict]:
+    def _post(self, path: str, data: dict, timeout: Optional[float] = None) -> Any:
         return _deserialise(
             requests.post(f"{self._url}{path}", json=data, auth=self._auth, timeout=timeout)
         )
 
-    def _delete(self, path: str, timeout: Optional[float] = 10) -> None:
+    def _delete(self, path: str, timeout: Optional[float] = 10) -> Any:
         return _deserialise(requests.delete(f"{self._url}{path}", auth=self._auth, timeout=timeout))
 
     def send_existing_study_to_anon(self, resource_id: str) -> None:
