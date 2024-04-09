@@ -18,7 +18,6 @@ from dataclasses import dataclass
 from time import time
 from typing import TYPE_CHECKING, Any
 
-from aiohttp import ClientResponseError
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
 from core.exceptions import PixlSkipMessageError
 from decouple import config
@@ -154,10 +153,7 @@ async def _retrieve_study_and_wait_for_job_success(
             raise PixlSkipMessageError(msg)
 
         await sleep(1)
-        try:
-            job_state = await orthanc_raw.job_state(job_id=job_id)
-        except ClientResponseError:
-            logger.debug("Could not find job '{}' for study: {}", job_id, message.identifier)
+        job_state = await orthanc_raw.job_state(job_id=job_id)
 
 
 @dataclass
