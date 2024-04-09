@@ -17,6 +17,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Optional
 
 import aiohttp
+from core.exceptions import PixlRequeueMessageError
 from decouple import config
 from loguru import logger
 
@@ -139,6 +140,19 @@ class PIXLRawOrthanc(Orthanc):
             username=config("ORTHANC_RAW_USERNAME"),
             password=config("ORTHANC_RAW_PASSWORD"),
         )
+
+    async def raise_if_pending_jobs(self) -> None:
+        """
+        Raise PixlRequeueMessageError if there are pending jobs on the server.
+
+        Otherwise orthanc starts to get buggy when there are a whole load of pending jobs.
+        PixlRequeueMessageError will cause the rabbitmq message to be requeued
+        """
+        jobs = await self.get_jobs()
+        for job in jobs:
+            if job["State"] == "Pending":
+                msg = "Pending messages in orthanc raw"
+                raise PixlRequeueMessageError(msg)
 
     @property
     def aet(self) -> str:
