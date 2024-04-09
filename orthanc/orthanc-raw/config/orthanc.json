@@ -19,10 +19,8 @@
   "MaximumStorageSize" : ${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE}, // MB, replaced in Dockerfile because its an integer
   "MaximumStorageMode" : "Recycle",
   // Enable concurrency
-  "JobsHistorySize": 100,  // default 10
-  "ConcurrentJobs" : 20,  // default 2
-  "DicomThreadsCount" : 5,  // default 5
-  "HttpThreadsCount": 100,  // default 50, REST api can't make connection if this is too low
+  "JobsHistorySize": ${ORTHANC_RAW_JOB_HISTORY_SIZE}, // replaced in Dockerfile because its an integer
+  "ConcurrentJobs" : ${ORTHANC_RAW_CONCURRENT_JOBS}, // replaced in Dockerfile because its an integer
   // overwrite instances with the same UID if we get them for a second time
   "OverwriteInstances" : true,
   // Path to the directory that holds the SQLite index (if unset, the
