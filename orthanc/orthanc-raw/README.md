@@ -22,8 +22,12 @@ for this instance have been shared with the PACS team.
 
 ### Configuration
 
-- The Docker image is a vanilla deployment of `orthancteam/orthanc` with an additional argument
-`ORTHANC_RAW_MAXIMUM_STORAGE_SIZE` to limit the storage size of the instance.
+- The Docker image is a deployment of `orthancteam/orthanc` with some extra configuration
+  - `ORTHANC_RAW_MAXIMUM_STORAGE_SIZE` to limit the storage size
+  - `ORTHANC_RAW_JOB_HISTORY_SIZE` has been increased so that while there is concurrent processing,
+    the job should always exist for being able to query its status
+  - `ORTHANC_RAW_CONCURRENT_JOBS` has been increased to allow for more concurrent transfers from
+    the VNA to orthanc raw.  
 - All configuration is driven through customised JSON config files stored in the [config](./config/)
 directory.
 - The files are populated with values from environment variables and injected into the container as
