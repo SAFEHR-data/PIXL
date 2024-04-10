@@ -47,8 +47,6 @@ class PrivateDicomTag:
 
     group_id: int
     offset_id: int
-    # (aka VR) https://dicom.nema.org/medical/dicom/current/output/chtml/part05/sect_6.2.html
-    value_type: str
     required_private_block: int
     creator_string: str
     tag_nickname: str
@@ -74,10 +72,9 @@ DICOM_TAG_PROJECT_NAME = PrivateDicomTag(
     group_id=0x000D,
     required_private_block=0x10,
     offset_id=0x01,
-    value_type="LO",  # LO = Long string max 64
     creator_string="UCLH PIXL",
     tag_nickname="UCLHPIXLProjectName",
-    vr="LO",
+    vr="LO",  # LO = Long string max 64
     unknown_value="__pixl_unknown_value__",
 )
 
