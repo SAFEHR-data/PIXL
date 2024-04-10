@@ -127,7 +127,7 @@ def SendResourceToAnon(output, uri, **request):  # noqa: ARG001
     """Send an existing study to the anon modality"""
     orthanc.LogWarning(f"Received request to send study to anon modality: {request}")
     if not should_auto_route():
-        orthanc.LogWarning("Auto-routing is not enabled, dropping request {request}")
+        orthanc.LogWarning(f"Auto-routing is not enabled, dropping request {request}")
         output.AnswerBuffer(
             json.dumps({"Message": "Auto-routing is not enabled"}), "application/json"
         )
