@@ -75,9 +75,9 @@ async def _update_or_resend_existing_study_(
             "Found more than one resource for study, only keeping the last updated resource: {}",
             sorted_resources,
         )
-        existing_resources = sorted_resources.pop(-1)
-        for resource in sorted_resources:
-            await orthanc_raw.delete(f"/studies/{resource['ID']}")
+        existing_resources = [sorted_resources.pop(-1)]
+        for delete_resource in sorted_resources:
+            await orthanc_raw.delete(f"/studies/{delete_resource['ID']}")
 
     for resource in existing_resources:
         project_tags = (
