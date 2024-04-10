@@ -15,19 +15,9 @@ from __future__ import annotations
 
 import logging
 
-from pixl_dcmd.main import (
-    apply_tag_scheme,
-    enforce_whitelist,
-    remove_overlays,
-    write_dataset_to_bytes,
-)
+from pixl_dcmd.main import anonymise_dicom, write_dataset_to_bytes
 
-__all__ = [
-    "remove_overlays",
-    "write_dataset_to_bytes",
-    "apply_tag_scheme",
-    "enforce_whitelist",
-]
+__all__ = ["anonymise_dicom", "write_dataset_to_bytes"]
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)

@@ -8,11 +8,7 @@ is because `orthanc` requires Python 3.9, whereas the rest of PIXL is on 3.10 or
 
 Specifically, the `pixl_dcmd` package provides the following functionality:
 
-- `remove_overlays()`: searches for [DICOM overlay
-  planes](https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.9.2.html) and
-  removes them
-- `apply_tag_scheme()`: applies the [anonymisation operations](#tag-scheme-anonymisation) for a given tag scheme
-- `enforce_whitelist()`: deletes all tags that are not in the tagging scheme
+- `anonymise_dicom()`: Applies the [anonymisation operations](#tag-scheme-anonymisation) for the appropriate tag scheme using [Kitware Dicom Anonymizer](https://github.com/KitwareMedical/dicom-anonymizer)) and deletes any tags not mentioned in the tag scheme.
 - `write_dataset_to_bytes()`: writes a DICOM dataset to a bytes object
 
 ## Installation

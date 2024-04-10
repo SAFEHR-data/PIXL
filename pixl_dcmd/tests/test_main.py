@@ -31,9 +31,9 @@ from core.dicom_tags import (
 from core.project_config import load_project_config, load_tag_operations
 from decouple import config
 from pixl_dcmd.main import (
+    _anonymise_dicom,
+    _enforce_whitelist,
     anonymise_dicom,
-    apply_tag_scheme,
-    remove_overlays,
 )
 from pydicom.data import get_testdata_file
 from pydicom.dataset import Dataset
@@ -122,8 +122,8 @@ def test_remove_overlay_plane() -> None:
     )
     assert (0x6000, 0x3000) in ds
 
-    ds_minus_overlays = remove_overlays(ds)
-    assert (0x6000, 0x3000) not in ds_minus_overlays
+    _enforce_whitelist(ds, {})
+    assert (0x6000, 0x3000) not in ds
 
 
 def test_anonymisation(row_for_dicom_testing, vanilla_dicom_image: Dataset) -> None:
@@ -137,11 +137,11 @@ def test_anonymisation(row_for_dicom_testing, vanilla_dicom_image: Dataset) -> N
     # Sanity check: study date should be present before anonymisation
     assert "StudyDate" in vanilla_dicom_image
 
-    anon_ds = anonymise_dicom(vanilla_dicom_image)
+    anonymise_dicom(vanilla_dicom_image)
 
-    assert anon_ds.PatientID != orig_patient_id
-    assert anon_ds.PatientName != orig_patient_name
-    assert "StudyDate" not in anon_ds
+    assert vanilla_dicom_image.PatientID != orig_patient_id
+    assert vanilla_dicom_image.PatientName != orig_patient_name
+    assert "StudyDate" not in vanilla_dicom_image
 
 
 def test_anonymisation_with_overrides(
@@ -160,16 +160,16 @@ def test_anonymisation_with_overrides(
     original_patient_id = mri_diffusion_dicom_image.PatientID
     original_private_tag = mri_diffusion_dicom_image[(0x2001, 0x1003)]
 
-    anon_ds = anonymise_dicom(mri_diffusion_dicom_image)
+    anonymise_dicom(mri_diffusion_dicom_image)
 
     # Whitelisted tags should still be present
-    assert (0x0010, 0x0020) in anon_ds
-    assert (0x2001, 0x1003) in anon_ds
-    assert anon_ds.PatientID != original_patient_id
+    assert (0x0010, 0x0020) in mri_diffusion_dicom_image
+    assert (0x2001, 0x1003) in mri_diffusion_dicom_image
+    assert mri_diffusion_dicom_image.PatientID != original_patient_id
     assert mri_diffusion_dicom_image[(0x2001, 0x1003)] == original_private_tag
 
 
-def test_image_already_exported_throws(rows_in_session, tag_scheme):
+def test_image_already_exported_throws(rows_in_session):
     """
     GIVEN a dicom image which has no un-exported rows in the pipeline database
     WHEN the dicom tag scheme is applied
@@ -178,11 +178,20 @@ def test_image_already_exported_throws(rows_in_session, tag_scheme):
     exported_dicom = pathlib.Path(__file__).parents[2] / "test/resources/Dicom1.dcm"
     input_dataset = pydicom.dcmread(exported_dicom)
 
+    # Make sure the project name tag is added for anonymisation to work
+    add_private_tag(input_dataset, DICOM_TAG_PROJECT_NAME)
+    # Update the project name tag to a known value
+    block = input_dataset.private_block(
+        DICOM_TAG_PROJECT_NAME.group_id, DICOM_TAG_PROJECT_NAME.creator_string
+    )
+    input_dataset[
+        block.get_tag(DICOM_TAG_PROJECT_NAME.offset_id)
+    ].value = TEST_PROJECT_SLUG
     with pytest.raises(sqlalchemy.exc.NoResultFound):
-        apply_tag_scheme(input_dataset, tag_scheme)
+        anonymise_dicom(input_dataset)
 
 
-def test_pseudo_identifier_processing(rows_in_session, tag_scheme):
+def test_pseudo_identifier_processing(rows_in_session):
     """
     GIVEN a dicom image that hasn't been exported in the pipeline db
     WHEN the dicom tag scheme is applied
@@ -190,20 +199,20 @@ def test_pseudo_identifier_processing(rows_in_session, tag_scheme):
       and the pipeline db row should now have the fake hash
     """
     exported_dicom = pathlib.Path(__file__).parents[2] / "test/resources/Dicom2.dcm"
-    input_dataset = pydicom.dcmread(exported_dicom)
+    dataset = pydicom.dcmread(exported_dicom)
 
     accession_number = "AA12345605"
     mrn = "987654321"
     fake_hash = "-".join(list(f"{mrn}{accession_number}"))
     print("fake_hash = ", fake_hash)
-    output_dataset = apply_tag_scheme(input_dataset, tag_scheme)
+    anonymise_dicom(dataset)
     image = (
         rows_in_session.query(Image)
         .filter(Image.accession_number == "AA12345605")
         .one()
     )
     print("after tags applied")
-    assert output_dataset[0x0010, 0x0020].value == fake_hash
+    assert dataset[0x0010, 0x0020].value == fake_hash
     assert image.hashed_identifier == fake_hash
 
 
@@ -214,12 +223,32 @@ def test_can_nifti_convert_post_anonymisation(
     # Create a directory to store anonymised DICOM files
     anon_dicom_dir = tmp_path / "anon"
     anon_dicom_dir.mkdir()
+    tag_scheme += [
+        {
+            "group": 0x0020,
+            "element": 0x0032,
+            "name": "Image Position (Patient)",
+            "op": "keep",
+        },
+        {
+            "group": 0x0020,
+            "element": 0x0037,
+            "name": "Image Orientation (Patient)",
+            "op": "keep",
+        },
+        {
+            "group": 0x0018,
+            "element": 0x0023,
+            "name": "MR Acquisition Type",
+            "op": "keep",
+        },
+    ]
 
     # Get test DICOMs from the fixture, anonymise and save
     for dcm_path in directory_of_mri_dicoms.glob("*.dcm"):
-        dcm_identifiable = pydicom.dcmread(dcm_path)
-        dcm_anon = apply_tag_scheme(dcm_identifiable, tag_scheme)
-        pydicom.dcmwrite(anon_dicom_dir / dcm_path.name, dcm_anon)
+        dcm = pydicom.dcmread(dcm_path)
+        _anonymise_dicom(dcm, tag_scheme, "MR")
+        pydicom.dcmwrite(anon_dicom_dir / dcm_path.name, dcm)
 
     # Convert the anonymised DICOMs to NIFTI with dcm2niix
     anon_nifti_dir = tmp_path / "nifti_anon"
