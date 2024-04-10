@@ -87,13 +87,17 @@ class PixlConsumer(PixlQueueInterface):
             await message.reject(requeue=True)
         except PixlSkipMessageError as exception:
             logger.warning("Failed message: {}", exception)
-            await message.reject(requeue=False)
+            await (
+                message.ack()
+            )  # ack so that we can see rate of message processing in rabbitmq admin
         except Exception:  # noqa: BLE001
             logger.exception(
                 "Failed to process {}. Not re-queuing message",
                 pixl_message,
             )
-            await message.reject(requeue=False)
+            await (
+                message.ack()
+            )  # ack so that we can see rate of message processing in rabbitmq admin
         else:
             logger.success("Finished message {}", pixl_message)
             await message.ack()
