@@ -50,7 +50,7 @@ async def process_message(message: Message) -> None:
         raise RuntimeError
 
     # Wait for query to complete
-    timeout = config("PIXL_DICOM_TRANSFER_TIMEOUT", cast=float)
+    timeout: float = config("PIXL_DICOM_TRANSFER_TIMEOUT", cast=float)
     try:
         await orthanc_raw.wait_for_job_success(query_id, timeout)
     except TimeoutError as te:

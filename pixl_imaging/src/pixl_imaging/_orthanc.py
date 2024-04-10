@@ -93,7 +93,7 @@ class Orthanc(ABC):
         )
         return str(response["ID"])
 
-    async def wait_for_job_success(self, query_id, timeout) -> None:
+    async def wait_for_job_success(self, query_id: str, timeout: float) -> None:
         job_id = self.retrieve_from_remote(query_id=query_id)  # C-Move
         job_state = "Pending"
         start_time = time()

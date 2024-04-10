@@ -52,23 +52,23 @@ def _upload_to_vna(image_filename: Path) -> None:
 
 
 @pytest.fixture(scope="session")
-def _populate_vna(tmp_path_factory) -> None:
+def _populate_vna(tmp_path_factory: pytest.TempPathFactory) -> None:
     dicom_dir = tmp_path_factory.mktemp("dicom_series")
     # more detailed series testing is found in pixl_dcmd tests, but here
     # we just stick an instance to each study, one of which is expected to be propagated through
 
     # studies are also defined by the StudyID, the StudyInstanceUID
-    def study_instance_uid(offset: int) -> str:
+    def study_instance_uid(offset: int) -> dict[str, str]:
         baseline = "1.3.46.670589.11.38023.5.0.14068.2023012517090166000"
         offset_str = f"{offset:04d}"
         return dict(StudyInstanceUID=baseline[: -len(offset_str)] + offset_str)
 
-    def series_instance_uid(offset: int) -> str:
+    def series_instance_uid(offset: int) -> dict[str, str]:
         baseline = "1.3.46.670589.11.38023.5.0.7404.2023012517551898153"
         offset_str = f"{offset:04d}"
         return dict(SeriesInstanceUID=baseline[: -len(offset_str)] + offset_str)
 
-    def sop_instance_uid(offset: int) -> str:
+    def sop_instance_uid(offset: int) -> dict[str, str]:
         baseline = "1.3.46.670589.11.38023.5.0.7404.2023012517580650156"
         offset_str = f"{offset:04d}"
         return dict(SOPInstanceUID=baseline[: -len(offset_str)] + offset_str)
@@ -122,7 +122,7 @@ def _populate_vna(tmp_path_factory) -> None:
     _upload_dicom_instance(dicom_dir, **instance_5)
 
 
-def _upload_dicom_instance(dicom_dir: Path, **kwargs) -> None:
+def _upload_dicom_instance(dicom_dir: Path, **kwargs: Any) -> None:
     ds = generate_dicom_dataset(**kwargs)
     test_dcm_file = (
         dicom_dir
@@ -134,7 +134,7 @@ def _upload_dicom_instance(dicom_dir: Path, **kwargs) -> None:
 
 
 @pytest.fixture(scope="session")
-def _setup_pixl_cli(ftps_server: PixlFTPServer, _populate_vna) -> Generator:
+def _setup_pixl_cli(ftps_server: PixlFTPServer, _populate_vna: None) -> Generator:
     """Run pixl populate/start. Cleanup intermediate export dir on exit."""
     # CLI calls need to have CWD = test dir so they can find the pixl_config.yml file
     run_subprocess(["pixl", "populate", str(RESOURCES_OMOP_DIR.absolute())], TEST_DIR)

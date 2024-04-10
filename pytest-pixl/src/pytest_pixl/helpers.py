@@ -21,13 +21,18 @@ from time import sleep
 from typing import TYPE_CHECKING, Callable, Optional
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
     from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
 
 def run_subprocess(
-    cmd: list[str], working_dir: Optional[Path] = None, *, shell: bool = False, timeout: int = 360
+    cmd: Sequence[Path | str],
+    working_dir: Optional[Path] = None,
+    *,
+    shell: bool = False,
+    timeout: int = 360,
 ) -> subprocess.CompletedProcess[bytes]:
     """
     Run a command but capture the stderr and stdout better than the CalledProcessError

@@ -73,14 +73,14 @@ class TestFtpsUpload:
     @pytest.mark.usefixtures("_extract_radiology_reports")
     def test_ftps_dicom_upload(self, tmp_path_factory: pytest.TempPathFactory) -> None:
         """Test whether DICOM images have been uploaded"""
-        zip_files: list[str] = []
+        zip_files: list[Path] = []
 
         def zip_file_list() -> str:
             return f"zip files found: {zip_files}"
 
         def two_zip_files_present() -> bool:
             nonlocal zip_files
-            zip_files = [str(x) for x in TestFtpsUpload.expected_output_dir.glob("*.zip")]
+            zip_files = list(TestFtpsUpload.expected_output_dir.glob("*.zip"))
             # We expect 2 DICOM image studies to be uploaded
             return len(zip_files) == 2
 
@@ -109,7 +109,7 @@ class TestFtpsUpload:
             self._check_dcm_tags_from_zip(z, unzip_dir, expected_studies)
 
     def _check_dcm_tags_from_zip(
-        self, zip_path: str, unzip_dir: Path, expected_studies: dict[str, set[str]]
+        self, zip_path: Path, unzip_dir: Path, expected_studies: dict[str, set[tuple[str, str]]]
     ) -> None:
         """Check that private tag has survived anonymisation with the correct value."""
         expected_instances = expected_studies[zip_path.stem]
