@@ -35,13 +35,15 @@ WORKDIR /app
 COPY ./pixl_core/pyproject.toml ./pixl_core/pyproject.toml
 COPY ./pixl_imaging/pyproject.toml ./pixl_imaging/pyproject.toml
 RUN --mount=type=cache,target=/root/.cache \
-    pip3 install pixl_core/ \
-    && pip3 install pixl_imaging/
+    pip3 install --no-cache-dir pixl_core/ \
+    && pip3 install --no-cache-dir pixl_imaging/
 
-COPY ./pixl_core/ core/
+COPY ./pixl_core/ pixl_core/
 COPY ./pixl_imaging/ .
 RUN --mount=type=cache,target=/root/.cache \
-    pip install core/ . && \
-    if [ "$TEST" = "true" ]; then pip install core/ .[test]; fi
+    pip install --no-cache-dir --force-reinstall --no-deps pixl_core/ . && \
+    if [ "$TEST" = "true" ]; \
+    then pip install --no-cache-dir --force-reinstall --no-deps pixl_core/[test] \
+    --no-cache-dir --force-reinstall --no-deps .[test]; fi
 
 ENTRYPOINT ["/app/scripts/migrate_and_run.sh"]
