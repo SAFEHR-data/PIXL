@@ -137,7 +137,7 @@ def log_and_return_http(
     if http_code == 200:  # noqa: PLR2004
         if log_message:
             orthanc.LogInfo(log_message)
-        output.AnswerBuffer(http_json_str, "text/plain")
+        output.AnswerBuffer(http_json_str, "text/json")
     else:
         orthanc.LogWarning(f"{log_message or http_message}:\n{traceback.format_exc()}")
         # length needed in bytes not chars
