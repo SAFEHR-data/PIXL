@@ -26,6 +26,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Optional
 
+from pydicom import Dataset
+
 if TYPE_CHECKING:
     from pydicom.dataset import Dataset, PrivateBlock
 
@@ -40,6 +42,8 @@ class PrivateDicomTag:
     the API to update the tag value. So we have to take what we're given and log an error if
     it's not 0x10.
     """
+
+    PLACEHOLDER_VALUE = "__pixl_unknown_value__"
 
     group_id: int
     offset_id: int
@@ -70,26 +74,38 @@ DICOM_TAG_PROJECT_NAME = PrivateDicomTag(
     offset_id=0x01,
     creator_string="UCLH PIXL",
     tag_nickname="UCLHPIXLProjectName",
-    vr="LO",
+    vr="LO",  # LO = Long string max 64
     unknown_value="__pixl_unknown_value__",
 )
 
 
-def add_private_tag(dataset: Dataset, private_tag: PrivateDicomTag) -> PrivateBlock:
+def add_private_tag(
+    dataset: Dataset, private_tag: PrivateDicomTag, value: Optional[str] = None
+) -> PrivateBlock:
     """
     Add a private tag to an existing DICOM dataset.
 
     This uses pydicom.Dataset.private_block
 
-    :param ds: The DICOM dataset to add the private tags to.
-    :type ds: pydicom.Dataset
+    :param dataset: The DICOM dataset to add the private tags to.
+    :type dataset: pydicom.Dataset
     :param private_tag: A custom tag to add to the DICOM dataset.
+    :param value: Optional value string. If None, use the default placeholder value.
 
     """
     private_block = dataset.private_block(
         private_tag.group_id, private_tag.creator_string, create=True
     )
-    private_block.add_new(private_tag.offset_id, private_tag.vr, private_tag.unknown_value)
+    if value is None:
+        value = private_tag.unknown_value
+    private_block.add_new(private_tag.offset_id, private_tag.vr, value)
+    if not private_tag.acceptable_private_block(private_block.block_start >> 8):
+        err_str = (
+            "The private block does not match the value hardcoded in the orthanc "
+            "config. This can be because there was an unexpected pre-existing private block "
+            f"in group {private_tag.group_id}"
+        )
+        raise RuntimeError(err_str)
     return private_block
 
 
