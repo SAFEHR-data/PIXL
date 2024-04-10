@@ -21,13 +21,12 @@ from typing import Any, BinaryIO, Union
 from core.exceptions import PixlSkipMessageError
 from core.project_config import load_project_config
 
-from core.dicom_tags import DICOM_TAG_PROJECT_NAME
-
 import requests
 from core.project_config import load_tag_operations
 from decouple import config
 from pydicom import Dataset, dcmwrite
 
+from pixl_dcmd._dicom_helpers import get_project_name_as_string
 from pixl_dcmd._tag_schemes import merge_tag_schemes
 from pixl_dcmd._database import add_hashed_identifier_and_save, query_db
 from pixl_dcmd._datetime import combine_date_time, format_date_time
@@ -100,22 +99,6 @@ def anonymise_dicom(dataset: Dataset) -> Dataset:
     )
     # Write anonymised instance to disk.
     return dataset
-
-
-def get_project_name_as_string(dataset: Dataset) -> str:
-    raw_slug = dataset.get_private_item(
-        DICOM_TAG_PROJECT_NAME.group_id,
-        DICOM_TAG_PROJECT_NAME.offset_id,
-        DICOM_TAG_PROJECT_NAME.creator_string,
-    ).value
-    # Get both strings and bytes, which is fun
-    if isinstance(raw_slug, bytes):
-        logger.debug(f"Bytes slug {raw_slug!r}")
-        slug = raw_slug.decode("utf-8").strip()
-    else:
-        logger.debug(f"String slug '{raw_slug}'")
-        slug = raw_slug
-    return slug
 
 
 def remove_overlays(dataset: Dataset) -> Dataset:
