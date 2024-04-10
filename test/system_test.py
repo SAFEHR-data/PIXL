@@ -95,7 +95,7 @@ class TestFtpsUpload:
                 # tuple made up of (AccessionNumber, SeriesDescription)
                 # hash of AA12345601
                 ("ad630a8a84d72d71", "include123"),
-                ("ad630a8a84d72d71", "AP"),  # this is not found!!
+                ("ad630a8a84d72d71", "AP"),
             },
             "f71b228fa97d6c87db751e0bb35605fd9d4c1274834be4bc4bb0923ab8029b2a": {
                 # hash of AA12345605,
