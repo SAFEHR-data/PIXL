@@ -28,13 +28,12 @@ pytest_plugins = "pytest_pixl"
 class TestFtpsUpload:
     """tests adapted from ./scripts/check_ftps_upload.py"""
 
-    def __init__(self) -> None:
-        """Shared test data for the two different kinds of FTP upload test."""
-        self.ftp_home_dir: Path
-        self.project_slug: str
-        self.extract_time_slug: str
-        self.expected_output_dir: Path
-        self.expected_public_parquet_dir: Path
+    # Shared test data for the two different kinds of FTP upload test
+    ftp_home_dir: Path
+    project_slug: str
+    extract_time_slug: str
+    expected_output_dir: Path
+    expected_public_parquet_dir: Path
 
     @pytest.fixture(scope="class", autouse=True)
     def _setup(self, ftps_server: PixlFTPServer) -> None:
