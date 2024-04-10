@@ -28,6 +28,7 @@ import os
 import secrets
 from functools import lru_cache
 from hashlib import blake2b
+from typing import TYPE_CHECKING
 
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
@@ -35,6 +36,9 @@ from azure.keyvault.secrets import SecretClient
 from hasher.settings import AZURE_KEY_VAULT_NAME, AZURE_KEY_VAULT_SECRET_NAME
 
 logger = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from core.project_config.secrets import AzureKeyVault
 
 
 @lru_cache
@@ -112,3 +116,19 @@ def generate_salt(length: int = 16) -> str:
     output_bytes = length // 2
 
     return secrets.token_hex(output_bytes)
+
+
+def fetch_salt(keyvault: AzureKeyVault, project_name: str) -> str:
+    """
+    Fetch the salt for a specific project to use in hashing from the Azure Key Vault instance
+    :param project_name: the name of the project to fetch the salt for
+    :return: salt
+    """
+    try:
+        salt = keyvault.fetch_secret(project_name)
+    except ValueError:
+        msg = f"No existing salt for project {project_name}, generating a new one."
+        logger.warning(msg)
+        salt = generate_salt()
+        keyvault.create_secret(project_name, salt)
+    return salt
