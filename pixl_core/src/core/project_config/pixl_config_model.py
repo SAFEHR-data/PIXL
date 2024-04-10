@@ -137,5 +137,8 @@ class PixlConfig(BaseModel):
         """
         if self.series_filters is None:
             return False
-        # do a simple substring check for now - will we need regex?
-        return any(series_description.find(filt) != -1 for filt in self.series_filters)
+        # Do a simple case-insensitive substring check - this data is ultimately typed by a human,
+        # and different image sources may have different conventions for case conversion.
+        return any(
+            series_description.upper().find(filt.upper()) != -1 for filt in self.series_filters
+        )

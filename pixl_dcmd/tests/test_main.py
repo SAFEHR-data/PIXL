@@ -216,7 +216,6 @@ def dicom_series_to_keep() -> list[Dataset]:
     series = [
         "",
         "whatever",
-        "LOCALISER",  # is case sensitive for now - should it be?
     ]
     return [_make_dicom(s) for s in series]
 
@@ -230,6 +229,8 @@ def dicom_series_to_exclude() -> list[Dataset]:
         "scout",
         "localiser",
         "localizer",
+        # Matching should be case insensitive
+        "lOcALIsER",
     ]
     return [_make_dicom(s) for s in series]
 
