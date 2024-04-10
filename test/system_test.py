@@ -120,12 +120,11 @@ class TestFtpsUpload:
 
         # One zip file == one study.
         # There can be multiple instances in the zip file, one per file
-        logging.info("JES: within zip, dicom_in_zip [%s] = %s", len(dicom_in_zip), dicom_in_zip)
+        logging.info("In zip file, %s DICOM files: %s", len(dicom_in_zip), dicom_in_zip)
         actual_instances = set()
         for dcm_file in dicom_in_zip:
             dcm = pydicom.dcmread(dcm_file)
             # The actual dicom filename and dir structure isn't checked - should it be?
-            logging.info("JES: dcm_file = %s", dcm_file)
             assert dcm.get("PatientID") == zip_path.stem  # PatientID stores study id post anon
             actual_instances.add((dcm.get("AccessionNumber"), dcm.get("SeriesDescription")))
             block = dcm.private_block(
