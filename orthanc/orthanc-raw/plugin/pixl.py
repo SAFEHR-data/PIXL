@@ -137,7 +137,7 @@ def SendResourceToAnon(output, uri, **request):  # noqa: ARG001
         resource_id = body["ResourceId"]
         orthanc.RestApiPost("/modalities/PIXL-Anon/store", resource_id)
         output.AnswerBuffer(json.dumps({"Message": "OK"}), "application/json")
-        orthanc.LogInfo(f"Succesfully sent study to anon modality: {resource_id}")
+        orthanc.LogInfo(f"Successfully sent study to anon modality: {resource_id}")
     except:  # noqa: E722
         orthanc.LogWarning(f"Failed to send study to anon:\n{traceback.format_exc()}")
         output.AnswerBuffer(
