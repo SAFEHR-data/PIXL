@@ -24,75 +24,75 @@ This module provides:
 from __future__ import annotations
 
 import logging
-import os
 import secrets
-from functools import lru_cache
 from hashlib import blake2b
 
-from azure.identity import DefaultAzureCredential
-from azure.keyvault.secrets import SecretClient
 from core.project_config.secrets import AzureKeyVault
 
-from hasher.settings import AZURE_KEY_VAULT_NAME, AZURE_KEY_VAULT_SECRET_NAME
+from hasher.settings import AZURE_KEY_VAULT_SECRET_NAME
 
 logger = logging.getLogger(__name__)
 
 
-@lru_cache
-def fetch_key_from_vault() -> str:
+class Hasher:
     """
-    Fetch the key to use in hashing from the Azure Key Vault instance specified
-    in the environment variables.
-    Creates an EnvironmentCredential via AzureDefaultCredential to connect with a
-    ServicePrincipal and secret configured via environment variables.
-    Cache the results using unbounded LRU cache. Effectively means the key is
-    cached for as long as the process is running so restart the app to clear the cache.
-
-    :return: key
+    Hasher class to generate keyed hash digests using the Blake2b algorithm and fetch the
+    salt for a specific project from the Azure Key Vault instance.
     """
-    if os.environ.get("ENV", None) == "test":
-        return "test_key"
 
-    key_vault_uri = f"https://{AZURE_KEY_VAULT_NAME}.vault.azure.net"
-    credentials = DefaultAzureCredential()
-    client = SecretClient(vault_url=key_vault_uri, credential=credentials)
-    key = client.get_secret(AZURE_KEY_VAULT_SECRET_NAME)
-    if key.value is None:
-        msg = "Azure Key Vault secret is None"
-        raise ValueError(msg)
+    def __init__(self) -> None:
+        """
+        Initialise the Hasher instance for a specific project and set up connection to
+        the AzureKeyVault instance.
+        """
+        self.keyvault = AzureKeyVault()
 
-    return str(key.value)
+    def generate_hash(self, message: str, length: int = 64) -> str:
+        """
+        Generate a keyed hash digest from the message using Blake2b algorithm.
+        The Azure DICOM service requires identifiers to be less than 64 characters.
+
+        :param message: string to hash
+        :param length: maximum number of characters in the output (2 <= length <= 64)
+        :return: hashed string
+        """
+        max_length = 64
+        min_length = 2
+        if length > max_length:
+            msg = f"Maximum hash length is 64 characters, received: {length}"
+            raise ValueError(msg)
+
+        if length < min_length:
+            msg = f"Minimum hash length is 2 characters, received: {length}"
+            raise ValueError(msg)
+
+        # HMAC digest is returned as hex encoded i.e. 2 characters per byte
+        output_bytes = length // 2
+
+        key = self.keyvault.fetch_secret(AZURE_KEY_VAULT_SECRET_NAME)
+        return blake2b(
+            message.encode("UTF-8"), digest_size=output_bytes, key=key.encode("UTF-8")
+        ).hexdigest()
+
+    def fetch_salt(self, project_slug: str, max_length: int = 16) -> str:
+        """
+        Fetch the salt for a specific project to use in hashing from the Azure Key Vault instance
+        :param project_name: the name of the project to fetch the salt for
+        :param max_length: maximum number of characters in the output (2 <= max_length <= 64)
+        :return: salt
+        """
+        keyvault = AzureKeyVault()
+        try:
+            salt = keyvault.fetch_secret(project_slug)
+        except ValueError:
+            msg = f"No existing salt for project {project_slug}, generating a new one."
+            logger.warning(msg)
+            salt = _generate_salt(max_length)
+            keyvault.create_secret(project_slug, salt)
+        return salt
 
 
-def generate_hash(message: str, length: int = 64) -> str:
-    """
-    Generate a keyed hash digest from the message using Blake2b algorithm.
-    The Azure DICOM service requires identifiers to be less than 64 characters.
-
-    :param message: string to hash
-    :param length: maximum number of characters in the output (2 <= length <= 64)
-    :return: hashed string
-    """
-    max_length = 64
-    min_length = 2
-    if length > max_length:
-        msg = f"Maximum hash length is 64 characters, received: {length}"
-        raise ValueError(msg)
-
-    if length < min_length:
-        msg = f"Minimum hash length is 2 characters, received: {length}"
-        raise ValueError(msg)
-
-    # HMAC digest is returned as hex encoded i.e. 2 characters per byte
-    output_bytes = length // 2
-
-    key = fetch_key_from_vault()
-    return blake2b(
-        message.encode("UTF-8"), digest_size=output_bytes, key=key.encode("UTF-8")
-    ).hexdigest()
-
-
-def generate_salt(length: int = 16) -> str:
+def _generate_salt(length: int = 16) -> str:
     """
     Generate a random text string in hexadecimal to be used as a salt.
 
@@ -113,20 +113,3 @@ def generate_salt(length: int = 16) -> str:
     output_bytes = length // 2
 
     return secrets.token_hex(output_bytes)
-
-
-def fetch_salt(project_name: str) -> str:
-    """
-    Fetch the salt for a specific project to use in hashing from the Azure Key Vault instance
-    :param project_name: the name of the project to fetch the salt for
-    :return: salt
-    """
-    keyvault = AzureKeyVault()
-    try:
-        salt = keyvault.fetch_secret(project_name)
-    except ValueError:
-        msg = f"No existing salt for project {project_name}, generating a new one."
-        logger.warning(msg)
-        salt = generate_salt()
-        keyvault.create_secret(project_name, salt)
-    return salt
