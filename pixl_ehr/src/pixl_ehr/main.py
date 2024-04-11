@@ -282,13 +282,14 @@ def SendViaStow(resourceId):
     payload = {"Resources": [resourceId], "Synchronous": False}
     logger.debug("Payload: %s", payload)
     try:
-        requests.post(
+        resp = requests.post(
             url,
             auth=(ORTHANC_ANON_USERNAME, ORTHANC_ANON_PASSWORD),
             headers=headers,
             data=json.dumps(payload),
             timeout=30,
         )
+        resp.raise_for_status()
         msg = f"Sent {resourceId} via STOW"
         logger.info(msg)
     except requests.exceptions.RequestException:
