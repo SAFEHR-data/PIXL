@@ -92,14 +92,12 @@ customisation of the rate per queue is required or a queue should not be started
 then supply the argument `--no-start` and use `pixl start...` to launch
 processing.
 
-Once the messages have been processed, the radiology reports can be extracted and exported to a
-`parquet file` using
+Once the messages have been processed, the OMOP extracts (including radiology reports) can be
+exported to a `parquet file` using
 
 ```sh
-pixl extract-radiology-reports </path/to/parquet_dir>
+pixl export-patient-data </path/to/parquet_dir>
 ```
-
-This will also upload the radiology reports to the destination specified in the project config.
 
 Stop Imaging and EHR database extraction
 

@@ -282,7 +282,8 @@ EXTRACT_DIR/public /*.parquet
 
 ### PIXL Export dir (PIXL intermediate)
 
-The directory where PIXL will copy the public OMOP extract files and radiology reports to.
+The directory where PIXL will copy the public OMOP extract files (which now contain
+the radiology reports) to.
 These files will subsequently be uploaded to the `parquet` destination specified in the
 [project config](#3-configure-a-new-project).
 

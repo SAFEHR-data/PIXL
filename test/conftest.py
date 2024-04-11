@@ -161,11 +161,9 @@ def ftp_host_address() -> Any:
 
 
 @pytest.fixture(scope="session")
-def _extract_radiology_reports(_setup_pixl_cli) -> None:  # type: ignore [no-untyped-def]
+def _export_patient_data(_setup_pixl_cli) -> None:  # type: ignore [no-untyped-def]
     """
-    run pixl extract-radiology-reports. No subsequent wait is needed, because this API call
+    run pixl export-patient-data. No subsequent wait is needed, because this API call
     is synchronous (whether that is itself wise is another matter).
     """
-    run_subprocess(
-        ["pixl", "extract-radiology-reports", str(RESOURCES_OMOP_DIR.absolute())], TEST_DIR
-    )
+    run_subprocess(["pixl", "export-patient-data", str(RESOURCES_OMOP_DIR.absolute())], TEST_DIR)

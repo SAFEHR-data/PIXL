@@ -35,7 +35,7 @@ def test_public_parquet(host_export_root_dir: Path) -> None:
     assert expected_files == sorted([x.stem for x in expected_public_dir.glob("*.parquet")])
 
 
-@pytest.mark.usefixtures("_extract_radiology_reports")
+@pytest.mark.usefixtures("_export_patient_data")
 def test_radiology_parquet(host_export_root_dir: Path) -> None:
     """
     From:

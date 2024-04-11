@@ -159,12 +159,12 @@ def populate(
 @click.argument(
     "parquet-dir", required=True, type=click.Path(path_type=Path, exists=True, file_okay=False)
 )
-def extract_radiology_reports(parquet_dir: Path) -> None:
+def export_patient_data(parquet_dir: Path) -> None:
     """
     Export processed radiology reports to parquet file.
 
     PARQUET_DIR: Directory containing the extract_summary.json
-    log file defining which extract to export radiology reports for.
+    log file defining which extract to export patient data for.
     """
     project_name, omop_es_datetime = project_info(parquet_dir)
 

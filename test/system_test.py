@@ -54,7 +54,7 @@ class TestFtpsUpload:
         logging.info("expected parquet files dir: %s", TestFtpsUpload.expected_public_parquet_dir)
         # No cleanup of ftp uploads needed because it's in a temp dir
 
-    @pytest.mark.usefixtures("_extract_radiology_reports")
+    @pytest.mark.usefixtures("_export_patient_data")
     def test_ftps_parquet_upload(self) -> None:
         """The copied parquet files"""
         assert TestFtpsUpload.expected_public_parquet_dir.exists()
@@ -69,7 +69,7 @@ class TestFtpsUpload:
             TestFtpsUpload.expected_public_parquet_dir / "radiology" / "radiology.parquet"
         ).exists()
 
-    @pytest.mark.usefixtures("_extract_radiology_reports")
+    @pytest.mark.usefixtures("_export_patient_data")
     def test_ftps_dicom_upload(self, tmp_path_factory: pytest.TempPathFactory) -> None:
         """Test whether DICOM images have been uploaded"""
         zip_files: list[Path] = []
