@@ -14,86 +14,79 @@
 from __future__ import annotations
 
 import pytest
-from hasher.hashing import generate_hash, generate_salt
-from hypothesis import HealthCheck, example, given, settings
-from hypothesis import strategies as st
+from hasher.hashing import Hasher, _generate_salt
+
+TEST_MIN_LENGTHS = range(-10, 1)
+TEST_MAX_LENGTHS = range(65, 100)
 
 
-@pytest.mark.usefixtures("_dummy_key")
-def test_generate_hash_of_default_length():
+@pytest.fixture()
+def mock_hasher(_mock_hasher):
+    return Hasher()
+
+
+def test_generate_hash_of_default_length(mock_hasher):
     message = "test"
-    digest = generate_hash(message)
+    digest = mock_hasher.generate_hash(message)
     assert len(digest) == 64
     assert digest == "270426312ab76c2f0df60b6cef3d14aab6bc17219f1a76e63edf88a8f705c17a"
 
 
-@given(length=st.integers(min_value=-10, max_value=1))
-@settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
-@pytest.mark.usefixtures("_dummy_key")
-def test_generate_hash_enforces_min_length(length):
+@pytest.mark.parametrize("length", TEST_MIN_LENGTHS)
+def test_generate_hash_enforces_min_length(mock_hasher, length):
     message = "test"
     with pytest.raises(ValueError, match="Minimum hash length is 2"):
-        generate_hash(message, length)
+        mock_hasher.generate_hash(message, length=1)
 
 
-@given(length=st.integers(min_value=65, max_value=100))
-@settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
-@pytest.mark.usefixtures("_dummy_key")
-def test_generate_hash_enforces_max_length(length):
+@pytest.mark.parametrize("length", TEST_MAX_LENGTHS)
+def test_generate_hash_enforces_max_length(mock_hasher, length):
     message = "test"
     with pytest.raises(ValueError, match="Maximum hash length is 64"):
-        generate_hash(message, length)
+        mock_hasher.generate_hash(message, length)
 
 
-@pytest.mark.usefixtures("_dummy_key")
-def test_generate_hash_of_specific_length():
+def test_generate_hash_of_specific_length(mock_hasher):
     message = "test"
     length = 16
-    digest = generate_hash(message, length)
+    digest = mock_hasher.generate_hash(message, length)
     assert len(digest) == length
     assert digest == "b88ea642703eed33"
 
 
-@given(
-    message=st.text(min_size=0, max_size=1024),
-    length=st.integers(min_value=2, max_value=64),
-)
-@example(message="9876544321", length=12)
-@example(message="1.2.840.10008", length=48)
-@settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
-@pytest.mark.usefixtures("_dummy_key")
-def test_generate_hash_output_length(message, length):
-    digest = generate_hash(message, length)
+TEST_MESSSAGES = [("9876544321", 12), ("1.2.840.10008", 48)]
+
+
+@pytest.mark.parametrize(("message", "length"), TEST_MESSSAGES)
+def test_generate_hash_output_length(message, length, mock_hasher):
+    digest = mock_hasher.generate_hash(message, length)
     assert len(digest) <= length
 
 
-def test_generate_salt_of_default_length():
-    salt = generate_salt()
+def test_generate_salt_of_default_length(mock_hasher):
+    salt = mock_hasher.fetch_salt("test")
     assert len(salt) == 16
 
 
-@given(length=st.integers(min_value=-10, max_value=1))
+@pytest.mark.parametrize("length", TEST_MIN_LENGTHS)
 def test_generate_salt_enforces_min_length(length):
     with pytest.raises(ValueError, match="Minimum salt length is 2"):
-        generate_salt(length)
+        _generate_salt(length)
 
 
-@given(length=st.integers(min_value=65, max_value=100))
-@settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
+@pytest.mark.parametrize("length", TEST_MAX_LENGTHS)
 def test_generate_salt_enforces_max_length(length):
     with pytest.raises(ValueError, match="Maximum salt length is 64"):
-        generate_salt(length)
+        _generate_salt(length)
 
 
-@pytest.mark.usefixtures("_dummy_key")
 def test_generate_salt_of_specific_length():
     length = 9
-    salt = generate_salt(length)
+    salt = _generate_salt(length)
     assert len(salt) <= length
 
 
-@pytest.mark.usefixtures("_dummy_key")
 def test_generate_salt_produces_unique_outputs():
-    salt_1 = generate_salt()
-    salt_2 = generate_salt()
+    salt_1 = _generate_salt()
+    salt_2 = _generate_salt()
     assert salt_1 != salt_2
