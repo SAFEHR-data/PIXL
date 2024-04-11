@@ -13,9 +13,8 @@
 #  limitations under the License.
 from __future__ import annotations
 
-import pytest
 from fastapi.testclient import TestClient
-from hasher.main import app
+from hasher.main import app  # type: ignore [import-untyped]
 
 client = TestClient(app)
 
@@ -26,7 +25,6 @@ def test_heart_beat_endpoint():
     assert response.json() == "OK"
 
 
-@pytest.mark.usefixtures("_dummy_key")
 def test_hash_endpoint_with_default_length():
     response = client.get("/hash", params={"message": "test"})
     expected = "270426312ab76c2f0df60b6cef3d14aab6bc17219f1a76e63edf88a8f705c17a"
@@ -34,7 +32,6 @@ def test_hash_endpoint_with_default_length():
     assert response.text == expected
 
 
-@pytest.mark.usefixtures("_dummy_key")
 def test_hash_endpoint_with_custom_length():
     response = client.get("/hash", params={"message": "test", "length": 16})
     expected = "b88ea642703eed33"
@@ -43,13 +40,13 @@ def test_hash_endpoint_with_custom_length():
 
 
 def test_salt_endpoint_with_default_length():
-    response = client.get("/salt")
+    response = client.get("/salt", params={"project_name": "test"})
     assert response.status_code == 200
     assert len(response.text) == 16
 
 
 def test_salt_endpoint_with_custom_length():
-    response = client.get("/salt", params={"length": 8})
+    response = client.get("/salt", params={"project_name": "test", "length": 8})
     assert response.status_code == 200
     assert len(response.text) == 8
 
