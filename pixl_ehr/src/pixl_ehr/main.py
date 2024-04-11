@@ -71,7 +71,7 @@ async def startup_event() -> None:
 EHR_EXPORT_ROOT_DIR = Path("/run/projects/exports")
 
 
-class ExportRadiologyData(BaseModel):
+class ExportPatientData(BaseModel):
     """there may be entries from multiple extracts in the PIXL database, so filtering is needed"""
 
     project_name: str
@@ -84,7 +84,7 @@ class ExportRadiologyData(BaseModel):
     summary="Copy all matching radiology reports in the PIXL DB to a parquet file \
     and send all ParquetExports via FTPS",
 )
-def export_patient_data(export_params: ExportRadiologyData) -> None:
+def export_patient_data(export_params: ExportPatientData) -> None:
     """
     Batch export of all matching radiology reports in PIXL DB to a parquet file.
     NOTE: we can't check that all reports in the queue have been processed, so
@@ -106,12 +106,12 @@ def export_patient_data(export_params: ExportRadiologyData) -> None:
         raise HTTPException(status_code=400, detail=msg) from e
 
 
-def export_radiology_as_parquet(export_params: ExportRadiologyData) -> None:
+def export_radiology_as_parquet(export_params: ExportPatientData) -> None:
     """
     Export radiology reports as a parquet file to
     `{EHR_EXPORT_ROOT_DIR}/<project-slug>/all_extracts/radiology/radiology.parquet`.
     :param export_params: the project name, extract datetime and output directory defined as an
-        ExportRadiologyData object.
+        ExportPatientData object.
     """
     pe = ParquetExport(
         export_params.project_name, export_params.extract_datetime, export_params.output_dir

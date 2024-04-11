@@ -33,7 +33,7 @@ from core.patient_queue.message import Message
 from decouple import config
 from pixl_ehr._databases import PIXLDatabase, WriteableDatabase
 from pixl_ehr._processing import process_message
-from pixl_ehr.main import ExportRadiologyData, export_radiology_as_parquet
+from pixl_ehr.main import ExportPatientData, export_radiology_as_parquet
 from psycopg2.errors import UniqueViolation
 
 pytest_plugins = ("pytest_asyncio",)
@@ -319,7 +319,7 @@ async def test_radiology_export(example_messages, tmp_path) -> None:
     # ACT
     # Because the test is running in the EHR API container, can just call this directly
     export_radiology_as_parquet(
-        ExportRadiologyData(
+        ExportPatientData(
             project_name=project_name,
             extract_datetime=extract_generated_timestamp_1,
             output_dir=tmp_path,
@@ -356,7 +356,7 @@ async def test_radiology_export_multiple_projects(example_messages, tmp_path) ->
 
     # ACT
     export_radiology_as_parquet(
-        ExportRadiologyData(
+        ExportPatientData(
             project_name=project_name, extract_datetime=extract_datetime, output_dir=tmp_path
         )
     )
