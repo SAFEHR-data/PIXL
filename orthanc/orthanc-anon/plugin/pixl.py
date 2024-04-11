@@ -54,10 +54,13 @@ EXPORT_API_URL = "http://ehr-api:8000"
 
 
 def notify_export_api_of_readiness(study_id: str):
-    """XXX: make the /export-dicom-from-orthanc API call to export-api"""
+    """
+    Tell export-api that our data is ready and it should download it from us and upload
+    as appropriate
+    """
     url = EXPORT_API_URL + "/export-dicom-from-orthanc"
     payload = {"study_id": study_id}
-    response = requests.post(url, data=payload, timeout=30)
+    response = requests.post(url, json=payload, timeout=30)
     response.raise_for_status()
 
 

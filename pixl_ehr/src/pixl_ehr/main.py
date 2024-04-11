@@ -26,6 +26,7 @@ from datetime import (
 from io import BytesIO
 from pathlib import Path
 from time import sleep
+from typing import cast
 
 import requests
 from azure.identity import EnvironmentCredential
@@ -86,6 +87,12 @@ class ExportPatientData(BaseModel):
     output_dir: Path = EHR_EXPORT_ROOT_DIR
 
 
+class StudyData(BaseModel):
+    """Uniquely identify a study when talking to the API"""
+
+    study_id: str
+
+
 @app.post(
     "/export-patient-data",
     summary="Copy all matching radiology reports in the PIXL DB to a parquet file \
@@ -122,13 +129,14 @@ ORTHANC_ANON_URL = "http://orthanc-anon:8042"
     "/export-dicom-from-orthanc",
     summary="Download a zipped up study from orthanc anon and upload it via the appropriate route",
 )
-def export_dicom_from_orthanc(study_id: str):  # XXX: will this have to be a pydantic class?
+def export_dicom_from_orthanc(study_data: StudyData) -> None:
     """
     Download zipped up study data from orthanc anon and route it appropriately.
     Intended only for orthanc-anon to call, as only it knows when its data is ready for download.
     Because we're post-anonymisation, the "PatientID" tag returned is actually
     the hashed image ID (MRN + Accession number).
     """
+    study_id = study_data.study_id
     hashed_image_id, project_slug = _get_tags_by_study(study_id)
     project_config = load_project_config(project_slug)
     destination = project_config.destination.dicom
@@ -155,7 +163,7 @@ def _get_study_zip_archive(resourceId: str) -> BytesIO:
     return BytesIO(response_study.content)
 
 
-def AzureAccessToken():
+def AzureAccessToken() -> str:
     """
     Send payload to oath2/token url and
     return the response
@@ -175,10 +183,10 @@ def AzureAccessToken():
 
     response = requests.post(url, data=payload, timeout=10)
 
-    return response.json()["access_token"]
+    return cast(str, response.json()["access_token"])
 
 
-def _get_tags_by_study(study_id: str) -> [str, str]:
+def _get_tags_by_study(study_id: str) -> tuple[str, str]:
     """
     Queries the Orthanc server at the study level, returning the
     PatientID and UCLHPIXLProjectName DICOM tags.
@@ -199,21 +207,23 @@ def _query(resourceId: str, query: str, fail_msg: str) -> requests.Response:
         response = requests.get(
             query, auth=(ORTHANC_ANON_USERNAME, ORTHANC_ANON_PASSWORD), timeout=10
         )
-        success_code = 200
-        if response.status_code != success_code:
-            raise RuntimeError(fail_msg, resourceId)
+        response.raise_for_status()
     except requests.exceptions.RequestException:
-        logger.exception("Failed to query '%s'", resourceId)
+        logger.exception("Failed to query resource '%s', error: '%s'", resourceId, fail_msg)
+        raise
     else:
         return response
 
 
 def _azure_available() -> bool:
     # Check if AZ_DICOM_ENDPOINT_CLIENT_ID is set
-    return config("AZ_DICOM_ENDPOINT_CLIENT_ID", default="") != ""
+    return bool(config("AZ_DICOM_ENDPOINT_CLIENT_ID", default="") != "")
 
 
-def AzureDICOMTokenRefresh():
+TIMER = None
+
+
+def AzureDICOMTokenRefresh() -> None:
     """
     Refresh Azure DICOM token
     If this fails then wait 30s and try again
@@ -271,7 +281,7 @@ def AzureDICOMTokenRefresh():
     return None
 
 
-def SendViaStow(resourceId):
+def SendViaStow(resourceId: str) -> None:
     """
     Makes a POST API call to upload the resource to a dicom-web server
     using orthanc credentials as authorisation
