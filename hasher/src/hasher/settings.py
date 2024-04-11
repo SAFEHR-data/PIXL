@@ -19,8 +19,6 @@ The following settings are defined:
 - ENV: the environment (dev, test, staging, prod)
 - DEBUG: whether to run in debug mode
 - LOG_ROOT_DIR: directory to store logs
-- "AZURE_KEY_VAULT_NAME"
-- "AZURE_KEY_VAULT_SECRET_NAME"
 """
 
 from __future__ import annotations
@@ -39,8 +37,6 @@ __all__ = [
     "ENV",
     "DEBUG",
     "LOG_ROOT_DIR",
-    "AZURE_KEY_VAULT_NAME",
-    "AZURE_KEY_VAULT_SECRET_NAME",
 ]
 
 # Set env vars in docker/common.env or the docker-compose.yml
@@ -62,14 +58,6 @@ try:
     LOG_ROOT_DIR = env_parser.str("LOG_ROOT_DIR")
 except EnvError:
     LOG_ROOT_DIR = tempfile.gettempdir()
-
-AZURE_KEY_VAULT_NAME = ""
-AZURE_KEY_VAULT_SECRET_NAME = ""
-
-
-if ENV != "test":
-    AZURE_KEY_VAULT_NAME = env_parser.str("AZURE_KEY_VAULT_NAME")
-    AZURE_KEY_VAULT_SECRET_NAME = env_parser.str("AZURE_KEY_VAULT_SECRET_NAME")
 
 # Setup logging
 standard_formatter = {
