@@ -23,7 +23,12 @@ class MockKeyVault:
 
     def fetch_secret(self, secret_name: str) -> str:
         """Mock method to fetch a secret from the Key Vault."""
-        return self.secrets[secret_name]
+        try:
+            return self.secrets[secret_name]
+
+        # Raise a ValueError if the secret is not found, to mimic real Key Vault behaviour
+        except KeyError as err:
+            raise ValueError from err
 
     def create_secret(self, secret_name: str, secret_value: str) -> None:
         """Mock method to create a secret in the Key Vault."""
