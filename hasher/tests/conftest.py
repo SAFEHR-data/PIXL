@@ -14,53 +14,26 @@
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING
 
 import pytest
-from hasher.hashing import Hasher  # type: ignore [import-untyped]
-
-if TYPE_CHECKING:
-    from pytest_pixl.keyvault import MockKeyVault  # type: ignore [import-untyped]
 
 os.environ["ENV"] = "test"
+os.environ["AZURE_KEY_VAULT_SECRET_NAME"] = "test-key"  # noqa: S105, hardcoded secret
 
 
-@pytest.fixture()
-def _dummy_key(monkeypatch):  # noqa: ANN202
-    """Fixture to set up a dummy key to use for hashing tests"""
-    import hasher.hashing  # type: ignore [import-untyped]
-
-    monkeypatch.setattr(hasher.hashing, "fetch_key_from_vault", lambda: "test-key")
-
-
-@pytest.fixture(scope="module")
-def monkeymodule():
-    """Module level monkey patch."""
-    from _pytest.monkeypatch import MonkeyPatch
-
-    monkeypatch = MonkeyPatch()
-    yield monkeypatch
-    monkeypatch.undo()
-
-
-class MockHasher(Hasher):
-    """Mock the Hasher clas without setting a connection to the Azure Key Vault instance."""
-
-    def __init__(self, keyvault: MockKeyVault) -> None:
-        """
-        Initialise the Hasher instance without setting up the connection to the Azure Key Vault
-        instance.
-        """
-        self.keyvault = keyvault
-
-
-@pytest.fixture(autouse=True, scope="module")
-def mock_hasher(monkeymodule, azure_keyvault) -> Hasher:
+@pytest.fixture(autouse=True)
+def _mock_hasher(monkeypatch) -> None:
     """
     Mock the Hasher class as a pytest fixture.
     Uses the azure_kevyault fixture from pytest_pixl to mock the Azure Key Vault instance.
     """
-    hasher = MockHasher(azure_keyvault)
-    monkeymodule.setattr("hasher.hashing", hasher)
+    import hasher  # type: ignore [import-untyped]
+    from pytest_pixl.keyvault import MockKeyVault  # type: ignore [import-untyped]
 
-    return hasher
+    mock_keyvault = MockKeyVault()
+    mock_keyvault.create_secret("test-key", "test-key")
+
+    def mock_hasher_init(self) -> None:
+        self.keyvault = mock_keyvault
+
+    monkeypatch.setattr(hasher.hashing.Hasher, "__init__", mock_hasher_init)
