@@ -27,9 +27,8 @@ import logging
 import secrets
 from hashlib import blake2b
 
-from core.project_config.secrets import AzureKeyVault
-
-from hasher.settings import AZURE_KEY_VAULT_SECRET_NAME
+from core.project_config.secrets import AzureKeyVault  # type: ignore [import-untyped]
+from decouple import config  # type: ignore [import-untyped]
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +68,7 @@ class Hasher:
         # HMAC digest is returned as hex encoded i.e. 2 characters per byte
         output_bytes = length // 2
 
-        key = self.keyvault.fetch_secret(AZURE_KEY_VAULT_SECRET_NAME)
+        key = self.keyvault.fetch_secret(config("AZURE_KEY_VAULT_SECRET_NAME"))
         return blake2b(
             message.encode("UTF-8"), digest_size=output_bytes, key=key.encode("UTF-8")
         ).hexdigest()
@@ -81,14 +80,20 @@ class Hasher:
         :param max_length: maximum number of characters in the output (2 <= max_length <= 64)
         :return: salt
         """
-        keyvault = AzureKeyVault()
         try:
-            salt = keyvault.fetch_secret(project_slug)
+            salt = self.keyvault.fetch_secret(project_slug)
+
+            if len(salt) != max_length:
+                msg = f"Existing salt for {project_slug} is not the correct length. Regenerating."
+                logger.warning(msg)
+                salt = _generate_salt(max_length)
+                self.keyvault.create_secret(project_slug, salt)
+
         except ValueError:
             msg = f"No existing salt for project {project_slug}, generating a new one."
             logger.warning(msg)
             salt = _generate_salt(max_length)
-            keyvault.create_secret(project_slug, salt)
+            self.keyvault.create_secret(project_slug, salt)
         return salt
 
 
