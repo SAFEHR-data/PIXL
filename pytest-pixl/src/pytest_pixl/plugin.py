@@ -23,6 +23,7 @@ from pathlib import Path
 import pytest
 
 from pytest_pixl.ftpserver import PixlFTPServer
+from pytest_pixl.keyvault import MockKeyVault
 
 
 class FtpHostAddress(Enum):
@@ -75,3 +76,9 @@ def omop_resources() -> Path:
     traversable = resources.files("pytest_pixl").joinpath("data/omop-resources")
     with resources.as_file(traversable) as path:
         return path
+
+
+@pytest.fixture()
+def azure_keyvault() -> MockKeyVault:
+    """Create an instance of MockKeyVault for testing."""
+    return MockKeyVault()

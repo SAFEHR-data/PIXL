@@ -16,29 +16,7 @@ import pytest
 from core.project_config.secrets import AzureKeyVault
 
 
-class MockAzureKeyVault(AzureKeyVault):
-    """Mock AzureKeyVault class for testing."""
-
-    def __init__(self) -> None:
-        """Create a mock instance of AzureKeyVault."""
-
-    def fetch_secret(self, secret_name: str) -> str:
-        """Mock method to fetch a secret from the Azure Key Vault."""
-        return secret_name + "-mock-secret"
-
-
-@pytest.fixture()
-def azure_keyvault():
-    """Create an instance of AzureKeyVault for testing."""
-    return MockAzureKeyVault()
-
-
 def test_keyvault_constructor_checks_envvars():
     """Test that the constructor checks for the required environment variables."""
     with pytest.raises(OSError, match="AZURE_CLIENT_ID"):
         AzureKeyVault()
-
-
-def test_fetch_secret(azure_keyvault):
-    """Test that we can fetch secrets with the AzureKeyVault class."""
-    assert azure_keyvault.fetch_secret("test") == "test-mock-secret"
