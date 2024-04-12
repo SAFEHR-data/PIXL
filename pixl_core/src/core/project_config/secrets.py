@@ -21,7 +21,7 @@ from functools import lru_cache
 
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
-from decouple import config
+from decouple import config  # type: ignore [import-untyped]
 
 
 class AzureKeyVault:
@@ -43,18 +43,13 @@ class AzureKeyVault:
         """
         self._check_envvars()
 
-        kv_name = config("AZURE_KEY_VAULT_NAME")
-        key_vault_uri = f"https://{kv_name}.vault.azure.net"
-        credentials = DefaultAzureCredential()
-        self.client = SecretClient(vault_url=key_vault_uri, credential=credentials)
-
     def fetch_secret(self, secret_name: str) -> str:
         """
         Fetch a secret from the Azure Key Vault instance specified in the environment variables.
         :param secret_name: the name of the secret to fetch
         :return: the requested secret's value
         """
-        return _fetch_secret(self.client, secret_name)
+        return _fetch_secret(secret_name)
 
     def create_secret(self, secret_name: str, secret_value: str) -> None:
         """
@@ -62,7 +57,7 @@ class AzureKeyVault:
         :param secret_name: the name of the secret to create
         :param secret_value: the value of the secret to create
         """
-        return _create_secret(self.client, secret_name, secret_value)
+        return _create_secret(secret_name, secret_value)
 
     def _check_envvars(self) -> None:
         """
@@ -83,8 +78,15 @@ def _check_system_envvar(var_name: str) -> None:
         raise OSError(error_msg)
 
 
+def _setup_client() -> SecretClient:
+    kv_name = config("AZURE_KEY_VAULT_NAME")
+    key_vault_uri = f"https://{kv_name}.vault.azure.net"
+    credentials = DefaultAzureCredential()
+    return SecretClient(vault_url=key_vault_uri, credential=credentials)
+
+
 @lru_cache
-def _fetch_secret(client: SecretClient, secret_name: str) -> str:
+def _fetch_secret(secret_name: str) -> str:
     """
     Fetch a secret from the Azure Key Vault instance specified in the environment variables.
     This method is cached to avoid unnecessary calls to the Key Vault using the LRU (least
@@ -93,10 +95,13 @@ def _fetch_secret(client: SecretClient, secret_name: str) -> str:
     This helper is intentionally defined outside the Azure Keyvault to prevent memory leaks (see
     ruff rule B019).
 
-    :param client: the Azure Key Vault client
+    For caching to work, all parameters need to be hashable, so we cannot pass in the client as
+    input, but instead create it in the function.
+
     :param secret_name: the name of the secret to fetch
     :return: the requested secret's value
     """
+    client = _setup_client()
     secret = client.get_secret(secret_name).value
 
     if secret is None:
@@ -106,7 +111,7 @@ def _fetch_secret(client: SecretClient, secret_name: str) -> str:
 
 
 @lru_cache
-def _create_secret(client: SecretClient, secret_name: str, secret_value: str) -> None:
+def _create_secret(secret_name: str, secret_value: str) -> None:
     """
     Create a secret in the Azure Key Vault instance specified in the environment variables.
     This method is cached to avoid unnecessary calls to the Key Vault using the LRU (least
@@ -115,9 +120,13 @@ def _create_secret(client: SecretClient, secret_name: str, secret_value: str) ->
     This helper is intentionally defined outside the Azure Keyvault to prevent memory leaks (see
     ruff rule B019).
 
+    For caching to work, all parameters need to be hashable, so we cannot pass in the client as
+    input, but instead create it in the function.
+
     :param client: the Azure Key Vault client
     :param secret_name: the name of the secret to fetch
     :param secret_value: the value of the secret to fetch
     :return: the requested secret's value
     """
+    client = _setup_client()
     client.set_secret(secret_name, secret_value)
