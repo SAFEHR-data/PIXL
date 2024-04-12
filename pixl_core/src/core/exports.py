@@ -15,7 +15,6 @@
 
 from __future__ import annotations
 
-import logging
 import shutil
 from typing import TYPE_CHECKING
 
@@ -29,7 +28,7 @@ if TYPE_CHECKING:
     import pathlib
 
 
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 
 class ParquetExport:
@@ -82,7 +81,7 @@ class ParquetExport:
         """
         public_input = input_omop_dir / "public"
 
-        logger.info("Copying public parquet files from %s to %s", public_input, self.public_output)
+        logger.info("Copying public parquet files from {} to {}", public_input, self.public_output)
 
         # Make sure the base export direcotry exsists
         if not self.export_dir.exists():

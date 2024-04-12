@@ -22,3 +22,7 @@ class PixlSkipMessageError(RuntimeError):
     Exception that will be caught and whose message will be displayed
     (without a stack trace).
     """
+
+
+class PixlRequeueMessageError(RuntimeError):
+    """Requeue PIXL message."""

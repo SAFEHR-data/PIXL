@@ -33,6 +33,7 @@ x-build-args-common: &build-args-common
 x-pixl-common-env: &pixl-common-env
   ENV: ${ENV}
   DEBUG: ${DEBUG}
+  LOG_LEVEL: ${LOG_LEVEL}
 
 x-pixl-rabbit-mq: &pixl-rabbit-mq
   RABBITMQ_HOST: "queue" # Name of the queue service
@@ -162,7 +163,7 @@ services:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: 
+      test:
         [
           "CMD-SHELL", "/probes/test-aliveness.py --user=$ORTHANC_USERNAME --pwd=$ORTHANC_PASSWORD"
         ]
@@ -179,6 +180,8 @@ services:
       args:
         <<: *build-args-common
         ORTHANC_RAW_MAXIMUM_STORAGE_SIZE: ${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE}
+        ORTHANC_RAW_JOB_HISTORY_SIZE: ${ORTHANC_RAW_JOB_HISTORY_SIZE}
+        ORTHANC_RAW_CONCURRENT_JOBS: ${ORTHANC_RAW_CONCURRENT_JOBS}
     platform: linux/amd64
     command: /run/secrets
     environment:
@@ -188,7 +191,6 @@ services:
       ORTHANC_PASSWORD: ${ORTHANC_RAW_PASSWORD}
       ORTHANC_RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
       ORTHANC_AUTOROUTE_RAW_TO_ANON: ${ORTHANC_AUTOROUTE_RAW_TO_ANON}
-      ORTHANC_RAW_MAXIMUM_STORAGE_SIZE: ${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE}
       ORTHANC_RAW_RECORD_HEADERS: ${ORTHANC_RAW_RECORD_HEADERS}
       ORTHANC_RAW_HEADER_LOG_PATH: ${ORTHANC_RAW_HEADER_LOG_PATH}
       VNAQR_AE_TITLE : ${VNAQR_AE_TITLE}
@@ -214,7 +216,7 @@ services:
       orthanc-anon:
         condition: service_started
     healthcheck:
-      test: 
+      test:
         [
           "CMD-SHELL", "/probes/test-aliveness.py --user=$ORTHANC_USERNAME --pwd=$ORTHANC_PASSWORD"
         ]
@@ -307,7 +309,7 @@ services:
     networks:
       - pixl-net
     environment:
-      <<: [*pixl-rabbit-mq, *proxy-common]
+      <<: [*pixl-rabbit-mq, *proxy-common, *pixl-common-env]
       ORTHANC_RAW_URL: ${ORTHANC_RAW_URL}
       ORTHANC_RAW_USERNAME: ${ORTHANC_RAW_USERNAME}
       ORTHANC_RAW_PASSWORD: ${ORTHANC_RAW_PASSWORD}
