@@ -223,6 +223,8 @@ def apply_tag_scheme(dataset: Dataset, tags: list[dict], project_slug: str) -> D
                 logger.debug(f"\t{message}")
 
                 logger.debug(f"\t\tCurrent UID:\t{dataset[grp,el].value}")
+                # TODO: delete after #366 gets merged
+                salt = b"PIXL"
                 new_uid = get_encrypted_uid(dataset[grp, el].value, salt)
                 dataset[grp, el].value = new_uid
                 logger.debug(f"\t\tEncrypted UID:\t{new_uid}")
