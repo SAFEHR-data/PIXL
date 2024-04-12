@@ -47,7 +47,9 @@ class Hasher:
         self.project_slug = project_slug
         self.keyvault = AzureKeyVault()
 
-    def generate_hash(self, message: str, length: int = 64, *, override_salt: bool = False) -> str:
+    def generate_hash(
+        self, message: str, length: int = 64, *, salt_length: int = 16, override_salt: bool = False
+    ) -> str:
         """
         Generate a keyed hash digest from the message using Blake2b algorithm.
         The Azure DICOM service requires identifiers to be less than 64 characters.
@@ -72,7 +74,7 @@ class Hasher:
         key = self.keyvault.fetch_secret(config("AZURE_KEY_VAULT_SECRET_NAME"))
 
         # Apply salt from the keyvault and local salt if it exists
-        message += self._fetch_salt(length=length, override=override_salt)
+        message += self._fetch_salt(length=salt_length, override=override_salt)
         message += config("LOCAL_SALT_VALUE", default="")
 
         return blake2b(
@@ -89,17 +91,18 @@ class Hasher:
         try:
             salt = self.keyvault.fetch_secret(self.project_slug)
 
-            if override & len(salt) != length:
-                msg = f"Existing salt for {self.project_slug} is of different length. Regenerating."
-                logger.warning(msg)
-                salt = _generate_salt(length)
-                self.keyvault.create_secret(self.project_slug, salt)
-
         except ValueError:
             msg = f"No existing salt for project {self.project_slug}, generating a new one."
             logger.warning(msg)
             salt = _generate_salt(length)
             self.keyvault.create_secret(self.project_slug, salt)
+
+        if override and len(salt) != length:
+            msg = f"Existing salt for {self.project_slug} is of different length. Regenerating."
+            logger.warning(msg)
+            salt = _generate_salt(length)
+            self.keyvault.create_secret(self.project_slug, salt)
+
         return salt
 
 
