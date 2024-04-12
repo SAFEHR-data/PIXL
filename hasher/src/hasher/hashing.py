@@ -74,14 +74,14 @@ class Hasher:
         key = self.keyvault.fetch_secret(config("AZURE_KEY_VAULT_SECRET_NAME"))
 
         # Apply salt from the keyvault and local salt if it exists
-        message += self._fetch_salt(length=salt_length, override=override_salt)
+        message += self._get_or_create_salt(length=salt_length, override=override_salt)
         message += config("LOCAL_SALT_VALUE", default="")
 
         return blake2b(
             message.encode("UTF-8"), digest_size=output_bytes, key=key.encode("UTF-8")
         ).hexdigest()
 
-    def _fetch_salt(self, length: int = 16, *, override: bool) -> str:
+    def _get_or_create_salt(self, length: int = 16, *, override: bool) -> str:
         """
         Fetch the salt for a specific project to use in hashing from the Azure Key Vault instance
         :param project_name: the name of the project to fetch the salt for
