@@ -67,7 +67,7 @@ class PixlBlockingInterface(PixlQueueInterface):
                 self._channel = self._connection.channel()
             self._queue = self._channel.queue_declare(queue=self.queue_name)
 
-        logger.info("Connected to {}", self._queue)
+        logger.info("Connected to {}", self.queue_name)
         return self
 
     def __exit__(self, *args: object, **kwargs: Any) -> None:
