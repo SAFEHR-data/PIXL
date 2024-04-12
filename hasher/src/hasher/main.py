@@ -15,19 +15,20 @@
 
 from __future__ import annotations
 
+from decouple import config  # type: ignore [import-untyped]
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from loguru import logger
 
-from hasher import __version__, icon, settings
+from hasher import __version__, icon
 from hasher.endpoints import router
 
 app = FastAPI(
     title="hasher-api",
     description=f"{icon} Secure Hashing Service ",
     version=__version__,
-    debug=settings.DEBUG,
+    debug=config("DEBUG", default=True),
     default_response_class=JSONResponse,
 )
 
@@ -43,5 +44,3 @@ app.include_router(router)
 
 
 logger.info("Starting {} hasher-api {}...", icon, __version__)
-if settings.DEBUG:
-    settings.dump_settings()
