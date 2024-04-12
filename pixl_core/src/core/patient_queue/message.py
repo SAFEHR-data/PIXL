@@ -51,22 +51,7 @@ class Message:
             object can be recovered by `deserialise()`. If False, calling `deserialise()` on the
             serialised message will return a dictionary.
         """
-        msg = (
-            "Serialising message with\n"
-            " * patient id: {}\n"
-            " * accession number: {}\n"
-            " * timestamp: {}\n"
-            " * procedure_occurrence_id: {}\n",
-            " * project_name: {}\n * extract_generated_timestamp: {}",
-            self.mrn,
-            self.accession_number,
-            self.study_date,
-            self.procedure_occurrence_id,
-            self.project_name,
-            self.extract_generated_timestamp,
-        )
-        logger.debug(msg)
-
+        logger.trace("Serialising {}", self)
         return str.encode(encode(self, unpicklable=deserialisable))
 
 
