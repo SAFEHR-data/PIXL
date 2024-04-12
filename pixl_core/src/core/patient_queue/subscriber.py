@@ -78,7 +78,7 @@ class PixlConsumer(PixlQueueInterface):
             return
 
         pixl_message: Message = deserialise(message.body)
-        logger.info("Starting message {}", pixl_message)
+        logger.info("Starting message {}", pixl_message.identifier)
         try:
             await self._callback(pixl_message)
         except PixlRequeueMessageError as requeue:
