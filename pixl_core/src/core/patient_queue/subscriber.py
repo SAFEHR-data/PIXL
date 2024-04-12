@@ -77,12 +77,12 @@ class PixlConsumer(PixlQueueInterface):
             await message.reject(requeue=True)
             return
 
-        pixl_message = deserialise(message.body)
+        pixl_message: Message = deserialise(message.body)
         logger.info("Starting message {}", pixl_message)
         try:
             await self._callback(pixl_message)
         except PixlRequeueMessageError as requeue:
-            logger.trace("Requeue message: {} from {}", pixl_message, requeue)
+            logger.trace("Requeue message: {} from {}", pixl_message.identifier, requeue)
             await asyncio.sleep(1)
             await message.reject(requeue=True)
         except PixlSkipMessageError as exception:
@@ -93,13 +93,13 @@ class PixlConsumer(PixlQueueInterface):
         except Exception:  # noqa: BLE001
             logger.exception(
                 "Failed to process {}. Not re-queuing message",
-                pixl_message,
+                pixl_message.identifier,
             )
             await (
                 message.ack()
             )  # ack so that we can see rate of message processing in rabbitmq admin
         else:
-            logger.success("Finished message {}", pixl_message)
+            logger.success("Finished message {}", pixl_message.identifier)
             await message.ack()
 
     async def run(self) -> None:

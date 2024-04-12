@@ -13,13 +13,19 @@
 #  limitations under the License.
 from __future__ import annotations
 
+import typing
 from abc import ABC, abstractmethod
+from asyncio import sleep
+from time import time
 from typing import Any, Optional
 
 import aiohttp
-from core.exceptions import PixlRequeueMessageError
+from core.exceptions import PixlRequeueMessageError, PixlSkipMessageError
 from decouple import config
 from loguru import logger
+
+if typing.TYPE_CHECKING:
+    from core.patient_queue.message import Message
 
 
 class Orthanc(ABC):
@@ -94,6 +100,30 @@ class Orthanc(ABC):
             data={"TargetAet": self.aet, "Synchronous": False},
         )
         return str(response["ID"])
+
+    async def wait_for_job_success_or_raise(
+        self, query_id: str, timeout: float, message: Message | None = None
+    ) -> None:
+        """Wait for job to complete successfully, or raise exception if fails or exceeds timeout."""
+        job_id = await self.retrieve_from_remote(query_id=query_id)  # C-Move
+        job_state = "Pending"
+        start_time = time()
+
+        identifier = job_id
+        if message is not None:
+            identifier = message.identifier
+
+        while job_state != "Success":
+            if job_state == "Failure":
+                msg = f"Job failed for {identifier}"
+                raise PixlSkipMessageError(msg)
+
+            if (time() - start_time) > timeout:
+                msg = f"Failed to transfer {identifier} in {timeout} seconds"
+                raise PixlSkipMessageError(msg)
+
+            await sleep(1)
+            job_state = await self.job_state(job_id=job_id)
 
     async def job_state(self, job_id: str) -> str:
         """Get job state from orthanc."""
