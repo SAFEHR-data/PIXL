@@ -71,10 +71,10 @@ def anonymise_dicom(dataset: Dataset) -> Dataset:
     - applying tag operations based on the config file
     Returns anonymised dataset.
     """
-    slug = get_project_name_as_string(dataset)
+    project_slug = get_project_name_as_string(dataset)
 
-    project_config = load_project_config(slug)
-    logger.debug(f"Received instance for project {slug}")
+    project_config = load_project_config(project_slug)
+    logger.debug(f"Received instance for project {project_slug}")
     if dataset.Modality not in project_config.project.modalities:
         msg = f"Dropping DICOM Modality: {dataset.Modality}"
         raise PixlSkipMessageError(msg)
@@ -90,7 +90,7 @@ def anonymise_dicom(dataset: Dataset) -> Dataset:
     all_tags = merge_tag_schemes(tag_operations, manufacturer=dataset.Manufacturer)
 
     # Apply scheme to instance
-    dataset = apply_tag_scheme(dataset, all_tags)
+    dataset = apply_tag_scheme(dataset, all_tags, project_slug)
     # Apply whitelist
     dataset = enforce_whitelist(dataset, all_tags)
 
@@ -162,7 +162,7 @@ def enforce_whitelist(dataset: Dataset, tags: list[dict]) -> Dataset:
     return dataset
 
 
-def apply_tag_scheme(dataset: Dataset, tags: list[dict]) -> Dataset:
+def apply_tag_scheme(dataset: Dataset, tags: list[dict], project_slug: str) -> Dataset:
     """
     Apply anonymisation operations for a given set of tags to a dataset.
     The original study time is kept before any operations are applied.
@@ -173,11 +173,9 @@ def apply_tag_scheme(dataset: Dataset, tags: list[dict]) -> Dataset:
     mrn = dataset[0x0010, 0x0020].value  # Patient ID
     accession_number = dataset[0x0008, 0x0050].value  # Accession Number
 
-    # Set salt based on ENV VAR
-    salt_plaintext = config("SALT_VALUE")
-
     HASHER_API_AZ_NAME = config("HASHER_API_AZ_NAME")
     HASHER_API_PORT = config("HASHER_API_PORT")
+    hasher_host_url = "http://" + HASHER_API_AZ_NAME + ":" + HASHER_API_PORT
 
     # TODO: Get offset from external source on study-by-study basis.
     # https://github.com/UCLH-Foundry/PIXL/issues/152
@@ -188,16 +186,6 @@ def apply_tag_scheme(dataset: Dataset, tags: list[dict]) -> Dataset:
         raise RuntimeError(msg) from exc
 
     logger.debug(b"TIME_OFFSET = %i}" % TIME_OFFSET)
-
-    # Use hasher API to get hash of salt.
-    hasher_host_url = "http://" + HASHER_API_AZ_NAME + ":" + HASHER_API_PORT
-    payload = "/hash?message=" + salt_plaintext
-    request_url = hasher_host_url + payload
-
-    response = requests.get(request_url)
-
-    logger.debug(b"SALT = %a}" % response.content)
-    salt = response.content
 
     # For every entry in the YAML:
     for i in range(len(tags)):
@@ -413,12 +401,16 @@ def hash_endpoint_path_for_tag(group: bytes, element: bytes) -> str:
     return "/hash"
 
 
-def _hash_values(grp: bytes, el: bytes, pat_value: str, hasher_host_url: str) -> str:
-    ep_path = hash_endpoint_path_for_tag(group=grp, element=el)
-    payload = ep_path + "?message=" + pat_value
-    request_url = hasher_host_url + payload
-    response = requests.get(request_url)
-    # All three hashing endpoints return application/text so should be fine to
+def _hash_values(
+    grp: bytes, el: bytes, pat_value: str, hasher_host_url: str, project_slug: str
+) -> str:
+    ep_path = hasher_host_url + "/hash"
+    request_params = {
+        "project_slug": project_slug,
+        "message": pat_value,
+    }
+    response = requests.get(ep_path, params=request_params)
+    # The /hash endpoint returns application/text so should be fine to
     # use response.text here
     logger.debug("RESPONSE = %s}" % response.text)
     return response.text
