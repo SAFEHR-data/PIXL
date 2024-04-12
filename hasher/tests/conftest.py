@@ -21,6 +21,27 @@ os.environ["ENV"] = "test"
 os.environ["AZURE_KEY_VAULT_SECRET_NAME"] = "test-key"  # noqa: S105, hardcoded secret
 
 
+class MockKeyVault:
+    """Mock KeyVault class for testing."""
+
+    def __init__(self) -> None:
+        """Create a mock instance of a KeyVault."""
+        self.secrets: dict[str, str] = {}
+
+    def fetch_secret(self, secret_name: str) -> str:
+        """Mock method to fetch a secret from the Key Vault."""
+        try:
+            return self.secrets[secret_name]
+
+        # Raise a ValueError if the secret is not found, to mimic real Key Vault behaviour
+        except KeyError as err:
+            raise ValueError from err
+
+    def create_secret(self, secret_name: str, secret_value: str) -> None:
+        """Mock method to create a secret in the Key Vault."""
+        self.secrets[secret_name] = secret_value
+
+
 @pytest.fixture(autouse=True)
 def _mock_hasher(monkeypatch) -> None:
     """
@@ -33,7 +54,8 @@ def _mock_hasher(monkeypatch) -> None:
     mock_keyvault = MockKeyVault()
     mock_keyvault.create_secret("test-key", "test-key")
 
-    def mock_hasher_init(self) -> None:
+    def mock_hasher_init(self, project_slug: str) -> None:
         self.keyvault = mock_keyvault
+        self.project_slug = project_slug
 
     monkeypatch.setattr(hasher.hashing.Hasher, "__init__", mock_hasher_init)
