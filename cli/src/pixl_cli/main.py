@@ -151,6 +151,7 @@ def populate(
         sorted_messages = sorted(messages, key=attrgetter("study_date"))
         # For imaging, we don't want to query again for images that have already been exported
         if queue == "imaging" and messages:
+            logger.info("Filtering out exported images and uploading new ones to the database")
             sorted_messages = filter_exported_or_add_to_db(
                 sorted_messages, messages[0].project_name
             )
