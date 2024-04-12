@@ -45,9 +45,9 @@ async def process_message(message: Message) -> None:
     if study_exists:
         return
 
-    query_id = await _find_study_in_vna_or_raise(message, orthanc_raw, study)
+    query_id = await _find_study_in_vna_or_raise(orthanc_raw, study)
     timeout: float = config("PIXL_DICOM_TRANSFER_TIMEOUT", cast=float)
-    await orthanc_raw.wait_for_job_success_or_raise(query_id, timeout, message)
+    await orthanc_raw.wait_for_job_success_or_raise(query_id, timeout)
 
     # Now that instance has arrived in orthanc raw, we can set its project name tag via the API
     studies = await orthanc_raw.query_local(study.orthanc_query_dict)
@@ -122,15 +122,13 @@ async def _add_project_to_study(
         )
 
 
-async def _find_study_in_vna_or_raise(
-    message: Message, orthanc_raw: Orthanc, study: ImagingStudy
-) -> str:
+async def _find_study_in_vna_or_raise(orthanc_raw: Orthanc, study: ImagingStudy) -> str:
     """Query the VNA for the study, raise exception if it doesn't exist"""
     query_id = await orthanc_raw.query_remote(
         study.orthanc_query_dict, modality=config("VNAQR_MODALITY")
     )
     if query_id is None:
-        msg = f"Failed to find {message.identifier} in the VNA"
+        msg = "Failed to find in the VNA"
         raise PixlSkipMessageError(msg)
     return query_id
 

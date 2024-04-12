@@ -86,7 +86,7 @@ class PixlConsumer(PixlQueueInterface):
             await asyncio.sleep(1)
             await message.reject(requeue=True)
         except PixlSkipMessageError as exception:
-            logger.warning("Failed message: {}", exception)
+            logger.warning("Failed message {}: {}", pixl_message.identifier, exception)
             await (
                 message.ack()
             )  # ack so that we can see rate of message processing in rabbitmq admin
