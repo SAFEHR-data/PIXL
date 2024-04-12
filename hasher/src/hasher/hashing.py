@@ -23,14 +23,12 @@ This module provides:
 
 from __future__ import annotations
 
-import logging
 import secrets
 from hashlib import blake2b
 
 from core.project_config.secrets import AzureKeyVault  # type: ignore [import-untyped]
 from decouple import config  # type: ignore [import-untyped]
-
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 
 class Hasher:
@@ -92,14 +90,16 @@ class Hasher:
             salt = self.keyvault.fetch_secret(self.project_slug)
 
         except ValueError:
-            msg = f"No existing salt for project {self.project_slug}, generating a new one."
-            logger.warning(msg)
+            logger.warning(
+                "No existing salt for project {}, generating a new one.", self.project_slug
+            )
             salt = _generate_salt(length)
             self.keyvault.create_secret(self.project_slug, salt)
 
         if override and len(salt) != length:
-            msg = f"Existing salt for {self.project_slug} is of different length. Regenerating."
-            logger.warning(msg)
+            logger.warning(
+                "Existing salt for {} is of different length. Regenerating.", self.project_slug
+            )
             salt = _generate_salt(length)
             self.keyvault.create_secret(self.project_slug, salt)
 
