@@ -39,11 +39,12 @@ class Hasher:
     salt for a specific project from the Azure Key Vault instance.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, project_slug: str) -> None:
         """
         Initialise the Hasher instance for a specific project and set up connection to
         the AzureKeyVault instance.
         """
+        self.project_slug = project_slug
         self.keyvault = AzureKeyVault()
 
     def generate_hash(self, message: str, length: int = 64) -> str:
@@ -73,27 +74,27 @@ class Hasher:
             message.encode("UTF-8"), digest_size=output_bytes, key=key.encode("UTF-8")
         ).hexdigest()
 
-    def fetch_salt(self, project_slug: str, max_length: int = 16) -> str:
+    def fetch_salt(self, length: int = 16, *, override: bool = False) -> str:
         """
         Fetch the salt for a specific project to use in hashing from the Azure Key Vault instance
         :param project_name: the name of the project to fetch the salt for
-        :param max_length: maximum number of characters in the output (2 <= max_length <= 64)
+        :param length: number of characters for the salt, should be between 2 and 64
         :return: salt
         """
         try:
-            salt = self.keyvault.fetch_secret(project_slug)
+            salt = self.keyvault.fetch_secret(self.project_slug)
 
-            if len(salt) != max_length:
-                msg = f"Existing salt for {project_slug} is not the correct length. Regenerating."
+            if override & len(salt) != length:
+                msg = f"Existing salt for {self.project_slug} is of different length. Regenerating."
                 logger.warning(msg)
-                salt = _generate_salt(max_length)
-                self.keyvault.create_secret(project_slug, salt)
+                salt = _generate_salt(length)
+                self.keyvault.create_secret(self.project_slug, salt)
 
         except ValueError:
-            msg = f"No existing salt for project {project_slug}, generating a new one."
+            msg = f"No existing salt for project {self.project_slug}, generating a new one."
             logger.warning(msg)
-            salt = _generate_salt(max_length)
-            self.keyvault.create_secret(project_slug, salt)
+            salt = _generate_salt(length)
+            self.keyvault.create_secret(self.project_slug, salt)
         return salt
 
 
