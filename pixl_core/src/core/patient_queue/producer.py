@@ -34,7 +34,7 @@ class PixlProducer(PixlBlockingInterface):
         Sends a list of serialised messages to a queue.
         :param messages: list of messages to be sent to queue
         """
-        logger.debug("Publishing {} messages to queue: {}", len(messages), self.queue_name)
+        logger.info("Publishing {} messages to queue: {}", len(messages), self.queue_name)
         if len(messages) > 0:
             for msg in messages:
                 logger.debug("Serialising message")
