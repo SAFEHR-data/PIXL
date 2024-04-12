@@ -26,13 +26,13 @@ from core.dicom_tags import DICOM_TAG_PROJECT_NAME
 import requests
 from core.project_config import load_tag_operations
 from decouple import config
-from pydicom import Dataset, dcmwrite
+from pydicom import DataElement, Dataset, dcmwrite
 from dicomanonymizer.simpledicomanonymizer import (
     actions_map_name_functions,
     anonymize_dataset,
 )
 
-from pixl_dcmd._tag_schemes import merge_tag_schemes
+from pixl_dcmd._tag_schemes import merge_tag_schemes, _scheme_list_to_dict
 from pixl_dcmd._database import add_hashed_identifier_and_save_to_db, query_db
 
 DicomDataSetType = Union[Union[str, bytes, PathLike[Any]], BinaryIO]
@@ -58,9 +58,8 @@ def anonymise_dicom(dataset: Dataset) -> None:
     Anonymises a DICOM dataset as Received by Orthanc in place.
     Finds appropriate configuration based on project name and anonymises by
     - dropping datasets of the wrong modality
-    - applying tag operations based on the config file
-    - deleting any tags not in the tag scheme
-    Returns anonymised dataset.
+    - recursively applying tag operations based on the config file
+    - deleting any tags not in the tag scheme recursively
     """
     raw_slug = dataset.get_private_item(
         DICOM_TAG_PROJECT_NAME.group_id,
@@ -93,30 +92,7 @@ def anonymise_dicom(dataset: Dataset) -> None:
         f"Applying DICOM tag anonymisation according to {project_config.tag_operation_files}"
     )
     logger.debug(f"Tag scheme: {tag_scheme}")
-    _anonymise_dicom(dataset, tag_scheme, modalities)
 
-
-def _anonymise_dicom(
-    dataset: Dataset, tag_scheme: list[dict], modalities: list[str]
-) -> None:
-    """
-    utility function to anonymise a DICOM dataset in place and facilitate testing
-    """
-
-    # Get actions for each tag as functions
-    tag_actions = _convert_schema_to_actions(dataset, tag_scheme)
-
-    # Recursively anonymise
-    _anonymise_dicom_recursively(dataset, modalities, tag_actions)
-
-
-def _anonymise_dicom_recursively(
-    dataset: Dataset, modalities: list[str], tag_actions: dict[tuple, Callable]
-) -> None:
-    """
-    Recursively anonymise a DICOM dataset in place using an external library, and enforce a whitelist.
-    See https://github.com/KitwareMedical/dicom-anonymizer for anonymisation details.
-    """
     if (0x0008, 0x0060) in dataset and dataset.Modality not in modalities:
         msg = f"Dropping DICOM Modality: {dataset.Modality}"
         logger.error(msg)
@@ -124,14 +100,30 @@ def _anonymise_dicom_recursively(
 
     logger.warning("Anonymising received instance")
 
-    anonymize_dataset(dataset, tag_actions, delete_private_tags=False)
+    _anonymise_dicom_from_scheme(dataset, tag_scheme)
 
-    for elem in dataset.iterall():
-        if elem.VR == "SQ":
-            for sq_el in elem.value:
-                _anonymise_dicom_recursively(sq_el, modalities, tag_actions)
-    # Apply whitelist
-    _enforce_whitelist(dataset, tag_actions)
+    enforce_whitelist(dataset, tag_scheme, recursive=True)
+
+
+def _anonymise_dicom_from_scheme(dataset: Dataset, tag_scheme: list[dict]) -> None:
+    """
+    Converts tag scheme to tag actions and calls _anonymise_recursively.
+    """
+    tag_actions = _convert_schema_to_actions(dataset, tag_scheme)
+    _anonymise_recursively(dataset, tag_actions)
+
+
+def _anonymise_recursively(
+    dataset: Dataset, tag_actions: dict[tuple, Callable]
+) -> None:
+    """
+    Anonymises a DICOM dataset recursively (for items in sequences) in place.
+    """
+    anonymize_dataset(dataset, tag_actions, delete_private_tags=False)
+    for de in dataset:
+        if de.VR == "SQ":
+            for item in de.value:
+                _anonymise_recursively(item, tag_actions)
 
 
 def _convert_schema_to_actions(
@@ -206,27 +198,23 @@ def _hash_values(pat_value: str, hash_len: int = 0) -> str:
     return response.text
 
 
-def _enforce_whitelist(dataset: Dataset, tags: dict[tuple, Callable]) -> None:
-    """Delete any tags not in the tagging schemе in place. Iterates through Sequences."""
-    # For every element:
-    logger.debug("Enforcing whitelist")
-    for de in dataset:
-        keep_el = False
-        # For every entry in the YAML:
-        for group_el in tags:
-            grp = group_el[0]
-            el = group_el[1]
-            op = tags[group_el]
+def enforce_whitelist(
+    dataset: Dataset, tag_scheme: list[dict], recursive: bool
+) -> None:
+    """
+    Enforce the whitelist on the dataset.
+    """
+    dataset.walk(lambda ds, de: _whitelist_tag(ds, de, tag_scheme), recursive)
 
-            if de.tag.group == grp and de.tag.element == el:
-                if op.__name__ != "delete":
-                    keep_el = True
 
-        if not keep_el:
-            del_grp = de.tag.group
-            del_el = de.tag.element
-            del dataset[del_grp, del_el]
-            message = "Whitelist - deleting: {name} (0x{grp:04x},0x{el:04x})".format(
-                name=de.keyword, grp=del_grp, el=del_el
-            )
-            logger.debug(f"\t{message}")
+def _whitelist_tag(dataset: Dataset, de: DataElement, tag_scheme: list[dict]) -> None:
+    """Delete element if it is not in the tagging schemе."""
+    tag_dict = _scheme_list_to_dict(tag_scheme)
+    if (
+        # de.VR != "SQ"
+        # and (de.tag.group, de.tag.element) in tag_dict
+        (de.tag.group, de.tag.element) in tag_dict
+        and tag_dict[(de.tag.group, de.tag.element)]["op"] != "delete"
+    ):
+        return
+    del dataset[de.tag]
