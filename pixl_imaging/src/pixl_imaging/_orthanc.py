@@ -100,12 +100,15 @@ class Orthanc(ABC):
     async def wait_for_job_success_or_raise(self, query_id: str, timeout: float) -> None:
         """Wait for job to complete successfully, or raise exception if fails or exceeds timeout."""
         job_id = await self.retrieve_from_remote(query_id=query_id)  # C-Move
-        job_state = "Pending"
+        job_info = {"State": "Pending"}
         start_time = time()
 
-        while job_state != "Success":
-            if job_state == "Failure":
-                msg = f"Job failed for {job_id}"
+        while job_info["State"] != "Success":
+            if job_info["State"] == "Failure":
+                msg = (
+                    "Job failed: "
+                    f"Error code={job_info['ErrorCode']} Cause={job_info['ErrorDescription']}"
+                )
                 raise PixlSkipMessageError(msg)
 
             if (time() - start_time) > timeout:
@@ -113,13 +116,12 @@ class Orthanc(ABC):
                 raise PixlSkipMessageError(msg)
 
             await sleep(1)
-            job_state = await self.job_state(job_id=job_id)
+            job_info = await self.job_state(job_id=job_id)
 
-    async def job_state(self, job_id: str) -> str:
+    async def job_state(self, job_id: str) -> Any:
         """Get job state from orthanc."""
         # See: https://book.orthanc-server.com/users/advanced-rest.html#jobs-monitoring
-        job = await self._get(f"/jobs/{job_id}")
-        return str(job["State"])
+        return await self._get(f"/jobs/{job_id}")
 
     async def _get(self, path: str) -> Any:
         async with (
