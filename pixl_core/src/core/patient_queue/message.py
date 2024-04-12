@@ -40,7 +40,7 @@ class Message:
     @property
     def identifier(self) -> str:
         """Identifier for message"""
-        return f"{self.mrn=} {self.accession_number=}"
+        return f"Message({self.mrn=} {self.accession_number=})".replace("self.", "")
 
     def serialise(self, *, deserialisable: bool = True) -> bytes:
         """
