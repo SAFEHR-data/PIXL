@@ -32,33 +32,9 @@ async def heart_beat() -> str:
     "/hash",
     summary="Produce secure hash with optional max output length (2 <= length <= 64)",
 )
-async def hash(message: str, length: int = 64) -> Response:  # noqa: A001
-    hasher = Hasher()
-    output = hasher.generate_hash(message, length)
+async def hash(  # noqa: A001
+    project_slug: str, message: str, length: int = 64, *, override_salt: bool = False
+) -> Response:
+    hasher = Hasher(project_slug)
+    output = hasher.generate_hash(message, length, override_salt)
     return Response(content=output, media_type="application/text")
-
-
-@router.get("/salt", summary="Generate a salt of length (2 <= length <= 16)")
-async def salt(project_name: str, length: int = 16) -> Response:
-    hasher = Hasher()
-    output = hasher.fetch_salt(project_name, length)
-    return Response(content=output, media_type="application/text")
-
-
-@router.get(
-    "/hash-accession-number",
-    summary="Produce secure hash appropriate for an accession number",
-)
-async def hash_accession_number(message: str) -> Response:
-    hasher = Hasher()
-    truncated_output = hasher.generate_hash(message, 64)[:16]
-    return Response(content=truncated_output, media_type="application/text")
-
-
-@router.get(
-    "/hash-mrn",
-    summary="Produce secure hash appropriate for an patient identifier (MRN)",
-)
-async def hash_mrn(message: str) -> Response:
-    hasher = Hasher()
-    return Response(content=hasher.generate_hash(message, 64), media_type="application/text")

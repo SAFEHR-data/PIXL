@@ -366,17 +366,27 @@ def apply_tag_scheme(dataset: Dataset, tags: list[dict], project_slug: str) -> D
             if [grp, el] in dataset:
                 if grp == 0x0010 and el == 0x0020:  # Patient ID
                     pat_value = mrn + accession_number
+                    hashed_value = _hash_values(
+                        pat_value, hasher_host_url, project_slug, hash_length=64
+                    )
 
-                    hashed_value = _hash_values(grp, el, pat_value, hasher_host_url)
                     # Query PIXL database
                     existing_image = query_db(mrn, accession_number)
                     # Insert the hashed_value into the PIXL database
                     add_hashed_identifier_and_save(existing_image, hashed_value)
-                else:
-                    pat_value = str(dataset[grp, el].value)
 
-                    hashed_value = _hash_values(grp, el, pat_value, hasher_host_url)
-                if dataset[grp, el].VR == "SH":
+                else:
+                    # Set hash length to 64 for accession number, 16 for everything else
+                    # brought over from the old hasher endpoint /hash-accession-number
+                    is_accession_number = grp == 0x0008 & el == 0x0050
+                    hash_length = 64 if is_accession_number else 16
+
+                    pat_value = str(dataset[grp, el].value)
+                    hashed_value = _hash_values(
+                        pat_value, hasher_host_url, project_slug, hash_length
+                    )
+
+                if dataset[grp, el].VR == "SH" | is_accession_number:
                     hashed_value = hashed_value[:16]
 
                 dataset[grp, el].value = hashed_value
@@ -391,24 +401,16 @@ def apply_tag_scheme(dataset: Dataset, tags: list[dict], project_slug: str) -> D
     return dataset
 
 
-def hash_endpoint_path_for_tag(group: bytes, element: bytes) -> str:
-    """Call a hasher endpoint depending on the dicom tag group and emement"""
-    if group == 0x0010 and element == 0x0020:  # Patient ID
-        return "/hash-mrn"
-    if group == 0x0008 and element == 0x0050:  # Accession Number
-        return "/hash-accession-number"
-
-    return "/hash"
-
-
 def _hash_values(
-    grp: bytes, el: bytes, pat_value: str, hasher_host_url: str, project_slug: str
+    pat_value: str, hasher_host_url: str, project_slug: str, hash_length: int
 ) -> str:
     ep_path = hasher_host_url + "/hash"
-    request_params = {
+    request_params: dict[str, str | int] = {
         "project_slug": project_slug,
         "message": pat_value,
+        "length": hash_length,
     }
+
     response = requests.get(ep_path, params=request_params)
     # The /hash endpoint returns application/text so should be fine to
     # use response.text here
