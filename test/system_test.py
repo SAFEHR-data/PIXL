@@ -65,9 +65,6 @@ class TestFtpsUpload:
             / "public"
             / "PROCEDURE_OCCURRENCE.parquet"
         ).exists()
-        assert (
-            TestFtpsUpload.expected_public_parquet_dir / "radiology" / "radiology.parquet"
-        ).exists()
 
     @pytest.mark.usefixtures("_export_patient_data")
     def test_ftps_dicom_upload(self, tmp_path_factory: pytest.TempPathFactory) -> None:

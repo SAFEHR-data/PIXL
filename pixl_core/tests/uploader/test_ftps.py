@@ -17,7 +17,6 @@ import filecmp
 import pathlib
 from datetime import datetime, timezone
 
-import pandas as pd
 import pytest
 from core.db.models import Image
 from core.db.queries import update_exported_at
@@ -116,7 +115,6 @@ def test_upload_parquet(parquet_export, ftps_home_dir, ftps_uploader) -> None:
     parquet_export.copy_to_exports(
         pathlib.Path(__file__).parents[3] / "test" / "resources" / "omop"
     )
-    parquet_export.export_radiology(pd.DataFrame(list("dummy"), columns=["D"]))
 
     # ACT
     ftps_uploader.upload_parquet_files(parquet_export)
@@ -133,7 +131,6 @@ def test_upload_parquet(parquet_export, ftps_home_dir, ftps_uploader) -> None:
     assert (
         expected_public_parquet_dir / "omop" / "public" / "PROCEDURE_OCCURRENCE.parquet"
     ).exists()
-    assert (expected_public_parquet_dir / "radiology" / "radiology.parquet").exists()
 
 
 @pytest.mark.usefixtures("ftps_server")

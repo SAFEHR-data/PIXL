@@ -26,14 +26,12 @@ import datetime
 from logging import getLogger
 from typing import Any, Optional
 
-import pandas as pd
 import pytest
 from core.exports import ParquetExport
 from core.patient_queue.message import Message
 from decouple import config
 from pixl_ehr._databases import PIXLDatabase, WriteableDatabase
 from pixl_ehr._processing import process_message
-from pixl_ehr.main import ExportPatientData, export_radiology_as_parquet
 from psycopg2.errors import UniqueViolation
 
 pytest_plugins = ("pytest_asyncio",)
@@ -297,85 +295,3 @@ async def test_message_processing(example_messages) -> None:
 
     # Check that CogStack de-identification was called
     assert anon_report_text == report_text + "**DE-IDENTIFIED**"
-
-
-@pytest.mark.processing()
-@pytest.mark.asyncio()
-@pytest.mark.usefixtures("run_containers")
-async def test_radiology_export(example_messages, tmp_path) -> None:
-    """
-    GIVEN a message processed by the EHR API
-    WHEN export_patient_data is called
-    THEN the radiology reports are exported to a parquet file and symlinked to the latest export
-    directory
-    """
-    # ARRANGE
-    message = example_messages[0]
-    project_name = message.project_name
-    extract_date = message.extract_generated_timestamp
-    pe = ParquetExport(project_name, extract_date, tmp_path)
-    await process_message(message)
-
-    # ACT
-    # Because the test is running in the EHR API container, can just call this directly
-    export_radiology_as_parquet(
-        ExportPatientData(
-            project_name=project_name,
-            extract_datetime=extract_generated_timestamp_1,
-            output_dir=tmp_path,
-        )
-    )
-
-    # ASSERT
-    parquet_file = pe.radiology_output / "radiology.parquet"
-
-    assert parquet_file.exists()
-    assert parquet_file.is_file()
-
-    parquet_df = pd.read_parquet(parquet_file)
-    assert parquet_df.shape[0] == 1  # should contain only 1 row
-    # symlink is not created by radiology export - this is covered by the system test
-
-
-@pytest.mark.processing()
-@pytest.mark.asyncio()
-@pytest.mark.usefixtures("run_containers")
-async def test_radiology_export_multiple_projects(example_messages, tmp_path) -> None:
-    """
-    GIVEN EHR API has processed four messages, each from a different project+extract combination
-          (p1e1, p1e2, p2e1, p2e2 to ensure both fields must match)
-    WHEN export_patient_data is called for 1 given project+extract
-    THEN only the radiology reports for that project+extract are exported
-    """
-    # ARRANGE
-    project_name = example_messages[0].project_name
-    extract_datetime = example_messages[0].extract_generated_timestamp
-
-    for mess in example_messages:
-        await process_message(mess)
-
-    # ACT
-    export_radiology_as_parquet(
-        ExportPatientData(
-            project_name=project_name, extract_datetime=extract_datetime, output_dir=tmp_path
-        )
-    )
-
-    # ASSERT
-    # check that although 4 records are in the DB, only one makes it into the parquet file
-    pixl_db = QueryablePIXLDB()
-    row_count_raw = pixl_db.execute_query_string("select count(*) from emap_data.ehr_raw")
-    row_count_anon = pixl_db.execute_query_string("select count(*) from emap_data.ehr_anon")
-    assert row_count_raw[0][0] == 4
-    assert row_count_anon[0][0] == 4
-
-    pe = ParquetExport(project_name, extract_datetime, tmp_path)
-    parquet_file = pe.radiology_output / "radiology.parquet"
-    parquet_df = pd.read_parquet(parquet_file)
-
-    assert parquet_df.shape[0] == 1  # should contain only 1 row
-    assert parquet_df["image_report"].iloc[0] == report_text + "**DE-IDENTIFIED**"
-    # check image identifier doesn't contain its unhashed components
-    image_id = parquet_df["image_identifier"].iloc[0]
-    assert image_id.find(mrn) == -1
-    assert image_id.find(accession_number_base) == -1

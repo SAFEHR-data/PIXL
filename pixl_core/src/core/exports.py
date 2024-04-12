@@ -28,8 +28,6 @@ if TYPE_CHECKING:
     import datetime
     import pathlib
 
-    import pandas as pd
-
 
 logger = logging.getLogger(__name__)
 
@@ -101,19 +99,6 @@ class ParquetExport:
         self.latest_symlink.unlink(missing_ok=True)
         self.latest_symlink.symlink_to(self.current_extract_base, target_is_directory=True)
         return self.project_slug
-
-    def export_radiology(self, export_df: pd.DataFrame) -> pathlib.Path:
-        """Export radiology reports to parquet file"""
-        self._mkdir(self.radiology_output)
-        parquet_file = self.radiology_output / "radiology.parquet"
-        logger.info("Exporting radiology to %s", self.radiology_output)
-        export_df.to_parquet(parquet_file)
-        # We are not responsible for making the "latest" symlink, see `copy_to_exports`.
-        # This avoids the confusion caused by EHR API (which calls export_radiology) having a
-        # different view of the filesystem vs CLI (which calls copy_to_exports). EHR API should
-        # never have to evaluate the symlink.
-        # Symlink could be made before or after this method is called.
-        return self.radiology_output
 
     @staticmethod
     def _mkdir(directory: pathlib.Path) -> pathlib.Path:

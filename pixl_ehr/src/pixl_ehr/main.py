@@ -100,7 +100,6 @@ def export_patient_data(export_params: ExportPatientData) -> None:
     we are relying on the user waiting until processing has finished before running this.
     """
     logger.info("Exporting Patient Data for '%s'", export_params.project_name)
-    export_radiology_as_parquet(export_params)
 
     # Upload Parquet files to the appropriate endpoint
     parquet_export = ParquetExport(
@@ -136,23 +135,6 @@ def export_dicom_from_orthanc(study_data: StudyData) -> None:
     logger.debug(msg)
     zip_content = get_study_zip_archive(study_id)
     uploader.upload_dicom_image(zip_content, hashed_image_id, project_slug)
-
-
-def export_radiology_as_parquet(export_params: ExportPatientData) -> None:
-    """
-    Export radiology reports as a parquet file to
-    `{EHR_EXPORT_ROOT_DIR}/<project-slug>/all_extracts/radiology/radiology.parquet`.
-    :param export_params: the project name, extract datetime and output directory defined as an
-        ExportPatientData object.
-    """
-    pe = ParquetExport(
-        export_params.project_name, export_params.extract_datetime, export_params.output_dir
-    )
-
-    anon_data = PIXLDatabase().get_radiology_reports(
-        pe.project_slug, export_params.extract_datetime
-    )
-    pe.export_radiology(anon_data)
 
 
 @app.get(
