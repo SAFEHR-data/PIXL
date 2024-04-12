@@ -27,17 +27,13 @@ RUN sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 RUN  apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-# Install requirements before copying modules
-COPY ./hasher/pyproject.toml .
-RUN --mount=type=cache,target=/root/.cache \
-    pip install --no-cache-dir /app/
 
 # Install requirements before copying modules
 COPY ./pixl_core/pyproject.toml ./pixl_core/pyproject.toml
-COPY ./hasher/pyproject.toml ./hasher/pyproject.toml
+COPY ./hasher/pyproject.toml .
 RUN --mount=type=cache,target=/root/.cache \
     pip3 install --no-cache-dir pixl_core/ \
-    && pip3 install --no-cache-dir hasher/
+    && pip3 install --no-cache-dir /app/
 
 COPY ./pixl_core/ pixl_core/
 COPY ./hasher/ .
