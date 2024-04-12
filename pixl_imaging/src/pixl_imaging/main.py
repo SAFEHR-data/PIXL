@@ -17,13 +17,14 @@ from __future__ import annotations
 
 import asyncio
 import importlib.metadata
-import logging
+import sys
 
 from core.patient_queue.subscriber import PixlConsumer
 from core.rest_api.router import router, state
 from decouple import config
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+from loguru import logger
 
 from ._processing import process_message
 
@@ -37,8 +38,14 @@ app = FastAPI(
 )
 app.include_router(router)
 
-logger = logging.getLogger("uvicorn")
-logger.setLevel(config("LOG_LEVEL", default="INFO"))
+# Set up logging as main entry point
+logger.remove()  # Remove all handlers added so far, including the default one.
+logging_level = config("LOG_LEVEL")
+if not logging_level:
+    logging_level = "INFO"
+logger.add(sys.stderr, level=logging_level)
+
+logger.warning("Running logging at level {}", logging_level)
 
 
 @app.on_event("startup")

@@ -22,8 +22,8 @@ from pathlib import Path
 import pandas as pd
 from core.exports import ParquetExport
 from core.patient_queue.message import Message, deserialise
+from loguru import logger
 
-from pixl_cli._logging import logger
 from pixl_cli._utils import string_is_non_empty
 
 # The export root dir from the point of view of the docker host (which is where the CLI runs)
@@ -38,7 +38,7 @@ def messages_from_state_file(filepath: Path) -> list[Message]:
     :param filepath: Path for state file to be read
     :return: A list of Message objects containing all the messages from the state file
     """
-    logger.info(f"Creating messages from {filepath}")
+    logger.info("Creating messages from {}", filepath)
     if not filepath.exists():
         raise FileNotFoundError
     if filepath.suffix != ".state":
@@ -120,7 +120,7 @@ def messages_from_csv(filepath: Path) -> list[Message]:
         msg = f"Failed to find any messages in {filepath}"
         raise ValueError(msg)
 
-    logger.info(f"Created {len(messages)} messages from {filepath}")
+    logger.info("Created {} messages from {}", len(messages), filepath)
     return messages
 
 
@@ -167,7 +167,7 @@ def messages_from_parquet(
         msg = f"Failed to find any messages in {dir_path}"
         raise ValueError(msg)
 
-    logger.info(f"Created {len(messages)} messages from {dir_path}")
+    logger.info("Created {} messages from {}", len(messages), dir_path)
     return messages
 
 
@@ -194,7 +194,7 @@ def _raise_if_column_names_not_found(
     cohort_data: pd.DataFrame, expected_col_names: list[str]
 ) -> None:
     logger.debug(
-        f"Checking merged parquet files. Expecting columns to include {expected_col_names}"
+        "Checking merged parquet files. Expecting columns to include {}", expected_col_names
     )
     for col in expected_col_names:
         if col not in list(cohort_data.columns):

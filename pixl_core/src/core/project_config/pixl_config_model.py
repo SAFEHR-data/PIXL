@@ -16,13 +16,13 @@
 
 from __future__ import annotations
 
-import logging
 from enum import Enum
 from pathlib import Path
 from typing import Any, Optional
 
-import yaml
-from decouple import Config, RepositoryEmpty, RepositoryEnv
+import yaml  # type: ignore [import-untyped]
+from decouple import Config, RepositoryEmpty, RepositoryEnv  # type: ignore [import-untyped]
+from loguru import logger
 from pydantic import BaseModel, field_validator
 
 from core.exceptions import PixlSkipMessageError
@@ -31,8 +31,6 @@ from core.exceptions import PixlSkipMessageError
 env_file = Path.cwd() / ".env"
 config = Config(RepositoryEnv(env_file)) if env_file.exists() else Config(RepositoryEmpty())
 
-logger = logging.getLogger(__name__)
-
 
 def load_project_config(project_slug: str) -> PixlConfig | Any:
     """
@@ -40,7 +38,7 @@ def load_project_config(project_slug: str) -> PixlConfig | Any:
     Project needs to have a corresponding yaml file in the `$PROJECT_CONFIGS_DIR` directory.
     """
     configpath = Path(config("PROJECT_CONFIGS_DIR")) / f"{project_slug}.yaml"
-    logger.debug(f"Loading config for {project_slug} from {configpath}")  # noqa: G004
+    logger.debug("Loading config for {} from {}", project_slug, configpath)
     try:
         return _load_and_validate(configpath)
     except FileNotFoundError as error:

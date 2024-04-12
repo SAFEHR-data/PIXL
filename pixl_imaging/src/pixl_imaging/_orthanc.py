@@ -13,27 +13,27 @@
 #  limitations under the License.
 from __future__ import annotations
 
-import logging
 from abc import ABC, abstractmethod
 from asyncio import sleep
-from json import JSONDecodeError
 from time import time
 from typing import Any, Optional
 
-import requests
+import aiohttp
+from core.exceptions import PixlRequeueMessageError, PixlSkipMessageError
 from decouple import config
-from requests.auth import HTTPBasicAuth
-
-logger = logging.getLogger("uvicorn")
+from loguru import logger
 
 
 class Orthanc(ABC):
     def __init__(self, url: str, username: str, password: str) -> None:
+        if not url:
+            msg = "URL for orthanc is required"
+            raise ValueError(msg)
         self._url = url.rstrip("/")
         self._username = username
         self._password = password
 
-        self._auth = HTTPBasicAuth(username=username, password=password)
+        self._auth = aiohttp.BasicAuth(login=username, password=password)
 
     @property
     @abstractmethod
@@ -41,31 +41,35 @@ class Orthanc(ABC):
         """Application entity title (AET) of this Orthanc instance"""
 
     @property
-    def modalities(self) -> Any:
+    async def modalities(self) -> Any:
         """Accessible modalities from this Orthanc instance"""
-        return self._get("/modalities")
+        return await self._get("/modalities")
 
-    def query_local(self, data: dict) -> Any:
+    async def get_jobs(self) -> Any:
+        """Get expanded details for all jobs."""
+        return await self._get("/jobs?expand")
+
+    async def query_local(self, data: dict) -> Any:
         """Query local Orthanc instance for resourceId."""
-        return self._post("/tools/find", data=data)
+        return await self._post("/tools/find", data=data)
 
-    def query_remote(self, data: dict, modality: str) -> Optional[str]:
+    async def query_remote(self, data: dict, modality: str) -> Optional[str]:
         """Query a particular modality, available from this node"""
-        logger.debug("Running query on modality: %s with %s", modality, data)
+        logger.debug("Running query on modality: {} with {}", modality, data)
 
-        response = self._post(
+        response = await self._post(
             f"/modalities/{modality}/query",
             data=data,
             timeout=config("PIXL_QUERY_TIMEOUT", default=10, cast=float),
         )
-        logger.debug("Query response: %s", response)
-
-        if len(self._get(f"/queries/{response['ID']}/answers")) > 0:
+        logger.debug("Query response: {}", response)
+        query_answers = await self._get(f"/queries/{response['ID']}/answers")
+        if len(query_answers) > 0:
             return str(response["ID"])
 
         return None
 
-    def modify_private_tags_by_study(
+    async def modify_private_tags_by_study(
         self,
         *,
         study_id: str,
@@ -76,7 +80,7 @@ class Orthanc(ABC):
         # (the best you can do is download a modified version), so do it via the studies API.
         # KeepSource=false needed to stop it making a copy
         # https://orthanc.uclouvain.be/api/index.html#tag/Studies/paths/~1studies~1{id}~1modify/post
-        return self._post(
+        return await self._post(
             f"/studies/{study_id}/modify",
             {
                 "PrivateCreator": private_creator,
@@ -86,63 +90,72 @@ class Orthanc(ABC):
             },
         )
 
-    def retrieve_from_remote(self, query_id: str) -> str:
-        response = self._post(
+    async def retrieve_from_remote(self, query_id: str) -> str:
+        response = await self._post(
             f"/queries/{query_id}/retrieve",
             data={"TargetAet": self.aet, "Synchronous": False},
         )
         return str(response["ID"])
 
-    async def wait_for_job_success(self, query_id: str, timeout: float) -> None:
-        job_id = self.retrieve_from_remote(query_id=query_id)  # C-Move
-        job_state = "Pending"
+    async def wait_for_job_success_or_raise(self, query_id: str, timeout: float) -> None:
+        """Wait for job to complete successfully, or raise exception if fails or exceeds timeout."""
+        job_id = await self.retrieve_from_remote(query_id=query_id)  # C-Move
+        job_info = {"State": "Pending"}
         start_time = time()
 
-        while job_state != "Success":
+        while job_info["State"] != "Success":
+            if job_info["State"] == "Failure":
+                msg = (
+                    "Job failed: "
+                    f"Error code={job_info['ErrorCode']} Cause={job_info['ErrorDescription']}"
+                )
+                raise PixlSkipMessageError(msg)
+
             if (time() - start_time) > timeout:
-                raise TimeoutError
+                msg = f"Failed to transfer {job_id} in {timeout} seconds"
+                raise PixlSkipMessageError(msg)
 
-            await sleep(0.1)
-            job_state = self.job_state(job_id=job_id)
+            await sleep(1)
+            job_info = await self.job_state(job_id=job_id)
 
-    def job_state(self, job_id: str) -> str:
+    async def job_state(self, job_id: str) -> Any:
+        """Get job state from orthanc."""
         # See: https://book.orthanc-server.com/users/advanced-rest.html#jobs-monitoring
-        return str(self._get(f"/jobs/{job_id}")["State"])
+        return await self._get(f"/jobs/{job_id}")
 
-    def _get(self, path: str) -> Any:
-        return _deserialise(requests.get(f"{self._url}{path}", auth=self._auth, timeout=10))
+    async def _get(self, path: str) -> Any:
+        async with (
+            aiohttp.ClientSession() as session,
+            session.get(f"{self._url}{path}", auth=self._auth, timeout=10) as response,
+        ):
+            return await _deserialise(response)
 
-    def _post(self, path: str, data: dict, timeout: Optional[float] = None) -> Any:
-        return _deserialise(
-            requests.post(f"{self._url}{path}", json=data, auth=self._auth, timeout=timeout)
-        )
+    async def _post(self, path: str, data: dict, timeout: Optional[float] = None) -> Any:
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                f"{self._url}{path}", json=data, auth=self._auth, timeout=timeout
+            ) as response,
+        ):
+            return await _deserialise(response)
 
-    def _delete(self, path: str, timeout: Optional[float] = 10) -> Any:
-        return _deserialise(requests.delete(f"{self._url}{path}", auth=self._auth, timeout=timeout))
+    async def delete(self, path: str, timeout: Optional[float] = 10) -> None:
+        async with (
+            aiohttp.ClientSession() as session,
+            session.delete(f"{self._url}{path}", auth=self._auth, timeout=timeout) as response,
+        ):
+            await _deserialise(response)
 
-    def send_existing_study_to_anon(self, resource_id: str) -> None:
-        """Send study to orthanc anon."""
-        self._post("/send-to-anon", data={"ResourceId": resource_id})
 
-
-def _deserialise(response: requests.Response) -> Any:
+async def _deserialise(response: aiohttp.ClientResponse) -> Any:
     """Decode an Orthanc rest API response"""
-    success_code = 200
-    if response.status_code != success_code:
-        msg = (
-            f"Failed request. "
-            f"Status code: {response.status_code}"
-            f"Content: {response.content.decode()}"
-        )
-        raise requests.HTTPError(msg)
-    try:
-        return response.json()
-    except (JSONDecodeError, ValueError) as exc:
-        msg = f"Failed to parse {response} as json"
-        raise requests.HTTPError(msg) from exc
+    response.raise_for_status()
+    return await response.json()
 
 
 class PIXLRawOrthanc(Orthanc):
+    """Orthanc Raw connection."""
+
     def __init__(self) -> None:
         super().__init__(
             url=config("ORTHANC_RAW_URL"),
@@ -150,6 +163,23 @@ class PIXLRawOrthanc(Orthanc):
             password=config("ORTHANC_RAW_PASSWORD"),
         )
 
+    async def raise_if_pending_jobs(self) -> None:
+        """
+        Raise PixlRequeueMessageError if there are pending jobs on the server.
+
+        Otherwise orthanc starts to get buggy when there are a whole load of pending jobs.
+        PixlRequeueMessageError will cause the rabbitmq message to be requeued
+        """
+        jobs = await self.get_jobs()
+        for job in jobs:
+            if job["State"] == "Pending":
+                msg = "Pending messages in orthanc raw"
+                raise PixlRequeueMessageError(msg)
+
     @property
     def aet(self) -> str:
         return str(config("ORTHANC_RAW_AE_TITLE"))
+
+    async def send_existing_study_to_anon(self, resource_id: str) -> Any:
+        """Send study to orthanc anon."""
+        return await self._post("/send-to-anon", data={"ResourceId": resource_id})
