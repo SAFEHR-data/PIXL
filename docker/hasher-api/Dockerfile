@@ -28,10 +28,10 @@ WORKDIR /app
 # Install requirements before copying modules
 COPY ./hasher/pyproject.toml .
 RUN --mount=type=cache,target=/root/.cache \
-    pip install /app/
+    pip install --no-cache-dir /app/
 
 COPY ./hasher/ .
 RUN --mount=type=cache,target=/root/.cache \
-    pip install .
+    pip install --no-cache-dir --force-reinstall --no-deps .
 
 ENTRYPOINT ["uvicorn", "hasher.main:app", "--host", "0.0.0.0", "--port", "8000"]

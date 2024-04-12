@@ -27,12 +27,13 @@ import logging
 import os
 import traceback
 from io import BytesIO
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME, add_private_tag
-from pydicom import Dataset, dcmread, dcmwrite
+from pydicom import dcmread
 
 import orthanc
+from pixl_dcmd.main import write_dataset_to_bytes
 from pixl_dcmd.tagrecording import record_dicom_headers
 
 if TYPE_CHECKING:
@@ -50,7 +51,17 @@ def OnChange(changeType, level, resourceId):  # noqa: ARG001
     """
     if changeType == orthanc.ChangeType.STABLE_STUDY and should_auto_route():
         print("Sending study: %s" % resourceId)  # noqa: T201
-        orthanc.RestApiPost("/modalities/PIXL-Anon/store", resourceId)
+        # Although this can throw, since we have nowhere to report errors
+        # back to (eg. an HTTP client), don't try to handle anything here.
+        # The client will have to detect that it hasn't happened and retry.
+        orthanc_anon_store_study(resourceId)
+
+
+def orthanc_anon_store_study(resource_id):
+    """Call the API to send the specified resource (study) to the orthanc anon server."""
+    # RestApiPost raises an orthanc.OrthancException if it fails
+    orthanc.RestApiPost("/modalities/PIXL-Anon/store", resource_id)
+    orthanc.LogInfo(f"Successfully sent study to anon modality: {resource_id}")
 
 
 def OnHeartBeat(output, uri, **request):  # noqa: ARG001
@@ -82,19 +93,6 @@ def should_auto_route():
     return os.environ.get("ORTHANC_AUTOROUTE_RAW_TO_ANON", "false").lower() == "true"
 
 
-def write_dataset_to_bytes(dataset: Dataset) -> bytes:
-    """
-    Write pydicom DICOM dataset to byte array
-
-    Original from:
-    https://pydicom.github.io/pydicom/stable/auto_examples/memory_dataset.html
-    """
-    with BytesIO() as buffer:
-        dcmwrite(buffer, dataset)
-        buffer.seek(0)
-        return buffer.read()
-
-
 def modify_dicom_tags(receivedDicom: bytes, origin: str) -> Any:
     """
     A new incoming DICOM file needs to have the project name private tag added here, so
@@ -107,6 +105,11 @@ def modify_dicom_tags(receivedDicom: bytes, origin: str) -> Any:
         logger.debug("modify_dicom_tags - doing nothing as change triggered by API")
         return orthanc.ReceivedInstanceAction.KEEP_AS_IS, None
     dataset = dcmread(BytesIO(receivedDicom))
+    # See the orthanc.json config file for where this tag is given a nickname
+    # The private block is the first free block >= 0x10.
+    # We can't directly control it, but the orthanc config requires it to be
+    # hardcoded to 0x10
+    # https://dicom.nema.org/dicom/2013/output/chtml/part05/sect_7.8.html
 
     # Add project name as private tag, at this point, the value is unknown
     private_block = add_private_tag(dataset, DICOM_TAG_PROJECT_NAME)
@@ -114,35 +117,66 @@ def modify_dicom_tags(receivedDicom: bytes, origin: str) -> Any:
     logger.debug(
         "modify_dicom_tags - added new private block starting at 0x%x", private_block.block_start
     )
-    if not DICOM_TAG_PROJECT_NAME.acceptable_private_block(private_block.block_start >> 8):
-        print(  # noqa: T201
-            "ERROR: The private block does not match the value hardcoded in the orthanc "
-            "config. This can be because there was an unexpected pre-existing private block"
-            f"in group {DICOM_TAG_PROJECT_NAME.group_id}"
-        )
     return orthanc.ReceivedInstanceAction.MODIFY, write_dataset_to_bytes(dataset)
+
+
+def log_and_return_http(
+    output, http_code: int, http_message: str, log_message: Optional[str] = None
+):
+    """
+    Log and make an HTTP response in case of success or failure. For failure, log
+    a stack/exception trace as well.
+
+    :param output: the orthanc output object as given to the callback function
+    :param http_code: HTTP code to return
+    :param http_message: message to return in HTTP body
+    :param log_message: message to log, if different to http_message.
+                        If None, do not log at all if success
+    """
+    http_json_str = json.dumps({"Message": http_message})
+    if http_code == 200:  # noqa: PLR2004
+        if log_message:
+            orthanc.LogInfo(log_message)
+        output.AnswerBuffer(http_json_str, "application/json")
+    else:
+        orthanc.LogWarning(f"{log_message or http_message}:\n{traceback.format_exc()}")
+        # length needed in bytes not chars
+        output.SendHttpStatus(http_code, http_json_str, len(http_json_str.encode()))
 
 
 def SendResourceToAnon(output, uri, **request):  # noqa: ARG001
     """Send an existing study to the anon modality"""
     orthanc.LogWarning(f"Received request to send study to anon modality: {request}")
     if not should_auto_route():
-        orthanc.LogWarning("Auto-routing is not enabled, dropping request {request}")
-        output.AnswerBuffer(
-            json.dumps({"Message": "Auto-routing is not enabled"}), "application/json"
+        log_and_return_http(
+            output,
+            200,
+            "Auto-routing is not enabled",
+            f"Auto-routing is not enabled, dropping request {request}",
         )
         return
     try:
         body = json.loads(request["body"])
         resource_id = body["ResourceId"]
-        orthanc.RestApiPost("/modalities/PIXL-Anon/store", resource_id)
-        output.AnswerBuffer(json.dumps({"Message": "OK"}), "application/json")
-        orthanc.LogInfo(f"Succesfully sent study to anon modality: {resource_id}")
-    except:  # noqa: E722
-        orthanc.LogWarning(f"Failed to send study to anon:\n{traceback.format_exc()}")
-        output.AnswerBuffer(
-            json.dumps({"Message": "Failed to send study to anon"}), "application/json"
-        )
+    except (json.decoder.JSONDecodeError, KeyError):
+        err_str = "Body needs to be JSON with key ResourceId"
+        log_and_return_http(output, 400, err_str)
+    except:
+        err_str = "Other error decoding request"
+        log_and_return_http(output, 500, err_str)
+        raise
+
+    try:
+        orthanc_anon_store_study(resource_id)
+    except orthanc.OrthancException:
+        err_str = "Failed contacting downstream server"
+        log_and_return_http(output, 502, err_str)
+    except:
+        err_str = "Misc error sending study to anon"
+        log_and_return_http(output, 500, err_str)
+        raise
+    else:
+        log_and_return_http(output, 200, "OK")
 
 
 orthanc.RegisterOnChangeCallback(OnChange)

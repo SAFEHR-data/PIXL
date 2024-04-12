@@ -14,7 +14,6 @@
 FROM orthancteam/orthanc:24.3.3
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 
-ARG ORTHANC_RAW_MAXIMUM_STORAGE_SIZE
 
 # Create a virtual environment, recommended since python 3.11 and Debian bookworm based images
 # where you get a warning when installing system-wide packages.
@@ -33,16 +32,21 @@ RUN --mount=type=cache,target=/root/.cache \
 
 COPY ./pixl_core/ /pixl_core
 RUN --mount=type=cache,target=/root/.cache \
-    /.venv/bin/pip install ./pixl_core
+    /.venv/bin/pip install --no-cache-dir --force-reinstall --no-deps ./pixl_core
 
 COPY ./pixl_dcmd/ /pixl_dcmd
 RUN --mount=type=cache,target=/root/.cache \
-    /.venv/bin/pip install ./pixl_dcmd
+    /.venv/bin/pip install --no-cache-dir --force-reinstall --no-deps ./pixl_dcmd
 
 COPY ./orthanc/orthanc-raw/plugin/pixl.py /etc/orthanc/pixl.py
 
 # Orthanc can't substitute environment veriables as integers so copy and replace before running
+ARG ORTHANC_RAW_MAXIMUM_STORAGE_SIZE
+ARG ORTHANC_RAW_JOB_HISTORY_SIZE
+ARG ORTHANC_RAW_CONCURRENT_JOBS
 COPY ./orthanc/orthanc-raw/config /run/secrets
 RUN sed -i "s/\${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE}/${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE:-0}/g" /run/secrets/orthanc.json
+RUN sed -i "s/\${ORTHANC_RAW_JOB_HISTORY_SIZE}/${ORTHANC_RAW_JOB_HISTORY_SIZE:-100}/g" /run/secrets/orthanc.json
+RUN sed -i "s/\${ORTHANC_RAW_CONCURRENT_JOBS}/${ORTHANC_RAW_CONCURRENT_JOBS:-5}/g" /run/secrets/orthanc.json
 
 ENV PYTHONPATH=/.venv/lib64/python3.11/site-packages/

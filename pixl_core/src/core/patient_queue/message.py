@@ -15,7 +15,6 @@
 
 from __future__ import annotations
 
-import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
@@ -24,7 +23,7 @@ from jsonpickle import decode, encode
 if TYPE_CHECKING:
     from datetime import date, datetime
 
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 
 @dataclass
@@ -38,6 +37,11 @@ class Message:
     project_name: str
     extract_generated_timestamp: datetime
 
+    @property
+    def identifier(self) -> str:
+        """Identifier for message"""
+        return f"Message({self.mrn=} {self.accession_number=})".replace("self.", "")
+
     def serialise(self, *, deserialisable: bool = True) -> bytes:
         """
         Serialise the message into a JSON string and convert to bytes.
@@ -47,22 +51,7 @@ class Message:
             object can be recovered by `deserialise()`. If False, calling `deserialise()` on the
             serialised message will return a dictionary.
         """
-        msg = (
-            "Serialising message with\n"
-            " * patient id: %s\n"
-            " * accession number: %s\n"
-            " * timestamp: %s\n"
-            " * procedure_occurrence_id: %s\n",
-            " * project_name: %s\n * extract_generated_timestamp: %s",
-            self.mrn,
-            self.accession_number,
-            self.study_date,
-            self.procedure_occurrence_id,
-            self.project_name,
-            self.extract_generated_timestamp,
-        )
-        logger.debug(msg)
-
+        logger.trace("Serialising {}", self)
         return str.encode(encode(self, unpicklable=deserialisable))
 
 

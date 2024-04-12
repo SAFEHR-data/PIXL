@@ -16,8 +16,8 @@
 from __future__ import annotations
 
 import datetime
-import os
 import pathlib
+import shlex
 
 import pytest
 from core.patient_queue.message import Message
@@ -26,6 +26,7 @@ from pixl_imaging._orthanc import Orthanc, PIXLRawOrthanc
 from pixl_imaging._processing import ImagingStudy, process_message
 from pydicom import dcmread
 from pydicom.data import get_testdata_file
+from pytest_pixl.helpers import run_subprocess
 
 pytest_plugins = ("pytest_asyncio",)
 
@@ -49,9 +50,11 @@ class WritableOrthanc(Orthanc):
         return "VNAQR"
 
     def upload(self, filename: str) -> None:
-        os.system(
-            f"curl -u {self._username}:{self._password} "  # noqa: S605
-            f"-X POST {self._url}/instances --data-binary @{filename}"
+        run_subprocess(
+            shlex.split(
+                f"curl -u {self._username}:{self._password} "
+                f"-X POST {self._url}/instances --data-binary @{filename}"
+            )
         )
 
 
@@ -76,13 +79,15 @@ def _add_image_to_fake_vna(run_containers) -> None:
 
 
 @pytest.fixture()
-def orthanc_raw(run_containers) -> PIXLRawOrthanc:
+async def orthanc_raw(run_containers) -> PIXLRawOrthanc:
     """Set up orthanc raw and remove all studies in teardown."""
     orthanc_raw = PIXLRawOrthanc()
-    yield orthanc_raw
-    all_studies = orthanc_raw._get("/studies")
-    for study in all_studies:
-        orthanc_raw._delete(f"/studies/{study}")
+    try:
+        return orthanc_raw
+    finally:
+        all_studies = await orthanc_raw._get("/studies")
+        for study in all_studies:
+            await orthanc_raw.delete(f"/studies/{study}")
 
 
 @pytest.mark.processing()
@@ -96,9 +101,11 @@ async def test_image_saved(orthanc_raw) -> None:
     """
     study = ImagingStudy.from_message(message)
 
-    assert not study.query_local(orthanc_raw)
+    orthanc = await orthanc_raw
+
+    assert not await study.query_local(orthanc)
     await process_message(message)
-    assert study.query_local(orthanc_raw)
+    assert await study.query_local(orthanc)
 
 
 @pytest.mark.processing()
@@ -111,16 +118,17 @@ async def test_existing_message_sent_twice(orthanc_raw) -> None:
     Then orthanc raw will contain the new image, and it isn't updated on the second processing
     """
     study = ImagingStudy.from_message(message)
+    orthanc = await orthanc_raw
 
     await process_message(message)
-    assert study.query_local(orthanc_raw)
+    assert await study.query_local(orthanc)
 
     query_for_update_time = {**study.orthanc_query_dict, "Expand": True}
-    first_processing_resource = orthanc_raw.query_local(query_for_update_time)
+    first_processing_resource = await orthanc.query_local(query_for_update_time)
     assert len(first_processing_resource) == 1
 
     await process_message(message)
-    second_processing_resource = orthanc_raw.query_local(query_for_update_time)
+    second_processing_resource = await orthanc.query_local(query_for_update_time)
     assert len(second_processing_resource) == 1
 
     # Check update time hasn't changed

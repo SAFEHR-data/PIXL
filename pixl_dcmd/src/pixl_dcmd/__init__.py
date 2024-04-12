@@ -15,9 +15,13 @@ from __future__ import annotations
 
 import logging
 
-from pixl_dcmd.main import anonymise_dicom, write_dataset_to_bytes
+from pixl_dcmd.main import (
+    anonymise_dicom,
+    write_dataset_to_bytes,
+    should_exclude_series,
+)
 
-__all__ = ["anonymise_dicom", "write_dataset_to_bytes"]
+__all__ = ["anonymise_dicom", "write_dataset_to_bytes", "should_exclude_series"]
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)

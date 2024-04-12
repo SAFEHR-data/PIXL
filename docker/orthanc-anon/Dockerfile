@@ -36,11 +36,11 @@ COPY ./orthanc/orthanc-anon/plugin/pixl.py /etc/orthanc/pixl.py
 
 COPY ./pixl_core/ /pixl_core
 RUN --mount=type=cache,target=/root/.cache \
-    /.venv/bin/pip install ./pixl_core
+    /.venv/bin/pip install --no-cache-dir --force-reinstall --no-deps ./pixl_core
 
 COPY ./pixl_dcmd/ /pixl_dcmd
 RUN --mount=type=cache,target=/root/.cache \
-    /.venv/bin/pip install ./pixl_dcmd
+    /.venv/bin/pip install --no-cache-dir --force-reinstall --no-deps ./pixl_dcmd
 
 ENV PYTHONPATH=/.venv/lib64/python3.11/site-packages/
 

@@ -15,13 +15,10 @@
 
 from __future__ import annotations
 
-import logging
 from abc import ABC, abstractmethod
 from typing import Any, Optional
 
 from core.uploader._secrets import AzureKeyVault
-
-logger = logging.getLogger(__name__)
 
 
 class Uploader(ABC):

@@ -14,7 +14,6 @@
 from __future__ import annotations
 
 import logging
-import os
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from dataclasses import dataclass
@@ -35,7 +34,11 @@ from pixl_ehr._queries import SQLQuery
 from .report_deid import deidentify_text
 
 logger = logging.getLogger("uvicorn")
-logger.setLevel(os.environ.get("LOG_LEVEL", "WARNING"))
+log_level = config("LOG_LEVEL")
+if not log_level:
+    log_level = "INFO"
+
+logger.setLevel(log_level)
 
 _this_dir = Path(Path(__file__).parent)
 

@@ -17,7 +17,6 @@
 from __future__ import annotations
 
 import ftplib
-import logging
 import ssl
 from datetime import datetime, timezone
 from ftplib import FTP_TLS
@@ -32,7 +31,7 @@ if TYPE_CHECKING:
 
     from core.exports import ParquetExport
 
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 
 class ImplicitFtpTls(ftplib.FTP_TLS):
@@ -84,7 +83,7 @@ class FTPSUploader(Uploader):
         remote_directory: str,
     ) -> None:
         """Upload a DICOM image to the FTPS server."""
-        logger.info("Starting FTPS upload of '%s'", pseudo_anon_image_id)
+        logger.info("Starting FTPS upload of '{}'", pseudo_anon_image_id)
 
         # name destination to {project-slug}/{study-pseudonymised-id}.zip
         if have_already_exported_image(pseudo_anon_image_id):
@@ -95,14 +94,14 @@ class FTPSUploader(Uploader):
         ftp = _connect_to_ftp(self.host, self.port, self.user, self.password)
         _create_and_set_as_cwd(ftp, remote_directory)
         command = f"STOR {pseudo_anon_image_id}.zip"
-        logger.debug("Running %s", command)
+        logger.debug("Running {}", command)
 
         # Store the file using a binary handler
         try:
             ftp.storbinary(command, zip_content)
         except ftplib.all_errors as ftp_error:
             ftp.quit()
-            error_msg = "Failed to run STOR command '%s': '%s'"
+            error_msg = "Failed to run STOR command '{}': '{}'"
             raise ConnectionError(error_msg, command, ftp_error) from ftp_error
 
         # Close the FTP connection
@@ -110,7 +109,7 @@ class FTPSUploader(Uploader):
 
         # Update the exported_at timestamp in the PIXL database
         update_exported_at(pseudo_anon_image_id, datetime.now(tz=timezone.utc))
-        logger.info("Finished FTPS upload of '%s'", pseudo_anon_image_id)
+        logger.info("Finished FTPS upload of '{}'", pseudo_anon_image_id)
 
     def upload_parquet_files(self, parquet_export: ParquetExport) -> None:
         """
@@ -129,7 +128,7 @@ class FTPSUploader(Uploader):
         └── <pseudonymised_ID_DICOM_dataset_2>.zip
         ...
         """
-        logger.info("Starting FTPS upload of files for '%s'", parquet_export.project_slug)
+        logger.info("Starting FTPS upload of files for '{}'", parquet_export.project_slug)
 
         source_root_dir = parquet_export.current_extract_base
         # Create the remote directory if it doesn't exist
@@ -165,7 +164,7 @@ class FTPSUploader(Uploader):
 
         # Close the FTP connection
         ftp.quit()
-        logger.info("Finished FTPS upload of files for '%s'", parquet_export.project_slug)
+        logger.info("Finished FTPS upload of files for '{}'", parquet_export.project_slug)
 
 
 def _connect_to_ftp(ftp_host: str, ftp_port: int, ftp_user: str, ftp_password: str) -> FTP_TLS:
@@ -187,7 +186,7 @@ def _create_and_set_as_cwd_multi_path(ftp: FTP_TLS, remote_multi_dir: Path) -> N
         # would require some special handling and we don't need it
         err = "must be relative path"
         raise ValueError(err)
-    logger.info("_create_and_set_as_cwd_multi_path %s", remote_multi_dir)
+    logger.info("_create_and_set_as_cwd_multi_path {}", remote_multi_dir)
     # path should be pretty normalised, so assume split is safe
     sub_dirs = str(remote_multi_dir).split("/")
     for sd in sub_dirs:
@@ -197,9 +196,9 @@ def _create_and_set_as_cwd_multi_path(ftp: FTP_TLS, remote_multi_dir: Path) -> N
 def _create_and_set_as_cwd(ftp: FTP_TLS, project_dir: str) -> None:
     try:
         ftp.cwd(project_dir)
-        logger.debug("'%s' exists on remote ftp, so moving into it", project_dir)
+        logger.debug("'{}' exists on remote ftp, so moving into it", project_dir)
     except ftplib.error_perm:
-        logger.info("creating '%s' on remote ftp and moving into it", project_dir)
+        logger.info("creating '{}' on remote ftp and moving into it", project_dir)
         # Directory doesn't exist, so create it
         ftp.mkd(project_dir)
         ftp.cwd(project_dir)

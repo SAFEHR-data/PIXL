@@ -17,12 +17,12 @@
 from __future__ import annotations
 
 import asyncio
-import logging
 from typing import TYPE_CHECKING, Any
 
 import aio_pika
 from decouple import config
 
+from core.exceptions import PixlRequeueMessageError, PixlSkipMessageError
 from core.patient_queue._base import PixlBlockingInterface, PixlQueueInterface
 from core.patient_queue.message import deserialise
 
@@ -36,7 +36,7 @@ if TYPE_CHECKING:
     from core.patient_queue.message import Message
     from core.token_buffer.tokens import TokenBucket
 
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 
 class PixlConsumer(PixlQueueInterface):
@@ -66,36 +66,45 @@ class PixlConsumer(PixlQueueInterface):
         self._channel = await self._connection.channel()
         # Set number of messages in flight
         max_in_flight = config("PIXL_MAX_MESSAGES_IN_FLIGHT", cast=int)
-        logger.info("Pika will consume up to %s messages concurrently", max_in_flight)
+        logger.info("Pika will consume up to {} messages concurrently", max_in_flight)
         await self._channel.set_qos(prefetch_count=max_in_flight)
         self._queue = await self._channel.declare_queue(self.queue_name)
         return self
 
     async def _process_message(self, message: AbstractIncomingMessage) -> None:
         if not self.token_bucket.has_token:
-            await asyncio.sleep(0.01)
+            await asyncio.sleep(1)
             await message.reject(requeue=True)
             return
 
-        pixl_message = deserialise(message.body)
-        # Early acknowledge as we don't requeue anyway at this point
-        await message.ack()
-        logger.info("Starting message %s", pixl_message)
+        pixl_message: Message = deserialise(message.body)
+        logger.info("Starting message {}", pixl_message.identifier)
         try:
             await self._callback(pixl_message)
-            logger.info("Finished message %s", pixl_message)
-        except Exception:
+        except PixlRequeueMessageError as requeue:
+            logger.trace("Requeue message: {} from {}", pixl_message.identifier, requeue)
+            await asyncio.sleep(1)
+            await message.reject(requeue=True)
+        except PixlSkipMessageError as exception:
+            logger.warning("Failed message {}: {}", pixl_message.identifier, exception)
+            await (
+                message.ack()
+            )  # ack so that we can see rate of message processing in rabbitmq admin
+        except Exception:  # noqa: BLE001
             logger.exception(
-                "Failed to process %s" "Not re-queuing message",
-                pixl_message,
+                "Failed to process {}. Not re-queuing message",
+                pixl_message.identifier,
             )
+            await (
+                message.ack()
+            )  # ack so that we can see rate of message processing in rabbitmq admin
+        else:
+            logger.success("Finished message {}", pixl_message.identifier)
+            await message.ack()
 
     async def run(self) -> None:
-        """Processes messages from queue synchronously for now."""
-        async with self._queue.iterator() as queue_iter:
-            message: aio_pika.abc.AbstractIncomingMessage
-            async for message in queue_iter:
-                await self._process_message(message)
+        """Processes messages from queue asynchronously."""
+        await self._queue.consume(self._process_message)
 
     async def __aexit__(self, *args: object, **kwargs: Any) -> None:
         """Requirement for the asynchronous context manager"""
