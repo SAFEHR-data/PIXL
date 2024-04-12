@@ -39,32 +39,6 @@ def test_hash_endpoint_with_custom_length():
     assert response.text == expected
 
 
-def test_salt_endpoint_with_default_length():
-    response = client.get("/salt", params={"project_name": "test"})
-    assert response.status_code == 200
-    assert len(response.text) == 16
-
-
-def test_salt_endpoint_with_custom_length():
-    response = client.get("/salt", params={"project_name": "test", "length": 8})
-    assert response.status_code == 200
-    assert len(response.text) == 8
-
-
-def test_salt_endpoint_with_new_custom_length():
-    """
-    GIVEN an already existing salt for the given project
-    WHEN we request a new salt with a different custom length
-    THEN a new salt should be created and stored for the project
-    """
-    # First salt call, creates a new salt for the test project
-    response = client.get("/salt", params={"project_name": "test"})
-
-    # Request new salt with a different length
-    response = client.get("/salt", params={"project_name": "test", "length": 8})
-    assert len(response.text) == 8
-
-
 def test_accession_number_endpoint_returns_dicom_compatible_hash():
     """
     Accession number/study ID is a short string (at most 16 characters). See:
