@@ -47,7 +47,7 @@ class Hasher:
         self.project_slug = project_slug
         self.keyvault = AzureKeyVault()
 
-    def generate_hash(self, message: str, length: int = 64) -> str:
+    def generate_hash(self, message: str, length: int = 64, *, override_salt: bool = False) -> str:
         """
         Generate a keyed hash digest from the message using Blake2b algorithm.
         The Azure DICOM service requires identifiers to be less than 64 characters.
@@ -70,11 +70,16 @@ class Hasher:
         output_bytes = length // 2
 
         key = self.keyvault.fetch_secret(config("AZURE_KEY_VAULT_SECRET_NAME"))
+
+        # Apply salt from the keyvault and local salt if it exists
+        message += self._fetch_salt(length=length, override=override_salt)
+        message += config("LOCAL_SALT_VALUE", default="")
+
         return blake2b(
             message.encode("UTF-8"), digest_size=output_bytes, key=key.encode("UTF-8")
         ).hexdigest()
 
-    def fetch_salt(self, length: int = 16, *, override: bool = False) -> str:
+    def _fetch_salt(self, length: int = 16, *, override: bool) -> str:
         """
         Fetch the salt for a specific project to use in hashing from the Azure Key Vault instance
         :param project_name: the name of the project to fetch the salt for
