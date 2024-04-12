@@ -19,14 +19,11 @@ import asyncio
 import importlib.metadata
 import json
 import logging
-import threading
 from datetime import (
     datetime,  # noqa: TCH003, always import datetime otherwise pydantic throws error
 )
 from io import BytesIO
 from pathlib import Path
-from time import sleep
-from typing import cast
 
 import requests
 from azure.identity import EnvironmentCredential
@@ -145,10 +142,6 @@ def export_dicom_from_orthanc(study_data: StudyData) -> None:
     msg = f"Sending {study_id} via '{destination}'"
     logger.debug(msg)
     zip_content = _get_study_zip_archive(study_id)
-    # XXX: perhaps need to use this abstraction for DICOMWEB and Azure DICOM upload?
-    # How do they do it currently?
-    # Be sure to call _azure_available() before doing any Azure stuff
-    # (used to be done in orthanc anon plugin)
     uploader.upload_dicom_image(zip_content, hashed_image_id, project_slug)
 
 
@@ -161,29 +154,6 @@ def _get_study_zip_archive(resourceId: str) -> BytesIO:
     # get the zip content
     logger.debug("Downloaded data for resource %s", resourceId)
     return BytesIO(response_study.content)
-
-
-def AzureAccessToken() -> str:
-    """
-    Send payload to oath2/token url and
-    return the response
-    """
-    AZ_DICOM_ENDPOINT_CLIENT_ID = config("AZ_DICOM_ENDPOINT_CLIENT_ID")
-    AZ_DICOM_ENDPOINT_CLIENT_SECRET = config("AZ_DICOM_ENDPOINT_CLIENT_SECRET")
-    AZ_DICOM_ENDPOINT_TENANT_ID = config("AZ_DICOM_ENDPOINT_TENANT_ID")
-
-    url = "https://login.microsoft.com/" + AZ_DICOM_ENDPOINT_TENANT_ID + "/oauth2/token"
-
-    payload = {
-        "client_id": AZ_DICOM_ENDPOINT_CLIENT_ID,
-        "grant_type": "client_credentials",
-        "client_secret": AZ_DICOM_ENDPOINT_CLIENT_SECRET,
-        "resource": "https://dicom.healthcareapis.azure.com",
-    }
-
-    response = requests.post(url, data=payload, timeout=10)
-
-    return cast(str, response.json()["access_token"])
 
 
 def _get_tags_by_study(study_id: str) -> tuple[str, str]:
@@ -213,97 +183,6 @@ def _query(resourceId: str, query: str, fail_msg: str) -> requests.Response:
         raise
     else:
         return response
-
-
-def _azure_available() -> bool:
-    # Check if AZ_DICOM_ENDPOINT_CLIENT_ID is set
-    return bool(config("AZ_DICOM_ENDPOINT_CLIENT_ID", default="") != "")
-
-
-TIMER = None
-
-
-def AzureDICOMTokenRefresh() -> None:
-    """
-    Refresh Azure DICOM token
-    If this fails then wait 30s and try again
-    If successful then access_token can be used in
-    dicomweb_config to update DICOMweb token through API call
-    """
-    global TIMER
-    TIMER = None
-
-    logger.warning("Refreshing Azure DICOM token")
-
-    AZ_DICOM_TOKEN_REFRESH_SECS = int(config("AZ_DICOM_TOKEN_REFRESH_SECS"))
-    AZ_DICOM_ENDPOINT_NAME = config("AZ_DICOM_ENDPOINT_NAME")
-    AZ_DICOM_ENDPOINT_URL = config("AZ_DICOM_ENDPOINT_URL")
-    AZ_DICOM_HTTP_TIMEOUT = int(config("HTTP_TIMEOUT"))
-
-    try:
-        access_token = AzureAccessToken()
-    except Exception:
-        logger.exception("Failed to get an Azure access token. Retrying in 30 seconds")
-        sleep(30)
-        return AzureDICOMTokenRefresh()
-
-    bearer_str = "Bearer " + access_token
-
-    dicomweb_config = {
-        "Url": AZ_DICOM_ENDPOINT_URL,
-        "HttpHeaders": {
-            "Authorization": bearer_str,
-        },
-        "HasDelete": True,
-        "Timeout": AZ_DICOM_HTTP_TIMEOUT,
-    }
-
-    headers = {"content-type": "application/json"}
-
-    url = ORTHANC_ANON_URL + "/dicom-web/servers/" + AZ_DICOM_ENDPOINT_NAME
-
-    try:
-        requests.put(
-            url,
-            auth=(ORTHANC_ANON_USERNAME, ORTHANC_ANON_PASSWORD),
-            headers=headers,
-            data=json.dumps(dicomweb_config),
-            timeout=10,
-        )
-    except requests.exceptions.RequestException as e:
-        logger.exception("Failed to update DICOMweb token")
-        raise SystemExit(e)  # noqa: TRY200, B904
-
-    logger.warning("Updated DICOMweb token")
-
-    TIMER = threading.Timer(AZ_DICOM_TOKEN_REFRESH_SECS, AzureDICOMTokenRefresh)
-    TIMER.start()
-    return None
-
-
-def SendViaStow(resourceId: str) -> None:
-    """
-    Makes a POST API call to upload the resource to a dicom-web server
-    using orthanc credentials as authorisation
-    """
-    AZ_DICOM_ENDPOINT_NAME = config("AZ_DICOM_ENDPOINT_NAME")
-    url = ORTHANC_ANON_URL + "/dicom-web/servers/" + AZ_DICOM_ENDPOINT_NAME + "/stow"
-    headers = {"content-type": "application/json"}
-    payload = {"Resources": [resourceId], "Synchronous": False}
-    logger.debug("Payload: %s", payload)
-    try:
-        resp = requests.post(
-            url,
-            auth=(ORTHANC_ANON_USERNAME, ORTHANC_ANON_PASSWORD),
-            headers=headers,
-            data=json.dumps(payload),
-            timeout=30,
-        )
-        resp.raise_for_status()
-        msg = f"Sent {resourceId} via STOW"
-        logger.info(msg)
-    except requests.exceptions.RequestException:
-        logger.exception("Failed to send via STOW")
 
 
 def export_radiology_as_parquet(export_params: ExportPatientData) -> None:

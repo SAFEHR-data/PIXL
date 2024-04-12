@@ -41,6 +41,10 @@ os.environ["EMAP_UDS_SCHEMA_NAME"] = "star"
 os.environ["COGSTACK_REDACT_URL"] = "test"
 os.environ["PROJECT_CONFIGS_DIR"] = str(Path(__file__).parents[2] / "projects/configs")
 
+os.environ["ORTHANC_ANON_USERNAME"] = "orthanc_anon_username"
+os.environ["ORTHANC_ANON_PASSWORD"] = "orthanc_anon_password"  # noqa: S105 password used in test only
+os.environ["ORTHANC_ANON_URL"] = "http://orthanc-anon:8042"
+
 TEST_DIR = Path(__file__).parent
 
 

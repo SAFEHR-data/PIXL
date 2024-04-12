@@ -21,14 +21,18 @@ This module:
 
 from __future__ import annotations
 
+import json
 import logging
 import os
+import threading
 import traceback
 from io import BytesIO
-from typing import TYPE_CHECKING
+from time import sleep
+from typing import TYPE_CHECKING, cast
 
 import requests
 from core.exceptions import PixlSkipMessageError
+from decouple import config
 from pydicom import dcmread
 
 import orthanc
@@ -38,6 +42,103 @@ if TYPE_CHECKING:
     from typing import Any
 
 logger = logging.getLogger(__name__)
+
+ORTHANC_USERNAME = config("ORTHANC_USERNAME")
+ORTHANC_PASSWORD = config("ORTHANC_PASSWORD")
+ORTHANC_URL = "http://localhost:8042"
+
+EXPORT_API_URL = "http://ehr-api:8000"
+
+
+def AzureAccessToken() -> str:
+    """
+    Send payload to oath2/token url and
+    return the response
+    """
+    AZ_DICOM_ENDPOINT_CLIENT_ID = config("AZ_DICOM_ENDPOINT_CLIENT_ID")
+    AZ_DICOM_ENDPOINT_CLIENT_SECRET = config("AZ_DICOM_ENDPOINT_CLIENT_SECRET")
+    AZ_DICOM_ENDPOINT_TENANT_ID = config("AZ_DICOM_ENDPOINT_TENANT_ID")
+
+    url = "https://login.microsoft.com/" + AZ_DICOM_ENDPOINT_TENANT_ID + "/oauth2/token"
+
+    payload = {
+        "client_id": AZ_DICOM_ENDPOINT_CLIENT_ID,
+        "grant_type": "client_credentials",
+        "client_secret": AZ_DICOM_ENDPOINT_CLIENT_SECRET,
+        "resource": "https://dicom.healthcareapis.azure.com",
+    }
+
+    response = requests.post(url, data=payload, timeout=10)
+
+    response_json = response.json()
+    # We may wish to make use of the "expires_in" (seconds) value
+    # to refresh this token less aggressively
+    return cast(str, response_json["access_token"])
+
+
+TIMER = None
+
+
+def AzureDICOMTokenRefresh() -> None:
+    """
+    Refresh Azure DICOM token
+    If this fails then wait 30s and try again
+    If successful then access_token can be used in
+    dicomweb_config to update DICOMweb token through API call
+    """
+    global TIMER
+    TIMER = None
+
+    orthanc.LogWarning("Refreshing Azure DICOM token")
+
+    AZ_DICOM_TOKEN_REFRESH_SECS = int(config("AZ_DICOM_TOKEN_REFRESH_SECS"))
+    AZ_DICOM_ENDPOINT_NAME = config("AZ_DICOM_ENDPOINT_NAME")
+    AZ_DICOM_ENDPOINT_URL = config("AZ_DICOM_ENDPOINT_URL")
+    AZ_DICOM_HTTP_TIMEOUT = int(config("HTTP_TIMEOUT"))
+
+    try:
+        access_token = AzureAccessToken()
+    except Exception:  # noqa: BLE001
+        orthanc.LogError(
+            "Failed to get an Azure access token. Retrying in 30 seconds\n" + traceback.format_exc()
+        )
+        sleep(30)
+        return AzureDICOMTokenRefresh()
+
+    bearer_str = "Bearer " + access_token
+
+    dicomweb_config = {
+        "Url": AZ_DICOM_ENDPOINT_URL,
+        "HttpHeaders": {
+            # downstream auth token
+            "Authorization": bearer_str,
+        },
+        "HasDelete": True,
+        "Timeout": AZ_DICOM_HTTP_TIMEOUT,
+    }
+
+    headers = {"content-type": "application/json"}
+
+    url = ORTHANC_URL + "/dicom-web/servers/" + AZ_DICOM_ENDPOINT_NAME
+    # dynamically defining an DICOMWeb endpoint in Orthanc
+
+    try:
+        requests.put(
+            url,
+            auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD),
+            headers=headers,
+            data=json.dumps(dicomweb_config),
+            timeout=10,
+        )
+    except requests.exceptions.RequestException as e:
+        orthanc.LogError("Failed to update DICOMweb token")
+        raise SystemExit(e)  # noqa: TRY200, B904
+
+    orthanc.LogWarning("Updated DICOMweb token")
+
+    TIMER = threading.Timer(AZ_DICOM_TOKEN_REFRESH_SECS, AzureDICOMTokenRefresh)
+    TIMER.start()
+    return None
 
 
 def Send(study_id: str) -> None:
@@ -50,7 +151,29 @@ def Send(study_id: str) -> None:
     notify_export_api_of_readiness(study_id)
 
 
-EXPORT_API_URL = "http://ehr-api:8000"
+def SendViaStow(resourceId: str) -> None:
+    """
+    Makes a POST API call to upload the resource to a dicom-web server
+    using orthanc credentials as authorisation
+    """
+    AZ_DICOM_ENDPOINT_NAME = config("AZ_DICOM_ENDPOINT_NAME")
+    url = ORTHANC_URL + "/dicom-web/servers/" + AZ_DICOM_ENDPOINT_NAME + "/stow"
+    headers = {"content-type": "application/json"}
+    payload = {"Resources": [resourceId], "Synchronous": False}
+    logger.debug("Payload: %s", payload)
+    try:
+        resp = requests.post(
+            url,
+            auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD),
+            headers=headers,
+            data=json.dumps(payload),
+            timeout=30,
+        )
+        resp.raise_for_status()
+        msg = f"Sent {resourceId} via STOW"
+        logger.info(msg)
+    except requests.exceptions.RequestException:
+        orthanc.LogError("Failed to send via STOW")
 
 
 def notify_export_api_of_readiness(study_id: str):
@@ -73,6 +196,11 @@ def should_auto_route() -> bool:
     return os.environ.get("ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT", "false").lower() == "true"
 
 
+def _azure_available() -> bool:
+    # Check if AZ_DICOM_ENDPOINT_CLIENT_ID is set
+    return bool(config("AZ_DICOM_ENDPOINT_CLIENT_ID", default="") != "")
+
+
 def OnChange(changeType, level, resource):  # noqa: ARG001
     """
     If a study is stable and if should_auto_route returns true
@@ -85,6 +213,14 @@ def OnChange(changeType, level, resource):  # noqa: ARG001
         msg = f"Stable study: {resource}"
         logger.info(msg)
         Send(resource)
+
+    if changeType == orthanc.ChangeType.ORTHANC_STARTED and _azure_available():
+        orthanc.LogWarning("Starting the scheduler")
+        AzureDICOMTokenRefresh()
+    elif changeType == orthanc.ChangeType.ORTHANC_STOPPED:
+        if TIMER is not None:
+            orthanc.LogWarning("Stopping the scheduler")
+            TIMER.cancel()
 
 
 def OnHeartBeat(output, uri, **request) -> Any:  # noqa: ARG001
