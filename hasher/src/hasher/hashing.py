@@ -35,8 +35,8 @@ logger = logging.getLogger(__name__)
 
 class Hasher:
     """
-    Hasher class to generate keyed hash digests using the Blake2b algorithm and fetch the
-    salt for a specific project from the Azure Key Vault instance.
+    Hasher class to generate keyed hash digests using the Blake2b algorithm.
+    Gets or creates the salt for a specific project from the Azure Key Vault instance.
     """
 
     def __init__(self, project_slug: str) -> None:
