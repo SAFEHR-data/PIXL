@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from operator import attrgetter
 from pathlib import Path
 from typing import Any, Optional
@@ -26,6 +27,7 @@ import requests
 from core.patient_queue.producer import PixlProducer
 from core.patient_queue.subscriber import PixlBlockingConsumer
 from decouple import RepositoryEnv, UndefinedValueError, config
+from loguru import logger
 
 from pixl_cli._config import SERVICE_SETTINGS, api_config_for_queue
 from pixl_cli._database import filter_exported_or_add_to_db
@@ -36,7 +38,6 @@ from pixl_cli._io import (
     messages_from_state_file,
     project_info,
 )
-from pixl_cli._logging import logger, set_log_level
 from pixl_cli._utils import clear_file, remove_file_if_it_exists
 
 # localhost needs to be added to the NO_PROXY environment variables on GAEs
@@ -47,7 +48,9 @@ os.environ["NO_PROXY"] = os.environ["no_proxy"] = "localhost"
 @click.option("--debug/--no-debug", default=False)
 def cli(*, debug: bool) -> None:
     """PIXL command line interface"""
-    set_log_level("INFO" if not debug else "DEBUG")
+    logging_level = "INFO" if not debug else "DEBUG"
+    logger.remove()  # Remove all handlers
+    logger.add(sys.stderr, level=logging_level)
 
 
 @cli.command()
@@ -74,7 +77,7 @@ def check_env(*, error: bool, sample_env_file: click.Path) -> None:
         try:
             config(key)
         except UndefinedValueError:
-            logger.warning("Environment variable %s is not set", key)
+            logger.warning("Environment variable {} is not set", key)
             if error:
                 raise
 
@@ -129,7 +132,7 @@ def populate(
     if start_processing:
         _start_or_update_extract(queues=queues.split(","), rate=rate)
 
-    logger.info(f"Populating queue(s) {queues} from {parquet_path}")
+    logger.info("Populating queue(s) {} from {}", queues, parquet_path)
     if parquet_path.is_file() and parquet_path.suffix == ".csv":
         messages = messages_from_csv(parquet_path)
     else:
@@ -139,7 +142,7 @@ def populate(
     for queue in queues.split(","):
         state_filepath = state_filepath_for_queue(queue)
         if state_filepath.exists() and restart:
-            logger.info(f"Extracting messages from state: {state_filepath}")
+            logger.info("Extracting messages from state: {}", state_filepath)
             inform_user_that_queue_will_be_populated_from(state_filepath)
             messages = messages_from_state_file(state_filepath)
 
@@ -241,9 +244,9 @@ def _update_extract_rate(queue_name: str, rate: Optional[float]) -> None:
             msg = f"Cannot update the rate for {queue_name}. No valid rate was specified."
             raise ValueError(msg)
         rate = float(api_config.default_rate)
-        logger.info(f"Using the default extract rate of {rate}/second")
+        logger.info("Using the default extract rate of {}/second", rate)
 
-    logger.debug(f"POST {rate} to {api_config.base_url}")
+    logger.debug("POST {} to {}", rate, api_config.base_url)
 
     response = requests.post(
         url=f"{api_config.base_url}/token-bucket-refresh-rate",
@@ -253,7 +256,7 @@ def _update_extract_rate(queue_name: str, rate: Optional[float]) -> None:
 
     success_code = 200
     if response.status_code == success_code:
-        logger.info("Successfully updated EHR extraction, with a " f"rate of {rate} queries/second")
+        logger.info("Successfully updated EHR extraction, with a rate of {} queries/second", rate)
 
     else:
         runtime_error_msg = (
@@ -276,10 +279,10 @@ def stop(queues: str) -> None:
     Stop extracting images and/or EHR data. Will consume all messages present on the
     queues and save them to a file
     """
-    logger.info(f"Stopping extraction of {queues}")
+    logger.info("Stopping extraction of {}", queues)
 
     for queue in queues.split(","):
-        logger.info(f"Consuming messages on {queue}")
+        logger.info("Consuming messages on {}", queue)
         consume_all_messages_and_save_csv_file(queue_name=queue)
 
 
@@ -337,15 +340,16 @@ def _get_extract_rate(queue_name: str) -> str:
         return str(json.loads(response.text)["rate"])
 
     except (ConnectionError, AssertionError):
-        logger.error(f"Failed to get the extract rate for {queue_name}")
+        logger.error("Failed to get the extract rate for {}", queue_name)
         return "unknown"
 
 
 def consume_all_messages_and_save_csv_file(queue_name: str, timeout_in_seconds: int = 5) -> None:
     """Consume all messages and write them out to a CSV file"""
     logger.info(
-        f"Will consume all messages on {queue_name} queue and timeout after "
-        f"{timeout_in_seconds} seconds"
+        "Will consume all messages on {} queue and timeout after {} seconds",
+        queue_name,
+        timeout_in_seconds,
     )
 
     with PixlBlockingConsumer(queue_name=queue_name, **SERVICE_SETTINGS["rabbitmq"]) as consumer:
