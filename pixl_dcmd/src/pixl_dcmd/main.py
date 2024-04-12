@@ -21,13 +21,12 @@ from typing import Any, BinaryIO, Union
 from core.exceptions import PixlSkipMessageError
 from core.project_config import load_project_config
 
-from core.dicom_tags import DICOM_TAG_PROJECT_NAME
-
 import requests
 from core.project_config import load_tag_operations
 from decouple import config
 from pydicom import Dataset, dcmwrite
 
+from pixl_dcmd._dicom_helpers import get_project_name_as_string
 from pixl_dcmd._tag_schemes import merge_tag_schemes
 from pixl_dcmd._database import add_hashed_identifier_and_save, query_db
 from pixl_dcmd._datetime import combine_date_time, format_date_time
@@ -51,6 +50,17 @@ def write_dataset_to_bytes(dataset: Dataset) -> bytes:
         return buffer.read()
 
 
+def should_exclude_series(dataset: Dataset) -> bool:
+    slug = get_project_name_as_string(dataset)
+
+    series_description = dataset.get("SeriesDescription")
+    cfg = load_project_config(slug)
+    if cfg.is_series_excluded(series_description):
+        logger.warning("FILTERING OUT series description: %s", series_description)
+        return True
+    return False
+
+
 def anonymise_dicom(dataset: Dataset) -> Dataset:
     """
     Anonymises a DICOM dataset as Received by Orthanc.
@@ -61,18 +71,7 @@ def anonymise_dicom(dataset: Dataset) -> Dataset:
     - applying tag operations based on the config file
     Returns anonymised dataset.
     """
-    raw_slug = dataset.get_private_item(
-        DICOM_TAG_PROJECT_NAME.group_id,
-        DICOM_TAG_PROJECT_NAME.offset_id,
-        DICOM_TAG_PROJECT_NAME.creator_string,
-    ).value
-    # Get both strings and bytes, which is fun
-    if isinstance(raw_slug, bytes):
-        logger.debug(f"Bytes slug {raw_slug!r}")
-        slug = raw_slug.decode("utf-8").strip()
-    else:
-        logger.debug(f"String slug '{raw_slug}'")
-        slug = raw_slug
+    slug = get_project_name_as_string(dataset)
 
     project_config = load_project_config(slug)
     logger.debug(f"Received instance for project {slug}")

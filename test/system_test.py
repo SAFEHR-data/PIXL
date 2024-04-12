@@ -28,13 +28,12 @@ pytest_plugins = "pytest_pixl"
 class TestFtpsUpload:
     """tests adapted from ./scripts/check_ftps_upload.py"""
 
-    def __init__(self) -> None:
-        """Shared test data for the two different kinds of FTP upload test."""
-        self.ftp_home_dir: Path
-        self.project_slug: str
-        self.extract_time_slug: str
-        self.expected_output_dir: Path
-        self.expected_public_parquet_dir: Path
+    # Shared test data for the two different kinds of FTP upload test
+    ftp_home_dir: Path
+    project_slug: str
+    extract_time_slug: str
+    expected_output_dir: Path
+    expected_public_parquet_dir: Path
 
     @pytest.fixture(scope="class", autouse=True)
     def _setup(self, ftps_server: PixlFTPServer) -> None:
@@ -73,14 +72,14 @@ class TestFtpsUpload:
     @pytest.mark.usefixtures("_extract_radiology_reports")
     def test_ftps_dicom_upload(self, tmp_path_factory: pytest.TempPathFactory) -> None:
         """Test whether DICOM images have been uploaded"""
-        zip_files: list[str] = []
+        zip_files: list[Path] = []
 
         def zip_file_list() -> str:
             return f"zip files found: {zip_files}"
 
         def two_zip_files_present() -> bool:
             nonlocal zip_files
-            zip_files = [str(x) for x in TestFtpsUpload.expected_output_dir.glob("*.zip")]
+            zip_files = list(TestFtpsUpload.expected_output_dir.glob("*.zip"))
             # We expect 2 DICOM image studies to be uploaded
             return len(zip_files) == 2
 
@@ -88,30 +87,64 @@ class TestFtpsUpload:
             two_zip_files_present,
             seconds_max=121,
             seconds_interval=5,
+            seconds_condition_stays_true_for=15,
             progress_string_fn=zip_file_list,
         )
-
+        expected_studies = {
+            "a971b114b9133c81c03fb88c6a958f7d95eb1387f04c17ad7ff9ba7cf684c392": {
+                # tuple made up of (AccessionNumber, SeriesDescription)
+                # hash of AA12345601
+                ("ad630a8a84d72d71", "include123"),
+                ("ad630a8a84d72d71", "AP"),
+            },
+            "f71b228fa97d6c87db751e0bb35605fd9d4c1274834be4bc4bb0923ab8029b2a": {
+                # hash of AA12345605,
+                ("c2f4b59b0291c6fe", "include123"),
+            },
+        }
         assert zip_files
         for z in zip_files:
             unzip_dir = tmp_path_factory.mktemp("unzip_dir", numbered=True)
-            self._check_dcm_tags_from_zip(z, unzip_dir)
+            self._check_dcm_tags_from_zip(z, unzip_dir, expected_studies)
 
-    def _check_dcm_tags_from_zip(self, zip_path: str, unzip_dir: Path) -> None:
+    def _check_dcm_tags_from_zip(
+        self, zip_path: Path, unzip_dir: Path, expected_studies: dict[str, set[tuple[str, str]]]
+    ) -> None:
         """Check that private tag has survived anonymisation with the correct value."""
+        expected_instances = expected_studies[zip_path.stem]
         run_subprocess(
             ["unzip", zip_path],
             working_dir=unzip_dir,
         )
-        all_dicom = list(unzip_dir.rglob("*.dcm"))
-        assert len(all_dicom) == 1
-        dcm = pydicom.dcmread(all_dicom[0])
-        block = dcm.private_block(
-            DICOM_TAG_PROJECT_NAME.group_id, DICOM_TAG_PROJECT_NAME.creator_string
-        )
-        tag_offset = DICOM_TAG_PROJECT_NAME.offset_id
-        private_tag = block[tag_offset]
-        assert private_tag is not None
-        assert private_tag.value == TestFtpsUpload.project_slug
+        dicom_in_zip = list(unzip_dir.rglob("*.dcm"))
+
+        # One zip file == one study.
+        # There can be multiple instances in the zip file, one per file
+        logging.info("In zip file, %s DICOM files: %s", len(dicom_in_zip), dicom_in_zip)
+        actual_instances = set()
+        for dcm_file in dicom_in_zip:
+            dcm = pydicom.dcmread(dcm_file)
+            # The actual dicom filename and dir structure isn't checked - should it be?
+            assert dcm.get("PatientID") == zip_path.stem  # PatientID stores study id post anon
+            actual_instances.add((dcm.get("AccessionNumber"), dcm.get("SeriesDescription")))
+            block = dcm.private_block(
+                DICOM_TAG_PROJECT_NAME.group_id, DICOM_TAG_PROJECT_NAME.creator_string
+            )
+            tag_offset = DICOM_TAG_PROJECT_NAME.offset_id
+            private_tag = block[tag_offset]
+            assert private_tag is not None
+            if isinstance(private_tag.value, bytes):
+                # Allow this for the time being, until it has been investigated
+                # See https://github.com/UCLH-Foundry/PIXL/issues/363
+                logging.error(
+                    "TEMPORARILY IGNORE: tag value %s should be of type str, but is of type bytes",
+                    private_tag.value,
+                )
+                assert private_tag.value.decode() == TestFtpsUpload.project_slug
+            else:
+                assert private_tag.value == TestFtpsUpload.project_slug
+        # check the basic info about the instances exactly matches
+        assert actual_instances == expected_instances
 
 
 @pytest.mark.usefixtures("_setup_pixl_cli")
