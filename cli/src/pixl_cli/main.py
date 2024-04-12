@@ -257,15 +257,11 @@ def _update_extract_rate(queue_name: str, rate: Optional[float]) -> None:
 
     success_code = 200
     if response.status_code == success_code:
-        logger.info("Successfully updated EHR extraction, with a rate of {} queries/second", rate)
+        logger.success("Updated {} extraction, with a rate of {} queries/second", queue_name, rate)
 
     else:
-        runtime_error_msg = (
-            "Failed to update rate on consumer for %s: %s",
-            queue_name,
-            response,
-        )
-        raise RuntimeError(runtime_error_msg)
+        msg = f"Failed to update rate on consumer for {queue_name}: {response}"
+        raise RuntimeError(msg)
 
 
 @cli.command()
