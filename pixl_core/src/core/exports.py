@@ -15,7 +15,6 @@
 
 from __future__ import annotations
 
-import logging
 import shutil
 from typing import TYPE_CHECKING
 
@@ -31,7 +30,7 @@ if TYPE_CHECKING:
     import pandas as pd
 
 
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 
 class ParquetExport:
@@ -84,7 +83,7 @@ class ParquetExport:
         """
         public_input = input_omop_dir / "public"
 
-        logger.info("Copying public parquet files from %s to %s", public_input, self.public_output)
+        logger.info("Copying public parquet files from {} to {}", public_input, self.public_output)
 
         # Make sure the base export direcotry exsists
         if not self.export_dir.exists():
@@ -106,7 +105,7 @@ class ParquetExport:
         """Export radiology reports to parquet file"""
         self._mkdir(self.radiology_output)
         parquet_file = self.radiology_output / "radiology.parquet"
-        logger.info("Exporting radiology to %s", self.radiology_output)
+        logger.info("Exporting radiology to {}", self.radiology_output)
         export_df.to_parquet(parquet_file)
         # We are not responsible for making the "latest" symlink, see `copy_to_exports`.
         # This avoids the confusion caused by EHR API (which calls export_radiology) having a
