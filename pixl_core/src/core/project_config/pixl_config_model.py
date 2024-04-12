@@ -123,5 +123,20 @@ class PixlConfig(BaseModel):
     """Project-specific configuration for Pixl."""
 
     project: _Project
+    series_filters: Optional[list[str]] = None
     tag_operation_files: TagOperationFiles
     destination: _Destination
+
+    def is_series_excluded(self, series_description: str) -> bool:
+        """
+        Return whether this config excludes the series with the given description
+        :param series_description: the series description to test
+        :returns: True if it should be excluded, False if not
+        """
+        if self.series_filters is None:
+            return False
+        # Do a simple case-insensitive substring check - this data is ultimately typed by a human,
+        # and different image sources may have different conventions for case conversion.
+        return any(
+            series_description.upper().find(filt.upper()) != -1 for filt in self.series_filters
+        )
