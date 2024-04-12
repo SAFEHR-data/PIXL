@@ -18,6 +18,8 @@ from hasher.main import app  # type: ignore [import-untyped]
 
 client = TestClient(app)
 
+TEST_PROJECT_SLUG = "test_project_slug"
+
 
 def test_heart_beat_endpoint():
     response = client.get("/heart-beat")
@@ -26,33 +28,43 @@ def test_heart_beat_endpoint():
 
 
 def test_hash_endpoint_with_default_length():
-    response = client.get("/hash", params={"message": "test"})
-    expected = "270426312ab76c2f0df60b6cef3d14aab6bc17219f1a76e63edf88a8f705c17a"
+    response = client.get("/hash", params={"project_slug": TEST_PROJECT_SLUG, "message": "test"})
+    expected = "cc8ab6f3e63235b45f3d00cbc4873efac59bf15cec4bdffd461882d57dfc010f"
     assert response.status_code == 200
     assert response.text == expected
 
 
 def test_hash_endpoint_with_custom_length():
-    response = client.get("/hash", params={"message": "test", "length": 16})
-    expected = "b88ea642703eed33"
+    response = client.get(
+        "/hash", params={"project_slug": TEST_PROJECT_SLUG, "message": "test", "length": 16}
+    )
+    expected = "b721eef65328a79c"
     assert response.status_code == 200
     assert response.text == expected
 
 
-def test_accession_number_endpoint_returns_dicom_compatible_hash():
-    """
-    Accession number/study ID is a short string (at most 16 characters). See:
-    https://dicom.innolitics.com/ciods/12-lead-ecg/general-study/00200010
-    https://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html
-    """
-    response = client.get("/hash-accession-number", params={"message": "test_accession_number"})
-    assert len(response.text) <= 16
+def test_overriding_salt():
+    """Test the hash endpoint with the override_salt parameter set to True."""
+    # Initial response, with existing salt
+    response = client.get(
+        "/hash",
+        params={
+            "project_slug": TEST_PROJECT_SLUG,
+            "message": "test",
+            "length": 16,
+        },
+    )
 
-
-def test_mrn_endpoint_returns_dicom_compatible_hash():
-    """
-    Patient identifier can be a long string. See:
-    https://dicom.innolitics.com/ciods/rt-plan/patient/00101002/00100020
-    """
-    response = client.get("/hash-mrn", params={"message": "test_mrn"})
-    assert len(response.text) <= 64
+    # New response, with different salt length and override_salt set to True
+    response2 = client.get(
+        "/hash",
+        params={
+            "project_slug": TEST_PROJECT_SLUG,
+            "message": "test",
+            "length": 16,
+            "salt_length": 32,
+            "override_salt": True,
+        },
+    )
+    assert response2.status_code == 200
+    assert response.text != response2.text
