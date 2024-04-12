@@ -17,15 +17,12 @@ from __future__ import annotations
 
 import asyncio
 import importlib.metadata
-import json
 import logging
 from datetime import (
     datetime,  # noqa: TCH003, always import datetime otherwise pydantic throws error
 )
-from io import BytesIO
 from pathlib import Path
 
-import requests
 from azure.identity import EnvironmentCredential
 from azure.storage.blob import BlobServiceClient
 from core.exports import ParquetExport
@@ -39,6 +36,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from ._databases import PIXLDatabase
+from ._orthanc import get_study_zip_archive, get_tags_by_study
 from ._processing import process_message
 
 QUEUE_NAME = "ehr"
@@ -117,11 +115,6 @@ def export_patient_data(export_params: ExportPatientData) -> None:
         raise HTTPException(status_code=400, detail=msg) from e
 
 
-ORTHANC_ANON_USERNAME = config("ORTHANC_ANON_USERNAME")
-ORTHANC_ANON_PASSWORD = config("ORTHANC_ANON_PASSWORD")
-ORTHANC_ANON_URL = "http://orthanc-anon:8042"
-
-
 @app.post(
     "/export-dicom-from-orthanc",
     summary="Download a zipped up study from orthanc anon and upload it via the appropriate route",
@@ -134,55 +127,15 @@ def export_dicom_from_orthanc(study_data: StudyData) -> None:
     the hashed image ID (MRN + Accession number).
     """
     study_id = study_data.study_id
-    hashed_image_id, project_slug = _get_tags_by_study(study_id)
+    hashed_image_id, project_slug = get_tags_by_study(study_id)
     project_config = load_project_config(project_slug)
     destination = project_config.destination.dicom
 
     uploader = get_uploader(project_slug, destination, project_config.project.azure_kv_alias)
     msg = f"Sending {study_id} via '{destination}'"
     logger.debug(msg)
-    zip_content = _get_study_zip_archive(study_id)
+    zip_content = get_study_zip_archive(study_id)
     uploader.upload_dicom_image(zip_content, hashed_image_id, project_slug)
-
-
-def _get_study_zip_archive(resourceId: str) -> BytesIO:
-    # Download zip archive of the DICOM resource
-    query = f"{ORTHANC_ANON_URL}/studies/{resourceId}/archive"
-    fail_msg = "Could not download archive of resource '%s'"
-    response_study = _query(resourceId, query, fail_msg)
-
-    # get the zip content
-    logger.debug("Downloaded data for resource %s", resourceId)
-    return BytesIO(response_study.content)
-
-
-def _get_tags_by_study(study_id: str) -> tuple[str, str]:
-    """
-    Queries the Orthanc server at the study level, returning the
-    PatientID and UCLHPIXLProjectName DICOM tags.
-    BEWARE: post-anonymisation, the PatientID is NOT
-    the patient ID, it's the pseudo-anonymised ID generated
-    from the hash of the concatenated Patient ID (MRN) and Accession Number fields.
-    """
-    query = f"{ORTHANC_ANON_URL}/studies/{study_id}/shared-tags?simplify=true"
-    fail_msg = "Could not query study for resource '%s'"
-
-    response_study = _query(study_id, query, fail_msg)
-    json_response = json.loads(response_study.content.decode())
-    return json_response["PatientID"], json_response["UCLHPIXLProjectName"]
-
-
-def _query(resourceId: str, query: str, fail_msg: str) -> requests.Response:
-    try:
-        response = requests.get(
-            query, auth=(ORTHANC_ANON_USERNAME, ORTHANC_ANON_PASSWORD), timeout=10
-        )
-        response.raise_for_status()
-    except requests.exceptions.RequestException:
-        logger.exception("Failed to query resource '%s', error: '%s'", resourceId, fail_msg)
-        raise
-    else:
-        return response
 
 
 def export_radiology_as_parquet(export_params: ExportPatientData) -> None:
