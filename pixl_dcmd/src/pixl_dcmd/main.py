@@ -18,19 +18,20 @@ from logging import getLogger
 from os import PathLike
 from typing import Any, BinaryIO, Union
 
-from core.exceptions import PixlSkipMessageError
-from core.project_config import load_project_config
-
-import requests
-from core.project_config import load_tag_operations
-from decouple import config
+import requests  # type: ignore [import-untyped]
+from core.exceptions import PixlSkipMessageError  # type: ignore [import-untyped]
+from core.project_config import (  # type: ignore [import-untyped]
+    load_project_config,
+    load_tag_operations,
+)
+from decouple import config  # type: ignore [import-untyped]
 from pydicom import Dataset, dcmwrite
 
-from pixl_dcmd._dicom_helpers import get_project_name_as_string
-from pixl_dcmd._tag_schemes import merge_tag_schemes
 from pixl_dcmd._database import add_hashed_identifier_and_save, query_db
 from pixl_dcmd._datetime import combine_date_time, format_date_time
 from pixl_dcmd._deid_helpers import get_bounded_age, get_encrypted_uid
+from pixl_dcmd._dicom_helpers import get_project_name_as_string
+from pixl_dcmd._tag_schemes import merge_tag_schemes
 
 DicomDataSetType = Union[Union[str, bytes, PathLike[Any]], BinaryIO]
 
