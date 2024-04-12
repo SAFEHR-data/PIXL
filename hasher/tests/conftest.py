@@ -19,6 +19,7 @@ import pytest
 
 os.environ["ENV"] = "test"
 os.environ["AZURE_KEY_VAULT_SECRET_NAME"] = "test-key"  # noqa: S105, hardcoded secret
+os.environ["LOCAL_SALT_VALUE"] = "pixl_salt"
 
 
 class MockKeyVault:
@@ -49,13 +50,15 @@ def _mock_hasher(monkeypatch) -> None:
     Uses the azure_kevyault fixture from pytest_pixl to mock the Azure Key Vault instance.
     """
     import hasher  # type: ignore [import-untyped]
-    from pytest_pixl.keyvault import MockKeyVault  # type: ignore [import-untyped]
 
     mock_keyvault = MockKeyVault()
+    # Create the hashing secret in the mock KeyVault
     mock_keyvault.create_secret("test-key", "test-key")
 
     def mock_hasher_init(self, project_slug: str) -> None:
         self.keyvault = mock_keyvault
         self.project_slug = project_slug
+        # Set an initial salt value for testing
+        self.keyvault.create_secret(project_slug, "a161577b49a9235a")
 
     monkeypatch.setattr(hasher.hashing.Hasher, "__init__", mock_hasher_init)
