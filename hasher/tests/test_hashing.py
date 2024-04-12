@@ -14,22 +14,23 @@
 from __future__ import annotations
 
 import pytest
-from hasher.hashing import Hasher, _generate_salt
+from hasher.hashing import Hasher, _generate_salt  # type: ignore [import-untyped]
 
 TEST_MIN_LENGTHS = range(-10, 1)
 TEST_MAX_LENGTHS = range(65, 100)
+TEST_PROJECT_SLUG = "test_project_slug"
 
 
 @pytest.fixture()
 def mock_hasher(_mock_hasher):
-    return Hasher()
+    return Hasher(TEST_PROJECT_SLUG)
 
 
 def test_generate_hash_of_default_length(mock_hasher):
     message = "test"
     digest = mock_hasher.generate_hash(message)
     assert len(digest) == 64
-    assert digest == "270426312ab76c2f0df60b6cef3d14aab6bc17219f1a76e63edf88a8f705c17a"
+    assert digest == "cc8ab6f3e63235b45f3d00cbc4873efac59bf15cec4bdffd461882d57dfc010f"
 
 
 @pytest.mark.parametrize("length", TEST_MIN_LENGTHS)
@@ -51,7 +52,7 @@ def test_generate_hash_of_specific_length(mock_hasher):
     length = 16
     digest = mock_hasher.generate_hash(message, length)
     assert len(digest) == length
-    assert digest == "b88ea642703eed33"
+    assert digest == "b721eef65328a79c"
 
 
 TEST_MESSSAGES = [("9876544321", 12), ("1.2.840.10008", 48)]
@@ -61,11 +62,6 @@ TEST_MESSSAGES = [("9876544321", 12), ("1.2.840.10008", 48)]
 def test_generate_hash_output_length(message, length, mock_hasher):
     digest = mock_hasher.generate_hash(message, length)
     assert len(digest) <= length
-
-
-def test_generate_salt_of_default_length(mock_hasher):
-    salt = mock_hasher.fetch_salt("test")
-    assert len(salt) == 16
 
 
 @pytest.mark.parametrize("length", TEST_MIN_LENGTHS)
