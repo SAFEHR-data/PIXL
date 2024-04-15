@@ -6,6 +6,19 @@ This package provides a _FastAPI_ service that can be used to generate secure ha
 It is used by the [PIXL EHR API](../pixl_ehr/README.md) (for EHR anonymisation) and
 [PIXL Orthanc Anon](../orthanc/orthanc-anon/README.md) (for DICOM image anonymisation) services.
 
+The main responsibility of the hasher API is to generate secure hashes of sensitive data. As part
+of this, it connects to an Azure Key Vault to retrieve the necessary hashing keys and salts. The
+_FastAPI_ service currently provides a single endpoint `/hash`, that accepts a JSON payload with
+the project name and message to be hashed. The project name is used to retrieve the project-specific
+salt from the key vault. An optional length for the hash can also be provided.
+
+If no salt exists for the project, a new salt is generated and stored in the key vault. This salt is
+then used to generate the hash. In addition to the key vault salt, an optional local salt can be set
+using the `LOCAL_SALT_VALUE` environment variable.
+
+Finally, the `Hasher` class has a `create_salt()` method that allows users to create and store
+a new salt interactively.
+
 ## Local development
 
 ### Dependencies
