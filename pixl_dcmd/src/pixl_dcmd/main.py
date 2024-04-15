@@ -18,7 +18,7 @@ from loguru import logger
 from os import PathLike
 from typing import Any, BinaryIO, Callable, Union
 
-from core.exceptions import PixlSkipMessageError
+from core.exceptions import PixlDiscardError
 from core.project_config import load_project_config
 
 import requests
@@ -75,7 +75,7 @@ def anonymise_dicom(dataset: Dataset) -> None:
     logger.debug(f"Received instance for project {slug}")
     if dataset.Modality not in project_config.project.modalities:
         msg = f"Dropping DICOM Modality: {dataset.Modality}"
-        raise PixlSkipMessageError(msg)
+        raise PixlDiscardError(msg)
 
     logger.info("Anonymising received instance")
 
@@ -92,7 +92,7 @@ def anonymise_dicom(dataset: Dataset) -> None:
 
     if (0x0008, 0x0060) in dataset and dataset.Modality not in modalities:
         msg = f"Dropping DICOM Modality: {dataset.Modality}"
-        raise PixlSkipMessageError(msg)
+        raise PixlDiscardError(msg)
 
     logger.info("Anonymising received instance")
 

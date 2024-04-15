@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
-from core.exceptions import PixlSkipMessageError
+from core.exceptions import PixlDiscardError
 from decouple import config
 
 from pixl_imaging._orthanc import Orthanc, PIXLRawOrthanc
@@ -129,7 +129,7 @@ async def _find_study_in_vna_or_raise(orthanc_raw: Orthanc, study: ImagingStudy)
     )
     if query_id is None:
         msg = "Failed to find in the VNA"
-        raise PixlSkipMessageError(msg)
+        raise PixlDiscardError(msg)
     return query_id
 
 

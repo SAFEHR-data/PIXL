@@ -25,7 +25,7 @@ from decouple import Config, RepositoryEmpty, RepositoryEnv
 from loguru import logger
 from pydantic import BaseModel, field_validator
 
-from core.exceptions import PixlSkipMessageError
+from core.exceptions import PixlDiscardError
 
 # Make sure local .env file is loaded if it exists
 env_file = Path.cwd() / ".env"
@@ -44,7 +44,7 @@ def load_project_config(project_slug: str) -> PixlConfig | Any:
         return _load_and_validate(configpath)
     except FileNotFoundError as error:
         msg = f"No config for {project_slug}. Please submit PR and redeploy."
-        raise PixlSkipMessageError(msg) from error
+        raise PixlDiscardError(msg) from error
 
 
 def _load_and_validate(filename: Path) -> PixlConfig | Any:
