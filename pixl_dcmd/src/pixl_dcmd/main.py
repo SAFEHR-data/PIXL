@@ -14,7 +14,7 @@
 from __future__ import annotations
 
 from io import BytesIO
-from logging import getLogger
+from loguru import logger
 from os import PathLike
 from typing import Any, BinaryIO, Callable, Union
 
@@ -35,8 +35,6 @@ from pixl_dcmd._tag_schemes import merge_tag_schemes, _scheme_list_to_dict
 from pixl_dcmd._database import add_hashed_identifier_and_save_to_db, query_db
 
 DicomDataSetType = Union[Union[str, bytes, PathLike[Any]], BinaryIO]
-
-logger = getLogger(__name__)
 
 
 def write_dataset_to_bytes(dataset: Dataset) -> bytes:
@@ -94,10 +92,9 @@ def anonymise_dicom(dataset: Dataset) -> None:
 
     if (0x0008, 0x0060) in dataset and dataset.Modality not in modalities:
         msg = f"Dropping DICOM Modality: {dataset.Modality}"
-        logger.error(msg)
-        raise ValueError(msg)
+        raise PixlSkipMessageError(msg)
 
-    logger.warning("Anonymising received instance")
+    logger.info("Anonymising received instance")
 
     _anonymise_dicom_from_scheme(dataset, tag_scheme)
 
@@ -209,11 +206,8 @@ def enforce_whitelist(
 def _whitelist_tag(dataset: Dataset, de: DataElement, tag_scheme: list[dict]) -> None:
     """Delete element if it is not in the tagging schemе."""
     tag_dict = _scheme_list_to_dict(tag_scheme)
-    if (
-        # de.VR != "SQ"
-        # and (de.tag.group, de.tag.element) in tag_dict
-        (de.tag.group, de.tag.element) in tag_dict
-        and tag_dict[(de.tag.group, de.tag.element)]["op"] != "delete"
-    ):
+    if (de.tag.group, de.tag.element) in tag_dict and tag_dict[
+        (de.tag.group, de.tag.element)
+    ]["op"] != "delete":
         return
     del dataset[de.tag]

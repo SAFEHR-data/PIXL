@@ -22,8 +22,8 @@ This module:
 from __future__ import annotations
 
 import json
-import logging
 import os
+import sys
 import threading
 import traceback
 from io import BytesIO
@@ -35,6 +35,7 @@ from core.exceptions import PixlSkipMessageError
 from core.project_config import load_project_config
 from core.uploader import get_uploader
 from decouple import config
+from loguru import logger
 from pydicom import dcmread
 
 import orthanc
@@ -47,7 +48,14 @@ ORTHANC_USERNAME = config("ORTHANC_USERNAME")
 ORTHANC_PASSWORD = config("ORTHANC_PASSWORD")
 ORTHANC_URL = "http://localhost:8042"
 
-logger = logging.getLogger(__name__)
+# Set up logging as main entry point
+logger.remove()  # Remove all handlers added so far, including the default one.
+logging_level = config("LOG_LEVEL")
+if not logging_level:
+    logging_level = "INFO"
+logger.add(sys.stdout, level=logging_level)
+
+logger.warning("Running logging at level {}", logging_level)
 
 
 def AzureAccessToken():
