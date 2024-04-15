@@ -19,7 +19,7 @@ from time import time
 from typing import Any, Optional
 
 import aiohttp
-from core.exceptions import PixlRequeueMessageError, PixlSkipMessageError
+from core.exceptions import PixlDiscardError, PixlRequeueMessageError
 from decouple import config
 from loguru import logger
 
@@ -109,11 +109,11 @@ class Orthanc(ABC):
                     "Job failed: "
                     f"Error code={job_info['ErrorCode']} Cause={job_info['ErrorDescription']}"
                 )
-                raise PixlSkipMessageError(msg)
+                raise PixlDiscardError(msg)
 
             if (time() - start_time) > timeout:
                 msg = f"Failed to transfer {job_id} in {timeout} seconds"
-                raise PixlSkipMessageError(msg)
+                raise PixlDiscardError(msg)
 
             await sleep(1)
             job_info = await self.job_state(job_id=job_id)

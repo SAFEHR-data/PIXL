@@ -23,13 +23,15 @@ This module provides:
 from __future__ import annotations
 
 import json
-import logging
 import os
+import sys
 import traceback
 from io import BytesIO
 from typing import TYPE_CHECKING, Optional
 
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME, add_private_tag
+from decouple import config
+from loguru import logger
 from pydicom import dcmread
 
 import orthanc
@@ -39,7 +41,14 @@ from pixl_dcmd.tagrecording import record_dicom_headers
 if TYPE_CHECKING:
     from typing import Any
 
-logger = logging.getLogger(__name__)
+# Set up logging as main entry point
+logger.remove()  # Remove all handlers added so far, including the default one.
+logging_level = config("LOG_LEVEL")
+if not logging_level:
+    logging_level = "INFO"
+logger.add(sys.stdout, level=logging_level)
+
+logger.warning("Running logging at level {}", logging_level)
 
 
 def OnChange(changeType, level, resourceId):  # noqa: ARG001
