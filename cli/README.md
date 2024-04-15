@@ -69,7 +69,7 @@ where the `*_RATE` variables set the default querying rate for the message queue
 
 ### Running the pipeline
 
-Populate queue for Imaging and EHR extraction
+Populate queue for Imaging
 
 ```bash
 pixl populate </path/to/parquet_dir>
