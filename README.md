@@ -98,10 +98,6 @@ cp .env.sample .env
 
 Add the missing configuration values to the new files:
 
-#### Environment
-
-Set `ENV` to `<environment>`.
-
 #### Credentials
 
 - `EMAP_DB_`*

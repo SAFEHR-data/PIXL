@@ -31,7 +31,6 @@ x-build-args-common: &build-args-common
   <<: [*proxy-common]
 
 x-pixl-common-env: &pixl-common-env
-  ENV: ${ENV}
   DEBUG: ${DEBUG}
   LOG_LEVEL: ${LOG_LEVEL}
 
