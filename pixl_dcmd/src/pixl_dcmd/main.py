@@ -96,16 +96,18 @@ def anonymise_dicom(dataset: Dataset) -> None:
 
     logger.info("Anonymising received instance")
 
-    _anonymise_dicom_from_scheme(dataset, tag_scheme)
+    _anonymise_dicom_from_scheme(dataset, project_slug, tag_scheme)
 
     enforce_whitelist(dataset, tag_scheme, recursive=True)
 
 
-def _anonymise_dicom_from_scheme(dataset: Dataset, tag_scheme: list[dict]) -> None:
+def _anonymise_dicom_from_scheme(
+    dataset: Dataset, project_slug: str, tag_scheme: list[dict]
+) -> None:
     """
     Converts tag scheme to tag actions and calls _anonymise_recursively.
     """
-    tag_actions = _convert_schema_to_actions(dataset, tag_scheme)
+    tag_actions = _convert_schema_to_actions(dataset, project_slug, tag_scheme)
     _anonymise_recursively(dataset, tag_actions)
 
 
@@ -123,7 +125,7 @@ def _anonymise_recursively(
 
 
 def _convert_schema_to_actions(
-    dataset: Dataset, tags_list: list[dict]
+    dataset: Dataset, project_slug: str, tags_list: list[dict]
 ) -> dict[tuple, Callable]:
     """
     Convert the tag schema to actions (funcitons) for the anonymiser.
@@ -132,7 +134,7 @@ def _convert_schema_to_actions(
     Accession Number, hence why the dataset is passed in as well.
     """
 
-    # Get the MRN and Accession Number before we've anonymised them
+    # Get the MRN, Accession Number before we've anonymised them
     mrn = dataset[0x0010, 0x0020].value  # Patient ID
     accession_number = dataset[0x0008, 0x0050].value  # Accession Number
 
@@ -141,7 +143,7 @@ def _convert_schema_to_actions(
         group_el = (tag["group"], tag["element"])
         if tag["op"] == "secure-hash":
             tag_actions[group_el] = lambda _dataset, _tag: _secure_hash(
-                _dataset, _tag, mrn, accession_number
+                _dataset, project_slug, _tag, mrn, accession_number
             )
             continue
         tag_actions[group_el] = actions_map_name_functions[tag["op"]]
@@ -149,13 +151,14 @@ def _convert_schema_to_actions(
     return tag_actions
 
 
-def _secure_hash(dataset: Dataset, tag: tuple, mrn: str, accession_number: str) -> None:
+def _secure_hash(
+    dataset: Dataset, project_slug: str, tag: tuple, mrn: str, accession_number: str
+) -> None:
     """
     Use the hasher API to consistently but securely hash ids later used for linking.
     """
     grp = tag[0]
     el = tag[1]
-    project_slug = get_project_name_as_string(dataset)
 
     if tag in dataset:
         message = f"Securely hashing: (0x{grp:04x},0x{el:04x})"
