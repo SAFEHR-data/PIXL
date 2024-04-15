@@ -145,7 +145,7 @@ def _setup_pixl_cli(ftps_server: PixlFTPServer, _populate_vna: None) -> Generato
         [
             "docker",
             "exec",
-            "system-test-ehr-api-1",
+            "system-test-export-api-1",
             "rm",
             "-r",
             "/run/projects/exports/test-extract-uclh-omop-cdm/",

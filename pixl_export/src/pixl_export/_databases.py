@@ -23,7 +23,7 @@ from decouple import config
 logger = logging.getLogger("uvicorn")
 
 if TYPE_CHECKING:
-    from pixl_ehr._queries import SQLQuery
+    from pixl_export._queries import SQLQuery
 
 
 class Database:

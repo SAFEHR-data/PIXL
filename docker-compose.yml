@@ -156,7 +156,7 @@ services:
       - ${PWD}/projects/configs:/${PROJECT_CONFIGS_DIR:-/projects/configs}:ro
     networks:
       - pixl-net
-    # needed for same reason as ehr-api
+    # needed for same reason as export-api
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -242,10 +242,10 @@ services:
     networks:
       - pixl-net
 
-  ehr-api:
+  export-api:
     build:
       context: .
-      dockerfile: ./docker/ehr-api/Dockerfile
+      dockerfile: ./docker/export-api/Dockerfile
       args:
         <<: *build-args-common
     environment:

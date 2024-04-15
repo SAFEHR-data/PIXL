@@ -47,7 +47,7 @@ ORTHANC_USERNAME = config("ORTHANC_USERNAME")
 ORTHANC_PASSWORD = config("ORTHANC_PASSWORD")
 ORTHANC_URL = "http://localhost:8042"
 
-EXPORT_API_URL = "http://ehr-api:8000"
+EXPORT_API_URL = "http://export-api:8000"
 
 
 def AzureAccessToken() -> str:

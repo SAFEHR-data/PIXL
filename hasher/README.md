@@ -3,7 +3,7 @@
 _The secure hashing service_.
 
 This package provides a _FastAPI_ service that can be used to generate secure hashes. It is used by
-the [PIXL EHR API](../pixl_ehr/README.md) (for EHR anonymisation) and
+the [PIXL EHR API](../pixl_export/README.md) (for EHR anonymisation) and
 [PIXL Orthanc Anon](../orthanc_anon/README.md) (for DICOM image anonymisation) services.
 
 ## Local development

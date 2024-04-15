@@ -11,7 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-"""pixl_ehr module is an EHR extraction service app"""
+"""pixl_export module is an EHR extraction service app"""
 
 from __future__ import annotations
 
@@ -39,9 +39,9 @@ from ._orthanc import get_study_zip_archive, get_tags_by_study
 QUEUE_NAME = "ehr"
 
 app = FastAPI(
-    title="ehr-api",
-    description="EHR extraction service",
-    version=importlib.metadata.version("pixl_ehr"),
+    title="export-api",
+    description="Export service",
+    version=importlib.metadata.version("pixl_export"),
     default_response_class=JSONResponse,
 )
 app.include_router(router)

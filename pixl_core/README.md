@@ -118,7 +118,7 @@ where the DICOM datasets are stored (see the directory structure below). The upl
 by `upload_parquet_files` in [`upload.py`](./src/core/upload.py) which takes a `ParquetExport`
 object as input to define where the _parquet_ files are located.  `upload_parquet_files` is called
 by the `export-patient-data` API endpoint defined in the
-[EHR API](../pixl_ehr/src/pixl_ehr/main.py), which in turn is called by the `extract_radiology_reports` command in the [PIXL CLI](../cli/README.md).
+[EHR API](../pixl_export/src/pixl_export/main.py), which in turn is called by the `extract_radiology_reports` command in the [PIXL CLI](../cli/README.md).
 
 Once the parquet files have been uploaded to the DSH, the directory structure will look like this:
 

@@ -173,7 +173,7 @@ def export_patient_data(parquet_dir: Path) -> None:
     project_name, omop_es_datetime = project_info(parquet_dir)
 
     # Call the EHR API
-    api_config = api_config_for_queue("ehr")
+    api_config = api_config_for_queue("export")
     response = requests.post(
         url=f"{api_config.base_url}/export-patient-data",
         json={"project_name": project_name, "extract_datetime": omop_es_datetime.isoformat()},
@@ -305,7 +305,7 @@ def status(queues: str) -> None:
 @cli.command()
 def az_copy_ehr() -> None:
     """Copy the EHR data to azure"""
-    api_config = api_config_for_queue("ehr")
+    api_config = api_config_for_queue("export")
     response = requests.get(url=f"{api_config.base_url}/az-copy-current", timeout=10)
 
     success_code = 200

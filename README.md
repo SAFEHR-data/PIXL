@@ -72,7 +72,7 @@ Provides helper functions for de-identifying DICOM data
 
 RDBMS which stores DICOM metadata, application data and anonymised patient record data.
 
-### [Electronic Health Record Extractor](./pixl_ehr/README.md)
+### [Electronic Health Record Extractor](pixl_export/README.md)
 
 HTTP API to process messages from the `ehr` queue and populate raw and anon tables in the PIXL postgres instance.
 
