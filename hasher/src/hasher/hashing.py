@@ -90,9 +90,7 @@ class Hasher:
             salt = self.keyvault.fetch_secret(self.project_slug)
 
         except ValueError:
-            logger.warning(
-                "No existing salt for project {}, generating a new one.", self.project_slug
-            )
+            logger.info("No existing salt for project {}, generating a new one.", self.project_slug)
             salt = _generate_salt(length)
             self.keyvault.create_secret(self.project_slug, salt)
 
