@@ -188,9 +188,7 @@ def _hash_values(pat_value: str, project_slug: str, hash_len: int = 0) -> str:
     """
     HASHER_API_AZ_NAME = config("HASHER_API_AZ_NAME")
     HASHER_API_PORT = config("HASHER_API_PORT")
-    hasher_req_url = (
-        f"http://{HASHER_API_AZ_NAME}:{HASHER_API_PORT}/hash?message={pat_value}"
-    )
+    hasher_req_url = f"http://{HASHER_API_AZ_NAME}:{HASHER_API_PORT}/hash"
     request_params: dict[str, str | int] = {
         "project_slug": project_slug,
         "message": pat_value,
