@@ -36,8 +36,6 @@ from pydantic import BaseModel
 from ._databases import PIXLDatabase
 from ._orthanc import get_study_zip_archive, get_tags_by_study
 
-QUEUE_NAME = "ehr"
-
 app = FastAPI(
     title="export-api",
     description="Export service",

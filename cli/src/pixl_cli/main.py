@@ -85,7 +85,7 @@ def check_env(*, error: bool, sample_env_file: click.Path) -> None:
 @cli.command()
 @click.option(
     "--queues",
-    default="imaging,ehr",
+    default="imaging",
     show_default=True,
     help="Comma seperated list of queues to populate with messages generated from the "
     "input file(s)",
@@ -192,7 +192,7 @@ def export_patient_data(parquet_dir: Path) -> None:
 @cli.command()
 @click.option(
     "--queues",
-    default="ehr,imaging",
+    default="imaging",
     show_default=True,
     help="Comma seperated list of queues to start consuming from",
 )
@@ -214,7 +214,7 @@ def start(queues: str, rate: Optional[float]) -> None:
 @cli.command()
 @click.option(
     "--queues",
-    default="ehr,imaging",
+    default="imaging",
     show_default=True,
     help="Comma seperated list of queues to update the consume rate of",
 )
@@ -267,7 +267,7 @@ def _update_extract_rate(queue_name: str, rate: Optional[float]) -> None:
 @cli.command()
 @click.option(
     "--queues",
-    default="ehr,imaging",
+    default="imaging",
     show_default=True,
     help="Comma seperated list of queues to consume messages from",
 )
@@ -292,7 +292,7 @@ def kill() -> None:
 @cli.command()
 @click.option(
     "--queues",
-    default="ehr,imaging",
+    default="imaging",
     show_default=True,
     help="Comma seperated list of queues to consume messages from",
 )
