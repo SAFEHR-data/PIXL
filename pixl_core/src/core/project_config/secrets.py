@@ -19,6 +19,7 @@ from __future__ import annotations
 import subprocess
 from functools import lru_cache
 
+from azure.core.exceptions import ResourceNotFoundError
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 from decouple import config  # type: ignore [import-untyped]
@@ -104,9 +105,16 @@ def _fetch_secret(kv_name: str, secret_name: str) -> str:
     :return: the requested secret's value
     """
     client = _setup_client(kv_name)
-    secret = client.get_secret(secret_name).value
+
+    try:
+        secret = client.get_secret(secret_name).value
+    # Raise a ValueError if the secret is not found so we can handle it downstream
+    except ResourceNotFoundError as e:
+        msg = f"Secret {secret_name} not found in Azure Key Vault"
+        raise ValueError(msg) from e
 
     if secret is None:
         msg = f"Azure Key Vault secret {secret_name} is None"
         raise ValueError(msg)
+
     return str(secret)
