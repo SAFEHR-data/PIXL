@@ -15,7 +15,7 @@
 """Custom exceptions for PIXL."""
 
 
-class PixlSkipMessageError(RuntimeError):
+class PixlDiscardError(RuntimeError):
     """
     Expected application error.
 

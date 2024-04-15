@@ -94,12 +94,12 @@ class TestFtpsUpload:
             "a971b114b9133c81c03fb88c6a958f7d95eb1387f04c17ad7ff9ba7cf684c392": {
                 # tuple made up of (AccessionNumber, SeriesDescription)
                 # hash of AA12345601
-                ("ad630a8a84d72d71", "include123"),
-                ("ad630a8a84d72d71", "AP"),
+                ("ANONYMIZED", "include123"),
+                ("ANONYMIZED", "AP"),
             },
             "f71b228fa97d6c87db751e0bb35605fd9d4c1274834be4bc4bb0923ab8029b2a": {
                 # hash of AA12345605,
-                ("c2f4b59b0291c6fe", "include123"),
+                ("ANONYMIZED", "include123"),
             },
         }
         assert zip_files

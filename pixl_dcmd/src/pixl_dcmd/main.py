@@ -14,28 +14,27 @@
 from __future__ import annotations
 
 from io import BytesIO
-from logging import getLogger
+from loguru import logger
 from os import PathLike
-from typing import Any, BinaryIO, Union
+from typing import Any, BinaryIO, Callable, Union
 
-import requests  # type: ignore [import-untyped]
-from core.exceptions import PixlSkipMessageError  # type: ignore [import-untyped]
-from core.project_config import (  # type: ignore [import-untyped]
-    load_project_config,
-    load_tag_operations,
+from core.exceptions import PixlDiscardError
+from core.project_config import load_project_config
+
+import requests
+from core.project_config import load_tag_operations
+from decouple import config
+from pydicom import DataElement, Dataset, dcmwrite
+from dicomanonymizer.simpledicomanonymizer import (
+    actions_map_name_functions,
+    anonymize_dataset,
 )
-from decouple import config  # type: ignore [import-untyped]
-from pydicom import Dataset, dcmwrite
 
-from pixl_dcmd._database import add_hashed_identifier_and_save, query_db
-from pixl_dcmd._datetime import combine_date_time, format_date_time
-from pixl_dcmd._deid_helpers import get_bounded_age, get_encrypted_uid
 from pixl_dcmd._dicom_helpers import get_project_name_as_string
-from pixl_dcmd._tag_schemes import merge_tag_schemes
+from pixl_dcmd._tag_schemes import merge_tag_schemes, _scheme_list_to_dict
+from pixl_dcmd._database import add_hashed_identifier_and_save_to_db, query_db
 
 DicomDataSetType = Union[Union[str, bytes, PathLike[Any]], BinaryIO]
-
-logger = getLogger(__name__)
 
 
 def write_dataset_to_bytes(dataset: Dataset) -> bytes:
@@ -62,15 +61,13 @@ def should_exclude_series(dataset: Dataset) -> bool:
     return False
 
 
-def anonymise_dicom(dataset: Dataset) -> Dataset:
+def anonymise_dicom(dataset: Dataset) -> None:
     """
-    Anonymises a DICOM dataset as Received by Orthanc.
+    Anonymises a DICOM dataset as Received by Orthanc in place.
     Finds appropriate configuration based on project name and anonymises by
     - dropping datasets of the wrong modality
-    - removing private tags
-    - removing overlays
-    - applying tag operations based on the config file
-    Returns anonymised dataset.
+    - recursively applying tag operations based on the config file
+    - deleting any tags not in the tag scheme recursively
     """
     project_slug = get_project_name_as_string(dataset)
 
@@ -78,344 +75,139 @@ def anonymise_dicom(dataset: Dataset) -> Dataset:
     logger.debug(f"Received instance for project {project_slug}")
     if dataset.Modality not in project_config.project.modalities:
         msg = f"Dropping DICOM Modality: {dataset.Modality}"
-        raise PixlSkipMessageError(msg)
+        raise PixlDiscardError(msg)
 
     logger.info("Anonymising received instance")
 
-    # Rip out overlays/
-    dataset = remove_overlays(dataset)
-    logger.info("Removed overlays")
-
     # Merge tag schemes
     tag_operations = load_tag_operations(project_config)
-    all_tags = merge_tag_schemes(tag_operations, manufacturer=dataset.Manufacturer)
+    tag_scheme = merge_tag_schemes(tag_operations, manufacturer=dataset.Manufacturer)
 
-    # Apply scheme to instance
-    dataset = apply_tag_scheme(dataset, all_tags, project_slug)
-    # Apply whitelist
-    dataset = enforce_whitelist(dataset, all_tags)
+    modalities = project_config.project.modalities
 
     logger.info(
-        f"DICOM tag anonymisation applied according to {project_config.tag_operation_files}"
+        f"Applying DICOM tag anonymisation according to {project_config.tag_operation_files}"
     )
-    # Write anonymised instance to disk.
-    return dataset
+    logger.debug(f"Tag scheme: {tag_scheme}")
+
+    if (0x0008, 0x0060) in dataset and dataset.Modality not in modalities:
+        msg = f"Dropping DICOM Modality: {dataset.Modality}"
+        raise PixlDiscardError(msg)
+
+    logger.info("Anonymising received instance")
+
+    _anonymise_dicom_from_scheme(dataset, tag_scheme)
+
+    enforce_whitelist(dataset, tag_scheme, recursive=True)
 
 
-def remove_overlays(dataset: Dataset) -> Dataset:
+def _anonymise_dicom_from_scheme(dataset: Dataset, tag_scheme: list[dict]) -> None:
     """
-    Search for overlays planes and remove them.
-
-    Overlay planes are repeating groups in [0x6000,xxxx].
-    Up to 16 overlays can be stored in 0x6000 to 0x601E.
-    See:
-    https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.9.2.html
-    for further details.
+    Converts tag scheme to tag actions and calls _anonymise_recursively.
     """
-    logger.debug("Starting search for overlays...")
-
-    for i in range(0x6000, 0x601F, 2):
-        overlay = dataset.group_dataset(i)
-        message = f"Checking for overlay in: [0x{i:04x}]"
-        logger.debug(f"\t{message}")
-
-        if overlay:
-            message = f"Found overlay in: [0x{i:04x}]"
-            logger.debug(f"\t{message}")
-
-            message = f"Deleting overlay in: [0x{i:04x}]"
-            logger.debug(f"\t{message}")
-            for item in overlay:
-                del dataset[item.tag]
-        else:
-            message = f"No overlay in: [0x{i:04x}]"
-            logger.debug(f"\t{message}")
-
-    return dataset
+    tag_actions = _convert_schema_to_actions(dataset, tag_scheme)
+    _anonymise_recursively(dataset, tag_actions)
 
 
-def enforce_whitelist(dataset: Dataset, tags: list[dict]) -> Dataset:
-    """Delete any tags not in the tagging scheme."""
-    # For every element:
-    logger.debug("Enforcing whitelist")
+def _anonymise_recursively(
+    dataset: Dataset, tag_actions: dict[tuple, Callable]
+) -> None:
+    """
+    Anonymises a DICOM dataset recursively (for items in sequences) in place.
+    """
+    anonymize_dataset(dataset, tag_actions, delete_private_tags=False)
     for de in dataset:
-        keep_el = False
-        # For every entry in the YAML:
-        for i in range(len(tags)):
-            grp = tags[i]["group"]
-            el = tags[i]["element"]
-            op = tags[i]["op"]
-
-            if de.tag.group == grp and de.tag.element == el:
-                if op != "delete":
-                    keep_el = True
-
-        if not keep_el:
-            del_grp = de.tag.group
-            del_el = de.tag.element
-
-            del dataset[del_grp, del_el]
-            message = "Whitelist - deleting: {name} (0x{grp:04x},0x{el:04x})".format(
-                name=de.keyword, grp=del_grp, el=del_el
-            )
-            logger.debug(f"\t{message}")
-
-    return dataset
+        if de.VR == "SQ":
+            for item in de.value:
+                _anonymise_recursively(item, tag_actions)
 
 
-def apply_tag_scheme(dataset: Dataset, tags: list[dict], project_slug: str) -> Dataset:
+def _convert_schema_to_actions(
+    dataset: Dataset, tags_list: list[dict]
+) -> dict[tuple, Callable]:
     """
-    Apply anonymisation operations for a given set of tags to a dataset.
-    The original study time is kept before any operations are applied.
-    For example: orig_study_time = `dataset[0x0008, 0x0030].value`
+    Convert the tag schema to actions (funcitons) for the anonymiser.
+    See https://github.com/KitwareMedical/dicom-anonymizer for more details.
+    Added custom function secure-hash for linking purposes. This function needs the MRN and
+    Accession Number, hence why the dataset is passed in as well.
     """
-    logger.debug("Applying tag scheme")
 
+    # Get the MRN and Accession Number before we've anonymised them
     mrn = dataset[0x0010, 0x0020].value  # Patient ID
     accession_number = dataset[0x0008, 0x0050].value  # Accession Number
 
+    tag_actions = {}
+    for tag in tags_list:
+        group_el = (tag["group"], tag["element"])
+        if tag["op"] == "secure-hash":
+            tag_actions[group_el] = lambda _dataset, _tag: _secure_hash(
+                _dataset, _tag, mrn, accession_number
+            )
+            continue
+        tag_actions[group_el] = actions_map_name_functions[tag["op"]]
+
+    return tag_actions
+
+
+def _secure_hash(dataset: Dataset, tag: tuple, mrn: str, accession_number: str) -> None:
+    """
+    Use the hasher API to consistently but securely hash ids later used for linking.
+    """
+    grp = tag[0]
+    el = tag[1]
+
+    if tag in dataset:
+        message = f"Securely hashing: (0x{grp:04x},0x{el:04x})"
+        logger.debug(f"\t{message}")
+        if grp == 0x0010 and el == 0x0020:  # Patient ID
+            pat_value = mrn + accession_number
+
+            hashed_value = _hash_values(pat_value)
+            # Query PIXL database
+            existing_image = query_db(mrn, accession_number)
+            # Insert the hashed_value into the PIXL database
+            add_hashed_identifier_and_save_to_db(existing_image, hashed_value)
+        elif dataset[grp, el].VR == "SH":
+            pat_value = str(dataset[grp, el].value)
+            hashed_value = _hash_values(pat_value, 16)
+
+        dataset[grp, el].value = hashed_value
+
+    else:
+        message = f"Missing linking variable (0x{grp:04x},0x{el:04x})"
+        logger.warning(f"\t{message}")
+
+
+def _hash_values(pat_value: str, hash_len: int = 0) -> str:
+    """
+    Utility function for hashing values using the hasher API.
+    """
     HASHER_API_AZ_NAME = config("HASHER_API_AZ_NAME")
     HASHER_API_PORT = config("HASHER_API_PORT")
-    hasher_host_url = "http://" + HASHER_API_AZ_NAME + ":" + HASHER_API_PORT
-
-    # TODO: Get offset from external source on study-by-study basis.
-    # https://github.com/UCLH-Foundry/PIXL/issues/152
-    try:
-        TIME_OFFSET = int(config("TIME_OFFSET"))
-    except ValueError as exc:
-        msg = "Failed to set the time offset in hours from the $TIME_OFFSET env var"
-        raise RuntimeError(msg) from exc
-
-    logger.debug(b"TIME_OFFSET = %i}" % TIME_OFFSET)
-
-    # For every entry in the YAML:
-    for i in range(len(tags)):
-        name = tags[i]["name"] if "name" in tags[i] else "Unknown"  # name is optional
-        grp = tags[i]["group"]
-        el = tags[i]["element"]
-        op = tags[i]["op"]
-
-        # If this tag should be kept.
-        if op == "keep":
-            if [grp, el] in dataset:
-                message = f"Keeping: {name} (0x{grp:04x},0x{el:04x})"
-                logger.debug(f"\t{message}")
-            else:
-                message = f"Missing: {name} (0x{grp:04x},0x{el:04x})\
-                 - Operation ({op})"
-                logger.debug(f"\t{message}")
-
-        # If this tag should be deleted.
-        elif op == "delete":
-            if [grp, el] in dataset:
-                del dataset[grp, el]
-                message = f"Deleting: {name} (0x{grp:04x},0x{el:04x})"
-                logger.debug(f"\t{message}")
-            else:
-                message = f"Missing: {name} (0x{grp:04x},0x{el:04x})\
-                 - Operation ({op})"
-                logger.debug(f"\t{message}")
-
-        # Handle UIDs that should be encrypted.
-        elif op == "hash-uid":
-            if [grp, el] in dataset:
-                message = f"Changing: {name} (0x{grp:04x},0x{el:04x})"
-                logger.debug(f"\t{message}")
-
-                logger.debug(f"\t\tCurrent UID:\t{dataset[grp,el].value}")
-                # TODO: delete after #366 gets merged
-                salt = b"PIXL"
-                new_uid = get_encrypted_uid(dataset[grp, el].value, salt)
-                dataset[grp, el].value = new_uid
-                logger.debug(f"\t\tEncrypted UID:\t{new_uid}")
-
-            else:
-                message = f"Missing: {name} (0x{grp:04x},0x{el:04x})\
-                 - Operation ({op})"
-                logger.debug(f"\t{message}")
-
-        # Shift time relative to the original study time.
-        elif op == "time-shift":
-            if [grp, el] in dataset:
-                # Study date
-                if grp == 0x0008 and el == 0x0020:
-                    study_date_time = combine_date_time(
-                        dataset[0x0008, 0x0020].value, dataset[0x0008, 0x0030].value
-                    )
-                    new_date = study_date_time.shift(hours=TIME_OFFSET).format(
-                        "YYYYMMDD"
-                    )
-                    logger.debug(
-                        f"\tChanging {name}: {dataset[grp,el].value} -> {new_date}"
-                    )
-                    dataset[grp, el].value = new_date
-                # Series date
-                if grp == 0x0008 and el == 0x0021:
-                    series_date_time = combine_date_time(
-                        dataset[0x0008, 0x0021].value, dataset[0x0008, 0x0031].value
-                    )
-                    new_date = series_date_time.shift(hours=TIME_OFFSET).format(
-                        "YYYYMMDD"
-                    )
-                    logger.debug(
-                        f"\tChanging {name}: {dataset[grp,el].value} -> {new_date}"
-                    )
-                    dataset[grp, el].value = new_date
-                # Acq date
-                if grp == 0x0008 and el == 0x0022:
-                    acq_date_time = combine_date_time(
-                        dataset[0x0008, 0x0022].value, dataset[0x0008, 0x0032].value
-                    )
-                    new_date = acq_date_time.shift(hours=TIME_OFFSET).format("YYYYMMDD")
-                    logger.debug(
-                        f"\tChanging {name}: {dataset[grp,el].value} -> {new_date}"
-                    )
-                    dataset[grp, el].value = new_date
-                # Image date
-                if grp == 0x0008 and el == 0x0023:
-                    image_date_time = combine_date_time(
-                        dataset[0x0008, 0x0023].value, dataset[0x0008, 0x0033].value
-                    )
-                    new_date = image_date_time.shift(hours=TIME_OFFSET).format(
-                        "YYYYMMDD"
-                    )
-                    logger.debug(
-                        f"\tChanging {name}: {dataset[grp,el].value} -> {new_date}"
-                    )
-                    dataset[grp, el].value = new_date
-
-                # Study time
-                if grp == 0x0008 and el == 0x0030:
-                    study_date_time = combine_date_time(
-                        dataset[0x0008, 0x0020].value, dataset[0x0008, 0x0030].value
-                    )
-                    new_time = study_date_time.shift(hours=TIME_OFFSET).format(
-                        "HHmmss.SSSSSS"
-                    )
-                    logger.debug(
-                        f"\tChanging {name}: {dataset[grp,el].value} -> {new_time}"
-                    )
-                    dataset[grp, el].value = new_time
-                # Series time
-                if grp == 0x0008 and el == 0x0031:
-                    series_date_time = combine_date_time(
-                        dataset[0x0008, 0x0021].value, dataset[0x0008, 0x0031].value
-                    )
-                    new_time = series_date_time.shift(hours=TIME_OFFSET).format(
-                        "HHmmss.SSSSSS"
-                    )
-                    logger.debug(
-                        f"\tChanging {name}: {dataset[grp,el].value} -> {new_time}"
-                    )
-                    dataset[grp, el].value = new_time
-                # Acq time
-                if grp == 0x0008 and el == 0x0032:
-                    acq_date_time = combine_date_time(
-                        dataset[0x0008, 0x0022].value, dataset[0x0008, 0x0032].value
-                    )
-                    new_time = acq_date_time.shift(hours=TIME_OFFSET).format(
-                        "HHmmss.SSSSSS"
-                    )
-                    logger.debug(
-                        f"\tChanging {name}: {dataset[grp,el].value} -> {new_time}"
-                    )
-                    dataset[grp, el].value = new_time
-                # Image time
-                if grp == 0x0008 and el == 0x0033:
-                    acq_date_time = combine_date_time(
-                        dataset[0x0008, 0x0023].value, dataset[0x0008, 0x0033].value
-                    )
-                    new_time = acq_date_time.shift(hours=TIME_OFFSET).format(
-                        "HHmmss.SSSSSS"
-                    )
-                    logger.debug(
-                        f"\tChanging {name}: {dataset[grp,el].value} -> {new_time}"
-                    )
-                    dataset[grp, el].value = new_time
-
-                # Acq date+time
-                if grp == 0x0008 and el == 0x002A:
-                    logger.debug(f"\tChanging {name}: {dataset[grp,el].value}")
-
-                    acq_date_time = format_date_time(dataset[grp, el].value)
-                    new_date_time = acq_date_time.shift(hours=TIME_OFFSET).format(
-                        "YYYYMMDDHHmmss.SSSSSS"
-                    )
-                    logger.debug(
-                        f"\tChanging {name}: {dataset[grp,el].value} -> {new_date_time}"
-                    )
-                    dataset[grp, el].value = new_date_time
-
-        # Modify specific tags (make blank).
-        elif op == "fixed":
-            if grp == 0x0020 and el == 0x0010:
-                logger.debug(f"\tRedacting Study ID: {dataset[grp,el].value}")
-                dataset[grp, el].value = ""
-            if grp == 0x0010 and el == 0x0020:
-                logger.debug(f"\tRedacting Patient ID: {dataset[grp,el].value}")
-                dataset[grp, el].value = ""
-
-        # Enforce a numerical range.
-        elif op == "num-range" and [grp, el] in dataset:
-            if grp == 0x0010 and el == 0x1010:
-                new_age = get_bounded_age(dataset[grp, el].value)
-                logger.debug(
-                    f"\tChanging Patient Age: {dataset[grp,el].value} -> {new_age}"
-                )
-                dataset[grp, el].value = new_age
-
-        # Change value into hash from hasher API.
-        elif op == "secure-hash":
-            if [grp, el] in dataset:
-                if grp == 0x0010 and el == 0x0020:  # Patient ID
-                    pat_value = mrn + accession_number
-                    hashed_value = _hash_values(
-                        pat_value, hasher_host_url, project_slug, hash_length=64
-                    )
-
-                    # Query PIXL database
-                    existing_image = query_db(mrn, accession_number)
-                    # Insert the hashed_value into the PIXL database
-                    add_hashed_identifier_and_save(existing_image, hashed_value)
-
-                else:
-                    # Set hash length to 64 for accession number, 16 for everything else
-                    # brought over from the old hasher endpoint /hash-accession-number
-                    is_accession_number = grp == 0x0008 & el == 0x0050
-                    hash_length = 64 if is_accession_number else 16
-
-                    pat_value = str(dataset[grp, el].value)
-                    hashed_value = _hash_values(
-                        pat_value, hasher_host_url, project_slug, hash_length
-                    )
-
-                if dataset[grp, el].VR == "SH" | is_accession_number:
-                    hashed_value = hashed_value[:16]
-
-                dataset[grp, el].value = hashed_value
-
-                message = f"Changing: {name} (0x{grp:04x},0x{el:04x})"
-                logger.debug(f"\t{message}")
-            else:
-                message = f"Missing: {name} (0x{grp:04x},0x{el:04x})\
-                 - Operation ({op})"
-                logger.debug(f"\t{message}")
-
-    return dataset
-
-
-def _hash_values(
-    pat_value: str, hasher_host_url: str, project_slug: str, hash_length: int
-) -> str:
-    ep_path = hasher_host_url + "/hash"
-    request_params: dict[str, str | int] = {
-        "project_slug": project_slug,
-        "message": pat_value,
-        "length": hash_length,
-    }
-
-    response = requests.get(ep_path, params=request_params)
-    # The /hash endpoint returns application/text so should be fine to
-    # use response.text here
+    hasher_req_url = (
+        f"http://{HASHER_API_AZ_NAME}:{HASHER_API_PORT}/hash?message={pat_value}"
+    )
+    if hash_len:
+        hasher_req_url += f"&length={hash_len}"
+    response = requests.get(hasher_req_url)
     logger.debug("RESPONSE = %s}" % response.text)
     return response.text
+
+
+def enforce_whitelist(
+    dataset: Dataset, tag_scheme: list[dict], recursive: bool
+) -> None:
+    """
+    Enforce the whitelist on the dataset.
+    """
+    dataset.walk(lambda ds, de: _whitelist_tag(ds, de, tag_scheme), recursive)
+
+
+def _whitelist_tag(dataset: Dataset, de: DataElement, tag_scheme: list[dict]) -> None:
+    """Delete element if it is not in the tagging schemе."""
+    tag_dict = _scheme_list_to_dict(tag_scheme)
+    if (de.tag.group, de.tag.element) in tag_dict and tag_dict[
+        (de.tag.group, de.tag.element)
+    ]["op"] != "delete":
+        return
+    del dataset[de.tag]

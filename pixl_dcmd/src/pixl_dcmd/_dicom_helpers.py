@@ -16,11 +16,9 @@
 from __future__ import annotations
 
 from pydicom import Dataset
-from logging import getLogger
+from loguru import logger
 
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
-
-logger = getLogger(__name__)
 
 
 def get_project_name_as_string(dataset: Dataset) -> str:
