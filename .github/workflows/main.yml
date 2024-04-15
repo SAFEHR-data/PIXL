@@ -246,6 +246,10 @@ jobs:
           EXPORT_AZ_CLIENT_PASSWORD: ${{ secrets.EXPORT_AZ_CLIENT_PASSWORD }}
           EXPORT_AZ_TENANT_ID: ${{ secrets.EXPORT_AZ_TENANT_ID }}
           EXPORT_AZ_KEY_VAULT_NAME: ${{ secrets.EXPORT_AZ_KEY_VAULT_NAME }}
+          HASHER_API_AZ_CLIENT_ID: ${{ secrets.EXPORT_AZ_CLIENT_ID }}
+          HASHER_API_AZ_CLIENT_PASSWORD: ${{ secrets.EXPORT_AZ_CLIENT_PASSWORD }}
+          HASHER_API_AZ_TENANT_ID: ${{ secrets.EXPORT_AZ_TENANT_ID }}
+          HASHER_API_AZ_KEY_VAULT_NAME: ${{ secrets.EXPORT_AZ_KEY_VAULT_NAME }}
         run: |
           ./run-system-test.sh
           echo FINISHED SYSTEM TEST SCRIPT
