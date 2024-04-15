@@ -49,8 +49,6 @@ def _mock_hasher(monkeypatch) -> None:
     Mock the Hasher class as a pytest fixture.
     Uses the azure_kevyault fixture from pytest_pixl to mock the Azure Key Vault instance.
     """
-    import hasher  # type: ignore [import-untyped]
-
     mock_keyvault = MockKeyVault()
     # Create the hashing secret in the mock KeyVault
     mock_keyvault.create_secret("test-key", "test-key")
@@ -61,4 +59,4 @@ def _mock_hasher(monkeypatch) -> None:
         # Set an initial salt value for testing
         self.keyvault.create_secret(project_slug, "a161577b49a9235a")
 
-    monkeypatch.setattr(hasher.hashing.Hasher, "__init__", mock_hasher_init)
+    monkeypatch.setattr("hasher.hashing.Hasher.__init__", mock_hasher_init)
