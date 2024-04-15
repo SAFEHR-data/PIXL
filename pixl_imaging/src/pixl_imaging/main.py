@@ -40,7 +40,7 @@ app.include_router(router)
 
 # Set up logging as main entry point
 logger.remove()  # Remove all handlers added so far, including the default one.
-logging_level = config("LOG_LEVEL")
+logging_level = config("LOG_LEVEL", default="INFO")
 if not logging_level:
     logging_level = "INFO"
 logger.add(sys.stderr, level=logging_level)

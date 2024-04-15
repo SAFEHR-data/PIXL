@@ -18,7 +18,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any, Optional
 
-from core.uploader._secrets import AzureKeyVault
+from core.project_config.secrets import AzureKeyVault
 
 
 class Uploader(ABC):

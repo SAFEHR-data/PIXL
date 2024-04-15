@@ -288,7 +288,7 @@ def test_can_nifti_convert_post_anonymisation(
     # Get test DICOMs from the fixture, anonymise and save
     for dcm_path in directory_of_mri_dicoms.glob("*.dcm"):
         dcm = pydicom.dcmread(dcm_path)
-        _anonymise_dicom_from_scheme(dcm, tag_scheme)
+        _anonymise_dicom_from_scheme(dcm, TEST_PROJECT_SLUG, tag_scheme)
         pydicom.dcmwrite(anon_dicom_dir / dcm_path.name, dcm)
 
     # Convert the anonymised DICOMs to NIFTI with dcm2niix
@@ -407,7 +407,7 @@ def test_del_tag_keep_sq(sequenced_dicom):
     ]
 
     ## ACT
-    _anonymise_dicom_from_scheme(sequenced_dicom, tag_scheme)
+    _anonymise_dicom_from_scheme(sequenced_dicom, TEST_PROJECT_SLUG, tag_scheme)
 
     ## ASSERT
     # Check that the sequence tag has been kept
@@ -457,7 +457,7 @@ def test_keep_tag_del_sq(sequenced_dicom):
     ]
 
     ## ACT
-    _anonymise_dicom_from_scheme(sequenced_dicom, tag_scheme)
+    _anonymise_dicom_from_scheme(sequenced_dicom, TEST_PROJECT_SLUG, tag_scheme)
 
     ## ASSERT
     # Check that the sequence tag has been deleted

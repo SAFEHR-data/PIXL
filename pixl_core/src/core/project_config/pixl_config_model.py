@@ -20,8 +20,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Optional
 
-import yaml
-from decouple import Config, RepositoryEmpty, RepositoryEnv
+import yaml  # type: ignore [import-untyped]
+from decouple import Config, RepositoryEmpty, RepositoryEnv  # type: ignore [import-untyped]
 from loguru import logger
 from pydantic import BaseModel, field_validator
 
@@ -30,7 +30,6 @@ from core.exceptions import PixlDiscardError
 # Make sure local .env file is loaded if it exists
 env_file = Path.cwd() / ".env"
 config = Config(RepositoryEnv(env_file)) if env_file.exists() else Config(RepositoryEmpty())
-PROJECT_CONFIGS_DIR = Path(config("PROJECT_CONFIGS_DIR"))
 
 
 def load_project_config(project_slug: str) -> PixlConfig | Any:
@@ -38,7 +37,7 @@ def load_project_config(project_slug: str) -> PixlConfig | Any:
     Load configuration for a project based on its slug.
     Project needs to have a corresponding yaml file in the `$PROJECT_CONFIGS_DIR` directory.
     """
-    configpath = PROJECT_CONFIGS_DIR / f"{project_slug}.yaml"
+    configpath = Path(config("PROJECT_CONFIGS_DIR")) / f"{project_slug}.yaml"
     logger.debug("Loading config for {} from {}", project_slug, configpath)
     try:
         return _load_and_validate(configpath)
@@ -77,7 +76,8 @@ class TagOperationFiles(BaseModel):
 
         # Pydantic does not appear to automatically check if the file exists
         files = [
-            PROJECT_CONFIGS_DIR / "tag-operations" / tag_ops_file for tag_ops_file in tag_ops_files
+            Path(config("PROJECT_CONFIGS_DIR")) / "tag-operations" / tag_ops_file
+            for tag_ops_file in tag_ops_files
         ]
         for f in files:
             if not f.exists():
@@ -91,7 +91,7 @@ class TagOperationFiles(BaseModel):
         if not tags_file:
             return None
 
-        tags_file_path = PROJECT_CONFIGS_DIR / "tag-operations" / tags_file
+        tags_file_path = Path(config("PROJECT_CONFIGS_DIR")) / "tag-operations" / tags_file
         # Pydantic does not appear to automatically check if the file exists
         if not tags_file_path.exists():
             # For pydantic, you must raise a ValueError (or AssertionError)

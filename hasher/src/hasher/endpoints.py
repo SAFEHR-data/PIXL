@@ -18,7 +18,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 from starlette.responses import Response
 
-from hasher.hashing import generate_hash, generate_salt
+from hasher.hashing import Hasher
 
 router = APIRouter()
 
@@ -32,29 +32,11 @@ async def heart_beat() -> str:
     "/hash",
     summary="Produce secure hash with optional max output length (2 <= length <= 64)",
 )
-async def hash(message: str, length: int = 64) -> Response:  # noqa: A001
-    output = generate_hash(message, length)
+async def hash(  # noqa: A001
+    project_slug: str,
+    message: str,
+    length: int = 64,
+) -> Response:
+    hasher = Hasher(project_slug)
+    output = hasher.generate_hash(message, length)
     return Response(content=output, media_type="application/text")
-
-
-@router.get("/salt", summary="Generate a salt of length (2 <= length <= 16)")
-async def salt(length: int = 16) -> Response:
-    output = generate_salt(length)
-    return Response(content=output, media_type="application/text")
-
-
-@router.get(
-    "/hash-accession-number",
-    summary="Produce secure hash appropriate for an accession number",
-)
-async def hash_accession_number(message: str) -> Response:
-    truncated_output = generate_hash(message, 64)[:16]
-    return Response(content=truncated_output, media_type="application/text")
-
-
-@router.get(
-    "/hash-mrn",
-    summary="Produce secure hash appropriate for an patient identifier (MRN)",
-)
-async def hash_mrn(message: str) -> Response:
-    return Response(content=generate_hash(message, 64), media_type="application/text")

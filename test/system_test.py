@@ -91,13 +91,13 @@ class TestFtpsUpload:
             progress_string_fn=zip_file_list,
         )
         expected_studies = {
-            "a971b114b9133c81c03fb88c6a958f7d95eb1387f04c17ad7ff9ba7cf684c392": {
+            "d40f0639105babcdec043f1acf7330a8ebd64e64f13f7d0d4745f0135ddee0cd": {
                 # tuple made up of (AccessionNumber, SeriesDescription)
                 # hash of AA12345601
                 ("ANONYMIZED", "include123"),
                 ("ANONYMIZED", "AP"),
             },
-            "f71b228fa97d6c87db751e0bb35605fd9d4c1274834be4bc4bb0923ab8029b2a": {
+            "7ff25b0b438d23a31db984f49b0d6ca272104eb3d20c82f30e392cff5446a9c3": {
                 # hash of AA12345605,
                 ("ANONYMIZED", "include123"),
             },

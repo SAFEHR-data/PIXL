@@ -15,23 +15,22 @@
 
 from __future__ import annotations
 
-import logging
+import sys
 
+from decouple import config  # type: ignore [import-untyped]
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from loguru import logger
 
-from . import __version__, icon, settings
-from .endpoints import router
-
-logger = logging.getLogger(__name__)
-
+from hasher import __version__, icon
+from hasher.endpoints import router
 
 app = FastAPI(
     title="hasher-api",
     description=f"{icon} Secure Hashing Service ",
     version=__version__,
-    debug=settings.DEBUG,
+    debug=config("DEBUG", default=True),
     default_response_class=JSONResponse,
 )
 
@@ -45,7 +44,13 @@ app.add_middleware(
 
 app.include_router(router)
 
+# Set up logging as main entry point
+logger.remove()  # Remove all handlers added so far, including the default one.
+logging_level = config("LOG_LEVEL", default="INFO")
+if not logging_level:
+    logging_level = "INFO"
+logger.add(sys.stderr, level=logging_level)
 
-logger.info("Starting %s hasher-api %i...", icon, __version__)
-if settings.DEBUG:
-    settings.dump_settings()
+logger.warning("Running logging at level {}", logging_level)
+
+logger.info("Starting {} hasher-api {}...", icon, __version__)

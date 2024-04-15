@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 
 import requests
+import slugify
 
 if TYPE_CHECKING:
     from datetime import date, datetime
@@ -168,11 +169,11 @@ class PatientEHRData:
         if self.report_text is not None:
             self.report_text = deidentify_text(self.report_text)
 
-        self.mrn = pixl_hash(self.mrn, endpoint_path="hash-mrn")
-        self.accession_number = pixl_hash(
-            self.accession_number, endpoint_path="hash-accession-number"
-        )
-        self.image_identifier = pixl_hash(self.image_identifier, endpoint_path="hash")
+        project_slug = slugify.slugify(self.project_name)
+        self.mrn = pixl_hash(self.mrn, project_slug)
+        # Hashed accession number needs to be truncated
+        self.accession_number = pixl_hash(self.accession_number, project_slug)[:16]
+        self.image_identifier = pixl_hash(self.image_identifier, project_slug)
         self.acquisition_date = None
 
         return self
@@ -211,11 +212,16 @@ class ProcessingPipeline:
         self.steps = steps
 
 
-def pixl_hash(string: str, endpoint_path: str) -> str:
+def pixl_hash(string: str, project_slug: str, hash_length: int = 64) -> str:
     """Use the PIXL hashing API to hash a string"""
+    request_params: dict[str, str | int] = {
+        "project_slug": project_slug,
+        "message": string,
+        "length": hash_length,
+    }
     response = requests.get(
-        f"http://hasher-api:8000/{endpoint_path.lstrip('/')}",
-        params={"message": string},
+        "http://hasher-api:8000/hash",
+        params=request_params,
         timeout=10,
     )
     success_code = 200
