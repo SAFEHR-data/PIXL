@@ -23,7 +23,6 @@ from decouple import config
 logger = logging.getLogger("uvicorn")
 
 if TYPE_CHECKING:
-    from pixl_ehr._processing import PatientEHRData
     from pixl_ehr._queries import SQLQuery
 
 
@@ -71,20 +70,6 @@ class WriteableDatabase(Database):
         self._connection.commit()
 
 
-class EMAPStar(QueryableDatabase):
-    def __init__(self) -> None:
-        super().__init__(
-            db_name=config("EMAP_UDS_NAME"),
-            username=config("EMAP_UDS_USER"),
-            password=config("EMAP_UDS_PASSWORD"),
-            host=config("EMAP_UDS_HOST"),
-            port=config("EMAP_UDS_PORT", int),
-        )
-
-    def __repr__(self) -> str:
-        return "EMAPStarDatabase"
-
-
 class PIXLDatabase(WriteableDatabase, QueryableDatabase):
     def __init__(self) -> None:
         super().__init__(
@@ -104,9 +89,3 @@ class PIXLDatabase(WriteableDatabase, QueryableDatabase):
 
         with Path(filename, "w").open() as file:
             self._cursor.copy_expert(query, file)
-
-    def contains(self, data: PatientEHRData) -> bool:
-        """Does the database contain a set of data already?"""
-        query = "SELECT * FROM emap_data.ehr_raw WHERE mrn = %s and accession_number = %s"
-        self._cursor.execute(query=str(query), vars=[data.mrn, data.accession_number])
-        return self._cursor.fetchone() is not None

@@ -142,27 +142,3 @@ class TestFtpsUpload:
                 assert private_tag.value == TestFtpsUpload.project_slug
         # check the basic info about the instances exactly matches
         assert actual_instances == expected_instances
-
-
-@pytest.mark.usefixtures("_setup_pixl_cli")
-def test_ehr_anon_entries() -> None:
-    """Check data has reached ehr_anon."""
-
-    def exists_two_rows() -> bool:
-        # This was converted from old shell script - better to check more than just row count?
-        sql_command = "select * from emap_data.ehr_anon"
-        cp = run_subprocess(
-            [
-                "docker",
-                "exec",
-                "system-test-postgres-1",
-                "/bin/bash",
-                "-c",
-                f'PGPASSWORD=pixl_db_password psql -U pixl_db_username -d pixl -c "{sql_command}"',
-            ],
-            Path.cwd(),
-        )
-        return bool(cp.stdout.decode().find("(2 rows)") != -1)
-
-    # We already waited in _setup_pixl_cli, so should be true immediately.
-    wait_for_condition(exists_two_rows)

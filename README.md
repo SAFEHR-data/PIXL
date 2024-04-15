@@ -126,11 +126,6 @@ The maximum storage size of the `orthanc-raw` instance can be configured through
 the specified value (in MB). When the storage is full [Orthanc will automatically recycle older
 studies in favour of new ones](https://orthanc.uclouvain.be/book/faq/features.html#id8).
 
-#### CogStack URL
-
-For the deidentification of the EHR extracts, we rely on an instance running the
-[CogStack API](https://cogstack.org/) with a `/redact` endpoint. The URL of this instance should be
-set in `.env` as `COGSTACK_REDACT_URL`.
 
 ### 3. Configure a new project
 

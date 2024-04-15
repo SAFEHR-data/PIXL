@@ -15,7 +15,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import importlib.metadata
 import logging
 from datetime import (
@@ -26,9 +25,8 @@ from pathlib import Path
 from azure.identity import EnvironmentCredential
 from azure.storage.blob import BlobServiceClient
 from core.exports import ParquetExport
-from core.patient_queue import PixlConsumer
 from core.project_config import load_project_config
-from core.rest_api.router import router, state
+from core.rest_api.router import router
 from core.uploader import get_uploader
 from decouple import config
 from fastapi import FastAPI, HTTPException
@@ -37,7 +35,6 @@ from pydantic import BaseModel
 
 from ._databases import PIXLDatabase
 from ._orthanc import get_study_zip_archive, get_tags_by_study
-from ._processing import process_message
 
 QUEUE_NAME = "ehr"
 
@@ -50,24 +47,6 @@ app = FastAPI(
 app.include_router(router)
 
 logger = logging.getLogger("uvicorn")
-
-
-@app.on_event("startup")
-async def startup_event() -> None:
-    """
-    task create: the coroutine submitted to run "in the background",
-    i.e. concurrently with the current task and all other tasks,
-    switching between them at await points
-    the task is consumer.run and the callback is _processing.process_message
-    """
-    background_tasks = set()
-    async with PixlConsumer(
-        QUEUE_NAME, token_bucket=state.token_bucket, callback=process_message
-    ) as consumer:
-        task = asyncio.create_task(consumer.run())
-        background_tasks.add(task)
-        task.add_done_callback(background_tasks.discard)
-
 
 # Export root dir from inside the EHR container.
 # For the view from outside, see pixl_cli/_io.py: HOST_EXPORT_ROOT_DIR
