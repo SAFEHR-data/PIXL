@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING, Any
 import aio_pika
 from decouple import config
 
-from core.exceptions import PixlRequeueMessageError, PixlSkipMessageError
+from core.exceptions import PixlDiscardError, PixlRequeueMessageError
 from core.patient_queue._base import PixlBlockingInterface, PixlQueueInterface
 from core.patient_queue.message import deserialise
 
@@ -85,7 +85,7 @@ class PixlConsumer(PixlQueueInterface):
             logger.trace("Requeue message: {} from {}", pixl_message.identifier, requeue)
             await asyncio.sleep(1)
             await message.reject(requeue=True)
-        except PixlSkipMessageError as exception:
+        except PixlDiscardError as exception:
             logger.warning("Failed message {}: {}", pixl_message.identifier, exception)
             await (
                 message.ack()

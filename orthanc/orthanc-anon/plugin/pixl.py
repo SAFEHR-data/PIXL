@@ -22,8 +22,8 @@ This module:
 from __future__ import annotations
 
 import json
-import logging
 import os
+import sys
 import threading
 import traceback
 from io import BytesIO
@@ -31,8 +31,9 @@ from time import sleep
 from typing import TYPE_CHECKING, cast
 
 import requests
-from core.exceptions import PixlSkipMessageError
+from core.exceptions import PixlDiscardError
 from decouple import config
+from loguru import logger
 from pydicom import dcmread
 
 import orthanc
@@ -41,13 +42,20 @@ from pixl_dcmd.main import anonymise_dicom, should_exclude_series, write_dataset
 if TYPE_CHECKING:
     from typing import Any
 
-logger = logging.getLogger(__name__)
-
 ORTHANC_USERNAME = config("ORTHANC_USERNAME")
 ORTHANC_PASSWORD = config("ORTHANC_PASSWORD")
 ORTHANC_URL = "http://localhost:8042"
 
 EXPORT_API_URL = "http://export-api:8000"
+
+# Set up logging as main entry point
+logger.remove()  # Remove all handlers added so far, including the default one.
+logging_level = config("LOG_LEVEL")
+if not logging_level:
+    logging_level = "INFO"
+logger.add(sys.stdout, level=logging_level)
+
+logger.warning("Running logging at level {}", logging_level)
 
 
 def AzureAccessToken() -> str:
@@ -247,9 +255,9 @@ def ReceivedInstanceCallback(receivedDicom: bytes, origin: str) -> Any:
 
     # Attempt to anonymise and drop the study if any exceptions occur
     try:
-        dataset = anonymise_dicom(dataset)
+        anonymise_dicom(dataset)
         return orthanc.ReceivedInstanceAction.MODIFY, write_dataset_to_bytes(dataset)
-    except PixlSkipMessageError as error:
+    except PixlDiscardError as error:
         logger.debug("Skipping instance: %s", error)
         return orthanc.ReceivedInstanceAction.DISCARD, None
     except Exception:  # noqa: BLE001
