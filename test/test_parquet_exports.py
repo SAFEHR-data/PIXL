@@ -72,7 +72,7 @@ def test_radiology_parquet(host_export_root_dir: Path) -> None:
     # blake2b-256 hash of string ('987654321' + 'AA12345601') with key = 'test_key'
     assert (
         row_po_4.image_identifier
-        == "a971b114b9133c81c03fb88c6a958f7d95eb1387f04c17ad7ff9ba7cf684c392"
+        == "d40f0639105babcdec043f1acf7330a8ebd64e64f13f7d0d4745f0135ddee0cd"
     )
 
     assert row_po_5.image_report == "this is a radiology report 2" + DE_ID_SUFFIX
@@ -80,7 +80,7 @@ def test_radiology_parquet(host_export_root_dir: Path) -> None:
     # blake2b-256 hash of string ('987654321' + 'AA12345605') with key = 'test_key'
     assert (
         row_po_5.image_identifier
-        == "f71b228fa97d6c87db751e0bb35605fd9d4c1274834be4bc4bb0923ab8029b2a"
+        == "7ff25b0b438d23a31db984f49b0d6ca272104eb3d20c82f30e392cff5446a9c3"
     )
 
     # Files must not be owned by root - they'll be hard to delete and we shouldn't be running our
