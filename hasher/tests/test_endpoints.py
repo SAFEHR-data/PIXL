@@ -41,30 +41,3 @@ def test_hash_endpoint_with_custom_length():
     expected = "b721eef65328a79c"
     assert response.status_code == 200
     assert response.text == expected
-
-
-def test_overriding_salt():
-    """Test the hash endpoint with the override_salt parameter set to True."""
-    # Initial response, with existing salt
-    response = client.get(
-        "/hash",
-        params={
-            "project_slug": TEST_PROJECT_SLUG,
-            "message": "test",
-            "length": 16,
-        },
-    )
-
-    # New response, with different salt length and override_salt set to True
-    response2 = client.get(
-        "/hash",
-        params={
-            "project_slug": TEST_PROJECT_SLUG,
-            "message": "test",
-            "length": 16,
-            "salt_length": 32,
-            "override_salt": True,
-        },
-    )
-    assert response2.status_code == 200
-    assert response.text != response2.text

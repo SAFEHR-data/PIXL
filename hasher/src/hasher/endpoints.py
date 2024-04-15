@@ -36,12 +36,7 @@ async def hash(  # noqa: A001
     project_slug: str,
     message: str,
     length: int = 64,
-    *,
-    salt_length: int = 16,
-    override_salt: bool = False,
 ) -> Response:
     hasher = Hasher(project_slug)
-    output = hasher.generate_hash(
-        message, length, salt_length=salt_length, override_salt=override_salt
-    )
+    output = hasher.generate_hash(message, length)
     return Response(content=output, media_type="application/text")

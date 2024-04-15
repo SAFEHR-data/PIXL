@@ -45,9 +45,7 @@ class Hasher:
         self.project_slug = project_slug
         self.keyvault = AzureKeyVault()
 
-    def generate_hash(
-        self, message: str, length: int = 64, *, salt_length: int = 16, override_salt: bool = False
-    ) -> str:
+    def generate_hash(self, message: str, length: int = 64) -> str:
         """
         Generate a keyed hash digest from the message using Blake2b algorithm.
         The Azure DICOM service requires identifiers to be less than 64 characters.
@@ -72,18 +70,26 @@ class Hasher:
         key = self.keyvault.fetch_secret(config("AZURE_KEY_VAULT_SECRET_NAME"))
 
         # Apply salt from the keyvault and local salt if it exists
-        message += self._get_or_create_salt(length=salt_length, override=override_salt)
+        message += self._get_or_create_salt()
         message += config("LOCAL_SALT_VALUE", default="")
 
         return blake2b(
             message.encode("UTF-8"), digest_size=output_bytes, key=key.encode("UTF-8")
         ).hexdigest()
 
-    def _get_or_create_salt(self, length: int = 16, *, override: bool) -> str:
+    def create_salt(self, length: int = 16) -> str:
+        """
+        Create a new salt for the given project and store it in the Azure Key Vault instance.
+        :param length: number of characters for the salt, should be between 2 and 64
+        """
+        salt = _generate_salt(length)
+        self.keyvault.create_secret(self.project_slug, salt)
+        return salt
+
+    def _get_or_create_salt(self, length: int = 16) -> str:
         """
         Fetch the salt for a specific project to use in hashing from the Azure Key Vault instance
         :param project_name: the name of the project to fetch the salt for
-        :param length: number of characters for the salt, should be between 2 and 64
         :return: salt
         """
         try:
@@ -91,15 +97,7 @@ class Hasher:
 
         except ValueError:
             logger.info("No existing salt for project {}, generating a new one.", self.project_slug)
-            salt = _generate_salt(length)
-            self.keyvault.create_secret(self.project_slug, salt)
-
-        if override and len(salt) != length:
-            logger.warning(
-                "Existing salt for {} is of different length. Regenerating.", self.project_slug
-            )
-            salt = _generate_salt(length)
-            self.keyvault.create_secret(self.project_slug, salt)
+            salt = self.create_salt(length)
 
         return salt
 

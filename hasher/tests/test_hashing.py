@@ -14,7 +14,7 @@
 from __future__ import annotations
 
 import pytest
-from hasher.hashing import Hasher, _generate_salt  # type: ignore [import-untyped]
+from hasher.hashing import Hasher  # type: ignore [import-untyped]
 
 TEST_MIN_LENGTHS = range(-10, 1)
 TEST_MAX_LENGTHS = range(65, 100)
@@ -65,24 +65,24 @@ def test_generate_hash_output_length(message, length, mock_hasher):
 
 
 @pytest.mark.parametrize("length", TEST_MIN_LENGTHS)
-def test_generate_salt_enforces_min_length(length):
+def test_generate_salt_enforces_min_length(mock_hasher, length):
     with pytest.raises(ValueError, match="Minimum salt length is 2"):
-        _generate_salt(length)
+        mock_hasher.create_salt(length)
 
 
 @pytest.mark.parametrize("length", TEST_MAX_LENGTHS)
-def test_generate_salt_enforces_max_length(length):
+def test_generate_salt_enforces_max_length(mock_hasher, length):
     with pytest.raises(ValueError, match="Maximum salt length is 64"):
-        _generate_salt(length)
+        mock_hasher.create_salt(length)
 
 
-def test_generate_salt_of_specific_length():
+def test_generate_salt_of_specific_length(mock_hasher):
     length = 9
-    salt = _generate_salt(length)
+    salt = mock_hasher.create_salt(length)
     assert len(salt) <= length
 
 
-def test_generate_salt_produces_unique_outputs():
-    salt_1 = _generate_salt()
-    salt_2 = _generate_salt()
+def test_generate_salt_produces_unique_outputs(mock_hasher):
+    salt_1 = mock_hasher.create_salt()
+    salt_2 = mock_hasher.create_salt()
     assert salt_1 != salt_2
