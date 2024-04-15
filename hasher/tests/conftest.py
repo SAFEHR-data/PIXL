@@ -18,6 +18,7 @@ import os
 import pytest
 
 os.environ["ENV"] = "test"
+os.environ["LOG_LEVEL"] = "DEBUG"
 os.environ["AZURE_KEY_VAULT_SECRET_NAME"] = "test-key"  # noqa: S105, hardcoded secret
 os.environ["LOCAL_SALT_VALUE"] = "pixl_salt"
 
