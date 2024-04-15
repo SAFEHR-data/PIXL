@@ -22,18 +22,14 @@ from datetime import (
 )
 from pathlib import Path
 
-from azure.identity import EnvironmentCredential
-from azure.storage.blob import BlobServiceClient
 from core.exports import ParquetExport
 from core.project_config import load_project_config
 from core.rest_api.router import router
 from core.uploader import get_uploader
-from decouple import config
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from ._databases import PIXLDatabase
 from ._orthanc import get_study_zip_archive, get_tags_by_study
 
 app = FastAPI(
@@ -112,46 +108,3 @@ def export_dicom_from_orthanc(study_data: StudyData) -> None:
     logger.debug(msg)
     zip_content = get_study_zip_archive(study_id)
     uploader.upload_dicom_image(zip_content, hashed_image_id, project_slug)
-
-
-@app.get(
-    "/az-copy-current",
-    summary="Copy the current state of the PIXL anon EHR schema to azure",
-)
-async def az_copy_current(csv_filename: str = "extract.csv") -> None:
-    """
-    Copy the current state of the PIXL anon EHR schema to azure
-    Args:
-        csv_filename (str, optional): _description_. Defaults to "extract.csv".
-    """
-    logger.info("Copying current state of anon schema to azure")
-
-    PIXLDatabase().to_csv(schema_name="emap_data", table_name="ehr_anon", filename=csv_filename)
-    logger.debug("Saved temporary .csv (%s)", csv_filename)
-
-    blob_service_client = BlobServiceClient(
-        account_url=_storage_account_url(),
-        credential=EnvironmentCredential(),
-    )
-    logger.debug("Have blob client for %s", config("AZ_STORAGE_ACCOUNT_NAME"))
-
-    # Create a blob client using the local file name as the name for the blob
-    blob_client = blob_service_client.get_blob_client(
-        container=config("AZ_STORAGE_CONTAINER_NAME"), blob=csv_filename
-    )
-
-    logger.info(
-        "Uploading to Azure Storage as blob: %s/%s",
-        config("AZ_STORAGE_CONTAINER_NAME"),
-        csv_filename,
-    )
-
-    with Path(file=csv_filename, mode="rb").open() as data:  # noqa: ASYNC101
-        blob_client.upload_blob(data)
-
-    logger.info("Uploaded successfully!")
-
-
-def _storage_account_url() -> str:
-    """Provides the storage account url"""
-    return f"https://{config('AZ_STORAGE_ACCOUNT_NAME')}.blob.core.windows.net"

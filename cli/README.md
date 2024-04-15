@@ -121,7 +121,6 @@ Options:
   --help                Show this message and exit.
 
 Commands:
-  az-copy-ehr                Copy the EHR data to azure
   extract-radiology-reports  Export processed radiology reports to...
   kill                       Stop all the PIXL services
   populate                   Populate a (set of) queue(s) from a parquet...
