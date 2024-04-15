@@ -155,6 +155,7 @@ def _secure_hash(dataset: Dataset, tag: tuple, mrn: str, accession_number: str) 
     """
     grp = tag[0]
     el = tag[1]
+    project_slug = get_project_name_as_string(dataset)
 
     if tag in dataset:
         message = f"Securely hashing: (0x{grp:04x},0x{el:04x})"
@@ -162,14 +163,14 @@ def _secure_hash(dataset: Dataset, tag: tuple, mrn: str, accession_number: str) 
         if grp == 0x0010 and el == 0x0020:  # Patient ID
             pat_value = mrn + accession_number
 
-            hashed_value = _hash_values(pat_value)
+            hashed_value = _hash_values(pat_value, project_slug)
             # Query PIXL database
             existing_image = query_db(mrn, accession_number)
             # Insert the hashed_value into the PIXL database
             add_hashed_identifier_and_save_to_db(existing_image, hashed_value)
         elif dataset[grp, el].VR == "SH":
             pat_value = str(dataset[grp, el].value)
-            hashed_value = _hash_values(pat_value, 16)
+            hashed_value = _hash_values(pat_value, project_slug, hash_len=16)
 
         dataset[grp, el].value = hashed_value
 
@@ -178,7 +179,7 @@ def _secure_hash(dataset: Dataset, tag: tuple, mrn: str, accession_number: str) 
         logger.warning(f"\t{message}")
 
 
-def _hash_values(pat_value: str, hash_len: int = 0) -> str:
+def _hash_values(pat_value: str, project_slug: str, hash_len: int = 0) -> str:
     """
     Utility function for hashing values using the hasher API.
     """
@@ -187,9 +188,14 @@ def _hash_values(pat_value: str, hash_len: int = 0) -> str:
     hasher_req_url = (
         f"http://{HASHER_API_AZ_NAME}:{HASHER_API_PORT}/hash?message={pat_value}"
     )
+    request_params: dict[str, str | int] = {
+        "project_slug": project_slug,
+        "message": pat_value,
+    }
     if hash_len:
-        hasher_req_url += f"&length={hash_len}"
-    response = requests.get(hasher_req_url)
+        request_params["length"] = hash_len
+
+    response = requests.get(hasher_req_url, params=request_params)
     logger.debug("RESPONSE = %s}" % response.text)
     return response.text
 
