@@ -38,10 +38,26 @@ async def process_message(message: Message) -> None:
 
     study = ImagingStudy.from_message(message)
     orthanc_raw = PIXLRawOrthanc()
+    try:
+        await _process_message(study, orthanc_raw)
+    except PixlDiscardError:
+        # if a message has failed mid-transfer, can have partial study in orthanc-raw
+        # delete this so that it doesn't become stable and is exported
+        studies_to_delete = await orthanc_raw.query_local(study.orthanc_query_dict)
+        for study_to_delete in studies_to_delete:
+            logger.debug(
+                "Deleting study '{}' from message {}", study_to_delete, study.message.identifier
+            )
+            await orthanc_raw.delete(f"/studies/{study_to_delete}")
+        raise
 
+
+async def _process_message(study: ImagingStudy, orthanc_raw: PIXLRawOrthanc) -> None:
     await orthanc_raw.raise_if_pending_jobs()
 
-    study_exists = await _update_or_resend_existing_study_(message.project_name, orthanc_raw, study)
+    study_exists = await _update_or_resend_existing_study_(
+        study.message.project_name, orthanc_raw, study
+    )
     if study_exists:
         return
 
@@ -52,7 +68,7 @@ async def process_message(message: Message) -> None:
     # Now that instance has arrived in orthanc raw, we can set its project name tag via the API
     studies = await orthanc_raw.query_local(study.orthanc_query_dict)
     logger.debug("Local instances for study: {}", studies)
-    await _add_project_to_study(message.project_name, orthanc_raw, studies)
+    await _add_project_to_study(study.message.project_name, orthanc_raw, studies)
 
     return
 
