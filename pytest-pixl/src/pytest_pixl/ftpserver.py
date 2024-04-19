@@ -13,16 +13,13 @@
 #  limitations under the License.
 """A ligthweight FTPS server supporting implicit SSL for use in PIXL tests."""
 
-import logging
 from pathlib import Path
 
 from decouple import config
+from loguru import logger
 from pyftpdlib.authorizers import DummyAuthorizer
 from pyftpdlib.handlers import TLS_FTPHandler
 from pyftpdlib.servers import ThreadedFTPServer
-
-logger = logging.getLogger(__name__)
-logger.setLevel("INFO")
 
 # User permission
 # from https://pyftpdlib.readthedocs.io/en/latest/api.html#pyftpdlib.authorizers.DummyAuthorizer.add_user
@@ -121,8 +118,8 @@ class PixlFTPServer:
         # Make sure we have access to the SSL certificates
         certfile_path = Path(self.certfile)
         keyfile_path = Path(self.keyfile)
-        assert certfile_path.exists(), f"Could not find cerfile at {certfile_path.absolute()}"
-        assert keyfile_path.exists(), f"Could not find cerfile at {keyfile_path.absolute()}"
+        assert certfile_path.exists(), f"Could not find certfile at {certfile_path.absolute()}"
+        assert keyfile_path.exists(), f"Could not find keyfile at {keyfile_path.absolute()}"
 
     def _create_server(self) -> ThreadedFTPServer:
         """
@@ -130,6 +127,6 @@ class PixlFTPServer:
         method.
         """
         address = (self.host, self.port)
-        logger.info("Starting FTP server on %s:%d", self.host, self.port)
+        logger.info("Starting FTP server on {}:{}", self.host, self.port)
         self.server = ThreadedFTPServer(address, self.handler)
         return self.server

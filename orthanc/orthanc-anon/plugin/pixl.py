@@ -171,7 +171,7 @@ def _get_study_zip_archive(resourceId: str) -> BytesIO:
     response_study = _query(resourceId, query, fail_msg)
 
     # get the zip content
-    logger.debug("Downloaded data for resource %s", resourceId)
+    logger.debug("Downloaded data for resource {}", resourceId)
     return BytesIO(response_study.content)
 
 
@@ -188,7 +188,7 @@ def SendViaStow(resourceId):
 
     payload = {"Resources": [resourceId], "Synchronous": False}
 
-    logger.debug("Payload: %s", payload)
+    logger.debug("Payload: {}", payload)
 
     try:
         requests.post(
@@ -227,7 +227,7 @@ def _query(resourceId: str, query: str, fail_msg: str) -> requests.Response:
         if response.status_code != success_code:
             raise RuntimeError(fail_msg, resourceId)
     except requests.exceptions.RequestException:
-        logger.exception("Failed to query '%s'", resourceId)
+        logger.exception("Failed to query '{}'", resourceId)
     else:
         return response
 
@@ -300,7 +300,7 @@ def ReceivedInstanceCallback(receivedDicom: bytes, origin: str) -> Any:
         anonymise_dicom(dataset)
         return orthanc.ReceivedInstanceAction.MODIFY, write_dataset_to_bytes(dataset)
     except PixlDiscardError as error:
-        logger.debug("Skipping instance: %s", error)
+        logger.debug("Skipping instance: {}", error)
         return orthanc.ReceivedInstanceAction.DISCARD, None
     except Exception:  # noqa: BLE001
         orthanc.LogError("Failed to anonymize instance due to\n" + traceback.format_exc())

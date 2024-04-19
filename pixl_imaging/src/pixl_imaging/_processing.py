@@ -45,7 +45,7 @@ async def process_message(message: Message) -> None:
         # delete this so that it doesn't become stable and is exported
         studies_to_delete = await orthanc_raw.query_local(study.orthanc_query_dict)
         for study_to_delete in studies_to_delete:
-            logger.debug(
+            logger.info(
                 "Deleting study '{}' from message {}", study_to_delete, study.message.identifier
             )
             await orthanc_raw.delete(f"/studies/{study_to_delete}")
