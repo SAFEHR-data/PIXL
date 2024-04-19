@@ -13,11 +13,12 @@
 #  limitations under the License.
 from __future__ import annotations
 
-import pytest
 from fastapi.testclient import TestClient
-from hasher.main import app
+from hasher.main import app  # type: ignore [import-untyped]
 
 client = TestClient(app)
+
+TEST_PROJECT_SLUG = "test_project_slug"
 
 
 def test_heart_beat_endpoint():
@@ -26,48 +27,17 @@ def test_heart_beat_endpoint():
     assert response.json() == "OK"
 
 
-@pytest.mark.usefixtures("_dummy_key")
 def test_hash_endpoint_with_default_length():
-    response = client.get("/hash", params={"message": "test"})
-    expected = "270426312ab76c2f0df60b6cef3d14aab6bc17219f1a76e63edf88a8f705c17a"
+    response = client.get("/hash", params={"project_slug": TEST_PROJECT_SLUG, "message": "test"})
+    expected = "cc8ab6f3e63235b45f3d00cbc4873efac59bf15cec4bdffd461882d57dfc010f"
     assert response.status_code == 200
     assert response.text == expected
 
 
-@pytest.mark.usefixtures("_dummy_key")
 def test_hash_endpoint_with_custom_length():
-    response = client.get("/hash", params={"message": "test", "length": 16})
-    expected = "b88ea642703eed33"
+    response = client.get(
+        "/hash", params={"project_slug": TEST_PROJECT_SLUG, "message": "test", "length": 16}
+    )
+    expected = "b721eef65328a79c"
     assert response.status_code == 200
     assert response.text == expected
-
-
-def test_salt_endpoint_with_default_length():
-    response = client.get("/salt")
-    assert response.status_code == 200
-    assert len(response.text) == 16
-
-
-def test_salt_endpoint_with_custom_length():
-    response = client.get("/salt", params={"length": 8})
-    assert response.status_code == 200
-    assert len(response.text) == 8
-
-
-def test_accession_number_endpoint_returns_dicom_compatible_hash():
-    """
-    Accession number/study ID is a short string (at most 16 characters). See:
-    https://dicom.innolitics.com/ciods/12-lead-ecg/general-study/00200010
-    https://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html
-    """
-    response = client.get("/hash-accession-number", params={"message": "test_accession_number"})
-    assert len(response.text) <= 16
-
-
-def test_mrn_endpoint_returns_dicom_compatible_hash():
-    """
-    Patient identifier can be a long string. See:
-    https://dicom.innolitics.com/ciods/rt-plan/patient/00101002/00100020
-    """
-    response = client.get("/hash-mrn", params={"message": "test_mrn"})
-    assert len(response.text) <= 64

@@ -69,10 +69,10 @@ def anonymise_dicom(dataset: Dataset) -> None:
     - recursively applying tag operations based on the config file
     - deleting any tags not in the tag scheme recursively
     """
-    slug = get_project_name_as_string(dataset)
+    project_slug = get_project_name_as_string(dataset)
 
-    project_config = load_project_config(slug)
-    logger.debug(f"Received instance for project {slug}")
+    project_config = load_project_config(project_slug)
+    logger.debug(f"Received instance for project {project_slug}")
     if dataset.Modality not in project_config.project.modalities:
         msg = f"Dropping DICOM Modality: {dataset.Modality}"
         raise PixlDiscardError(msg)
@@ -96,16 +96,18 @@ def anonymise_dicom(dataset: Dataset) -> None:
 
     logger.info("Anonymising received instance")
 
-    _anonymise_dicom_from_scheme(dataset, tag_scheme)
+    _anonymise_dicom_from_scheme(dataset, project_slug, tag_scheme)
 
     enforce_whitelist(dataset, tag_scheme, recursive=True)
 
 
-def _anonymise_dicom_from_scheme(dataset: Dataset, tag_scheme: list[dict]) -> None:
+def _anonymise_dicom_from_scheme(
+    dataset: Dataset, project_slug: str, tag_scheme: list[dict]
+) -> None:
     """
     Converts tag scheme to tag actions and calls _anonymise_recursively.
     """
-    tag_actions = _convert_schema_to_actions(dataset, tag_scheme)
+    tag_actions = _convert_schema_to_actions(dataset, project_slug, tag_scheme)
     _anonymise_recursively(dataset, tag_actions)
 
 
@@ -123,7 +125,7 @@ def _anonymise_recursively(
 
 
 def _convert_schema_to_actions(
-    dataset: Dataset, tags_list: list[dict]
+    dataset: Dataset, project_slug: str, tags_list: list[dict]
 ) -> dict[tuple, Callable]:
     """
     Convert the tag schema to actions (funcitons) for the anonymiser.
@@ -132,7 +134,7 @@ def _convert_schema_to_actions(
     Accession Number, hence why the dataset is passed in as well.
     """
 
-    # Get the MRN and Accession Number before we've anonymised them
+    # Get the MRN, Accession Number before we've anonymised them
     mrn = dataset[0x0010, 0x0020].value  # Patient ID
     accession_number = dataset[0x0008, 0x0050].value  # Accession Number
 
@@ -141,7 +143,7 @@ def _convert_schema_to_actions(
         group_el = (tag["group"], tag["element"])
         if tag["op"] == "secure-hash":
             tag_actions[group_el] = lambda _dataset, _tag: _secure_hash(
-                _dataset, _tag, mrn, accession_number
+                _dataset, project_slug, _tag, mrn, accession_number
             )
             continue
         tag_actions[group_el] = actions_map_name_functions[tag["op"]]
@@ -149,7 +151,9 @@ def _convert_schema_to_actions(
     return tag_actions
 
 
-def _secure_hash(dataset: Dataset, tag: tuple, mrn: str, accession_number: str) -> None:
+def _secure_hash(
+    dataset: Dataset, project_slug: str, tag: tuple, mrn: str, accession_number: str
+) -> None:
     """
     Use the hasher API to consistently but securely hash ids later used for linking.
     """
@@ -162,14 +166,14 @@ def _secure_hash(dataset: Dataset, tag: tuple, mrn: str, accession_number: str) 
         if grp == 0x0010 and el == 0x0020:  # Patient ID
             pat_value = mrn + accession_number
 
-            hashed_value = _hash_values(pat_value)
+            hashed_value = _hash_values(pat_value, project_slug)
             # Query PIXL database
             existing_image = query_db(mrn, accession_number)
             # Insert the hashed_value into the PIXL database
             add_hashed_identifier_and_save_to_db(existing_image, hashed_value)
         elif dataset[grp, el].VR == "SH":
             pat_value = str(dataset[grp, el].value)
-            hashed_value = _hash_values(pat_value, 16)
+            hashed_value = _hash_values(pat_value, project_slug, hash_len=16)
 
         dataset[grp, el].value = hashed_value
 
@@ -178,18 +182,21 @@ def _secure_hash(dataset: Dataset, tag: tuple, mrn: str, accession_number: str) 
         logger.warning(f"\t{message}")
 
 
-def _hash_values(pat_value: str, hash_len: int = 0) -> str:
+def _hash_values(pat_value: str, project_slug: str, hash_len: int = 0) -> str:
     """
     Utility function for hashing values using the hasher API.
     """
     HASHER_API_AZ_NAME = config("HASHER_API_AZ_NAME")
     HASHER_API_PORT = config("HASHER_API_PORT")
-    hasher_req_url = (
-        f"http://{HASHER_API_AZ_NAME}:{HASHER_API_PORT}/hash?message={pat_value}"
-    )
+    hasher_req_url = f"http://{HASHER_API_AZ_NAME}:{HASHER_API_PORT}/hash"
+    request_params: dict[str, str | int] = {
+        "project_slug": project_slug,
+        "message": pat_value,
+    }
     if hash_len:
-        hasher_req_url += f"&length={hash_len}"
-    response = requests.get(hasher_req_url)
+        request_params["length"] = hash_len
+
+    response = requests.get(hasher_req_url, params=request_params)
     logger.debug("RESPONSE = %s}" % response.text)
     return response.text
 

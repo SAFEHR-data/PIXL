@@ -148,7 +148,7 @@ def db_session(db_engine) -> Session:
 
 
 class MockResponse(object):
-    def __init__(self, content: str):
+    def __init__(self, content: str) -> None:
         self.status_code = 200
         self.content = "-".join(list(content)).encode("utf-8")
         self.text = self.content.decode("utf-8")
@@ -159,8 +159,8 @@ class MockResponse(object):
 def mock_response(monkeypatch):
     """Requests.get() mocked to return MockedResponse built from input."""
 
-    def mock_get(input: str):
-        return MockResponse(input.split("=")[1])
+    def mock_get(input: str, params: dict):
+        return MockResponse(params["message"])
 
     monkeypatch.setattr(requests, "get", mock_get)
 

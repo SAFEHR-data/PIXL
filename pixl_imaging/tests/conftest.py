@@ -27,7 +27,7 @@ from pytest_pixl.helpers import run_subprocess
 logger = getLogger(__name__)
 
 os.environ["TEST"] = "true"
-os.environ["LOGLEVEL"] = "DEBUG"
+os.environ["LOG_LEVEL"] = "DEBUG"
 os.environ["RABBITMQ_PASSWORD"] = "guest"
 os.environ["RABBITMQ_USERNAME"] = "guest"
 os.environ["RABBITMQ_HOST"] = "queue"

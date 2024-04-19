@@ -98,10 +98,6 @@ cp .env.sample .env
 
 Add the missing configuration values to the new files:
 
-#### Environment
-
-Set `ENV` to `<environment>`.
-
 #### Credentials
 
 - `EMAP_DB_`*
@@ -191,22 +187,28 @@ The configuration file defines:
 Any credentials required for uploading the project's results should be stored in an **Azure Key Vault**
 (set up instructions below).
 PIXL will query this key vault for the required secrets at runtime. This requires the following
-environment variables to be set in `.secrets.env` so that PIXL can connect to the key vault:
+environment variables to be set so that PIXL can connect to the key vault:
 
 - `EXPORT_AZ_CLIENT_ID`: the service principal's client ID, mapped to `AZURE_CLIENT ID` in `docker-compose`
 - `EXPORT_AZ_CLIENT_PASSWORD`: the password, mapped to `AZURE_CLIENT_SECRET` in `docker-compose`
 - `EXPORT_AZ_TENANT_ID`: ID of the service principal's tenant. Also called its 'directory' ID. Mapped to `AZURE_TENANT_ID` in `docker-compose`
 - `EXPORT_AZ_KEY_VAULT_NAME` the name of the key vault, used to connect to the correct key vault
 
-Create the `.secrets.env` file in the _PIXL_ directory by copying the sample:
-
-```bash
-cp .secrets.env.sample .secrets.env
-```
-
-and fill in the missing values (for dev purposes find the `pixl-dev-secrets.env` note on LastPass).
+These variables can be set in the `.env` file.
+For testing, they can be set in the `test/.secrets.env` file.
+For dev purposes find the `pixl-dev-secrets.env` note on LastPass for the necessary values.
 
 If an Azure Keyvault hasn't been set up yet, follow [these instructions](./docs/setup/azure-keyvault.md).
+
+A second Azure Keyvault is used to store hashing keys and salts for the `hasher` service.
+This kevyault is configured with the following environment variables:
+
+- `HASHER_API_AZ_CLIENT_ID`: the service principal's client ID, mapped to `AZURE_CLIENT ID` in `docker-compose`
+- `HASHER_API_AZ_CLIENT_PASSWORD`: the password, mapped to `AZURE_CLIENT_SECRET` in `docker-compose`
+- `HASHER_API_AZ_TENANT_ID`: ID of the service principal's tenant. Also called its 'directory' ID. Mapped to `AZURE_TENANT_ID` in `docker-compose`
+- `HASHER_API_AZ_KEY_VAULT_NAME` the name of the key vault, used to connect to the correct key vault
+
+See the [hasher documentation](./hasher/README.md) for more information.
 
 ## Run
 

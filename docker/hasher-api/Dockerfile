@@ -14,6 +14,8 @@
 FROM python:3.11.7-slim-bullseye
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 
+ARG TEST="false"
+
 # OS setup
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
@@ -25,13 +27,20 @@ RUN sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 RUN  apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+
 # Install requirements before copying modules
+COPY ./pixl_core/pyproject.toml ./pixl_core/pyproject.toml
 COPY ./hasher/pyproject.toml .
 RUN --mount=type=cache,target=/root/.cache \
-    pip install --no-cache-dir /app/
+    pip3 install --no-cache-dir pixl_core/ \
+    && pip3 install --no-cache-dir /app/
 
+COPY ./pixl_core/ pixl_core/
 COPY ./hasher/ .
 RUN --mount=type=cache,target=/root/.cache \
-    pip install --no-cache-dir --force-reinstall --no-deps .
+    pip install --no-cache-dir --force-reinstall --no-deps pixl_core/ . && \
+    if [ "$TEST" = "true" ]; \
+    then pip install --no-cache-dir --force-reinstall --no-deps pixl_core/[test] \
+    --no-cache-dir --force-reinstall --no-deps .[test]; fi
 
 ENTRYPOINT ["uvicorn", "hasher.main:app", "--host", "0.0.0.0", "--port", "8000"]

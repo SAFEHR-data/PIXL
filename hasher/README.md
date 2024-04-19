@@ -2,34 +2,48 @@
 
 _The secure hashing service_.
 
-This package provides a _FastAPI_ service that can be used to generate secure hashes. It is used by
-the [PIXL EHR API](../pixl_export/README.md) (for EHR anonymisation) and
-[PIXL Orthanc Anon](../orthanc_anon/README.md) (for DICOM image anonymisation) services.
+This package provides a _FastAPI_ service that can be used to generate secure hashes.
+It is used by [PIXL Orthanc Anon](../orthanc/orthanc-anon/README.md) for DICOM image
+anonymisation.
+
+The main responsibility of the hasher API is to generate secure hashes of sensitive data. As part
+of this, it connects to an Azure Key Vault to retrieve the necessary hashing keys and salts. The
+_FastAPI_ service currently provides a single endpoint `/hash`, that accepts a JSON payload with
+the project name and message to be hashed. The project name is used to retrieve the project-specific
+salt from the key vault. An optional length for the hash can also be provided.
+
+If no salt exists for the project, a new salt is generated and stored in the key vault. This salt is
+then used to generate the hash. In addition to the key vault salt, an optional local salt can be set
+using the `LOCAL_SALT_VALUE` environment variable.
+
+Finally, the `Hasher` class has a `create_salt()` method that allows users to create and store
+a new salt interactively.
 
 ## Local development
 
 ### Dependencies
 
-It is assumed you have a Python virtual environment configured using a tool like Conda or pyenv.
-Install the dependencies from inside the _PIXL/hasher/src_ directory:
+It is assumed you have a Python virtual environment configured using a tool like `conda` or `venv`.
+Install `hasher` locally with:
 
-```bash
+```shell
 pip install -e .
 ```
 
 ### Setup
 
-Create a _local.env_ file in _PIXL.hasher/src/hasher_ from _local.env.sample_ in the same location.
-Use the credentials stored in the `Hasher API dev secrets` note in LastPass to populate the
-environment variables. Set `LOG_ROOT_DIR` to anywhere convenient.
+The hasher API retrieves secret hashing keys and project-specific salts from an Azure Key Vault.
+To connect to the key vault, the following environment variables need to be set
 
-### Run
-
-from the _PIXL/hasher/src_ directory:
-
-```bash
-uvicorn hasher.main:app --host=0.0.0.0 --port=8000 --reload
 ```
+HASHER_API_AZ_CLIENT_ID
+HASHER_API_AZ_CLIENT_PASSWORD
+HASHER_API_AZ_TENANT_ID
+HASHER_API_AZ_KEY_VAULT_NAME
+```
+
+See [below](#azure-setup) for instructions on how to set these up.
+
 
 ### Test
 
@@ -41,94 +55,15 @@ pytest
 
 ---
 
-<details><summary>Azure setup</summary>
-
 ## Azure setup
 
-_This is done for the \_UCLH_DIF_ `dev` tenancy, will need to be done once in the _UCLHAZ_ `prod`
-tenancy when ready to deploy to production.\_
+See the [Azure Key vault setup](../docs/setup/azure-keyvault.md) documentation for more information.
 
-An Azure Key Vault is required to hold the secret key used in the hashing process. This Key Vault
-and secret must persist any infrastructure changes so should be separate from disposable
-infrastructure services. ServicePrincipal is required to connect to the Key Vault.
-
-The application uses the ServicePrincipal and password to authenticates with Azure via environment
-variables. See
-[here](https://learn.microsoft.com/en-us/python/api/azure-identity/azure.identity.environmentcredential?view=azure-python)
-for more info.
-
-The Key Vault and ServicePrincipal have already been created for the `dev` environment and details
-are stored in the `Hasher API dev secrets` note in the shared FlowEHR folder on LastPass.
-
-The process for doing so using the `az` CLI tool is described below. This can be converted into a
-Terraform template but given that we need a single, permanent instance of this, having a repeatable
-template is less useful.
-
-This process must be repeated for `staging` & `prod` environments.
-
-### Step 1
-
-Create the Azure Key Vault in an appropriate resource group:
-
-```bash
-az keyvault create --resource-group <resource-group-name> --name <key-vault-name> --location "UKSouth"
-```
-
-### Step 2
-
-Create Service Principal & grant access as per
-
-```bash
-az ad sp create-for-rbac -n hasher-api --skip-assignment
-```
-
-This will produce the following output
-
-```json
-{
-    "appId": "<generated-app-ID>",
-    "displayName": "<app-name>",
-    "name": "http://<app-name>",
-    "password": "<generated-password>",
-    "tenant": "<tenant-ID>"
-}
-```
-
-### Step 3
-
-Assign correct permissions to the newly created ServicePrincipal
-
-```bash
-az keyvault set-policy --name <key-vault-name> --spn <generated-app-ID> --secret-permissions backup delete get list set
-```
-
-### Step 4
-
-Create a secret and store in the Key Vault
-
-Use Python to create a secret:
-
-```python
-import secrets
-secrets.token_urlsafe(32)
-```
-
-copy the secret and paste as <secret-value> below
-
-```bash
-az keyvault secret set --vault-name "<key-vault-name>" --name "<secret-name>" --value "<secret-value>"
-```
-
-### Step 5
-
-Save credentials in `.env` and a LastPass `Hasher API <environment> secrets` note.
+Save the credentials in `.secrets.env` and a LastPass `Hasher API <environment> secrets` note.
 
 ```
 HASHER_API_AZ_CLIENT_ID=<generated-app-ID>
 HASHER_API_AZ_CLIENT_PASSWORD=<generated-password>
 HASHER_API_AZ_TENANT_ID=<tenant-ID>
 HASHER_API_AZ_KEY_VAULT_NAME=<key-vault-name>
-HASHER_API_AZ_KEY_VAULT_SECRET_NAME=<secret-name>
 ```
-
-</details>

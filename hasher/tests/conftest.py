@@ -17,12 +17,46 @@ import os
 
 import pytest
 
-os.environ["ENV"] = "test"
+os.environ["LOG_LEVEL"] = "DEBUG"
+os.environ["AZURE_KEY_VAULT_SECRET_NAME"] = "test-key"  # noqa: S105, hardcoded secret
+os.environ["LOCAL_SALT_VALUE"] = "pixl_salt"
 
 
-@pytest.fixture()
-def _dummy_key(monkeypatch):  # noqa: ANN202
-    """Fixture to set up a dummy key to use for hashing tests"""
-    import hasher.hashing
+class MockKeyVault:
+    """Mock KeyVault class for testing."""
 
-    monkeypatch.setattr(hasher.hashing, "fetch_key_from_vault", lambda: "test-key")
+    def __init__(self) -> None:
+        """Create a mock instance of a KeyVault."""
+        self.secrets: dict[str, str] = {}
+
+    def fetch_secret(self, secret_name: str) -> str:
+        """Mock method to fetch a secret from the Key Vault."""
+        try:
+            return self.secrets[secret_name]
+
+        # Raise a ValueError if the secret is not found, to mimic real Key Vault behaviour
+        except KeyError as err:
+            raise ValueError from err
+
+    def create_secret(self, secret_name: str, secret_value: str) -> None:
+        """Mock method to create a secret in the Key Vault."""
+        self.secrets[secret_name] = secret_value
+
+
+@pytest.fixture(autouse=True)
+def _mock_hasher(monkeypatch) -> None:
+    """
+    Mock the Hasher class as a pytest fixture.
+    Uses the azure_kevyault fixture from pytest_pixl to mock the Azure Key Vault instance.
+    """
+    mock_keyvault = MockKeyVault()
+    # Create the hashing secret in the mock KeyVault
+    mock_keyvault.create_secret("test-key", "test-key")
+
+    def mock_hasher_init(self, project_slug: str) -> None:
+        self.keyvault = mock_keyvault
+        self.project_slug = project_slug
+        # Set an initial salt value for testing
+        self.keyvault.create_secret(project_slug, "a161577b49a9235a")
+
+    monkeypatch.setattr("hasher.hashing.Hasher.__init__", mock_hasher_init)
