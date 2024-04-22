@@ -15,11 +15,11 @@
 """A wrapper around docker compose that sets the correct directory and environment"""
 
 import argparse
-import logging
 import os
+import sys
 from pathlib import Path
 
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 ALLOWED_PROJECT_NAMES = ["pixl_dev", "pixl_test", "pixl_prod"]
 parser = argparse.ArgumentParser(description="Wrapper around docker compose for pixl")
@@ -32,8 +32,9 @@ parser.add_argument(
 parser.add_argument("command", help="Which docker compose command to run")
 args, unknown_args = parser.parse_known_args()
 
-if args.debug:
-    logging.basicConfig(level=logging.DEBUG)
+logging_level = "INFO" if not args.debug else "DEBUG"
+logger.remove()  # Remove all handlers
+logger.add(sys.stderr, level=logging_level)
 
 BIN_DIR = Path(__file__).parent.absolute()
 os.chdir(BIN_DIR)
@@ -58,8 +59,8 @@ if args.command == "up":
 # add on the user's extra args
 docker_args.extend(unknown_args)
 
-logger.debug("args = %s", args)
-logger.debug("extra args = %s", unknown_args)
-logger.debug("about to run with docker: %s", docker_args)
+logger.debug("args = {}", args)
+logger.debug("extra args = {}", unknown_args)
+logger.debug("about to run with docker: {}", docker_args)
 
 os.execvp("docker", docker_args)  # noqa: S606, S607 this is what the previous script was doing

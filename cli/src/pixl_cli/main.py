@@ -316,11 +316,7 @@ def _get_extract_rate(queue_name: str) -> str:
     try:
         response = requests.get(url=f"{api_config.base_url}/token-bucket-refresh-rate", timeout=10)
         if response.status_code != success_code:
-            msg = (
-                "Failed to get the extract rate for %s due to: %s",
-                queue_name,
-                response.text,
-            )
+            msg = (f"Failed to get the extract rate for {queue_name} due to: {response.text}",)
             raise RuntimeError(msg)
         return str(json.loads(response.text)["rate"])
 
