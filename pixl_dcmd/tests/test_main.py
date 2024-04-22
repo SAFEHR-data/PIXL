@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import pathlib
+import re
 from pathlib import Path
 
 import nibabel
@@ -66,7 +67,7 @@ def _mri_diffusion_tags(manufacturer: str = "Philips") -> list[PrivateDicomTag]:
     manufacturer_overrides = [
         override
         for override in tag_ops.manufacturer_overrides
-        if override["manufacturer"] == manufacturer
+        if re.search(override["manufacturer"], manufacturer, re.IGNORECASE)
     ][0]
 
     return [

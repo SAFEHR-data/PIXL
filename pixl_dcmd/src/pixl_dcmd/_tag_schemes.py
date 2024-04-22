@@ -16,6 +16,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Optional
 
 from core.project_config.tag_operations import TagOperations
@@ -31,11 +32,11 @@ def merge_tag_schemes(
     for base_tags in tag_operations.base:
         all_tags.update(_scheme_list_to_dict(base_tags))
 
-    if tag_operations.manufacturer_overrides:
+    if tag_operations.manufacturer_overrides and manufacturer:
         manufacturer_tags = [
             tag
             for override in tag_operations.manufacturer_overrides
-            if override["manufacturer"] == manufacturer
+            if re.search(override["manufacturer"], manufacturer, re.IGNORECASE)
             for tag in override["tags"]
         ]
         all_tags.update(_scheme_list_to_dict(manufacturer_tags))
