@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-"""Helper functions for setting up a connection to an FTPS server."""
+"""Uploader subclass for FTPS uploads."""
 
 from __future__ import annotations
 
