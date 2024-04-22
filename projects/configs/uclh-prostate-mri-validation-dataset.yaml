@@ -14,7 +14,7 @@
 
 project:
     name: "uclh-prostate-mri-validation-dataset"
-    modalities: ["DX", "CR"]
+    modalities: ["MR"]
 
 tag_operation_files:
     base:

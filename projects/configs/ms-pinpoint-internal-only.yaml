@@ -14,7 +14,7 @@
 
 project:
     name: "ms-pinpoint-internal-only"
-    modalities: ["DX", "CR"]
+    modalities: ["MR"]
 
 tag_operation_files:
     base:
