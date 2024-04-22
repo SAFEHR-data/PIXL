@@ -104,7 +104,7 @@ The `project_config` module provides the functionality to handle
 
 ## Uploading to an FTPS server
 
-The `core.upload` module implements functionality to upload DICOM images and parquet files to an
+The `core.upload` module implements functionality to upload DICOM images and parquet files to
 several destinations. This requires the following environment variables to be set:
 
 The `Uploader` abstract class provides a consistent interface for uploading files. Child classes
@@ -113,7 +113,7 @@ uploading are queried from an **Azure Keyvault** instance (implemented in `_secr
 the setup instructions are in the [top-level README](../README.md#project-secrets)
 
 When an extract is ready to be published to the DSH, the PIXL pipeline will upload the **Public**
-and **Radiology** [_parquet_ files](../docs/data/parquet_files.md) to the `<project-slug>` directory
+and **Radiology** [_parquet_ files](../docs/file_types/parquet_files.md) to the `<project-slug>` directory
 where the DICOM datasets are stored (see the directory structure below). The uploading is controlled
 by `upload_parquet_files` in [`upload.py`](./src/core/upload.py) which takes a `ParquetExport`
 object as input to define where the _parquet_ files are located.  `upload_parquet_files` is called
