@@ -15,7 +15,6 @@
 
 from __future__ import annotations
 
-import logging
 import subprocess
 from time import sleep
 from typing import TYPE_CHECKING, Callable, Optional
@@ -24,7 +23,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from pathlib import Path
 
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 
 def run_subprocess(
@@ -38,7 +37,7 @@ def run_subprocess(
     Run a command but capture the stderr and stdout better than the CalledProcessError
     string representation does
     """
-    logger.info("Running command %s", cmd)
+    logger.info("Running command {}", cmd)
     try:
         cp = subprocess.run(
             cmd,
@@ -49,14 +48,14 @@ def run_subprocess(
             capture_output=True,
         )
     except subprocess.CalledProcessError as exception:
-        logger.error("*** exception occurred running: '%s'", cmd)  # noqa: TRY400 will raise anyway
-        logger.error("*** stdout:\n%s", exception.stdout.decode())  # noqa: TRY400
-        logger.error("*** stderr:\n%s", exception.stderr.decode())  # noqa: TRY400
+        logger.error("*** exception occurred running: '{}'", cmd)  # will raise anyway
+        logger.error("*** stdout:\n{}", exception.stdout.decode())
+        logger.error("*** stderr:\n{}", exception.stderr.decode())
         raise
     else:
-        logger.info("Success, returncode = %s", cp.returncode)
-        logger.info("stdout =\n%s", cp.stdout.decode())
-        logger.info("stderr =\n%s", cp.stderr.decode())
+        logger.info("Success, returncode = {}", cp.returncode)
+        logger.info("stdout =\n{}", cp.stdout.decode())
+        logger.info("stderr =\n{}", cp.stderr.decode())
         return cp
 
 
@@ -85,13 +84,13 @@ def wait_for_condition(
         # must evaluate progress string *after* condition has been tested so it is most up to date
         progress_str = ": " + progress_string_fn() if progress_string_fn is not None else ""
         if success:
-            logger.info("Achieved condition '%s' %s", test_condition.__name__, progress_str)
+            logger.info("Achieved condition '{}' {}", test_condition.__name__, progress_str)
             if seconds_condition_stays_true_for is not None:
                 # This is intended for the case where data may be dripping in and the correct
                 # set of data may have been temporarily achieved, only to be joined by some
                 # incorrect data. So we have the option to check it's stably true.
                 logger.info(
-                    "Checking that condition '%s' is still true in %s seconds",
+                    "Checking that condition '{}' is still true in {} seconds",
                     test_condition.__name__,
                     seconds_condition_stays_true_for,
                 )
@@ -99,7 +98,7 @@ def wait_for_condition(
                 wait_for_condition(test_condition, progress_string_fn=progress_string_fn)
             return
         logger.info(
-            "Waiting for condition '%s' (%s seconds out of %s) %s",
+            "Waiting for condition '{}' ({} seconds out of {}) {}",
             test_condition.__name__,
             seconds,
             seconds_max,
