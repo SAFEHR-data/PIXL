@@ -19,6 +19,7 @@ project:
 tag_operation_files:
     base:
         - "mri.yaml"
+    manufacturer_overrides: null
 destination:
     dicom: "none"
     parquet: "none"
