@@ -17,15 +17,17 @@ import os
 
 import pytest
 import requests
-from core.uploader import DicomWebUploader  # type: ignore [import-untyped]
+from core.uploader._dicomweb import DicomWebUploader  # type: ignore [import-untyped]
 from decouple import config  # type: ignore [import-untyped]
 
 # TODO: move these to conftest.py
+os.environ["ORTHANC_URL"] = "http://localhost:8043"
 os.environ["ORTHANC_USERNAME"] = "orthanc"
 os.environ["ORTHANC_PASSWORD"] = "orthanc"  # noqa: S105, hardcoded password
 os.environ["DICOM_ENDPOINT_NAME"] = "test"
+os.environ["DICOM_ENDPOINT_URL"] = "http://localhost:8042/dicom-web/"
 
-ORTHANC_URL = "http://localhost:8042"
+ORTHANC_URL = config("ORTHANC_URL")
 DICOM_ENDPOINT_NAME = config("DICOM_ENDPOINT_NAME")
 ORTHANC_USERNAME = config("ORTHANC_USERNAME")
 ORTHANC_PASSWORD = config("ORTHANC_PASSWORD")
@@ -36,10 +38,11 @@ class MockDicomWebUploader(DicomWebUploader):
 
     def __init__(self) -> None:
         """Initialise the mock uploader."""
-        self.host = ORTHANC_URL
-        self.username = ORTHANC_USERNAME
+        self.user = ORTHANC_USERNAME
         self.password = ORTHANC_PASSWORD
         self.endpoint_name = DICOM_ENDPOINT_NAME
+        self.orthanc_url = ORTHANC_URL
+        self.url = self.orthanc_url + "/dicom-web/servers/" + self.endpoint_name
 
 
 @pytest.fixture()
@@ -49,16 +52,15 @@ def dicomweb_uploader() -> MockDicomWebUploader:
 
 
 def test_upload_dicom_image(
-    test_zip_content, not_yet_exported_dicom_image, dicomweb_uploader
+    run_dicomweb_container, not_yet_exported_dicom_image, dicomweb_uploader
 ) -> None:
     """Tests that DICOM image can be uploaded to a DICOMWeb server"""
     # ARRANGE
     # Get the pseudo identifier from the test image
     pseudo_anon_id = not_yet_exported_dicom_image.hashed_identifier
-    project_slug = "some-project-slug"
 
     # ACT
-    dicomweb_uploader.upload_dicom_image(test_zip_content, pseudo_anon_id, project_slug)
+    dicomweb_uploader.send_via_stow(pseudo_anon_id)
 
     # ASSERT
     url = ORTHANC_URL + "/dicom-web/servers/" + DICOM_ENDPOINT_NAME + "/stow"
