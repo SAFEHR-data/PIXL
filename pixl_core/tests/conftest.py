@@ -21,10 +21,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING, BinaryIO
 
 import pytest
-from core.db.models import Base, Extract, Image
-from core.uploader._ftps import FTPSUploader
-from pytest_pixl.helpers import run_subprocess
-from pytest_pixl.plugin import FtpHostAddress
+from core.db.models import Base, Extract, Image  # type: ignore [import-untyped]
+from core.uploader._ftps import FTPSUploader  # type: ignore [import-untyped]
+from pytest_pixl.helpers import run_subprocess  # type: ignore [import-untyped]
+from pytest_pixl.plugin import FtpHostAddress  # type: ignore [import-untyped]
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
