@@ -81,14 +81,13 @@ class DicomWebUploader(Uploader):
 
     def _setup_dicomweb_credentials(self) -> None:
         """Add the necessary credentials to the DicomWeb server in Orthanc."""
-        AZ_DICOM_ENDPOINT_URL = config("AZ_DICOM_ENDPOINT_URL")
+        DICOM_ENDPOINT_URL = config("DICOM_ENDPOINT_URL")
         HTTP_TIMEOUT = int(config("HTTP_TIMEOUT", default=30))
 
         dicomweb_config = {
-            "Url": AZ_DICOM_ENDPOINT_URL,
-            "HttpHeaders": {
-                "Authorization": f"{self.user}:{self.password}",
-            },
+            "Url": DICOM_ENDPOINT_URL,
+            "Username": self.user,
+            "Password": self.password,
             "HasDelete": True,
             "Timeout": HTTP_TIMEOUT,
         }
