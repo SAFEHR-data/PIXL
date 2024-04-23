@@ -70,6 +70,26 @@ def run_containers() -> Generator[subprocess.CompletedProcess[bytes], None, None
     )
 
 
+@pytest.fixture(scope="package")
+def run_dicomweb_container() -> Generator[subprocess.CompletedProcess[bytes], None, None]:
+    """Run the dicomweb server docker container for tests which require them."""
+    run_subprocess(
+        shlex.split("docker compose down --volumes"),
+        TEST_DIR,
+        timeout=60,
+    )
+    yield run_subprocess(
+        shlex.split("docker compose -f docker-compose.dicomweb.yml up --build --wait"),
+        TEST_DIR,
+        timeout=60,
+    )
+    run_subprocess(
+        shlex.split("docker compose down --volumes"),
+        TEST_DIR,
+        timeout=60,
+    )
+
+
 class MockFTPSUploader(FTPSUploader):
     """Mock FTPSUploader for testing."""
 
