@@ -30,6 +30,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 if TYPE_CHECKING:
     import subprocess
+    from collections.abc import Generator
 
 pytest_plugins = "pytest_pixl"
 
@@ -50,7 +51,7 @@ os.environ["FTP_PORT"] = "20021"
 
 
 @pytest.fixture(scope="package")
-def run_containers() -> subprocess.CompletedProcess[bytes]:
+def run_containers() -> Generator[subprocess.CompletedProcess[bytes], None, None]:
     """Run docker containers for tests which require them."""
     run_subprocess(
         shlex.split("docker compose down --volumes"),
