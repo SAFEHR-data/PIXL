@@ -37,11 +37,7 @@ services:
         volumes:
             - ${PWD}/vna_config/:/run/secrets:ro
         healthcheck:
-            test:
-                [
-                    "CMD-SHELL",
-                    "/probes/test-aliveness.py --user=orthanc --pwd=orthanc",
-                ]
+            test: ["CMD-SHELL", "/probes/test-aliveness.py --user=orthanc --pwd=orthanc"]
             start_period: 10s
             retries: 2
             interval: 3s
@@ -80,3 +76,29 @@ services:
             retries: 5
         networks:
             pixl-net:
+
+    dicomweb-server:
+        image: orthancteam/orthanc:24.4.0
+        platform: linux/amd64
+        environment:
+            ORTHANC_NAME: "dicomweb"
+            ORTHANC_USERNAME: "orthanc"
+            ORTHANC_PASSWORD: "orthanc"
+            ORTHANC_AE_TITLE: "DICOMWEB"
+            RAW_AE_TITLE: ORHTANCRAW
+            RAW_DICOM_PORT: "4242"
+            RAW_IP_ADDR: "orthanc-raw" # aka. hostname
+            DICOM_WEB_PLUGIN_ENABLED: true
+        ports:
+            - "4244:4242"
+            - "8044:8042"
+        volumes:
+            - ${PWD}/dicomweb_config/:/run/secrets:ro
+        networks:
+            pixl-net:
+        healthcheck:
+            test: ["CMD-SHELL", "/probes/test-aliveness.py --user=orthanc --pwd=orthanc"]
+            start_period: 10s
+            retries: 2
+            interval: 3s
+            timeout: 2s
