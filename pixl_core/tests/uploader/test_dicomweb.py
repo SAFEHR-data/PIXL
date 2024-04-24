@@ -13,19 +13,10 @@
 #  limitations under the License.
 """Test functionality to upload files to a DICOMWeb endpoint."""
 
-import os
-
 import pytest
 import requests
 from core.uploader._dicomweb import DicomWebUploader  # type: ignore [import-untyped]
 from decouple import config  # type: ignore [import-untyped]
-
-# TODO: move these to conftest.py
-os.environ["ORTHANC_URL"] = "http://localhost:8043"
-os.environ["ORTHANC_USERNAME"] = "orthanc"
-os.environ["ORTHANC_PASSWORD"] = "orthanc"  # noqa: S105, hardcoded password
-os.environ["DICOM_ENDPOINT_NAME"] = "test"
-os.environ["DICOM_ENDPOINT_URL"] = "http://localhost:8042/dicom-web/"
 
 ORTHANC_URL = config("ORTHANC_URL")
 DICOM_ENDPOINT_NAME = config("DICOM_ENDPOINT_NAME")
@@ -51,21 +42,22 @@ def dicomweb_uploader() -> MockDicomWebUploader:
     return MockDicomWebUploader()
 
 
-def test_upload_dicom_image(
-    run_dicomweb_container, not_yet_exported_dicom_image, dicomweb_uploader
-) -> None:
+def test_upload_dicom_image(dicom_resource, run_dicomweb_containers, dicomweb_uploader) -> None:
     """Tests that DICOM image can be uploaded to a DICOMWeb server"""
     # ARRANGE
-    # Get the pseudo identifier from the test image
-    pseudo_anon_id = not_yet_exported_dicom_image.hashed_identifier
 
     # ACT
-    dicomweb_uploader.send_via_stow(pseudo_anon_id)
+    stow_response = dicomweb_uploader.send_via_stow(dicom_resource)
 
     # ASSERT
-    url = ORTHANC_URL + "/dicom-web/servers/" + DICOM_ENDPOINT_NAME + "/stow"
-    response = requests.get(url, auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD), timeout=30)
+    destination_url = ORTHANC_URL + "/dicom-web/studies"
+    response = requests.get(
+        destination_url,
+        auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD),
+        data={"Uri": "/instances"},
+        timeout=30,
+    )
 
-    assert response.status_code == 200
-    response_json = response.json()
-    assert response_json["ID"] == pseudo_anon_id
+    assert stow_response.status_code == 200  # succesful upload
+    # Taken from https://orthanc.uclouvain.be/hg/orthanc-dicomweb/file/default/Resources/Samples/Python/SendStow.py
+    assert "00081190" in response.json()[0]

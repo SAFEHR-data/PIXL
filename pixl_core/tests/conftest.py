@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, BinaryIO
 
 import pytest
+import requests
 from core.db.models import Base, Extract, Image  # type: ignore [import-untyped]
 from core.uploader._ftps import FTPSUploader  # type: ignore [import-untyped]
 from pytest_pixl.helpers import run_subprocess  # type: ignore [import-untyped]
@@ -49,6 +50,13 @@ os.environ["FTP_USER_NAME"] = "pixl"
 os.environ["FTP_PASSWORD"] = "longpassword"  # noqa: S105 Hardcoding password
 os.environ["FTP_PORT"] = "20021"
 
+os.environ["ORTHANC_URL"] = "http://localhost:8043"
+os.environ["ORTHANC_USERNAME"] = "orthanc"
+os.environ["ORTHANC_PASSWORD"] = "orthanc"  # noqa: S105, hardcoded password
+os.environ["DICOM_ENDPOINT_NAME"] = "test"
+# Endpoint for DICOMWeb server as seen from within Orthanc
+os.environ["DICOM_ENDPOINT_URL"] = "http://localhost:8042/dicom-web/"
+
 
 @pytest.fixture(scope="package")
 def run_containers() -> Generator[subprocess.CompletedProcess[bytes], None, None]:
@@ -71,8 +79,11 @@ def run_containers() -> Generator[subprocess.CompletedProcess[bytes], None, None
 
 
 @pytest.fixture(scope="package")
-def run_dicomweb_container() -> Generator[subprocess.CompletedProcess[bytes], None, None]:
-    """Run the dicomweb server docker container for tests which require them."""
+def run_dicomweb_containers() -> Generator[subprocess.CompletedProcess[bytes], None, None]:
+    """
+    Spins up 2 Orthanc containers, one that acts as the base storage, mimicking our orthanc-anon
+    or orthanc-raw servers, and the other one as a DICOMweb server to upload DICOM files to.
+    """
     run_subprocess(
         shlex.split("docker compose down --volumes"),
         TEST_DIR,
@@ -88,6 +99,24 @@ def run_dicomweb_container() -> Generator[subprocess.CompletedProcess[bytes], No
         TEST_DIR,
         timeout=60,
     )
+
+
+@pytest.fixture(scope="package")
+def dicom_resource(run_dicomweb_containers) -> str:
+    """Uploads a DICOM file to the Orthanc server and returns the resource ID."""
+    DCM_FILE = Path(__file__).parents[2] / "test" / "resources" / "Dicom1.dcm"
+    ORTHANC_URL = os.environ["ORTHANC_URL"]
+
+    headers = {"content-type": "application/dicom"}
+    data = DCM_FILE.read_bytes()
+    response = requests.post(
+        f"{ORTHANC_URL}/instances",
+        data=data,
+        headers=headers,
+        auth=(os.environ["ORTHANC_USERNAME"], os.environ["ORTHANC_PASSWORD"]),
+        timeout=60,
+    )
+    return response.json()["ID"]
 
 
 class MockFTPSUploader(FTPSUploader):
