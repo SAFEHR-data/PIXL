@@ -13,5 +13,9 @@
       "AllowMove" : true,
       "AllowStore" : true
     }
-  }
+  },
+  "DICOMWeb" : {
+    "Enabled" : true,
+    "Root" : "/dicom-web",
+  },
 }

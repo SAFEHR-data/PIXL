@@ -58,7 +58,7 @@ services:
             - "4244:4242"
             - "8044:8042"
         volumes:
-            - ${PWD}/dicomweb_config/:/run/secrets:ro
+            - ${PWD}/../../test/dicomweb_config/:/run/secrets:ro
         networks:
             - pixl-test
         healthcheck:
