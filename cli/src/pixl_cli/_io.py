@@ -18,6 +18,7 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pandas as pd
 from core.exports import ParquetExport
@@ -25,6 +26,9 @@ from core.patient_queue.message import Message, deserialise
 from loguru import logger
 
 from pixl_cli._utils import string_is_non_empty
+
+if TYPE_CHECKING:
+    from core.db.models import Image
 
 # The export root dir from the point of view of the docker host (which is where the CLI runs)
 # For the view from inside, see pixl_export/main.py: EHR_EXPORT_ROOT_DIR
@@ -140,26 +144,15 @@ def messages_from_parquet(
     private_dir = dir_path / "private"
 
     cohort_data = _check_and_parse_parquet(private_dir, public_dir)
+    cohort_data_mapped = _map_columns(cohort_data)
 
-    map_column_to_message_params = {
-        "mrn": "PrimaryMrn",
-        "accession_number": "AccessionNumber",
-        "study_date": "procedure_date",
-        "procedure_occurrence_id": "procedure_occurrence_id",
-    }
-
-    _raise_if_column_names_not_found(cohort_data, list(map_column_to_message_params.values()))
-
+    # tuple element [1]'s of cohort_data.iterrows() should equal cohort_data_mapped
     messages = []
-
-    for _, row in cohort_data.iterrows():
-        message_params = {
-            param: row[column] for param, column in map_column_to_message_params.items()
-        }
+    for _, row in cohort_data_mapped.iterrows():
         message = Message(
             project_name=project_name,
             extract_generated_timestamp=extract_generated_timestamp,
-            **message_params,
+            **{column: row[column] for column in MAP_PARQUET_TO_MESSAGE_KEYS.values()},
         )
         messages.append(message)
 
@@ -169,6 +162,19 @@ def messages_from_parquet(
 
     logger.info("Created {} messages from {}", len(messages), dir_path)
     return messages
+
+
+MAP_PARQUET_TO_MESSAGE_KEYS = {
+    "PrimaryMrn": "mrn",
+    "AccessionNumber": "accession_number",
+    "procedure_date": "study_date",
+    "procedure_occurrence_id": "procedure_occurrence_id",
+}
+
+
+def _map_columns(input_df: pd.DataFrame) -> pd.DataFrame:
+    _raise_if_column_names_not_found(input_df, list(MAP_PARQUET_TO_MESSAGE_KEYS.keys()))
+    return input_df.rename(MAP_PARQUET_TO_MESSAGE_KEYS, axis=1)
 
 
 def _check_and_parse_parquet(private_dir: Path, public_dir: Path) -> pd.DataFrame:
@@ -188,6 +194,28 @@ def _check_and_parse_parquet(private_dir: Path, public_dir: Path) -> pd.DataFram
     people_procedures = people.merge(procedure, on="person_id")
     people_procedures_accessions = people_procedures.merge(accessions, on="procedure_occurrence_id")
     return people_procedures_accessions[~people_procedures_accessions["AccessionNumber"].isna()]
+
+
+def make_radiology_linker_table(parquet_dir: Path, images: list[Image]) -> pd.DataFrame:
+    """
+    Make a table linking the OMOP procedure_occurrence_id to the hashed image/study ID
+    Image table defined thus:
+     - hashed_identifier
+
+    Preserve column names.
+    IMAGE_LINKER.parquet?
+    :param parquet_dir: location of OMOP extract
+                        (this gives us: procedure_occurrence_id <-> mrn+accession mapping)
+    :param images: the images already processed by PIXL, from the DB
+                        (this gives us: mrn+accession <-> hashed ID)
+    """
+    public_dir = parquet_dir / "public"
+    private_dir = parquet_dir / "private"
+    people_procedures_accessions = _map_columns(_check_and_parse_parquet(private_dir, public_dir))
+
+    images_df = pd.DataFrame.from_records([vars(im) for im in images])
+    merged = people_procedures_accessions.merge(images_df, on=("mrn", "accession_number"))
+    return merged[["procedure_occurrence_id", "hashed_identifier"]]
 
 
 def _raise_if_column_names_not_found(

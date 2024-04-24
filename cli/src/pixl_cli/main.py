@@ -30,9 +30,10 @@ from decouple import RepositoryEnv, UndefinedValueError, config
 from loguru import logger
 
 from pixl_cli._config import SERVICE_SETTINGS, api_config_for_queue
-from pixl_cli._database import filter_exported_or_add_to_db
+from pixl_cli._database import filter_exported_or_add_to_db, query_image_something
 from pixl_cli._io import (
     copy_parquet_return_logfile_fields,
+    make_radiology_linker_table,
     messages_from_csv,
     messages_from_parquet,
     messages_from_state_file,
@@ -171,6 +172,12 @@ def export_patient_data(parquet_dir: Path) -> None:
     log file defining which extract to export patient data for.
     """
     project_name, omop_es_datetime = project_info(parquet_dir)
+
+    # do we need to check it's a CSV? No, because file_okay = False is set!
+    images = query_image_something(project_name)
+    print("JES 0")
+    print(images)
+    make_radiology_linker_table(parquet_dir, images)
 
     # Call the EHR API
     api_config = api_config_for_queue("export")

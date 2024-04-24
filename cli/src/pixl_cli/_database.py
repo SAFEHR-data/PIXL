@@ -110,3 +110,19 @@ def _add_new_image_to_session(extract: Extract, message: Message, session: Sessi
     )
     session.add(new_image)
     return new_image
+
+
+def query_image_something(project_slug: str) -> list[Image]:
+    """
+    Given a project, get all images for that project?
+    """
+    print("JES getting images for project " + project_slug)
+    PixlSession = sessionmaker(engine)
+    with PixlSession() as session, session.begin():
+        return (
+            session.query(Image)
+            .join(Extract)
+            .filter(Extract.slug == project_slug)
+            .add_columns(Image.mrn, Image.accession_number, Image.hashed_identifier)
+            .all()
+        )
