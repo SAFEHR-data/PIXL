@@ -70,8 +70,8 @@ def project_info(resources_path: Path) -> tuple[str, datetime]:
 
 def copy_parquet_return_logfile_fields(resources_path: Path) -> tuple[str, datetime]:
     """Copy public parquet file to extracts directory, and return fields from logfile"""
-    project_name, extract_generated_timestamp = project_info(resources_path)
-    extract = ParquetExport(project_name, extract_generated_timestamp, HOST_EXPORT_ROOT_DIR)
+    project_name_raw, extract_generated_timestamp = project_info(resources_path)
+    extract = ParquetExport(project_name_raw, extract_generated_timestamp, HOST_EXPORT_ROOT_DIR)
     project_name_slug = extract.copy_to_exports(resources_path)
     return project_name_slug, extract_generated_timestamp
 

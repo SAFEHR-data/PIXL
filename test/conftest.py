@@ -15,17 +15,17 @@
 
 # ruff: noqa: C408 dict() makes test data easier to read and write
 from collections.abc import Generator
-from click.testing import CliRunner
 from pathlib import Path
 from typing import Any
 
 import pytest
 import requests
+from click.testing import CliRunner
+from pixl_cli.main import export_patient_data
 from pytest_pixl.dicom import generate_dicom_dataset
 from pytest_pixl.ftpserver import PixlFTPServer
 from pytest_pixl.helpers import run_subprocess
 from pytest_pixl.plugin import FtpHostAddress
-from pixl_cli.main import export_patient_data
 from utils import wait_for_stable_orthanc_anon
 
 pytest_plugins = "pytest_pixl"

@@ -24,6 +24,7 @@ from typing import Any, Optional
 
 import click
 import requests
+from core.exports import ParquetExport
 from core.patient_queue.producer import PixlProducer
 from core.patient_queue.subscriber import PixlBlockingConsumer
 from decouple import RepositoryEnv, UndefinedValueError, config
@@ -32,6 +33,7 @@ from loguru import logger
 from pixl_cli._config import SERVICE_SETTINGS, api_config_for_queue
 from pixl_cli._database import filter_exported_or_add_to_db, query_image_something
 from pixl_cli._io import (
+    HOST_EXPORT_ROOT_DIR,
     copy_parquet_return_logfile_fields,
     make_radiology_linker_table,
     messages_from_csv,
@@ -168,13 +170,13 @@ def export_patient_data(parquet_dir: Path) -> None:
     """
     Export processed radiology reports to parquet file.
 
-    PARQUET_DIR: Directory containing the extract_summary.json
+    PARQUET_DIR: Directory containing the extract_summary.json (not a CSV)
     log file defining which extract to export patient data for.
     """
-    project_name, omop_es_datetime = project_info(parquet_dir)
+    project_name_raw, omop_es_datetime = project_info(parquet_dir)
+    extract = ParquetExport(project_name_raw, omop_es_datetime, HOST_EXPORT_ROOT_DIR)
 
-    # do we need to check it's a CSV? No, because file_okay = False is set!
-    images = query_image_something(project_name)
+    images = query_image_something(extract.project_slug)
     print("JES 0")
     print(images)
     make_radiology_linker_table(parquet_dir, images)
@@ -183,7 +185,7 @@ def export_patient_data(parquet_dir: Path) -> None:
     api_config = api_config_for_queue("export")
     response = requests.post(
         url=f"{api_config.base_url}/export-patient-data",
-        json={"project_name": project_name, "extract_datetime": omop_es_datetime.isoformat()},
+        json={"project_name": project_name_raw, "extract_datetime": omop_es_datetime.isoformat()},
         timeout=300,
     )
 
