@@ -15,7 +15,7 @@
 project:
     name: "project-slug"
     modalities: ["DX", "CR"] # DICOM dataset modalities to retain
-    azure_kv_alias: null  # Optional field to allow for a common secret prefix to be used
+    azure_kv_alias: null # Optional field to allow for a common secret prefix to be used
 
 tag_operation_files: # DICOM tag anonymisation operations
     base:
@@ -23,5 +23,5 @@ tag_operation_files: # DICOM tag anonymisation operations
     manufacturer_overrides: none # Manufactuer-dependendent overrides
 
 destination:
-    dicom: "ftps" # alternatives: "none"
+    dicom: "ftps" # alternatives: "dicomweb", "none"
     parquet: "ftps" # alternatives: "none"
