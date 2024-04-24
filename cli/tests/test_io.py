@@ -33,35 +33,37 @@ def test_message_from_csv_raises_for_malformed_input(tmpdir):
 
 
 def test_make_radiology_linker_table(omop_resources: Path):
-    extract = Extract(
-        extract_id=1,
-        slug="Test Extract - UCLH OMOP CDM",
-        # slug="test-extract-uclh-omop-cdm"
-    )
-    img1 = Image(
-        accession_number="AA12345601",
-        study_date=date(1, 1, 1),
-        mrn="987654321",
-        hashed_identifier="test_hashed_id_1",
-        extract=extract,
-    )
-    img2 = Image(
-        accession_number="AA12345605",
-        study_date=date(1, 1, 1),
-        mrn="987654321",
-        hashed_identifier="test_hashed_id_2",
-        extract=extract,
-    )
-    df = make_radiology_linker_table(omop_resources / "omop", [img1, img2])
+    """
+    Given some fake image data that normally would be from the database,
+    make a dataframe containing the radiology linker table data.
+    """
+    extract = Extract(extract_id=1, slug="whatever")
+    images = [
+        Image(
+            accession_number="AA12345601",
+            study_date=date(1, 1, 1),
+            mrn="987654321",
+            hashed_identifier="test_hashed_id_1",
+            extract=extract,
+        ),
+        Image(
+            accession_number="AA12345605",
+            study_date=date(1, 1, 1),
+            mrn="987654321",
+            hashed_identifier="test_hashed_id_2",
+            extract=extract,
+        ),
+    ]
+    linker_df = make_radiology_linker_table(omop_resources / "omop", images)
 
-    po_col = df["procedure_occurrence_id"]
-    row_po_4 = df[po_col == 4].iloc[0]
-    row_po_5 = df[po_col == 5].iloc[0]
+    po_col = linker_df["procedure_occurrence_id"]
+    row_po_4 = linker_df[po_col == 4].iloc[0]
+    row_po_5 = linker_df[po_col == 5].iloc[0]
     assert row_po_4.hashed_identifier == "test_hashed_id_1"
     assert row_po_5.hashed_identifier == "test_hashed_id_2"
 
-    assert df.shape[0] == 2
-    assert set(df.columns) == {"procedure_occurrence_id", "hashed_identifier"}
+    assert linker_df.shape[0] == 2
+    assert set(linker_df.columns) == {"procedure_occurrence_id", "hashed_identifier"}
 
 
 # XXX: need to test the DB lookup - probably add to the system test
