@@ -15,6 +15,7 @@
 
 # ruff: noqa: C408 dict() makes test data easier to read and write
 from collections.abc import Generator
+from click.testing import CliRunner
 from pathlib import Path
 from typing import Any
 
@@ -24,6 +25,7 @@ from pytest_pixl.dicom import generate_dicom_dataset
 from pytest_pixl.ftpserver import PixlFTPServer
 from pytest_pixl.helpers import run_subprocess
 from pytest_pixl.plugin import FtpHostAddress
+from pixl_cli.main import export_patient_data
 from utils import wait_for_stable_orthanc_anon
 
 pytest_plugins = "pytest_pixl"
@@ -166,4 +168,6 @@ def _export_patient_data(_setup_pixl_cli) -> None:  # type: ignore [no-untyped-d
     run pixl export-patient-data. No subsequent wait is needed, because this API call
     is synchronous (whether that is itself wise is another matter).
     """
-    run_subprocess(["pixl", "export-patient-data", str(RESOURCES_OMOP_DIR.absolute())], TEST_DIR)
+    runner = CliRunner()
+    assert TEST_DIR.samefile(Path.cwd())
+    runner.invoke(export_patient_data, args=[str(RESOURCES_OMOP_DIR.absolute())])
