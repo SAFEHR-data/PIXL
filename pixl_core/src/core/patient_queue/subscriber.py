@@ -67,7 +67,7 @@ class PixlConsumer(PixlQueueInterface):
         max_in_flight = config("PIXL_MAX_MESSAGES_IN_FLIGHT", cast=int)
         logger.info("Pika will consume up to {} messages concurrently", max_in_flight)
         await self._channel.set_qos(prefetch_count=max_in_flight)
-        self._queue = await self._channel.declare_queue(self.queue_name)
+        self._queue = await self._channel.declare_queue(self.queue_name, durable=True)
         return self
 
     async def _process_message(self, message: AbstractIncomingMessage) -> None:
