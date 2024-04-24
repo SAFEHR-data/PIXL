@@ -31,7 +31,7 @@ from decouple import RepositoryEnv, UndefinedValueError, config
 from loguru import logger
 
 from pixl_cli._config import SERVICE_SETTINGS, api_config_for_queue
-from pixl_cli._database import filter_exported_or_add_to_db, query_image_something
+from pixl_cli._database import filter_exported_or_add_to_db, images_for_project
 from pixl_cli._io import (
     HOST_EXPORT_ROOT_DIR,
     copy_parquet_return_logfile_fields,
@@ -176,7 +176,7 @@ def export_patient_data(parquet_dir: Path) -> None:
     project_name_raw, omop_es_datetime = project_info(parquet_dir)
     extract = ParquetExport(project_name_raw, omop_es_datetime, HOST_EXPORT_ROOT_DIR)
 
-    images = query_image_something(extract.project_slug)
+    images = images_for_project(extract.project_slug)
     make_radiology_linker_table(parquet_dir, images)
 
     # Call the EHR API
