@@ -125,6 +125,7 @@ services:
       ORTHANC_RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
       ORTHANC_RAW_DICOM_PORT: "4242"
       ORTHANC_RAW_HOSTNAME: "orthanc-raw"
+      ORTHANC_URL: "http://localhost:8042"
       PIXL_DB_HOST: ${PIXL_DB_HOST}
       PIXL_DB_PORT: ${PIXL_DB_PORT}
       PIXL_DB_NAME: ${PIXL_DB_NAME}
