@@ -85,7 +85,11 @@ class DicomWebUploader(Uploader):
         return True
 
     def _setup_dicomweb_credentials(self) -> None:
-        """Add the necessary credentials to the DicomWeb server in Orthanc."""
+        """
+        Add the necessary credentials to the DicomWeb server in Orthanc.
+        This dyniamically creates a new endpoint in Orthanc with the necessary credentials, so we
+        can avoid hardcoding the credentials in the Orthanc configuration at build time.
+        """
         DICOM_ENDPOINT_URL = config("DICOM_ENDPOINT_URL")
         HTTP_TIMEOUT = int(config("HTTP_TIMEOUT", default=30))
 
