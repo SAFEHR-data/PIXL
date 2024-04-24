@@ -102,8 +102,8 @@ def run_dicomweb_containers() -> Generator[subprocess.CompletedProcess[bytes], N
 
 
 @pytest.fixture(scope="package")
-def dicom_resource(run_dicomweb_containers) -> str:
-    """Uploads a DICOM file to the Orthanc server and returns the resource ID."""
+def study_id(run_dicomweb_containers) -> str:
+    """Uploads a DICOM file to the Orthanc server and returns the study ID."""
     DCM_FILE = Path(__file__).parents[2] / "test" / "resources" / "Dicom1.dcm"
     ORTHANC_URL = os.environ["ORTHANC_URL"]
 
@@ -116,7 +116,7 @@ def dicom_resource(run_dicomweb_containers) -> str:
         auth=(os.environ["ORTHANC_USERNAME"], os.environ["ORTHANC_PASSWORD"]),
         timeout=60,
     )
-    return response.json()["ID"]
+    return response.json()["ParentStudy"]
 
 
 class MockFTPSUploader(FTPSUploader):

@@ -42,12 +42,12 @@ def dicomweb_uploader() -> MockDicomWebUploader:
     return MockDicomWebUploader()
 
 
-def test_upload_dicom_image(dicom_resource, run_dicomweb_containers, dicomweb_uploader) -> None:
+def test_upload_dicom_image(study_id, run_dicomweb_containers, dicomweb_uploader) -> None:
     """Tests that DICOM image can be uploaded to a DICOMWeb server"""
     # ARRANGE
 
     # ACT
-    stow_response = dicomweb_uploader.send_via_stow(dicom_resource)
+    stow_response = dicomweb_uploader.send_via_stow(study_id)
 
     # ASSERT
     destination_url = ORTHANC_URL + "/dicom-web/studies"
