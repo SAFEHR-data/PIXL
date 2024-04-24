@@ -59,8 +59,8 @@ def tag_scheme() -> list[dict]:
 def _mri_diffusion_tags(manufacturer: str = "Philips") -> list[PrivateDicomTag]:
     """
     Private DICOM tags for testing the anonymisation process.
-    These tags from `/projects/configs/tag-operations/mri-diffusion.yaml` so we can test
-    whether the manufacturer overrides work during anonymisation
+    These tags from `/projects/configs/tag-operations/manufacturer-overrides/mri-diffusion.yaml`
+    so we can test whether the manufacturer overrides work during anonymisation
     """
     project_config = load_project_config(TEST_PROJECT_SLUG)
     tag_ops = load_tag_operations(project_config)

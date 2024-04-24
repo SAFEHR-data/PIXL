@@ -19,7 +19,8 @@ project:
 tag_operation_files:
     base:
         - "mri.yaml"
-    manufacturer_overrides: "mri-diffusion.yaml"
+        - "diffusion-weighted-mri.yaml"
+    manufacturer_overrides: "manufacturer-overrides/mri-diffusion.yaml"
 destination:
     dicom: "none"
     parquet: "none"
