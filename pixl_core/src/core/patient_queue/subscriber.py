@@ -23,12 +23,11 @@ import aio_pika
 from decouple import config
 
 from core.exceptions import PixlDiscardError, PixlRequeueMessageError
-from core.patient_queue._base import PixlBlockingInterface, PixlQueueInterface
+from core.patient_queue._base import PixlQueueInterface
 from core.patient_queue.message import deserialise
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
-    from pathlib import Path
 
     from aio_pika.abc import AbstractIncomingMessage
     from typing_extensions import Self
@@ -68,7 +67,7 @@ class PixlConsumer(PixlQueueInterface):
         max_in_flight = config("PIXL_MAX_MESSAGES_IN_FLIGHT", cast=int)
         logger.info("Pika will consume up to {} messages concurrently", max_in_flight)
         await self._channel.set_qos(prefetch_count=max_in_flight)
-        self._queue = await self._channel.declare_queue(self.queue_name)
+        self._queue = await self._channel.declare_queue(self.queue_name, durable=True)
         return self
 
     async def _process_message(self, message: AbstractIncomingMessage) -> None:
@@ -108,39 +107,3 @@ class PixlConsumer(PixlQueueInterface):
 
     async def __aexit__(self, *args: object, **kwargs: Any) -> None:
         """Requirement for the asynchronous context manager"""
-
-
-class PixlBlockingConsumer(PixlBlockingInterface):
-    """Connector to RabbitMQ. Consumes messages from in blocks"""
-
-    def consume_all(self, file_path: Path, timeout_in_seconds: int = 5) -> int:
-        """
-        Retrieving all messages still on queue and save them in a specified CSV file.
-        :param timeout_in_seconds: Causes shutdown after the timeout (specified in secs)
-        :param file_path: path to where remaining messages should be written
-                          before shutdown
-        :returns: the number of messages that have been consumed and written to the
-                  specified file.
-        """
-        generator = self._channel.consume(
-            queue=self.queue_name,
-            auto_ack=True,
-            inactivity_timeout=timeout_in_seconds,  # Yields (None, None, None) after
-        )
-
-        def callback(method: Any, properties: Any, body: Any) -> None:  # noqa: ARG001
-            """Consume to file."""
-            try:
-                with file_path.open("a") as csv_file:
-                    print(str(body.decode()), file=csv_file)
-            except:  # noqa: E722
-                logger.exception("Failed to consume")
-
-        counter = 0
-        for args in generator:
-            if all(arg is None for arg in args):
-                logger.info("Stopping consumer")
-                break
-            callback(*args)
-            counter += 1
-        return counter
