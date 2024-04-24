@@ -116,7 +116,6 @@ def query_image_something(project_slug: str) -> list[Image]:
     """
     Given a project, get all images for that project?
     """
-    print("JES getting images for project " + project_slug)
     PixlSession = sessionmaker(engine)
     with PixlSession() as session, session.begin():
         return (

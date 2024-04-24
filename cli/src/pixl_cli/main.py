@@ -177,8 +177,6 @@ def export_patient_data(parquet_dir: Path) -> None:
     extract = ParquetExport(project_name_raw, omop_es_datetime, HOST_EXPORT_ROOT_DIR)
 
     images = query_image_something(extract.project_slug)
-    print("JES 0")
-    print(images)
     make_radiology_linker_table(parquet_dir, images)
 
     # Call the EHR API
