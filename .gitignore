@@ -150,3 +150,4 @@ dmypy.json
 /projects/exports/
 **/test_producer.csv
 /test/dummy-services/ftp-server/mounts/data/*
+rabbitmq/*

@@ -21,35 +21,12 @@ from pathlib import Path
 
 import pandas as pd
 from core.exports import ParquetExport
-from core.patient_queue.message import Message, deserialise
+from core.patient_queue.message import Message
 from loguru import logger
-
-from pixl_cli._utils import string_is_non_empty
 
 # The export root dir from the point of view of the docker host (which is where the CLI runs)
 # For the view from inside, see pixl_ehr/main.py: EHR_EXPORT_ROOT_DIR
 HOST_EXPORT_ROOT_DIR = Path(__file__).parents[3] / "projects" / "exports"
-
-
-def messages_from_state_file(filepath: Path) -> list[Message]:
-    """
-    Return messages from a state file path
-
-    :param filepath: Path for state file to be read
-    :return: A list of Message objects containing all the messages from the state file
-    """
-    logger.info("Creating messages from {}", filepath)
-    if not filepath.exists():
-        raise FileNotFoundError
-    if filepath.suffix != ".state":
-        msg = f"Invalid file suffix for {filepath}. Expected .state"
-        raise ValueError(msg)
-
-    return [
-        deserialise(line.encode())
-        for line in filepath.open().readlines()
-        if string_is_non_empty(line)
-    ]
 
 
 def project_info(resources_path: Path) -> tuple[str, datetime]:
