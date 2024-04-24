@@ -78,10 +78,6 @@
   group: 0x0008
   element: 0x9209
   op: "keep"
-- name: "Magnetic Field Strength"
-  group: 0x0018
-  element: 0x0087
-  op: "keep"
 - name: "Patients Name"
   group: 0x0010
   element: 0x0010
@@ -97,6 +93,42 @@
 - name: "Sequence Variant"
   group: 0x0018
   element: 0x0021
+  op: "keep"
+- name: "Slice Thickness"
+  group: 0x0018
+  element: 0x0050
+  op: "keep"
+- name: "Repetition Time"
+  group: 0x0018
+  element: 0x0080
+  op: "keep"
+- name: "Echo Time"
+  group: 0x0018
+  element: 0x0081
+  op: "keep"
+- name: "Inversion Time"
+  group: 0x0018
+  element: 0x0082
+  op: "keep"
+- name: "Number of Averages"
+  group: 0x0018
+  element: 0x0083
+  op: "keep"
+- name: "Magnetic Field Strength"
+  group: 0x0018
+  element: 0x0087
+  op: "keep"
+- name: "Spacing Between Slices"
+  group: 0x0018
+  element: 0x0088
+  op: "keep"
+- name: "Echo train length"
+  group: 0x0018
+  element: 0x0091
+  op: "keep"
+- name: "Percent Phase Field of View"
+  group: 0x0018
+  element: 0x0094
   op: "keep"
 - name: "Software Version"
   group: 0x0018
@@ -122,9 +154,29 @@
   group: 0x0018
   element: 0x1190
   op: "keep"
+- name: "Receive Coil Name"
+  group: 0x0018
+  element: 0x1250
+  op: "keep"
+- name: "Transmit Coil Name"
+  group: 0x0018
+  element: 0x1251
+  op: "keep"
+- name: "Flip Angle"
+  group: 0x0018
+  element: 0x1314
+  op: "keep"
 - name: "Acquisition Device Processing Description"
   group: 0x0018
   element: 0x1400
+  op: "keep"
+- name: "MR Acquisition Frequency Encoding Steps"
+  group: 0x0018
+  element: 0x9058
+  op: "keep"
+- name: "MR Acquisition Phase Encoding Steps in-plane"
+  group: 0x0018
+  element: 0x9231
   op: "keep"
 - name: "Study Instance UID"
   group: 0x0020
@@ -142,7 +194,7 @@
   group: 0x0020
   element: 0x0011
   op: "keep"
-- name: "Image Number"
+- name: "Instance Number"
   group: 0x0020
   element: 0x0013
   op: "keep"
