@@ -13,6 +13,10 @@
 #  limitations under the License.
 """Test functionality to upload files to a DICOMWeb endpoint."""
 
+from __future__ import annotations
+
+from typing import Optional
+
 import pytest
 import requests
 from core.uploader._dicomweb import DicomWebUploader  # type: ignore [import-untyped]
@@ -42,22 +46,28 @@ def dicomweb_uploader() -> MockDicomWebUploader:
     return MockDicomWebUploader()
 
 
+def _do_get_request(endpoint: str, data: Optional[dict] = None) -> requests.Response:
+    """Perform a GET request to the specified endpoint."""
+    return requests.get(
+        ORTHANC_URL + endpoint,
+        auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD),
+        data=data,
+        timeout=30,
+    )
+
+
 def test_upload_dicom_image(study_id, run_dicomweb_containers, dicomweb_uploader) -> None:
     """Tests that DICOM image can be uploaded to a DICOMWeb server"""
     # ARRANGE
 
     # ACT
     stow_response = dicomweb_uploader.send_via_stow(study_id)
+    studies_response = _do_get_request("/dicom-web/studies", data={"Uri": "/instances"})
+    servers_response = _do_get_request("/dicom-web/servers")
 
     # ASSERT
-    destination_url = ORTHANC_URL + "/dicom-web/studies"
-    response = requests.get(
-        destination_url,
-        auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD),
-        data={"Uri": "/instances"},
-        timeout=30,
-    )
-
+    # Check if dicom-web server is set up correctly
+    assert DICOM_ENDPOINT_NAME in servers_response.json()
     assert stow_response.status_code == 200  # succesful upload
     # Taken from https://orthanc.uclouvain.be/hg/orthanc-dicomweb/file/default/Resources/Samples/Python/SendStow.py
-    assert "00081190" in response.json()[0]
+    assert "00081190" in studies_response.json()[0]
