@@ -56,7 +56,7 @@ def should_exclude_series(dataset: Dataset) -> bool:
     series_description = dataset.get("SeriesDescription")
     cfg = load_project_config(slug)
     if cfg.is_series_excluded(series_description):
-        logger.warning("FILTERING OUT series description: %s", series_description)
+        logger.warning("FILTERING OUT series description: {}", series_description)
         return True
     return False
 
@@ -197,7 +197,7 @@ def _hash_values(pat_value: str, project_slug: str, hash_len: int = 0) -> str:
         request_params["length"] = hash_len
 
     response = requests.get(hasher_req_url, params=request_params)
-    logger.debug("RESPONSE = %s}" % response.text)
+    logger.debug("RESPONSE = {}", response.text)
     return response.text
 
 

@@ -59,7 +59,7 @@ def OnChange(changeType, level, resourceId):  # noqa: ARG001
     should_auto_route returns true
     """
     if changeType == orthanc.ChangeType.STABLE_STUDY and should_auto_route():
-        print("Sending study: %s" % resourceId)  # noqa: T201
+        logger.debug("Sending study: {}", resourceId)
         # Although this can throw, since we have nowhere to report errors
         # back to (eg. an HTTP client), don't try to handle anything here.
         # The client will have to detect that it hasn't happened and retry.
@@ -111,7 +111,7 @@ def modify_dicom_tags(receivedDicom: bytes, origin: str) -> Any:
     """
     if origin != orthanc.InstanceOrigin.DICOM_PROTOCOL:
         # don't keep resetting the tag values if this was triggered by an API call!
-        logger.debug("modify_dicom_tags - doing nothing as change triggered by API")
+        logger.trace("doing nothing as change triggered by API")
         return orthanc.ReceivedInstanceAction.KEEP_AS_IS, None
     dataset = dcmread(BytesIO(receivedDicom))
     # See the orthanc.json config file for where this tag is given a nickname
@@ -123,9 +123,7 @@ def modify_dicom_tags(receivedDicom: bytes, origin: str) -> Any:
     # Add project name as private tag, at this point, the value is unknown
     private_block = add_private_tag(dataset, DICOM_TAG_PROJECT_NAME)
 
-    logger.debug(
-        "modify_dicom_tags - added new private block starting at 0x%x", private_block.block_start
-    )
+    logger.debug("added new private block starting at 0x{:04x}", private_block.block_start)
     return orthanc.ReceivedInstanceAction.MODIFY, write_dataset_to_bytes(dataset)
 
 
