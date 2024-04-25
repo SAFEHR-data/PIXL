@@ -56,7 +56,6 @@ class DicomWebUploader(Uploader):
 
         headers = {"content-type": "application/dicom", "accept": "application/dicom+json"}
         payload = {"Resources": [resource_id], "Synchronous": False}
-        success_code = 200
 
         try:
             response = requests.post(
@@ -66,13 +65,11 @@ class DicomWebUploader(Uploader):
                 data=json.dumps(payload),
                 timeout=30,
             )
+            response.raise_for_status()
         except requests.exceptions.RequestException:
             logger.error("Failed to send via stow")
             raise
         else:
-            if response.status_code != success_code:
-                logger.error("Upload via stow unsuccesful")
-                raise RuntimeError
             logger.info("Dicom resource {} sent via stow", resource_id)
         return response
 
