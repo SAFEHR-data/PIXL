@@ -127,5 +127,5 @@ def images_for_project(project_slug: str) -> list[Image]:
         )
         return cast(
             list[Image],
-            images,
+            [im[0] for im in images],  # get the objects themselves rather than the Row objects
         )
