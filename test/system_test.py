@@ -173,10 +173,10 @@ def test_ehr_anon_entries() -> None:
     wait_for_condition(exists_two_rows)
 
 
-@pytest.mark.usefixtures("_setup_pixl_cli")
+@pytest.mark.usefixtures("_setup_pixl_cli_dicomweb")
 def test_dicomweb_upload() -> None:
     """Check upload to DICOMweb server was successful"""
-    ORTHANC_URL = config("ORTHANC_ANON_WEB_PORT")
+    ORTHANC_URL = f'http://localhost:{config("ORTHANC_ANON_WEB_PORT")}'
 
     def check_dicomweb_study_present() -> bool:
         response = requests.get(
