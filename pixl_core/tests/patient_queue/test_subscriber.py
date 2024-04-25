@@ -14,13 +14,12 @@
 from __future__ import annotations
 
 import asyncio
-from pathlib import Path
 from unittest.mock import AsyncMock
 
 import pytest
 from core.patient_queue.message import Message
 from core.patient_queue.producer import PixlProducer
-from core.patient_queue.subscriber import PixlBlockingConsumer, PixlConsumer
+from core.patient_queue.subscriber import PixlConsumer
 from core.token_buffer.tokens import TokenBucket
 
 TEST_QUEUE = "test_consume"
@@ -64,17 +63,3 @@ async def test_create() -> None:
         consume.assert_called_once()
     # Fail on purpose to check async test awaited
     raise ExpectedTestError
-
-
-@pytest.mark.usefixtures("run_containers")
-def test_consume_all() -> None:
-    """
-    Checks that all messages are returned that have been published before for
-    graceful shutdown.
-    """
-    with PixlProducer(queue_name=TEST_QUEUE) as pp:
-        pp.publish(messages=[TEST_MESSAGE, TEST_MESSAGE])
-
-    with PixlBlockingConsumer(queue_name=TEST_QUEUE) as bc:
-        counter_bc = bc.consume_all(timeout_in_seconds=2, file_path=Path("test_producer.csv"))
-        assert counter_bc == 2

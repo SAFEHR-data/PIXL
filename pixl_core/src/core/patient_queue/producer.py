@@ -17,6 +17,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from pika import BasicProperties, DeliveryMode
+
 from ._base import PixlBlockingInterface
 
 if TYPE_CHECKING:
@@ -38,7 +40,10 @@ class PixlProducer(PixlBlockingInterface):
             for msg in messages:
                 serialised_msg = msg.serialise()
                 self._channel.basic_publish(
-                    exchange="", routing_key=self.queue_name, body=serialised_msg
+                    exchange="",
+                    routing_key=self.queue_name,
+                    body=serialised_msg,
+                    properties=BasicProperties(delivery_mode=DeliveryMode.Persistent),
                 )
                 logger.debug("Message {} published to queue {}", msg, self.queue_name)
         else:

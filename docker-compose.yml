@@ -72,6 +72,7 @@ volumes:
   orthanc-raw-data:
   postgres-data:
   exports:
+  rabbitmq:
 
 networks:
   pixl-net:
@@ -228,9 +229,11 @@ services:
 
   queue:
     image: rabbitmq:3.12.9-management
+    hostname: queue-host
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_NODENAME: "rabbit@queue-host"
     healthcheck:
       test: rabbitmq-diagnostics -q check_running
       interval: 30s
@@ -241,6 +244,8 @@ services:
       - "${RABBITMQ_ADMIN_PORT}:15672"
     networks:
       - pixl-net
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq/mnesia
 
   ehr-api:
     build:
