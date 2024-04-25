@@ -20,8 +20,6 @@ from typing import Any
 
 import pytest
 import requests
-from click.testing import CliRunner
-from pixl_cli.main import export_patient_data, populate
 from pytest_pixl.dicom import generate_dicom_dataset
 from pytest_pixl.ftpserver import PixlFTPServer
 from pytest_pixl.helpers import run_subprocess
@@ -139,10 +137,7 @@ def _upload_dicom_instance(dicom_dir: Path, **kwargs: Any) -> None:
 def _setup_pixl_cli(ftps_server: PixlFTPServer, _populate_vna: None) -> Generator:
     """Run pixl populate/start. Cleanup intermediate export dir on exit."""
     # CLI calls need to have CWD = test dir so they can find the pixl_config.yml file
-    runner = CliRunner()
-    assert TEST_DIR.samefile(Path.cwd())
-    result = runner.invoke(populate, args=[str(RESOURCES_OMOP_DIR.absolute())])
-    assert result.exit_code == 0
+    run_subprocess(["pixl", "populate", str(RESOURCES_OMOP_DIR.absolute())], TEST_DIR)
     # poll here for two minutes to check for imaging to be processed, printing progress
     wait_for_stable_orthanc_anon(121, 5, 15)
     yield
@@ -171,7 +166,4 @@ def _export_patient_data(_setup_pixl_cli) -> None:  # type: ignore [no-untyped-d
     run pixl export-patient-data. No subsequent wait is needed, because this API call
     is synchronous (whether that is itself wise is another matter).
     """
-    runner = CliRunner()
-    assert TEST_DIR.samefile(Path.cwd())
-    result = runner.invoke(export_patient_data, args=[str(RESOURCES_OMOP_DIR.absolute())])
-    assert result.exit_code == 0
+    run_subprocess(["pixl", "export-patient-data", str(RESOURCES_OMOP_DIR.absolute())], TEST_DIR)
