@@ -20,7 +20,6 @@ import pydicom
 import pytest
 import requests
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
-from decouple import config
 from pytest_pixl.ftpserver import PixlFTPServer
 from pytest_pixl.helpers import run_subprocess, wait_for_condition
 
@@ -176,12 +175,13 @@ def test_ehr_anon_entries() -> None:
 @pytest.mark.usefixtures("_setup_pixl_cli_dicomweb")
 def test_dicomweb_upload() -> None:
     """Check upload to DICOMweb server was successful"""
-    ORTHANC_URL = f'http://localhost:{config("ORTHANC_ANON_WEB_PORT")}'
+    # This should point to the orthanc-anon server
+    ORTHANC_URL = "http://localhost:7003"
 
     def check_dicomweb_study_present() -> bool:
         response = requests.get(
             ORTHANC_URL + "/dicom-web/studies",
-            auth=(config("ORTHANC_ANON_USERNAME"), config("ORTHANC_ANON_PASSWORD")),
+            auth=("orthanc_anon_username", "orthanc_anon_password"),
             data={"Uri": "/instances"},
             timeout=30,
         )
