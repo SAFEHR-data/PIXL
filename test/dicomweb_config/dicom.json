@@ -1,19 +1,6 @@
 {
     "DicomAet": "${ORTHANC_AE_TITLE}",
     "DicomAlwaysAllowEcho": true,
-    "DicomModalities": {
-        "Pixl-raw": {
-            "AET": "${RAW_AE_TITLE}",
-            "Port": "${RAW_DICOM_PORT}",
-            "Host": "${RAW_IP_ADDR}",
-            "Manufacturer": "Generic",
-            "AllowEcho": true,
-            "AllowFind": true,
-            "AllowGet": true,
-            "AllowMove": true,
-            "AllowStore": true
-        }
-    },
     "DICOMWeb": {
         "Enabled": true,
         "Root": "/dicom-web"
