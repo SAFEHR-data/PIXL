@@ -123,7 +123,7 @@ class FTPSUploader(Uploader):
         │       │   └── public
         │       │       └── PROCEDURE_OCCURRENCE.parquet
         │       └── radiology
-        │           └── radiology.parquet
+        │           └── IMAGE_LINKER.parquet
         ├── <pseudonymised_ID_DICOM_dataset_1>.zip
         └── <pseudonymised_ID_DICOM_dataset_2>.zip
         ...

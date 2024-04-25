@@ -67,6 +67,15 @@ class TestFtpsUpload:
         ).exists()
 
     @pytest.mark.usefixtures("_export_patient_data")
+    def test_ftps_radiology_linker_upload(self) -> None:
+        """The copied radiology linker file"""
+        assert TestFtpsUpload.expected_public_parquet_dir.exists()
+
+        assert (
+            TestFtpsUpload.expected_public_parquet_dir / "radiology" / "IMAGE_LINKER.parquet"
+        ).exists()
+
+    @pytest.mark.usefixtures("_export_patient_data")
     def test_ftps_dicom_upload(self, tmp_path_factory: pytest.TempPathFactory) -> None:
         """Test whether DICOM images have been uploaded"""
         zip_files: list[Path] = []

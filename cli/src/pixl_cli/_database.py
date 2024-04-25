@@ -118,7 +118,7 @@ def images_for_project(project_slug: str) -> list[Image]:
     """Given a project, get all images in the DB for that project."""
     PixlSession = sessionmaker(engine)
     with PixlSession() as session, session.begin():
-        images_for_project = (
+        images = (
             session.query(Image)
             .join(Extract)
             .filter(Extract.slug == project_slug)
@@ -127,5 +127,5 @@ def images_for_project(project_slug: str) -> list[Image]:
         )
         return cast(
             list[Image],
-            images_for_project,
+            images,
         )
