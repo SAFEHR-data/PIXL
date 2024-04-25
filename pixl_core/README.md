@@ -104,7 +104,7 @@ The `project_config` module provides the functionality to handle
 
 ## Uploading to an FTPS server
 
-The `core.upload` module implements functionality to upload DICOM images and parquet files to
+The `core.uploader` module implements functionality to upload DICOM images and parquet files to
 several destinations. This requires the following environment variables to be set:
 
 The `Uploader` abstract class provides a consistent interface for uploading files. Child classes
@@ -134,3 +134,14 @@ Once the parquet files have been uploaded to the DSH, the directory structure wi
     ├── <pseudonymised_ID_DICOM_dataset_1>.zip
     └── <pseudonymised_ID_DICOM_dataset_2>.zip
 ```
+
+## Uploading to a DICOMweb server
+
+PIXL supports [DICOMweb](../docs/services/dicomweb-server.md) as an alternative upload destination
+for the DICOM images for a given project. The [`dicomweb-server`](/docs/services/dicomweb-server.md)
+documentation provides more information on how this server should be configured.
+
+The `DicomwebUploader` class in the `core.uploader` module handles the communication between the
+Orthanc server where anonymised DICOM images are stored and the DICOMweb server where the images
+should be sent to. We make use of the [Orthanc DICOMweb plugin](https://orthanc.uclouvain.be/book/plugins/dicomweb.html)
+to implement this.

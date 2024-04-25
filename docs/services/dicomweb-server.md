@@ -20,5 +20,5 @@ so we can have different (or no) endpoints for different projects.
 For [testing](../../test/README.md) we set up an additional Orthanc server that acts as a DICOMweb server,
 using the vanilla Orthanc Docker image with the DICOMWeb plugin enabled.
 
-For more information on using the DICOMweb Orthanc plugin, see the [Orthanc book](https://orthanc.uclouvain.be/book/plugins/dicomweb.html#id19).
+For more information on using the DICOMweb Orthanc plugin, see the [Orthanc book](https://orthanc.uclouvain.be/book/plugins/dicomweb.html).
 
