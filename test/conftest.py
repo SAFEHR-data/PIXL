@@ -21,7 +21,7 @@ from typing import Any
 import pytest
 import requests
 from click.testing import CliRunner
-from pixl_cli.main import export_patient_data
+from pixl_cli.main import export_patient_data, populate
 from pytest_pixl.dicom import generate_dicom_dataset
 from pytest_pixl.ftpserver import PixlFTPServer
 from pytest_pixl.helpers import run_subprocess
@@ -139,7 +139,9 @@ def _upload_dicom_instance(dicom_dir: Path, **kwargs: Any) -> None:
 def _setup_pixl_cli(ftps_server: PixlFTPServer, _populate_vna: None) -> Generator:
     """Run pixl populate/start. Cleanup intermediate export dir on exit."""
     # CLI calls need to have CWD = test dir so they can find the pixl_config.yml file
-    run_subprocess(["pixl", "populate", str(RESOURCES_OMOP_DIR.absolute())], TEST_DIR)
+    runner = CliRunner()
+    assert TEST_DIR.samefile(Path.cwd())
+    runner.invoke(populate, args=[str(RESOURCES_OMOP_DIR.absolute())])
     # poll here for two minutes to check for imaging to be processed, printing progress
     wait_for_stable_orthanc_anon(121, 5, 15)
     yield
