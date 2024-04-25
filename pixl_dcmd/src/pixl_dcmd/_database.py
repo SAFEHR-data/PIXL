@@ -16,7 +16,7 @@
 
 from decouple import config  # type: ignore [import-untyped]
 
-from core.db.models import Image, Extract  # type: ignore [import-untyped]
+from core.db.models import Image, Extract
 from sqlalchemy import URL, create_engine
 from sqlalchemy.orm import sessionmaker
 
