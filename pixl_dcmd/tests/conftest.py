@@ -71,7 +71,7 @@ def rows_in_session(db_session) -> Session:
 @pytest.fixture()
 def row_for_dicom_testing(db_session) -> Session:
     """Insert a test row for each table, returning the session for use in tests."""
-    extract = Extract(slug="dicom-testing-project")
+    extract = Extract(slug=TEST_PROJECT_SLUG)
 
     image_not_exported = Image(
         accession_number="BB01234567",
