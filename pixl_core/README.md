@@ -138,10 +138,26 @@ Once the parquet files have been uploaded to the DSH, the directory structure wi
 ## Uploading to a DICOMweb server
 
 PIXL supports [DICOMweb](../docs/services/dicomweb-server.md) as an alternative upload destination
-for the DICOM images for a given project. The [`dicomweb-server`](/docs/services/dicomweb-server.md)
-documentation provides more information on how this server should be configured.
+for the DICOM images for a given project.
 
 The `DicomwebUploader` class in the `core.uploader` module handles the communication between the
 Orthanc server where anonymised DICOM images are stored and the DICOMweb server where the images
 should be sent to. We make use of the [Orthanc DICOMweb plugin](https://orthanc.uclouvain.be/book/plugins/dicomweb.html)
 to implement this.
+
+### Configuration
+
+The configuration for the DICOMweb server is controlled by the following environment variables and secrets:
+
+- `"ORTHANC_URL"`: The URL of the Orthanc server from _where_ the upload will happen, this will typically be the `orthanc-anon` instance
+- The `"<project_slug>--dicomweb--username"` and `"<project_slug>--dicomweb--password"` for authentication, which are fetched from the [Azure Keyvault](../docs/setup/azure-keyvault.md)
+- The `"<project_slug>--dicomweb--url"` to define the DICOMweb endpoint in Orthanc, also fetched from the Azure Keyvault
+
+We dynamically configure the DICOMweb server endpoint in Orthanc (see `core.uploader._dicomweb.DicomWebUploader._setup_dicomweb_credentials()`),
+so we can have different (or no) endpoints for different projects.
+
+### Testing setup
+
+For [testing](../test/README.md) we set up an additional Orthanc server that acts as a DICOMweb server,
+using the vanilla Orthanc Docker image with the DICOMWeb plugin enabled.
+
