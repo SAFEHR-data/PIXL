@@ -87,7 +87,7 @@ services:
             ORTHANC_AE_TITLE: "DICOMWEB"
             RAW_AE_TITLE: ORHTANCRAW
             RAW_DICOM_PORT: "4242"
-            RAW_IP_ADDR: "orthanc-raw" # aka. hostname
+            RAW_IP_ADDR: "dicomweb-server" # aka. hostname
             DICOM_WEB_PLUGIN_ENABLED: true
         ports:
             - "4244:4242"
