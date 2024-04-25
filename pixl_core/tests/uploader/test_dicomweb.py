@@ -19,7 +19,7 @@ from typing import Optional
 
 import pytest
 import requests
-from core.uploader._dicomweb import DicomWebUploader  # type: ignore [import-untyped]
+from core.uploader._dicomweb import DicomWebUploader
 from decouple import config  # type: ignore [import-untyped]
 
 ORTHANC_URL = config("ORTHANC_URL")
