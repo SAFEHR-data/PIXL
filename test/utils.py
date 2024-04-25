@@ -17,12 +17,16 @@
 import json
 import shlex
 import subprocess
+from functools import partial, update_wrapper
 
 from pytest_pixl.helpers import wait_for_condition
 
 
 def wait_for_stable_orthanc_anon(
-    seconds_max: int, seconds_interval: int, seconds_condition_stays_true_for: int
+    seconds_max: int,
+    seconds_interval: int,
+    seconds_condition_stays_true_for: int,
+    min_instances: int = 3,
 ) -> None:
     """
     Query the orthanc-anon REST API to check that the correct number of instances
@@ -31,7 +35,7 @@ def wait_for_stable_orthanc_anon(
     """
     instances = []
 
-    def are_three_instances() -> bool:
+    def at_least_n_intances(n_intances: int) -> bool:
         nonlocal instances
         instances_cmd = shlex.split(
             "docker exec system-test-orthanc-anon-1 "
@@ -40,13 +44,16 @@ def wait_for_stable_orthanc_anon(
         )
         instances_output = subprocess.run(instances_cmd, capture_output=True, check=True, text=True)  # noqa: S603
         instances = json.loads(instances_output.stdout)
-        return len(instances) == 3
+        return len(instances) >= n_intances
+
+    condition = partial(at_least_n_intances, min_instances)
+    update_wrapper(condition, at_least_n_intances)
 
     def list_instances() -> str:
         return f"orthanc-anon instances: {instances}"
 
     wait_for_condition(
-        are_three_instances,
+        condition,
         seconds_max=seconds_max,
         seconds_interval=seconds_interval,
         progress_string_fn=list_instances,
