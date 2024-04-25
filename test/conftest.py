@@ -141,7 +141,8 @@ def _setup_pixl_cli(ftps_server: PixlFTPServer, _populate_vna: None) -> Generato
     # CLI calls need to have CWD = test dir so they can find the pixl_config.yml file
     runner = CliRunner()
     assert TEST_DIR.samefile(Path.cwd())
-    runner.invoke(populate, args=[str(RESOURCES_OMOP_DIR.absolute())])
+    result = runner.invoke(populate, args=[str(RESOURCES_OMOP_DIR.absolute())])
+    assert result.exit_code == 0
     # poll here for two minutes to check for imaging to be processed, printing progress
     wait_for_stable_orthanc_anon(121, 5, 15)
     yield
@@ -172,4 +173,5 @@ def _export_patient_data(_setup_pixl_cli) -> None:  # type: ignore [no-untyped-d
     """
     runner = CliRunner()
     assert TEST_DIR.samefile(Path.cwd())
-    runner.invoke(export_patient_data, args=[str(RESOURCES_OMOP_DIR.absolute())])
+    result = runner.invoke(export_patient_data, args=[str(RESOURCES_OMOP_DIR.absolute())])
+    assert result.exit_code == 0
