@@ -15,6 +15,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Generator
 import datetime
 import os
 import pathlib
@@ -87,7 +88,7 @@ def row_for_dicom_testing(db_session) -> Session:
 
 
 @pytest.fixture()
-def directory_of_mri_dicoms() -> pathlib.Path:
+def directory_of_mri_dicoms() -> Generator[pathlib.Path, None, None]:
     """Directory containing MRI DICOMs suitable for testing."""
     with tempfile.TemporaryDirectory() as td:
         pytest_pixl.dicom.write_volume(td + "/{slice}.dcm")
@@ -106,7 +107,7 @@ def monkeymodule():
 
 
 @pytest.fixture(autouse=True, scope="module")
-def db_engine(monkeymodule) -> Engine:
+def db_engine(monkeymodule) -> Generator[Engine, None, None]:
     """
     Patches the database engine with an in memory database
 
@@ -129,7 +130,7 @@ def db_engine(monkeymodule) -> Engine:
 
 
 @pytest.fixture()
-def db_session(db_engine) -> Session:
+def db_session(db_engine) -> Generator[Session, None, None]:
     """
     Creates a session for interacting with an in memory database.
 
