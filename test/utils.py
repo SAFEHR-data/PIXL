@@ -50,7 +50,7 @@ def wait_for_stable_orthanc_anon(
     update_wrapper(condition, at_least_n_intances)
 
     def list_instances() -> str:
-        return f"orthanc-anon instances: {instances}"
+        return f"Expecting at least {min_instances} instances.\northanc-anon instances: {instances}"
 
     wait_for_condition(
         condition,
