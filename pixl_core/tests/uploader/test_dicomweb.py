@@ -70,4 +70,5 @@ def test_upload_dicom_image(study_id, run_dicomweb_containers, dicomweb_uploader
     assert DICOM_ENDPOINT_NAME in servers_response.json()
     assert stow_response.status_code == 200  # succesful upload
     # Taken from https://orthanc.uclouvain.be/hg/orthanc-dicomweb/file/default/Resources/Samples/Python/SendStow.py
+    # Check that instance has not been discarded
     assert "00081190" in studies_response.json()[0]
