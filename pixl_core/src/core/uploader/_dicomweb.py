@@ -59,13 +59,14 @@ class DicomWebUploader(Uploader):
         headers = {"content-type": "application/dicom", "accept": "application/dicom+json"}
         payload = {"Resources": [resource_id], "Synchronous": False}
 
+        HTTP_TIMEOUT = int(config("HTTP_TIMEOUT", default=30))
         try:
             response = requests.post(
                 self.orthanc_dicomweb_url + "/stow",
                 auth=(self.orthanc_user, self.orthanc_password),
                 headers=headers,
                 data=json.dumps(payload),
-                timeout=30,
+                timeout=HTTP_TIMEOUT,
             )
             response.raise_for_status()
         except requests.exceptions.RequestException:
