@@ -56,7 +56,7 @@ def should_exclude_series(dataset: Dataset) -> bool:
     series_description = dataset.get("SeriesDescription")
     cfg = load_project_config(slug)
     if cfg.is_series_excluded(series_description):
-        logger.warning("FILTERING OUT series description: {}", series_description)
+        logger.info("FILTERING OUT series description: {}", series_description)
         return True
     return False
 
