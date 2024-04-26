@@ -20,6 +20,13 @@ tag_operation_files:
     base:
         - "mri.yaml"
     manufacturer_overrides: null
+
+series_filters:
+    - "localizer"
+    - "localiser"
+    - "scout"
+    - "positioning"
+
 destination:
-    dicom: "none"
+    dicom: "dicomweb"
     parquet: "none"
