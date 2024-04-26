@@ -11,71 +11,36 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-version: "3.8"
-
-volumes:
-    vna-qr-data:
 
 networks:
-    pixl-net:
+    pixl-test:
 
 services:
-    vna-qr:
-        image: orthancteam/orthanc:24.3.3
+    orthanc:
+        image: orthancteam/orthanc:24.4.0
         platform: linux/amd64
         environment:
-            ORTHANC_NAME: ${VNAQR_AE_TITLE}
+            ORTHANC_NAME: "orthanc"
             ORTHANC_USERNAME: "orthanc"
             ORTHANC_PASSWORD: "orthanc"
-            ORTHANC_AE_TITLE: "VNAQR"
-            RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
+            ORTHANC_AE_TITLE: "orthanc"
+            RAW_AE_TITLE: ORHTANCRAW
             RAW_DICOM_PORT: "4242"
             RAW_IP_ADDR: "orthanc-raw" # aka. hostname
+            DICOM_WEB_PLUGIN_ENABLED: true
         ports:
             - "4243:4242"
             - "8043:8042"
         volumes:
-            - ${PWD}/vna_config/:/run/secrets:ro
+            - ${PWD}/dicomweb_config/:/run/secrets:ro
+        networks:
+            - pixl-test
         healthcheck:
             test: ["CMD-SHELL", "/probes/test-aliveness.py --user=orthanc --pwd=orthanc"]
             start_period: 10s
             retries: 2
             interval: 3s
             timeout: 2s
-        networks:
-            pixl-net:
-
-    star:
-        container_name: system-test-fake-star-db
-        build:
-            context: ..
-            dockerfile: test/Dockerfile.fake_emap_star
-            args:
-                N_TABLE_ROWS: 2
-        environment:
-            POSTGRES_USER: ${EMAP_UDS_USER}
-            POSTGRES_PASSWORD: ${EMAP_UDS_PASSWORD}
-        healthcheck:
-            test: ["CMD", "pg_isready", "-U", "postgres"]
-            interval: 10s
-            timeout: 30s
-            retries: 5
-        ports:
-            - "5432:5432"
-        networks:
-            pixl-net:
-
-    cogstack-api:
-        container_name: system-test-cogstack
-        build:
-            context: ./dummy-services/cogstack/
-        healthcheck:
-            test: ["CMD", "curl", "-f", "http://localhost:8000/heart-beat"]
-            interval: 10s
-            timeout: 30s
-            retries: 5
-        networks:
-            pixl-net:
 
     dicomweb-server:
         image: orthancteam/orthanc:24.4.0
@@ -87,15 +52,15 @@ services:
             ORTHANC_AE_TITLE: "DICOMWEB"
             RAW_AE_TITLE: ORHTANCRAW
             RAW_DICOM_PORT: "4242"
-            RAW_IP_ADDR: "dicomweb-server" # aka. hostname
+            RAW_IP_ADDR: "orthanc-raw" # aka. hostname
             DICOM_WEB_PLUGIN_ENABLED: true
         ports:
             - "4244:4242"
             - "8044:8042"
         volumes:
-            - ${PWD}/dicomweb_config/:/run/secrets:ro
+            - ${PWD}/../../test/dicomweb_config/:/run/secrets:ro
         networks:
-            pixl-net:
+            - pixl-test
         healthcheck:
             test: ["CMD-SHELL", "/probes/test-aliveness.py --user=orthanc --pwd=orthanc"]
             start_period: 10s

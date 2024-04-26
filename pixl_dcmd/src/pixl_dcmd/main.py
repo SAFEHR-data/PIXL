@@ -168,7 +168,7 @@ def _secure_hash(
 
             hashed_value = _hash_values(pat_value, project_slug)
             # Query PIXL database
-            existing_image = query_db(mrn, accession_number)
+            existing_image = query_db(project_slug, mrn, accession_number)
             # Insert the hashed_value into the PIXL database
             add_hashed_identifier_and_save_to_db(existing_image, hashed_value)
         elif dataset[grp, el].VR == "SH":

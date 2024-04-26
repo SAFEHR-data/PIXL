@@ -161,7 +161,12 @@ def Send(study_id: str) -> None:
     msg = f"Sending {study_id} via '{destination}'"
     logger.debug(msg)
     zip_content = _get_study_zip_archive(study_id)
-    uploader.upload_dicom_image(zip_content, hashed_image_id, project_slug)
+
+    # NOTE: temporary workaround until new export-api is ready
+    if destination == "dicomweb":
+        uploader.send_via_stow(study_id)
+    else:
+        uploader.upload_dicom_image(zip_content, hashed_image_id, project_slug)
 
 
 def _get_study_zip_archive(resourceId: str) -> BytesIO:
@@ -173,35 +178,6 @@ def _get_study_zip_archive(resourceId: str) -> BytesIO:
     # get the zip content
     logger.debug("Downloaded data for resource {}", resourceId)
     return BytesIO(response_study.content)
-
-
-def SendViaStow(resourceId):
-    """
-    Makes a POST API call to upload the resource to a dicom-web server
-    using orthanc credentials as authorisation
-    """
-    AZ_DICOM_ENDPOINT_NAME = config("AZ_DICOM_ENDPOINT_NAME")
-
-    url = ORTHANC_URL + "/dicom-web/servers/" + AZ_DICOM_ENDPOINT_NAME + "/stow"
-
-    headers = {"content-type": "application/json"}
-
-    payload = {"Resources": [resourceId], "Synchronous": False}
-
-    logger.debug("Payload: {}", payload)
-
-    try:
-        requests.post(
-            url,
-            auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD),
-            headers=headers,
-            data=json.dumps(payload),
-            timeout=30,
-        )
-        msg = f"Sent {resourceId} via STOW"
-        logger.info(msg)
-    except requests.exceptions.RequestException:
-        orthanc.LogError("Failed to send via STOW")
 
 
 def _get_tags_by_study(study_id: str) -> [str, str]:
