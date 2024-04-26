@@ -95,10 +95,6 @@ class TestFtpsUpload:
     @pytest.mark.usefixtures("_export_patient_data")
     def test_ftps_radiology_linker_upload(self, expected_studies: dict) -> None:
         """The generated radiology linker file"""
-        assert (
-            TestFtpsUpload.expected_public_parquet_dir / "radiology" / "IMAGE_LINKER.parquet"
-        ).exists()
-
         radiology_linker_data = pd.read_parquet(
             TestFtpsUpload.expected_public_parquet_dir / "radiology" / "IMAGE_LINKER.parquet"
         )
