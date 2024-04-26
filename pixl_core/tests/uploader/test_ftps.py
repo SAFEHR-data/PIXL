@@ -101,7 +101,7 @@ def parquet_export(export_dir) -> ParquetExport:
     happen after that.
     """
     return ParquetExport(
-        project_name="i-am-a-project",
+        project_name_raw="i-am-a-project",
         extract_datetime=datetime.now(tz=timezone.utc),
         export_dir=export_dir,
     )
