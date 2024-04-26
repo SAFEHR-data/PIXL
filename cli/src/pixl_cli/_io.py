@@ -123,7 +123,6 @@ def messages_from_parquet(
     cohort_data = _check_and_parse_parquet(private_dir, public_dir)
     cohort_data_mapped = _map_columns(cohort_data)
 
-    # tuple element [1]'s of cohort_data.iterrows() should equal cohort_data_mapped
     messages = []
     for _, row in cohort_data_mapped.iterrows():
         message = Message(
@@ -175,12 +174,7 @@ def _check_and_parse_parquet(private_dir: Path, public_dir: Path) -> pd.DataFram
 
 def make_radiology_linker_table(parquet_dir: Path, images: list[Image]) -> pd.DataFrame:
     """
-    Make a table linking the OMOP procedure_occurrence_id to the hashed image/study ID
-    Image table defined thus:
-     - hashed_identifier
-
-    Preserve column names.
-    IMAGE_LINKER.parquet?
+    Make a table linking the OMOP procedure_occurrence_id to the hashed image/study ID.
     :param parquet_dir: location of OMOP extract
                         (this gives us: procedure_occurrence_id <-> mrn+accession mapping)
     :param images: the images already processed by PIXL, from the DB
