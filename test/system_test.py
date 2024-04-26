@@ -19,6 +19,7 @@ from pathlib import Path
 import pandas as pd
 import pydicom
 import pytest
+import requests
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
 from pytest_pixl.ftpserver import PixlFTPServer
 from pytest_pixl.helpers import run_subprocess, wait_for_condition
@@ -177,3 +178,22 @@ class TestFtpsUpload:
                 assert private_tag.value == TestFtpsUpload.project_slug
         # check the basic info about the instances exactly matches
         assert actual_instances == expected_instances
+
+
+@pytest.mark.usefixtures("_setup_pixl_cli_dicomweb")
+def test_dicomweb_upload() -> None:
+    """Check upload to DICOMweb server was successful"""
+    # This should point to the orthanc-anon server
+    ORTHANC_URL = "http://localhost:7003"
+
+    def check_dicomweb_study_present() -> bool:
+        response = requests.get(
+            ORTHANC_URL + "/dicom-web/studies",
+            auth=("orthanc_anon_username", "orthanc_anon_password"),
+            data={"Uri": "/instances"},
+            timeout=30,
+        )
+        # Taken from https://orthanc.uclouvain.be/hg/orthanc-dicomweb/file/default/Resources/Samples/Python/SendStow.py
+        return response.status_code == 200 and "00081190" in response.json()[0]
+
+    wait_for_condition(check_dicomweb_study_present)

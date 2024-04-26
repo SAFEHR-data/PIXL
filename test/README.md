@@ -56,7 +56,13 @@ to mock the FTP server used by the Data Safe Haven.
     and a JSON file of slice varying parameters from a 3D MRI sequence.
 -   `./resources/omop` contains mock public and private Parquet files used to populate the message
     queues and extract the radiology reports
+-  `./resources/omop-dicomweb` contains the same mock public and private Parquet files as above
+but configured to upload to a [DICOMweb server](#dicomweb-config)
 
 ### VNA config
 
 `./vna-config` contains the Orthanc configuration files for the mock VNA.
+
+### DICOMWeb config
+
+`./dicomweb_config/` contains the Orthanc configuration files for the mock [DICOMweb server](../docs/services/dicomweb-server.md).

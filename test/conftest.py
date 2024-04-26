@@ -38,6 +38,7 @@ def host_export_root_dir() -> Path:
 TEST_DIR = Path(__file__).parent
 RESOURCES_DIR = TEST_DIR / "resources"
 RESOURCES_OMOP_DIR = RESOURCES_DIR / "omop"
+RESOURCES_OMOP_DICOMWEB_DIR = RESOURCES_DIR / "omop-dicomweb"
 
 
 def _upload_to_vna(image_filename: Path) -> None:
@@ -136,10 +137,9 @@ def _upload_dicom_instance(dicom_dir: Path, **kwargs: Any) -> None:
 @pytest.fixture(scope="session")
 def _setup_pixl_cli(ftps_server: PixlFTPServer, _populate_vna: None) -> Generator:
     """Run pixl populate/start. Cleanup intermediate export dir on exit."""
-    # CLI calls need to have CWD = test dir so they can find the pixl_config.yml file
     run_subprocess(["pixl", "populate", str(RESOURCES_OMOP_DIR.absolute())], TEST_DIR)
     # poll here for two minutes to check for imaging to be processed, printing progress
-    wait_for_stable_orthanc_anon(121, 5, 15)
+    wait_for_stable_orthanc_anon(121, 5, 15, min_instances=3)
     yield
     run_subprocess(
         [
@@ -149,6 +149,26 @@ def _setup_pixl_cli(ftps_server: PixlFTPServer, _populate_vna: None) -> Generato
             "rm",
             "-r",
             "/run/projects/exports/test-extract-uclh-omop-cdm/",
+        ],
+        TEST_DIR,
+    )
+
+
+@pytest.fixture(scope="session")
+def _setup_pixl_cli_dicomweb(_populate_vna: None) -> Generator:
+    """Run pixl populate/start. Cleanup intermediate export dir on exit."""
+    run_subprocess(["pixl", "populate", str(RESOURCES_OMOP_DICOMWEB_DIR.absolute())], TEST_DIR)
+    # poll here for two minutes to check for imaging to be processed, printing progress
+    wait_for_stable_orthanc_anon(121, 5, 15, min_instances=3)
+    yield
+    run_subprocess(
+        [
+            "docker",
+            "exec",
+            "system-test-export-api-1",
+            "rm",
+            "-r",
+            "/run/projects/exports/test-extract-uclh-omop-cdm-dicomweb/",
         ],
         TEST_DIR,
     )

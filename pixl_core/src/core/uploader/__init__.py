@@ -25,6 +25,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional
 
+from core.uploader._dicomweb import DicomWebUploader
 from core.uploader._ftps import FTPSUploader
 
 if TYPE_CHECKING:
@@ -34,7 +35,7 @@ if TYPE_CHECKING:
 # Intenitonally defined in __init__.py to avoid circular imports
 def get_uploader(project_slug: str, destination: str, keyvault_alias: Optional[str]) -> Uploader:
     """Uploader Factory, returns uploader instance based on destination."""
-    choices: dict[str, type[Uploader]] = {"ftps": FTPSUploader}
+    choices: dict[str, type[Uploader]] = {"ftps": FTPSUploader, "dicomweb": DicomWebUploader}
     try:
         return choices[destination](project_slug, keyvault_alias)
 

@@ -159,31 +159,6 @@ def Send(study_id: str) -> None:
     notify_export_api_of_readiness(study_id)
 
 
-def SendViaStow(resourceId: str) -> None:
-    """
-    Makes a POST API call to upload the resource to a dicom-web server
-    using orthanc credentials as authorisation
-    """
-    AZ_DICOM_ENDPOINT_NAME = config("AZ_DICOM_ENDPOINT_NAME")
-    url = ORTHANC_URL + "/dicom-web/servers/" + AZ_DICOM_ENDPOINT_NAME + "/stow"
-    headers = {"content-type": "application/json"}
-    payload = {"Resources": [resourceId], "Synchronous": False}
-    logger.debug("Payload: {}", payload)
-    try:
-        resp = requests.post(
-            url,
-            auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD),
-            headers=headers,
-            data=json.dumps(payload),
-            timeout=30,
-        )
-        resp.raise_for_status()
-        msg = f"Sent {resourceId} via STOW"
-        logger.info(msg)
-    except requests.exceptions.RequestException:
-        orthanc.LogError("Failed to send via STOW")
-
-
 def notify_export_api_of_readiness(study_id: str):
     """
     Tell export-api that our data is ready and it should download it from us and upload

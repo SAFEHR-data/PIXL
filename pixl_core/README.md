@@ -104,7 +104,7 @@ The `project_config` module provides the functionality to handle
 
 ## Uploading to an FTPS server
 
-The `core.upload` module implements functionality to upload DICOM images and parquet files to an
+The `core.uploader` module implements functionality to upload DICOM images and parquet files to
 several destinations. This requires the following environment variables to be set:
 
 The `Uploader` abstract class provides a consistent interface for uploading files. Child classes
@@ -113,7 +113,7 @@ uploading are queried from an **Azure Keyvault** instance (implemented in `_secr
 the setup instructions are in the [top-level README](../README.md#project-secrets)
 
 When an extract is ready to be published to the DSH, the PIXL pipeline will upload the **Public**
-and **Radiology** [_parquet_ files](../docs/data/parquet_files.md) to the `<project-slug>` directory
+and **Radiology** [_parquet_ files](../docs/file_types/parquet_files.md) to the `<project-slug>` directory
 where the DICOM datasets are stored (see the directory structure below). The uploading is controlled
 by `upload_parquet_files` in [`upload.py`](./src/core/upload.py) which takes a `ParquetExport`
 object as input to define where the _parquet_ files are located.  `upload_parquet_files` is called
@@ -134,3 +134,30 @@ Once the parquet files have been uploaded to the DSH, the directory structure wi
     ├── <pseudonymised_ID_DICOM_dataset_1>.zip
     └── <pseudonymised_ID_DICOM_dataset_2>.zip
 ```
+
+## Uploading to a DICOMweb server
+
+PIXL supports [DICOMweb](../docs/services/dicomweb-server.md) as an alternative upload destination
+for the DICOM images for a given project.
+
+The `DicomwebUploader` class in the `core.uploader` module handles the communication between the
+Orthanc server where anonymised DICOM images are stored and the DICOMweb server where the images
+should be sent to. We make use of the [Orthanc DICOMweb plugin](https://orthanc.uclouvain.be/book/plugins/dicomweb.html)
+to implement this.
+
+### Configuration
+
+The configuration for the DICOMweb server is controlled by the following environment variables and secrets:
+
+- `"ORTHANC_URL"`: The URL of the Orthanc server from _where_ the upload will happen, this will typically be the `orthanc-anon` instance
+- The `"<project_slug>--dicomweb--username"` and `"<project_slug>--dicomweb--password"` for authentication, which are fetched from the [Azure Keyvault](../docs/setup/azure-keyvault.md)
+- The `"<project_slug>--dicomweb--url"` to define the DICOMweb endpoint in Orthanc, also fetched from the Azure Keyvault
+
+We dynamically configure the DICOMweb server endpoint in Orthanc (see `core.uploader._dicomweb.DicomWebUploader._setup_dicomweb_credentials()`),
+so we can have different (or no) endpoints for different projects.
+
+### Testing setup
+
+For [testing](../test/README.md) we set up an additional Orthanc server that acts as a DICOMweb server,
+using the vanilla Orthanc Docker image with the DICOMWeb plugin enabled.
+
