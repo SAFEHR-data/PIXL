@@ -57,7 +57,7 @@ class DicomWebUploader(Uploader):
             self._setup_dicomweb_credentials()
 
         headers = {"content-type": "application/dicom", "accept": "application/dicom+json"}
-        payload = {"Resources": [resource_id], "Synchronous": False}
+        payload = {"Resources": [resource_id], "Synchronous": True}
 
         HTTP_TIMEOUT = int(config("HTTP_TIMEOUT", default=30))
         try:
