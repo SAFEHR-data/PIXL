@@ -23,9 +23,11 @@ from core.uploader._dicomweb import DicomWebUploader
 from decouple import config  # type: ignore [import-untyped]
 
 ORTHANC_URL = config("ORTHANC_URL")
-DICOM_ENDPOINT_NAME = config("DICOM_ENDPOINT_NAME")
 ORTHANC_USERNAME = config("ORTHANC_USERNAME")
 ORTHANC_PASSWORD = config("ORTHANC_PASSWORD")
+DICOMWEB_USERNAME = config("DICOMWEB_USERNAME")
+DICOMWEB_PASSWORD = config("DICOMWEB_PASSWORD")
+DICOMWEB_URL = config("DICOMWEB_URL")
 
 
 class MockDicomWebUploader(DicomWebUploader):
@@ -33,11 +35,14 @@ class MockDicomWebUploader(DicomWebUploader):
 
     def __init__(self) -> None:
         """Initialise the mock uploader."""
-        self.user = ORTHANC_USERNAME
-        self.password = ORTHANC_PASSWORD
-        self.endpoint_name = DICOM_ENDPOINT_NAME
+        self.az_prefix = "test"
+        self.orthanc_user = ORTHANC_USERNAME
+        self.orthanc_password = ORTHANC_PASSWORD
         self.orthanc_url = ORTHANC_URL
-        self.url = self.orthanc_url + "/dicom-web/servers/" + self.endpoint_name
+        self.endpoint_user = DICOMWEB_USERNAME
+        self.endpoint_password = DICOMWEB_PASSWORD
+        self.endpoint_url = DICOMWEB_URL
+        self.orthanc_dicomweb_url = self.orthanc_url + "/dicom-web/servers/" + self.az_prefix
 
 
 @pytest.fixture()
@@ -46,29 +51,43 @@ def dicomweb_uploader() -> MockDicomWebUploader:
     return MockDicomWebUploader()
 
 
-def _do_get_request(endpoint: str, data: Optional[dict] = None) -> requests.Response:
+def _do_get_request(url: str, data: Optional[dict] = None) -> requests.Response:
     """Perform a GET request to the specified endpoint."""
     return requests.get(
-        ORTHANC_URL + endpoint,
+        url,
         auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD),
         data=data,
         timeout=30,
     )
 
 
+def test_dicomweb_server_config(run_dicomweb_containers, dicomweb_uploader) -> None:
+    """Tests that the DICOMWeb server is configured correctly in Orthanc"""
+    dicomweb_uploader._setup_dicomweb_credentials()  # noqa: SLF001, private method
+    servers_response = requests.get(
+        ORTHANC_URL + "/dicom-web/servers",
+        auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD),
+        timeout=30,
+    )
+
+    assert "test" in servers_response.json()
+
+
 def test_upload_dicom_image(study_id, run_dicomweb_containers, dicomweb_uploader) -> None:
     """Tests that DICOM image can be uploaded to a DICOMWeb server"""
-    # ARRANGE
-
     # ACT
     stow_response = dicomweb_uploader.send_via_stow(study_id)
-    studies_response = _do_get_request("/dicom-web/studies", data={"Uri": "/instances"})
-    servers_response = _do_get_request("/dicom-web/servers")
+    studies_response = requests.get(
+        DICOMWEB_URL + "/studies",
+        auth=(DICOMWEB_USERNAME, DICOMWEB_PASSWORD),
+        data={"Uri": "/instances"},
+        timeout=30,
+    )
 
     # ASSERT
     # Check if dicom-web server is set up correctly
-    assert DICOM_ENDPOINT_NAME in servers_response.json()
     assert stow_response.status_code == 200  # succesful upload
     # Taken from https://orthanc.uclouvain.be/hg/orthanc-dicomweb/file/default/Resources/Samples/Python/SendStow.py
     # Check that instance has not been discarded
+    assert studies_response.status_code == 200
     assert "00081190" in studies_response.json()[0]
