@@ -34,7 +34,6 @@
   group: 0x0008
   element: 0x0014
   op: "replace_UID"
-- name: "Referenced SOP Instance UID"
 - name: "SOP Class UID"
   group: 0x0008
   element: 0x0016
