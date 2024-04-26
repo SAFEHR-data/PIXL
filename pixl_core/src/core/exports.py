@@ -18,7 +18,6 @@ from __future__ import annotations
 import shutil
 from typing import TYPE_CHECKING
 
-import pandas as pd
 import slugify
 
 from core.project_config import load_project_config
@@ -27,6 +26,8 @@ from core.uploader import get_uploader
 if TYPE_CHECKING:
     import datetime
     import pathlib
+
+    import pandas as pd
 
 
 from loguru import logger
@@ -103,6 +104,7 @@ class ParquetExport:
         return self.project_slug
 
     def export_radiology_linker(self, linker_data: pd.DataFrame):
+        self._mkdir(self.radiology_output)
         linker_data.to_parquet(self.radiology_output / "IMAGE_LINKER.parquet")
 
     @staticmethod

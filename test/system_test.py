@@ -16,6 +16,7 @@
 import logging
 from pathlib import Path
 
+import pandas as pd
 import pydicom
 import pytest
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
@@ -23,6 +24,28 @@ from pytest_pixl.ftpserver import PixlFTPServer
 from pytest_pixl.helpers import run_subprocess, wait_for_condition
 
 pytest_plugins = "pytest_pixl"
+
+
+@pytest.fixture()
+def expected_studies():
+    return {
+        "d40f0639105babcdec043f1acf7330a8ebd64e64f13f7d0d4745f0135ddee0cd": {
+            "procedure_occurrence_id": 4,
+            "instances": {
+                # tuple made up of (AccessionNumber, SeriesDescription)
+                # for AA12345601
+                ("ANONYMIZED", "include123"),
+                ("ANONYMIZED", "AP"),
+            },
+        },
+        "7ff25b0b438d23a31db984f49b0d6ca272104eb3d20c82f30e392cff5446a9c3": {
+            "procedure_occurrence_id": 5,
+            "instances": {
+                # for AA12345605,
+                ("ANONYMIZED", "include123"),
+            },
+        },
+    }
 
 
 class TestFtpsUpload:
@@ -67,16 +90,31 @@ class TestFtpsUpload:
         ).exists()
 
     @pytest.mark.usefixtures("_export_patient_data")
-    def test_ftps_radiology_linker_upload(self) -> None:
-        """The copied radiology linker file"""
-        assert TestFtpsUpload.expected_public_parquet_dir.exists()
-
+    def test_ftps_radiology_linker_upload(self, expected_studies) -> None:
+        """The generated radiology linker file"""
         assert (
             TestFtpsUpload.expected_public_parquet_dir / "radiology" / "IMAGE_LINKER.parquet"
         ).exists()
 
+        radiology_linker_data = pd.read_parquet(
+            TestFtpsUpload.expected_public_parquet_dir / "radiology" / "IMAGE_LINKER.parquet"
+        )
+        po_col = radiology_linker_data["procedure_occurrence_id"]
+        for study_id, studies in expected_studies.items():
+            expected_po_id = studies["procedure_occurrence_id"]
+            row = radiology_linker_data[po_col == expected_po_id].iloc[0]
+            assert row.hashed_identifier == study_id
+
+        assert radiology_linker_data.shape[0] == 2
+        assert set(radiology_linker_data.columns) == {
+            "procedure_occurrence_id",
+            "hashed_identifier",
+        }
+
     @pytest.mark.usefixtures("_export_patient_data")
-    def test_ftps_dicom_upload(self, tmp_path_factory: pytest.TempPathFactory) -> None:
+    def test_ftps_dicom_upload(
+        self, tmp_path_factory: pytest.TempPathFactory, expected_studies
+    ) -> None:
         """Test whether DICOM images have been uploaded"""
         zip_files: list[Path] = []
 
@@ -96,18 +134,6 @@ class TestFtpsUpload:
             seconds_condition_stays_true_for=15,
             progress_string_fn=zip_file_list,
         )
-        expected_studies = {
-            "d40f0639105babcdec043f1acf7330a8ebd64e64f13f7d0d4745f0135ddee0cd": {
-                # tuple made up of (AccessionNumber, SeriesDescription)
-                # hash of AA12345601
-                ("ANONYMIZED", "include123"),
-                ("ANONYMIZED", "AP"),
-            },
-            "7ff25b0b438d23a31db984f49b0d6ca272104eb3d20c82f30e392cff5446a9c3": {
-                # hash of AA12345605,
-                ("ANONYMIZED", "include123"),
-            },
-        }
         assert zip_files
         for z in zip_files:
             unzip_dir = tmp_path_factory.mktemp("unzip_dir", numbered=True)
@@ -117,7 +143,7 @@ class TestFtpsUpload:
         self, zip_path: Path, unzip_dir: Path, expected_studies: dict[str, set[tuple[str, str]]]
     ) -> None:
         """Check that private tag has survived anonymisation with the correct value."""
-        expected_instances = expected_studies[zip_path.stem]
+        expected_instances = expected_studies[zip_path.stem]["instances"]
         run_subprocess(
             ["unzip", zip_path],
             working_dir=unzip_dir,
