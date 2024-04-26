@@ -18,6 +18,7 @@ from __future__ import annotations
 import shutil
 from typing import TYPE_CHECKING
 
+import pandas as pd
 import slugify
 
 from core.project_config import load_project_config
@@ -100,6 +101,9 @@ class ParquetExport:
         self.latest_symlink.unlink(missing_ok=True)
         self.latest_symlink.symlink_to(self.current_extract_base, target_is_directory=True)
         return self.project_slug
+
+    def export_radiology_linker(self, linker_data: pd.DataFrame):
+        linker_data.to_parquet(self.radiology_output / "IMAGE_LINKER.parquet")
 
     @staticmethod
     def _mkdir(directory: pathlib.Path) -> pathlib.Path:

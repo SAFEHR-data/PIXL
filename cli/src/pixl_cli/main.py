@@ -174,11 +174,11 @@ def export_patient_data(parquet_dir: Path) -> None:
     log file defining which extract to export patient data for.
     """
     project_name_raw, omop_es_datetime = project_info(parquet_dir)
-    extract = ParquetExport(project_name_raw, omop_es_datetime, HOST_EXPORT_ROOT_DIR)
+    export = ParquetExport(project_name_raw, omop_es_datetime, HOST_EXPORT_ROOT_DIR)
 
-    images = images_for_project(extract.project_slug)
+    images = images_for_project(export.project_slug)
     linker_data = make_radiology_linker_table(parquet_dir, images)
-    # (need to write to a parquet file)
+    export.export_radiology_linker(linker_data)
 
     # Call the EHR API
     api_config = api_config_for_queue("export")
