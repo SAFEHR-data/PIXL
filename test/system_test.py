@@ -15,6 +15,7 @@
 
 import logging
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 import pydicom
@@ -28,7 +29,8 @@ pytest_plugins = "pytest_pixl"
 
 
 @pytest.fixture()
-def expected_studies():
+def expected_studies() -> dict[str, Any]:
+    """Expected study metadata post-anonymisation."""
     return {
         "d40f0639105babcdec043f1acf7330a8ebd64e64f13f7d0d4745f0135ddee0cd": {
             "procedure_occurrence_id": 4,
@@ -91,7 +93,7 @@ class TestFtpsUpload:
         ).exists()
 
     @pytest.mark.usefixtures("_export_patient_data")
-    def test_ftps_radiology_linker_upload(self, expected_studies) -> None:
+    def test_ftps_radiology_linker_upload(self, expected_studies: dict) -> None:
         """The generated radiology linker file"""
         assert (
             TestFtpsUpload.expected_public_parquet_dir / "radiology" / "IMAGE_LINKER.parquet"
@@ -114,7 +116,7 @@ class TestFtpsUpload:
 
     @pytest.mark.usefixtures("_export_patient_data")
     def test_ftps_dicom_upload(
-        self, tmp_path_factory: pytest.TempPathFactory, expected_studies
+        self, tmp_path_factory: pytest.TempPathFactory, expected_studies: dict
     ) -> None:
         """Test whether DICOM images have been uploaded"""
         zip_files: list[Path] = []
@@ -141,7 +143,7 @@ class TestFtpsUpload:
             self._check_dcm_tags_from_zip(z, unzip_dir, expected_studies)
 
     def _check_dcm_tags_from_zip(
-        self, zip_path: Path, unzip_dir: Path, expected_studies: dict[str, set[tuple[str, str]]]
+        self, zip_path: Path, unzip_dir: Path, expected_studies: dict
     ) -> None:
         """Check that private tag has survived anonymisation with the correct value."""
         expected_instances = expected_studies[zip_path.stem]["instances"]

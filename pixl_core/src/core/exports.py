@@ -103,9 +103,12 @@ class ParquetExport:
         self.latest_symlink.symlink_to(self.current_extract_base, target_is_directory=True)
         return self.project_slug
 
-    def export_radiology_linker(self, linker_data: pd.DataFrame):
+    def export_radiology_linker(self, linker_data: pd.DataFrame) -> pathlib.Path:
+        """Write the radiology linker table data to a parquet file in the export directory."""
         self._mkdir(self.radiology_output)
-        linker_data.to_parquet(self.radiology_output / "IMAGE_LINKER.parquet")
+        parquet_path = self.radiology_output / "IMAGE_LINKER.parquet"
+        linker_data.to_parquet(parquet_path)
+        return parquet_path
 
     @staticmethod
     def _mkdir(directory: pathlib.Path) -> pathlib.Path:

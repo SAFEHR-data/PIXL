@@ -14,6 +14,8 @@
 
 """Interaction with the PIXL database."""
 
+from typing import cast
+
 from core.db.models import Extract, Image
 from core.patient_queue.message import Message
 from sqlalchemy import URL, create_engine
@@ -116,4 +118,7 @@ def images_for_project(project_slug: str) -> list[Image]:
     """Given a project, get all images in the DB for that project."""
     PixlSession = sessionmaker(engine)
     with PixlSession() as session:
-        return session.query(Image).join(Extract).filter(Extract.slug == project_slug).all()
+        return cast(
+            list[Image],
+            session.query(Image).join(Extract).filter(Extract.slug == project_slug).all(),
+        )
