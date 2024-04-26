@@ -15,10 +15,9 @@
 """Interaction with the PIXL database."""
 
 from typing import Optional
+from decouple import config  # type: ignore [import-untyped]
 
-from decouple import config
-
-from core.db.models import Image
+from core.db.models import Image, Extract
 from sqlalchemy import URL, create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -55,12 +54,14 @@ def add_hashed_identifier_and_save_to_db(
         return updated_image
 
 
-def query_db(mrn: str, accession_number: str) -> Image:
+def query_db(project_slug: str, mrn: str, accession_number: str) -> Image:
     PixlSession = sessionmaker(engine)
     with PixlSession() as pixl_session, pixl_session.begin():
         existing_image: Image = (
             pixl_session.query(Image)
+            .join(Extract)
             .filter(
+                Extract.slug == project_slug,
                 Image.accession_number == accession_number,
                 Image.mrn == mrn,
                 Image.exported_at == None,  # noqa: E711
