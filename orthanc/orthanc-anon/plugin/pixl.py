@@ -213,7 +213,7 @@ def should_auto_route() -> bool:
     Checks whether ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT environment variable is
     set to true or false
     """
-    logger.debug("Checking value of autoroute")
+    logger.trace("Checking value of autoroute")
     return os.environ.get("ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT", "false").lower() == "true"
 
 
