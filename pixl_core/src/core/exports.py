@@ -108,6 +108,11 @@ class ParquetExport:
         self._mkdir(self.radiology_output)
         parquet_path = self.radiology_output / "IMAGE_LINKER.parquet"
         linker_data.to_parquet(parquet_path)
+        # We are not responsible for making the "latest" symlink, see `copy_to_exports`.
+        # Both export_radiology_linker and copy_to_exports are now called by CLI,
+        # so we don't have the same potential for confusion caused by export-api
+        # having a different view of the filesystem vs CLI.
+        # Symlink could be made before or after this method is called.
         return parquet_path
 
     @staticmethod
