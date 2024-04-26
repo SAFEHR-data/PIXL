@@ -181,17 +181,26 @@ class TestFtpsUpload:
 @pytest.mark.usefixtures("_setup_pixl_cli_dicomweb")
 def test_dicomweb_upload() -> None:
     """Check upload to DICOMweb server was successful"""
-    # This should point to the orthanc-anon server
-    ORTHANC_URL = "http://localhost:7003"
+    ORHANC_ANON_URL = "http://localhost:7003"
+    DICOMWEB_URL = "http://localhost:8044"
+
+    def check_dicomweb_server_configured() -> bool:
+        response = requests.get(
+            ORHANC_ANON_URL + "/dicom-web/servers",
+            auth=("orthanc_anon_username", "orthanc_anon_password"),
+            timeout=30,
+        )
+        return "test" in response.json()
 
     def check_dicomweb_study_present() -> bool:
         response = requests.get(
-            ORTHANC_URL + "/dicom-web/studies",
-            auth=("orthanc_anon_username", "orthanc_anon_password"),
+            DICOMWEB_URL + "/dicom-web/studies",
+            auth=("orthanc_dicomweb_username", "orthanc_dicomweb_password"),
             data={"Uri": "/instances"},
             timeout=30,
         )
         # Taken from https://orthanc.uclouvain.be/hg/orthanc-dicomweb/file/default/Resources/Samples/Python/SendStow.py
         return response.status_code == 200 and "00081190" in response.json()[0]
 
+    wait_for_condition(check_dicomweb_server_configured)
     wait_for_condition(check_dicomweb_study_present)
