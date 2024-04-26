@@ -26,7 +26,6 @@ import click
 import requests
 from core.exports import ParquetExport
 from core.patient_queue.producer import PixlProducer
-from core.patient_queue.subscriber import PixlBlockingConsumer
 from decouple import RepositoryEnv, UndefinedValueError, config
 from loguru import logger
 
@@ -38,10 +37,8 @@ from pixl_cli._io import (
     make_radiology_linker_table,
     messages_from_csv,
     messages_from_parquet,
-    messages_from_state_file,
     project_info,
 )
-from pixl_cli._utils import clear_file, remove_file_if_it_exists
 
 # localhost needs to be added to the NO_PROXY environment variables on GAEs
 os.environ["NO_PROXY"] = os.environ["no_proxy"] = "localhost"
@@ -94,12 +91,6 @@ def check_env(*, error: bool, sample_env_file: click.Path) -> None:
     "input file(s)",
 )
 @click.option(
-    "--restart/--no-restart",
-    show_default=True,
-    default=True,
-    help="Restart from a saved state. Otherwise will use the given input file(s)",
-)
-@click.option(
     "--start/--no-start",
     "start_processing",
     show_default=True,
@@ -116,7 +107,7 @@ def check_env(*, error: bool, sample_env_file: click.Path) -> None:
     "parquet-path", required=True, type=click.Path(path_type=Path, exists=True, file_okay=True)
 )
 def populate(
-    parquet_path: Path, *, queues: str, restart: bool, start_processing: bool, rate: Optional[float]
+    parquet_path: Path, *, queues: str, start_processing: bool, rate: Optional[float]
 ) -> None:
     """
     Populate a (set of) queue(s) from a parquet file directory
@@ -143,14 +134,6 @@ def populate(
         messages = messages_from_parquet(parquet_path, project_name, omop_es_datetime)
 
     for queue in queues.split(","):
-        state_filepath = state_filepath_for_queue(queue)
-        if state_filepath.exists() and restart:
-            logger.info("Extracting messages from state: {}", state_filepath)
-            inform_user_that_queue_will_be_populated_from(state_filepath)
-            messages = messages_from_state_file(state_filepath)
-
-        remove_file_if_it_exists(state_filepath)  # will be stale
-
         sorted_messages = sorted(messages, key=attrgetter("study_date"))
         # For imaging, we don't want to query again for images that have already been exported
         if queue == "imaging" and messages:
@@ -279,16 +262,27 @@ def _update_extract_rate(queue_name: str, rate: Optional[float]) -> None:
     show_default=True,
     help="Comma seperated list of queues to consume messages from",
 )
-def stop(queues: str) -> None:
+@click.option(
+    "--purge/--no-purge",
+    show_default=True,
+    default=False,
+    help="Purge the queue after stopping the consumer",
+)
+def stop(queues: str, purge: bool) -> None:  # noqa: FBT001 bool argument
     """
-    Stop extracting images and/or EHR data. Will consume all messages present on the
-    queues and save them to a file
+    Stop extracting images and/or EHR data by setting the rate to 0.
+    In progress messages will continue to be processed.
+    The queues retain their state and can be restarted unless the purge option is selected.
     """
     logger.info("Stopping extraction of {}", queues)
 
     for queue in queues.split(","):
         logger.info("Consuming messages on {}", queue)
-        consume_all_messages_and_save_csv_file(queue_name=queue)
+        _update_extract_rate(queue_name=queue, rate=0)
+        if purge:
+            logger.info("Purging queue {}", queue)
+            with PixlProducer(queue_name=queue, **SERVICE_SETTINGS["rabbitmq"]) as producer:
+                producer.clear_queue()
 
 
 @cli.command()
@@ -331,28 +325,6 @@ def _get_extract_rate(queue_name: str) -> str:
     except (ConnectionError, AssertionError):
         logger.error("Failed to get the extract rate for {}", queue_name)
         return "unknown"
-
-
-def consume_all_messages_and_save_csv_file(queue_name: str, timeout_in_seconds: int = 5) -> None:
-    """Consume all messages and write them out to a CSV file"""
-    logger.info(
-        "Will consume all messages on {} queue and timeout after {} seconds",
-        queue_name,
-        timeout_in_seconds,
-    )
-
-    with PixlBlockingConsumer(queue_name=queue_name, **SERVICE_SETTINGS["rabbitmq"]) as consumer:
-        state_filepath = state_filepath_for_queue(queue_name)
-        if consumer.message_count > 0:
-            logger.info("Found messages in the queue. Clearing the state file")
-            clear_file(state_filepath)
-
-        consumer.consume_all(state_filepath)
-
-
-def state_filepath_for_queue(queue_name: str) -> Path:
-    """Get the filepath to the queue state"""
-    return Path(f"{queue_name.replace('/', '_')}.state")
 
 
 def queue_is_up() -> Any:
