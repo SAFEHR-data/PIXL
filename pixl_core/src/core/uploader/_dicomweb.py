@@ -36,13 +36,15 @@ class DicomWebUploader(Uploader):
     def _set_config(self) -> None:
         # Use the Azure KV alias as prefix if it exists, otherwise use the project name
         az_prefix = self.keyvault_alias
-        az_prefix = az_prefix if az_prefix else self.project_slug
+        self.az_prefix = az_prefix if az_prefix else self.project_slug
 
-        self.user = self.keyvault.fetch_secret(f"{az_prefix}--dicomweb--username")
-        self.password = self.keyvault.fetch_secret(f"{az_prefix}--dicomweb--password")
+        self.orthanc_user = config("ORTHANC_ANON_USERNAME")
+        self.orthanc_password = config("ORTHANC_ANON_PASSWORD")
         self.orthanc_url = config("ORTHANC_URL")
-        self.endpoint_name = self.keyvault.fetch_secret(f"{az_prefix}--dicomweb--url")
-        self.url = self.orthanc_url + "/dicom-web/servers/" + self.endpoint_name
+        self.endpoint_user = self.keyvault.fetch_secret(f"{self.az_prefix}--dicomweb--username")
+        self.endpoint_password = self.keyvault.fetch_secret(f"{self.az_prefix}--dicomweb--password")
+        self.endpoint_url = self.keyvault.fetch_secret(f"{self.az_prefix}--dicomweb--url")
+        self.orthanc_dicomweb_url = self.orthanc_url + "/dicom-web/servers/" + self.az_prefix
 
     def upload_dicom_image(self) -> None:
         msg = "Currently not implemented. Use `send_via_stow()` instead."
@@ -59,8 +61,8 @@ class DicomWebUploader(Uploader):
 
         try:
             response = requests.post(
-                self.url + "/stow",
-                auth=(self.user, self.password),
+                self.orthanc_dicomweb_url + "/stow",
+                auth=(self.orthanc_user, self.orthanc_password),
                 headers=headers,
                 data=json.dumps(payload),
                 timeout=30,
@@ -75,7 +77,9 @@ class DicomWebUploader(Uploader):
 
     def _check_dicomweb_server(self) -> bool:
         """Checks if the dicomweb server exists."""
-        response = requests.get(self.url, auth=(self.user, self.password), timeout=30)
+        response = requests.get(
+            self.orthanc_dicomweb_url, auth=(self.orthanc_user, self.orthanc_password), timeout=30
+        )
         success_code = 200
         if response.status_code != success_code:
             return False
@@ -87,13 +91,12 @@ class DicomWebUploader(Uploader):
         This dyniamically creates a new endpoint in Orthanc with the necessary credentials, so we
         can avoid hardcoding the credentials in the Orthanc configuration at build time.
         """
-        DICOM_ENDPOINT_URL = config("DICOM_ENDPOINT_URL")
         HTTP_TIMEOUT = int(config("HTTP_TIMEOUT", default=30))
 
         dicomweb_config = {
-            "Url": DICOM_ENDPOINT_URL,
-            "Username": self.user,
-            "Password": self.password,
+            "Url": self.endpoint_url,
+            "Username": self.endpoint_user,
+            "Password": self.endpoint_password,
             "HasDelete": True,
             "Timeout": HTTP_TIMEOUT,
         }
@@ -101,17 +104,17 @@ class DicomWebUploader(Uploader):
         headers = {"content-type": "application/json"}
         try:
             requests.put(
-                self.url,
-                auth=(self.user, self.password),
+                self.orthanc_dicomweb_url,
+                auth=(self.orthanc_user, self.orthanc_password),
                 headers=headers,
                 data=json.dumps(dicomweb_config),
                 timeout=10,
             )
         except requests.exceptions.RequestException:
-            logger.error("Failed to update DICOMweb token")
+            logger.error("Failed to update DICOMweb config for {}", self.orthanc_dicomweb_url)
             raise
         else:
-            logger.info("DICOMweb token updated")
+            logger.info("DICOMweb config for {}", self.orthanc_dicomweb_url)
 
     def upload_parquet_files(self) -> None:
         msg = "DICOMWeb uploader does not support parquet files"
