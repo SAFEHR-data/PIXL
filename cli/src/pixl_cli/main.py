@@ -163,7 +163,7 @@ def export_patient_data(parquet_dir: Path) -> None:
     linker_data = make_radiology_linker_table(parquet_dir, images)
     export.export_radiology_linker(linker_data)
 
-    # Call the EHR API
+    # Call the Export API
     api_config = api_config_for_queue("export")
     response = requests.post(
         url=f"{api_config.base_url}/export-patient-data",

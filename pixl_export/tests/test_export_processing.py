@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """
-These tests require executing from within the EHR API container with the dependent
+These tests require executing from within the export-api container with the dependent
 services being up
     - pixl postgres db
     - emap star
