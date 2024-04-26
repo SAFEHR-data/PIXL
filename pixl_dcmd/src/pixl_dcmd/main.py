@@ -88,7 +88,7 @@ def anonymise_dicom(dataset: Dataset) -> None:
     logger.info(
         f"Applying DICOM tag anonymisation according to {project_config.tag_operation_files}"
     )
-    logger.debug(f"Tag scheme: {tag_scheme}")
+    logger.trace(f"Tag scheme: {tag_scheme}")
 
     if (0x0008, 0x0060) in dataset and dataset.Modality not in modalities:
         msg = f"Dropping DICOM Modality: {dataset.Modality}"
