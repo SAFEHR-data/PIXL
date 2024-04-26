@@ -53,6 +53,20 @@ def test_make_radiology_linker_table(omop_resources: Path):
             hashed_identifier="test_hashed_id_2",
             extract=extract,
         ),
+        Image(
+            accession_number="different_should_ignore",
+            study_date=date(1, 1, 1),
+            mrn="987654321",
+            hashed_identifier="should_never_see_1",
+            extract=extract,
+        ),
+        Image(
+            accession_number="AA12345605",
+            study_date=date(1, 1, 1),
+            mrn="different_should_ignore",
+            hashed_identifier="should_never_see_2",
+            extract=extract,
+        ),
     ]
     linker_df = make_radiology_linker_table(omop_resources / "omop", images)
 
@@ -64,6 +78,3 @@ def test_make_radiology_linker_table(omop_resources: Path):
 
     assert linker_df.shape[0] == 2
     assert set(linker_df.columns) == {"procedure_occurrence_id", "hashed_identifier"}
-
-
-# XXX: need to test the DB lookup - probably add to the system test
