@@ -1,6 +1,6 @@
 {
     "datetime": "2023-12-07 14:08:58",
     "settings": {
-        "cdm_source_name": "Test Extract - UCLH OMOP CDM"
+        "cdm_source_name": "Test Extract - UCLH OMOP CDM DICOMWeb"
     }
 }

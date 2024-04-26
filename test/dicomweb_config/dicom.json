@@ -1,0 +1,8 @@
+{
+    "DicomAet": "${ORTHANC_AE_TITLE}",
+    "DicomAlwaysAllowEcho": true,
+    "DICOMWeb": {
+        "Enabled": true,
+        "Root": "/dicom-web"
+    }
+}

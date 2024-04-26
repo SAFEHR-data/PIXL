@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, BinaryIO
 
 import pytest
+import requests
 from core.db.models import Base, Extract, Image
 from core.uploader._ftps import FTPSUploader
 from pytest_pixl.helpers import run_subprocess
@@ -30,6 +31,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 if TYPE_CHECKING:
     import subprocess
+    from collections.abc import Generator
 
 pytest_plugins = "pytest_pixl"
 
@@ -48,9 +50,16 @@ os.environ["FTP_USER_NAME"] = "pixl"
 os.environ["FTP_PASSWORD"] = "longpassword"  # noqa: S105 Hardcoding password
 os.environ["FTP_PORT"] = "20021"
 
+os.environ["ORTHANC_URL"] = "http://localhost:8043"
+os.environ["ORTHANC_USERNAME"] = "orthanc"
+os.environ["ORTHANC_PASSWORD"] = "orthanc"  # noqa: S105, hardcoded password
+os.environ["DICOM_ENDPOINT_NAME"] = "test"
+# Endpoint for DICOMWeb server as seen from within Orthanc
+os.environ["DICOM_ENDPOINT_URL"] = "http://localhost:8042/dicom-web/"
+
 
 @pytest.fixture(scope="package")
-def run_containers() -> subprocess.CompletedProcess[bytes]:
+def run_containers() -> Generator[subprocess.CompletedProcess[bytes], None, None]:
     """Run docker containers for tests which require them."""
     run_subprocess(
         shlex.split("docker compose down --volumes"),
@@ -67,6 +76,47 @@ def run_containers() -> subprocess.CompletedProcess[bytes]:
         TEST_DIR,
         timeout=60,
     )
+
+
+@pytest.fixture(scope="package")
+def run_dicomweb_containers() -> Generator[subprocess.CompletedProcess[bytes], None, None]:
+    """
+    Spins up 2 Orthanc containers, one that acts as the base storage, mimicking our orthanc-anon
+    or orthanc-raw servers, and the other one as a DICOMweb server to upload DICOM files to.
+    """
+    run_subprocess(
+        shlex.split("docker compose down --volumes"),
+        TEST_DIR,
+        timeout=60,
+    )
+    yield run_subprocess(
+        shlex.split("docker compose -f docker-compose.dicomweb.yml up --build --wait"),
+        TEST_DIR,
+        timeout=60,
+    )
+    run_subprocess(
+        shlex.split("docker compose down --volumes"),
+        TEST_DIR,
+        timeout=60,
+    )
+
+
+@pytest.fixture(scope="package")
+def study_id(run_dicomweb_containers) -> str:
+    """Uploads a DICOM file to the Orthanc server and returns the study ID."""
+    DCM_FILE = Path(__file__).parents[2] / "test" / "resources" / "Dicom1.dcm"
+    ORTHANC_URL = os.environ["ORTHANC_URL"]
+
+    headers = {"content-type": "application/dicom"}
+    data = DCM_FILE.read_bytes()
+    response = requests.post(
+        f"{ORTHANC_URL}/instances",
+        data=data,
+        headers=headers,
+        auth=(os.environ["ORTHANC_USERNAME"], os.environ["ORTHANC_PASSWORD"]),
+        timeout=60,
+    )
+    return response.json()["ParentStudy"]
 
 
 class MockFTPSUploader(FTPSUploader):
