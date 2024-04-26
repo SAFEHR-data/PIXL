@@ -31,7 +31,6 @@ os.environ["PIXL_DB_PORT"] = "35432"
 os.environ["PIXL_DB_NAME"] = "pixl"
 os.environ["PIXL_DB_USER"] = "postgres"
 os.environ["PIXL_DB_PASSWORD"] = "postgres"  # noqa: S105
-os.environ["PIXL_DB_EHR_SCHEMA_NAME"] = "emap_data"
 os.environ["EMAP_UDS_HOST"] = "localhost"
 os.environ["EMAP_UDS_PORT"] = "35433"
 os.environ["EMAP_UDS_NAME"] = "emap"

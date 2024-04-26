@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from core.db.models import Image
 
 # The export root dir from the point of view of the docker host (which is where the CLI runs)
-# For the view from inside, see pixl_export/main.py: EHR_EXPORT_ROOT_DIR
+# For the view from inside, see pixl_export/main.py: EXPORT_API_EXPORT_ROOT_DIR
 HOST_EXPORT_ROOT_DIR = Path(__file__).parents[3] / "projects" / "exports"
 
 

@@ -42,9 +42,9 @@ app.include_router(router)
 
 logger = logging.getLogger("uvicorn")
 
-# Export root dir from inside the EHR container.
+# Export root dir from inside the Export API container.
 # For the view from outside, see pixl_cli/_io.py: HOST_EXPORT_ROOT_DIR
-EHR_EXPORT_ROOT_DIR = Path("/run/projects/exports")
+EXPORT_API_EXPORT_ROOT_DIR = Path("/run/projects/exports")
 
 
 class ExportPatientData(BaseModel):
@@ -52,7 +52,7 @@ class ExportPatientData(BaseModel):
 
     project_name: str
     extract_datetime: datetime
-    output_dir: Path = EHR_EXPORT_ROOT_DIR
+    output_dir: Path = EXPORT_API_EXPORT_ROOT_DIR
 
 
 class StudyData(BaseModel):

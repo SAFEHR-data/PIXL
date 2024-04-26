@@ -55,9 +55,9 @@ class APIConfig:
 
 API_CONFIGS = {
     "export_api": APIConfig(
-        host=config("PIXL_EHR_API_HOST"),
-        port=int(config("PIXL_EHR_API_PORT")),
-        default_rate=float(config("PIXL_EHR_API_RATE", default=1)),
+        host=config("PIXL_EXPORT_API_HOST"),
+        port=int(config("PIXL_EXPORT_API_PORT")),
+        default_rate=float(config("PIXL_EXPORT_API_RATE", default=1)),
     ),
     "imaging_api": APIConfig(
         host=config("PIXL_IMAGING_API_HOST"),

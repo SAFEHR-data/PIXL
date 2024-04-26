@@ -106,9 +106,6 @@ You can leave them blank for other dev work.
 - `PIXL_DB_`*
 These are credentials for the containerised PostgreSQL service and are set in the official PostgreSQL image.
 Use a strong password for `prod` deployment but the only requirement for other environments is consistency as several services interact with the database.
-- `PIXL_EHR_API_AZ_`*
-These credentials are used for uploading a PIXL database to Azure blob storage. They should be for a service principal that has `Storage Blob Data Contributor`
-on the target storage account. The storage account must also allow network access from the PIXL host machine.
 
 #### Ports
 
@@ -239,12 +236,7 @@ and `ORTHANC_RAW_WEB_PORT` is defined in `.env`.
 
 The number of reports and EHR can be interrogated by connecting to the PIXL
 database with a database client (e.g. [DBeaver](https://dbeaver.io/)), using
-the connection parameters defined in `.env`. For example, to find the number of
-non-null reports
-
-```sql
-select count(*) from emap_data.ehr_anon where xray_report is not null;
-```
+the connection parameters defined in `.env`.
 
 ## Assumptions
 

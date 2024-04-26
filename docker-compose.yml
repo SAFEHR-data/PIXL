@@ -277,7 +277,7 @@ services:
       hasher-api:
         condition: service_healthy
     ports:
-      - "${PIXL_EHR_API_PORT}:8000"
+      - "${PIXL_EXPORT_API_PORT}:8000"
     healthcheck:
       interval: 10s
       timeout: 30s
