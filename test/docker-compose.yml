@@ -49,8 +49,8 @@ services:
         platform: linux/amd64
         environment:
             ORTHANC_NAME: "dicomweb"
-            ORTHANC_USERNAME: "orthanc_dicomweb"
-            ORTHANC_PASSWORD: "orthanc_dicomweb"
+            ORTHANC_USERNAME: "orthanc"
+            ORTHANC_PASSWORD: "orthanc"
             ORTHANC_AE_TITLE: "DICOMWEB"
             RAW_AE_TITLE: ORHTANCRAW
             RAW_DICOM_PORT: "4242"
@@ -64,11 +64,7 @@ services:
         networks:
             pixl-net:
         healthcheck:
-            test:
-                [
-                    "CMD-SHELL",
-                    "/probes/test-aliveness.py --user=orthanc_dicomweb --pwd=orthanc_dicomweb",
-                ]
+            test: ["CMD-SHELL", "/probes/test-aliveness.py --user=orthanc --pwd=orthanc"]
             start_period: 10s
             retries: 2
             interval: 3s
