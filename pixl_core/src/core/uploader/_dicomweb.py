@@ -114,7 +114,7 @@ class DicomWebUploader(Uploader):
             logger.error("Failed to update DICOMweb config for {}", self.orthanc_dicomweb_url)
             raise
         else:
-            logger.info("DICOMweb config for {}", self.orthanc_dicomweb_url)
+            logger.info("Set up DICOMweb config for {}", self.orthanc_dicomweb_url)
 
     def upload_parquet_files(self) -> None:
         msg = "DICOMWeb uploader does not support parquet files"
