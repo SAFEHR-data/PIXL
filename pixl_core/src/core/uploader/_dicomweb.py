@@ -92,14 +92,14 @@ class DicomWebUploader(Uploader):
         This dyniamically creates a new endpoint in Orthanc with the necessary credentials, so we
         can avoid hardcoding the credentials in the Orthanc configuration at build time.
         """
-        HTTP_TIMEOUT = int(config("HTTP_TIMEOUT", default=30))
+        http_timeout = int(config("HTTP_TIMEOUT", default=30))
 
         dicomweb_config = {
             "Url": self.endpoint_url,
             "Username": self.endpoint_user,
             "Password": self.endpoint_password,
             "HasDelete": True,
-            "Timeout": HTTP_TIMEOUT,
+            "Timeout": http_timeout,
         }
 
         headers = {"content-type": "application/json"}
