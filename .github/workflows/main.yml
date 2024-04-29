@@ -64,7 +64,7 @@ jobs:
 
       - name: Run tests
         working-directory: hasher
-        run: pytest
+        run: pytest --cov --cov-report=xml
         env:
           ENV: test
           AZURE_KEY_VAULT_NAME: test
@@ -89,7 +89,7 @@ jobs:
       - name: Run tests
         working-directory: pixl_core/tests
         run: |
-          pytest
+          pytest --cov --cov-report=xml
         env:
           ENV: test
 
@@ -140,7 +140,7 @@ jobs:
       - name: Run tests
         working-directory: cli/tests
         run: |
-          pytest
+          pytest --cov --cov-report=xml
 
   ehr-api-tests:
     runs-on: ubuntu-22.04
@@ -160,7 +160,7 @@ jobs:
       - name: Run tests
         working-directory: pixl_ehr/tests
         run: |
-          pytest
+          pytest --cov --cov-report=xml
 
   imaging-api-tests:
     runs-on: ubuntu-22.04
@@ -180,7 +180,7 @@ jobs:
       - name: Run tests
         working-directory: pixl_imaging/tests
         run: |
-          pytest
+          pytest --cov --cov-report=xml
 
   system-test:
     if: ${{ ! github.event.pull_request.draft || contains(github.event.pull_request.title, '[force-system-test]') }}
