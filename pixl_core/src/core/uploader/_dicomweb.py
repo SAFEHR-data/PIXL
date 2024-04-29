@@ -44,6 +44,7 @@ class DicomWebUploader(Uploader):
         self.endpoint_user = self.keyvault.fetch_secret(f"{self.az_prefix}--dicomweb--username")
         self.endpoint_password = self.keyvault.fetch_secret(f"{self.az_prefix}--dicomweb--password")
         self.endpoint_url = self.keyvault.fetch_secret(f"{self.az_prefix}--dicomweb--url")
+        # the url of the DicomWeb service on orthanc anon (not to be confused with the downstream DicomWeb server that we're trying to upload to)
         self.orthanc_dicomweb_url = self.orthanc_url + "/dicom-web/servers/" + self.az_prefix
 
     def upload_dicom_image(self) -> None:
