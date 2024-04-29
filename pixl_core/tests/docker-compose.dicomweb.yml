@@ -62,7 +62,11 @@ services:
         networks:
             - pixl-test
         healthcheck:
-            test: ["CMD-SHELL", "/probes/test-aliveness.py --user=orthanc --pwd=orthanc"]
+            test:
+                [
+                    "CMD-SHELL",
+                    "/probes/test-aliveness.py --user=orthanc_dicomweb --pwd=orthanc_dicomweb",
+                ]
             start_period: 10s
             retries: 2
             interval: 3s
