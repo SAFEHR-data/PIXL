@@ -54,10 +54,9 @@ os.environ["ORTHANC_URL"] = "http://localhost:8043"
 os.environ["ORTHANC_USERNAME"] = "orthanc"
 os.environ["ORTHANC_PASSWORD"] = "orthanc"  # noqa: S105, hardcoded password
 # Endpoint for DICOMWeb server as seen from within Orthanc
-os.environ["DICOM_ENDPOINT_URL"] = "http://localhost:8042/dicom-web"
+os.environ["DICOMWEB_URL"] = "http://dicomweb-server:8042/dicom-web"
 os.environ["DICOMWEB_USERNAME"] = "orthanc_dicomweb"
 os.environ["DICOMWEB_PASSWORD"] = "orthanc_dicomweb"  # noqa: S105, hardcoded password
-os.environ["DICOMWEB_URL"] = "http://localhost:8044/dicom-web"
 
 
 @pytest.fixture(scope="package")
@@ -86,18 +85,19 @@ def run_dicomweb_containers() -> Generator[subprocess.CompletedProcess[bytes], N
     Spins up 2 Orthanc containers, one that acts as the base storage, mimicking our orthanc-anon
     or orthanc-raw servers, and the other one as a DICOMweb server to upload DICOM files to.
     """
+    docker_compose_file = TEST_DIR / "docker-compose.dicomweb.yml"
     run_subprocess(
-        shlex.split("docker compose down --volumes"),
+        shlex.split(f"docker compose -f {docker_compose_file} down --volumes"),
         TEST_DIR,
         timeout=60,
     )
     yield run_subprocess(
-        shlex.split("docker compose -f docker-compose.dicomweb.yml up --build --wait"),
+        shlex.split(f"docker compose -f {docker_compose_file} up --build --wait"),
         TEST_DIR,
         timeout=60,
     )
     run_subprocess(
-        shlex.split("docker compose down --volumes"),
+        shlex.split(f"docker compose -f {docker_compose_file} down --volumes"),
         TEST_DIR,
         timeout=60,
     )

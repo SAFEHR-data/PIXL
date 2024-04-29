@@ -15,6 +15,7 @@
 
 from __future__ import annotations
 
+import time
 from typing import Optional
 
 import pytest
@@ -28,6 +29,8 @@ ORTHANC_PASSWORD = config("ORTHANC_PASSWORD")
 DICOMWEB_USERNAME = config("DICOMWEB_USERNAME")
 DICOMWEB_PASSWORD = config("DICOMWEB_PASSWORD")
 DICOMWEB_URL = config("DICOMWEB_URL")
+
+LOCOL_DICOMWEB_URL = "http://localhost:8044"
 
 
 class MockDicomWebUploader(DicomWebUploader):
@@ -75,19 +78,16 @@ def test_dicomweb_server_config(run_dicomweb_containers, dicomweb_uploader) -> N
 
 def test_upload_dicom_image(study_id, run_dicomweb_containers, dicomweb_uploader) -> None:
     """Tests that DICOM image can be uploaded to a DICOMWeb server"""
-    # ACT
     stow_response = dicomweb_uploader.send_via_stow(study_id)
+
+    # Check that the instance has arrived on the DICOMweb server
+    time.sleep(5)
     studies_response = requests.get(
-        DICOMWEB_URL + "/studies",
+        LOCOL_DICOMWEB_URL + "/studies",
         auth=(DICOMWEB_USERNAME, DICOMWEB_PASSWORD),
-        data={"Uri": "/instances"},
         timeout=30,
     )
 
-    # ASSERT
-    # Check if dicom-web server is set up correctly
     assert stow_response.status_code == 200  # succesful upload
-    # Taken from https://orthanc.uclouvain.be/hg/orthanc-dicomweb/file/default/Resources/Samples/Python/SendStow.py
-    # Check that instance has not been discarded
     assert studies_response.status_code == 200
-    assert "00081190" in studies_response.json()[0]
+    assert len(studies_response.json()) == 1
