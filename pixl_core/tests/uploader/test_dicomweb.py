@@ -30,7 +30,7 @@ DICOMWEB_USERNAME = config("DICOMWEB_USERNAME")
 DICOMWEB_PASSWORD = config("DICOMWEB_PASSWORD")
 DICOMWEB_URL = config("DICOMWEB_URL")
 
-LOCOL_DICOMWEB_URL = "http://localhost:8044"
+LOCAL_DICOMWEB_URL = "http://localhost:8044"
 
 
 class MockDicomWebUploader(DicomWebUploader):
@@ -81,9 +81,9 @@ def test_upload_dicom_image(study_id, run_containers, dicomweb_uploader) -> None
     stow_response = dicomweb_uploader.send_via_stow(study_id)
 
     # Check that the instance has arrived on the DICOMweb server
-    time.sleep(5)
+    time.sleep(2)
     studies_response = requests.get(
-        LOCOL_DICOMWEB_URL + "/studies",
+        LOCAL_DICOMWEB_URL + "/studies",
         auth=(DICOMWEB_USERNAME, DICOMWEB_PASSWORD),
         timeout=30,
     )
