@@ -33,7 +33,7 @@ test = [
     "httpx==0.24.*",
     "pytest-pixl",
 ]
-dev = ["mypy", "pre-commit", "ruff"]
+dev = ["mypy", "pre-commit", "ruff", "pytest-cov"]
 
 [build-system]
 requires = ["setuptools>=61.0"]
