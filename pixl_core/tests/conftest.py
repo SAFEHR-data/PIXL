@@ -68,7 +68,7 @@ def run_containers() -> Generator[subprocess.CompletedProcess[bytes], None, None
         timeout=60,
     )
     yield run_subprocess(
-        shlex.split("docker compose up --build --wait"),
+        shlex.split("docker compose up --build --wait --remove-orphans"),
         TEST_DIR,
         timeout=60,
     )
