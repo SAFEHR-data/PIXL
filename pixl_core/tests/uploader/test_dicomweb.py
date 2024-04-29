@@ -64,7 +64,7 @@ def _do_get_request(url: str, data: Optional[dict] = None) -> requests.Response:
     )
 
 
-def test_dicomweb_server_config(run_dicomweb_containers, dicomweb_uploader) -> None:
+def test_dicomweb_server_config(run_containers, dicomweb_uploader) -> None:
     """Tests that the DICOMWeb server is configured correctly in Orthanc"""
     dicomweb_uploader._setup_dicomweb_credentials()  # noqa: SLF001, private method
     servers_response = requests.get(
@@ -76,7 +76,7 @@ def test_dicomweb_server_config(run_dicomweb_containers, dicomweb_uploader) -> N
     assert "test" in servers_response.json()
 
 
-def test_upload_dicom_image(study_id, run_dicomweb_containers, dicomweb_uploader) -> None:
+def test_upload_dicom_image(study_id, run_containers, dicomweb_uploader) -> None:
     """Tests that DICOM image can be uploaded to a DICOMWeb server"""
     stow_response = dicomweb_uploader.send_via_stow(study_id)
 

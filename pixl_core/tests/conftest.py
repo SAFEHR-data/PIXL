@@ -80,31 +80,7 @@ def run_containers() -> Generator[subprocess.CompletedProcess[bytes], None, None
 
 
 @pytest.fixture(scope="package")
-def run_dicomweb_containers() -> Generator[subprocess.CompletedProcess[bytes], None, None]:
-    """
-    Spins up 2 Orthanc containers, one that acts as the base storage, mimicking our orthanc-anon
-    or orthanc-raw servers, and the other one as a DICOMweb server to upload DICOM files to.
-    """
-    docker_compose_file = TEST_DIR / "docker-compose.dicomweb.yml"
-    run_subprocess(
-        shlex.split(f"docker compose -f {docker_compose_file} down --volumes"),
-        TEST_DIR,
-        timeout=60,
-    )
-    yield run_subprocess(
-        shlex.split(f"docker compose -f {docker_compose_file} up --build --wait"),
-        TEST_DIR,
-        timeout=60,
-    )
-    run_subprocess(
-        shlex.split(f"docker compose -f {docker_compose_file} down --volumes"),
-        TEST_DIR,
-        timeout=60,
-    )
-
-
-@pytest.fixture(scope="package")
-def study_id(run_dicomweb_containers) -> str:
+def study_id(run_containers) -> str:
     """Uploads a DICOM file to the Orthanc server and returns the study ID."""
     DCM_FILE = Path(__file__).parents[2] / "test" / "resources" / "Dicom1.dcm"
     ORTHANC_URL = os.environ["ORTHANC_URL"]
