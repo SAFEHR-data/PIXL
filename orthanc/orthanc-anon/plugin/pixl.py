@@ -181,7 +181,7 @@ def should_auto_route() -> bool:
 
 def _azure_available() -> bool:
     # Check if AZ_DICOM_ENDPOINT_CLIENT_ID is set
-    return bool(config("AZ_DICOM_ENDPOINT_CLIENT_ID", default="") != "")
+    return config("AZ_DICOM_ENDPOINT_CLIENT_ID", default="") != ""
 
 
 def OnChange(changeType, level, resource):  # noqa: ARG001
