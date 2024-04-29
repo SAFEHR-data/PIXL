@@ -149,7 +149,13 @@ def populate(
 @click.argument(
     "parquet-dir", required=True, type=click.Path(path_type=Path, exists=True, file_okay=False)
 )
-def export_patient_data(parquet_dir: Path) -> None:
+@click.option(
+    "--timeout",
+    type=int,
+    default=300,
+    help="Timeout to use for calling export API",
+)
+def export_patient_data(parquet_dir: Path, timeout: int) -> None:
     """
     Export processed radiology reports to parquet file.
 
@@ -168,7 +174,7 @@ def export_patient_data(parquet_dir: Path) -> None:
     response = requests.post(
         url=f"{api_config.base_url}/export-patient-data",
         json={"project_name": project_name_raw, "extract_datetime": omop_es_datetime.isoformat()},
-        timeout=300,
+        timeout=timeout,
     )
 
     success_code = 200
