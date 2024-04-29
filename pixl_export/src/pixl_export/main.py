@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 import importlib.metadata
+import sys
 from datetime import (
     datetime,  # noqa: TCH003, always import datetime otherwise pydantic throws error
 )
@@ -25,12 +26,21 @@ from core.exports import ParquetExport
 from core.project_config import load_project_config
 from core.rest_api.router import router
 from core.uploader import get_uploader
+from decouple import config  # type: ignore [import-untyped]
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from loguru import logger
 from pydantic import BaseModel
 
 from ._orthanc import get_study_zip_archive, get_tags_by_study
+
+# Set up logging as main entry point
+logger.remove()  # Remove all handlers added so far, including the default one.
+logging_level = config("LOG_LEVEL", default="INFO")
+if not logging_level:
+    logging_level = "INFO"
+logger.add(sys.stderr, level=logging_level)
+logger.warning("Running logging at level {}", logging_level)
 
 app = FastAPI(
     title="export-api",
