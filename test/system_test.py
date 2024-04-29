@@ -13,7 +13,6 @@
 #  limitations under the License.
 """Replacement for the 'interesting' bits of the system/E2E test"""
 
-import logging
 from pathlib import Path
 from typing import Any
 
@@ -22,6 +21,7 @@ import pydicom
 import pytest
 import requests
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
+from loguru import logger
 from pytest_pixl.ftpserver import PixlFTPServer
 from pytest_pixl.helpers import run_subprocess, wait_for_condition
 
@@ -65,7 +65,7 @@ class TestFtpsUpload:
     def _setup(self, ftps_server: PixlFTPServer) -> None:
         """Shared test data for the two different kinds of FTP upload test"""
         TestFtpsUpload.ftp_home_dir = ftps_server.home_dir
-        logging.info("ftp home dir: %s", TestFtpsUpload.ftp_home_dir)
+        logger.info("ftp home dir: {}", TestFtpsUpload.ftp_home_dir)
 
         TestFtpsUpload.project_slug = "test-extract-uclh-omop-cdm"
         TestFtpsUpload.extract_time_slug = "2023-12-07t14-08-58"
@@ -76,8 +76,8 @@ class TestFtpsUpload:
         TestFtpsUpload.expected_public_parquet_dir = (
             TestFtpsUpload.expected_output_dir / TestFtpsUpload.extract_time_slug / "parquet"
         )
-        logging.info("expected output dir: %s", TestFtpsUpload.expected_output_dir)
-        logging.info("expected parquet files dir: %s", TestFtpsUpload.expected_public_parquet_dir)
+        logger.info("expected output dir: {}", TestFtpsUpload.expected_output_dir)
+        logger.info("expected parquet files dir: {}", TestFtpsUpload.expected_public_parquet_dir)
         # No cleanup of ftp uploads needed because it's in a temp dir
 
     @pytest.mark.usefixtures("_export_patient_data")
@@ -151,7 +151,7 @@ class TestFtpsUpload:
 
         # One zip file == one study.
         # There can be multiple instances in the zip file, one per file
-        logging.info("In zip file, %s DICOM files: %s", len(dicom_in_zip), dicom_in_zip)
+        logger.info("In zip file, {} DICOM files: {}", len(dicom_in_zip), dicom_in_zip)
         actual_instances = set()
         for dcm_file in dicom_in_zip:
             dcm = pydicom.dcmread(dcm_file)
@@ -167,8 +167,8 @@ class TestFtpsUpload:
             if isinstance(private_tag.value, bytes):
                 # Allow this for the time being, until it has been investigated
                 # See https://github.com/UCLH-Foundry/PIXL/issues/363
-                logging.error(
-                    "TEMPORARILY IGNORE: tag value %s should be of type str, but is of type bytes",
+                logger.error(
+                    "TEMPORARILY IGNORE: tag value {} should be of type str, but is of type bytes",
                     private_tag.value,
                 )
                 assert private_tag.value.decode() == TestFtpsUpload.project_slug

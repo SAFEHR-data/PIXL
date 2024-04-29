@@ -16,13 +16,11 @@
 from __future__ import annotations
 
 import json
-import logging
 from io import BytesIO
 
 import requests
 from decouple import config
-
-logger = logging.getLogger("_orthanc")
+from loguru import logger
 
 
 def get_study_zip_archive(resourceId: str) -> BytesIO:
@@ -32,7 +30,7 @@ def get_study_zip_archive(resourceId: str) -> BytesIO:
     response_study = _query_orthanc_anon(resourceId, query, fail_msg)
 
     # get the zip content
-    logger.debug("Downloaded data for resource %s", resourceId)
+    logger.debug("Downloaded data for resource {}", resourceId)
     return BytesIO(response_study.content)
 
 
@@ -59,7 +57,7 @@ def _query_orthanc_anon(resourceId: str, query: str, fail_msg: str) -> requests.
         )
         response.raise_for_status()
     except requests.exceptions.RequestException:
-        logger.exception("Failed to query resource '%s', error: '%s'", resourceId, fail_msg)
+        logger.exception("Failed to query resource '{}', error: '{}'", resourceId, fail_msg)
         raise
     else:
         return response

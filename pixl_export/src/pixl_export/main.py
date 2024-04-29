@@ -16,7 +16,6 @@
 from __future__ import annotations
 
 import importlib.metadata
-import logging
 from datetime import (
     datetime,  # noqa: TCH003, always import datetime otherwise pydantic throws error
 )
@@ -28,6 +27,7 @@ from core.rest_api.router import router
 from core.uploader import get_uploader
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
+from loguru import logger
 from pydantic import BaseModel
 
 from ._orthanc import get_study_zip_archive, get_tags_by_study
@@ -39,8 +39,6 @@ app = FastAPI(
     default_response_class=JSONResponse,
 )
 app.include_router(router)
-
-logger = logging.getLogger("uvicorn")
 
 # Export root dir from inside the Export API container.
 # For the view from outside, see pixl_cli/_io.py: HOST_EXPORT_ROOT_DIR
@@ -72,7 +70,7 @@ def export_patient_data(export_params: ExportPatientData) -> None:
     NOTE: we can't check that all reports in the queue have been processed, so
     we are relying on the user waiting until processing has finished before running this.
     """
-    logger.info("Exporting Patient Data for '%s'", export_params.project_name)
+    logger.info("Exporting Patient Data for '{}'", export_params.project_name)
 
     # Upload Parquet files to the appropriate endpoint
     parquet_export = ParquetExport(
@@ -104,7 +102,6 @@ def export_dicom_from_orthanc(study_data: StudyData) -> None:
     destination = project_config.destination.dicom
 
     uploader = get_uploader(project_slug, destination, project_config.project.azure_kv_alias)
-    msg = f"Sending {study_id} via '{destination}'"
-    logger.debug(msg)
+    logger.debug("Sending {} via '{}'", study_id, destination)
     zip_content = get_study_zip_archive(study_id)
     uploader.upload_dicom_image(zip_content, hashed_image_id, project_slug)

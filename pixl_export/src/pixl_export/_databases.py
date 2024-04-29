@@ -13,14 +13,11 @@
 #  limitations under the License.
 from __future__ import annotations
 
-import logging
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 
 import psycopg2 as pypg
 from decouple import config
-
-logger = logging.getLogger("uvicorn")
 
 if TYPE_CHECKING:
     from pixl_export._queries import SQLQuery

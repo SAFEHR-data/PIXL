@@ -21,14 +21,12 @@ services being up
 from __future__ import annotations
 
 import dataclasses
-from logging import getLogger
 from typing import Any
 
 import pytest
+from loguru import logger
 
 pytest_plugins = ("pytest_asyncio",)
-
-logger = getLogger(__name__)
 
 
 @dataclasses.dataclass
@@ -45,13 +43,13 @@ def _mock_requests(monkeypatch) -> None:
     """Mock requests so we don't have to run APIs."""
 
     def mock_get(url: str, params: dict, *args: Any, **kwargs: Any) -> MockResponse:
-        logger.info("Mocking request for %s: %s", url, params)
+        logger.info("Mocking request for {}: {}", url, params)
         return MockResponse(
             content="-".join(list(params["message"])), text="-".join(list(params["message"]))
         )
 
     def mock_post(url: str, data, *args: Any, **kwargs: Any) -> MockResponse:
-        logger.info("Mocking request for %s: %s", url, data)
+        logger.info("Mocking request for {}: {}", url, data)
         return MockResponse(content=data + "**DE-IDENTIFIED**", text=data + "**DE-IDENTIFIED**")
 
     monkeypatch.setattr("requests.get", mock_get)

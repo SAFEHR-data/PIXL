@@ -13,13 +13,10 @@
 #  limitations under the License.
 """Check validity of radiology export"""
 
-import logging
 from pathlib import Path
 
 import pytest
 from conftest import RESOURCES_DIR
-
-logger = logging.getLogger(__name__)
 
 
 @pytest.mark.usefixtures("_setup_pixl_cli")
