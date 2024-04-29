@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-"""Uploader subclass for FTPS uploads."""
+"""Uploader subclass for DICOMweb uploads."""
 
 from __future__ import annotations
 
