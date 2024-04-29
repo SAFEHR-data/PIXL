@@ -16,7 +16,6 @@
 from __future__ import annotations
 
 import time
-from typing import Optional
 
 import pytest
 import requests
@@ -52,16 +51,6 @@ class MockDicomWebUploader(DicomWebUploader):
 def dicomweb_uploader() -> MockDicomWebUploader:
     """Fixture to return a mock DicomWebUploader."""
     return MockDicomWebUploader()
-
-
-def _do_get_request(url: str, data: Optional[dict] = None) -> requests.Response:
-    """Perform a GET request to the specified endpoint."""
-    return requests.get(
-        url,
-        auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD),
-        data=data,
-        timeout=30,
-    )
 
 
 def test_dicomweb_server_config(run_containers, dicomweb_uploader) -> None:
