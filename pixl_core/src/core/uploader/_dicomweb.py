@@ -48,6 +48,7 @@ class DicomWebUploader(Uploader):
         # DICOMweb server. Note that this is different from the endpoint_url, which is the URL of
         # the DICOMweb server itself.
         self.orthanc_dicomweb_url = self.orthanc_url + "/dicom-web/servers/" + self.az_prefix
+        self.http_timeout = int(config("HTTP_TIMEOUT", default=30))
 
     def upload_dicom_image(self) -> None:
         msg = "Currently not implemented. Use `send_via_stow()` instead."
@@ -68,7 +69,7 @@ class DicomWebUploader(Uploader):
                 auth=(self.orthanc_user, self.orthanc_password),
                 headers=headers,
                 data=json.dumps(payload),
-                timeout=30,
+                timeout=self.http_timeout,
             )
             response.raise_for_status()
         except requests.exceptions.RequestException:
@@ -81,7 +82,9 @@ class DicomWebUploader(Uploader):
     def _check_dicomweb_server(self) -> bool:
         """Checks if the dicomweb server exists."""
         response = requests.get(
-            self.orthanc_dicomweb_url, auth=(self.orthanc_user, self.orthanc_password), timeout=30
+            self.orthanc_dicomweb_url,
+            auth=(self.orthanc_user, self.orthanc_password),
+            timeout=self.http_timeout,
         )
         success_code = 200
         if response.status_code != success_code:
@@ -94,14 +97,12 @@ class DicomWebUploader(Uploader):
         This dynamically creates a new endpoint in Orthanc with the necessary credentials, so we
         can avoid hardcoding the credentials in the Orthanc configuration at build time.
         """
-        http_timeout = int(config("HTTP_TIMEOUT", default=30))
-
         dicomweb_config = {
             "Url": self.endpoint_url,
             "Username": self.endpoint_user,
             "Password": self.endpoint_password,
             "HasDelete": True,
-            "Timeout": http_timeout,
+            "Timeout": self.http_timeout,
         }
 
         headers = {"content-type": "application/json"}
