@@ -22,7 +22,7 @@ import requests
 from core.uploader._dicomweb import DicomWebUploader
 from decouple import config  # type: ignore [import-untyped]
 
-ORTHANC_URL = config("ORTHANC_URL")
+ORTHANC_ANON_URL = config("ORTHANC_ANON_URL")
 ORTHANC_USERNAME = config("ORTHANC_ANON_USERNAME")
 ORTHANC_PASSWORD = config("ORTHANC_ANON_PASSWORD")
 
@@ -40,7 +40,7 @@ class MockDicomWebUploader(DicomWebUploader):
         self.az_prefix = "test"
         self.orthanc_user = ORTHANC_USERNAME
         self.orthanc_password = ORTHANC_PASSWORD
-        self.orthanc_url = ORTHANC_URL
+        self.orthanc_url = ORTHANC_ANON_URL
         self.endpoint_user = DICOMWEB_USERNAME
         self.endpoint_password = DICOMWEB_PASSWORD
         # URL for DICOMWeb server as seen from within Orthanc, i.e. the address of the dicomweb
@@ -60,7 +60,7 @@ def test_dicomweb_server_config(run_containers, dicomweb_uploader) -> None:
     """Tests that the DICOMWeb server is configured correctly in Orthanc"""
     dicomweb_uploader._setup_dicomweb_credentials()  # noqa: SLF001, private method
     servers_response = requests.get(
-        ORTHANC_URL + "/dicom-web/servers",
+        ORTHANC_ANON_URL + "/dicom-web/servers",
         auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD),
         timeout=30,
     )

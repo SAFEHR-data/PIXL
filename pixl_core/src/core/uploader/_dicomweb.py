@@ -42,7 +42,7 @@ class DicomWebUploader(Uploader):
 
         self.orthanc_user = config("ORTHANC_ANON_USERNAME")
         self.orthanc_password = config("ORTHANC_ANON_PASSWORD")
-        self.orthanc_url = config("ORTHANC_URL")
+        self.orthanc_url = config("ORTHANC_ANON_URL")
         self.endpoint_user = self.keyvault.fetch_secret(f"{self.az_prefix}--dicomweb--username")
         self.endpoint_password = self.keyvault.fetch_secret(f"{self.az_prefix}--dicomweb--password")
         self.endpoint_url = self.keyvault.fetch_secret(f"{self.az_prefix}--dicomweb--url")

@@ -48,7 +48,7 @@ os.environ["FTP_USER_NAME"] = "pixl"
 os.environ["FTP_PASSWORD"] = "longpassword"  # noqa: S105 Hardcoding password
 os.environ["FTP_PORT"] = "20021"
 
-os.environ["ORTHANC_URL"] = "http://localhost:8043"
+os.environ["ORTHANC_ANON_URL"] = "http://localhost:8043"
 os.environ["ORTHANC_ANON_USERNAME"] = "orthanc"
 os.environ["ORTHANC_ANON_PASSWORD"] = "orthanc"  # noqa: S105, hardcoded password
 
@@ -77,15 +77,15 @@ def run_containers() -> Generator[subprocess.CompletedProcess[bytes], None, None
 def study_id(run_containers) -> str:
     """Uploads a DICOM file to the Orthanc server and returns the study ID."""
     DCM_FILE = Path(__file__).parents[2] / "test" / "resources" / "Dicom1.dcm"
-    ORTHANC_URL = os.environ["ORTHANC_URL"]
+    ORTHANC_ANON_URL = os.environ["ORTHANC_ANON_URL"]
 
     headers = {"content-type": "application/dicom"}
     data = DCM_FILE.read_bytes()
     response = requests.post(
-        f"{ORTHANC_URL}/instances",
+        f"{ORTHANC_ANON_URL}/instances",
         data=data,
         headers=headers,
-        auth=(os.environ["ORTHANC_USERNAME"], os.environ["ORTHANC_PASSWORD"]),
+        auth=(os.environ["ORTHANC_ANON_USERNAME"], os.environ["ORTHANC_ANON_PASSWORD"]),
         timeout=60,
     )
     return response.json()["ParentStudy"]
