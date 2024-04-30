@@ -73,7 +73,7 @@ def _check_study_present_on_dicomweb(study_id: str) -> bool:
         timeout=30,
     )
     response.raise_for_status()
-    return any(study == study_id for study in response.json())
+    return study_id in response.json()
 
 
 def test_upload_dicom_image(study_id, run_containers, dicomweb_uploader) -> None:
