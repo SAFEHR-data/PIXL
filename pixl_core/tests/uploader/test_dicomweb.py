@@ -86,11 +86,12 @@ def test_upload_dicom_image(study_id, run_containers, dicomweb_uploader) -> None
     assert _check_study_present_on_dicomweb(study_id)
 
     # Clean up
-    requests.delete(
+    response = requests.delete(
         LOCAL_DICOMWEB_URL + "/studies/" + study_id,
         auth=(DICOMWEB_USERNAME, DICOMWEB_PASSWORD),
         timeout=30,
     )
+    response.raise_for_status()
 
 
 def test_dicomweb_upload_fails_with_wrong_credentials(
