@@ -12,13 +12,19 @@ for the requested imaging study, if it didn't already exist.
 ## Installation
 
 ```bash
-pip install -e ../pixl_core/ -e .
+python -m pip install --upgrade pip
+pip install -e pytest-pixl/
+pip install -e pixl_core/[test]
+pip install -e pixl_imaging/[test]
 ```
 
 ## Test
 
+**NOTE**: the `pixl_imaging` tests require to be run from within the `tests/` directory.
+
 ```bash
-./tests/run-tests.sh
+cd pixl_imaging/tests
+pytest
 ```
 
 ## Usage
