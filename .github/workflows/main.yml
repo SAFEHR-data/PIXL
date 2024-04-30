@@ -69,7 +69,8 @@ jobs:
                   pip install -e ${{ matrix.package_dir }}/[test]
 
             - name: Run tests and generate coverage report
-              working-directory: ${{ matrix.package_dir }}
+              # pixl_imaging tests only work when run from within the tests/ directory
+              working-directory: ${{ matrix.package_dir }}/tests
               run: pytest --cov --cov-report=xml
               env:
                   ENV: test
