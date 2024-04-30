@@ -24,7 +24,6 @@ from pathlib import Path
 
 from core._orthanc import get_tags_by_study
 from core.exports import ParquetExport
-from core.project_config import load_project_config
 from core.rest_api.router import router
 from core.uploader import get_uploader
 from decouple import config  # type: ignore [import-untyped]
@@ -107,9 +106,7 @@ def export_dicom_from_orthanc(study_data: StudyData) -> None:
     """
     study_id = study_data.study_id
     _, project_slug = get_tags_by_study(study_id)
-    project_config = load_project_config(project_slug)
-    destination = project_config.destination.dicom
 
-    uploader = get_uploader(project_slug, destination, project_config.project.azure_kv_alias)
-    logger.debug("Sending {} via '{}'", study_id, destination)
+    uploader = get_uploader(project_slug)
+    logger.debug("Sending {} via '{}'", study_id, type(uploader).__name__)
     uploader.upload_dicom_image(study_id)
