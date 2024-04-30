@@ -25,7 +25,7 @@ from loguru import logger
 
 def get_study_zip_archive(resourceId: str) -> BytesIO:
     # Download zip archive of the DICOM resource
-    query = f'{config("ORTHANC_ANON_USERNAME")}/studies/{resourceId}/archive'
+    query = f"{ORTHANC_ANON_URL}/studies/{resourceId}/archive"
     fail_msg = "Could not download archive of resource '%s'"
     response_study = _query_orthanc_anon(resourceId, query, fail_msg)
 
