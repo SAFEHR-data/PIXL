@@ -13,21 +13,14 @@
 #  limitations under the License.
 from __future__ import annotations
 
-import logging
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 
-import pandas as pd
 import psycopg2 as pypg
 from decouple import config
 
-logger = logging.getLogger("uvicorn")
-
 if TYPE_CHECKING:
-    from datetime import datetime
-
-    from pixl_ehr._processing import PatientEHRData
-    from pixl_ehr._queries import SQLQuery
+    from pixl_export._queries import SQLQuery
 
 
 class Database:
@@ -74,20 +67,6 @@ class WriteableDatabase(Database):
         self._connection.commit()
 
 
-class EMAPStar(QueryableDatabase):
-    def __init__(self) -> None:
-        super().__init__(
-            db_name=config("EMAP_UDS_NAME"),
-            username=config("EMAP_UDS_USER"),
-            password=config("EMAP_UDS_PASSWORD"),
-            host=config("EMAP_UDS_HOST"),
-            port=config("EMAP_UDS_PORT", int),
-        )
-
-    def __repr__(self) -> str:
-        return "EMAPStarDatabase"
-
-
 class PIXLDatabase(WriteableDatabase, QueryableDatabase):
     def __init__(self) -> None:
         super().__init__(
@@ -107,22 +86,3 @@ class PIXLDatabase(WriteableDatabase, QueryableDatabase):
 
         with Path(filename, "w").open() as file:
             self._cursor.copy_expert(query, file)
-
-    def contains(self, data: PatientEHRData) -> bool:
-        """Does the database contain a set of data already?"""
-        query = "SELECT * FROM emap_data.ehr_raw WHERE mrn = %s and accession_number = %s"
-        self._cursor.execute(query=str(query), vars=[data.mrn, data.accession_number])
-        return self._cursor.fetchone() is not None
-
-    def get_radiology_reports(
-        self, slugified_project_name: str, extract_datetime: datetime
-    ) -> pd.DataFrame:
-        """Get all radiology reports for a given study."""
-        query = (
-            "SELECT image_identifier, procedure_occurrence_id, xray_report FROM emap_data.ehr_anon "
-            "WHERE project_name = %s AND extract_datetime = %s"
-        )
-        self._cursor.execute(query=str(query), vars=[slugified_project_name, extract_datetime])
-        anon_data = self._cursor.fetchall()
-        parquet_header_names = ["image_identifier", "procedure_occurrence_id", "image_report"]
-        return pd.DataFrame(anon_data, columns=parquet_header_names)

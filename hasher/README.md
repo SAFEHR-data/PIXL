@@ -3,8 +3,8 @@
 _The secure hashing service_.
 
 This package provides a _FastAPI_ service that can be used to generate secure hashes.
-It is used by the [PIXL EHR API](../pixl_ehr/README.md) (for EHR anonymisation) and
-[PIXL Orthanc Anon](../orthanc/orthanc-anon/README.md) (for DICOM image anonymisation) services.
+It is used by [PIXL Orthanc Anon](../orthanc/orthanc-anon/README.md) for DICOM image
+anonymisation.
 
 The main responsibility of the hasher API is to generate secure hashes of sensitive data. As part
 of this, it connects to an Azure Key Vault to retrieve the necessary hashing keys and salts. The

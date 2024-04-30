@@ -142,7 +142,7 @@ jobs:
         run: |
           pytest
 
-  ehr-api-tests:
+  export-api-tests:
     runs-on: ubuntu-22.04
     timeout-minutes: 30
     steps:
@@ -155,10 +155,10 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install pytest-pixl/ pixl_core/ pixl_ehr/[test]
+          pip install pytest-pixl/ pixl_core/ pixl_export/[test]
 
       - name: Run tests
-        working-directory: pixl_ehr/tests
+        working-directory: pixl_export/tests
         run: |
           pytest
 
@@ -254,10 +254,10 @@ jobs:
           ./run-system-test.sh
           echo FINISHED SYSTEM TEST SCRIPT
 
-      - name: Dump ehr-api docker logs for debugging
+      - name: Dump export-api docker logs for debugging
         if: ${{ failure() }}
         run: |
-          docker logs -t system-test-ehr-api-1 2>&1
+          docker logs -t system-test-export-api-1 2>&1
 
       - name: Dump orthanc-anon docker logs for debugging
         if: ${{ failure() }}
