@@ -124,7 +124,10 @@ services:
             ORTHANC_RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
             ORTHANC_RAW_DICOM_PORT: "4242"
             ORTHANC_RAW_HOSTNAME: "orthanc-raw"
+            # For the export API
             ORTHANC_ANON_URL: "http://localhost:8042"
+            ORTHANC_ANON_USERNAME: ${ORTHANC_ANON_USERNAME}
+            ORTHANC_ANON_PASSWORD: ${ORTHANC_ANON_PASSWORD}
             PIXL_DB_HOST: ${PIXL_DB_HOST}
             PIXL_DB_PORT: ${PIXL_DB_PORT}
             PIXL_DB_NAME: ${PIXL_DB_NAME}
