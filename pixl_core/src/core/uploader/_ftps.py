@@ -81,18 +81,16 @@ class FTPSUploader(Uploader):
         pseudo_anon_image_id, project_slug = get_tags_by_study(study_id)
         logger.info("Starting FTPS upload of '{}'", pseudo_anon_image_id)
 
-        super().check_already_exported(pseudo_anon_image_id)
         zip_content = get_study_zip_archive(study_id)
         self.send_via_ftps(zip_content, pseudo_anon_image_id, remote_directory=project_slug)
-
-        super().update_exported_timestamp(pseudo_anon_image_id)
         logger.info("Finished FTPS upload of '{}'", pseudo_anon_image_id)
 
     def send_via_ftps(
         self, zip_content: BinaryIO, pseudo_anon_image_id: str, remote_directory: str
     ) -> None:
         """Send the zip content to the FTPS server."""
-        #
+        super().check_already_exported(pseudo_anon_image_id)
+
         # Create the remote directory if it doesn't exist
         ftp = _connect_to_ftp(self.host, self.port, self.user, self.password)
         _create_and_set_as_cwd(ftp, remote_directory)
@@ -109,6 +107,7 @@ class FTPSUploader(Uploader):
 
         # Close the FTP connection
         ftp.quit()
+        super().update_exported_timestamp(pseudo_anon_image_id)
 
     def upload_parquet_files(self, parquet_export: ParquetExport) -> None:
         """
