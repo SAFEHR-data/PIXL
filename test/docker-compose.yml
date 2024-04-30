@@ -83,7 +83,7 @@ services:
             ORTHANC_USERNAME: "orthanc_dicomweb"
             ORTHANC_PASSWORD: "orthanc_dicomweb"
             ORTHANC_AE_TITLE: "DICOMWEB"
-            RAW_AE_TITLE: ORHTANCRAW
+            RAW_AE_TITLE: ORTHANCRAW
             RAW_DICOM_PORT: "4242"
             RAW_IP_ADDR: "dicomweb-server" # aka. hostname
             DICOM_WEB_PLUGIN_ENABLED: true
