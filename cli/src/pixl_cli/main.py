@@ -160,7 +160,7 @@ def export_patient_data(parquet_dir: Path, timeout: int) -> None:
     Export processed radiology reports to parquet file.
 
     PARQUET_DIR: Directory containing the extract_summary.json log file
-                 defining which extract to export patient data for. (not a CSV)
+                 defining which extract to export patient data for.
     """
     project_name_raw, omop_es_datetime = project_info(parquet_dir)
     export = ParquetExport(project_name_raw, omop_es_datetime, HOST_EXPORT_ROOT_DIR)
