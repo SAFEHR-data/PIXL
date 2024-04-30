@@ -54,13 +54,14 @@ class DicomWebUploader(Uploader):
         msg = "Currently not implemented. Use `send_via_stow()` instead."
         raise NotImplementedError(msg)
 
-    def send_via_stow(self, resource_id: str) -> requests.Response:
+    def send_via_stow(self, resource_id: str, pseudo_anon_image_id: str) -> requests.Response:
         """Upload a Dicom resource to the DicomWeb server from within Orthanc."""
         if not self._check_dicomweb_server_exists():
             logger.info("Creating new DICOMWeb credentials")
             self._setup_dicomweb_credentials()
 
         self._validate_dicomweb_server()
+        super().check_already_exported(pseudo_anon_image_id)
 
         headers = {"content-type": "application/json", "accept": "application/dicom+json"}
         payload = {"Resources": [resource_id], "Synchronous": False}
@@ -78,6 +79,7 @@ class DicomWebUploader(Uploader):
             logger.error("Failed to send via stow")
             raise
         else:
+            super().update_exported_timestamp(pseudo_anon_image_id)
             logger.info("Dicom resource {} sent via stow", resource_id)
         return response
 

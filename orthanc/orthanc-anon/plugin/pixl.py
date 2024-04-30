@@ -164,7 +164,7 @@ def Send(study_id: str) -> None:
 
     # NOTE: temporary workaround until new export-api is ready
     if destination == "dicomweb":
-        uploader.send_via_stow(study_id)
+        uploader.send_via_stow(study_id, hashed_image_id)
     else:
         uploader.upload_dicom_image(zip_content, hashed_image_id, project_slug)
 
