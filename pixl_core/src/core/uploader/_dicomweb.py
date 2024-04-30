@@ -130,13 +130,14 @@ class DicomWebUploader(Uploader):
 
         headers = {"content-type": "application/json"}
         try:
-            requests.put(
+            response = requests.put(
                 self.orthanc_dicomweb_url,
                 auth=(self.orthanc_user, self.orthanc_password),
                 headers=headers,
                 data=json.dumps(dicomweb_config),
                 timeout=10,
             )
+            response.raise_for_status()
         except requests.exceptions.RequestException:
             logger.error("Failed to update DICOMweb config for {}", self.orthanc_dicomweb_url)
             raise
