@@ -266,6 +266,7 @@ services:
                     *pixl-rabbit-mq,
                     *azure-keyvault,
                 ]
+            ORTHANC_ANON_URL: "http://orthanc-anon:8042"
             ORTHANC_ANON_USERNAME: ${ORTHANC_ANON_USERNAME}
             ORTHANC_ANON_PASSWORD: ${ORTHANC_ANON_PASSWORD}
             PROJECT_CONFIGS_DIR: /${PROJECT_CONFIGS_DIR:-/projects/configs}
