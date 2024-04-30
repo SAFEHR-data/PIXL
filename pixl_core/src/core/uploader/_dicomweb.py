@@ -56,9 +56,11 @@ class DicomWebUploader(Uploader):
 
     def send_via_stow(self, resource_id: str) -> requests.Response:
         """Upload a Dicom resource to the DicomWeb server from within Orthanc."""
-        if not self._check_dicomweb_server():
+        if not self._check_dicomweb_server_exists():
             logger.info("Creating new DICOMWeb credentials")
             self._setup_dicomweb_credentials()
+
+        self._validate_dicomweb_server()
 
         headers = {"content-type": "application/json", "accept": "application/dicom+json"}
         payload = {"Resources": [resource_id], "Synchronous": False}
@@ -79,7 +81,7 @@ class DicomWebUploader(Uploader):
             logger.info("Dicom resource {} sent via stow", resource_id)
         return response
 
-    def _check_dicomweb_server(self) -> bool:
+    def _check_dicomweb_server_exists(self) -> bool:
         """Checks if the dicomweb server exists."""
         response = requests.get(
             self.orthanc_dicomweb_url,
@@ -90,6 +92,27 @@ class DicomWebUploader(Uploader):
         if response.status_code != success_code:
             return False
         return True
+
+    def _validate_dicomweb_server(self) -> None:
+        """Check if the DICOMweb server is reachable from within the Orthanc instance."""
+        connection_error = requests.exceptions.ConnectionError("DICOMweb server not reachable")
+        if not self._check_dicomweb_server_exists():
+            logger.error("DICOMweb server not configured")
+            raise connection_error
+
+        # If dicomweb server configured, check if we can reach it
+        try:
+            response = requests.post(
+                self.orthanc_dicomweb_url + "/get",
+                auth=(self.orthanc_user, self.orthanc_password),
+                data='{"Uri": "/studies"}',
+                headers={"content-type": "application/x-www-form-urlencoded"},
+                timeout=self.http_timeout,
+            )
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logger.error("Failed to reach DICOMweb server")
+            raise connection_error from e
 
     def _setup_dicomweb_credentials(self) -> None:
         """
@@ -119,6 +142,8 @@ class DicomWebUploader(Uploader):
             raise
         else:
             logger.info("Set up DICOMweb config for {}", self.orthanc_dicomweb_url)
+
+        self._validate_dicomweb_server()
 
     def upload_parquet_files(self) -> None:
         msg = "DICOMWeb uploader does not support parquet files"
