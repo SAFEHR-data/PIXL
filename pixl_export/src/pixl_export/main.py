@@ -22,6 +22,7 @@ from datetime import (
 )
 from pathlib import Path
 
+from core._orthanc import get_study_zip_archive, get_tags_by_study
 from core.exports import ParquetExport
 from core.project_config import load_project_config
 from core.rest_api.router import router
@@ -31,8 +32,6 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from loguru import logger
 from pydantic import BaseModel
-
-from ._orthanc import get_study_zip_archive, get_tags_by_study
 
 # Set up logging as main entry point
 logger.remove()  # Remove all handlers added so far, including the default one.
