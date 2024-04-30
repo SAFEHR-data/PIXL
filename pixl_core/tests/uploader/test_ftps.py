@@ -28,7 +28,7 @@ from core.uploader._ftps import FTPSUploader
 from pytest_pixl.plugin import FtpHostAddress
 from sqlalchemy.exc import NoResultFound
 
-TEST_DIR = Path(__file__).parent
+TEST_DIR = Path(__file__).parents[1]
 
 
 class MockFTPSUploader(FTPSUploader):
