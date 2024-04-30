@@ -64,7 +64,7 @@ def ftp_host_address():
 
 
 @pytest.fixture()
-def test_zip_content() -> Generator:
+def zip_content() -> Generator:
     """Directory containing the test data for uploading to the ftp server."""
     test_zip_file = TEST_DIR / "data" / "public.zip"
     with test_zip_file.open("rb") as file_content:
@@ -73,7 +73,7 @@ def test_zip_content() -> Generator:
 
 @pytest.mark.usefixtures("ftps_server")
 def test_send_via_ftps(
-    test_zip_content, not_yet_exported_dicom_image, ftps_uploader, ftps_home_dir
+    zip_content, not_yet_exported_dicom_image, ftps_uploader, ftps_home_dir
 ) -> None:
     """Tests that DICOM image can be uploaded to the correct location"""
     # ARRANGE
@@ -83,7 +83,7 @@ def test_send_via_ftps(
     expected_output_file = ftps_home_dir / project_slug / (pseudo_anon_id + ".zip")
 
     # ACT
-    ftps_uploader.send_via_ftps(test_zip_content, pseudo_anon_id, project_slug)
+    ftps_uploader.send_via_ftps(zip_content, pseudo_anon_id, project_slug)
 
     # ASSERT
     assert expected_output_file.exists()
@@ -91,7 +91,7 @@ def test_send_via_ftps(
 
 @pytest.mark.usefixtures("ftps_server")
 def test_upload_dicom_image_already_exported(
-    test_zip_content, already_exported_dicom_image, ftps_uploader
+    zip_content, already_exported_dicom_image, ftps_uploader
 ) -> None:
     """Tests that exception thrown if DICOM image already exported"""
     # ARRANGE
@@ -101,11 +101,11 @@ def test_upload_dicom_image_already_exported(
 
     # ASSERT
     with pytest.raises(RuntimeError, match="Image already exported"):
-        ftps_uploader.send_via_ftps(test_zip_content, pseudo_anon_id, project_slug)
+        ftps_uploader.send_via_ftps(zip_content, pseudo_anon_id, project_slug)
 
 
 @pytest.mark.usefixtures("ftps_server")
-def test_upload_dicom_image_unknown(test_zip_content, ftps_uploader) -> None:
+def test_upload_dicom_image_unknown(zip_content, ftps_uploader) -> None:
     """
     Tests that a different exception is thrown if image is not recognised in the PIXL DB.
 
@@ -118,7 +118,7 @@ def test_upload_dicom_image_unknown(test_zip_content, ftps_uploader) -> None:
 
     # ASSERT
     with pytest.raises(NoResultFound):
-        ftps_uploader.send_via_ftps(test_zip_content, pseudo_anon_id, project_slug)
+        ftps_uploader.send_via_ftps(zip_content, pseudo_anon_id, project_slug)
 
 
 def test_update_exported_and_save(rows_in_session) -> None:
