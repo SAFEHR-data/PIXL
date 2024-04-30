@@ -186,8 +186,10 @@ def _azure_available() -> bool:
 
 def OnChange(changeType, level, resource):  # noqa: ARG001
     """
-    If a study is stable and if should_auto_route returns true
+    - If a study is stable and if should_auto_route returns true
     then notify the export API that it should perform the upload of DICOM data.
+    - If orthanc has started then start a timer to refresh the Azure token every 30 seconds
+    - If orthanc has stopped then cancel the timer
     """
     if not should_auto_route():
         return
