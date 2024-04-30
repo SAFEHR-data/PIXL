@@ -18,12 +18,10 @@ from __future__ import annotations
 
 import ftplib
 import ssl
-from datetime import datetime, timezone
 from ftplib import FTP_TLS
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, BinaryIO, Optional
 
-from core.db.queries import have_already_exported_image, update_exported_at
 from core.uploader.base import Uploader
 
 if TYPE_CHECKING:
@@ -85,10 +83,7 @@ class FTPSUploader(Uploader):
         """Upload a DICOM image to the FTPS server."""
         logger.info("Starting FTPS upload of '{}'", pseudo_anon_image_id)
 
-        # name destination to {project-slug}/{study-pseudonymised-id}.zip
-        if have_already_exported_image(pseudo_anon_image_id):
-            msg = "Image already exported"
-            raise RuntimeError(msg)
+        super().check_already_exported(pseudo_anon_image_id)
 
         # Create the remote directory if it doesn't exist
         ftp = _connect_to_ftp(self.host, self.port, self.user, self.password)
@@ -107,8 +102,7 @@ class FTPSUploader(Uploader):
         # Close the FTP connection
         ftp.quit()
 
-        # Update the exported_at timestamp in the PIXL database
-        update_exported_at(pseudo_anon_image_id, datetime.now(tz=timezone.utc))
+        super().update_exported_timestamp(pseudo_anon_image_id)
         logger.info("Finished FTPS upload of '{}'", pseudo_anon_image_id)
 
     def upload_parquet_files(self, parquet_export: ParquetExport) -> None:

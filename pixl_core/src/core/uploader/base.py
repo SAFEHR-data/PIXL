@@ -16,8 +16,10 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from datetime import datetime, timezone
 from typing import Any, Optional
 
+from core.db.queries import have_already_exported_image, update_exported_at
 from core.project_config.secrets import AzureKeyVault
 
 
@@ -60,3 +62,13 @@ class Uploader(ABC):
         If an upload strategy does not support parquet files, this method should raise a
         NotImplementedError.
         """
+
+    def check_already_exported(self, pseudo_anon_image_id: str) -> None:
+        """Check if the image has already been exported."""
+        if have_already_exported_image(pseudo_anon_image_id):
+            msg = "Image already exported"
+            raise RuntimeError(msg)
+
+    def update_exported_timestamp(self, pseudo_anon_image_id: str) -> None:
+        """Update the exported_at timestamp in the PIXL database for the given image."""
+        update_exported_at(pseudo_anon_image_id, datetime.now(tz=timezone.utc))
