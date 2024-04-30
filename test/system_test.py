@@ -178,7 +178,7 @@ def test_ehr_anon_entries() -> None:
 @pytest.mark.usefixtures("_setup_pixl_cli_dicomweb")
 def test_dicomweb_upload() -> None:
     """Check upload to DICOMweb server was successful"""
-    # This should point to the orthanc-anon server
+    # This should point to the dicomweb server, as seen from the local host machine
     LOCAL_DICOMWEB_URL = "http://localhost:8044"
 
     dicomweb_studies: list[str] = []
