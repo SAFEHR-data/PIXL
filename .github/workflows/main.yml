@@ -76,10 +76,13 @@ jobs:
                   AZURE_KEY_VAULT_NAME: test
                   AZURE_KEY_VAULT_SECRET_NAME: test
 
+    upload-coverage-reports:
+        runs-on: ubuntu-22.04
+        timeout-minutes: 10
+        needs: test
+        steps:
             - name: Upload coverage reports to Codecov
               uses: codecov/codecov-action@v4.2.0
-              with:
-                  directory: ${{ matrix.package_dir }}
               env:
                   CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
