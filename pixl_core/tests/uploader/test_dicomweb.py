@@ -79,22 +79,38 @@ def _check_study_present_on_dicomweb(study_id: str) -> bool:
     return study_id in response.json()
 
 
-def test_upload_dicom_image(study_id, run_containers, dicomweb_uploader) -> None:
-    """Tests that DICOM image can be uploaded to a DICOMWeb server"""
-    stow_response = dicomweb_uploader.send_via_stow(study_id)
-    stow_response.raise_for_status()
-
-    # Check that the instance has arrived on the DICOMweb server
-    time.sleep(2)
-    assert _check_study_present_on_dicomweb(study_id)
-
-    # Clean up
+def _clean_up_dicomweb(study_id: str) -> None:
+    """Clean up the DICOMWeb server."""
     response = requests.delete(
         LOCAL_DICOMWEB_URL + "/studies/" + study_id,
         auth=(DICOMWEB_USERNAME, DICOMWEB_PASSWORD),
         timeout=30,
     )
     response.raise_for_status()
+
+
+def test_upload_dicom_image(
+    study_id, run_containers, dicomweb_uploader, not_yet_exported_dicom_image
+) -> None:
+    """Tests that DICOM image can be uploaded to a DICOMWeb server"""
+    response = dicomweb_uploader.send_via_stow(
+        study_id, not_yet_exported_dicom_image.hashed_identifier
+    )
+    response.raise_for_status()
+
+    # Check that the instance has arrived on the DICOMweb server
+    time.sleep(2)
+    assert _check_study_present_on_dicomweb(study_id)
+
+    _clean_up_dicomweb(study_id)
+
+
+def test_upload_dicom_image_already_exported(
+    study_id, run_containers, dicomweb_uploader, already_exported_dicom_image
+) -> None:
+    """Tests that exception thrown if DICOM image already exported"""
+    with pytest.raises(RuntimeError, match="Image already exported"):
+        dicomweb_uploader.send_via_stow(study_id, already_exported_dicom_image.hashed_identifier)
 
 
 def test_dicomweb_upload_fails_with_wrong_credentials(
