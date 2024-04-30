@@ -25,6 +25,8 @@ from loguru import logger
 
 from core.uploader.base import Uploader
 
+from ._orthanc import get_tags_by_study
+
 
 class DicomWebUploader(Uploader):
     """Upload strategy for a DicomWeb server."""
@@ -50,7 +52,10 @@ class DicomWebUploader(Uploader):
         self.orthanc_dicomweb_url = self.orthanc_url + "/dicom-web/servers/" + self.az_prefix
         self.http_timeout = int(config("HTTP_TIMEOUT", default=30))
 
-    def upload_dicom_image(self) -> None:
+    def upload_dicom_image(self, study_id: str) -> None:
+        pseudo_anon_image_id, remote_directory = get_tags_by_study(study_id)
+        logger.info("Starting FTPS upload of '{}'", pseudo_anon_image_id)
+
         msg = "Currently not implemented. Use `send_via_stow()` instead."
         raise NotImplementedError(msg)
 

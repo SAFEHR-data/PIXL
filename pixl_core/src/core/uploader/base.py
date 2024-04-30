@@ -48,7 +48,7 @@ class Uploader(ABC):
         """Set the configuration for the uploader."""
 
     @abstractmethod
-    def upload_dicom_image(self, *args: Any, **kwargs: Any) -> None:
+    def upload_dicom_image(self, study_id: str) -> None:
         """
         Abstract method to upload DICOM images. To be overwritten by child classes.
         If an upload strategy does not support DICOM images, this method should raise a

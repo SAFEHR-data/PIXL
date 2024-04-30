@@ -20,9 +20,11 @@ import ftplib
 import ssl
 from ftplib import FTP_TLS
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, BinaryIO, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from core.uploader.base import Uploader
+
+from ._orthanc import get_study_zip_archive, get_tags_by_study
 
 if TYPE_CHECKING:
     from socket import socket
@@ -74,13 +76,9 @@ class FTPSUploader(Uploader):
         self.password = self.keyvault.fetch_secret(f"{az_prefix}--ftp--password")
         self.port = int(self.keyvault.fetch_secret(f"{az_prefix}--ftp--port"))
 
-    def upload_dicom_image(
-        self,
-        zip_content: BinaryIO,
-        pseudo_anon_image_id: str,
-        remote_directory: str,
-    ) -> None:
+    def upload_dicom_image(self, study_id: str) -> None:
         """Upload a DICOM image to the FTPS server."""
+        pseudo_anon_image_id, remote_directory = get_tags_by_study(study_id)
         logger.info("Starting FTPS upload of '{}'", pseudo_anon_image_id)
 
         super().check_already_exported(pseudo_anon_image_id)
@@ -92,6 +90,7 @@ class FTPSUploader(Uploader):
         logger.debug("Running {}", command)
 
         # Store the file using a binary handler
+        zip_content = get_study_zip_archive(study_id)
         try:
             ftp.storbinary(command, zip_content)
         except ftplib.all_errors as ftp_error:
