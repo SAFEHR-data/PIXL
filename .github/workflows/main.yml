@@ -79,6 +79,7 @@ jobs:
     upload-coverage-reports:
         runs-on: ubuntu-22.04
         timeout-minutes: 10
+        needs: test
         steps:
             - name: Upload coverage reports to Codecov with GitHub Action
               uses: codecov/codecov-action@v4.2.0
