@@ -53,11 +53,10 @@ class DicomWebUploader(Uploader):
         self.http_timeout = int(config("HTTP_TIMEOUT", default=30))
 
     def upload_dicom_image(self, study_id: str) -> None:
-        pseudo_anon_image_id, remote_directory = get_tags_by_study(study_id)
-        logger.info("Starting FTPS upload of '{}'", pseudo_anon_image_id)
-
-        msg = "Currently not implemented. Use `send_via_stow()` instead."
-        raise NotImplementedError(msg)
+        pseudo_anon_image_id, _ = get_tags_by_study(study_id)
+        logger.info("Starting DICOMweb upload of '{}'", pseudo_anon_image_id)
+        self.send_via_stow(study_id, pseudo_anon_image_id)
+        logger.info("Finished DICOMweb upload of '{}'", pseudo_anon_image_id)
 
     def send_via_stow(self, resource_id: str, pseudo_anon_image_id: str) -> requests.Response:
         """Upload a Dicom resource to the DicomWeb server from within Orthanc."""
