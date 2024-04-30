@@ -72,7 +72,7 @@ def test_zip_content() -> Generator:
 
 
 @pytest.mark.usefixtures("ftps_server")
-def test_upload_dicom_image(
+def test_send_via_ftps(
     test_zip_content, not_yet_exported_dicom_image, ftps_uploader, ftps_home_dir
 ) -> None:
     """Tests that DICOM image can be uploaded to the correct location"""
@@ -83,7 +83,7 @@ def test_upload_dicom_image(
     expected_output_file = ftps_home_dir / project_slug / (pseudo_anon_id + ".zip")
 
     # ACT
-    ftps_uploader.upload_dicom_image(test_zip_content, pseudo_anon_id, project_slug)
+    ftps_uploader.send_via_ftps(test_zip_content, pseudo_anon_id, project_slug)
 
     # ASSERT
     assert expected_output_file.exists()
@@ -101,7 +101,7 @@ def test_upload_dicom_image_already_exported(
 
     # ASSERT
     with pytest.raises(RuntimeError, match="Image already exported"):
-        ftps_uploader.upload_dicom_image(test_zip_content, pseudo_anon_id, project_slug)
+        ftps_uploader.send_via_ftps(test_zip_content, pseudo_anon_id, project_slug)
 
 
 @pytest.mark.usefixtures("ftps_server")
@@ -118,7 +118,7 @@ def test_upload_dicom_image_unknown(test_zip_content, ftps_uploader) -> None:
 
     # ASSERT
     with pytest.raises(NoResultFound):
-        ftps_uploader.upload_dicom_image(test_zip_content, pseudo_anon_id, project_slug)
+        ftps_uploader.send_via_ftps(test_zip_content, pseudo_anon_id, project_slug)
 
 
 def test_update_exported_and_save(rows_in_session) -> None:
