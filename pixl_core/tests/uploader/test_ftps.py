@@ -15,9 +15,9 @@
 
 import filecmp
 import os
+from collections.abc import Generator
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import BinaryIO
 
 import pandas as pd
 import pytest
@@ -64,7 +64,7 @@ def ftp_host_address():
 
 
 @pytest.fixture()
-def test_zip_content() -> BinaryIO:
+def test_zip_content() -> Generator:
     """Directory containing the test data for uploading to the ftp server."""
     test_zip_file = TEST_DIR / "data" / "public.zip"
     with test_zip_file.open("rb") as file_content:
