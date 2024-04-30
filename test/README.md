@@ -50,11 +50,6 @@ to mock the FTP server used by the Data Safe Haven.
 
 `./scripts` contains bash and Python scripts to check the individual components of the system test.
 
-### Dummy services
-
-`./dummy-services` contains a Python script and Dockerfile to mock the CogStack service, used for
-de-identification of the radiology reports in the EHR API.
-
 ### Resources
 
 -   `./resources/` provides 2 mock DICOM images used to populate the mock VNA

@@ -25,7 +25,7 @@ pip install -e ../pixl_core/ -e .
 
 ## Usage
 
-> **Note** The `rabbitmq`, `ehr-api` and `imaging-api` services must be started prior to using the CLI
+> **Note** The `rabbitmq`, `export-api` and `imaging-api` services must be started prior to using the CLI
 > This is typically done by spinning up the necessary Docker containers through `docker compose`.
 > For convenience, we provide the [`bin/pixldc`](../bin/pixldc) script to spin up the relevant
 > services in production.
@@ -56,9 +56,9 @@ PIXL_DB_NAME=pixl
 The `rabbitmq` queues for the `ehr` and `imaging` APIs are configured by setting:
 
 ```sh
-PIXL_EHR_API_HOST=localhost
-PIXL_EHR_API_PORT=7006
-PIXL_EHR_API_RATE=1
+PIXL_EXPORT_API_HOST=localhost
+PIXL_EXPORT_API_PORT=7006
+PIXL_EXPORT_API_RATE=1
 
 PIXL_IMAGING_API_HOST=localhost
 PIXL_IMAGING_API_PORT=7007
@@ -69,7 +69,7 @@ where the `*_RATE` variables set the default querying rate for the message queue
 
 ### Running the pipeline
 
-Populate queue for Imaging and EHR extraction
+Populate queue for Imaging
 
 ```bash
 pixl populate </path/to/parquet_dir>
@@ -92,14 +92,12 @@ customisation of the rate per queue is required or a queue should not be started
 then supply the argument `--no-start` and use `pixl start...` to launch
 processing.
 
-Once the messages have been processed, the radiology reports can be extracted and exported to a
-`parquet file` using
+Once the messages have been processed, the OMOP extracts (including radiology reports) can be
+exported to a `parquet file` using
 
 ```sh
-pixl extract-radiology-reports </path/to/parquet_dir>
+pixl export-patient-data </path/to/parquet_dir>
 ```
-
-This will also upload the radiology reports to the destination specified in the project config.
 
 Stop Imaging and EHR database extraction
 
@@ -123,7 +121,6 @@ Options:
   --help                Show this message and exit.
 
 Commands:
-  az-copy-ehr                Copy the EHR data to azure
   extract-radiology-reports  Export processed radiology reports to...
   kill                       Stop all the PIXL services
   populate                   Populate a (set of) queue(s) from a parquet...

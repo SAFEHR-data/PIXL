@@ -33,16 +33,16 @@ WORKDIR /app
 
 # Install requirements before copying modules
 COPY ./pixl_core/pyproject.toml ./pixl_core/pyproject.toml
-COPY ./pixl_ehr/pyproject.toml ./pixl_ehr/pyproject.toml
+COPY ./pixl_export/pyproject.toml ./pixl_export/pyproject.toml
 RUN pip3 install --no-cache-dir pixl_core/ \
-    && pip3 install --no-cache-dir pixl_ehr/
+    && pip3 install --no-cache-dir pixl_export/
 
 COPY ./pixl_core/ pixl_core/
-COPY ./pixl_ehr/ .
+COPY ./pixl_export/ .
 RUN pip install --no-cache-dir --force-reinstall --no-deps pixl_core/ \
     --no-cache-dir --force-reinstall --no-deps . && \
     if [ "$TEST" = "true" ]; then pip install --no-cache-dir pixl_core/[test] .[test]; fi
 
 HEALTHCHECK CMD /usr/bin/curl -f http://0.0.0.0:8000/heart-beat || exit 1
 
-ENTRYPOINT ["uvicorn", "pixl_ehr.main:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["uvicorn", "pixl_export.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -157,7 +157,7 @@ services:
       - ${PWD}/projects/configs:/${PROJECT_CONFIGS_DIR:-/projects/configs}:ro
     networks:
       - pixl-net
-    # needed for same reason as ehr-api
+    # needed for same reason as export-api
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -247,10 +247,10 @@ services:
     volumes:
       - rabbitmq:/var/lib/rabbitmq/mnesia
 
-  ehr-api:
+  export-api:
     build:
       context: .
-      dockerfile: ./docker/ehr-api/Dockerfile
+      dockerfile: ./docker/export-api/Dockerfile
       args:
         <<: *build-args-common
     environment:
@@ -263,9 +263,8 @@ services:
           *pixl-rabbit-mq,
           *azure-keyvault,
         ]
-      AZ_STORAGE_ACCOUNT_NAME: ${PIXL_EHR_API_AZ_STORAGE_ACCOUNT_NAME}
-      AZ_STORAGE_CONTAINER_NAME: ${PIXL_EHR_API_AZ_STORAGE_CONTAINER_NAME}
-      COGSTACK_REDACT_URL: ${PIXL_EHR_COGSTACK_REDACT_URL}
+      ORTHANC_ANON_USERNAME: ${ORTHANC_ANON_USERNAME}
+      ORTHANC_ANON_PASSWORD: ${ORTHANC_ANON_PASSWORD}
       PROJECT_CONFIGS_DIR: /${PROJECT_CONFIGS_DIR:-/projects/configs}
       PIXL_MAX_MESSAGES_IN_FLIGHT: ${PIXL_MAX_MESSAGES_IN_FLIGHT}
     env_file:
@@ -278,7 +277,7 @@ services:
       hasher-api:
         condition: service_healthy
     ports:
-      - "${PIXL_EHR_API_PORT}:8000"
+      - "${PIXL_EXPORT_API_PORT}:8000"
     healthcheck:
       interval: 10s
       timeout: 30s

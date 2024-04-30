@@ -17,14 +17,12 @@ import os
 import shlex
 import subprocess
 from collections.abc import Generator
-from logging import getLogger
 from pathlib import Path
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
+from loguru import logger
 from pytest_pixl.helpers import run_subprocess
-
-logger = getLogger(__name__)
 
 os.environ["TEST"] = "true"
 os.environ["LOG_LEVEL"] = "DEBUG"
@@ -53,7 +51,7 @@ def _patch_send_existing_study_to_anon(monkeypatch: Generator[MonkeyPatch, None,
 
     async def patched_send(self, resource_id: str) -> None:
         """Replaces send_existing_study_to_anon."""
-        logger.info("Intercepted request to send '%s' to anon", resource_id)
+        logger.info("Intercepted request to send '{}' to anon", resource_id)
 
     monkeypatch.setattr(
         "pixl_imaging._orthanc.PIXLRawOrthanc.send_existing_study_to_anon", patched_send

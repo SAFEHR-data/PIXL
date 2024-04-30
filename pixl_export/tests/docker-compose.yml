@@ -11,10 +11,28 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-"""Deidentifaction of text"""
+version: "3.8"
 
-from __future__ import annotations
+services:
 
-from .deid import deidentify_text
+  postgres:
+    container_name: pixl-test-db
+    build:
+      context: ../../
+      dockerfile: ./docker/postgres/Dockerfile
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: pixl
+      PGTZ: Europe/London
+    ports:
+      - "35432:5432"
+    env_file:
+      - ../../docker/common.env
+    command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 10s
+      timeout: 30s
+      retries: 5
 
-__all__ = ["deidentify_text"]

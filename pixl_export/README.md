@@ -1,10 +1,9 @@
 # PIXL Electronic Health Record Extractor
 
-The EHR API provides an HTTP endpoint to extract EHR data from the EMAP star database and export it
-as parquet files. It expects a JSON-formatted message as input, structured as defined by the
-[`Message`](../pixl_core/src/core/patient_queue/message.py) class in `pixl_core/patient_queue`.
-Upon receiving a message, the API will extract the EHR data for the patient specified in the message
-and anonymise any identifiable data through the [CogStack](https://cogstack.org/) API.
+The Export API provides HTTP endpoints to control the copying of EHR data from the OMOP extract
+to its destination (eg. FTPS). It also uploads DICOM data to its destination after it has been
+processed by the Imaging API and orthanc(s).
+It no longer accepts messages from rabbitmq.
 
 ## Installation
 
