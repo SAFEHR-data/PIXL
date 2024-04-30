@@ -45,6 +45,9 @@ os.environ["POSTGRES_HOST"] = "locahost"
 os.environ["POSTGRES_PORT"] = "7001"
 os.environ["PIXL_DB_NAME"] = "pixl"
 
+os.environ["ORTHANC_ANON_USERNAME"] = "orthanc"
+os.environ["ORTHANC_ANON_PASSWORD"] = "orthanc"  # noqa: S105, hardcoded password
+
 
 @pytest.fixture(autouse=True)
 def export_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
