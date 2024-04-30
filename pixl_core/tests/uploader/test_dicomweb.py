@@ -25,9 +25,9 @@ from decouple import config  # type: ignore [import-untyped]
 ORTHANC_URL = config("ORTHANC_URL")
 ORTHANC_USERNAME = config("ORTHANC_USERNAME")
 ORTHANC_PASSWORD = config("ORTHANC_PASSWORD")
-DICOMWEB_USERNAME = config("DICOMWEB_USERNAME")
-DICOMWEB_PASSWORD = config("DICOMWEB_PASSWORD")
-DICOMWEB_URL = config("DICOMWEB_URL")
+
+DICOMWEB_USERNAME = "orthanc_dicomweb"
+DICOMWEB_PASSWORD = "orthanc_dicomweb"  # noqa: S105, hardcoded password
 
 LOCAL_DICOMWEB_URL = "http://localhost:8044"
 
@@ -43,7 +43,8 @@ class MockDicomWebUploader(DicomWebUploader):
         self.orthanc_url = ORTHANC_URL
         self.endpoint_user = DICOMWEB_USERNAME
         self.endpoint_password = DICOMWEB_PASSWORD
-        self.endpoint_url = DICOMWEB_URL
+        # Endpoint for DICOMWeb server as seen from within Orthanc
+        self.endpoint_url = "http://dicomweb-server:8042/dicom-web"
         self.orthanc_dicomweb_url = self.orthanc_url + "/dicom-web/servers/" + self.az_prefix
 
 

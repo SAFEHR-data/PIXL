@@ -53,10 +53,6 @@ os.environ["FTP_PORT"] = "20021"
 os.environ["ORTHANC_URL"] = "http://localhost:8043"
 os.environ["ORTHANC_USERNAME"] = "orthanc"
 os.environ["ORTHANC_PASSWORD"] = "orthanc"  # noqa: S105, hardcoded password
-# Endpoint for DICOMWeb server as seen from within Orthanc
-os.environ["DICOMWEB_URL"] = "http://dicomweb-server:8042/dicom-web"
-os.environ["DICOMWEB_USERNAME"] = "orthanc_dicomweb"
-os.environ["DICOMWEB_PASSWORD"] = "orthanc_dicomweb"  # noqa: S105, hardcoded password
 
 
 @pytest.fixture(scope="package")
