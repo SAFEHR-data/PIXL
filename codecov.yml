@@ -14,7 +14,7 @@
 component_management:
     individual_components:
         - component_id: pixl_core
-          name: coe
+          name: core
           paths:
               - pixl_core/
         - component_id: cli
