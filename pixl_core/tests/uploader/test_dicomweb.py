@@ -23,8 +23,8 @@ from core.uploader._dicomweb import DicomWebUploader
 from decouple import config  # type: ignore [import-untyped]
 
 ORTHANC_URL = config("ORTHANC_URL")
-ORTHANC_USERNAME = config("ORTHANC_USERNAME")
-ORTHANC_PASSWORD = config("ORTHANC_PASSWORD")
+ORTHANC_USERNAME = config("ORTHANC_ANON_USERNAME")
+ORTHANC_PASSWORD = config("ORTHANC_ANON_PASSWORD")
 
 DICOMWEB_USERNAME = "orthanc_dicomweb"
 DICOMWEB_PASSWORD = "orthanc_dicomweb"  # noqa: S105, hardcoded password
