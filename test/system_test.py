@@ -13,17 +13,42 @@
 #  limitations under the License.
 """Replacement for the 'interesting' bits of the system/E2E test"""
 
-import logging
 from pathlib import Path
+from typing import Any
 
+import pandas as pd
 import pydicom
 import pytest
 import requests
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
+from loguru import logger
 from pytest_pixl.ftpserver import PixlFTPServer
 from pytest_pixl.helpers import run_subprocess, wait_for_condition
 
 pytest_plugins = "pytest_pixl"
+
+
+@pytest.fixture()
+def expected_studies() -> dict[str, Any]:
+    """Expected study metadata post-anonymisation."""
+    return {
+        "d40f0639105babcdec043f1acf7330a8ebd64e64f13f7d0d4745f0135ddee0cd": {
+            "procedure_occurrence_id": 4,
+            "instances": {
+                # tuple made up of (AccessionNumber, SeriesDescription)
+                # for AA12345601
+                ("ANONYMIZED", "include123"),
+                ("ANONYMIZED", "AP"),
+            },
+        },
+        "7ff25b0b438d23a31db984f49b0d6ca272104eb3d20c82f30e392cff5446a9c3": {
+            "procedure_occurrence_id": 5,
+            "instances": {
+                # for AA12345605,
+                ("ANONYMIZED", "include123"),
+            },
+        },
+    }
 
 
 class TestFtpsUpload:
@@ -40,7 +65,7 @@ class TestFtpsUpload:
     def _setup(self, ftps_server: PixlFTPServer) -> None:
         """Shared test data for the two different kinds of FTP upload test"""
         TestFtpsUpload.ftp_home_dir = ftps_server.home_dir
-        logging.info("ftp home dir: %s", TestFtpsUpload.ftp_home_dir)
+        logger.info("ftp home dir: {}", TestFtpsUpload.ftp_home_dir)
 
         TestFtpsUpload.project_slug = "test-extract-uclh-omop-cdm"
         TestFtpsUpload.extract_time_slug = "2023-12-07t14-08-58"
@@ -51,11 +76,11 @@ class TestFtpsUpload:
         TestFtpsUpload.expected_public_parquet_dir = (
             TestFtpsUpload.expected_output_dir / TestFtpsUpload.extract_time_slug / "parquet"
         )
-        logging.info("expected output dir: %s", TestFtpsUpload.expected_output_dir)
-        logging.info("expected parquet files dir: %s", TestFtpsUpload.expected_public_parquet_dir)
+        logger.info("expected output dir: {}", TestFtpsUpload.expected_output_dir)
+        logger.info("expected parquet files dir: {}", TestFtpsUpload.expected_public_parquet_dir)
         # No cleanup of ftp uploads needed because it's in a temp dir
 
-    @pytest.mark.usefixtures("_extract_radiology_reports")
+    @pytest.mark.usefixtures("_export_patient_data")
     def test_ftps_parquet_upload(self) -> None:
         """The copied parquet files"""
         assert TestFtpsUpload.expected_public_parquet_dir.exists()
@@ -66,12 +91,29 @@ class TestFtpsUpload:
             / "public"
             / "PROCEDURE_OCCURRENCE.parquet"
         ).exists()
-        assert (
-            TestFtpsUpload.expected_public_parquet_dir / "radiology" / "radiology.parquet"
-        ).exists()
 
-    @pytest.mark.usefixtures("_extract_radiology_reports")
-    def test_ftps_dicom_upload(self, tmp_path_factory: pytest.TempPathFactory) -> None:
+    @pytest.mark.usefixtures("_export_patient_data")
+    def test_ftps_radiology_linker_upload(self, expected_studies: dict) -> None:
+        """The generated radiology linker file"""
+        radiology_linker_data = pd.read_parquet(
+            TestFtpsUpload.expected_public_parquet_dir / "radiology" / "IMAGE_LINKER.parquet"
+        )
+        po_col = radiology_linker_data["procedure_occurrence_id"]
+        for study_id, studies in expected_studies.items():
+            expected_po_id = studies["procedure_occurrence_id"]
+            row = radiology_linker_data[po_col == expected_po_id].iloc[0]
+            assert row.hashed_identifier == study_id
+
+        assert radiology_linker_data.shape[0] == 2
+        assert set(radiology_linker_data.columns) == {
+            "procedure_occurrence_id",
+            "hashed_identifier",
+        }
+
+    @pytest.mark.usefixtures("_export_patient_data")
+    def test_ftps_dicom_upload(
+        self, tmp_path_factory: pytest.TempPathFactory, expected_studies: dict
+    ) -> None:
         """Test whether DICOM images have been uploaded"""
         zip_files: list[Path] = []
 
@@ -91,28 +133,16 @@ class TestFtpsUpload:
             seconds_condition_stays_true_for=15,
             progress_string_fn=zip_file_list,
         )
-        expected_studies = {
-            "d40f0639105babcdec043f1acf7330a8ebd64e64f13f7d0d4745f0135ddee0cd": {
-                # tuple made up of (AccessionNumber, SeriesDescription)
-                # hash of AA12345601
-                ("ANONYMIZED", "include123"),
-                ("ANONYMIZED", "AP"),
-            },
-            "7ff25b0b438d23a31db984f49b0d6ca272104eb3d20c82f30e392cff5446a9c3": {
-                # hash of AA12345605,
-                ("ANONYMIZED", "include123"),
-            },
-        }
         assert zip_files
         for z in zip_files:
             unzip_dir = tmp_path_factory.mktemp("unzip_dir", numbered=True)
             self._check_dcm_tags_from_zip(z, unzip_dir, expected_studies)
 
     def _check_dcm_tags_from_zip(
-        self, zip_path: Path, unzip_dir: Path, expected_studies: dict[str, set[tuple[str, str]]]
+        self, zip_path: Path, unzip_dir: Path, expected_studies: dict
     ) -> None:
         """Check that private tag has survived anonymisation with the correct value."""
-        expected_instances = expected_studies[zip_path.stem]
+        expected_instances = expected_studies[zip_path.stem]["instances"]
         run_subprocess(
             ["unzip", zip_path],
             working_dir=unzip_dir,
@@ -121,7 +151,7 @@ class TestFtpsUpload:
 
         # One zip file == one study.
         # There can be multiple instances in the zip file, one per file
-        logging.info("In zip file, %s DICOM files: %s", len(dicom_in_zip), dicom_in_zip)
+        logger.info("In zip file, {} DICOM files: {}", len(dicom_in_zip), dicom_in_zip)
         actual_instances = set()
         for dcm_file in dicom_in_zip:
             dcm = pydicom.dcmread(dcm_file)
@@ -137,8 +167,8 @@ class TestFtpsUpload:
             if isinstance(private_tag.value, bytes):
                 # Allow this for the time being, until it has been investigated
                 # See https://github.com/UCLH-Foundry/PIXL/issues/363
-                logging.error(
-                    "TEMPORARILY IGNORE: tag value %s should be of type str, but is of type bytes",
+                logger.error(
+                    "TEMPORARILY IGNORE: tag value {} should be of type str, but is of type bytes",
                     private_tag.value,
                 )
                 assert private_tag.value.decode() == TestFtpsUpload.project_slug
@@ -146,30 +176,6 @@ class TestFtpsUpload:
                 assert private_tag.value == TestFtpsUpload.project_slug
         # check the basic info about the instances exactly matches
         assert actual_instances == expected_instances
-
-
-@pytest.mark.usefixtures("_setup_pixl_cli")
-def test_ehr_anon_entries() -> None:
-    """Check data has reached ehr_anon."""
-
-    def exists_two_rows() -> bool:
-        # This was converted from old shell script - better to check more than just row count?
-        sql_command = "select * from emap_data.ehr_anon"
-        cp = run_subprocess(
-            [
-                "docker",
-                "exec",
-                "system-test-postgres-1",
-                "/bin/bash",
-                "-c",
-                f'PGPASSWORD=pixl_db_password psql -U pixl_db_username -d pixl -c "{sql_command}"',
-            ],
-            Path.cwd(),
-        )
-        return bool(cp.stdout.decode().find("(2 rows)") != -1)
-
-    # We already waited in _setup_pixl_cli, so should be true immediately.
-    wait_for_condition(exists_two_rows)
 
 
 @pytest.mark.usefixtures("_setup_pixl_cli_dicomweb")

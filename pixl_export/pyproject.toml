@@ -1,5 +1,5 @@
 [project]
-name = "pixl_ehr"
+name = "pixl_export"
 version = "0.0.2"
 authors = [{ name = "PIXL authors" }]
 description = "PIXL electronic health record extractor"
@@ -43,4 +43,4 @@ extend = "../ruff.toml"
 "./tests/**" = ["D1"]
 
 [tool.setuptools.package-data]
-pixl_ehr = ["sql/*.sql", "report_deid/*.txt"]
+pixl_export = ["sql/*.sql", "report_deid/*.txt"]

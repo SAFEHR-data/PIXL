@@ -44,39 +44,6 @@ services:
             timeout: 2s
         networks:
             pixl-net:
-
-    star:
-        container_name: system-test-fake-star-db
-        build:
-            context: ..
-            dockerfile: test/Dockerfile.fake_emap_star
-            args:
-                N_TABLE_ROWS: 2
-        environment:
-            POSTGRES_USER: ${EMAP_UDS_USER}
-            POSTGRES_PASSWORD: ${EMAP_UDS_PASSWORD}
-        healthcheck:
-            test: ["CMD", "pg_isready", "-U", "postgres"]
-            interval: 10s
-            timeout: 30s
-            retries: 5
-        ports:
-            - "5432:5432"
-        networks:
-            pixl-net:
-
-    cogstack-api:
-        container_name: system-test-cogstack
-        build:
-            context: ./dummy-services/cogstack/
-        healthcheck:
-            test: ["CMD", "curl", "-f", "http://localhost:8000/heart-beat"]
-            interval: 10s
-            timeout: 30s
-            retries: 5
-        networks:
-            pixl-net:
-
     dicomweb-server:
         image: orthancteam/orthanc:24.4.0
         platform: linux/amd64

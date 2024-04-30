@@ -46,11 +46,11 @@ jobs:
 
     test:
         runs-on: ubuntu-22.04
-        timeout-minutes: 10
+        timeout-minutes: 30
         strategy:
             fail-fast: false # run all tests if even if one fails
             matrix:
-                package_dir: [pixl_core, hasher, pixl_dcmd, cli, pixl_ehr, pixl_imaging]
+                package_dir: [pixl_core, hasher, pixl_dcmd, cli, pixl_export, pixl_imaging]
 
         steps:
             - uses: actions/checkout@v4
@@ -129,9 +129,6 @@ jobs:
                   pip install -e pytest-pixl/
                   pip install -e cli/[test]
 
-            - name: Create .secrets.env
-              run: touch test/.secrets.env
-
             - name: Build test services
               working-directory: test
               run: |
@@ -156,7 +153,7 @@ jobs:
                   ./run-system-test.sh
                   echo FINISHED SYSTEM TEST SCRIPT
 
-            - name: Dump ehr-api docker logs for debugging
+            - name: Dump export-api docker logs for debugging
               if: ${{ failure() }}
               run: |
                   docker logs -t system-test-ehr-api-1 2>&1

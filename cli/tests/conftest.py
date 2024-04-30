@@ -26,9 +26,9 @@ from sqlalchemy.orm import Session, sessionmaker
 os.environ["PROJECT_CONFIGS_DIR"] = str(Path(__file__).parents[2] / "projects/configs")
 
 # Set the necessary environment variables
-os.environ["PIXL_EHR_API_HOST"] = "localhost"
-os.environ["PIXL_EHR_API_RATE"] = "1"
-os.environ["PIXL_EHR_API_PORT"] = "7006"
+os.environ["PIXL_EXPORT_API_HOST"] = "localhost"
+os.environ["PIXL_EXPORT_API_RATE"] = "1"
+os.environ["PIXL_EXPORT_API_PORT"] = "7006"
 
 os.environ["PIXL_IMAGING_API_HOST"] = "localhost"
 os.environ["PIXL_IMAGING_API_RATE"] = "1"

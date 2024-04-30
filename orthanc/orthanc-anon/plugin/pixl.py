@@ -28,12 +28,10 @@ import threading
 import traceback
 from io import BytesIO
 from time import sleep
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import requests
 from core.exceptions import PixlDiscardError
-from core.project_config import load_project_config
-from core.uploader import get_uploader
 from decouple import config
 from loguru import logger
 from pydicom import dcmread
@@ -48,6 +46,8 @@ ORTHANC_USERNAME = config("ORTHANC_USERNAME")
 ORTHANC_PASSWORD = config("ORTHANC_PASSWORD")
 ORTHANC_URL = "http://localhost:8042"
 
+EXPORT_API_URL = "http://export-api:8000"
+
 # Set up logging as main entry point
 logger.remove()  # Remove all handlers added so far, including the default one.
 logging_level = config("LOG_LEVEL")
@@ -58,7 +58,7 @@ logger.add(sys.stdout, level=logging_level)
 logger.warning("Running logging at level {}", logging_level)
 
 
-def AzureAccessToken():
+def AzureAccessToken() -> str:
     """
     Send payload to oath2/token url and
     return the response
@@ -78,13 +78,16 @@ def AzureAccessToken():
 
     response = requests.post(url, data=payload, timeout=10)
 
-    return response.json()["access_token"]
+    response_json = response.json()
+    # We may wish to make use of the "expires_in" (seconds) value
+    # to refresh this token less aggressively
+    return cast(str, response_json["access_token"])
 
 
 TIMER = None
 
 
-def AzureDICOMTokenRefresh():
+def AzureDICOMTokenRefresh() -> None:
     """
     Refresh Azure DICOM token
     If this fails then wait 30s and try again
@@ -115,6 +118,7 @@ def AzureDICOMTokenRefresh():
     dicomweb_config = {
         "Url": AZ_DICOM_ENDPOINT_URL,
         "HttpHeaders": {
+            # downstream auth token
             "Authorization": bearer_str,
         },
         "HasDelete": True,
@@ -124,6 +128,7 @@ def AzureDICOMTokenRefresh():
     headers = {"content-type": "application/json"}
 
     url = ORTHANC_URL + "/dicom-web/servers/" + AZ_DICOM_ENDPOINT_NAME
+    # dynamically defining an DICOMWeb endpoint in Orthanc
 
     try:
         requests.put(
@@ -151,61 +156,18 @@ def Send(study_id: str) -> None:
     """
     msg = f"Sending {study_id}"
     logger.debug(msg)
-    # Because we're post-anonymisation, the "PatientID" tag returned is actually
-    # the hashed image ID (MRN + Accession number).
-    hashed_image_id, project_slug = _get_tags_by_study(study_id)
-    project_config = load_project_config(project_slug)
-    destination = project_config.destination.dicom
-
-    uploader = get_uploader(project_slug, destination, project_config.project.azure_kv_alias)
-    msg = f"Sending {study_id} via '{destination}'"
-    logger.debug(msg)
-    zip_content = _get_study_zip_archive(study_id)
-
-    # NOTE: temporary workaround until new export-api is ready
-    if destination == "dicomweb":
-        uploader.send_via_stow(study_id)
-    else:
-        uploader.upload_dicom_image(zip_content, hashed_image_id, project_slug)
+    notify_export_api_of_readiness(study_id)
 
 
-def _get_study_zip_archive(resourceId: str) -> BytesIO:
-    # Download zip archive of the DICOM resource
-    query = f"{ORTHANC_URL}/studies/{resourceId}/archive"
-    fail_msg = "Could not download archive of resource '%s'"
-    response_study = _query(resourceId, query, fail_msg)
-
-    # get the zip content
-    logger.debug("Downloaded data for resource {}", resourceId)
-    return BytesIO(response_study.content)
-
-
-def _get_tags_by_study(study_id: str) -> [str, str]:
+def notify_export_api_of_readiness(study_id: str):
     """
-    Queries the Orthanc server at the study level, returning the
-    PatientID and UCLHPIXLProjectName DICOM tags.
-    BEWARE: post-anonymisation, the PatientID is NOT
-    the patient ID, it's the pseudo-anonymised ID generated
-    from the hash of the concatenated Patient ID (MRN) and Accession Number fields.
+    Tell export-api that our data is ready and it should download it from us and upload
+    as appropriate
     """
-    query = f"{ORTHANC_URL}/studies/{study_id}/shared-tags?simplify=true"
-    fail_msg = "Could not query study for resource '%s'"
-
-    response_study = _query(study_id, query, fail_msg)
-    json_response = json.loads(response_study.content.decode())
-    return json_response["PatientID"], json_response["UCLHPIXLProjectName"]
-
-
-def _query(resourceId: str, query: str, fail_msg: str) -> requests.Response:
-    try:
-        response = requests.get(query, auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD), timeout=10)
-        success_code = 200
-        if response.status_code != success_code:
-            raise RuntimeError(fail_msg, resourceId)
-    except requests.exceptions.RequestException:
-        logger.exception("Failed to query '{}'", resourceId)
-    else:
-        return response
+    url = EXPORT_API_URL + "/export-dicom-from-orthanc"
+    payload = {"study_id": study_id}
+    response = requests.post(url, json=payload, timeout=30)
+    response.raise_for_status()
 
 
 def should_auto_route() -> bool:
@@ -224,13 +186,10 @@ def _azure_available() -> bool:
 
 def OnChange(changeType, level, resource):  # noqa: ARG001
     """
-    Three ChangeTypes included in this function:
     - If a study is stable and if should_auto_route returns true
-    then Send is called
-    - If orthanc has started then message added to Orthanc LogWarning
-    and AzureDICOMTokenRefresh called
-    - If orthanc has stopped and TIMER is not none then message added
-    to Orthanc LogWarning and TIMER cancelled
+    then notify the export API that it should perform the upload of DICOM data.
+    - If orthanc has started then start a timer to refresh the Azure token every 30 seconds
+    - If orthanc has stopped then cancel the timer
     """
     if not should_auto_route():
         return

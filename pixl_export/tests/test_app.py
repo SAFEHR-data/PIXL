@@ -11,24 +11,22 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-FROM python:3.11.7-slim-bullseye
+"""This file contains unit tests for the API that do not require any test services"""
 
-RUN export DEBIAN_FRONTEND=noninteractive && \
-    apt-get update && \
-    apt-get install --yes --no-install-recommends \
-        procps \
-        ca-certificates \
-        iproute2 \
-        curl \
-        gnupg \
-        locales
+from __future__ import annotations
 
-WORKDIR /app
+from core.rest_api.router import state
+from fastapi.testclient import TestClient
+from pixl_export.main import app
 
-COPY cogstack.py .
-COPY pyproject.toml .
+AppState = state.__class__
+client = TestClient(app)
 
-RUN --mount=type=cache,target=/root/.cache \
-    pip install -e .
 
-ENTRYPOINT ["uvicorn", "cogstack:app", "--host", "0.0.0.0", "--port", "8000"]
+def test_heartbeat_response_is_200() -> None:
+    response = client.get("/heart-beat")
+    assert response.status_code == 200
+
+
+def test_initial_state_has_no_token() -> None:
+    assert not AppState().token_bucket.has_token

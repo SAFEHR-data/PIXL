@@ -27,8 +27,6 @@ setup() {
     	cd "${PACKAGE_DIR}"
     	docker compose --env-file test/.env --env-file test/.secrets.env -p system-test up --wait -d --build
     )
-
-    ./scripts/insert_test_data.sh
 }
 
 teardown() {
