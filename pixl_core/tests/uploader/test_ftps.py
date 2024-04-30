@@ -14,15 +14,61 @@
 """Test functionality to upload files to an FTPS endpoint."""
 
 import filecmp
-import pathlib
+import os
 from datetime import datetime, timezone
+from pathlib import Path
+from typing import BinaryIO
 
 import pandas as pd
 import pytest
 from core.db.models import Image
 from core.db.queries import update_exported_at
 from core.exports import ParquetExport
+from core.uploader._ftps import FTPSUploader
+from pytest_pixl.plugin import FtpHostAddress
 from sqlalchemy.exc import NoResultFound
+
+TEST_DIR = Path(__file__).parent
+
+
+class MockFTPSUploader(FTPSUploader):
+    """Mock FTPSUploader for testing."""
+
+    def __init__(self) -> None:
+        """Initialise the mock uploader with hardcoded values for FTPS config."""
+        self.host = os.environ["FTP_HOST"]
+        self.user = os.environ["FTP_USER_NAME"]
+        self.password = os.environ["FTP_PASSWORD"]
+        self.port = int(os.environ["FTP_PORT"])
+
+
+@pytest.fixture()
+def ftps_uploader() -> MockFTPSUploader:
+    """Return a MockFTPSUploader object."""
+    return MockFTPSUploader()
+
+
+@pytest.fixture()
+def ftps_home_dir(ftps_server) -> Path:
+    """
+    Return the FTPS server home directory, the ftps_server fixture already uses
+    pytest.tmp_path_factory, so no need to clean up.
+    """
+    return Path(ftps_server.home_dir)
+
+
+@pytest.fixture(scope="session")
+def ftp_host_address():
+    """Run FTP on localhost - no docker containers need to access it"""
+    return FtpHostAddress.LOCALHOST
+
+
+@pytest.fixture()
+def test_zip_content() -> BinaryIO:
+    """Directory containing the test data for uploading to the ftp server."""
+    test_zip_file = TEST_DIR / "data" / "public.zip"
+    with test_zip_file.open("rb") as file_content:
+        yield file_content
 
 
 @pytest.mark.usefixtures("ftps_server")
@@ -113,9 +159,7 @@ def test_upload_parquet(parquet_export, ftps_home_dir, ftps_uploader) -> None:
     """Tests that parquet files are uploaded to the correct location (but ignore their contents)"""
     # ARRANGE
 
-    parquet_export.copy_to_exports(
-        pathlib.Path(__file__).parents[3] / "test" / "resources" / "omop"
-    )
+    parquet_export.copy_to_exports(Path(__file__).parents[3] / "test" / "resources" / "omop")
     parquet_export.export_radiology_linker(pd.DataFrame(list("dummy"), columns=["D"]))
 
     # ACT

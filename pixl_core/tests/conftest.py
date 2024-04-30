@@ -18,14 +18,12 @@ import os
 import pathlib
 import shlex
 from pathlib import Path
-from typing import TYPE_CHECKING, BinaryIO
+from typing import TYPE_CHECKING
 
 import pytest
 import requests
 from core.db.models import Base, Extract, Image
-from core.uploader._ftps import FTPSUploader
 from pytest_pixl.helpers import run_subprocess
-from pytest_pixl.plugin import FtpHostAddress
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -51,8 +49,8 @@ os.environ["FTP_PASSWORD"] = "longpassword"  # noqa: S105 Hardcoding password
 os.environ["FTP_PORT"] = "20021"
 
 os.environ["ORTHANC_URL"] = "http://localhost:8043"
-os.environ["ORTHANC_USERNAME"] = "orthanc"
-os.environ["ORTHANC_PASSWORD"] = "orthanc"  # noqa: S105, hardcoded password
+os.environ["ORTHANC_ANON_USERNAME"] = "orthanc"
+os.environ["ORTHANC_ANON_PASSWORD"] = "orthanc"  # noqa: S105, hardcoded password
 
 
 @pytest.fixture(scope="package")
@@ -91,46 +89,6 @@ def study_id(run_containers) -> str:
         timeout=60,
     )
     return response.json()["ParentStudy"]
-
-
-class MockFTPSUploader(FTPSUploader):
-    """Mock FTPSUploader for testing."""
-
-    def __init__(self) -> None:
-        """Initialise the mock uploader with hardcoded values for FTPS config."""
-        self.host = os.environ["FTP_HOST"]
-        self.user = os.environ["FTP_USER_NAME"]
-        self.password = os.environ["FTP_PASSWORD"]
-        self.port = int(os.environ["FTP_PORT"])
-
-
-@pytest.fixture()
-def ftps_uploader() -> MockFTPSUploader:
-    """Return a MockFTPSUploader object."""
-    return MockFTPSUploader()
-
-
-@pytest.fixture()
-def ftps_home_dir(ftps_server) -> Path:
-    """
-    Return the FTPS server home directory, the ftps_server fixture already uses
-    pytest.tmp_path_factory, so no need to clean up.
-    """
-    return Path(ftps_server.home_dir)
-
-
-@pytest.fixture(scope="session")
-def ftp_host_address():
-    """Run FTP on localhost - no docker containers need to access it"""
-    return FtpHostAddress.LOCALHOST
-
-
-@pytest.fixture()
-def test_zip_content() -> BinaryIO:
-    """Directory containing the test data for uploading to the ftp server."""
-    test_zip_file = TEST_DIR / "data" / "public.zip"
-    with test_zip_file.open("rb") as file_content:
-        yield file_content
 
 
 @pytest.fixture(scope="module")
