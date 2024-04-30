@@ -61,7 +61,7 @@ def test_dicomweb_server_config(run_containers, dicomweb_uploader) -> None:
         auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD),
         timeout=30,
     )
-
+    servers_response.raise_for_status()
     assert "test" in servers_response.json()
 
 
@@ -72,6 +72,7 @@ def _check_study_present_on_dicomweb(study_id: str) -> bool:
         auth=(DICOMWEB_USERNAME, DICOMWEB_PASSWORD),
         timeout=30,
     )
+    response.raise_for_status()
     return any(study == study_id for study in response.json())
 
 
