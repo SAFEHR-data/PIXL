@@ -43,7 +43,8 @@ class MockDicomWebUploader(DicomWebUploader):
         self.orthanc_url = ORTHANC_URL
         self.endpoint_user = DICOMWEB_USERNAME
         self.endpoint_password = DICOMWEB_PASSWORD
-        # Endpoint for DICOMWeb server as seen from within Orthanc
+        # URL for DICOMWeb server as seen from within Orthanc, i.e. the address of the dicomweb
+        # server within the Docker compose network
         self.endpoint_url = "http://dicomweb-server:8042/dicom-web"
         self.orthanc_dicomweb_url = self.orthanc_url + "/dicom-web/servers/" + self.az_prefix
         self.http_timeout = 30
