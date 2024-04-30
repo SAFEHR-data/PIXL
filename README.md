@@ -1,3 +1,6 @@
+[![pixl-ci](https://github.com/UCLH-Foundry/PIXL/actions/workflows/main.yml/badge.svg)](https://github.com/UCLH-Foundry/PIXL/actions/workflows/main.yml)
+[![codecov](https://codecov.io/gh/UCLH-Foundry/PIXL/graph/badge.svg?token=99CHF3ZCAW)](https://codecov.io/gh/UCLH-Foundry/PIXL)
+
 # PIXL
 
 PIXL Image eXtraction Laboratory
