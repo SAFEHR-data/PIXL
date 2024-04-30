@@ -57,7 +57,7 @@ class DicomWebUploader(Uploader):
             logger.info("Creating new DICOMWeb credentials")
             self._setup_dicomweb_credentials()
 
-        headers = {"content-type": "application/dicom", "accept": "application/dicom+json"}
+        headers = {"content-type": "application/json", "accept": "application/dicom+json"}
         payload = {"Resources": [resource_id], "Synchronous": False}
 
         try:
