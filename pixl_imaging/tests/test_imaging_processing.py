@@ -105,7 +105,7 @@ async def test_image_saved(orthanc_raw) -> None:
 
     assert not await study.query_local(orthanc)
     await process_message(message)
-    assert not await study.query_local(orthanc)
+    assert await study.query_local(orthanc)
 
 
 @pytest.mark.processing()
