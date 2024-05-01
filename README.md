@@ -72,7 +72,7 @@ Provides helper functions for de-identifying DICOM data
 
 RDBMS which stores DICOM metadata, application data and anonymised patient record data.
 
-### [Electronic Health Record Extractor](./pixl_ehr/README.md)
+### [Electronic Health Record Extractor](pixl_export/README.md)
 
 HTTP API to process messages from the `ehr` queue and populate raw and anon tables in the PIXL postgres instance.
 
@@ -106,9 +106,6 @@ You can leave them blank for other dev work.
 - `PIXL_DB_`*
 These are credentials for the containerised PostgreSQL service and are set in the official PostgreSQL image.
 Use a strong password for `prod` deployment but the only requirement for other environments is consistency as several services interact with the database.
-- `PIXL_EHR_API_AZ_`*
-These credentials are used for uploading a PIXL database to Azure blob storage. They should be for a service principal that has `Storage Blob Data Contributor`
-on the target storage account. The storage account must also allow network access from the PIXL host machine.
 
 #### Ports
 
@@ -122,11 +119,6 @@ The maximum storage size of the `orthanc-raw` instance can be configured through
 the specified value (in MB). When the storage is full [Orthanc will automatically recycle older
 studies in favour of new ones](https://orthanc.uclouvain.be/book/faq/features.html#id8).
 
-#### CogStack URL
-
-For the deidentification of the EHR extracts, we rely on an instance running the
-[CogStack API](https://cogstack.org/) with a `/redact` endpoint. The URL of this instance should be
-set in `.env` as `COGSTACK_REDACT_URL`.
 
 ### 3. Configure a new project
 
@@ -244,12 +236,7 @@ and `ORTHANC_RAW_WEB_PORT` is defined in `.env`.
 
 The number of reports and EHR can be interrogated by connecting to the PIXL
 database with a database client (e.g. [DBeaver](https://dbeaver.io/)), using
-the connection parameters defined in `.env`. For example, to find the number of
-non-null reports
-
-```sql
-select count(*) from emap_data.ehr_anon where xray_report is not null;
-```
+the connection parameters defined in `.env`.
 
 ## Assumptions
 
@@ -284,7 +271,8 @@ EXTRACT_DIR/public /*.parquet
 
 ### PIXL Export dir (PIXL intermediate)
 
-The directory where PIXL will copy the public OMOP extract files and radiology reports to.
+The directory where PIXL will copy the public OMOP extract files (which now contain
+the radiology reports) to.
 These files will subsequently be uploaded to the `parquet` destination specified in the
 [project config](#3-configure-a-new-project).
 

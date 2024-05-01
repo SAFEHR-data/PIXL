@@ -11,8 +11,6 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-version: "3.8"
-
 ################################################################################
 # Common
 
@@ -20,343 +18,348 @@ x-http-proxy: &http-proxy ${HTTP_PROXY}
 x-https-proxy: &https-proxy ${HTTPS_PROXY}
 x-no-proxy: &no-proxy localhost,0.0.0.0,127.0.0.1,uclvlddpragae07,hasher-api,orthanc-raw
 x-proxy-common: &proxy-common
-  HTTP_PROXY: *http-proxy
-  http_proxy: *http-proxy
-  HTTPS_PROXY: *https-proxy
-  https_proxy: *https-proxy
-  NO_PROXY: *no-proxy
-  no_proxy: *no-proxy
+    HTTP_PROXY: *http-proxy
+    http_proxy: *http-proxy
+    HTTPS_PROXY: *https-proxy
+    https_proxy: *https-proxy
+    NO_PROXY: *no-proxy
+    no_proxy: *no-proxy
 
 x-build-args-common: &build-args-common
-  <<: [*proxy-common]
+    <<: [*proxy-common]
 
 x-pixl-common-env: &pixl-common-env
-  DEBUG: ${DEBUG}
-  LOG_LEVEL: ${LOG_LEVEL}
+    DEBUG: ${DEBUG}
+    LOG_LEVEL: ${LOG_LEVEL}
 
 x-pixl-rabbit-mq: &pixl-rabbit-mq
-  RABBITMQ_HOST: "queue" # Name of the queue service
-  RABBITMQ_PORT: "5672"
-  RABBITMQ_USERNAME: ${RABBITMQ_USERNAME}
-  RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+    RABBITMQ_HOST: "queue" # Name of the queue service
+    RABBITMQ_PORT: "5672"
+    RABBITMQ_USERNAME: ${RABBITMQ_USERNAME}
+    RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
 
 x-emap-db: &emap-db
-  EMAP_UDS_HOST: ${EMAP_UDS_HOST}
-  EMAP_UDS_PORT: ${EMAP_UDS_PORT}
-  EMAP_UDS_NAME: ${EMAP_UDS_NAME}
-  EMAP_UDS_USER: ${EMAP_UDS_USER}
-  EMAP_UDS_PASSWORD: ${EMAP_UDS_PASSWORD}
-  EMAP_UDS_SCHEMA_NAME: ${EMAP_UDS_SCHEMA_NAME}
+    EMAP_UDS_HOST: ${EMAP_UDS_HOST}
+    EMAP_UDS_PORT: ${EMAP_UDS_PORT}
+    EMAP_UDS_NAME: ${EMAP_UDS_NAME}
+    EMAP_UDS_USER: ${EMAP_UDS_USER}
+    EMAP_UDS_PASSWORD: ${EMAP_UDS_PASSWORD}
+    EMAP_UDS_SCHEMA_NAME: ${EMAP_UDS_SCHEMA_NAME}
 
 x-pixl-db: &pixl-db
-  PIXL_DB_HOST: ${PIXL_DB_HOST}
-  PIXL_DB_PORT: ${PIXL_DB_PORT}
-  PIXL_DB_USER: ${PIXL_DB_USER}
-  PIXL_DB_PASSWORD: ${PIXL_DB_PASSWORD}
-  PIXL_DB_NAME: ${PIXL_DB_NAME}
+    PIXL_DB_HOST: ${PIXL_DB_HOST}
+    PIXL_DB_PORT: ${PIXL_DB_PORT}
+    PIXL_DB_USER: ${PIXL_DB_USER}
+    PIXL_DB_PASSWORD: ${PIXL_DB_PASSWORD}
+    PIXL_DB_NAME: ${PIXL_DB_NAME}
 
 x-azure-keyvault: &azure-keyvault
-  AZURE_CLIENT_ID: ${EXPORT_AZ_CLIENT_ID}
-  AZURE_CLIENT_SECRET: ${EXPORT_AZ_CLIENT_PASSWORD}
-  AZURE_TENANT_ID: ${EXPORT_AZ_TENANT_ID}
-  AZURE_KEY_VAULT_NAME: ${EXPORT_AZ_KEY_VAULT_NAME}
+    AZURE_CLIENT_ID: ${EXPORT_AZ_CLIENT_ID}
+    AZURE_CLIENT_SECRET: ${EXPORT_AZ_CLIENT_PASSWORD}
+    AZURE_TENANT_ID: ${EXPORT_AZ_TENANT_ID}
+    AZURE_KEY_VAULT_NAME: ${EXPORT_AZ_KEY_VAULT_NAME}
 
 x-logs-volume: &logs-volume
-  type: volume
-  source: logs
-  target: /logs
+    type: volume
+    source: logs
+    target: /logs
 
 volumes:
-  logs:
-  orthanc-anon-data:
-  orthanc-raw-data:
-  postgres-data:
-  exports:
-  rabbitmq:
+    logs:
+    orthanc-anon-data:
+    orthanc-raw-data:
+    postgres-data:
+    exports:
+    rabbitmq:
 
 networks:
-  pixl-net:
+    pixl-net:
 
 ################################################################################
 # Services
 services:
-  hasher-api:
-    build:
-      context: .
-      dockerfile: ./docker/hasher-api/Dockerfile
-      args:
-        <<: *build-args-common
-    environment:
-      <<: [*proxy-common, *pixl-common-env]
-      AZURE_CLIENT_ID: ${HASHER_API_AZ_CLIENT_ID}
-      AZURE_CLIENT_SECRET: ${HASHER_API_AZ_CLIENT_PASSWORD}
-      AZURE_TENANT_ID: ${HASHER_API_AZ_TENANT_ID}
-      AZURE_KEY_VAULT_NAME: ${HASHER_API_AZ_KEY_VAULT_NAME}
-      AZURE_KEY_VAULT_SECRET_NAME: ${HASHER_API_AZ_KEY_VAULT_SECRET_NAME}
-    env_file:
-      - ./docker/common.env
-    ports:
-      - "${HASHER_API_PORT}:8000"
-    volumes:
-      - *logs-volume
-    networks:
-      - pixl-net
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://hasher-api:8000/heart-beat"]
-      interval: 10s
-      timeout: 30s
-      retries: 5
-    restart: "no"
+    hasher-api:
+        build:
+            context: .
+            dockerfile: ./docker/hasher-api/Dockerfile
+            args:
+                <<: *build-args-common
+        environment:
+            <<: [*proxy-common, *pixl-common-env]
+            AZURE_CLIENT_ID: ${HASHER_API_AZ_CLIENT_ID}
+            AZURE_CLIENT_SECRET: ${HASHER_API_AZ_CLIENT_PASSWORD}
+            AZURE_TENANT_ID: ${HASHER_API_AZ_TENANT_ID}
+            AZURE_KEY_VAULT_NAME: ${HASHER_API_AZ_KEY_VAULT_NAME}
+            AZURE_KEY_VAULT_SECRET_NAME: ${HASHER_API_AZ_KEY_VAULT_SECRET_NAME}
+        env_file:
+            - ./docker/common.env
+        ports:
+            - "${HASHER_API_PORT}:8000"
+        volumes:
+            - *logs-volume
+        networks:
+            - pixl-net
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://hasher-api:8000/heart-beat"]
+            interval: 10s
+            timeout: 30s
+            retries: 5
+        restart: "no"
 
-  orthanc-anon:
-    build:
-      context: .
-      dockerfile: ./docker/orthanc-anon/Dockerfile
-      args:
-        <<: *build-args-common
-    platform: linux/amd64
-    command: /run/secrets
-    environment:
-      <<: [*proxy-common, *pixl-common-env, *azure-keyvault]
-      ORTHANC_NAME: "PIXL: Anon"
-      ORTHANC_USERNAME: ${ORTHANC_ANON_USERNAME}
-      ORTHANC_PASSWORD: ${ORTHANC_ANON_PASSWORD}
-      ORTHANC_ANON_AE_TITLE: ${ORTHANC_ANON_AE_TITLE}
-      ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT: ${ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT}
-      ORTHANC_RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
-      ORTHANC_RAW_DICOM_PORT: "4242"
-      ORTHANC_RAW_HOSTNAME: "orthanc-raw"
-      ORTHANC_URL: "http://localhost:8042"
-      PIXL_DB_HOST: ${PIXL_DB_HOST}
-      PIXL_DB_PORT: ${PIXL_DB_PORT}
-      PIXL_DB_NAME: ${PIXL_DB_NAME}
-      PIXL_DB_USER: ${PIXL_DB_USER}
-      PIXL_DB_PASSWORD: ${PIXL_DB_PASSWORD}
-      DICOM_WEB_PLUGIN_ENABLED: ${ENABLE_DICOM_WEB}
-      HASHER_API_AZ_NAME: "hasher-api"
-      HASHER_API_PORT: 8000
-      HTTP_TIMEOUT: ${ORTHANC_ANON_HTTP_TIMEOUT}
-      AZ_DICOM_ENDPOINT_NAME: ${AZ_DICOM_ENDPOINT_NAME}
-      AZ_DICOM_ENDPOINT_URL: ${AZ_DICOM_ENDPOINT_URL}
-      AZ_DICOM_ENDPOINT_TOKEN: ${AZ_DICOM_ENDPOINT_TOKEN}
-      AZ_DICOM_ENDPOINT_CLIENT_ID: ${AZ_DICOM_ENDPOINT_CLIENT_ID}
-      AZ_DICOM_ENDPOINT_CLIENT_SECRET: ${AZ_DICOM_ENDPOINT_CLIENT_SECRET}
-      AZ_DICOM_ENDPOINT_TENANT_ID: ${AZ_DICOM_ENDPOINT_TENANT_ID}
-      AZ_DICOM_TOKEN_REFRESH_SECS: "600"
-      TIME_OFFSET: "${STUDY_TIME_OFFSET}"
-      SALT_VALUE: ${SALT_VALUE}"
-      PROJECT_CONFIGS_DIR: /${PROJECT_CONFIGS_DIR:-/projects/configs}
-    ports:
-      - "${ORTHANC_ANON_DICOM_PORT}:4242"
-      - "${ORTHANC_ANON_WEB_PORT}:8042"
-    volumes:
-      - type: volume
-        source: orthanc-anon-data
-        target: /var/lib/orthanc/db
-      - ${PWD}/orthanc/orthanc-anon/config:/run/secrets:ro
-      - ${PWD}/projects/configs:/${PROJECT_CONFIGS_DIR:-/projects/configs}:ro
-    networks:
-      - pixl-net
-    # needed for same reason as ehr-api
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL", "/probes/test-aliveness.py --user=$ORTHANC_USERNAME --pwd=$ORTHANC_PASSWORD"
-        ]
-      start_period: 10s
-      retries: 2
-      interval: 3s
-      timeout: 2s
-    restart: "no"
+    orthanc-anon:
+        build:
+            context: .
+            dockerfile: ./docker/orthanc-anon/Dockerfile
+            args:
+                <<: *build-args-common
+        platform: linux/amd64
+        command: /run/secrets
+        environment:
+            <<: [*proxy-common, *pixl-common-env, *azure-keyvault]
+            ORTHANC_NAME: "PIXL: Anon"
+            ORTHANC_USERNAME: ${ORTHANC_ANON_USERNAME}
+            ORTHANC_PASSWORD: ${ORTHANC_ANON_PASSWORD}
+            ORTHANC_ANON_AE_TITLE: ${ORTHANC_ANON_AE_TITLE}
+            ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT: ${ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT}
+            ORTHANC_RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
+            ORTHANC_RAW_DICOM_PORT: "4242"
+            ORTHANC_RAW_HOSTNAME: "orthanc-raw"
+            # For the export API
+            ORTHANC_ANON_URL: "http://localhost:8042"
+            ORTHANC_ANON_USERNAME: ${ORTHANC_ANON_USERNAME}
+            ORTHANC_ANON_PASSWORD: ${ORTHANC_ANON_PASSWORD}
+            PIXL_DB_HOST: ${PIXL_DB_HOST}
+            PIXL_DB_PORT: ${PIXL_DB_PORT}
+            PIXL_DB_NAME: ${PIXL_DB_NAME}
+            PIXL_DB_USER: ${PIXL_DB_USER}
+            PIXL_DB_PASSWORD: ${PIXL_DB_PASSWORD}
+            DICOM_WEB_PLUGIN_ENABLED: ${ENABLE_DICOM_WEB}
+            HASHER_API_AZ_NAME: "hasher-api"
+            HASHER_API_PORT: 8000
+            HTTP_TIMEOUT: ${ORTHANC_ANON_HTTP_TIMEOUT}
+            AZ_DICOM_ENDPOINT_NAME: ${AZ_DICOM_ENDPOINT_NAME}
+            AZ_DICOM_ENDPOINT_URL: ${AZ_DICOM_ENDPOINT_URL}
+            AZ_DICOM_ENDPOINT_TOKEN: ${AZ_DICOM_ENDPOINT_TOKEN}
+            AZ_DICOM_ENDPOINT_CLIENT_ID: ${AZ_DICOM_ENDPOINT_CLIENT_ID}
+            AZ_DICOM_ENDPOINT_CLIENT_SECRET: ${AZ_DICOM_ENDPOINT_CLIENT_SECRET}
+            AZ_DICOM_ENDPOINT_TENANT_ID: ${AZ_DICOM_ENDPOINT_TENANT_ID}
+            AZ_DICOM_TOKEN_REFRESH_SECS: "600"
+            TIME_OFFSET: "${STUDY_TIME_OFFSET}"
+            SALT_VALUE: ${SALT_VALUE}"
+            PROJECT_CONFIGS_DIR: /${PROJECT_CONFIGS_DIR:-/projects/configs}
+        ports:
+            - "${ORTHANC_ANON_DICOM_PORT}:4242"
+            - "${ORTHANC_ANON_WEB_PORT}:8042"
+        volumes:
+            - type: volume
+              source: orthanc-anon-data
+              target: /var/lib/orthanc/db
+            - ${PWD}/orthanc/orthanc-anon/config:/run/secrets:ro
+            - ${PWD}/projects/configs:/${PROJECT_CONFIGS_DIR:-/projects/configs}:ro
+        networks:
+            - pixl-net
+        # needed for same reason as export-api
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        depends_on:
+            postgres:
+                condition: service_healthy
+        healthcheck:
+            test:
+                [
+                    "CMD-SHELL",
+                    "/probes/test-aliveness.py --user=$ORTHANC_USERNAME --pwd=$ORTHANC_PASSWORD",
+                ]
+            start_period: 10s
+            retries: 2
+            interval: 3s
+            timeout: 2s
+        restart: "no"
 
-  orthanc-raw:
-    build:
-      context: .
-      dockerfile: ./docker/orthanc-raw/Dockerfile
-      args:
-        <<: *build-args-common
-        ORTHANC_RAW_MAXIMUM_STORAGE_SIZE: ${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE}
-        ORTHANC_RAW_JOB_HISTORY_SIZE: ${ORTHANC_RAW_JOB_HISTORY_SIZE}
-        ORTHANC_RAW_CONCURRENT_JOBS: ${ORTHANC_RAW_CONCURRENT_JOBS}
-    platform: linux/amd64
-    command: /run/secrets
-    environment:
-      <<: [*pixl-db, *proxy-common, *pixl-common-env]
-      ORTHANC_NAME: "PIXL: Raw"
-      ORTHANC_USERNAME: ${ORTHANC_RAW_USERNAME}
-      ORTHANC_PASSWORD: ${ORTHANC_RAW_PASSWORD}
-      ORTHANC_RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
-      ORTHANC_AUTOROUTE_RAW_TO_ANON: ${ORTHANC_AUTOROUTE_RAW_TO_ANON}
-      ORTHANC_RAW_RECORD_HEADERS: ${ORTHANC_RAW_RECORD_HEADERS}
-      ORTHANC_RAW_HEADER_LOG_PATH: ${ORTHANC_RAW_HEADER_LOG_PATH}
-      VNAQR_AE_TITLE : ${VNAQR_AE_TITLE}
-      VNAQR_DICOM_PORT: ${VNAQR_DICOM_PORT}
-      VNAQR_IP_ADDR: ${VNAQR_IP_ADDR}
-      ORTHANC_ANON_AE_TITLE: ${ORTHANC_ANON_AE_TITLE}
-      ORTHANC_ANON_DICOM_PORT: "4242"
-      ORTHANC_ANON_HOSTNAME: "orthanc-anon"
-      PROJECT_CONFIGS_DIR: /${PROJECT_CONFIGS_DIR:-/projects/configs}
-    ports:
-      - "${ORTHANC_RAW_DICOM_PORT}:4242"
-      - "${ORTHANC_RAW_WEB_PORT}:8042"
-    volumes:
-      - type: volume
-        source: orthanc-raw-data
-        target: /var/lib/orthanc/db
-      - ${PWD}/projects/configs:/${PROJECT_CONFIGS_DIR:-/projects/configs}:ro
-    networks:
-      - pixl-net
-    depends_on:
-      postgres:
-        condition: service_healthy
-      orthanc-anon:
-        condition: service_started
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL", "/probes/test-aliveness.py --user=$ORTHANC_USERNAME --pwd=$ORTHANC_PASSWORD"
-        ]
-      start_period: 10s
-      retries: 10
-      interval: 3s
-      timeout: 2s
-    restart: "no"
+    orthanc-raw:
+        build:
+            context: .
+            dockerfile: ./docker/orthanc-raw/Dockerfile
+            args:
+                <<: *build-args-common
+                ORTHANC_RAW_MAXIMUM_STORAGE_SIZE: ${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE}
+                ORTHANC_RAW_JOB_HISTORY_SIZE: ${ORTHANC_RAW_JOB_HISTORY_SIZE}
+                ORTHANC_RAW_CONCURRENT_JOBS: ${ORTHANC_RAW_CONCURRENT_JOBS}
+        platform: linux/amd64
+        command: /run/secrets
+        environment:
+            <<: [*pixl-db, *proxy-common, *pixl-common-env]
+            ORTHANC_NAME: "PIXL: Raw"
+            ORTHANC_USERNAME: ${ORTHANC_RAW_USERNAME}
+            ORTHANC_PASSWORD: ${ORTHANC_RAW_PASSWORD}
+            ORTHANC_RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
+            ORTHANC_AUTOROUTE_RAW_TO_ANON: ${ORTHANC_AUTOROUTE_RAW_TO_ANON}
+            ORTHANC_RAW_RECORD_HEADERS: ${ORTHANC_RAW_RECORD_HEADERS}
+            ORTHANC_RAW_HEADER_LOG_PATH: ${ORTHANC_RAW_HEADER_LOG_PATH}
+            VNAQR_AE_TITLE: ${VNAQR_AE_TITLE}
+            VNAQR_DICOM_PORT: ${VNAQR_DICOM_PORT}
+            VNAQR_IP_ADDR: ${VNAQR_IP_ADDR}
+            ORTHANC_ANON_AE_TITLE: ${ORTHANC_ANON_AE_TITLE}
+            ORTHANC_ANON_DICOM_PORT: "4242"
+            ORTHANC_ANON_HOSTNAME: "orthanc-anon"
+            PROJECT_CONFIGS_DIR: /${PROJECT_CONFIGS_DIR:-/projects/configs}
+        ports:
+            - "${ORTHANC_RAW_DICOM_PORT}:4242"
+            - "${ORTHANC_RAW_WEB_PORT}:8042"
+        volumes:
+            - type: volume
+              source: orthanc-raw-data
+              target: /var/lib/orthanc/db
+            - ${PWD}/projects/configs:/${PROJECT_CONFIGS_DIR:-/projects/configs}:ro
+        networks:
+            - pixl-net
+        depends_on:
+            postgres:
+                condition: service_healthy
+            orthanc-anon:
+                condition: service_started
+        healthcheck:
+            test:
+                [
+                    "CMD-SHELL",
+                    "/probes/test-aliveness.py --user=$ORTHANC_USERNAME --pwd=$ORTHANC_PASSWORD",
+                ]
+            start_period: 10s
+            retries: 10
+            interval: 3s
+            timeout: 2s
+        restart: "no"
 
-  queue:
-    image: rabbitmq:3.12.9-management
-    hostname: queue-host
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
-      RABBITMQ_NODENAME: "rabbit@queue-host"
-    healthcheck:
-      test: rabbitmq-diagnostics -q check_running
-      interval: 30s
-      timeout: 30s
-      retries: 3
-    ports:
-      - "${RABBITMQ_PORT}:5672"
-      - "${RABBITMQ_ADMIN_PORT}:15672"
-    networks:
-      - pixl-net
-    volumes:
-      - rabbitmq:/var/lib/rabbitmq/mnesia
+    queue:
+        image: rabbitmq:3.12.9-management
+        hostname: queue-host
+        environment:
+            RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
+            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+            RABBITMQ_NODENAME: "rabbit@queue-host"
+        healthcheck:
+            test: rabbitmq-diagnostics -q check_running
+            interval: 30s
+            timeout: 30s
+            retries: 3
+        ports:
+            - "${RABBITMQ_PORT}:5672"
+            - "${RABBITMQ_ADMIN_PORT}:15672"
+        networks:
+            - pixl-net
+        volumes:
+            - rabbitmq:/var/lib/rabbitmq/mnesia
 
-  ehr-api:
-    build:
-      context: .
-      dockerfile: ./docker/ehr-api/Dockerfile
-      args:
-        <<: *build-args-common
-    environment:
-      <<:
-        [
-          *pixl-db,
-          *emap-db,
-          *proxy-common,
-          *pixl-common-env,
-          *pixl-rabbit-mq,
-          *azure-keyvault,
-        ]
-      AZ_STORAGE_ACCOUNT_NAME: ${PIXL_EHR_API_AZ_STORAGE_ACCOUNT_NAME}
-      AZ_STORAGE_CONTAINER_NAME: ${PIXL_EHR_API_AZ_STORAGE_CONTAINER_NAME}
-      COGSTACK_REDACT_URL: ${PIXL_EHR_COGSTACK_REDACT_URL}
-      PROJECT_CONFIGS_DIR: /${PROJECT_CONFIGS_DIR:-/projects/configs}
-      PIXL_MAX_MESSAGES_IN_FLIGHT: ${PIXL_MAX_MESSAGES_IN_FLIGHT}
-    env_file:
-      - ./docker/common.env
-    depends_on:
-      queue:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
-      hasher-api:
-        condition: service_healthy
-    ports:
-      - "${PIXL_EHR_API_PORT}:8000"
-    healthcheck:
-      interval: 10s
-      timeout: 30s
-      retries: 5
-    networks:
-      - pixl-net
-    # needed for testing under GHA (linux), so this container
-    # can reach the test FTP server running on the docker host
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    volumes:
-      - ${PWD}/projects/exports:/run/projects/exports
-      - ${PWD}/projects/configs:/${PROJECT_CONFIGS_DIR:-/projects/configs}:ro
+    export-api:
+        build:
+            context: .
+            dockerfile: ./docker/export-api/Dockerfile
+            args:
+                <<: *build-args-common
+        environment:
+            <<:
+                [
+                    *pixl-db,
+                    *emap-db,
+                    *proxy-common,
+                    *pixl-common-env,
+                    *pixl-rabbit-mq,
+                    *azure-keyvault,
+                ]
+            ORTHANC_ANON_URL: "http://orthanc-anon:8042"
+            ORTHANC_ANON_USERNAME: ${ORTHANC_ANON_USERNAME}
+            ORTHANC_ANON_PASSWORD: ${ORTHANC_ANON_PASSWORD}
+            PROJECT_CONFIGS_DIR: /${PROJECT_CONFIGS_DIR:-/projects/configs}
+            PIXL_MAX_MESSAGES_IN_FLIGHT: ${PIXL_MAX_MESSAGES_IN_FLIGHT}
+        env_file:
+            - ./docker/common.env
+        depends_on:
+            queue:
+                condition: service_healthy
+            postgres:
+                condition: service_healthy
+            hasher-api:
+                condition: service_healthy
+        ports:
+            - "${PIXL_EXPORT_API_PORT}:8000"
+        healthcheck:
+            interval: 10s
+            timeout: 30s
+            retries: 5
+        networks:
+            - pixl-net
+        # needed for testing under GHA (linux), so this container
+        # can reach the test FTP server running on the docker host
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        volumes:
+            - ${PWD}/projects/exports:/run/projects/exports
+            - ${PWD}/projects/configs:/${PROJECT_CONFIGS_DIR:-/projects/configs}:ro
 
-  imaging-api:
-    build:
-      context: .
-      dockerfile: ./docker/imaging-api/Dockerfile
-      args:
-        <<: *build-args-common
-    depends_on:
-      queue:
-        condition: service_healthy
-      orthanc-raw:
-        condition: service_healthy
-    healthcheck:
-      test: curl -f http://0.0.0.0:8000/heart-beat
-      interval: 10s
-      timeout: 30s
-      retries: 5
-    networks:
-      - pixl-net
-    environment:
-      <<: [*pixl-rabbit-mq, *proxy-common, *pixl-common-env]
-      ORTHANC_RAW_URL: ${ORTHANC_RAW_URL}
-      ORTHANC_RAW_USERNAME: ${ORTHANC_RAW_USERNAME}
-      ORTHANC_RAW_PASSWORD: ${ORTHANC_RAW_PASSWORD}
-      ORTHANC_RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
-      VNAQR_MODALITY: ${VNAQR_MODALITY}
-      SKIP_ALEMBIC: ${SKIP_ALEMBIC}
-      PIXL_DB_HOST: ${PIXL_DB_HOST}
-      PIXL_DB_PORT: ${PIXL_DB_PORT}
-      PIXL_DB_NAME: ${PIXL_DB_NAME}
-      PIXL_DB_USER: ${PIXL_DB_USER}
-      PIXL_DB_PASSWORD: ${PIXL_DB_PASSWORD}
-      PIXL_DICOM_TRANSFER_TIMEOUT: ${PIXL_DICOM_TRANSFER_TIMEOUT}
-      PIXL_QUERY_TIMEOUT: ${PIXL_QUERY_TIMEOUT}
-      PIXL_MAX_MESSAGES_IN_FLIGHT: ${PIXL_MAX_MESSAGES_IN_FLIGHT}
-    ports:
-      - "${PIXL_IMAGING_API_PORT}:8000"
+    imaging-api:
+        build:
+            context: .
+            dockerfile: ./docker/imaging-api/Dockerfile
+            args:
+                <<: *build-args-common
+        depends_on:
+            queue:
+                condition: service_healthy
+            orthanc-raw:
+                condition: service_healthy
+        healthcheck:
+            test: curl -f http://0.0.0.0:8000/heart-beat
+            interval: 10s
+            timeout: 30s
+            retries: 5
+        networks:
+            - pixl-net
+        environment:
+            <<: [*pixl-rabbit-mq, *proxy-common, *pixl-common-env]
+            ORTHANC_RAW_URL: ${ORTHANC_RAW_URL}
+            ORTHANC_RAW_USERNAME: ${ORTHANC_RAW_USERNAME}
+            ORTHANC_RAW_PASSWORD: ${ORTHANC_RAW_PASSWORD}
+            ORTHANC_RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
+            VNAQR_MODALITY: ${VNAQR_MODALITY}
+            SKIP_ALEMBIC: ${SKIP_ALEMBIC}
+            PIXL_DB_HOST: ${PIXL_DB_HOST}
+            PIXL_DB_PORT: ${PIXL_DB_PORT}
+            PIXL_DB_NAME: ${PIXL_DB_NAME}
+            PIXL_DB_USER: ${PIXL_DB_USER}
+            PIXL_DB_PASSWORD: ${PIXL_DB_PASSWORD}
+            PIXL_DICOM_TRANSFER_TIMEOUT: ${PIXL_DICOM_TRANSFER_TIMEOUT}
+            PIXL_QUERY_TIMEOUT: ${PIXL_QUERY_TIMEOUT}
+            PIXL_MAX_MESSAGES_IN_FLIGHT: ${PIXL_MAX_MESSAGES_IN_FLIGHT}
+        ports:
+            - "${PIXL_IMAGING_API_PORT}:8000"
 
-  ################################################################################
-  # Data Stores
-  postgres:
-    build:
-      context: .
-      dockerfile: ./docker/postgres/Dockerfile
-      args:
-        <<: *build-args-common
-    environment:
-      POSTGRES_USER: ${PIXL_DB_USER}
-      POSTGRES_PASSWORD: ${PIXL_DB_PASSWORD}
-      POSTGRES_DB: ${PIXL_DB_NAME}
-      PGTZ: Europe/London
-    env_file:
-      - ./docker/common.env
-    command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
-    volumes:
-      - type: volume
-        source: postgres-data
-        target: /var/lib/postgresql/data
-    ports:
-      - "${POSTGRES_PORT}:5432"
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "${PIXL_DB_USER}"]
-      interval: 10s
-      timeout: 30s
-      retries: 5
-    restart: always
-    networks:
-      - pixl-net
+    ################################################################################
+    # Data Stores
+    postgres:
+        build:
+            context: .
+            dockerfile: ./docker/postgres/Dockerfile
+            args:
+                <<: *build-args-common
+        environment:
+            POSTGRES_USER: ${PIXL_DB_USER}
+            POSTGRES_PASSWORD: ${PIXL_DB_PASSWORD}
+            POSTGRES_DB: ${PIXL_DB_NAME}
+            PGTZ: Europe/London
+        env_file:
+            - ./docker/common.env
+        command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
+        volumes:
+            - type: volume
+              source: postgres-data
+              target: /var/lib/postgresql/data
+        ports:
+            - "${POSTGRES_PORT}:5432"
+        healthcheck:
+            test: ["CMD", "pg_isready", "-U", "${PIXL_DB_USER}"]
+            interval: 10s
+            timeout: 30s
+            retries: 5
+        restart: always
+        networks:
+            - pixl-net

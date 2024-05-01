@@ -26,9 +26,9 @@ from sqlalchemy.orm import Session, sessionmaker
 os.environ["PROJECT_CONFIGS_DIR"] = str(Path(__file__).parents[2] / "projects/configs")
 
 # Set the necessary environment variables
-os.environ["PIXL_EHR_API_HOST"] = "localhost"
-os.environ["PIXL_EHR_API_RATE"] = "1"
-os.environ["PIXL_EHR_API_PORT"] = "7006"
+os.environ["PIXL_EXPORT_API_HOST"] = "localhost"
+os.environ["PIXL_EXPORT_API_RATE"] = "1"
+os.environ["PIXL_EXPORT_API_PORT"] = "7006"
 
 os.environ["PIXL_IMAGING_API_HOST"] = "localhost"
 os.environ["PIXL_IMAGING_API_RATE"] = "1"
@@ -44,6 +44,9 @@ os.environ["PIXL_DB_PASSWORD"] = "pixl_db_password"  # noqa: S105
 os.environ["POSTGRES_HOST"] = "locahost"
 os.environ["POSTGRES_PORT"] = "7001"
 os.environ["PIXL_DB_NAME"] = "pixl"
+
+os.environ["ORTHANC_ANON_USERNAME"] = "orthanc"
+os.environ["ORTHANC_ANON_PASSWORD"] = "orthanc"  # noqa: S105, hardcoded password
 
 
 @pytest.fixture(autouse=True)

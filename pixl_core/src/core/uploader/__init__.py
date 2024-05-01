@@ -23,21 +23,26 @@ Uploader class gets appropriate secret credentials from Azure key vault and uplo
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
-from core.uploader._dicomweb import DicomWebUploader
-from core.uploader._ftps import FTPSUploader
+from core.project_config import load_project_config
+
+from ._dicomweb import DicomWebUploader
+from ._ftps import FTPSUploader
 
 if TYPE_CHECKING:
     from core.uploader.base import Uploader
 
 
 # Intenitonally defined in __init__.py to avoid circular imports
-def get_uploader(project_slug: str, destination: str, keyvault_alias: Optional[str]) -> Uploader:
+def get_uploader(project_slug: str) -> Uploader:
     """Uploader Factory, returns uploader instance based on destination."""
     choices: dict[str, type[Uploader]] = {"ftps": FTPSUploader, "dicomweb": DicomWebUploader}
+    project_config = load_project_config(project_slug)
+    destination = project_config.destination.dicom
+
     try:
-        return choices[destination](project_slug, keyvault_alias)
+        return choices[destination](project_slug, project_config.project.azure_kv_alias)
 
     except KeyError:
         error_msg = f"Destination '{destination}' is currently not supported"

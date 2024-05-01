@@ -14,6 +14,7 @@
 
 """Interaction with the PIXL database."""
 
+from typing import Optional
 from decouple import config  # type: ignore [import-untyped]
 
 from core.db.models import Image, Extract
@@ -34,13 +35,13 @@ engine = create_engine(url)
 
 def add_hashed_identifier_and_save_to_db(
     existing_image: Image, hashed_value: str
-) -> Image:
+) -> Optional[Image]:
     PixlSession = sessionmaker(engine)
     with PixlSession() as pixl_session, pixl_session.begin():
         existing_image.hashed_identifier = hashed_value
         pixl_session.add(existing_image)
 
-        updated_image: Image = (
+        updated_image: Optional[Image] = (
             pixl_session.query(Image)
             .filter(
                 Image.accession_number == existing_image.accession_number,

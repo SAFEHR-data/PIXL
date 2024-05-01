@@ -24,14 +24,17 @@ from typing import Any, Optional
 
 import click
 import requests
+from core.exports import ParquetExport
 from core.patient_queue.producer import PixlProducer
 from decouple import RepositoryEnv, UndefinedValueError, config
 from loguru import logger
 
 from pixl_cli._config import SERVICE_SETTINGS, api_config_for_queue
-from pixl_cli._database import filter_exported_or_add_to_db
+from pixl_cli._database import filter_exported_or_add_to_db, images_for_project
 from pixl_cli._io import (
+    HOST_EXPORT_ROOT_DIR,
     copy_parquet_return_logfile_fields,
+    make_radiology_linker_table,
     messages_from_csv,
     messages_from_parquet,
     project_info,
@@ -82,7 +85,7 @@ def check_env(*, error: bool, sample_env_file: click.Path) -> None:
 @cli.command()
 @click.option(
     "--queues",
-    default="imaging,ehr",
+    default="imaging",
     show_default=True,
     help="Comma seperated list of queues to populate with messages generated from the "
     "input file(s)",
@@ -146,21 +149,32 @@ def populate(
 @click.argument(
     "parquet-dir", required=True, type=click.Path(path_type=Path, exists=True, file_okay=False)
 )
-def extract_radiology_reports(parquet_dir: Path) -> None:
+@click.option(
+    "--timeout",
+    type=int,
+    default=300,
+    help="Timeout to use for calling export API",
+)
+def export_patient_data(parquet_dir: Path, timeout: int) -> None:
     """
     Export processed radiology reports to parquet file.
 
-    PARQUET_DIR: Directory containing the extract_summary.json
-    log file defining which extract to export radiology reports for.
+    PARQUET_DIR: Directory containing the extract_summary.json log file
+                 defining which extract to export patient data for.
     """
-    project_name, omop_es_datetime = project_info(parquet_dir)
+    project_name_raw, omop_es_datetime = project_info(parquet_dir)
+    export = ParquetExport(project_name_raw, omop_es_datetime, HOST_EXPORT_ROOT_DIR)
 
-    # Call the EHR API
-    api_config = api_config_for_queue("ehr")
+    images = images_for_project(export.project_slug)
+    linker_data = make_radiology_linker_table(parquet_dir, images)
+    export.export_radiology_linker(linker_data)
+
+    # Call the Export API
+    api_config = api_config_for_queue("export")
     response = requests.post(
         url=f"{api_config.base_url}/export-patient-data",
-        json={"project_name": project_name, "extract_datetime": omop_es_datetime.isoformat()},
-        timeout=300,
+        json={"project_name": project_name_raw, "extract_datetime": omop_es_datetime.isoformat()},
+        timeout=timeout,
     )
 
     success_code = 200
@@ -175,7 +189,7 @@ def extract_radiology_reports(parquet_dir: Path) -> None:
 @cli.command()
 @click.option(
     "--queues",
-    default="ehr,imaging",
+    default="imaging",
     show_default=True,
     help="Comma seperated list of queues to start consuming from",
 )
@@ -197,7 +211,7 @@ def start(queues: str, rate: Optional[float]) -> None:
 @cli.command()
 @click.option(
     "--queues",
-    default="ehr,imaging",
+    default="imaging",
     show_default=True,
     help="Comma seperated list of queues to update the consume rate of",
 )
@@ -250,7 +264,7 @@ def _update_extract_rate(queue_name: str, rate: Optional[float]) -> None:
 @cli.command()
 @click.option(
     "--queues",
-    default="ehr,imaging",
+    default="imaging",
     show_default=True,
     help="Comma seperated list of queues to consume messages from",
 )
@@ -286,7 +300,7 @@ def kill() -> None:
 @cli.command()
 @click.option(
     "--queues",
-    default="ehr,imaging",
+    default="imaging",
     show_default=True,
     help="Comma seperated list of queues to consume messages from",
 )
@@ -294,18 +308,6 @@ def status(queues: str) -> None:
     """Get the status of the PIXL consumers"""
     for queue in queues.split(","):
         logger.info(f"[{queue:^10s}] refresh rate = ", _get_extract_rate(queue))
-
-
-@cli.command()
-def az_copy_ehr() -> None:
-    """Copy the EHR data to azure"""
-    api_config = api_config_for_queue("ehr")
-    response = requests.get(url=f"{api_config.base_url}/az-copy-current", timeout=10)
-
-    success_code = 200
-    if response.status_code != success_code:
-        msg = f"Failed to run az copy due to: {response.text}"
-        raise RuntimeError(msg)
 
 
 def _get_extract_rate(queue_name: str) -> str:

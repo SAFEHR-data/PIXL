@@ -37,16 +37,18 @@ class ParquetExport:
     """Exporting Omop and Emap extracts to Parquet files."""
 
     def __init__(
-        self, project_name: str, extract_datetime: datetime.datetime, export_dir: pathlib.Path
+        self, project_name_raw: str, extract_datetime: datetime.datetime, export_dir: pathlib.Path
     ) -> None:
         """
-        :param project_name: name of the project
+        :param project_name_raw: original name of the project (pre-sluggify)
         :param extract_datetime: datetime that the OMOP ES extract was run
         :param export_dir: Root directory to export files to. Don't forget that the CLI has a
                         different view of the filesystem than the docker containers do.
         """
         self.export_dir = export_dir
-        self.project_slug, self.extract_time_slug = self._get_slugs(project_name, extract_datetime)
+        self.project_slug, self.extract_time_slug = self._get_slugs(
+            project_name_raw, extract_datetime
+        )
         project_base = self.export_dir / self.project_slug
 
         self.current_extract_base = project_base / "all_extracts" / self.extract_time_slug
@@ -101,18 +103,17 @@ class ParquetExport:
         self.latest_symlink.symlink_to(self.current_extract_base, target_is_directory=True)
         return self.project_slug
 
-    def export_radiology(self, export_df: pd.DataFrame) -> pathlib.Path:
-        """Export radiology reports to parquet file"""
+    def export_radiology_linker(self, linker_data: pd.DataFrame) -> pathlib.Path:
+        """Write the radiology linker table data to a parquet file in the export directory."""
         self._mkdir(self.radiology_output)
-        parquet_file = self.radiology_output / "radiology.parquet"
-        logger.info("Exporting radiology to {}", self.radiology_output)
-        export_df.to_parquet(parquet_file)
+        parquet_path = self.radiology_output / "IMAGE_LINKER.parquet"
+        linker_data.to_parquet(parquet_path)
         # We are not responsible for making the "latest" symlink, see `copy_to_exports`.
-        # This avoids the confusion caused by EHR API (which calls export_radiology) having a
-        # different view of the filesystem vs CLI (which calls copy_to_exports). EHR API should
-        # never have to evaluate the symlink.
+        # Both export_radiology_linker and copy_to_exports are now called by CLI,
+        # so we don't have the same potential for confusion caused by export-api
+        # having a different view of the filesystem vs CLI.
         # Symlink could be made before or after this method is called.
-        return self.radiology_output
+        return parquet_path
 
     @staticmethod
     def _mkdir(directory: pathlib.Path) -> pathlib.Path:
@@ -132,9 +133,7 @@ class ParquetExport:
             logger.info(msg)
 
         else:
-            uploader = get_uploader(
-                self.project_slug, destination, project_config.project.azure_kv_alias
-            )
+            uploader = get_uploader(self.project_slug)
 
             msg = f"Uploading parquet files for project {self.project_slug} via '{destination}'"
             logger.info(msg)

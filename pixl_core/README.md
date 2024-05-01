@@ -118,7 +118,8 @@ where the DICOM datasets are stored (see the directory structure below). The upl
 by `upload_parquet_files` in [`upload.py`](./src/core/upload.py) which takes a `ParquetExport`
 object as input to define where the _parquet_ files are located.  `upload_parquet_files` is called
 by the `export-patient-data` API endpoint defined in the
-[EHR API](../pixl_ehr/src/pixl_ehr/main.py), which in turn is called by the `extract_radiology_reports` command in the [PIXL CLI](../cli/README.md).
+[Export API](../pixl_export/src/pixl_export/main.py), which in turn is called by the `export_patient_data`
+command in the [PIXL CLI](../cli/README.md).
 
 Once the parquet files have been uploaded to the DSH, the directory structure will look like this:
 
@@ -149,7 +150,7 @@ to implement this.
 
 The configuration for the DICOMweb server is controlled by the following environment variables and secrets:
 
-- `"ORTHANC_URL"`: The URL of the Orthanc server from _where_ the upload will happen, this will typically be the `orthanc-anon` instance
+- `"ORTHANC_ANON_URL"`: The URL of the Orthanc server from _where_ the upload will happen, this will typically be the `orthanc-anon` instance
 - The `"<project_slug>--dicomweb--username"` and `"<project_slug>--dicomweb--password"` for authentication, which are fetched from the [Azure Keyvault](../docs/setup/azure-keyvault.md)
 - The `"<project_slug>--dicomweb--url"` to define the DICOMweb endpoint in Orthanc, also fetched from the Azure Keyvault
 
