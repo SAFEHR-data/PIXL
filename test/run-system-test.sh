@@ -40,13 +40,20 @@ teardown() {
 # redoing the setup again and again. This means that pytest must now be responsible
 # for clearing up anything it creates (export temp dir?)
 subcmd=${1:-""}
+
 if [ "$subcmd" = "setup" ]; then
     setup
 elif [ "$subcmd" = "teardown" ]; then
     teardown
 else
+    # setup flags used for pytest
+    PYTEST_FLAGS="--verbose --log-cli-level INFO"
+    if [ "$subcmd" = "coverage" ]; then
+      PYTEST_FLAGS+="--cov --cov-report=xml"
+    fi
+    # Run the tests
     setup
-    pytest --verbose --log-cli-level INFO
+    pytest "$PYTEST_FLAGS"
     echo FINISHED PYTEST COMMAND
     teardown
     echo SYSTEM TEST SUCCESSFUL

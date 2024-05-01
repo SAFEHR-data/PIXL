@@ -152,7 +152,7 @@ jobs:
                   HASHER_API_AZ_TENANT_ID: ${{ secrets.EXPORT_AZ_TENANT_ID }}
                   HASHER_API_AZ_KEY_VAULT_NAME: ${{ secrets.EXPORT_AZ_KEY_VAULT_NAME }}
               run: |
-                  ./run-system-test.sh
+                  ./run-system-test.sh coverage
                   echo FINISHED SYSTEM TEST SCRIPT
 
             - name: Dump export-api docker logs for debugging
@@ -169,3 +169,10 @@ jobs:
               if: ${{ failure() }}
               run: |
                   docker logs -t system-test-imaging-api-1 2>&1
+
+            - name: Upload coverage reports to Codecov
+              uses: codecov/codecov-action@v4.2.0
+              with:
+                directory: test
+              env:
+                CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

@@ -34,6 +34,11 @@ Run the following to teardown:
 ./run-system-test.sh teardown
 ```
 
+For CI, there is also another subcommand to run pytest, reporting coverage
+```bash
+./run-system-test.sh coverage
+```
+
 ## The `pytest-pixl` plugin
 
 We provide a [`pytest` plugin](../pytest-pixl/README.md) with shared functionality for PIXL system
