@@ -94,7 +94,7 @@ services:
         env_file:
             - ./docker/common.env
         ports:
-            - "${HASHER_API_PORT}:8000"
+            - "127.0.0.1:${HASHER_API_PORT}:8000"
         volumes:
             - *logs-volume
         networks:
@@ -243,8 +243,8 @@ services:
             timeout: 30s
             retries: 3
         ports:
-            - "${RABBITMQ_PORT}:5672"
-            - "${RABBITMQ_ADMIN_PORT}:15672"
+            - "127.0.0.1:${RABBITMQ_PORT}:5672"
+            - "127.0.0.1:${RABBITMQ_ADMIN_PORT}:15672"
         networks:
             - pixl-net
         volumes:
@@ -281,7 +281,7 @@ services:
             hasher-api:
                 condition: service_healthy
         ports:
-            - "${PIXL_EXPORT_API_PORT}:8000"
+            - "127.0.0.1:${PIXL_EXPORT_API_PORT}:8000"
         healthcheck:
             interval: 10s
             timeout: 30s
@@ -331,7 +331,7 @@ services:
             PIXL_QUERY_TIMEOUT: ${PIXL_QUERY_TIMEOUT}
             PIXL_MAX_MESSAGES_IN_FLIGHT: ${PIXL_MAX_MESSAGES_IN_FLIGHT}
         ports:
-            - "${PIXL_IMAGING_API_PORT}:8000"
+            - "127.0.0.1:${PIXL_IMAGING_API_PORT}:8000"
 
     ################################################################################
     # Data Stores
@@ -354,7 +354,7 @@ services:
               source: postgres-data
               target: /var/lib/postgresql/data
         ports:
-            - "${POSTGRES_PORT}:5432"
+            - "127.0.0.1:${POSTGRES_PORT}:5432"
         healthcheck:
             test: ["CMD", "pg_isready", "-U", "${PIXL_DB_USER}"]
             interval: 10s
