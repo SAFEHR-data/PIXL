@@ -100,8 +100,8 @@ jobs:
               # The -e option is required here due to the way the
               # code determines the export directory. See issue #318.
               run: |
-                  pip install -e pixl_core/[test]
                   pip install -e pytest-pixl/
+                  pip install -e pixl_core/[test]
                   pip install -e cli/[test]
 
             - name: Create .secrets.env
