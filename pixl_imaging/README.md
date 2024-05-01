@@ -19,7 +19,6 @@ pip install -e pixl_imaging/[test]
 
 ## Test
 
-**NOTE**: the `pixl_imaging` tests require to be run from within the `tests/` directory.
 
 ```bash
 cd pixl_imaging/tests
