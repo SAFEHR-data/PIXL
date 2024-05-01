@@ -102,12 +102,12 @@ class TestFtpsUpload:
         for study_id, studies in expected_studies.items():
             expected_po_id = studies["procedure_occurrence_id"]
             row = radiology_linker_data[po_col == expected_po_id].iloc[0]
-            assert row.hashed_identifier == study_id
+            assert row.pseudo_study_uid == study_id
 
         assert radiology_linker_data.shape[0] == 2
         assert set(radiology_linker_data.columns) == {
             "procedure_occurrence_id",
-            "hashed_identifier",
+            "pseudo_study_uid",
         }
 
     @pytest.mark.usefixtures("_export_patient_data")

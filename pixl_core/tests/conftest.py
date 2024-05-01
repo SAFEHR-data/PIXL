@@ -222,14 +222,14 @@ def rows_in_session(db_session) -> Session:
         mrn="mrn",
         extract=extract,
         exported_at=datetime.datetime.now(tz=datetime.timezone.utc),
-        hashed_identifier="already_exported",
+        pseudo_study_uid="already_exported",
     )
     image_not_exported = Image(
         accession_number="234",
         study_date=STUDY_DATE,
         mrn="mrn",
         extract=extract,
-        hashed_identifier="not_yet_exported",
+        pseudo_study_uid="not_yet_exported",
     )
     with db_session:
         db_session.add_all([extract, image_exported, image_not_exported])
@@ -241,13 +241,13 @@ def rows_in_session(db_session) -> Session:
 @pytest.fixture()
 def not_yet_exported_dicom_image(rows_in_session) -> Image:
     """Return a DICOM image from the database."""
-    return rows_in_session.query(Image).filter(Image.hashed_identifier == "not_yet_exported").one()
+    return rows_in_session.query(Image).filter(Image.pseudo_study_uid == "not_yet_exported").one()
 
 
 @pytest.fixture()
 def already_exported_dicom_image(rows_in_session) -> Image:
     """Return a DICOM image from the database."""
-    return rows_in_session.query(Image).filter(Image.hashed_identifier == "already_exported").one()
+    return rows_in_session.query(Image).filter(Image.pseudo_study_uid == "already_exported").one()
 
 
 @pytest.fixture(autouse=True)

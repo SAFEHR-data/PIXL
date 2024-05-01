@@ -103,15 +103,15 @@ def export_dicom_from_orthanc(study_data: StudyData) -> None:
     """
     Download zipped up study data from orthanc anon and route it appropriately.
     Intended only for orthanc-anon to call, as only it knows when its data is ready for download.
-    Because we're post-anonymisation, the "PatientID" tag returned is actually
-    the hashed image ID (MRN + Accession number).
+    Because we're post-anonymisation, the "StudyID" tag returned is actually
+    the Pseudo Study UID (a randomly selected, but consistent UID).
     """
     study_id = study_data.study_id
-    hashed_image_id, project_slug = get_tags_by_study(study_id)
+    pseudo_study_uid, project_slug = get_tags_by_study(study_id)
     project_config = load_project_config(project_slug)
     destination = project_config.destination.dicom
 
     uploader = get_uploader(project_slug, destination, project_config.project.azure_kv_alias)
     logger.debug("Sending {} via '{}'", study_id, destination)
     zip_content = get_study_zip_archive(study_id)
-    uploader.upload_dicom_image(zip_content, hashed_image_id, project_slug)
+    uploader.upload_dicom_image(zip_content, pseudo_study_uid, project_slug)

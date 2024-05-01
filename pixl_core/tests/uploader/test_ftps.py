@@ -32,7 +32,7 @@ def test_upload_dicom_image(
     """Tests that DICOM image can be uploaded to the correct location"""
     # ARRANGE
     # Get the pseudo identifier from the test image
-    pseudo_anon_id = not_yet_exported_dicom_image.hashed_identifier
+    pseudo_anon_id = not_yet_exported_dicom_image.pseudo_study_uid
     project_slug = "some-project-slug"
     expected_output_file = ftps_home_dir / project_slug / (pseudo_anon_id + ".zip")
 
@@ -50,7 +50,7 @@ def test_upload_dicom_image_already_exported(
     """Tests that exception thrown if DICOM image already exported"""
     # ARRANGE
     # Get the pseudo identifier from the test image
-    pseudo_anon_id = already_exported_dicom_image.hashed_identifier
+    pseudo_anon_id = already_exported_dicom_image.pseudo_study_uid
     project_slug = "some-project-slug"
 
     # ASSERT
@@ -83,7 +83,7 @@ def test_update_exported_and_save(rows_in_session) -> None:
     # ACT
     update_exported_at("not_yet_exported", expected_export_time)
     new_row = (
-        rows_in_session.query(Image).filter(Image.hashed_identifier == "not_yet_exported").one()
+        rows_in_session.query(Image).filter(Image.pseudo_study_uid == "not_yet_exported").one()
     )
     actual_export_time = new_row.exported_at.replace(tzinfo=timezone.utc)
 

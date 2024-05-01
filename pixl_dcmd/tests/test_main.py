@@ -21,6 +21,10 @@ import numpy as np
 import pydicom
 import pytest
 import sqlalchemy
+from decouple import config
+from pydicom.data import get_testdata_file
+from pydicom.dataset import Dataset
+
 from core.db.models import Image
 from core.dicom_tags import (
     DICOM_TAG_PROJECT_NAME,
@@ -29,11 +33,6 @@ from core.dicom_tags import (
     create_private_tag,
 )
 from core.project_config import load_project_config, load_tag_operations
-from decouple import config
-from pydicom.data import get_testdata_file
-
-from pydicom.dataset import Dataset
-
 from pytest_pixl.dicom import generate_dicom_dataset
 from pytest_pixl.helpers import run_subprocess
 
@@ -195,19 +194,38 @@ def test_image_already_exported_throws(rows_in_session):
         anonymise_dicom(input_dataset)
 
 
-def test_pseudo_identifier_processing(rows_in_session):
+def test_pseudo_identifier_processing(rows_in_session, monkeypatch):
     """
     GIVEN a dicom image that hasn't been exported in the pipeline db
     WHEN the dicom tag scheme is applied
-    THEN the patient identifier tag should be the mrn and accession hashed
-      and the pipeline db row should now have the fake hash
+    THEN the patient identifier tag should be the mrn hashed
+        the study instance uid should be replaced with a new uid
+        and the db should have the pseudo study id
     """
     exported_dicom = pathlib.Path(__file__).parents[2] / "test/resources/Dicom2.dcm"
     dataset = pydicom.dcmread(exported_dicom)
 
-    accession_number = "AA12345605"
+    class FakeUID:
+        i = 1
+
+        @classmethod
+        def fake_uid(cls, x):
+            uid = f"2.25.{cls.i}"
+            cls.i += 1
+            return uid
+
+    monkeypatch.setattr("pydicom.uid.generate_uid", FakeUID.fake_uid)
+    other_image = (
+        rows_in_session.query(Image)
+        .filter(Image.accession_number == "AA12345601")
+        .one()
+    )
+    other_image.pseudo_study_uid = "2.25.1"
+    rows_in_session.add(other_image)
+    rows_in_session.commit()
+
     mrn = "987654321"
-    fake_hash = "-".join(list(f"{mrn}{accession_number}"))
+    fake_hash = "-".join(list(mrn))
     print("fake_hash = ", fake_hash)
     anonymise_dicom(dataset)
     image = (
@@ -217,7 +235,8 @@ def test_pseudo_identifier_processing(rows_in_session):
     )
     print("after tags applied")
     assert dataset[0x0010, 0x0020].value == fake_hash
-    assert image.hashed_identifier == fake_hash
+    assert image.pseudo_study_uid == dataset[0x0020, 0x000D].value
+    assert image.pseudo_study_uid == "2.25.3"  # 2nd image in the db
 
 
 @pytest.fixture()
@@ -322,7 +341,7 @@ def test_can_nifti_convert_post_anonymisation(
 
 
 @pytest.fixture
-def sequenced_dicom():
+def sequenced_dicom(monkeypatch):
     """
     Create a DICOM dataset with
     a private sequence tag
@@ -331,6 +350,8 @@ def sequenced_dicom():
             (group=0x0011, offset=0x0011, creator="UCLH PIXL", VR="SH", value="nested_priv_tag) and
         a public child tag
             (group=0x0010, element=0x0020), VR="LO", value="987654321").
+
+    Also mock db functions
     """
     # Create a test DICOM with a sequence tag
     exported_dicom = pathlib.Path(__file__).parents[2] / "test/resources/Dicom1.dcm"
@@ -347,10 +368,13 @@ def sequenced_dicom():
     block = dataset.private_block(0x0011, "UCLH PIXL", create=True)
     block.add_new(0x0010, "SQ", [nested_ds])
 
+    # Mock the database functions
+    monkeypatch.setattr("pixl_dcmd.main.query_db", lambda *args: None)
+    monkeypatch.setattr("pixl_dcmd.main.add_pseudo_study_uid_to_db", lambda *args: None)
     return dataset
 
 
-def test_del_tag_keep_sq(sequenced_dicom):
+def test_del_tag_keep_sq(sequenced_dicom, monkeypatch):
     """
     GIVEN a dicom image that has a private sequence tag marked to be kept with
     - a private child tag that is marked to be deleted
