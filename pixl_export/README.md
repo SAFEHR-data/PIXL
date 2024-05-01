@@ -1,4 +1,4 @@
-# PIXL Electronic Health Record Extractor
+# PIXL Export APi
 
 The Export API provides HTTP endpoints to control the copying of EHR data from the OMOP extract
 to its destination (eg. FTPS). It also uploads DICOM data to its destination after it has been

@@ -31,10 +31,10 @@ component_management:
           name: pixl_dcmd
           paths:
               - pixl_dcmd/
-        - component_id: pixl_ehr
-          name: pixl_ehr
+        - component_id: pixl_export
+          name: pixl_export
           paths:
-              - pixl_ehr/
+              - pixl_export/
         - component_id: pixl_imaging
           name: pixl_imaging
           paths:

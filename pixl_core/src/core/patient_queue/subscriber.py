@@ -49,7 +49,7 @@ class PixlConsumer(PixlQueueInterface):
     ) -> None:
         """
         Creating connection to RabbitMQ queue
-        :param token_bucket: Token bucket for EHR queue
+        :param token_bucket: Token bucket for the queue
         """
         super().__init__(queue_name=queue_name)
         self.token_bucket = token_bucket

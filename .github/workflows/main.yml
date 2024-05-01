@@ -134,7 +134,7 @@ jobs:
             - name: Dump export-api docker logs for debugging
               if: ${{ failure() }}
               run: |
-                  docker logs -t system-test-ehr-api-1 2>&1
+                  docker logs -t system-test-export-api-1 2>&1
 
             - name: Dump orthanc-anon docker logs for debugging
               if: ${{ failure() }}
