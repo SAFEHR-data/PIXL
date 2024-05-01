@@ -50,11 +50,11 @@ else
     declare -a PYTEST_FLAGS
 
     # Add individual options to the array
+    PYTEST_FLAGS+=("--verbose")
+    PYTEST_FLAGS+=("--log-cli-level" "INFO")
     if [ "$subcmd" = "coverage" ]; then
         PYTEST_FLAGS+=("--cov" "--cov-report=xml")
     fi
-    PYTEST_FLAGS+=("--verbose")
-    PYTEST_FLAGS+=("--log-cli-level" "INFO")
     # Run the tests
     setup
     pytest "${PYTEST_FLAGS[@]}"
