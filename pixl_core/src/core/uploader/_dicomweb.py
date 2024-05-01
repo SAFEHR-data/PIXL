@@ -82,9 +82,8 @@ class DicomWebUploader(Uploader):
         except requests.exceptions.RequestException:
             logger.error("Failed to send via stow")
             raise
-        else:
-            super().update_exported_timestamp(pseudo_anon_image_id)
-            logger.info("Dicom resource {} sent via stow", resource_id)
+        super().update_exported_timestamp(pseudo_anon_image_id)
+        logger.info("Dicom resource {} sent via stow", resource_id)
         return response
 
     def _check_dicomweb_server_exists(self) -> bool:
