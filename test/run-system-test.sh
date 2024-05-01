@@ -47,13 +47,17 @@ elif [ "$subcmd" = "teardown" ]; then
     teardown
 else
     # setup flags used for pytest
-    PYTEST_FLAGS="--verbose --log-cli-level INFO"
+    declare -a PYTEST_FLAGS
+
+    # Add individual options to the array
+    PYTEST_FLAGS+=("--verbose")
+    PYTEST_FLAGS+=("--log-cli-level" "INFO")
     if [ "$subcmd" = "coverage" ]; then
-      PYTEST_FLAGS+="--cov --cov-report=xml"
+        PYTEST_FLAGS+=("--cov" "--cov-report=xml")
     fi
     # Run the tests
     setup
-    pytest "$PYTEST_FLAGS"
+    pytest "${PYTEST_FLAGS[@]}"
     echo FINISHED PYTEST COMMAND
     teardown
     echo SYSTEM TEST SUCCESSFUL
