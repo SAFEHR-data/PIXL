@@ -221,6 +221,14 @@ def ReceivedInstanceCallback(receivedDicom: bytes, origin: str) -> Any:
     elif origin == orthanc.InstanceOrigin.DICOM_PROTOCOL:
         orthanc.LogWarning("DICOM instance received from the DICOM protocol")
 
+    try:
+        return _process_dicom_instance(receivedDicom)
+    except Exception:  # noqa: BLE001
+        orthanc.LogError("Failed to anonymize instance due to\n" + traceback.format_exc())
+        return orthanc.ReceivedInstanceAction.DISCARD, None
+
+
+def _process_dicom_instance(receivedDicom: bytes) -> tuple[orthanc.ReceivedInstanceAction, None]:
     # Read the bytes as DICOM/
     dataset = dcmread(BytesIO(receivedDicom))
 
@@ -236,9 +244,6 @@ def ReceivedInstanceCallback(receivedDicom: bytes, origin: str) -> Any:
         return orthanc.ReceivedInstanceAction.MODIFY, write_dataset_to_bytes(dataset)
     except PixlDiscardError as error:
         logger.debug("Skipping instance: {}", error)
-        return orthanc.ReceivedInstanceAction.DISCARD, None
-    except Exception:  # noqa: BLE001
-        orthanc.LogError("Failed to anonymize instance due to\n" + traceback.format_exc())
         return orthanc.ReceivedInstanceAction.DISCARD, None
 
 
