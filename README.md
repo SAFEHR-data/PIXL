@@ -75,9 +75,9 @@ Provides helper functions for de-identifying DICOM data
 
 RDBMS which stores DICOM metadata, application data and anonymised patient record data.
 
-### [Exporter api](pixl_export/README.md)
+### [Export API](pixl_export/README.md)
 
-HTTP API to export files from UCLH to endpoints.
+HTTP API to export files (parquet and DICOM) from UCLH to endpoints.
 
 ### [Image Extractor](./pixl_imaging/README.md)
 
