@@ -36,10 +36,6 @@ pip install -e ../pixl_core/ -e .[test]
 pytest
 ```
 
-To test the availability of a CogStack instance, we mock up a *FastAPI* server which simply takes in
-some input text and returns the text with a fixed suffix. The mocking is handled by a *pytest* fixture in
-`test_processing.py()` (`_mock_requests`).
-
 ## Usage
 
 Usage should be from the CLI driver, which calls the HTTP endpoints.
