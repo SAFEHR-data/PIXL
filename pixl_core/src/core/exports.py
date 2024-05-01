@@ -133,9 +133,7 @@ class ParquetExport:
             logger.info(msg)
 
         else:
-            uploader = get_uploader(
-                self.project_slug, destination, project_config.project.azure_kv_alias
-            )
+            uploader = get_uploader(self.project_slug)
 
             msg = f"Uploading parquet files for project {self.project_slug} via '{destination}'"
             logger.info(msg)

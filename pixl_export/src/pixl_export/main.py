@@ -23,16 +23,14 @@ from datetime import (
 from pathlib import Path
 
 from core.exports import ParquetExport
-from core.project_config import load_project_config
 from core.rest_api.router import router
 from core.uploader import get_uploader
+from core.uploader._orthanc import get_tags_by_study
 from decouple import config  # type: ignore [import-untyped]
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from loguru import logger
 from pydantic import BaseModel
-
-from ._orthanc import get_study_zip_archive, get_tags_by_study
 
 # Set up logging as main entry point
 logger.remove()  # Remove all handlers added so far, including the default one.
@@ -107,11 +105,8 @@ def export_dicom_from_orthanc(study_data: StudyData) -> None:
     the hashed image ID (MRN + Accession number).
     """
     study_id = study_data.study_id
-    hashed_image_id, project_slug = get_tags_by_study(study_id)
-    project_config = load_project_config(project_slug)
-    destination = project_config.destination.dicom
+    _, project_slug = get_tags_by_study(study_id)
 
-    uploader = get_uploader(project_slug, destination, project_config.project.azure_kv_alias)
-    logger.debug("Sending {} via '{}'", study_id, destination)
-    zip_content = get_study_zip_archive(study_id)
-    uploader.upload_dicom_image(zip_content, hashed_image_id, project_slug)
+    uploader = get_uploader(project_slug)
+    logger.debug("Sending {} via '{}'", study_id, type(uploader).__name__)
+    uploader.upload_dicom_image(study_id)
