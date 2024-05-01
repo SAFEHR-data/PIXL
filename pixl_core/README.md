@@ -150,7 +150,7 @@ to implement this.
 
 The configuration for the DICOMweb server is controlled by the following environment variables and secrets:
 
-- `"ORTHANC_URL"`: The URL of the Orthanc server from _where_ the upload will happen, this will typically be the `orthanc-anon` instance
+- `"ORTHANC_ANON_URL"`: The URL of the Orthanc server from _where_ the upload will happen, this will typically be the `orthanc-anon` instance
 - The `"<project_slug>--dicomweb--username"` and `"<project_slug>--dicomweb--password"` for authentication, which are fetched from the [Azure Keyvault](../docs/setup/azure-keyvault.md)
 - The `"<project_slug>--dicomweb--url"` to define the DICOMweb endpoint in Orthanc, also fetched from the Azure Keyvault
 

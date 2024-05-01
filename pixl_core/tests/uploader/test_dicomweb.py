@@ -15,17 +15,21 @@
 
 from __future__ import annotations
 
-from typing import Optional
+import time
 
 import pytest
 import requests
 from core.uploader._dicomweb import DicomWebUploader
 from decouple import config  # type: ignore [import-untyped]
 
-ORTHANC_URL = config("ORTHANC_URL")
-DICOM_ENDPOINT_NAME = config("DICOM_ENDPOINT_NAME")
-ORTHANC_USERNAME = config("ORTHANC_USERNAME")
-ORTHANC_PASSWORD = config("ORTHANC_PASSWORD")
+ORTHANC_ANON_URL = config("ORTHANC_ANON_URL")
+ORTHANC_USERNAME = config("ORTHANC_ANON_USERNAME")
+ORTHANC_PASSWORD = config("ORTHANC_ANON_PASSWORD")
+
+DICOMWEB_USERNAME = "orthanc_dicomweb"
+DICOMWEB_PASSWORD = "orthanc_dicomweb"  # noqa: S105, hardcoded password
+
+LOCAL_DICOMWEB_URL = "http://localhost:8044"
 
 
 class MockDicomWebUploader(DicomWebUploader):
@@ -33,11 +37,17 @@ class MockDicomWebUploader(DicomWebUploader):
 
     def __init__(self) -> None:
         """Initialise the mock uploader."""
-        self.user = ORTHANC_USERNAME
-        self.password = ORTHANC_PASSWORD
-        self.endpoint_name = DICOM_ENDPOINT_NAME
-        self.orthanc_url = ORTHANC_URL
-        self.url = self.orthanc_url + "/dicom-web/servers/" + self.endpoint_name
+        self.az_prefix = "test"
+        self.orthanc_user = ORTHANC_USERNAME
+        self.orthanc_password = ORTHANC_PASSWORD
+        self.orthanc_url = ORTHANC_ANON_URL
+        self.endpoint_user = DICOMWEB_USERNAME
+        self.endpoint_password = DICOMWEB_PASSWORD
+        # URL for DICOMWeb server as seen from within Orthanc, i.e. the address of the dicomweb
+        # server within the Docker compose network
+        self.endpoint_url = "http://dicomweb-server:8042/dicom-web"
+        self.orthanc_dicomweb_url = self.orthanc_url + "/dicom-web/servers/" + self.az_prefix
+        self.http_timeout = 30
 
 
 @pytest.fixture()
@@ -46,29 +56,77 @@ def dicomweb_uploader() -> MockDicomWebUploader:
     return MockDicomWebUploader()
 
 
-def _do_get_request(endpoint: str, data: Optional[dict] = None) -> requests.Response:
-    """Perform a GET request to the specified endpoint."""
-    return requests.get(
-        ORTHANC_URL + endpoint,
+def test_dicomweb_server_config(run_containers, dicomweb_uploader) -> None:
+    """Tests that the DICOMWeb server is configured correctly in Orthanc"""
+    dicomweb_uploader._setup_dicomweb_credentials()  # noqa: SLF001, private method
+    servers_response = requests.get(
+        ORTHANC_ANON_URL + "/dicom-web/servers",
         auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD),
-        data=data,
         timeout=30,
     )
+    servers_response.raise_for_status()
+    assert "test" in servers_response.json()
 
 
-def test_upload_dicom_image(study_id, run_dicomweb_containers, dicomweb_uploader) -> None:
+def _check_study_present_on_dicomweb(study_id: str) -> bool:
+    """Check if a study is present on the DICOMWeb server."""
+    response = requests.get(
+        LOCAL_DICOMWEB_URL + "/studies",
+        auth=(DICOMWEB_USERNAME, DICOMWEB_PASSWORD),
+        timeout=30,
+    )
+    response.raise_for_status()
+    return study_id in response.json()
+
+
+def _clean_up_dicomweb(study_id: str) -> None:
+    """Clean up the DICOMWeb server."""
+    response = requests.delete(
+        LOCAL_DICOMWEB_URL + "/studies/" + study_id,
+        auth=(DICOMWEB_USERNAME, DICOMWEB_PASSWORD),
+        timeout=30,
+    )
+    response.raise_for_status()
+
+
+def test_upload_dicom_image(
+    study_id, run_containers, dicomweb_uploader, not_yet_exported_dicom_image
+) -> None:
     """Tests that DICOM image can be uploaded to a DICOMWeb server"""
-    # ARRANGE
+    response = dicomweb_uploader.send_via_stow(
+        study_id, not_yet_exported_dicom_image.hashed_identifier
+    )
+    response.raise_for_status()
 
-    # ACT
-    stow_response = dicomweb_uploader.send_via_stow(study_id)
-    studies_response = _do_get_request("/dicom-web/studies", data={"Uri": "/instances"})
-    servers_response = _do_get_request("/dicom-web/servers")
+    # Check that the instance has arrived on the DICOMweb server
+    time.sleep(2)
+    assert _check_study_present_on_dicomweb(study_id)
 
-    # ASSERT
-    # Check if dicom-web server is set up correctly
-    assert DICOM_ENDPOINT_NAME in servers_response.json()
-    assert stow_response.status_code == 200  # succesful upload
-    # Taken from https://orthanc.uclouvain.be/hg/orthanc-dicomweb/file/default/Resources/Samples/Python/SendStow.py
-    # Check that instance has not been discarded
-    assert "00081190" in studies_response.json()[0]
+    _clean_up_dicomweb(study_id)
+
+
+def test_upload_dicom_image_already_exported(
+    study_id, run_containers, dicomweb_uploader, already_exported_dicom_image
+) -> None:
+    """Tests that exception thrown if DICOM image already exported"""
+    with pytest.raises(RuntimeError, match="Image already exported"):
+        dicomweb_uploader.send_via_stow(study_id, already_exported_dicom_image.hashed_identifier)
+
+
+def test_dicomweb_upload_fails_with_wrong_credentials(
+    study_id, run_containers, dicomweb_uploader
+) -> None:
+    """Tests that the DICOMWeb uploader fails when given wrong credentials."""
+    dicomweb_uploader.endpoint_user = "wrong"
+    dicomweb_uploader.endpoint_password = "wrong"  # noqa: S105, hardcoded password
+
+    with pytest.raises(requests.exceptions.ConnectionError):
+        dicomweb_uploader._setup_dicomweb_credentials()  # noqa: SLF001, private method
+
+
+def test_dicomweb_upload_fails_with_wrong_url(study_id, run_containers, dicomweb_uploader) -> None:
+    """Tests that the DICOMWeb uploader fails when given wrong URL."""
+    dicomweb_uploader.endpoint_url = "http://wrong"
+
+    with pytest.raises(requests.exceptions.ConnectionError):
+        dicomweb_uploader._setup_dicomweb_credentials()  # noqa: SLF001, private method
