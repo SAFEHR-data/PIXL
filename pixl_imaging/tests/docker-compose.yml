@@ -14,47 +14,46 @@
 version: "3.8"
 
 volumes:
-  orthanc-raw-data:
-  vna-qr-data:
-
+    orthanc-raw-data:
+    vna-qr-data:
 
 services:
-  vna-qr:
-    image: orthancteam/orthanc:24.3.3
-    environment:
-      ORTHANC_NAME: "VNAQR"
-      ORTHANC_USERNAME: "orthanc"
-      ORTHANC_PASSWORD: "orthanc"
-      ORTHANC_AE_TITLE: "VNAQR"
-      RAW_AE_TITLE: "PIXLRAW"
-      RAW_DICOM_PORT: "4242"
-      RAW_IP_ADDR: "orthanc-raw"  # aka. hostname
-    ports:
-      - "4243:4242"
-      - "8043:8042"
-    volumes:
-      - ${PWD}/../../test/vna_config/:/run/secrets:ro
+    vna-qr:
+        image: orthancteam/orthanc:24.3.3
+        environment:
+            ORTHANC_NAME: "VNAQR"
+            ORTHANC_USERNAME: "orthanc"
+            ORTHANC_PASSWORD: "orthanc"
+            ORTHANC_AE_TITLE: "VNAQR"
+            RAW_AE_TITLE: "PIXLRAW"
+            RAW_DICOM_PORT: "4242"
+            RAW_IP_ADDR: "orthanc-raw" # aka. hostname
+        ports:
+            - "4243:4242"
+            - "8043:8042"
+        volumes:
+            - ../../test/vna_config/:/run/secrets:ro
 
-  orthanc-raw:
-    build:
-      context: ../../
-      dockerfile: ./docker/orthanc-raw/Dockerfile
-    environment:
-      ORTHANC_NAME: "PIXL: Raw"
-      ORTHANC_USERNAME: "orthanc"
-      ORTHANC_PASSWORD: "orthanc"
-      ORTHANC_AE_TITLE: "PIXLRAW"
-      VNAQR_AE_TITLE: "VNAQR"
-      VNAQR_DICOM_PORT: "4242"
-      VNAQR_IP_ADDR: "vna-qr"
-      ORTHANC_ANON_AE_TITLE: "unused"
-      ORTHANC_ANON_DICOM_PORT: "4242"
-      ORTHANC_ANON_HOSTNAME: "orthanc-anon"
-      ORTHANC_AUTOROUTE_RAW_TO_ANON: "false"
-      PROJECT_CONFIGS_DIR: "/projects/configs"
-    ports:
-      - "4244:4242"
-      - "8044:8042"
-    volumes:
-      # Overriding config for the test
-      - ${PWD}/orthanc_raw_config/:/run/secrets:ro
+    orthanc-raw:
+        build:
+            context: ../../
+            dockerfile: ./docker/orthanc-raw/Dockerfile
+        environment:
+            ORTHANC_NAME: "PIXL: Raw"
+            ORTHANC_USERNAME: "orthanc"
+            ORTHANC_PASSWORD: "orthanc"
+            ORTHANC_AE_TITLE: "PIXLRAW"
+            VNAQR_AE_TITLE: "VNAQR"
+            VNAQR_DICOM_PORT: "4242"
+            VNAQR_IP_ADDR: "vna-qr"
+            ORTHANC_ANON_AE_TITLE: "unused"
+            ORTHANC_ANON_DICOM_PORT: "4242"
+            ORTHANC_ANON_HOSTNAME: "orthanc-anon"
+            ORTHANC_AUTOROUTE_RAW_TO_ANON: "false"
+            PROJECT_CONFIGS_DIR: "/projects/configs"
+        ports:
+            - "4244:4242"
+            - "8044:8042"
+        volumes:
+            # Overriding config for the test
+            - ./orthanc_raw_config/:/run/secrets:ro

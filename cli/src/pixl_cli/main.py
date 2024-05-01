@@ -276,7 +276,7 @@ def _update_extract_rate(queue_name: str, rate: Optional[float]) -> None:
 )
 def stop(queues: str, purge: bool) -> None:  # noqa: FBT001 bool argument
     """
-    Stop extracting images and/or EHR data by setting the rate to 0.
+    Stop extracting images by setting the rate to 0.
     In progress messages will continue to be processed.
     The queues retain their state and can be restarted unless the purge option is selected.
     """
@@ -314,7 +314,7 @@ def _get_extract_rate(queue_name: str) -> str:
     """
     Get the extraction rate in items per second from a queue
 
-    :param queue_name: Name of the queue to get the extract rate for (e.g. ehr)
+    :param queue_name: Name of the queue to get the extract rate for (e.g. imaging)
     :return: The extract rate in items per seconds
 
     Throws a RuntimeError if the status code is not 200.

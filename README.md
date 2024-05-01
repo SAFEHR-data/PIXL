@@ -1,3 +1,6 @@
+[![pixl-ci](https://github.com/UCLH-Foundry/PIXL/actions/workflows/main.yml/badge.svg)](https://github.com/UCLH-Foundry/PIXL/actions/workflows/main.yml)
+[![codecov](https://codecov.io/gh/UCLH-Foundry/PIXL/graph/badge.svg?token=99CHF3ZCAW)](https://codecov.io/gh/UCLH-Foundry/PIXL)
+
 # PIXL
 
 PIXL Image eXtraction Laboratory
@@ -72,9 +75,9 @@ Provides helper functions for de-identifying DICOM data
 
 RDBMS which stores DICOM metadata, application data and anonymised patient record data.
 
-### [Electronic Health Record Extractor](pixl_export/README.md)
+### [Export API](pixl_export/README.md)
 
-HTTP API to process messages from the `ehr` queue and populate raw and anon tables in the PIXL postgres instance.
+HTTP API to export files (parquet and DICOM) from UCLH to endpoints.
 
 ### [Image Extractor](./pixl_imaging/README.md)
 
@@ -100,9 +103,6 @@ Add the missing configuration values to the new files:
 
 #### Credentials
 
-- `EMAP_DB_`*
-UDS credentials are only required for `prod` or `staging` deployments of when working on the EHR & report retriever component.
-You can leave them blank for other dev work.
 - `PIXL_DB_`*
 These are credentials for the containerised PostgreSQL service and are set in the official PostgreSQL image.
 Use a strong password for `prod` deployment but the only requirement for other environments is consistency as several services interact with the database.
@@ -234,7 +234,7 @@ The number of DICOM instances in the raw Orthanc instance can be accessed from
 the Orthanc Anon instance, where `pixl_host` is the host of the PIXL services
 and `ORTHANC_RAW_WEB_PORT` is defined in `.env`.
 
-The number of reports and EHR can be interrogated by connecting to the PIXL
+The imaging export progress can be interrogated by connecting to the PIXL
 database with a database client (e.g. [DBeaver](https://dbeaver.io/)), using
 the connection parameters defined in `.env`.
 
