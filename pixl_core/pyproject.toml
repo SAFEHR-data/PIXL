@@ -29,6 +29,7 @@ dependencies = [
 [project.optional-dependencies]
 test = [
     "pytest==7.4.2",
+    "pytest-cov==5.0.0",
     "pytest-asyncio==0.21.1",
     "httpx==0.24.*",
     "pytest-pixl",
@@ -47,3 +48,19 @@ extend = "../ruff.toml"
 
 [tool.ruff.lint.extend-per-file-ignores]
 "./tests/**" = ["D100"]
+
+
+[tool.coverage.report]
+exclude_also = [
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "except subprocess.CalledProcessError as exception:",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]

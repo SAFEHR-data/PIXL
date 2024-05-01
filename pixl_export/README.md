@@ -1,4 +1,4 @@
-# PIXL Electronic Health Record Extractor
+# PIXL Export API
 
 The Export API provides HTTP endpoints to control the copying of EHR data from the OMOP extract
 to its destination (eg. FTPS). It also uploads DICOM data to its destination after it has been
@@ -35,10 +35,6 @@ pip install -e ../pixl_core/ -e .
 pip install -e ../pixl_core/ -e .[test]
 pytest
 ```
-
-To test the availability of a CogStack instance, we mock up a *FastAPI* server which simply takes in
-some input text and returns the text with a fixed suffix. The mocking is handled by a *pytest* fixture in
-`test_processing.py()` (`_mock_requests`).
 
 ## Usage
 
