@@ -58,7 +58,6 @@ The `rabbitmq` queues for the `ehr` and `imaging` APIs are configured by setting
 ```sh
 PIXL_EXPORT_API_HOST=localhost
 PIXL_EXPORT_API_PORT=7006
-PIXL_EXPORT_API_RATE=1
 
 PIXL_IMAGING_API_HOST=localhost
 PIXL_IMAGING_API_PORT=7007

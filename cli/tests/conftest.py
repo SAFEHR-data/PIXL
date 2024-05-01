@@ -27,7 +27,6 @@ os.environ["PROJECT_CONFIGS_DIR"] = str(Path(__file__).parents[2] / "projects/co
 
 # Set the necessary environment variables
 os.environ["PIXL_EXPORT_API_HOST"] = "localhost"
-os.environ["PIXL_EXPORT_API_RATE"] = "1"
 os.environ["PIXL_EXPORT_API_PORT"] = "7006"
 
 os.environ["PIXL_IMAGING_API_HOST"] = "localhost"
