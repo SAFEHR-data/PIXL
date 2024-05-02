@@ -22,8 +22,8 @@ services:
             RABBITMQ_DEFAULT_USER: guest
             RABBITMQ_DEFAULT_PASS: guest
         ports:
-            - "25672:5672"
-            - "35672:15672"
+            - "127.0.0.1:25672:5672"
+            - "127.0.0.1:35672:15672"
         healthcheck:
             test: rabbitmq-diagnostics -q check_running
             interval: 10s
@@ -43,8 +43,8 @@ services:
             RAW_IP_ADDR: "orthanc-raw" # aka. hostname
             DICOM_WEB_PLUGIN_ENABLED: true
         ports:
-            - "4243:4242"
-            - "8043:8042"
+            - "127.0.0.1:4243:4242"
+            - "127.0.0.1:8043:8042"
         networks:
             - pixl-test
         healthcheck:
@@ -67,8 +67,8 @@ services:
             RAW_IP_ADDR: "dicom-web" # aka. hostname
             DICOM_WEB_PLUGIN_ENABLED: true
         ports:
-            - "4244:4242"
-            - "8044:8042"
+            - "127.0.0.1:4244:4242"
+            - "127.0.0.1:8044:8042"
         volumes:
             - ../../test/dicomweb_config/:/run/secrets:ro
         networks:
