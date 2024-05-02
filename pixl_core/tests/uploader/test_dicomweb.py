@@ -93,7 +93,9 @@ def test_upload_dicom_image(
     study_id, run_containers, dicomweb_uploader, not_yet_exported_dicom_image
 ) -> None:
     """Tests that DICOM image can be uploaded to a DICOMWeb server"""
-    dicomweb_uploader._upload_dicom_image(study_id)  # noqa: SLF001
+    dicomweb_uploader._upload_dicom_image(  # noqa: SLF001
+        study_id, not_yet_exported_dicom_image.hashed_identifier, "project"
+    )
 
     # Check that the instance has arrived in the DICOMweb server
     time.sleep(2)
