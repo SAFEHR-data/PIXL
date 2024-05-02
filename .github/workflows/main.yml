@@ -14,257 +14,141 @@
 name: pixl-ci
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-  workflow_dispatch:
+    push:
+        branches:
+            - main
+    pull_request:
+    workflow_dispatch:
 
 # Only run actions on the most recent push to a branch
 concurrency:
-  group: "${{ github.workflow }}-${{ github.head_ref }}"
-  cancel-in-progress: true
+    group: "${{ github.workflow }}-${{ github.head_ref }}"
+    cancel-in-progress: true
 
 jobs:
-  lint:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 5
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    lint:
+        runs-on: ubuntu-22.04
+        timeout-minutes: 5
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
 
-      - name: Run pre-commit
-        uses: pre-commit/action@v3.0.1
-        with:
-          extra_args: --all-files
+            - name: Run pre-commit
+              uses: pre-commit/action@v3.0.1
+              with:
+                  extra_args: --all-files
 
-      - name: Validate Docker Compose config file
-        working-directory: .
-        run: |
-          cp .env.sample .env
-          docker compose config --quiet
+            - name: Validate Docker Compose config file
+              working-directory: .
+              run: |
+                  cp .env.sample .env
+                  docker compose config --quiet
 
-  hasher-tests:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
+    test:
+        runs-on: ubuntu-22.04
+        timeout-minutes: 30
+        strategy:
+            fail-fast: false # run all tests if even if one fails
+            matrix:
+                package_dir: [pixl_core, hasher, pixl_dcmd, cli, pixl_export, pixl_imaging]
 
-      - name: Init Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: "pip"
+        steps:
+            - uses: actions/checkout@v4
 
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e pixl_core
-          pip install hasher/[test]
+            - name: Init Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.11"
+                  cache: "pip"
 
-      - name: Run tests
-        working-directory: hasher
-        run: pytest
-        env:
-          ENV: test
-          AZURE_KEY_VAULT_NAME: test
-          AZURE_KEY_VAULT_SECRET_NAME: test
+            - name: Install Python dependencies
+              run: |
+                  python -m pip install --upgrade pip
+                  pip install -e pytest-pixl/
+                  pip install -e pixl_core/[test]
+                  pip install -e ${{ matrix.package_dir }}/[test]
 
-  core-tests:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
+            - name: Run tests and generate coverage report
+              working-directory: ${{ matrix.package_dir }}
+              run: pytest --cov --cov-report=xml
+              env:
+                  ENV: test
+                  AZURE_KEY_VAULT_NAME: test
+                  AZURE_KEY_VAULT_SECRET_NAME: test
 
-      - name: Init Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: "pip"
+            - name: Upload coverage reports to Codecov
+              uses: codecov/codecov-action@v4.2.0
+              with:
+                  directory: ${{ matrix.package_dir }}
+              env:
+                  CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-      - name: Install Python dependencies
-        run: |
-          pip install pytest-pixl/ pixl_core/[test]
+    system-test:
+        if: ${{ ! github.event.pull_request.draft || contains(github.event.pull_request.title, '[force-system-test]') }}
+        runs-on: ubuntu-22.04
+        timeout-minutes: 30
+        steps:
+            - uses: actions/checkout@v4
+            - uses: docker/setup-buildx-action@v3
+            - name: Init Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.11"
+                  cache: "pip"
 
-      - name: Run tests
-        working-directory: pixl_core/tests
-        run: |
-          pytest
-        env:
-          ENV: test
+            - name: Install Python dependencies
+              # The -e option is required here due to the way the
+              # code determines the export directory. See issue #318.
+              run: |
+                  pip install -e pytest-pixl/
+                  pip install -e pixl_core/[test]
+                  pip install -e cli/[test]
 
-  dicom-de-id-tests:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
+            - name: Create .secrets.env
+              run: touch test/.secrets.env
 
-      - name: Init Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: "pip"
+            - name: Build test services
+              working-directory: test
+              run: |
+                  docker compose build
 
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e pixl_core
-          pip install -e pytest-pixl
-          pip install -e pixl_dcmd[test]
+            - name: Build services
+              run: |
+                  docker compose build
 
-      - name: Run tests
-        working-directory: pixl_dcmd
-        run: |
-          bin/run-tests.sh
-        env:
-          ENV: test
+            - name: Run tests
+              working-directory: test
+              env:
+                  EXPORT_AZ_CLIENT_ID: ${{ secrets.EXPORT_AZ_CLIENT_ID }}
+                  EXPORT_AZ_CLIENT_PASSWORD: ${{ secrets.EXPORT_AZ_CLIENT_PASSWORD }}
+                  EXPORT_AZ_TENANT_ID: ${{ secrets.EXPORT_AZ_TENANT_ID }}
+                  EXPORT_AZ_KEY_VAULT_NAME: ${{ secrets.EXPORT_AZ_KEY_VAULT_NAME }}
+                  HASHER_API_AZ_CLIENT_ID: ${{ secrets.EXPORT_AZ_CLIENT_ID }}
+                  HASHER_API_AZ_CLIENT_PASSWORD: ${{ secrets.EXPORT_AZ_CLIENT_PASSWORD }}
+                  HASHER_API_AZ_TENANT_ID: ${{ secrets.EXPORT_AZ_TENANT_ID }}
+                  HASHER_API_AZ_KEY_VAULT_NAME: ${{ secrets.EXPORT_AZ_KEY_VAULT_NAME }}
+              run: |
+                  ./run-system-test.sh coverage
+                  echo FINISHED SYSTEM TEST SCRIPT
 
-  cli-tests:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
+            - name: Dump export-api docker logs for debugging
+              if: ${{ failure() }}
+              run: |
+                  docker logs -t system-test-export-api-1 2>&1
 
-      - name: Init Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: "pip"
+            - name: Dump orthanc-anon docker logs for debugging
+              if: ${{ failure() }}
+              run: |
+                  docker logs -t system-test-orthanc-anon-1 2>&1
 
-      - name: Install Python dependencies
-        run: |
-          pip install -e pixl_core/
-          pip install -e pytest-pixl/
-          pip install -e cli/[test]
+            - name: Dump imaging-api docker logs for debugging
+              if: ${{ failure() }}
+              run: |
+                  docker logs -t system-test-imaging-api-1 2>&1
 
-      - name: Run tests
-        working-directory: cli/tests
-        run: |
-          pytest
-
-  export-api-tests:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-      - name: Init Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: "pip"
-
-      - name: Install Python dependencies
-        run: |
-          pip install pytest-pixl/ pixl_core/ pixl_export/[test]
-
-      - name: Run tests
-        working-directory: pixl_export/tests
-        run: |
-          pytest
-
-  imaging-api-tests:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - name: Init Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: "pip"
-
-      - name: Install Python dependencies
-        run: |
-          pip install pixl_core/ pixl_imaging/[test] pytest-pixl/
-
-      - name: Run tests
-        working-directory: pixl_imaging/tests
-        run: |
-          pytest
-
-  system-test:
-    if: ${{ ! github.event.pull_request.draft || contains(github.event.pull_request.title, '[force-system-test]') }}
-    runs-on: ubuntu-22.04
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      # pre-build and cache the orthanc-anon image: installing python3 takes a while, doesn't push
-      - name: Cache Docker layers
-        uses: actions/cache@v4
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.ref }}-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-${{ github.ref }}-
-            ${{ runner.os }}-buildx-
-          save-always: true
-      - uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: docker/orthanc-anon/Dockerfile
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
-      - # Temp fix
-        # https://github.com/docker/build-push-action/issues/252
-        # https://github.com/moby/buildkit/issues/1896
-        name: Move cache
-        run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-
-      - name: Init Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: "pip"
-
-      - name: Install Python dependencies
-        # The -e option is required here due to the way the
-        # code determines the export directory. See issue #318.
-        run: |
-          pip install -e pixl_core/
-          pip install -e pytest-pixl/
-          pip install -e cli/[test]
-
-      - name: Create .secrets.env
-        run: touch test/.secrets.env
-
-      - name: Build test services
-        working-directory: test
-        run: |
-          docker compose build
-
-      - name: Build services
-        run: |
-          docker compose build
-
-      - name: Run tests
-        working-directory: test
-        env:
-          EXPORT_AZ_CLIENT_ID: ${{ secrets.EXPORT_AZ_CLIENT_ID }}
-          EXPORT_AZ_CLIENT_PASSWORD: ${{ secrets.EXPORT_AZ_CLIENT_PASSWORD }}
-          EXPORT_AZ_TENANT_ID: ${{ secrets.EXPORT_AZ_TENANT_ID }}
-          EXPORT_AZ_KEY_VAULT_NAME: ${{ secrets.EXPORT_AZ_KEY_VAULT_NAME }}
-          HASHER_API_AZ_CLIENT_ID: ${{ secrets.EXPORT_AZ_CLIENT_ID }}
-          HASHER_API_AZ_CLIENT_PASSWORD: ${{ secrets.EXPORT_AZ_CLIENT_PASSWORD }}
-          HASHER_API_AZ_TENANT_ID: ${{ secrets.EXPORT_AZ_TENANT_ID }}
-          HASHER_API_AZ_KEY_VAULT_NAME: ${{ secrets.EXPORT_AZ_KEY_VAULT_NAME }}
-        run: |
-          ./run-system-test.sh
-          echo FINISHED SYSTEM TEST SCRIPT
-
-      - name: Dump export-api docker logs for debugging
-        if: ${{ failure() }}
-        run: |
-          docker logs -t system-test-export-api-1 2>&1
-
-      - name: Dump orthanc-anon docker logs for debugging
-        if: ${{ failure() }}
-        run: |
-          docker logs -t system-test-orthanc-anon-1 2>&1
-
-      - name: Dump imaging-api docker logs for debugging
-        if: ${{ failure() }}
-        run: |
-          docker logs -t system-test-imaging-api-1 2>&1
+            - name: Upload coverage reports to Codecov
+              uses: codecov/codecov-action@v4.2.0
+              with:
+                directory: test
+              env:
+                CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

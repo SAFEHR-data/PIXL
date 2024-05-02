@@ -53,13 +53,9 @@ PIXL_DB_PASSWORD=pixl_db_password
 PIXL_DB_NAME=pixl
 ```
 
-The `rabbitmq` queues for the `ehr` and `imaging` APIs are configured by setting:
+The `rabbitmq` queues for the `imaging` API is configured by setting:
 
 ```sh
-PIXL_EXPORT_API_HOST=localhost
-PIXL_EXPORT_API_PORT=7006
-PIXL_EXPORT_API_RATE=1
-
 PIXL_IMAGING_API_HOST=localhost
 PIXL_IMAGING_API_PORT=7007
 PIXL_IMAGING_API_RATE=1
@@ -99,7 +95,7 @@ exported to a `parquet file` using
 pixl export-patient-data </path/to/parquet_dir>
 ```
 
-Stop Imaging and EHR database extraction
+Stop Imaging extraction
 
 ```bash
 pixl stop
@@ -126,7 +122,7 @@ Commands:
   populate                   Populate a (set of) queue(s) from a parquet...
   start                      Start consumers for a set of queues
   status                     Get the status of the PIXL consumers
-  stop                       Stop extracting images and/or EHR data.
+  stop                       Stop extracting data
   update                     Update one or a list of consumers with a...
 ```
 

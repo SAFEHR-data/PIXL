@@ -13,7 +13,7 @@
 #  limitations under the License.
 """
 Implements the secure hashing component as a FastAPI application, to be consumed by
-the DICOM, EHR & report de-identification components.
+the imaging components.
 
 The app has a /hash endpoint which expects a message. It uses the Blake2 algorithm to
 generate a 64-charcter digest in keyed hashing mode from the message.

@@ -1,13 +1,13 @@
 # Core
 
-This module contains the core PIXL functionality utilised by both the EHR and Imaging APIs to
+This module contains the core PIXL functionality utilised by both the Imaging API to
 interact with the RabbitMQ messaging queues and ensure suitable rate limiting of requests to the
 upstream services.
 
 Specifically, it defines:
 
 - The [Token buffer](#token-buffer) for rate limiting requests to the upstream services
-- The [RabbitMQ queue](#patient-queue) implementation shared by the EHR and Imaging APIs
+- The [RabbitMQ queue](#patient-queue) implementation shared by the Imaging API and any other APIs
 - The PIXL `postgres` internal database for storing exported images and extracts from the messages
   processed by the CLI driver
 - The [`ParquetExport`](./src/core/exports.py) class for exporting OMOP and EMAP extracts to
@@ -41,10 +41,9 @@ the token buffer is not set up as a service as it is only needed for the image d
 ## Patient queue
 
 We use [RabbitMQ](https://www.rabbitmq.com/) as a message broker to transfer messages between the
-different PIXL services. Currently, we define two queues:
+different PIXL services. Currently, we define one queue:
 
 1. `imaging` for downloading and de-identifying images
-2. `ehr` for downloading and de-identifying the EHR data
 
 The image anonymisation will be triggered automatically once the image has been downloaded to the
 raw Orthanc server.
@@ -150,7 +149,7 @@ to implement this.
 
 The configuration for the DICOMweb server is controlled by the following environment variables and secrets:
 
-- `"ORTHANC_URL"`: The URL of the Orthanc server from _where_ the upload will happen, this will typically be the `orthanc-anon` instance
+- `"ORTHANC_ANON_URL"`: The URL of the Orthanc server from _where_ the upload will happen, this will typically be the `orthanc-anon` instance
 - The `"<project_slug>--dicomweb--username"` and `"<project_slug>--dicomweb--password"` for authentication, which are fetched from the [Azure Keyvault](../docs/setup/azure-keyvault.md)
 - The `"<project_slug>--dicomweb--url"` to define the DICOMweb endpoint in Orthanc, also fetched from the Azure Keyvault
 

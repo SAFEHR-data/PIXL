@@ -18,14 +18,12 @@ import os
 import pathlib
 import shlex
 from pathlib import Path
-from typing import TYPE_CHECKING, BinaryIO
+from typing import TYPE_CHECKING
 
 import pytest
 import requests
 from core.db.models import Base, Extract, Image
-from core.uploader._ftps import FTPSUploader
 from pytest_pixl.helpers import run_subprocess
-from pytest_pixl.plugin import FtpHostAddress
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -50,12 +48,9 @@ os.environ["FTP_USER_NAME"] = "pixl"
 os.environ["FTP_PASSWORD"] = "longpassword"  # noqa: S105 Hardcoding password
 os.environ["FTP_PORT"] = "20021"
 
-os.environ["ORTHANC_URL"] = "http://localhost:8043"
-os.environ["ORTHANC_USERNAME"] = "orthanc"
-os.environ["ORTHANC_PASSWORD"] = "orthanc"  # noqa: S105, hardcoded password
-os.environ["DICOM_ENDPOINT_NAME"] = "test"
-# Endpoint for DICOMWeb server as seen from within Orthanc
-os.environ["DICOM_ENDPOINT_URL"] = "http://localhost:8042/dicom-web/"
+os.environ["ORTHANC_ANON_URL"] = "http://localhost:8043"
+os.environ["ORTHANC_ANON_USERNAME"] = "orthanc"
+os.environ["ORTHANC_ANON_PASSWORD"] = "orthanc"  # noqa: S105, hardcoded password
 
 
 @pytest.fixture(scope="package")
@@ -67,7 +62,7 @@ def run_containers() -> Generator[subprocess.CompletedProcess[bytes], None, None
         timeout=60,
     )
     yield run_subprocess(
-        shlex.split("docker compose up --build --wait"),
+        shlex.split("docker compose up --build --wait --remove-orphans"),
         TEST_DIR,
         timeout=60,
     )
@@ -79,84 +74,21 @@ def run_containers() -> Generator[subprocess.CompletedProcess[bytes], None, None
 
 
 @pytest.fixture(scope="package")
-def run_dicomweb_containers() -> Generator[subprocess.CompletedProcess[bytes], None, None]:
-    """
-    Spins up 2 Orthanc containers, one that acts as the base storage, mimicking our orthanc-anon
-    or orthanc-raw servers, and the other one as a DICOMweb server to upload DICOM files to.
-    """
-    run_subprocess(
-        shlex.split("docker compose down --volumes"),
-        TEST_DIR,
-        timeout=60,
-    )
-    yield run_subprocess(
-        shlex.split("docker compose -f docker-compose.dicomweb.yml up --build --wait"),
-        TEST_DIR,
-        timeout=60,
-    )
-    run_subprocess(
-        shlex.split("docker compose down --volumes"),
-        TEST_DIR,
-        timeout=60,
-    )
-
-
-@pytest.fixture(scope="package")
-def study_id(run_dicomweb_containers) -> str:
+def study_id(run_containers) -> str:
     """Uploads a DICOM file to the Orthanc server and returns the study ID."""
     DCM_FILE = Path(__file__).parents[2] / "test" / "resources" / "Dicom1.dcm"
-    ORTHANC_URL = os.environ["ORTHANC_URL"]
+    ORTHANC_ANON_URL = os.environ["ORTHANC_ANON_URL"]
 
     headers = {"content-type": "application/dicom"}
     data = DCM_FILE.read_bytes()
     response = requests.post(
-        f"{ORTHANC_URL}/instances",
+        f"{ORTHANC_ANON_URL}/instances",
         data=data,
         headers=headers,
-        auth=(os.environ["ORTHANC_USERNAME"], os.environ["ORTHANC_PASSWORD"]),
+        auth=(os.environ["ORTHANC_ANON_USERNAME"], os.environ["ORTHANC_ANON_PASSWORD"]),
         timeout=60,
     )
     return response.json()["ParentStudy"]
-
-
-class MockFTPSUploader(FTPSUploader):
-    """Mock FTPSUploader for testing."""
-
-    def __init__(self) -> None:
-        """Initialise the mock uploader with hardcoded values for FTPS config."""
-        self.host = os.environ["FTP_HOST"]
-        self.user = os.environ["FTP_USER_NAME"]
-        self.password = os.environ["FTP_PASSWORD"]
-        self.port = int(os.environ["FTP_PORT"])
-
-
-@pytest.fixture()
-def ftps_uploader() -> MockFTPSUploader:
-    """Return a MockFTPSUploader object."""
-    return MockFTPSUploader()
-
-
-@pytest.fixture()
-def ftps_home_dir(ftps_server) -> Path:
-    """
-    Return the FTPS server home directory, the ftps_server fixture already uses
-    pytest.tmp_path_factory, so no need to clean up.
-    """
-    return Path(ftps_server.home_dir)
-
-
-@pytest.fixture(scope="session")
-def ftp_host_address():
-    """Run FTP on localhost - no docker containers need to access it"""
-    return FtpHostAddress.LOCALHOST
-
-
-@pytest.fixture()
-def test_zip_content() -> BinaryIO:
-    """Directory containing the test data for uploading to the ftp server."""
-    test_zip_file = TEST_DIR / "data" / "public.zip"
-    with test_zip_file.open("rb") as file_content:
-        yield file_content
 
 
 @pytest.fixture(scope="module")
@@ -170,7 +102,7 @@ def monkeymodule():
 
 
 @pytest.fixture(autouse=True, scope="module")
-def db_engine(monkeymodule) -> Engine:
+def db_engine(monkeymodule) -> Generator[Engine, None, None]:
     """
     Patches the database engine with an in memory database
 
@@ -193,7 +125,7 @@ def db_engine(monkeymodule) -> Engine:
 
 
 @pytest.fixture()
-def db_session(db_engine) -> Session:
+def db_session(db_engine) -> Generator[Session, None, None]:
     """
     Creates a session for interacting with an in memory database.
 

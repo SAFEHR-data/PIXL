@@ -52,7 +52,9 @@ def get_tags_by_study(study_id: str) -> tuple[str, str]:
 def _query_orthanc_anon(resourceId: str, query: str, fail_msg: str) -> requests.Response:
     try:
         response = requests.get(
-            query, auth=(ORTHANC_ANON_USERNAME, ORTHANC_ANON_PASSWORD), timeout=10
+            query,
+            auth=(config("ORTHANC_ANON_USERNAME"), config("ORTHANC_ANON_PASSWORD")),
+            timeout=10,
         )
         response.raise_for_status()
     except requests.exceptions.RequestException:
@@ -62,6 +64,4 @@ def _query_orthanc_anon(resourceId: str, query: str, fail_msg: str) -> requests.
         return response
 
 
-ORTHANC_ANON_USERNAME = config("ORTHANC_ANON_USERNAME")
-ORTHANC_ANON_PASSWORD = config("ORTHANC_ANON_PASSWORD")
 ORTHANC_ANON_URL = "http://orthanc-anon:8042"
