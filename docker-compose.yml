@@ -244,7 +244,7 @@ services:
             retries: 3
         ports:
             - "127.0.0.1:${RABBITMQ_PORT}:5672"
-            - "127.0.0.1:${RABBITMQ_ADMIN_PORT}:15672"
+            - "${RABBITMQ_ADMIN_PORT}:15672"
         networks:
             - pixl-net
         volumes:
