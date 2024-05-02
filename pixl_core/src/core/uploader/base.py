@@ -52,6 +52,7 @@ class Uploader(ABC):
         """
         Upload the DICOM data, updating the database with an export datetime.
         Child classes implement how to upload a dicom image, this is a template method
+        that ensures that the database interaction is always implemented
         :param study_id: Orthanc Study ID
         :raise: if the image has already been exported
         """
@@ -79,12 +80,14 @@ class Uploader(ABC):
         NotImplementedError.
         """
 
-    def check_already_exported(self, pseudo_anon_image_id: str) -> None:
+    @staticmethod
+    def check_already_exported(pseudo_anon_image_id: str) -> None:
         """Check if the image has already been exported."""
         if have_already_exported_image(pseudo_anon_image_id):
             msg = "Image already exported"
             raise RuntimeError(msg)
 
-    def _get_tags_by_study(self, study_id: str) -> tuple[str, str]:
+    @staticmethod
+    def _get_tags_by_study(study_id: str) -> tuple[str, str]:
         """Helper method for getting tags by study ID, can be overriden for testing."""
         return get_tags_by_study(study_id)
