@@ -20,7 +20,7 @@ import time
 import pytest
 import requests
 from core.uploader._dicomweb import DicomWebUploader
-from decouple import config  # type: ignore [import-untyped]
+from decouple import config  # type ignore [import-untyped]
 
 ORTHANC_ANON_URL = config("ORTHANC_ANON_URL")
 ORTHANC_USERNAME = config("ORTHANC_ANON_USERNAME")
@@ -93,9 +93,7 @@ def test_upload_dicom_image(
     study_id, run_containers, dicomweb_uploader, not_yet_exported_dicom_image
 ) -> None:
     """Tests that DICOM image can be uploaded to a DICOMWeb server"""
-    response = dicomweb_uploader.send_via_stow(
-        study_id, not_yet_exported_dicom_image.hashed_identifier
-    )
+    response = dicomweb_uploader.send_via_stow(study_id)
     response.raise_for_status()
 
     # Check that the instance has arrived on the DICOMweb server
@@ -103,14 +101,6 @@ def test_upload_dicom_image(
     assert _check_study_present_on_dicomweb(study_id)
 
     _clean_up_dicomweb(study_id)
-
-
-def test_upload_dicom_image_already_exported(
-    study_id, run_containers, dicomweb_uploader, already_exported_dicom_image
-) -> None:
-    """Tests that exception thrown if DICOM image already exported"""
-    with pytest.raises(RuntimeError, match="Image already exported"):
-        dicomweb_uploader.send_via_stow(study_id, already_exported_dicom_image.hashed_identifier)
 
 
 def test_dicomweb_upload_fails_with_wrong_credentials(

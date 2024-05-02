@@ -55,7 +55,7 @@ class Uploader(ABC):
         :param study_id: Orthanc Study ID
         :raise: if the image has already been exported
         """
-        pseudo_anon_image_id, project_slug = get_tags_by_study(study_id)
+        pseudo_anon_image_id, project_slug = self._get_tags_by_study(study_id)
         self.check_already_exported(pseudo_anon_image_id)
         self._upload_dicom_image(study_id, pseudo_anon_image_id, project_slug)
         update_exported_at(pseudo_anon_image_id, datetime.now(tz=timezone.utc))
@@ -84,3 +84,7 @@ class Uploader(ABC):
         if have_already_exported_image(pseudo_anon_image_id):
             msg = "Image already exported"
             raise RuntimeError(msg)
+
+    def _get_tags_by_study(self, study_id: str) -> tuple[str, str]:
+        """Helper method for getting tags by study ID, can be overriden for testing."""
+        return get_tags_by_study(study_id)
