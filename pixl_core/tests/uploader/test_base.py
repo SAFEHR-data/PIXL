@@ -48,11 +48,11 @@ class DumbUploader(Uploader):
 
     def _set_config(self) -> None:
         """Required from ABC."""
-        logger.info("Mocked set config ran")
+        raise NotImplementedError
 
     def upload_parquet_files(self) -> None:
         """Required from ABC."""
-        logger.info("Mocked upload parquet files ran")
+        raise NotImplementedError
 
 
 def test_export_date_updated(db_engine, not_yet_exported_dicom_image) -> None:
@@ -101,5 +101,5 @@ def test_study_already_exported_raises(already_exported_dicom_image) -> None:
     study_id = "test-study-id"
     uploader = DumbUploader(already_exported_dicom_image.hashed_identifier)
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(RuntimeError, match="Image already exported"):
         uploader.upload_dicom_and_update_database(study_id)
