@@ -354,7 +354,7 @@ services:
               source: postgres-data
               target: /var/lib/postgresql/data
         ports:
-            - "127.0.0.1:${POSTGRES_PORT}:5432"
+            - "${POSTGRES_PORT}:5432"
         healthcheck:
             test: ["CMD", "pg_isready", "-U", "${PIXL_DB_USER}"]
             interval: 10s
