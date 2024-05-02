@@ -94,7 +94,7 @@ def test_upload_dicom_image(
 ) -> None:
     """Tests that DICOM image can be uploaded to a DICOMWeb server"""
     response = dicomweb_uploader.send_via_stow(
-        study_id, not_yet_exported_dicom_image.hashed_identifier
+        study_id, not_yet_exported_dicom_image.pseudo_study_uid
     )
     response.raise_for_status()
 
@@ -110,7 +110,7 @@ def test_upload_dicom_image_already_exported(
 ) -> None:
     """Tests that exception thrown if DICOM image already exported"""
     with pytest.raises(RuntimeError, match="Image already exported"):
-        dicomweb_uploader.send_via_stow(study_id, already_exported_dicom_image.hashed_identifier)
+        dicomweb_uploader.send_via_stow(study_id, already_exported_dicom_image.pseudo_study_uid)
 
 
 def test_dicomweb_upload_fails_with_wrong_credentials(
