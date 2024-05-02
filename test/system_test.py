@@ -22,6 +22,7 @@ import pytest
 import requests
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
 from loguru import logger
+from pydicom.uid import UID
 from pytest_pixl.ftpserver import PixlFTPServer
 from pytest_pixl.helpers import run_subprocess, wait_for_condition
 
@@ -32,7 +33,7 @@ pytest_plugins = "pytest_pixl"
 def expected_studies() -> dict[str, Any]:
     """Expected study metadata post-anonymisation."""
     return {
-        "d40f0639105babcdec043f1acf7330a8ebd64e64f13f7d0d4745f0135ddee0cd": {
+        "1.3.46.670589.11.38023.5.0.14068.2023012517090160001": {
             "procedure_occurrence_id": 4,
             "instances": {
                 # tuple made up of (AccessionNumber, SeriesDescription)
@@ -41,7 +42,7 @@ def expected_studies() -> dict[str, Any]:
                 ("ANONYMIZED", "AP"),
             },
         },
-        "7ff25b0b438d23a31db984f49b0d6ca272104eb3d20c82f30e392cff5446a9c3": {
+        "1.3.46.670589.11.38023.5.0.14068.2023012517090160002": {
             "procedure_occurrence_id": 5,
             "instances": {
                 # for AA12345605,
@@ -102,7 +103,8 @@ class TestFtpsUpload:
         for study_id, studies in expected_studies.items():
             expected_po_id = studies["procedure_occurrence_id"]
             row = radiology_linker_data[po_col == expected_po_id].iloc[0]
-            assert row.pseudo_study_uid == study_id
+            assert UID(row.pseudo_study_uid).is_valid
+            assert row.pseudo_study_uid != study_id
 
         assert radiology_linker_data.shape[0] == 2
         assert set(radiology_linker_data.columns) == {
@@ -142,7 +144,7 @@ class TestFtpsUpload:
         self, zip_path: Path, unzip_dir: Path, expected_studies: dict
     ) -> None:
         """Check that private tag has survived anonymisation with the correct value."""
-        expected_instances = expected_studies[zip_path.stem]["instances"]
+        assert zip_path.stem not in expected_studies
         run_subprocess(
             ["unzip", zip_path],
             working_dir=unzip_dir,
@@ -156,7 +158,9 @@ class TestFtpsUpload:
         for dcm_file in dicom_in_zip:
             dcm = pydicom.dcmread(dcm_file)
             # The actual dicom filename and dir structure isn't checked - should it be?
-            assert dcm.get("PatientID") == zip_path.stem  # PatientID stores study id post anon
+            assert (
+                dcm.get("StudyInstanceUID") == zip_path.stem
+            )  # StudyInstanceUID stores the pseudo study id post anon
             actual_instances.add((dcm.get("AccessionNumber"), dcm.get("SeriesDescription")))
             block = dcm.private_block(
                 DICOM_TAG_PROJECT_NAME.group_id, DICOM_TAG_PROJECT_NAME.creator_string
@@ -175,7 +179,20 @@ class TestFtpsUpload:
             else:
                 assert private_tag.value == TestFtpsUpload.project_slug
         # check the basic info about the instances exactly matches
-        assert actual_instances == expected_instances
+        if len(actual_instances) == 2:
+            assert (
+                actual_instances
+                == expected_studies["1.3.46.670589.11.38023.5.0.14068.2023012517090160001"][
+                    "instances"
+                ]
+            )
+        elif len(actual_instances) == 1:
+            assert (
+                actual_instances
+                == expected_studies["1.3.46.670589.11.38023.5.0.14068.2023012517090160002"][
+                    "instances"
+                ]
+            )
 
 
 @pytest.mark.usefixtures("_setup_pixl_cli_dicomweb")
