@@ -17,6 +17,18 @@ volumes:
     orthanc-raw-data:
     vna-qr-data:
 
+x-orthanc-healthcheck: &orthanc-healthcheck
+    healthcheck:
+        test:
+          [
+              "CMD-SHELL",
+              "/probes/test-aliveness.py --user=$ORTHANC_USERNAME --pwd=$ORTHANC_PASSWORD",
+          ]
+        start_period: 10s
+        retries: 10
+        interval: 3s
+        timeout: 2s
+
 services:
     vna-qr:
         image: orthancteam/orthanc:24.3.3
@@ -33,6 +45,7 @@ services:
             - "127.0.0.1:8043:8042"
         volumes:
             - ../../test/vna_config/:/run/secrets:ro
+        <<: *orthanc-healthcheck
 
     orthanc-raw:
         build:
@@ -57,3 +70,4 @@ services:
         volumes:
             # Overriding config for the test
             - ./orthanc_raw_config/:/run/secrets:ro
+        <<: *orthanc-healthcheck
