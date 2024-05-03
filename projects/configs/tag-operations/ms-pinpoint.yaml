@@ -1,4 +1,4 @@
-#  Copyright (c) 2022 University College London Hospitals NHS Foundation Trust
+#  Copyright (c) University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -12,22 +12,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-project:
-    name: "test-extract-uclh-omop-cdm"
-    azure_kv_alias: "test"
-    modalities: ["DX", "CR"]
-
-tag_operation_files:
-    base:
-        - "test-extract-uclh-omop-cdm.yaml"
-    manufacturer_overrides: "manufacturer-overrides/mri-diffusion.yaml"
-
-series_filters:
-    - "localizer"
-    - "localiser"
-    - "scout"
-    - "positioning"
-
-destination:
-    dicom: "ftps"
-    parquet: "ftps"
+# Specific tag operations for ms-pinpoint project
+- name: "Acquisition Date"
+  group: 0x0008
+  element: 0x0022
+  op: "keep"

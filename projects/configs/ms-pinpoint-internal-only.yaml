@@ -13,14 +13,14 @@
 #  limitations under the License.
 
 project:
-    name: "test-extract-uclh-omop-cdm"
-    azure_kv_alias: "test"
-    modalities: ["DX", "CR"]
+    name: "ms-pinpoint-internal-only"
+    modalities: ["MR"]
 
 tag_operation_files:
     base:
-        - "test-extract-uclh-omop-cdm.yaml"
-    manufacturer_overrides: "manufacturer-overrides/mri-diffusion.yaml"
+        - "mri.yaml"
+        - "ms-pinpoint.yaml"
+    manufacturer_overrides: null
 
 series_filters:
     - "localizer"
@@ -29,5 +29,5 @@ series_filters:
     - "positioning"
 
 destination:
-    dicom: "ftps"
-    parquet: "ftps"
+    dicom: "dicomweb"
+    parquet: "none"

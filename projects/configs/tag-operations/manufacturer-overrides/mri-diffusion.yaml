@@ -13,27 +13,41 @@
 #  limitations under the License.
 
 # Example tags obtained from https://github.com/rordenlab/dcm2niix/blob/master/Philips/README.md#diffusion-direction
-- manufacturer: "Philips"
+- manufacturer: ^philips
   tags:
-      - group: 0x2001
-        element: 0x1003
-        op: "keep"
-      - group: 0x2005
-        element: 0x10b0
-        op: "keep"
-      - group: 0x2005
-        element: 0x10b1
-        op: "keep"
-      - group: 0x2005
-        element: 0x10b2
-        op: "keep"
+    - group: 0x2001
+      element: 0x1003
+      op: "keep"
+    - name: "ScaleSlope" # may need to have this for all MRs rather than just DW?
+      group: 0x2005
+      element: 0x100e
+      op: "keep"
+    - group: 0x2005
+      element: 0x10b0
+      op: "keep"
+    - group: 0x2005
+      element: 0x10b1
+      op: "keep"
+    - group: 0x2005
+      element: 0x10b2
+      op: "keep"
 
 # Example tags obtained from https://github.com/rordenlab/dcm2niix/blob/master/Siemens/README.md#siemens-x-series
-- manufacturer: "Siemens"
+- manufacturer: ^siemens
   tags:
-      - group: 0x0019
-        element: 0x100c
-        op: "keep"
-      - group: 0x0019
-        element: 0x100e
-        op: "keep"
+    - name: "SiemensDiffusionBValue"
+      group: 0x0019
+      element: 0x100c
+      op: "keep"
+    - name: "SiemensDiffusionGradientOrientation"
+      group: 0x0019
+      element: 0x100e
+      op: "keep"
+    - name: "CSA Image Header Info"
+      group: 0x0029
+      element: 0x1010
+      op: "keep"
+    - name: "CSA Series Header Info"
+      group: 0x0029
+      element: 0x1020
+      op: "keep"
