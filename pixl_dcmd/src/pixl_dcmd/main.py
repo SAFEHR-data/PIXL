@@ -25,7 +25,6 @@ import requests
 from core.project_config import load_tag_operations
 from decouple import config
 from pydicom import DataElement, Dataset, dcmwrite
-from pydicom.uid import generate_uid
 from dicomanonymizer.simpledicomanonymizer import (
     actions_map_name_functions,
     anonymize_dataset,
@@ -33,11 +32,7 @@ from dicomanonymizer.simpledicomanonymizer import (
 
 from pixl_dcmd._dicom_helpers import get_project_name_as_string
 from pixl_dcmd._tag_schemes import merge_tag_schemes, _scheme_list_to_dict
-from pixl_dcmd._database import (
-    add_pseudo_study_uid_to_db,
-    is_unique_pseudo_study_uid,
-    query_db,
-)
+from pixl_dcmd._database import get_uniq_pseudo_study_uid_and_update_db
 
 DicomDataSetType = Union[Union[str, bytes, PathLike[Any]], BinaryIO]
 
@@ -118,16 +113,10 @@ def _anonymise_dicom_from_scheme(
     accession_number = dataset[0x0008, 0x0050].value  # Accession Number
     _anonymise_recursively(dataset, tag_actions)
 
-    # Query PIXL database
-    existing_image = query_db(project_slug, mrn, accession_number)
-    pseudo_study_id = dataset[0x0020, 0x000D].value
-
-    # Ensure the pseudo_study_uid is unique
-    while not is_unique_pseudo_study_uid(pseudo_study_id, project_slug):
-        pseudo_study_id = generate_uid()
-    dataset[0x0020, 0x000D].value = pseudo_study_id
-    # Insert the new Study UID into the PIXL database
-    add_pseudo_study_uid_to_db(existing_image, pseudo_study_id)
+    # Update the dataset with the new pseudo study ID
+    dataset[0x0020, 0x000D].value = get_uniq_pseudo_study_uid_and_update_db(
+        project_slug, mrn, accession_number
+    )
 
 
 def _anonymise_recursively(
