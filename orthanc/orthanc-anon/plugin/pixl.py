@@ -221,6 +221,9 @@ def ReceivedInstanceCallback(receivedDicom: bytes, origin: str) -> Any:
     elif origin == orthanc.InstanceOrigin.DICOM_PROTOCOL:
         orthanc.LogWarning("DICOM instance received from the DICOM protocol")
 
+    # It's important that as much code in this handler as possible is inside this "try" block.
+    # This ensures we discard the image if anything goes wrong in the anonymisation process.
+    # If the handler raises an exception the pre-anon image will be kept.
     try:
         return _process_dicom_instance(receivedDicom)
     except Exception:  # noqa: BLE001
