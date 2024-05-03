@@ -21,6 +21,7 @@ from typing import Any, Optional
 
 from core.db.queries import have_already_exported_image, update_exported_at
 from core.project_config.secrets import AzureKeyVault
+from core.uploader._orthanc import get_tags_by_study
 
 
 class Uploader(ABC):
@@ -47,10 +48,26 @@ class Uploader(ABC):
     def _set_config(self) -> None:
         """Set the configuration for the uploader."""
 
-    @abstractmethod
-    def upload_dicom_image(self, study_id: str) -> None:
+    def upload_dicom_and_update_database(self, study_id: str) -> None:
         """
-        Abstract method to upload DICOM images. To be overwritten by child classes.
+        Upload the DICOM data, updating the database with an export datetime.
+        Child classes implement how to upload a dicom image, this is a template method
+        that ensures that the database interaction is always implemented
+        :param study_id: Orthanc Study ID
+        :raise: if the image has already been exported
+        """
+        pseudo_anon_image_id, project_slug = self._get_tags_by_study(study_id)
+        self.check_already_exported(pseudo_anon_image_id)
+        self._upload_dicom_image(study_id, pseudo_anon_image_id, project_slug)
+        update_exported_at(pseudo_anon_image_id, datetime.now(tz=timezone.utc))
+
+    @abstractmethod
+    def _upload_dicom_image(
+        self, study_id: str, pseudo_anon_image_id: str, project_slug: str
+    ) -> None:
+        """
+        Abstract method to upload DICOM images, should not be called directly.
+        To be overwritten by child classes.
         If an upload strategy does not support DICOM images, this method should raise a
         NotImplementedError.
         """
@@ -63,12 +80,14 @@ class Uploader(ABC):
         NotImplementedError.
         """
 
-    def check_already_exported(self, pseudo_anon_image_id: str) -> None:
+    @staticmethod
+    def check_already_exported(pseudo_anon_image_id: str) -> None:
         """Check if the image has already been exported."""
         if have_already_exported_image(pseudo_anon_image_id):
             msg = "Image already exported"
             raise RuntimeError(msg)
 
-    def update_exported_timestamp(self, pseudo_anon_image_id: str) -> None:
-        """Update the exported_at timestamp in the PIXL database for the given image."""
-        update_exported_at(pseudo_anon_image_id, datetime.now(tz=timezone.utc))
+    @staticmethod
+    def _get_tags_by_study(study_id: str) -> tuple[str, str]:
+        """Helper method for getting tags by study ID, can be overriden for testing."""
+        return get_tags_by_study(study_id)

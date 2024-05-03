@@ -175,7 +175,7 @@ def should_auto_route() -> bool:
     Checks whether ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT environment variable is
     set to true or false
     """
-    logger.debug("Checking value of autoroute")
+    logger.trace("Checking value of autoroute")
     return os.environ.get("ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT", "false").lower() == "true"
 
 
@@ -221,6 +221,17 @@ def ReceivedInstanceCallback(receivedDicom: bytes, origin: str) -> Any:
     elif origin == orthanc.InstanceOrigin.DICOM_PROTOCOL:
         orthanc.LogWarning("DICOM instance received from the DICOM protocol")
 
+    # It's important that as much code in this handler as possible is inside this "try" block.
+    # This ensures we discard the image if anything goes wrong in the anonymisation process.
+    # If the handler raises an exception the pre-anon image will be kept.
+    try:
+        return _process_dicom_instance(receivedDicom)
+    except Exception:  # noqa: BLE001
+        orthanc.LogError("Failed to anonymize instance due to\n" + traceback.format_exc())
+        return orthanc.ReceivedInstanceAction.DISCARD, None
+
+
+def _process_dicom_instance(receivedDicom: bytes) -> tuple[orthanc.ReceivedInstanceAction, None]:
     # Read the bytes as DICOM/
     dataset = dcmread(BytesIO(receivedDicom))
 
@@ -236,9 +247,6 @@ def ReceivedInstanceCallback(receivedDicom: bytes, origin: str) -> Any:
         return orthanc.ReceivedInstanceAction.MODIFY, write_dataset_to_bytes(dataset)
     except PixlDiscardError as error:
         logger.debug("Skipping instance: {}", error)
-        return orthanc.ReceivedInstanceAction.DISCARD, None
-    except Exception:  # noqa: BLE001
-        orthanc.LogError("Failed to anonymize instance due to\n" + traceback.format_exc())
         return orthanc.ReceivedInstanceAction.DISCARD, None
 
 
