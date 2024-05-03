@@ -24,6 +24,7 @@ import sqlalchemy
 from decouple import config
 from pydicom.data import get_testdata_file
 from pydicom.dataset import Dataset
+from pydicom.uid import UID
 
 from core.db.models import Image
 from core.dicom_tags import (
@@ -209,12 +210,12 @@ def test_pseudo_identifier_processing(rows_in_session, monkeypatch):
         i = 1
 
         @classmethod
-        def fake_uid(cls, x):
+        def fake_uid(cls):
             uid = f"2.25.{cls.i}"
             cls.i += 1
-            return uid
+            return UID(uid)
 
-    monkeypatch.setattr("pydicom.uid.generate_uid", FakeUID.fake_uid)
+    monkeypatch.setattr("pixl_dcmd._database.generate_uid", FakeUID.fake_uid)
     other_image = (
         rows_in_session.query(Image)
         .filter(Image.accession_number == "AA12345601")
@@ -236,7 +237,7 @@ def test_pseudo_identifier_processing(rows_in_session, monkeypatch):
     print("after tags applied")
     assert dataset[0x0010, 0x0020].value == fake_hash
     assert image.pseudo_study_uid == dataset[0x0020, 0x000D].value
-    assert image.pseudo_study_uid == "2.25.3"  # 2nd image in the db
+    assert image.pseudo_study_uid == "2.25.2"  # 2nd image in the db
 
 
 @pytest.fixture()
@@ -369,8 +370,9 @@ def sequenced_dicom(monkeypatch):
     block.add_new(0x0010, "SQ", [nested_ds])
 
     # Mock the database functions
-    monkeypatch.setattr("pixl_dcmd.main.query_db", lambda *args: None)
-    monkeypatch.setattr("pixl_dcmd.main.add_pseudo_study_uid_to_db", lambda *args: None)
+    monkeypatch.setattr(
+        "pixl_dcmd.main.get_uniq_pseudo_study_uid_and_update_db", lambda *args: None
+    )
     return dataset
 
 
