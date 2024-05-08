@@ -81,7 +81,8 @@ services:
     hasher-api:
         build:
             context: .
-            dockerfile: ./docker/hasher-api/Dockerfile
+            dockerfile: ./docker/pixl-python/Dockerfile
+            target: hasher_api
             args:
                 <<: *build-args-common
         environment:
@@ -253,7 +254,8 @@ services:
     export-api:
         build:
             context: .
-            dockerfile: ./docker/export-api/Dockerfile
+            dockerfile: ./docker/pixl-python/Dockerfile
+            target: export_api
             args:
                 <<: *build-args-common
         environment:
@@ -299,7 +301,8 @@ services:
     imaging-api:
         build:
             context: .
-            dockerfile: ./docker/imaging-api/Dockerfile
+            dockerfile: ./docker/pixl-python/Dockerfile
+            target: imaging_api
             args:
                 <<: *build-args-common
         depends_on:
