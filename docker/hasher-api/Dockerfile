@@ -19,8 +19,17 @@ ARG TEST="false"
 # OS setup
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
-    apt-get install --yes --no-install-recommends procps ca-certificates \
-    iproute2 git curl libpq-dev curl gnupg g++ locales
+    apt-get install --yes --no-install-recommends \
+        procps \
+        ca-certificates \
+        iproute2 \
+        git \
+        curl \
+        libpq-dev \
+        curl \
+        gnupg \
+        g++ \
+        locales
 RUN sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 
 # clean up
