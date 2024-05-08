@@ -101,7 +101,6 @@ services:
         networks:
             - pixl-net
         healthcheck:
-            test: ["CMD", "curl", "-f", "http://hasher-api:8000/heart-beat"]
             interval: 10s
             timeout: 30s
             retries: 5
@@ -311,7 +310,6 @@ services:
             orthanc-raw:
                 condition: service_healthy
         healthcheck:
-            test: curl -f http://0.0.0.0:8000/heart-beat
             interval: 10s
             timeout: 30s
             retries: 5

@@ -29,8 +29,9 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
 RUN sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 RUN  apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+HEALTHCHECK CMD /usr/bin/curl -f http://0.0.0.0:8000/heart-beat || exit 1
+
 WORKDIR /app
-# --- END COMMMON ---
 
 FROM pixl_python_base AS export_api
 
@@ -45,8 +46,6 @@ COPY ./pixl_export/ .
 RUN pip install --no-cache-dir --force-reinstall --no-deps pixl_core/ \
     --no-cache-dir --force-reinstall --no-deps . && \
     if [ "$TEST" = "true" ]; then pip install --no-cache-dir pixl_core/[test] .[test]; fi
-
-HEALTHCHECK CMD /usr/bin/curl -f http://0.0.0.0:8000/heart-beat || exit 1
 
 ENTRYPOINT ["uvicorn", "pixl_export.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
