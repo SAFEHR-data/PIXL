@@ -32,14 +32,17 @@ RUN  apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
 HEALTHCHECK CMD /usr/bin/curl -f http://0.0.0.0:8000/heart-beat || exit 1
 
 WORKDIR /app
-
-FROM pixl_python_base AS export_api
+ARG PIXL_PACKAGE_DIR
 
 # Install requirements before copying modules
 COPY ./pixl_core/pyproject.toml ./pixl_core/pyproject.toml
-COPY ./pixl_export/pyproject.toml ./pixl_export/pyproject.toml
+COPY ./$PIXL_PACKAGE_DIR/pyproject.toml ./$PIXL_PACKAGE_DIR/pyproject.toml
 RUN pip3 install --no-cache-dir pixl_core/ \
-    && pip3 install --no-cache-dir pixl_export/
+    && pip3 install --no-cache-dir $PIXL_PACKAGE_DIR/
+
+
+
+FROM pixl_python_base AS export_api
 
 COPY ./pixl_core/ pixl_core/
 COPY ./pixl_export/ .
@@ -49,14 +52,8 @@ RUN pip install --no-cache-dir --force-reinstall --no-deps pixl_core/ \
 
 ENTRYPOINT ["uvicorn", "pixl_export.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
-FROM pixl_python_base AS hasher_api
 
-# Install requirements before copying modules
-COPY ./pixl_core/pyproject.toml ./pixl_core/pyproject.toml
-COPY ./hasher/pyproject.toml .
-RUN --mount=type=cache,target=/root/.cache \
-    pip3 install --no-cache-dir pixl_core/ \
-    && pip3 install --no-cache-dir /app/
+FROM pixl_python_base AS hasher_api
 
 COPY ./pixl_core/ pixl_core/
 COPY ./hasher/ .
@@ -65,17 +62,10 @@ RUN --mount=type=cache,target=/root/.cache \
     if [ "$TEST" = "true" ]; \
     then pip install --no-cache-dir --force-reinstall --no-deps pixl_core/[test] \
     --no-cache-dir --force-reinstall --no-deps .[test]; fi
-
 ENTRYPOINT ["uvicorn", "hasher.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
-FROM pixl_python_base AS imaging_api
 
-# Install requirements before copying modules
-COPY ./pixl_core/pyproject.toml ./pixl_core/pyproject.toml
-COPY ./pixl_imaging/pyproject.toml ./pixl_imaging/pyproject.toml
-RUN --mount=type=cache,target=/root/.cache \
-    pip3 install --no-cache-dir pixl_core/ \
-    && pip3 install --no-cache-dir pixl_imaging/
+FROM pixl_python_base AS imaging_api
 
 COPY ./pixl_core/ pixl_core/
 COPY ./pixl_imaging/ .

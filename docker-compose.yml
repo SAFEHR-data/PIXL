@@ -84,6 +84,7 @@ services:
             dockerfile: ./docker/pixl-python/Dockerfile
             target: hasher_api
             args:
+                PIXL_PACKAGE_DIR: hasher
                 <<: *build-args-common
         environment:
             <<: [*proxy-common, *pixl-common-env]
@@ -256,6 +257,7 @@ services:
             dockerfile: ./docker/pixl-python/Dockerfile
             target: export_api
             args:
+                PIXL_PACKAGE_DIR: pixl_export
                 <<: *build-args-common
         environment:
             <<:
@@ -303,6 +305,7 @@ services:
             dockerfile: ./docker/pixl-python/Dockerfile
             target: imaging_api
             args:
+                PIXL_PACKAGE_DIR: pixl_imaging
                 <<: *build-args-common
         depends_on:
             queue:
