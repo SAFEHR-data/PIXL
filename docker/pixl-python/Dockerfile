@@ -32,6 +32,7 @@ RUN  apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
 HEALTHCHECK CMD /usr/bin/curl -f http://0.0.0.0:8000/heart-beat || exit 1
 
 WORKDIR /app
+# specify what we're installing using build time arg
 ARG PIXL_PACKAGE_DIR
 
 # Install requirements before copying modules
@@ -40,39 +41,20 @@ COPY ./$PIXL_PACKAGE_DIR/pyproject.toml ./$PIXL_PACKAGE_DIR/pyproject.toml
 RUN pip3 install --no-cache-dir pixl_core/ \
     && pip3 install --no-cache-dir $PIXL_PACKAGE_DIR/
 
-
-
-FROM pixl_python_base AS export_api
-
+# Install our code
 COPY ./pixl_core/ pixl_core/
-COPY ./pixl_export/ .
+COPY ./$PIXL_PACKAGE_DIR/ .
 RUN pip install --no-cache-dir --force-reinstall --no-deps pixl_core/ \
     --no-cache-dir --force-reinstall --no-deps . && \
     if [ "$TEST" = "true" ]; then pip install --no-cache-dir pixl_core/[test] .[test]; fi
 
+
+# Each container should be run with a different entry point
+FROM pixl_python_base AS export_api
 ENTRYPOINT ["uvicorn", "pixl_export.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
-
 FROM pixl_python_base AS hasher_api
-
-COPY ./pixl_core/ pixl_core/
-COPY ./hasher/ .
-RUN --mount=type=cache,target=/root/.cache \
-    pip install --no-cache-dir --force-reinstall --no-deps pixl_core/ . && \
-    if [ "$TEST" = "true" ]; \
-    then pip install --no-cache-dir --force-reinstall --no-deps pixl_core/[test] \
-    --no-cache-dir --force-reinstall --no-deps .[test]; fi
 ENTRYPOINT ["uvicorn", "hasher.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
-
 FROM pixl_python_base AS imaging_api
-
-COPY ./pixl_core/ pixl_core/
-COPY ./pixl_imaging/ .
-RUN --mount=type=cache,target=/root/.cache \
-    pip install --no-cache-dir --force-reinstall --no-deps pixl_core/ . && \
-    if [ "$TEST" = "true" ]; \
-    then pip install --no-cache-dir --force-reinstall --no-deps pixl_core/[test] \
-    --no-cache-dir --force-reinstall --no-deps .[test]; fi
-
 ENTRYPOINT ["/app/scripts/migrate_and_run.sh"]
