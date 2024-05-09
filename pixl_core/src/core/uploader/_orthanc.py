@@ -39,7 +39,7 @@ def get_tags_by_study(study_id: str) -> tuple[str, str]:
     Queries the Orthanc server at the study level, returning the
     Study Instance UID and UCLHPIXLProjectName DICOM tags.
     BEWARE: post-anonymisation, the Study Instance UID is NOT
-    the Study Instance UIDD, it's the pseudo-anonymised ID generated randomly.
+    the Study Instance UID, it's the pseudo-anonymised ID generated randomly.
     """
     query = f"{ORTHANC_ANON_URL}/studies/{study_id}/shared-tags?simplify=true"
     fail_msg = "Could not query study for resource '%s'"
