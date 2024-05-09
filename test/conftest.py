@@ -29,7 +29,7 @@ from utils import wait_for_stable_orthanc_anon
 pytest_plugins = "pytest_pixl"
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def host_export_root_dir() -> Path:
     """Intermediate export dir as seen from the host"""
     return Path(__file__).parents[1] / "projects" / "exports"
