@@ -132,7 +132,10 @@ jobs:
                   sudo --non-interactive groupadd --gid $PIXL_USER_GID pixl
                   # Create home dir now because otherwise the docker build will try to do
                   # it (unsuccessfully) for an unknown reason
-                  sudo --non-interactive useradd --create-home --uid $PIXL_USER_UID --gid pixl --groups docker pixl
+                  # How much of this is even needed now that we're deleting host side?
+                  # pixl needs to be able to *read* files in the export dir, but it isn't
+                  # creating them any more
+                  sudo --non-interactive useradd --uid $PIXL_USER_UID --gid pixl --groups docker pixl
                   host_export_root_dir=../projects/exports
                   echo JES1 $host_export_root_dir
                   sudo --non-interactive chown -R pixl:docker "$host_export_root_dir"
