@@ -15,6 +15,7 @@
 set -euxo pipefail
 BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 PACKAGE_DIR="${BIN_DIR%/*}"
+EXPORTS_DIR="${PACKAGE_DIR}/projects/exports"
 cd "${PACKAGE_DIR}/test"
 
 setup() {
@@ -38,8 +39,10 @@ setup() {
 
 teardown() {
     (
-    	cd "${PACKAGE_DIR}"
-    	docker compose -f docker-compose.yml -f test/docker-compose.yml -p system-test down --volumes
+      cd "${PACKAGE_DIR}"
+      rm -r "${EXPORTS_DIR}/test-extract-uclh-omop-cdm-dicomweb/"
+      rm -r "${EXPORTS_DIR}/test-extract-uclh-omop-cdm/"
+      docker compose -f docker-compose.yml -f test/docker-compose.yml -p system-test down --volumes
     )
 }
 

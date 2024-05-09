@@ -144,17 +144,6 @@ def _setup_pixl_cli(ftps_server: PixlFTPServer, _populate_vna: None, host_export
     run_subprocess(
         ["ls", "-laR", host_export_root_dir]
     )
-    run_subprocess(
-        [
-            "docker",
-            "exec",
-            "system-test-export-api-1",
-            "rm",
-            "-r",
-            "/run/projects/exports/test-extract-uclh-omop-cdm/",
-        ],
-        TEST_DIR,
-    )
 
 
 @pytest.fixture(scope="session")
@@ -175,17 +164,6 @@ def _setup_pixl_cli_dicomweb(_populate_vna: None, host_export_root_dir) -> Gener
             "ls",
             "-laR",
             "/run/projects/exports/",
-        ],
-        TEST_DIR,
-    )
-    run_subprocess(
-        [
-            "docker",
-            "exec",
-            "system-test-export-api-1",
-            "rm",
-            "-r",
-            "/run/projects/exports/test-extract-uclh-omop-cdm-dicomweb/",
         ],
         TEST_DIR,
     )
