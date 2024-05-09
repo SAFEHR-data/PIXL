@@ -73,14 +73,7 @@ def is_unique_pseudo_study_uid(pseudo_study_uid: str, pixl_session: Session) -> 
     """
     Check that random uid generated is not already in the database.
     """
-    existing_image: Image = (
-        pixl_session.query(Image)
-        .filter(
-            Image.pseudo_study_uid == pseudo_study_uid,
-        )
-        .one_or_none()
-    )
-    return existing_image is None
+   return not pixl_session.query(exists().where(Image.pseudo_study_uid == pseudo_study_uid)).scalar()
 
 
 def get_unexported_image(
