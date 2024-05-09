@@ -25,8 +25,12 @@ x-proxy-common: &proxy-common
     NO_PROXY: *no-proxy
     no_proxy: *no-proxy
 
+x-pixl-uid-gid: &pixl-uid-gid
+    PIXL_USER_UID: ${PIXL_USER_UID}
+    PIXL_USER_GID: ${PIXL_USER_GID}
+
 x-build-args-common: &build-args-common
-    <<: [*proxy-common]
+    <<: [*proxy-common, *pixl-uid-gid]
 
 x-pixl-common-env: &pixl-common-env
     DEBUG: ${DEBUG}
