@@ -342,7 +342,7 @@ def test_can_nifti_convert_post_anonymisation(
 
 
 @pytest.fixture
-def sequenced_dicom(monkeypatch):
+def sequenced_dicom_mock_db(monkeypatch):
     """
     Create a DICOM dataset with
     a private sequence tag
@@ -376,7 +376,7 @@ def sequenced_dicom(monkeypatch):
     return dataset
 
 
-def test_del_tag_keep_sq(sequenced_dicom, monkeypatch):
+def test_del_tag_keep_sq(sequenced_dicom_mock_db, monkeypatch):
     """
     GIVEN a dicom image that has a private sequence tag marked to be kept with
     - a private child tag that is marked to be deleted
@@ -387,22 +387,22 @@ def test_del_tag_keep_sq(sequenced_dicom, monkeypatch):
     - the child tags should be deleted/replaced
     """
     ## ARRANGE (or rather check arrangement is as expected)
-    assert (0x0011, 0x0010) in sequenced_dicom
-    assert (0x0011, 0x1010) in sequenced_dicom
-    assert (0x0011, 0x1011) in sequenced_dicom.get_private_item(
+    assert (0x0011, 0x0010) in sequenced_dicom_mock_db
+    assert (0x0011, 0x1010) in sequenced_dicom_mock_db
+    assert (0x0011, 0x1011) in sequenced_dicom_mock_db.get_private_item(
         0x0011, 0x0010, "UCLH PIXL"
     )[0]
     assert (
-        sequenced_dicom.get_private_item(0x0011, 0x0010, "UCLH PIXL")[0]
+        sequenced_dicom_mock_db.get_private_item(0x0011, 0x0010, "UCLH PIXL")[0]
         .get_private_item(0x0011, 0x0011, "UCLH PIXL")
         .value
         == "nested_priv_tag"
     )
-    assert (0x0010, 0x0020) in sequenced_dicom.get_private_item(
+    assert (0x0010, 0x0020) in sequenced_dicom_mock_db.get_private_item(
         0x0011, 0x0010, "UCLH PIXL"
     )[0]
     assert (
-        sequenced_dicom.get_private_item(0x0011, 0x0010, "UCLH PIXL")[0]
+        sequenced_dicom_mock_db.get_private_item(0x0011, 0x0010, "UCLH PIXL")[0]
         .get_item((0x0010, 0x0020))
         .value
         == "987654321"
@@ -433,26 +433,26 @@ def test_del_tag_keep_sq(sequenced_dicom, monkeypatch):
     ]
 
     ## ACT
-    _anonymise_dicom_from_scheme(sequenced_dicom, TEST_PROJECT_SLUG, tag_scheme)
+    _anonymise_dicom_from_scheme(sequenced_dicom_mock_db, TEST_PROJECT_SLUG, tag_scheme)
 
     ## ASSERT
     # Check that the sequence tag has been kept
-    assert (0x0011, 0x0010) in sequenced_dicom
-    assert (0x0011, 0x1010) in sequenced_dicom
+    assert (0x0011, 0x0010) in sequenced_dicom_mock_db
+    assert (0x0011, 0x1010) in sequenced_dicom_mock_db
     # check private tag is deleted
-    assert (0x0011, 0x1011) not in sequenced_dicom.get_private_item(
+    assert (0x0011, 0x1011) not in sequenced_dicom_mock_db.get_private_item(
         0x0011, 0x0010, "UCLH PIXL"
     )[0]
     # check public tag is replaced
     assert (
-        sequenced_dicom.get_private_item(0x0011, 0x0010, "UCLH PIXL")[0]
+        sequenced_dicom_mock_db.get_private_item(0x0011, 0x0010, "UCLH PIXL")[0]
         .get_item((0x0010, 0x0020))
         .value
         != "987654321"
     )
 
 
-def test_keep_tag_del_sq(sequenced_dicom):
+def test_keep_tag_del_sq(sequenced_dicom_mock_db):
     """
     GIVEN a dicom image that has a private sequence tag marked to be deleted with
         a private child tag that is marked to be kept
@@ -460,8 +460,8 @@ def test_keep_tag_del_sq(sequenced_dicom):
     THEN the sequence tag should be deleted
     """
     ## ARRANGE (or rather check arrangement is as expected)
-    assert (0x0011, 0x0010) in sequenced_dicom
-    assert (0x0011, 0x1010) in sequenced_dicom
+    assert (0x0011, 0x0010) in sequenced_dicom_mock_db
+    assert (0x0011, 0x1010) in sequenced_dicom_mock_db
 
     # Create a tag scheme that deletes the sequence tag, but keeps the nested tags
     tag_scheme = [
@@ -483,16 +483,16 @@ def test_keep_tag_del_sq(sequenced_dicom):
     ]
 
     ## ACT
-    _anonymise_dicom_from_scheme(sequenced_dicom, TEST_PROJECT_SLUG, tag_scheme)
+    _anonymise_dicom_from_scheme(sequenced_dicom_mock_db, TEST_PROJECT_SLUG, tag_scheme)
 
     ## ASSERT
     # Check that the sequence tag has been deleted
-    assert (0x0011, 0x1010) not in sequenced_dicom
+    assert (0x0011, 0x1010) not in sequenced_dicom_mock_db
     with pytest.raises(KeyError):
-        sequenced_dicom.get_private_item(0x0011, 0x0010, "UCLH PIXL")
+        sequenced_dicom_mock_db.get_private_item(0x0011, 0x0010, "UCLH PIXL")
 
 
-def test_whitelist_child_elements_deleted(sequenced_dicom):
+def test_whitelist_child_elements_deleted(sequenced_dicom_mock_db):
     """
     GIVEN a dicom image that has a public and private sequence tags
     WHEN the dicom tag scheme is applied
@@ -500,13 +500,15 @@ def test_whitelist_child_elements_deleted(sequenced_dicom):
     """
     ## ARRANGE (or rather check arrangement is as expected)
     # check that the sequence tag is present
-    assert (0x0011, 0x0010) in sequenced_dicom
-    assert (0x0011, 0x1010) in sequenced_dicom
+    assert (0x0011, 0x0010) in sequenced_dicom_mock_db
+    assert (0x0011, 0x1010) in sequenced_dicom_mock_db
     # check that the children are present
-    assert (0x0011, 0x1011) in sequenced_dicom[(0x0011, 0x1010)][0]
-    sequenced_dicom[(0x0011, 0x1010)][0][(0x0011, 0x1011)].value == "nested_priv_tag"
-    assert (0x0010, 0x0020) in sequenced_dicom[(0x0011, 0x1010)][0]
-    sequenced_dicom[(0x0011, 0x1010)][0][(0x0010, 0x0020)].value == "987654321"
+    assert (0x0011, 0x1011) in sequenced_dicom_mock_db[(0x0011, 0x1010)][0]
+    sequenced_dicom_mock_db[(0x0011, 0x1010)][0][
+        (0x0011, 0x1011)
+    ].value == "nested_priv_tag"
+    assert (0x0010, 0x0020) in sequenced_dicom_mock_db[(0x0011, 0x1010)][0]
+    sequenced_dicom_mock_db[(0x0011, 0x1010)][0][(0x0010, 0x0020)].value == "987654321"
 
     # set tag scheme to keep sequence
     tag_scheme = [
@@ -522,17 +524,17 @@ def test_whitelist_child_elements_deleted(sequenced_dicom):
         },
     ]
     # Whitelist
-    enforce_whitelist(sequenced_dicom, tag_scheme, recursive=True)
+    enforce_whitelist(sequenced_dicom_mock_db, tag_scheme, recursive=True)
 
     # Check that the sequence tag is kept
-    assert (0x0011, 0x0010) in sequenced_dicom
-    assert (0x0011, 0x1010) in sequenced_dicom
+    assert (0x0011, 0x0010) in sequenced_dicom_mock_db
+    assert (0x0011, 0x1010) in sequenced_dicom_mock_db
     # Check that children are deleted
-    assert (0x0011, 0x1011) not in sequenced_dicom[(0x0011, 0x1010)][0]
-    assert (0x0010, 0x0020) not in sequenced_dicom[(0x0011, 0x1010)][0]
+    assert (0x0011, 0x1011) not in sequenced_dicom_mock_db[(0x0011, 0x1010)][0]
+    assert (0x0010, 0x0020) not in sequenced_dicom_mock_db[(0x0011, 0x1010)][0]
     with pytest.raises(KeyError):
-        sequenced_dicom[(0x0011, 0x1010)][0].get_private_item(
+        sequenced_dicom_mock_db[(0x0011, 0x1010)][0].get_private_item(
             0x0011, 0x0011, "UCLH PIXL"
         )
     with pytest.raises(KeyError):
-        sequenced_dicom[(0x0011, 0x1010)][0][0x0010, 0x0020]
+        sequenced_dicom_mock_db[(0x0011, 0x1010)][0][0x0010, 0x0020]
