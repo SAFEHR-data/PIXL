@@ -130,9 +130,9 @@ jobs:
                   ls -laR
                   sudo --non-interactive groupadd --gid $PIXL_USER_GID pixl
                   sudo --non-interactive useradd --uid $PIXL_USER_UID --gid pixl --groups docker pixl
-                  host_export_root_dir=./exports
-                  sudo --non-interactive chown -R pixl:docker host_export_root_dir
-                  sudo --non-interactive chmod -R ug+rwx host_export_root_dir
+                  host_export_root_dir=../projects/exports
+                  sudo --non-interactive chown -R pixl:docker $host_export_root_dir
+                  sudo --non-interactive chmod -R ug+rwx $host_export_root_dir
                   ls -laR
                 
                   sudo --non-interactive -u pixl -g pixl ./run-system-test.sh coverage
