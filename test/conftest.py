@@ -135,12 +135,15 @@ def _upload_dicom_instance(dicom_dir: Path, **kwargs: Any) -> None:
 
 
 @pytest.fixture(scope="session")
-def _setup_pixl_cli(ftps_server: PixlFTPServer, _populate_vna: None) -> Generator:
+def _setup_pixl_cli(ftps_server: PixlFTPServer, _populate_vna: None, host_export_root_dir) -> Generator:
     """Run pixl populate/start. Cleanup intermediate export dir on exit."""
     run_subprocess(["pixl", "populate", str(RESOURCES_OMOP_DIR.absolute())], TEST_DIR)
     # poll here for two minutes to check for imaging to be processed, printing progress
     wait_for_stable_orthanc_anon(121, 5, 15, min_instances=3)
     yield
+    run_subprocess(
+        ["ls", "-laR", host_export_root_dir]
+    )
     run_subprocess(
         [
             "docker",
@@ -155,12 +158,26 @@ def _setup_pixl_cli(ftps_server: PixlFTPServer, _populate_vna: None) -> Generato
 
 
 @pytest.fixture(scope="session")
-def _setup_pixl_cli_dicomweb(_populate_vna: None) -> Generator:
+def _setup_pixl_cli_dicomweb(_populate_vna: None, host_export_root_dir) -> Generator:
     """Run pixl populate/start. Cleanup intermediate export dir on exit."""
     run_subprocess(["pixl", "populate", str(RESOURCES_OMOP_DICOMWEB_DIR.absolute())], TEST_DIR)
     # poll here for two minutes to check for imaging to be processed, printing progress
     wait_for_stable_orthanc_anon(121, 5, 15, min_instances=3)
     yield
+    run_subprocess(
+        ["ls", "-laR", host_export_root_dir]
+    )
+    run_subprocess(
+        [
+            "docker",
+            "exec",
+            "system-test-export-api-1",
+            "ls",
+            "-laR",
+            "/run/projects/exports/",
+        ],
+        TEST_DIR,
+    )
     run_subprocess(
         [
             "docker",
