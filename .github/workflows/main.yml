@@ -130,6 +130,8 @@ jobs:
                   pwd
                   ls -laR
                   sudo --non-interactive groupadd --gid $PIXL_USER_GID pixl
+                  # Create home dir now because otherwise the docker build will try to do
+                  # it (unsuccessfully) for an unknown reason
                   sudo --non-interactive useradd --create-home --uid $PIXL_USER_UID --gid pixl --groups docker pixl
                   host_export_root_dir=../projects/exports
                   echo JES1 $host_export_root_dir
@@ -138,8 +140,14 @@ jobs:
                   ls -laR
                   pwd
                 
+                  echo JES00
+                  echo PATH = $PATH
+                  echo JES01
+                  sudo --non-interactive -u pixl -g pixl env
+                  echo JES02
                   sudo --non-interactive -u pixl -g pixl ./run-system-test.sh coverage
                   echo FINISHED SYSTEM TEST SCRIPT
+                  ls -laR /home/pixl
 
             - name: Dump export-api docker logs for debugging
               if: ${{ failure() }}
