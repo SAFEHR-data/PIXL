@@ -20,7 +20,7 @@ from pydicom.uid import generate_uid, UID
 from sqlalchemy.orm.session import Session
 
 from core.db.models import Image, Extract
-from sqlalchemy import URL, create_engine
+from sqlalchemy import URL, create_engine, exists
 from sqlalchemy.orm import sessionmaker
 
 url = URL.create(
@@ -73,7 +73,9 @@ def is_unique_pseudo_study_uid(pseudo_study_uid: str, pixl_session: Session) -> 
     """
     Check that random uid generated is not already in the database.
     """
-   return not pixl_session.query(exists().where(Image.pseudo_study_uid == pseudo_study_uid)).scalar()
+    return not pixl_session.query(
+        exists().where(Image.pseudo_study_uid == pseudo_study_uid)
+    ).scalar()
 
 
 def get_unexported_image(
