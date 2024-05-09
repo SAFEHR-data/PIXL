@@ -27,9 +27,11 @@ setup() {
     echo JES23
     # Warning: Requires to be run from the project root
     (
-    	cd "${PACKAGE_DIR}"
+      cd "${PACKAGE_DIR}"
       echo JES24
-    	docker compose --env-file test/.env --env-file test/.secrets.env -p system-test up --wait -d --build
+      docker compose --env-file test/.env --env-file test/.secrets.env -p system-test build
+      echo JES24a
+      docker compose --env-file test/.env --env-file test/.secrets.env -p system-test up --wait -d
       echo JES25
     )
 }
