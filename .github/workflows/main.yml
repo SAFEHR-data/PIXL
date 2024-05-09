@@ -150,7 +150,6 @@ jobs:
                   echo JES02
                   ./run-system-test.sh coverage
                   echo FINISHED SYSTEM TEST SCRIPT
-                  ls -laR /home/pixl
 
             - name: Dump export-api docker logs for debugging
               if: ${{ failure() }}
