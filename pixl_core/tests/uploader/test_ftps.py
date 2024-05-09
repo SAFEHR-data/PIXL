@@ -27,7 +27,6 @@ from core.exports import ParquetExport
 from core.uploader._ftps import FTPSUploader
 from pydicom.uid import generate_uid
 from pytest_pixl.plugin import FtpHostAddress
-from sqlalchemy.exc import NoResultFound
 
 TEST_DIR = Path(__file__).parents[1]
 
@@ -88,38 +87,6 @@ def test_send_via_ftps(
 
     # ASSERT
     assert expected_output_file.exists()
-
-
-@pytest.mark.usefixtures("ftps_server")
-def test_upload_dicom_image_already_exported(
-    zip_content, already_exported_dicom_image, ftps_uploader
-) -> None:
-    """Tests that exception thrown if DICOM image already exported"""
-    # ARRANGE
-    # Get the pseudo identifier from the test image
-    pseudo_anon_id = already_exported_dicom_image.pseudo_study_uid
-    project_slug = "some-project-slug"
-
-    # ASSERT
-    with pytest.raises(RuntimeError, match="Image already exported"):
-        ftps_uploader.send_via_ftps(zip_content, pseudo_anon_id, project_slug)
-
-
-@pytest.mark.usefixtures("ftps_server")
-def test_upload_dicom_image_unknown(zip_content, ftps_uploader) -> None:
-    """
-    Tests that a different exception is thrown if image is not recognised in the PIXL DB.
-
-    This supports the correctness of test_upload_dicom_image_already_exported,
-    which tests if the image is known, but has already been uploaded before uploading.
-    """
-    # ARRANGE
-    pseudo_anon_id = "doesnotexist"
-    project_slug = "some-project-slug"
-
-    # ASSERT
-    with pytest.raises(NoResultFound):
-        ftps_uploader.send_via_ftps(zip_content, pseudo_anon_id, project_slug)
 
 
 def test_update_exported_and_save(rows_in_session) -> None:

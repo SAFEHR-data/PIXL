@@ -134,7 +134,7 @@ class PixlConfig(BaseModel):
         :param series_description: the series description to test
         :returns: True if it should be excluded, False if not
         """
-        if self.series_filters is None:
+        if self.series_filters is None or series_description is None:
             return False
         # Do a simple case-insensitive substring check - this data is ultimately typed by a human,
         # and different image sources may have different conventions for case conversion.

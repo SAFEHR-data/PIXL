@@ -109,4 +109,4 @@ def export_dicom_from_orthanc(study_data: StudyData) -> None:
 
     uploader = get_uploader(project_slug)
     logger.debug("Sending {} via '{}'", study_id, type(uploader).__name__)
-    uploader.upload_dicom_image(study_id)
+    uploader.upload_dicom_and_update_database(study_id)

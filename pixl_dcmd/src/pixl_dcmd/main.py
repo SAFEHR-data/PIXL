@@ -56,7 +56,7 @@ def should_exclude_series(dataset: Dataset) -> bool:
     series_description = dataset.get("SeriesDescription")
     cfg = load_project_config(slug)
     if cfg.is_series_excluded(series_description):
-        logger.warning("FILTERING OUT series description: {}", series_description)
+        logger.info("FILTERING OUT series description: {}", series_description)
         return True
     return False
 
@@ -88,7 +88,7 @@ def anonymise_dicom(dataset: Dataset) -> None:
     logger.info(
         f"Applying DICOM tag anonymisation according to {project_config.tag_operation_files}"
     )
-    logger.debug(f"Tag scheme: {tag_scheme}")
+    logger.trace(f"Tag scheme: {tag_scheme}")
 
     if (0x0008, 0x0060) in dataset and dataset.Modality not in modalities:
         msg = f"Dropping DICOM Modality: {dataset.Modality}"

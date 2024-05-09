@@ -11,8 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-
-
+import pathlib
 from pathlib import Path
 
 import pytest
@@ -43,7 +42,7 @@ def base_yaml_data():
         "project": {"name": "myproject", "modalities": ["DX", "CR"]},
         "tag_operation_files": {
             "base": ["test-extract-uclh-omop-cdm.yaml"],
-            "manufacturer_overrides": "mri-diffusion.yaml",
+            "manufacturer_overrides": "manufacturer-overrides/mri-diffusion.yaml",
         },
         "destination": {"dicom": "ftps", "parquet": "ftps"},
     }
@@ -82,7 +81,16 @@ def test_invalid_paths(base_yaml_data):
         PixlConfig.model_validate(config_data_wrong_base)
 
 
-@pytest.mark.parametrize(("yaml_file"), PROJECT_CONFIGS_DIR.glob("*.yaml"))
+def ids_for_parameterised_test(val):
+    """Generate test ID for parameterised tests"""
+    if isinstance(val, pathlib.Path):
+        return val.stem
+    return str(val)
+
+
+@pytest.mark.parametrize(
+    ("yaml_file"), PROJECT_CONFIGS_DIR.glob("*.yaml"), ids=ids_for_parameterised_test
+)
 def test_all_real_configs(yaml_file):
     """Test that all production configs are valid"""
     load_project_config(yaml_file.stem)
@@ -94,7 +102,9 @@ def test_load_tag_operations():
     assert load_tag_operations(project_config)
 
 
-@pytest.mark.parametrize(("yaml_file"), PROJECT_CONFIGS_DIR.glob("*.yaml"))
+@pytest.mark.parametrize(
+    ("yaml_file"), PROJECT_CONFIGS_DIR.glob("*.yaml"), ids=ids_for_parameterised_test
+)
 def test_all_real_tagoperations(yaml_file):
     """Test that all production configs are valid"""
     project_config = load_project_config(yaml_file.stem)
