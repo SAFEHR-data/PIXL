@@ -376,7 +376,7 @@ def sequenced_dicom_mock_db(monkeypatch):
     return dataset
 
 
-def test_del_tag_keep_sq(sequenced_dicom_mock_db, monkeypatch):
+def test_del_tag_keep_sq(sequenced_dicom_mock_db):
     """
     GIVEN a dicom image that has a private sequence tag marked to be kept with
     - a private child tag that is marked to be deleted
