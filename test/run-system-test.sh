@@ -49,6 +49,7 @@ else
     # setup flags used for pytest
     declare -a PYTEST_FLAGS
 
+    set -x
     # Add individual options to the array
     PYTEST_FLAGS+=("--verbose")
     PYTEST_FLAGS+=("--log-cli-level" "INFO")
@@ -57,6 +58,8 @@ else
     fi
     # Run the tests
     setup
+    echo JES11
+    pwd
     pytest "${PYTEST_FLAGS[@]}"
     echo FINISHED PYTEST COMMAND
     teardown
