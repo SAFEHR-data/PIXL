@@ -130,7 +130,7 @@ jobs:
                   pwd
                   ls -laR
                   sudo --non-interactive groupadd --gid $PIXL_USER_GID pixl
-                  sudo --non-interactive useradd --uid $PIXL_USER_UID --gid pixl --groups docker pixl
+                  sudo --non-interactive useradd --create-home --uid $PIXL_USER_UID --gid pixl --groups docker pixl
                   host_export_root_dir=../projects/exports
                   echo JES1 $host_export_root_dir
                   sudo --non-interactive chown -R pixl:docker "$host_export_root_dir"
