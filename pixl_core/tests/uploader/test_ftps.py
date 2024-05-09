@@ -25,6 +25,7 @@ from core.db.models import Image
 from core.db.queries import update_exported_at
 from core.exports import ParquetExport
 from core.uploader._ftps import FTPSUploader
+from pydicom.uid import generate_uid
 from pytest_pixl.plugin import FtpHostAddress
 from sqlalchemy.exc import NoResultFound
 
@@ -129,7 +130,9 @@ def test_update_exported_and_save(rows_in_session) -> None:
     # ACT
     update_exported_at("not_yet_exported", expected_export_time)
     new_row = (
-        rows_in_session.query(Image).filter(Image.pseudo_study_uid == "not_yet_exported").one()
+        rows_in_session.query(Image)
+        .filter(Image.pseudo_study_uid == generate_uid(entropy_srcs=["not_yet_exported"]))
+        .one()
     )
     actual_export_time = new_row.exported_at.replace(tzinfo=timezone.utc)
 

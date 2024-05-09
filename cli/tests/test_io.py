@@ -20,6 +20,7 @@ from pathlib import Path
 import pytest
 from core.db.models import Extract, Image
 from pixl_cli._io import make_radiology_linker_table, messages_from_csv
+from pydicom.uid import generate_uid
 
 
 def test_message_from_csv_raises_for_malformed_input(tmpdir):
@@ -43,28 +44,28 @@ def test_make_radiology_linker_table(omop_resources: Path):
             accession_number="AA12345601",
             study_date=date(1, 1, 1),
             mrn="987654321",
-            pseudo_study_uid="test_pseudo_id_1",
+            pseudo_study_uid=generate_uid(entropy_srcs=["test_pseudo_id_1"]),
             extract=extract,
         ),
         Image(
             accession_number="AA12345605",
             study_date=date(1, 1, 1),
             mrn="987654321",
-            pseudo_study_uid="test_pseudo_id_2",
+            pseudo_study_uid=generate_uid(entropy_srcs=["test_pseudo_id_2"]),
             extract=extract,
         ),
         Image(
             accession_number="different_should_ignore",
             study_date=date(1, 1, 1),
             mrn="987654321",
-            pseudo_study_uid="should_never_see_1",
+            pseudo_study_uid=generate_uid(entropy_srcs=["should_never_see_1"]),
             extract=extract,
         ),
         Image(
             accession_number="AA12345605",
             study_date=date(1, 1, 1),
             mrn="different_should_ignore",
-            pseudo_study_uid="should_never_see_2",
+            pseudo_study_uid=generate_uid(entropy_srcs=["should_never_see_2"]),
             extract=extract,
         ),
     ]
