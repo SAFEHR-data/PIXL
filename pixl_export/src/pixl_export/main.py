@@ -101,7 +101,7 @@ def export_dicom_from_orthanc(study_data: StudyData) -> None:
     """
     Download zipped up study data from orthanc anon and route it appropriately.
     Intended only for orthanc-anon to call, as only it knows when its data is ready for download.
-    Because we're post-anonymisation, the "StudyID" tag returned is actually
+    Because we're post-anonymisation, the "StudyInstanceUID" tag returned is actually
     the Pseudo Study UID (a randomly selected, but consistent UID).
     """
     study_id = study_data.study_id
