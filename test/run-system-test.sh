@@ -18,14 +18,19 @@ PACKAGE_DIR="${BIN_DIR%/*}"
 cd "${PACKAGE_DIR}/test"
 
 setup() {
+    echo JES21 $PACKAGE_DIR
     docker compose --env-file .env -p system-test down --volumes
+    echo JES22 $(pwd)
     #
     # Note: cannot run as single docker compose command due to different build contexts
     docker compose --env-file .env -p system-test up --wait -d --build --remove-orphans
+    echo JES23
     # Warning: Requires to be run from the project root
     (
     	cd "${PACKAGE_DIR}"
+      echo JES24
     	docker compose --env-file test/.env --env-file test/.secrets.env -p system-test up --wait -d --build
+      echo JES25
     )
 }
 
