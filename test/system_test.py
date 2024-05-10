@@ -14,7 +14,6 @@
 """Replacement for the 'interesting' bits of the system/E2E test"""
 
 from pathlib import Path
-from typing import Any
 
 import pandas as pd
 import pydicom
@@ -30,11 +29,11 @@ pytest_plugins = "pytest_pixl"
 
 
 @pytest.fixture()
-def expected_studies() -> dict[str, Any]:
+def expected_studies() -> dict[int, dict]:
     """Expected study metadata post-anonymisation."""
     return {
-        "1.3.46.670589.11.38023.5.0.14068.2023012517090160001": {
-            "procedure_occurrence_id": 4,
+        4: {
+            "original_study_instance_uid": "1.3.46.670589.11.38023.5.0.14068.2023012517090160001",
             "instances": {
                 # tuple made up of (AccessionNumber, SeriesDescription)
                 # for AA12345601
@@ -42,8 +41,8 @@ def expected_studies() -> dict[str, Any]:
                 ("ANONYMIZED", "AP"),
             },
         },
-        "1.3.46.670589.11.38023.5.0.14068.2023012517090160002": {
-            "procedure_occurrence_id": 5,
+        5: {
+            "original_study_instance_uid": "1.3.46.670589.11.38023.5.0.14068.2023012517090160002",
             "instances": {
                 # for AA12345605,
                 ("ANONYMIZED", "include123"),
@@ -100,11 +99,11 @@ class TestFtpsUpload:
             TestFtpsUpload.expected_public_parquet_dir / "radiology" / "IMAGE_LINKER.parquet"
         )
         po_col = radiology_linker_data["procedure_occurrence_id"]
-        for study_id, studies in expected_studies.items():
-            expected_po_id = studies["procedure_occurrence_id"]
+        for procedure_occurrence_id, studies in expected_studies.items():
+            expected_po_id = procedure_occurrence_id
             row = radiology_linker_data[po_col == expected_po_id].iloc[0]
             assert UID(row.pseudo_study_uid).is_valid
-            assert row.pseudo_study_uid != study_id
+            assert row.pseudo_study_uid != studies["original_study_instance_uid"]
 
         assert radiology_linker_data.shape[0] == 2
         assert set(radiology_linker_data.columns) == {
@@ -136,15 +135,19 @@ class TestFtpsUpload:
             progress_string_fn=zip_file_list,
         )
         assert zip_files
+        radiology_linker_data = pd.read_parquet(
+            TestFtpsUpload.expected_public_parquet_dir / "radiology" / "IMAGE_LINKER.parquet"
+        )
+        radiology_linker_data = radiology_linker_data.set_index("pseudo_study_uid")
         for z in zip_files:
             unzip_dir = tmp_path_factory.mktemp("unzip_dir", numbered=True)
-            self._check_dcm_tags_from_zip(z, unzip_dir, expected_studies)
+            procedure = radiology_linker_data.loc[z.stem]["procedure_occurrence_id"]
+            self._check_dcm_tags_from_zip(z, unzip_dir, expected_studies[procedure])
 
     def _check_dcm_tags_from_zip(
-        self, zip_path: Path, unzip_dir: Path, expected_studies: dict
+        self, zip_path: Path, unzip_dir: Path, expected_study: dict
     ) -> None:
         """Check that private tag has survived anonymisation with the correct value."""
-        assert zip_path.stem not in expected_studies
         run_subprocess(
             ["unzip", zip_path],
             working_dir=unzip_dir,
@@ -179,20 +182,7 @@ class TestFtpsUpload:
             else:
                 assert private_tag.value == TestFtpsUpload.project_slug
         # check the basic info about the instances exactly matches
-        if len(actual_instances) == 2:
-            assert (
-                actual_instances
-                == expected_studies["1.3.46.670589.11.38023.5.0.14068.2023012517090160001"][
-                    "instances"
-                ]
-            )
-        elif len(actual_instances) == 1:
-            assert (
-                actual_instances
-                == expected_studies["1.3.46.670589.11.38023.5.0.14068.2023012517090160002"][
-                    "instances"
-                ]
-            )
+        assert actual_instances == expected_study["instances"]
 
 
 @pytest.mark.usefixtures("_setup_pixl_cli_dicomweb")
