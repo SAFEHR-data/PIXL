@@ -277,9 +277,15 @@ These files will subsequently be uploaded to the `parquet` destination specified
 [project config](#3-configure-a-new-project).
 
 ```
-EXPORT_ROOT/PROJECT_SLUG/all_extracts/EXTRACT_DATETIME/radiology/radiology.parquet
+EXPORT_ROOT/PROJECT_SLUG/all_extracts/EXTRACT_DATETIME/radiology/IMAGE_LINKER.parquet
 ....................................................../omop/public/*.parquet
 ```
+
+This directory is current located in `projects/exports` relative to the source code root.
+
+The unix user that the Export API (and other containers) runs as is configurable, and
+the (human) user must ensure that Export API can read the export dir given this configuration.
+[Further discussion about docker permissions is found here](./docs/design/docker_perms.md)
 
 ### Destination
 
