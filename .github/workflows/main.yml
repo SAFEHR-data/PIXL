@@ -125,29 +125,16 @@ jobs:
                   # We could do this in the setup function, but we don't at that point know the location of the
                   # exports dir (how the exports dir is determined is due to change anyway)
                   source .env
-                  set -x
                   export PIXL_USER_UID PIXL_USER_GID
-                  pwd
-                  ls -laR
                   sudo --non-interactive groupadd --gid $PIXL_USER_GID pixl
-                  # Create home dir now because otherwise the docker build will try to do
-                  # it (unsuccessfully) for an unknown reason
                   # How much of this is even needed now that we're deleting host side?
                   # pixl needs to be able to *read* files in the export dir, but it isn't
                   # creating them any more
                   sudo --non-interactive useradd --uid $PIXL_USER_UID --gid pixl --groups docker pixl
                   host_export_root_dir=../projects/exports
-                  echo JES1 $host_export_root_dir
                   sudo --non-interactive chown -R pixl:docker "$host_export_root_dir"
                   sudo --non-interactive chmod -R ug+rwx "$host_export_root_dir"
-                  ls -laR
-                  pwd
                 
-                  echo JES00
-                  echo PATH = $PATH
-                  echo JES01
-                  sudo --non-interactive -u pixl -g pixl env
-                  echo JES02
                   ./run-system-test.sh coverage
                   echo FINISHED SYSTEM TEST SCRIPT
 

@@ -19,21 +19,14 @@ EXPORTS_DIR="${PACKAGE_DIR}/projects/exports"
 cd "${PACKAGE_DIR}/test"
 
 setup() {
-    echo JES21 $PACKAGE_DIR
     docker compose --env-file .env -p system-test down --volumes
-    echo JES22 $(pwd)
     #
     # Note: cannot run as single docker compose command due to different build contexts
     docker compose --env-file .env -p system-test up --wait -d --build --remove-orphans
-    echo JES23
     # Warning: Requires to be run from the project root
     (
       cd "${PACKAGE_DIR}"
-      echo JES24
-      docker compose --env-file test/.env --env-file test/.secrets.env -p system-test build
-      echo JES24a
-      docker compose --env-file test/.env --env-file test/.secrets.env -p system-test up --wait -d
-      echo JES25
+      docker compose --env-file test/.env --env-file test/.secrets.env -p system-test up --wait -d --build
     )
 }
 
@@ -59,7 +52,6 @@ else
     # setup flags used for pytest
     declare -a PYTEST_FLAGS
 
-    set -x
     # Add individual options to the array
     PYTEST_FLAGS+=("--verbose")
     PYTEST_FLAGS+=("--log-cli-level" "INFO")
@@ -68,8 +60,6 @@ else
     fi
     # Run the tests
     setup
-    echo JES11
-    pwd
     pytest "${PYTEST_FLAGS[@]}"
     echo FINISHED PYTEST COMMAND
     teardown
