@@ -122,10 +122,10 @@ jobs:
                   # We need PIXL_USER_UID and PIXL_USER_GID from the test env file.
                   source .env
                   # Export API (running as pixl) needs to be able to *read* files in
-                  # the export dir, but it doesn't create them.
+                  # the export dir, but it doesn't write there.
                   # So, set ownership/permissions accordingly.
-                  # Bear in mind that ownership/perms of newly created files will
-                  # depend on the CLI process. I think we can avoid setting the ACL for now.
+                  # Bear in mind that ownership/perms of files created below this dir will
+                  # depend on the CLI process. I think we don't need to set ACLs for now.
                   sudo --non-interactive groupadd --gid $PIXL_USER_GID pixl
                   sudo --non-interactive useradd --uid $PIXL_USER_UID --gid pixl --groups docker pixl
                   host_export_root_dir=../projects/exports
