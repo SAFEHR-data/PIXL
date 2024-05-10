@@ -124,11 +124,13 @@ jobs:
                   # Export API (running as pixl) needs to be able to *read* files in
                   # the export dir, but it doesn't create them.
                   # So, set ownership/permissions accordingly.
+                  # Bear in mind that ownership/perms of newly created files will
+                  # depend on the CLI process. I think we can avoid setting the ACL for now.
                   sudo --non-interactive groupadd --gid $PIXL_USER_GID pixl
                   sudo --non-interactive useradd --uid $PIXL_USER_UID --gid pixl --groups docker pixl
                   host_export_root_dir=../projects/exports
                   sudo --non-interactive chown -R pixl:docker "$host_export_root_dir"
-                  sudo --non-interactive chmod -R ug+rwx "$host_export_root_dir"
+                  sudo --non-interactive chmod -R ug+rx "$host_export_root_dir"
                 
                   ./run-system-test.sh coverage
                   echo FINISHED SYSTEM TEST SCRIPT
