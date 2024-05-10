@@ -95,7 +95,7 @@ def test_update_exported_and_save(rows_in_session) -> None:
     expected_export_time = datetime.now(tz=timezone.utc)
 
     # ACT
-    update_exported_at("not_yet_exported", expected_export_time)
+    update_exported_at(generate_uid(entropy_srcs=["not_yet_exported"]), expected_export_time)
     new_row = (
         rows_in_session.query(Image)
         .filter(Image.pseudo_study_uid == generate_uid(entropy_srcs=["not_yet_exported"]))

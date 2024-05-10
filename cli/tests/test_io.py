@@ -74,8 +74,8 @@ def test_make_radiology_linker_table(omop_resources: Path):
     po_col = linker_df["procedure_occurrence_id"]
     row_po_4 = linker_df[po_col == 4].iloc[0]
     row_po_5 = linker_df[po_col == 5].iloc[0]
-    assert row_po_4.pseudo_study_uid == "test_pseudo_id_1"
-    assert row_po_5.pseudo_study_uid == "test_pseudo_id_2"
+    assert row_po_4.pseudo_study_uid == generate_uid(entropy_srcs=["test_pseudo_id_1"])
+    assert row_po_5.pseudo_study_uid == generate_uid(entropy_srcs=["test_pseudo_id_2"])
 
     assert linker_df.shape[0] == 2
     assert set(linker_df.columns) == {"procedure_occurrence_id", "pseudo_study_uid"}
