@@ -133,8 +133,9 @@ jobs:
                   sudo --non-interactive setfacl -R -m d:g::rwX  "$host_export_root_dir"
                   # The top-level commands are still run as the GHA runner user, which
                   # is analogous to a human user on the GAE bringing up a PIXL instance.
-                  # Run in a new shell so that the new group (see usermod cmd) is picked up.
-                  bash ./run-system-test.sh coverage
+                  # Although we are already running as "runner", the sudo is needed
+                  # to run in a new shell so that the new group (see usermod above) is picked up.
+                  sudo --non-interactive -u runner ./run-system-test.sh coverage
                   echo FINISHED SYSTEM TEST SCRIPT
 
             - name: Dump export-api docker logs for debugging
