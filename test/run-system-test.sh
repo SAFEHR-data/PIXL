@@ -60,6 +60,10 @@ else
     fi
     # Run the tests
     setup
+    set -x
+    which pytest || true
+    echo $PATH
+
     pytest "${PYTEST_FLAGS[@]}"
     echo FINISHED PYTEST COMMAND
     teardown

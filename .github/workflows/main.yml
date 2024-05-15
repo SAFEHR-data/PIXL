@@ -135,6 +135,11 @@ jobs:
                   # is analogous to a human user on the GAE bringing up a PIXL instance.
                   # The sudo command is needed to make it run in a new shell
                   # so that the new group (see usermod above) is picked up.
+                  set -x
+                  echo $PATH
+                  which pytest || true
+                  sudo --non-interactive --preserve-env -u runner env
+                  sudo --non-interactive --preserve-env -u runner which pytest || true
                   sudo --non-interactive --preserve-env -u runner ./run-system-test.sh coverage
                   echo FINISHED SYSTEM TEST SCRIPT
 
