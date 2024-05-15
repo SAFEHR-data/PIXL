@@ -153,7 +153,16 @@ jobs:
             - name: View file structure for debugging
               if: ${{ failure() }}
               run: |
-                  ls -laR
+                  # just in case the error is caused by permissions, make sure all files are seen
+                  sudo --non-interactive  ls -laR
+
+            - name: View user setup for debugging
+              if: ${{ failure() }}
+              run: |
+                set -x
+                groups
+                id runner
+                id pixl
 
             - name: Upload coverage reports to Codecov
               uses: codecov/codecov-action@v4.2.0
