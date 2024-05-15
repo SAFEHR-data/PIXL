@@ -135,11 +135,7 @@ jobs:
                   # is analogous to a human user on the GAE bringing up a PIXL instance.
                   # The sudo command is needed to make it run in a new shell
                   # so that the new group (see usermod above) is picked up.
-                  set -x
-                  echo $PATH
-                  which pytest || true
-                  sudo --non-interactive --preserve-env -u runner env
-                  sudo --non-interactive --preserve-env -u runner which pytest || true
+                  # PATH needs to be explicitly mentioned to be passed through.
                   sudo --non-interactive --preserve-env --preserve-env=PATH -u runner ./run-system-test.sh coverage
                   echo FINISHED SYSTEM TEST SCRIPT
 
@@ -158,19 +154,11 @@ jobs:
               run: |
                   docker logs -t system-test-imaging-api-1 2>&1
 
-            - name: View file structure for debugging
+            - name: View filesystem for debugging
               if: ${{ failure() }}
               run: |
                   # just in case the error is caused by permissions, make sure all files are seen
                   sudo --non-interactive  ls -laR
-
-            - name: View user setup for debugging
-              if: ${{ failure() }}
-              run: |
-                set -x
-                groups
-                id runner
-                id pixl
 
             - name: Upload coverage reports to Codecov
               uses: codecov/codecov-action@v4.2.0
