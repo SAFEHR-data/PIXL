@@ -95,5 +95,8 @@ MY_EXPORT_DIR=/gae/pixl_dev/PIXL/projects/exports
 chgrp -R pixl "$MY_EXPORT_DIR"
 ```
 
+See Issue https://github.com/UCLH-Foundry/PIXL/issues/401 where I suggest setting
+the whole PIXL repo as group `pixl` rather than `docker`, for simplicity.
+
 See [docker permissions setup](./docker_perms.md) for further discussion about
 why the docker export directory needs to be set up this way.

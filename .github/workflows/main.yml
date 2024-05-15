@@ -130,6 +130,7 @@ jobs:
                   host_export_root_dir=../projects/exports
                   sudo --non-interactive chown -R pixl:pixl "$host_export_root_dir"
                   sudo --non-interactive chmod -R u=rwx,g=rwxs,o= "$host_export_root_dir"
+                  sudo --non-interactive setfacl -R -m d:g::rwX  "$host_export_root_dir"
                   # The top-level commands are still run as the GHA runner user, which
                   # is analogous to a human user on the GAE bringing up a PIXL instance.
                   ./run-system-test.sh coverage
