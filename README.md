@@ -283,9 +283,7 @@ EXPORT_ROOT/PROJECT_SLUG/all_extracts/EXTRACT_DATETIME/radiology/IMAGE_LINKER.pa
 
 This directory is current located in `projects/exports` relative to the source code root.
 
-The unix user that the Export API (and other containers) runs as is configurable, and
-the (human) user must ensure that Export API can read the export dir given this configuration.
-[Further discussion about docker permissions is found here](./docs/design/docker_perms.md)
+[Further discussion about docker permissions and the exports directory is found here](docs/setup/docker_perms.md)
 
 ### Destination
 

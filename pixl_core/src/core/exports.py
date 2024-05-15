@@ -17,10 +17,10 @@ from __future__ import annotations
 
 import shlex
 import shutil
+import subprocess
 from typing import TYPE_CHECKING
 
 import slugify
-from pytest_pixl.helpers import run_subprocess
 
 from core.project_config import load_project_config
 from core.uploader import get_uploader
@@ -120,7 +120,12 @@ class ParquetExport:
     @staticmethod
     def _mkdir(directory: pathlib.Path) -> pathlib.Path:
         logger.warning("About to create directory {}", directory)
-        run_subprocess(shlex.split("ls -laR /home/runner/work/PIXL/PIXL/projects/exports"))
+        cp = subprocess.run(
+            shlex.split("ls -laR /home/runner/work/PIXL/PIXL/projects/exports"),
+            check=True,
+            capture_output=True,
+        )
+        logger.warning("ls rc {}", str(cp))
         directory.mkdir(parents=True, exist_ok=True)
         return directory
 
