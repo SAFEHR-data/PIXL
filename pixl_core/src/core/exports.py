@@ -121,7 +121,7 @@ class ParquetExport:
     def _mkdir(directory: pathlib.Path) -> pathlib.Path:
         logger.warning("About to create directory {}", directory)
         cp = subprocess.run(
-            shlex.split("ls -laR /home/runner/work/PIXL/PIXL/projects/exports"),
+            shlex.split("ls -laR .."),
             check=True,
             capture_output=True,
         )
