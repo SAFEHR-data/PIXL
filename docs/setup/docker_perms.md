@@ -4,22 +4,6 @@ Setup of user IDs, file permissions, ACLs, and other related things in docker.
 
 ## Requirements and design considerations
 
-### TL;DR - what do I do?
-Change these values in your production `.env` file:
-```
-PIXL_USER_UID=???
-PIXL_USER_GID=???
-```
-so that they match the UID and GID of the pixl user/group on
-your host.
-
-Set the permissions/ACLs of the "export" directory as follows:
-
-chgrp -R pixl "$MY_EXPORT_DIR"
-chmod -R g+rwxs "$MY_EXPORT_DIR"
-setfacl -R -m d:g::rwX "$MY_EXPORT_DIR"
-
-
 ### The aim - Docker containers should not run as root
 
 Generally it's considered a bad idea to run anything as root that doesn't need it.

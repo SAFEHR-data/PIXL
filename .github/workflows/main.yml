@@ -150,6 +150,11 @@ jobs:
               run: |
                   docker logs -t system-test-imaging-api-1 2>&1
 
+            - name: View file structure for debugging
+              if: ${{ failure() }}
+              run: |
+                  ls -laR
+
             - name: Upload coverage reports to Codecov
               uses: codecov/codecov-action@v4.2.0
               with:
