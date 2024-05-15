@@ -125,7 +125,7 @@ jobs:
                   # Most importantly, the pixl user is *not* in the docker group, and
                   # the default "runner" user is added to the pixl group.
                   sudo --non-interactive groupadd --gid $PIXL_USER_GID pixl
-                  sudo --non-interactive useradd --uid $PIXL_USER_UID --gid pixl --groups pixl
+                  sudo --non-interactive useradd --uid $PIXL_USER_UID --gid pixl pixl
                   sudo --non-interactive usermod --append --groups pixl runner
                   host_export_root_dir=../projects/exports
                   sudo --non-interactive chown -R pixl:pixl "$host_export_root_dir"
