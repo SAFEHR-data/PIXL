@@ -131,11 +131,11 @@ jobs:
                   sudo --non-interactive chown -R pixl:pixl "$host_export_root_dir"
                   sudo --non-interactive chmod -R u=rwx,g=rwxs,o= "$host_export_root_dir"
                   sudo --non-interactive setfacl -R -m d:g::rwX  "$host_export_root_dir"
-                  # The top-level commands are still run as the GHA runner user, which
+                  # The top-level commands are still run as the GHA "runner" user, which
                   # is analogous to a human user on the GAE bringing up a PIXL instance.
-                  # Although we are already running as "runner", the sudo is needed
-                  # to run in a new shell so that the new group (see usermod above) is picked up.
-                  sudo --non-interactive -u runner ./run-system-test.sh coverage
+                  # The sudo command is needed to make it run in a new shell
+                  # so that the new group (see usermod above) is picked up.
+                  sudo --non-interactive --preserve-env -u runner ./run-system-test.sh coverage
                   echo FINISHED SYSTEM TEST SCRIPT
 
             - name: Dump export-api docker logs for debugging
