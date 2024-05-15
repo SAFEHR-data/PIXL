@@ -121,16 +121,17 @@ jobs:
               run: |
                   # We need PIXL_USER_UID and PIXL_USER_GID from the test env file.
                   source .env
-                  # Export API (running as pixl) needs to be able to *read* files in
-                  # the export dir, but it doesn't write there.
-                  # So, set ownership/permissions accordingly.
-                  # Bear in mind that ownership/perms of files created below this dir will
-                  # depend on the CLI process. I think we don't need to set ACLs for now.
+                  # Set up as per docker_perms.md
+                  # Most importantly, the pixl user is *not* in the docker group, and
+                  # the default "runner" user is added to the pixl group.
                   sudo --non-interactive groupadd --gid $PIXL_USER_GID pixl
-                  sudo --non-interactive useradd --uid $PIXL_USER_UID --gid pixl --groups docker pixl
+                  sudo --non-interactive useradd --uid $PIXL_USER_UID --gid pixl --groups pixl
+                  sudo --non-interactive usermod --append --groups pixl runner
                   host_export_root_dir=../projects/exports
-                  sudo --non-interactive chown -R pixl:docker "$host_export_root_dir"
+                  sudo --non-interactive chown -R pixl:pixl "$host_export_root_dir"
                   sudo --non-interactive chmod -R ug+rwx "$host_export_root_dir"
+                  # The top-level commands are still run as the GHA runner user, which
+                  # is analogous to a human user on the GAE bringing up a PIXL instance.
                   ./run-system-test.sh coverage
                   echo FINISHED SYSTEM TEST SCRIPT
 
