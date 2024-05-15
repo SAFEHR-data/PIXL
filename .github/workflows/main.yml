@@ -140,7 +140,7 @@ jobs:
                   which pytest || true
                   sudo --non-interactive --preserve-env -u runner env
                   sudo --non-interactive --preserve-env -u runner which pytest || true
-                  sudo --non-interactive --preserve-env -u runner ./run-system-test.sh coverage
+                  su -c "./run-system-test.sh coverage" runner
                   echo FINISHED SYSTEM TEST SCRIPT
 
             - name: Dump export-api docker logs for debugging
