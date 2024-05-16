@@ -22,7 +22,7 @@ parquet file.
 ## Radiology linker table
 
 An output parquet file named `IMAGE_LINKER.parquet` that defines the connection between the
-OMOP procedure_occurrence_id for the current extract and the hashed image/study ID.
+OMOP procedure_occurrence_id for the current extract and the pseudo image/study ID.
 The procedure_occurrence_id can get renumbered from extract to extract.
 
 See method `make_radiology_linker_table` for more.
