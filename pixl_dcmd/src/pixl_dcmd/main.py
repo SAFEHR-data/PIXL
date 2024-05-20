@@ -32,7 +32,7 @@ from dicomanonymizer.simpledicomanonymizer import (
 
 from pixl_dcmd._dicom_helpers import get_project_name_as_string
 from pixl_dcmd._tag_schemes import merge_tag_schemes, _scheme_list_to_dict
-from pixl_dcmd._database import add_hashed_identifier_and_save_to_db, query_db
+from pixl_dcmd._database import get_uniq_pseudo_study_uid_and_update_db
 
 DicomDataSetType = Union[Union[str, bytes, PathLike[Any]], BinaryIO]
 
@@ -108,7 +108,15 @@ def _anonymise_dicom_from_scheme(
     Converts tag scheme to tag actions and calls _anonymise_recursively.
     """
     tag_actions = _convert_schema_to_actions(dataset, project_slug, tag_scheme)
+    # Get the MRN, Accession Number before we've anonymised them
+    mrn = dataset[0x0010, 0x0020].value  # Patient ID
+    accession_number = dataset[0x0008, 0x0050].value  # Accession Number
     _anonymise_recursively(dataset, tag_actions)
+
+    # Update the dataset with the new pseudo study ID
+    dataset[0x0020, 0x000D].value = get_uniq_pseudo_study_uid_and_update_db(
+        project_slug, mrn, accession_number
+    )
 
 
 def _anonymise_recursively(
@@ -134,16 +142,12 @@ def _convert_schema_to_actions(
     Accession Number, hence why the dataset is passed in as well.
     """
 
-    # Get the MRN, Accession Number before we've anonymised them
-    mrn = dataset[0x0010, 0x0020].value  # Patient ID
-    accession_number = dataset[0x0008, 0x0050].value  # Accession Number
-
     tag_actions = {}
     for tag in tags_list:
         group_el = (tag["group"], tag["element"])
         if tag["op"] == "secure-hash":
             tag_actions[group_el] = lambda _dataset, _tag: _secure_hash(
-                _dataset, project_slug, _tag, mrn, accession_number
+                _dataset, project_slug, _tag
             )
             continue
         tag_actions[group_el] = actions_map_name_functions[tag["op"]]
@@ -152,7 +156,9 @@ def _convert_schema_to_actions(
 
 
 def _secure_hash(
-    dataset: Dataset, project_slug: str, tag: tuple, mrn: str, accession_number: str
+    dataset: Dataset,
+    project_slug: str,
+    tag: tuple,
 ) -> None:
     """
     Use the hasher API to consistently but securely hash ids later used for linking.
@@ -163,23 +169,15 @@ def _secure_hash(
     if tag in dataset:
         message = f"Securely hashing: (0x{grp:04x},0x{el:04x})"
         logger.debug(f"\t{message}")
-        if grp == 0x0010 and el == 0x0020:  # Patient ID
-            pat_value = mrn + accession_number
-
-            hashed_value = _hash_values(pat_value, project_slug)
-            # Query PIXL database
-            existing_image = query_db(project_slug, mrn, accession_number)
-            # Insert the hashed_value into the PIXL database
-            add_hashed_identifier_and_save_to_db(existing_image, hashed_value)
-        elif dataset[grp, el].VR == "SH":
+        if dataset[grp, el].VR == "LO":
             pat_value = str(dataset[grp, el].value)
-            hashed_value = _hash_values(pat_value, project_slug, hash_len=16)
+            hashed_value = _hash_values(pat_value, project_slug, hash_len=64)
+        else:
+            # This is because we currently only hash patient id specifically.
+            # Other types can be added easily if needed.
+            raise PixlDiscardError(f"Tag {tag} is not an LO VR type, cannot hash.")
 
         dataset[grp, el].value = hashed_value
-
-    else:
-        message = f"Missing linking variable (0x{grp:04x},0x{el:04x})"
-        logger.warning(f"\t{message}")
 
 
 def _hash_values(pat_value: str, project_slug: str, hash_len: int = 0) -> str:

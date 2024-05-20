@@ -28,13 +28,13 @@ class DumbUploader(Uploader):
     Allows testing of the database interaction at the top level call to uploader.
     """
 
-    def __init__(self, hashed_identifier) -> None:
+    def __init__(self, pseudo_study_uid) -> None:
         """Initialise the mock uploader with hardcoded values for FTPS config."""
-        self.hashed_identifier = hashed_identifier
+        self.pseudo_study_uid = pseudo_study_uid
 
     def _get_tags_by_study(self, study_id: str) -> tuple[str, str]:
-        logger.info("Mocked getting tags for: {} to return {}", study_id, self.hashed_identifier)
-        return self.hashed_identifier, "project_slug"
+        logger.info("Mocked getting tags for: {} to return {}", study_id, self.pseudo_study_uid)
+        return self.pseudo_study_uid, "project_slug"
 
     def _upload_dicom_image(
         self, study_id: str, pseudo_anon_image_id: str, project_slug: str
@@ -65,7 +65,7 @@ def test_export_date_updated(db_engine, not_yet_exported_dicom_image) -> None:
     """
     # ARRANGE
     study_id = "test-study-id"
-    uploader = DumbUploader(not_yet_exported_dicom_image.hashed_identifier)
+    uploader = DumbUploader(not_yet_exported_dicom_image.pseudo_study_uid)
 
     # ACT
     uploader.upload_dicom_and_update_database(study_id)
@@ -74,7 +74,7 @@ def test_export_date_updated(db_engine, not_yet_exported_dicom_image) -> None:
     InMemorySession = sessionmaker(db_engine)
     with InMemorySession() as session:
         output = (
-            session.query(Image).filter(Image.hashed_identifier == uploader.hashed_identifier).one()
+            session.query(Image).filter(Image.pseudo_study_uid == uploader.pseudo_study_uid).one()
         )
     assert output.exported_at is not None
 
@@ -99,7 +99,7 @@ def test_study_already_exported_raises(already_exported_dicom_image) -> None:
     THEN an exception is raised
     """
     study_id = "test-study-id"
-    uploader = DumbUploader(already_exported_dicom_image.hashed_identifier)
+    uploader = DumbUploader(already_exported_dicom_image.pseudo_study_uid)
 
     with pytest.raises(RuntimeError, match="Image already exported"):
         uploader.upload_dicom_and_update_database(study_id)

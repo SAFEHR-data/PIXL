@@ -174,11 +174,11 @@ def _check_and_parse_parquet(private_dir: Path, public_dir: Path) -> pd.DataFram
 
 def make_radiology_linker_table(parquet_dir: Path, images: list[Image]) -> pd.DataFrame:
     """
-    Make a table linking the OMOP procedure_occurrence_id to the hashed image/study ID.
+    Make a table linking the OMOP procedure_occurrence_id to the pseudo image/study ID.
     :param parquet_dir: location of OMOP extract
                         (this gives us: procedure_occurrence_id <-> mrn+accession mapping)
     :param images: the images already processed by PIXL, from the DB
-                        (this gives us: mrn+accession <-> hashed ID)
+                        (this gives us: mrn+accession <-> pseudo_study_uid)
     """
     public_dir = parquet_dir / "public"
     private_dir = parquet_dir / "private"
@@ -186,7 +186,7 @@ def make_radiology_linker_table(parquet_dir: Path, images: list[Image]) -> pd.Da
 
     images_df = pd.DataFrame.from_records([vars(im) for im in images])
     merged = people_procedures_accessions.merge(images_df, on=("mrn", "accession_number"))
-    return merged[["procedure_occurrence_id", "hashed_identifier"]]
+    return merged[["procedure_occurrence_id", "pseudo_study_uid"]]
 
 
 def _raise_if_column_names_not_found(

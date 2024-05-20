@@ -34,28 +34,28 @@ url = URL.create(
 engine = create_engine(url)
 
 
-def have_already_exported_image(image_hashed_id: str) -> bool:
+def have_already_exported_image(pseudo_study_uid: str) -> bool:
     """Check if the given image has already been exported."""
     PixlSession = sessionmaker(engine)
     with PixlSession() as pixl_session, pixl_session.begin():
-        existing_image = _query_existing_image(pixl_session, image_hashed_id)
+        existing_image = _query_existing_image(pixl_session, pseudo_study_uid)
         return existing_image.exported_at is not None
 
 
-def update_exported_at(hashed_value: str, date_time: datetime) -> None:
+def update_exported_at(pseudo_study_uid: str, date_time: datetime) -> None:
     """Update the `exported_at` field for an image in the PIXL database"""
     PixlSession = sessionmaker(engine)
     with PixlSession() as pixl_session, pixl_session.begin():
-        existing_image = _query_existing_image(pixl_session, hashed_value)
+        existing_image = _query_existing_image(pixl_session, pseudo_study_uid)
         existing_image.exported_at = date_time
         pixl_session.add(existing_image)
 
 
-def _query_existing_image(pixl_session: Session, hashed_value: str) -> Image:
+def _query_existing_image(pixl_session: Session, pseudo_study_uid: str) -> Image:
     existing_image: Image = (
         pixl_session.query(Image)
         .filter(
-            Image.hashed_identifier == hashed_value,
+            Image.pseudo_study_uid == pseudo_study_uid,
         )
         .one()
     )
