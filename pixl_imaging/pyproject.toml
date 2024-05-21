@@ -1,17 +1,13 @@
 [project]
 name = "pixl_imaging"
 version = "0.0.2"
-authors = [
-  { name="PIXL authors" },
-]
+authors = [{ name = "PIXL authors" }]
 description = "PIXL image extractor"
 readme = "README.md"
 requires-python = ">=3.10"
-classifiers = [
-    "Programming Language :: Python :: 3"
-]
+classifiers = ["Programming Language :: Python :: 3"]
 dependencies = [
-    "aiohttp==3.9.3",
+    "aiohttp==3.9.5",
     "alembic==1.13.1",
     "pydicom==2.4.4",
     "python-decouple==3.6",
@@ -19,15 +15,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = [
-    "pytest==7.4.2",
-    "pytest-asyncio==0.21.1"
-]
-dev = [
-    "mypy",
-    "pre-commit",
-    "ruff",
-]
+test = ["pytest==7.4.2", "pytest-asyncio==0.21.1"]
+dev = ["mypy", "pre-commit", "ruff"]
 
 [build-system]
 requires = ["setuptools>=61.0"]
@@ -41,11 +30,11 @@ extend = "../ruff.toml"
 
 [tool.ruff.lint.extend-per-file-ignores]
 "./tests/**" = [
-    "D1",  # Documentation of methods
-    "S105",  # Hardcoded passwords
-    "SLF001"  # Access private members of a class
+    "D1",     # Documentation of methods
+    "S105",   # Hardcoded passwords
+    "SLF001", # Access private members of a class
 ]
 "./alembic/**" = [
-    "INP001",  # is part of an implicit namespace package. Add an `__init__.py`
-    "D103",  # Missing docstring in public function
+    "INP001", # is part of an implicit namespace package. Add an `__init__.py`
+    "D103",   # Missing docstring in public function
 ]
