@@ -27,7 +27,8 @@ from pytest_pixl.helpers import run_subprocess
         "hasher-api",
         "postgres",
         "queue",
-        # hopefully we can fix orthanc as well
+        "orthanc-raw",
+        "orthanc-anon",
     ],
 )
 def test_non_root_uids(container: str) -> None:
