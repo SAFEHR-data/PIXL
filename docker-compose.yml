@@ -110,7 +110,8 @@ services:
     orthanc-anon:
         build:
             context: .
-            dockerfile: ./docker/orthanc-anon/Dockerfile
+            dockerfile: ./docker/orthanc/Dockerfile
+            target: pixl_orthanc_anon
             args:
                 <<: *build-args-common
         platform: linux/amd64
@@ -180,7 +181,8 @@ services:
     orthanc-raw:
         build:
             context: .
-            dockerfile: ./docker/orthanc-raw/Dockerfile
+            dockerfile: ./docker/orthanc/Dockerfile
+            target: pixl_orthanc_raw
             args:
                 <<: *build-args-common
                 ORTHANC_RAW_MAXIMUM_STORAGE_SIZE: ${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE}

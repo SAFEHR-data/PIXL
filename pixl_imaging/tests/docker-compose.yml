@@ -50,7 +50,8 @@ services:
     orthanc-raw:
         build:
             context: ../../
-            dockerfile: ./docker/orthanc-raw/Dockerfile
+            dockerfile: ./docker/orthanc/Dockerfile
+            target: pixl_orthanc_raw
         environment:
             ORTHANC_NAME: "PIXL: Raw"
             ORTHANC_USERNAME: "orthanc"
