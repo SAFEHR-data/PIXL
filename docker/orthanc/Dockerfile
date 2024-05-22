@@ -11,7 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-FROM orthancteam/orthanc:24.3.3 AS pixl_orthanc_base
+FROM orthancteam/orthanc:24.4.0 AS pixl_orthanc_base
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 
 
