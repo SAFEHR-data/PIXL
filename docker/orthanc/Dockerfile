@@ -41,6 +41,15 @@ COPY ./pixl_dcmd/ /pixl_dcmd
 RUN --mount=type=cache,target=/root/.cache \
     /.venv/bin/pip install --no-cache-dir --force-reinstall --no-deps ./pixl_dcmd
 
+USER orthanc
+
+# Because the volume contents inherit the ownership of the mountpoint if it already exists,
+# creating and chowning at this point ensures that this happens.
+# See https://devops.stackexchange.com/a/4542 although the docs no longer seem to mention this.
+# The VOLUME instruction is not needed because this is specified by the docker compose file.
+ARG ORTHANC_DATA_VOLUME=/var/lib/orthanc/db/
+RUN mkdir "$ORTHANC_DATA_VOLUME" && chown orthanc:orthanc "$ORTHANC_DATA_VOLUME"
+
 FROM pixl_orthanc_base AS pixl_orthanc_raw
 
 COPY ./orthanc/orthanc-raw/plugin/pixl.py /etc/orthanc/pixl.py
@@ -49,7 +58,8 @@ COPY ./orthanc/orthanc-raw/plugin/pixl.py /etc/orthanc/pixl.py
 ARG ORTHANC_RAW_MAXIMUM_STORAGE_SIZE
 ARG ORTHANC_RAW_JOB_HISTORY_SIZE
 ARG ORTHANC_RAW_CONCURRENT_JOBS
-COPY ./orthanc/orthanc-raw/config /run/secrets
+COPY --chown=orthanc:orthanc ./orthanc/orthanc-raw/config /run/secrets
+RUN ls -la /run/secrets
 RUN sed -i "s/\${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE}/${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE:-0}/g" /run/secrets/orthanc.json
 RUN sed -i "s/\${ORTHANC_RAW_JOB_HISTORY_SIZE}/${ORTHANC_RAW_JOB_HISTORY_SIZE:-100}/g" /run/secrets/orthanc.json
 RUN sed -i "s/\${ORTHANC_RAW_CONCURRENT_JOBS}/${ORTHANC_RAW_CONCURRENT_JOBS:-5}/g" /run/secrets/orthanc.json
