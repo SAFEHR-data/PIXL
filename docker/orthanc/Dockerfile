@@ -59,7 +59,6 @@ ARG ORTHANC_RAW_MAXIMUM_STORAGE_SIZE
 ARG ORTHANC_RAW_JOB_HISTORY_SIZE
 ARG ORTHANC_RAW_CONCURRENT_JOBS
 COPY --chown=orthanc:orthanc ./orthanc/orthanc-raw/config /run/secrets
-RUN ls -la /run/secrets
 RUN sed -i "s/\${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE}/${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE:-0}/g" /run/secrets/orthanc.json
 RUN sed -i "s/\${ORTHANC_RAW_JOB_HISTORY_SIZE}/${ORTHANC_RAW_JOB_HISTORY_SIZE:-100}/g" /run/secrets/orthanc.json
 RUN sed -i "s/\${ORTHANC_RAW_CONCURRENT_JOBS}/${ORTHANC_RAW_CONCURRENT_JOBS:-5}/g" /run/secrets/orthanc.json
