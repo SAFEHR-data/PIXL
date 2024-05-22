@@ -32,6 +32,7 @@ x-orthanc-healthcheck: &orthanc-healthcheck
 services:
     vna-qr:
         image: orthancteam/orthanc:24.3.3
+        user: orthanc
         environment:
             ORTHANC_NAME: "VNAQR"
             ORTHANC_USERNAME: "orthanc"
