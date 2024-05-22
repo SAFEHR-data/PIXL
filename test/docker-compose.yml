@@ -19,7 +19,7 @@ networks:
 
 services:
     vna-qr:
-        image: orthancteam/orthanc:24.3.3
+        image: orthancteam/orthanc:24.4.0
         user: orthanc
         platform: linux/amd64
         environment:
