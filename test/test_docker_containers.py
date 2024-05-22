@@ -29,6 +29,8 @@ from pytest_pixl.helpers import run_subprocess
         "queue",
         "orthanc-raw",
         "orthanc-anon",
+        "vna-qr",
+        "dicomweb-server",
     ],
 )
 def test_non_root_uids(container: str) -> None:
