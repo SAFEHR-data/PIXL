@@ -121,7 +121,7 @@ services:
         platform: linux/amd64
         command: /run/secrets
         environment:
-            <<: [*proxy-common, *pixl-common-env, *azure-keyvault]
+            <<: [*proxy-common, *pixl-common-env, *azure-keyvault, *pixl-db]
             ORTHANC_NAME: "PIXL: Anon"
             ORTHANC_USERNAME: ${ORTHANC_ANON_USERNAME}
             ORTHANC_PASSWORD: ${ORTHANC_ANON_PASSWORD}
@@ -134,11 +134,6 @@ services:
             ORTHANC_ANON_URL: "http://localhost:8042"
             ORTHANC_ANON_USERNAME: ${ORTHANC_ANON_USERNAME}
             ORTHANC_ANON_PASSWORD: ${ORTHANC_ANON_PASSWORD}
-            PIXL_DB_HOST: ${PIXL_DB_HOST}
-            PIXL_DB_PORT: ${PIXL_DB_PORT}
-            PIXL_DB_NAME: ${PIXL_DB_NAME}
-            PIXL_DB_USER: ${PIXL_DB_USER}
-            PIXL_DB_PASSWORD: ${PIXL_DB_PASSWORD}
             DICOM_WEB_PLUGIN_ENABLED: ${ENABLE_DICOM_WEB}
             HASHER_API_AZ_NAME: "hasher-api"
             HASHER_API_PORT: 8000
@@ -325,18 +320,13 @@ services:
         networks:
             - pixl-net
         environment:
-            <<: [*pixl-rabbit-mq, *proxy-common, *pixl-common-env]
+            <<: [*pixl-rabbit-mq, *proxy-common, *pixl-common-env, *pixl-db]
             ORTHANC_RAW_URL: ${ORTHANC_RAW_URL}
             ORTHANC_RAW_USERNAME: ${ORTHANC_RAW_USERNAME}
             ORTHANC_RAW_PASSWORD: ${ORTHANC_RAW_PASSWORD}
             ORTHANC_RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
             VNAQR_MODALITY: ${VNAQR_MODALITY}
             SKIP_ALEMBIC: ${SKIP_ALEMBIC}
-            PIXL_DB_HOST: ${PIXL_DB_HOST}
-            PIXL_DB_PORT: ${PIXL_DB_PORT}
-            PIXL_DB_NAME: ${PIXL_DB_NAME}
-            PIXL_DB_USER: ${PIXL_DB_USER}
-            PIXL_DB_PASSWORD: ${PIXL_DB_PASSWORD}
             PIXL_DICOM_TRANSFER_TIMEOUT: ${PIXL_DICOM_TRANSFER_TIMEOUT}
             PIXL_QUERY_TIMEOUT: ${PIXL_QUERY_TIMEOUT}
             PIXL_MAX_MESSAGES_IN_FLIGHT: ${PIXL_MAX_MESSAGES_IN_FLIGHT}
