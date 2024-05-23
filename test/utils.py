@@ -35,7 +35,7 @@ def wait_for_stable_orthanc_anon(
     """
     instances = []
 
-    def at_least_n_intances(n_intances: int) -> bool:
+    def at_least_n_instances(n_instances: int) -> bool:
         nonlocal instances
         instances_cmd = shlex.split(
             "docker exec system-test-orthanc-anon-1 "
@@ -44,10 +44,10 @@ def wait_for_stable_orthanc_anon(
         )
         instances_output = subprocess.run(instances_cmd, capture_output=True, check=True, text=True)  # noqa: S603
         instances = json.loads(instances_output.stdout)
-        return len(instances) >= n_intances
+        return len(instances) >= n_instances
 
-    condition = partial(at_least_n_intances, min_instances)
-    update_wrapper(condition, at_least_n_intances)
+    condition = partial(at_least_n_instances, min_instances)
+    update_wrapper(condition, at_least_n_instances)
 
     def list_instances() -> str:
         return f"Expecting at least {min_instances} instances.\northanc-anon instances: {instances}"
