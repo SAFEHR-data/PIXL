@@ -123,6 +123,6 @@ def processed_images_for_project(project_slug: str) -> list[Image]:
             session.query(Image)
             .join(Extract)
             .filter(Extract.slug == project_slug)
-            .filter(not_(Image.pseudo_study_uid.is_(None)))
+            .filter(not_(Image.exported_at.is_(None)))
             .all(),
         )
