@@ -20,10 +20,12 @@ import os
 import sys
 from operator import attrgetter
 from pathlib import Path
-from typing import Any, Optional
+from time import sleep
+from typing import TYPE_CHECKING, Any, Optional
 
 import click
 import requests
+import tqdm
 from core.exports import ParquetExport
 from core.patient_queue.producer import PixlProducer
 from decouple import RepositoryEnv, UndefinedValueError, config
@@ -39,6 +41,9 @@ from pixl_cli._io import (
     messages_from_parquet,
     project_info,
 )
+
+if TYPE_CHECKING:
+    from core.patient_queue.message import Message
 
 # localhost needs to be added to the NO_PROXY environment variables on GAEs
 os.environ["NO_PROXY"] = os.environ["no_proxy"] = "localhost"
@@ -106,8 +111,28 @@ def check_env(*, error: bool, sample_env_file: click.Path) -> None:
 @click.argument(
     "parquet-path", required=True, type=click.Path(path_type=Path, exists=True, file_okay=True)
 )
-def populate(
-    parquet_path: Path, *, queues: str, start_processing: bool, rate: Optional[float]
+@click.option(
+    "--retry/--no-retry",
+    "retry",
+    show_default=True,
+    default=True,
+    help="Retry extraction every 5 minutes until no new extracts are found",
+)
+@click.option(
+    "--num-retries",
+    "num_retries",
+    type=int,
+    show_default=True,
+    default=5,
+    help="Number of retries to attempt before giving up",
+)
+def populate(  # noqa: PLR0913 too many args
+    parquet_path: Path,
+    queues: str,
+    start_processing: bool,  # noqa: FBT001 bool argument
+    rate: Optional[float],
+    retry: bool,  # noqa: FBT001 bool argument
+    num_retries: int,
 ) -> None:
     """
     Populate a (set of) queue(s) from a parquet file directory
@@ -133,6 +158,39 @@ def populate(
         project_name, omop_es_datetime = copy_parquet_return_logfile_fields(parquet_path)
         messages = messages_from_parquet(parquet_path, project_name, omop_es_datetime)
 
+    _populate(queues, messages)
+    if retry:
+        last_exported_count = 0
+        logger.info(
+            "Retrying extraction every 5 minutes until no new extracts are found, max retries: {}",
+            num_retries,
+        )
+        for i in range(num_retries):
+            logger.info("Waiting 5 minutes for new extracts to be found")
+            _wait()
+            images = images_for_project(project_name)
+            new_last_exported_count = sum(i.exported_at is not None for i in images)
+            if new_last_exported_count == last_exported_count:
+                logger.info("No new extracts found, stopping retry")
+                return
+            logger.info(
+                "{} New extracts found, retrying extraction {}/{}",
+                new_last_exported_count - last_exported_count,
+                i,
+                num_retries,
+            )
+            last_exported_count = new_last_exported_count
+            _populate(queues, messages)
+
+
+def _wait() -> None:
+    with tqdm(total=300, desc="Waiting for new extracts to be found") as pbar:
+        for _ in range(300):
+            sleep(1)
+            pbar.update(1)
+
+
+def _populate(queues: str, messages: list[Message]) -> None:
     for queue in queues.split(","):
         sorted_messages = sorted(messages, key=attrgetter("study_date"))
         # For imaging, we don't want to query again for images that have already been exported
