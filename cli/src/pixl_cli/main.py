@@ -27,6 +27,7 @@ import click
 import requests
 import tqdm
 from core.exports import ParquetExport
+from core.patient_queue._base import PixlBlockingInterface
 from core.patient_queue.producer import PixlProducer
 from decouple import RepositoryEnv, UndefinedValueError, config
 from loguru import logger
@@ -112,27 +113,20 @@ def check_env(*, error: bool, sample_env_file: click.Path) -> None:
     "parquet-path", required=True, type=click.Path(path_type=Path, exists=True, file_okay=True)
 )
 @click.option(
-    "--retry/--no-retry",
-    "retry",
-    show_default=True,
-    default=True,
-    help="Retry extraction every 5 minutes until no new extracts are found",
-)
-@click.option(
     "--num-retries",
     "num_retries",
     type=int,
     show_default=True,
     default=5,
-    help="Number of retries to attempt before giving up",
+    help="Number of retries to attempt before giving up, 5 minute wait inbetween",
 )
-def populate(  # noqa: PLR0913 too many args
+def populate(  # too many args
     parquet_path: Path,
     queues: str,
-    start_processing: bool,  # noqa: FBT001 bool argument
     rate: Optional[float],
-    retry: bool,  # noqa: FBT001 bool argument
     num_retries: int,
+    *,
+    start_processing: bool,
 ) -> None:
     """
     Populate a (set of) queue(s) from a parquet file directory
@@ -148,10 +142,11 @@ def populate(  # noqa: PLR0913 too many args
             │   └── PROCEDURE_OCCURRENCE.parquet
             └── extract_summary.json
     """
+    queues_to_populate = queues.split(",")
     if start_processing:
-        _start_or_update_extract(queues=queues.split(","), rate=rate)
+        _start_or_update_extract(queues=queues_to_populate, rate=rate)
 
-    logger.info("Populating queue(s) {} from {}", queues, parquet_path)
+    logger.info("Populating queue(s) {} from {}", queues_to_populate, parquet_path)
     if parquet_path.is_file() and parquet_path.suffix == ".csv":
         messages = messages_from_csv(parquet_path)
         project_name = messages[0].project_name
@@ -159,14 +154,15 @@ def populate(  # noqa: PLR0913 too many args
         project_name, omop_es_datetime = copy_parquet_return_logfile_fields(parquet_path)
         messages = messages_from_parquet(parquet_path, project_name, omop_es_datetime)
 
-    _populate(queues, messages)
-    if retry:
+    _populate(queues_to_populate, messages)
+    if num_retries != 0:
         last_exported_count = 0
         logger.info(
             "Retrying extraction every 5 minutes until no new extracts are found, max retries: {}",
             num_retries,
         )
         for i in range(num_retries):
+            _wait_for_queues_to_empty(queues_to_populate)
             logger.info("Waiting 5 minutes for new extracts to be found")
             _wait()
             images = images_for_project(project_name)
@@ -185,18 +181,35 @@ def populate(  # noqa: PLR0913 too many args
                 num_retries,
             )
             last_exported_count = new_last_exported_count
-            _populate(queues, messages)
+            _populate(queues_to_populate, messages)
+
+
+def _wait_for_queues_to_empty(queues_to_populate: list[str]) -> None:
+    logger.info("Waiting for rabbitmq queues to be empty")
+    message_count = _message_count(queues_to_populate)
+    while message_count != 0:
+        logger.debug(f"{message_count=}, sleeping for a minute")
+        sleep(60)
+        message_count = _message_count(queues_to_populate)
+    logger.info("Queues are empty")
+
+
+def _message_count(queues_to_populate: list[str]) -> int:
+    messages_in_queues = 0
+    for queue in queues_to_populate:
+        with PixlBlockingInterface(queue_name=queue, **SERVICE_SETTINGS["rabbitmq"]) as rabbitmq:
+            messages_in_queues += rabbitmq.message_count
+    return messages_in_queues
 
 
 def _wait() -> None:
-    with tqdm.tqdm(total=300, desc="Waiting for new extracts to be found") as pbar:
+    with tqdm.tqdm(total=300, desc="Waiting for new extracts to be found"):
         for _ in range(300):
             sleep(1)
-            pbar.update(1)
 
 
-def _populate(queues: str, messages: list[Message]) -> None:
-    for queue in queues.split(","):
+def _populate(queues: list[str], messages: list[Message]) -> None:
+    for queue in queues:
         sorted_messages = sorted(messages, key=attrgetter("study_date"))
         # For imaging, we don't want to query again for images that have already been exported
         if queue == "imaging" and messages:
