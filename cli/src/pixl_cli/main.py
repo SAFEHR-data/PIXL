@@ -89,6 +89,9 @@ def check_env(*, error: bool, sample_env_file: click.Path) -> None:
 
 
 @cli.command()
+@click.argument(
+    "parquet-path", required=True, type=click.Path(path_type=Path, exists=True, file_okay=True)
+)
 @click.option(
     "--queues",
     default="imaging",
@@ -109,9 +112,6 @@ def check_env(*, error: bool, sample_env_file: click.Path) -> None:
     default=None,
     help="Rate at which to process items from a queue (in items per second).",
 )
-@click.argument(
-    "parquet-path", required=True, type=click.Path(path_type=Path, exists=True, file_okay=True)
-)
 @click.option(
     "--num-retries",
     "num_retries",
@@ -122,10 +122,10 @@ def check_env(*, error: bool, sample_env_file: click.Path) -> None:
 )
 def populate(  # too many args
     parquet_path: Path,
+    *,
     queues: str,
     rate: Optional[float],
     num_retries: int,
-    *,
     start_processing: bool,
 ) -> None:
     """
@@ -203,9 +203,8 @@ def _message_count(queues_to_populate: list[str]) -> int:
 
 
 def _wait() -> None:
-    with tqdm.tqdm(total=300, desc="Waiting for new extracts to be found"):
-        for _ in range(300):
-            sleep(1)
+    with tqdm.tqdm(range(300), desc="Waiting for series to be fully processed"):
+        sleep(1)
 
 
 def _populate(queues: list[str], messages: list[Message]) -> None:
