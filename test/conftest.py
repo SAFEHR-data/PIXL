@@ -147,7 +147,7 @@ def _setup_pixl_cli(ftps_server: PixlFTPServer, _populate_vna: None) -> Generato
     """Run pixl populate/start. Cleanup intermediate export dir on exit."""
     run_subprocess(["pixl", "populate", str(RESOURCES_OMOP_DIR.absolute())], TEST_DIR)
     # poll here for two minutes to check for imaging to be processed, printing progress
-    wait_for_images_to_be_exported(121, 5, 15)
+    wait_for_images_to_be_exported(181, 5, 15)
     yield
     run_subprocess(
         [
@@ -167,7 +167,7 @@ def _setup_pixl_cli_dicomweb(_populate_vna: None) -> Generator:
     """Run pixl populate/start. Cleanup intermediate export dir on exit."""
     run_subprocess(["pixl", "populate", str(RESOURCES_OMOP_DICOMWEB_DIR.absolute())], TEST_DIR)
     # poll here for two minutes to check for imaging to be processed, printing progress
-    wait_for_images_to_be_exported(121, 5, 15)
+    wait_for_images_to_be_exported(181, 5, 15)
     yield
     run_subprocess(
         [
