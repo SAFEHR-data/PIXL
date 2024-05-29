@@ -27,7 +27,7 @@ ORTHANC_USERNAME = config("ORTHANC_ANON_USERNAME")
 ORTHANC_PASSWORD = config("ORTHANC_ANON_PASSWORD")
 
 DICOMWEB_USERNAME = "orthanc_dicomweb"
-DICOMWEB_PASSWORD = "orthanc_dicomweb"  # noqa: S105, hardcoded password
+DICOMWEB_PASSWORD = "orthanc_dicomweb"
 
 LOCAL_DICOMWEB_URL = "http://localhost:8044"
 
@@ -109,7 +109,7 @@ def test_dicomweb_upload_fails_with_wrong_credentials(
 ) -> None:
     """Tests that the DICOMWeb uploader fails when given wrong credentials."""
     dicomweb_uploader.endpoint_user = "wrong"
-    dicomweb_uploader.endpoint_password = "wrong"  # noqa: S105, hardcoded password
+    dicomweb_uploader.endpoint_password = "wrong"
 
     with pytest.raises(requests.exceptions.ConnectionError):
         dicomweb_uploader._setup_dicomweb_credentials()  # noqa: SLF001, private method

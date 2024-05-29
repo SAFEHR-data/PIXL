@@ -48,7 +48,13 @@ lint.mccabe.max-complexity = 18
 exclude=["scripts"]
 
 [lint.extend-per-file-ignores]
-"**/test*/*" = ["PLR2004"] #  Magic value used in comparison
+"**/test*/*" = [
+    "PLR2004", #  Magic value used in comparison
+    "S105"  # harcoded password
+]
+"test/conftest.py" = [
+    "E402" # Module level import not at the top of the file
+]
 "hasher/tests/*" = ["ARG001"] #  unused function argument
 "env.py" = ["INP001", "E402", "ERA001"]
 "alembic/versions/*" = ["D103", "INP001"]
