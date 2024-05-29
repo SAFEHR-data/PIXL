@@ -39,19 +39,19 @@ STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
 
 os.environ["PIXL_MAX_MESSAGES_IN_FLIGHT"] = "10"
 os.environ["RABBITMQ_USERNAME"] = "guest"
-os.environ["RABBITMQ_PASSWORD"] = "guest"  # noqa: S105 Hardcoding password
+os.environ["RABBITMQ_PASSWORD"] = "guest"
 os.environ["RABBITMQ_HOST"] = "localhost"
 os.environ["RABBITMQ_PORT"] = "25672"
 os.environ["PROJECT_CONFIGS_DIR"] = str(TEST_DIR.parents[1] / "projects/configs")
 
 os.environ["FTP_HOST"] = "localhost"
 os.environ["FTP_USER_NAME"] = "pixl"
-os.environ["FTP_PASSWORD"] = "longpassword"  # noqa: S105 Hardcoding password
+os.environ["FTP_PASSWORD"] = "longpassword"
 os.environ["FTP_PORT"] = "20021"
 
 os.environ["ORTHANC_ANON_URL"] = "http://localhost:8043"
 os.environ["ORTHANC_ANON_USERNAME"] = "orthanc"
-os.environ["ORTHANC_ANON_PASSWORD"] = "orthanc"  # noqa: S105, hardcoded password
+os.environ["ORTHANC_ANON_PASSWORD"] = "orthanc"
 
 
 @pytest.fixture(scope="package")
