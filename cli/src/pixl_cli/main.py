@@ -154,6 +154,7 @@ def populate(  # noqa: PLR0913 too many args
     logger.info("Populating queue(s) {} from {}", queues, parquet_path)
     if parquet_path.is_file() and parquet_path.suffix == ".csv":
         messages = messages_from_csv(parquet_path)
+        project_name = messages[0].project_name
     else:
         project_name, omop_es_datetime = copy_parquet_return_logfile_fields(parquet_path)
         messages = messages_from_parquet(parquet_path, project_name, omop_es_datetime)
@@ -171,10 +172,14 @@ def populate(  # noqa: PLR0913 too many args
             images = images_for_project(project_name)
             new_last_exported_count = sum(i.exported_at is not None for i in images)
             if new_last_exported_count == last_exported_count:
-                logger.info("No new extracts found, stopping retry")
+                logger.info(
+                    "From {0} studies, {1} were exported and didn't change between retries",
+                    len(images),
+                    new_last_exported_count,
+                )
                 return
             logger.info(
-                "{} New extracts found, retrying extraction {}/{}",
+                "{} studies exported, retrying extraction {}/{}",
                 new_last_exported_count - last_exported_count,
                 i,
                 num_retries,
@@ -184,7 +189,7 @@ def populate(  # noqa: PLR0913 too many args
 
 
 def _wait() -> None:
-    with tqdm(total=300, desc="Waiting for new extracts to be found") as pbar:
+    with tqdm.tqdm(total=300, desc="Waiting for new extracts to be found") as pbar:
         for _ in range(300):
             sleep(1)
             pbar.update(1)
