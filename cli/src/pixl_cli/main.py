@@ -161,7 +161,7 @@ def populate(  # too many args
             "Retrying extraction every 5 minutes until no new extracts are found, max retries: {}",
             num_retries,
         )
-        for i in range(num_retries):
+        for i in range(1, num_retries + 1):
             _wait_for_queues_to_empty(queues_to_populate)
             logger.info("Waiting 5 minutes for new extracts to be found")
             _wait()
