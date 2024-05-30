@@ -18,7 +18,7 @@ from typing import cast
 
 from core.db.models import Extract, Image
 from core.patient_queue.message import Message
-from sqlalchemy import URL, create_engine
+from sqlalchemy import URL, create_engine, not_
 from sqlalchemy.orm import Session, sessionmaker
 
 from pixl_cli._config import SERVICE_SETTINGS
@@ -114,11 +114,15 @@ def _add_new_image_to_session(extract: Extract, message: Message, session: Sessi
     return new_image
 
 
-def images_for_project(project_slug: str) -> list[Image]:
+def processed_images_for_project(project_slug: str) -> list[Image]:
     """Given a project, get all images in the DB for that project."""
     PixlSession = sessionmaker(engine)
     with PixlSession() as session:
         return cast(
             list[Image],
-            session.query(Image).join(Extract).filter(Extract.slug == project_slug).all(),
+            session.query(Image)
+            .join(Extract)
+            .filter(Extract.slug == project_slug)
+            .filter(not_(Image.exported_at.is_(None)))
+            .all(),
         )
