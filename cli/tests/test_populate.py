@@ -13,11 +13,13 @@
 #  limitations under the License.
 """Patient queue tests"""
 
+# ruff: noqa: SLF001 allow accessing of private members for mocking
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import pixl_cli.main
+import pixl_cli._message_processing
 from click.testing import CliRunner
 from core.patient_queue.producer import PixlProducer
 from pixl_cli.main import populate
@@ -51,7 +53,7 @@ def test_populate_queue_parquet(
     omop_parquet_dir = str(omop_resources / "omop")
     runner = CliRunner()
 
-    monkeypatch.setattr(pixl_cli.main, "PixlProducer", MockProducer)
+    monkeypatch.setattr(pixl_cli._message_processing, "PixlProducer", MockProducer)
 
     result = runner.invoke(
         populate,
@@ -68,7 +70,7 @@ def test_populate_queue_and_start(
     runner = CliRunner()
 
     mocked_start = mocker.patch("pixl_cli.main._start_or_update_extract")
-    monkeypatch.setattr(pixl_cli.main, "PixlProducer", MockProducer)
+    monkeypatch.setattr(pixl_cli._message_processing, "PixlProducer", MockProducer)
 
     result = runner.invoke(
         populate,
