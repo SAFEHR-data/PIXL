@@ -33,7 +33,7 @@ from decouple import RepositoryEnv, UndefinedValueError, config
 from loguru import logger
 
 from pixl_cli._config import SERVICE_SETTINGS, api_config_for_queue
-from pixl_cli._database import filter_exported_or_add_to_db, processed_images_for_project
+from pixl_cli._database import exported_images_for_project, filter_exported_or_add_to_db
 from pixl_cli._io import (
     HOST_EXPORT_ROOT_DIR,
     copy_parquet_return_logfile_fields,
@@ -165,12 +165,11 @@ def populate(  # too many args
             _wait_for_queues_to_empty(queues_to_populate)
             logger.info("Waiting 5 minutes for new extracts to be found")
             _wait()
-            images = images_for_project(project_name)
-            new_last_exported_count = sum(i.exported_at is not None for i in images)
+            images = exported_images_for_project(project_name)
+            new_last_exported_count = len(images)
             if new_last_exported_count == last_exported_count:
                 logger.info(
-                    "From {0} studies, {1} were exported and didn't change between retries",
-                    len(images),
+                    "{} studies exported, didn't change between retries",
                     new_last_exported_count,
                 )
                 return
@@ -240,7 +239,7 @@ def export_patient_data(parquet_dir: Path, timeout: int) -> None:
     project_name_raw, omop_es_datetime = project_info(parquet_dir)
     export = ParquetExport(project_name_raw, omop_es_datetime, HOST_EXPORT_ROOT_DIR)
 
-    images = processed_images_for_project(export.project_slug)
+    images = exported_images_for_project(export.project_slug)
     linker_data = make_radiology_linker_table(parquet_dir, images)
     export.export_radiology_linker(linker_data)
 
