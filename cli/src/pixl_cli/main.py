@@ -18,22 +18,18 @@ from __future__ import annotations
 import json
 import os
 import sys
-from operator import attrgetter
 from pathlib import Path
-from time import sleep
-from typing import TYPE_CHECKING, Any, Optional
+from typing import Any, Optional
 
 import click
 import requests
-import tqdm
 from core.exports import ParquetExport
-from core.patient_queue._base import PixlBlockingInterface
 from core.patient_queue.producer import PixlProducer
 from decouple import RepositoryEnv, UndefinedValueError, config
 from loguru import logger
 
 from pixl_cli._config import SERVICE_SETTINGS, api_config_for_queue
-from pixl_cli._database import exported_images_for_project, filter_exported_or_add_to_db
+from pixl_cli._database import exported_images_for_project
 from pixl_cli._io import (
     HOST_EXPORT_ROOT_DIR,
     copy_parquet_return_logfile_fields,
@@ -42,9 +38,10 @@ from pixl_cli._io import (
     messages_from_parquet,
     project_info,
 )
-
-if TYPE_CHECKING:
-    from core.patient_queue.message import Message
+from pixl_cli._message_processing import (
+    populate_queue_and_db,
+    retry_until_export_count_is_unchanged,
+)
 
 # localhost needs to be added to the NO_PROXY environment variables on GAEs
 os.environ["NO_PROXY"] = os.environ["no_proxy"] = "localhost"
@@ -154,69 +151,11 @@ def populate(  # too many args
         project_name, omop_es_datetime = copy_parquet_return_logfile_fields(parquet_path)
         messages = messages_from_parquet(parquet_path, project_name, omop_es_datetime)
 
-    _populate(queues_to_populate, messages)
+    populate_queue_and_db(queues_to_populate, messages)
     if num_retries != 0:
-        last_exported_count = 0
-        logger.info(
-            "Retrying extraction every 5 minutes until no new extracts are found, max retries: {}",
-            num_retries,
+        retry_until_export_count_is_unchanged(
+            messages, num_retries, queues_to_populate, project_name
         )
-        for i in range(1, num_retries + 1):
-            _wait_for_queues_to_empty(queues_to_populate)
-            logger.info("Waiting 5 minutes for new extracts to be found")
-            _wait()
-            images = exported_images_for_project(project_name)
-            new_last_exported_count = len(images)
-            if new_last_exported_count == last_exported_count:
-                logger.info(
-                    "{} studies exported, didn't change between retries",
-                    new_last_exported_count,
-                )
-                return
-            logger.info(
-                "{} studies exported, retrying extraction {}/{}",
-                new_last_exported_count - last_exported_count,
-                i,
-                num_retries,
-            )
-            last_exported_count = new_last_exported_count
-            _populate(queues_to_populate, messages)
-
-
-def _wait_for_queues_to_empty(queues_to_populate: list[str]) -> None:
-    logger.info("Waiting for rabbitmq queues to be empty")
-    message_count = _message_count(queues_to_populate)
-    while message_count != 0:
-        logger.debug(f"{message_count=}, sleeping for a minute")
-        sleep(60)
-        message_count = _message_count(queues_to_populate)
-    logger.info("Queues are empty")
-
-
-def _message_count(queues_to_populate: list[str]) -> int:
-    messages_in_queues = 0
-    for queue in queues_to_populate:
-        with PixlBlockingInterface(queue_name=queue, **SERVICE_SETTINGS["rabbitmq"]) as rabbitmq:
-            messages_in_queues += rabbitmq.message_count
-    return messages_in_queues
-
-
-def _wait() -> None:
-    with tqdm.tqdm(range(300), desc="Waiting for series to be fully processed"):
-        sleep(1)
-
-
-def _populate(queues: list[str], messages: list[Message]) -> None:
-    for queue in queues:
-        sorted_messages = sorted(messages, key=attrgetter("study_date"))
-        # For imaging, we don't want to query again for images that have already been exported
-        if queue == "imaging" and messages:
-            logger.info("Filtering out exported images and uploading new ones to the database")
-            sorted_messages = filter_exported_or_add_to_db(
-                sorted_messages, messages[0].project_name
-            )
-        with PixlProducer(queue_name=queue, **SERVICE_SETTINGS["rabbitmq"]) as producer:
-            producer.publish(sorted_messages)
 
 
 @cli.command()

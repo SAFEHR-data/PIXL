@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING
 import pixl_cli.main
 from click.testing import CliRunner
 from core.patient_queue.producer import PixlProducer
-from pixl_cli.main import populate
+from pixl_cli.main import populate_queue_and_db
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -54,7 +54,7 @@ def test_populate_queue_parquet(
     monkeypatch.setattr(pixl_cli.main, "PixlProducer", MockProducer)
 
     result = runner.invoke(
-        populate,
+        populate_queue_and_db,
         args=[omop_parquet_dir, "--queues", queue_name, "--no-start", "--num-retries", "0"],
     )
     assert result.exit_code == 0
@@ -71,14 +71,14 @@ def test_populate_queue_and_start(
     monkeypatch.setattr(pixl_cli.main, "PixlProducer", MockProducer)
 
     result = runner.invoke(
-        populate,
+        populate_queue_and_db,
         args=[omop_parquet_dir, "--queues", queue_name, "--no-start", "--num-retries", "0"],
     )
     assert result.exit_code == 0
     mocked_start.assert_not_called()
 
     result = runner.invoke(
-        populate, args=[omop_parquet_dir, "--queues", queue_name, "--num-retries", "0"]
+        populate_queue_and_db, args=[omop_parquet_dir, "--queues", queue_name, "--num-retries", "0"]
     )
     assert result.exit_code == 0
     mocked_start.assert_called_with(queues=queue_name.split(","), rate=None)
