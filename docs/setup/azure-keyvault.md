@@ -1,6 +1,6 @@
 # Azure Keyvault setup
 
-_This is done for the \_UCLH_DIF\_ `dev` tenancy, will need to be done once in the _UCLHAZ_ `prod`
+_This is done for the \_UCLH_DIF\_ `dev` tenancy, will need to be done once in the __UCLHSDE__ `prod`
 tenancy when ready to deploy to production._
 
 This Key Vault and secret must persist any infrastructure changes so should be separate from disposable
