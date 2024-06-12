@@ -43,6 +43,8 @@ from pixl_cli._io import (
 # localhost needs to be added to the NO_PROXY environment variables on GAEs
 os.environ["NO_PROXY"] = os.environ["no_proxy"] = "localhost"
 
+PIXL_ROOT = Path(__file__).parents[3].resolve()
+
 
 @click.group()
 @click.option("--debug/--no-debug", default=False)
@@ -68,10 +70,10 @@ def cli(*, debug: bool) -> None:
     type=click.Path(exists=True),
     help="Path to the sample env file",
 )
-def check_env(*, error: bool, sample_env_file: click.Path) -> None:
+def check_env(*, error: bool, sample_env_file: Path) -> None:
     """Check that all variables from .env.sample are set either in .env or in environ"""
     if not sample_env_file:
-        sample_env_file = Path(__file__).parents[3] / ".env.sample"
+        sample_env_file = PIXL_ROOT / ".env.sample"
     sample_config = RepositoryEnv(sample_env_file)
     for key in sample_config.data:
         try:
