@@ -84,6 +84,45 @@ def check_env(*, error: bool, sample_env_file: Path) -> None:
                 raise
 
 
+ALLOWED_PROJECT_NAMES = ["pixl_dev", "pixl_test", "pixl_prod"]
+
+
+@cli.command()
+@click.option(
+    "--project",
+    type=click.Choice(ALLOWED_PROJECT_NAMES, case_sensitive=False),
+    default="pixl_dev",
+    show_default=True,
+    help="Project to run the service for",
+)
+@click.argument("extra_args", nargs=-1, type=click.UNPROCESSED)
+def up(project: str, *, extra_args: list) -> None:
+    """Start all the PIXL services"""
+    os.chdir(PIXL_ROOT)
+    COMPOSE_FILE = PIXL_ROOT / "docker-compose.yml"
+
+    # The first arg is necessary even if it looks repetitive! Equivalent to bash's $0.
+    docker_args = [
+        "docker",
+        "compose",
+        "--file",
+        COMPOSE_FILE,
+        "--project-name",
+        project,
+        "up",
+        "--build",
+        "--remove-orphans",
+        "--abort-on-container-exit",
+    ]
+
+    # add on the user's extra args
+    docker_args.extend(extra_args)
+    args: tuple = tuple(docker_args)
+
+    logger.debug("Running Docker with: {}", docker_args)
+    os.execvp("docker", args)  # noqa: S606, S607 this is what the previous script was doing
+
+
 @cli.command()
 @click.option(
     "--queues",
