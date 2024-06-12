@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 import sys
 from operator import attrgetter
 from pathlib import Path
@@ -129,7 +130,7 @@ def up(project: str, env_file: Path, *, extra_args: list) -> None:
     args: tuple = tuple(docker_args)
 
     logger.debug("Running Docker with: {}", docker_args)
-    os.execvp("docker", args)  # noqa: S606, S607 this is what the previous script was doing
+    subprocess.Popen(args, cwd=PIXL_ROOT)  # noqa: S603
 
 
 @cli.command()
