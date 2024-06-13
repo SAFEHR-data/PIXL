@@ -24,6 +24,7 @@ ALLOWED_PROJECT_NAMES = ["pixl_dev", "pixl_test", "pixl_prod"]
 PIXL_ROOT = Path(__file__).parents[3].resolve()
 
 docker_project_option = click.option(
+    "-p",
     "--project",
     type=click.Choice(ALLOWED_PROJECT_NAMES, case_sensitive=False),
     default="pixl_dev",
