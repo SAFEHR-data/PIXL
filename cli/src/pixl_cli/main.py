@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import json
 import os
-import subprocess
 import sys
 from operator import attrgetter
 from pathlib import Path
@@ -32,6 +31,7 @@ from loguru import logger
 
 from pixl_cli._config import SERVICE_SETTINGS, api_config_for_queue
 from pixl_cli._database import filter_exported_or_add_to_db, processed_images_for_project
+from pixl_cli._docker import run_docker_compose
 from pixl_cli._io import (
     HOST_EXPORT_ROOT_DIR,
     copy_parquet_return_logfile_fields,
@@ -88,7 +88,9 @@ def check_env(*, error: bool, sample_env_file: Path) -> None:
 ALLOWED_PROJECT_NAMES = ["pixl_dev", "pixl_test", "pixl_prod"]
 
 
-@cli.command()
+# Required to allow passing unkown options to docker-compose
+# https://click.palletsprojects.com/en/8.1.x/advanced/#forwarding-unknown-options
+@cli.command(context_settings={"ignore_unknown_options": True})
 @click.option(
     "--project",
     type=click.Choice(ALLOWED_PROJECT_NAMES, case_sensitive=False),
@@ -106,31 +108,20 @@ ALLOWED_PROJECT_NAMES = ["pixl_dev", "pixl_test", "pixl_prod"]
 @click.argument("extra_args", nargs=-1, type=click.UNPROCESSED)
 def up(project: str, env_file: Path, *, extra_args: list) -> None:
     """Start all the PIXL services"""
-    COMPOSE_FILE = PIXL_ROOT / "docker-compose.yml"
+    # Construct the docker-compose arguments
+    docker_args = ["up", "--wait", "--detach", "--build", "--remove-orphans", *extra_args]
+    run_docker_compose(project, env_file, docker_args, working_dir=PIXL_ROOT)
 
-    # The first arg is necessary even if it looks repetitive! Equivalent to bash's $0.
     docker_args = [
-        "docker",
-        "compose",
-        "--file",
-        COMPOSE_FILE,
-        "--project-name",
-        project,
-        "--env-file",
-        env_file,
         "up",
         "--wait",
         "--detach",
         "--build",
         "--remove-orphans",
     ]
-
-    # add on the user's extra args
     docker_args.extend(extra_args)
-    args: tuple = tuple(docker_args)
 
-    logger.debug("Running Docker with: {}", docker_args)
-    subprocess.Popen(args, cwd=PIXL_ROOT)  # noqa: S603
+    run_docker_compose(project, env_file, docker_args, working_dir=PIXL_ROOT)
 
 
 @cli.command()
