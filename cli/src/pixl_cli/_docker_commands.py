@@ -34,6 +34,7 @@ docker_project_option = click.option(
 docker_env_option = click.option(
     "--env-file",
     type=click.Path(exists=True),
+    multiple=True,
     default=".env",
     show_default=True,
     help="Path to the .env file to use with docker compose",
