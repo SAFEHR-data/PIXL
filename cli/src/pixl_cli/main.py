@@ -112,15 +112,29 @@ def up(project: str, env_file: Path, *, extra_args: list) -> None:
     docker_args = ["up", "--wait", "--detach", "--build", "--remove-orphans", *extra_args]
     run_docker_compose(project, env_file, docker_args, working_dir=PIXL_ROOT)
 
-    docker_args = [
-        "up",
-        "--wait",
-        "--detach",
-        "--build",
-        "--remove-orphans",
-    ]
-    docker_args.extend(extra_args)
 
+# Required to allow passing unkown options to docker-compose
+# https://click.palletsprojects.com/en/8.1.x/advanced/#forwarding-unknown-options
+@cli.command(context_settings={"ignore_unknown_options": True})
+@click.option(
+    "--project",
+    type=click.Choice(ALLOWED_PROJECT_NAMES, case_sensitive=False),
+    default="pixl_dev",
+    show_default=True,
+    help="Project to run the service for",
+)
+@click.option(
+    "--env-file",
+    type=click.Path(exists=True),
+    default=".env",
+    show_default=True,
+    help="Path to the .env file to use with docker compose",
+)
+@click.argument("extra_args", nargs=-1, type=click.UNPROCESSED)
+def down(project: str, env_file: Path, *, extra_args: list) -> None:
+    """Stop all the PIXL services"""
+    # Construct the docker-compose arguments
+    docker_args = ["down", *extra_args]
     run_docker_compose(project, env_file, docker_args, working_dir=PIXL_ROOT)
 
 
