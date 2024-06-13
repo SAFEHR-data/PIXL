@@ -18,14 +18,14 @@ PACKAGE_DIR="${BIN_DIR%/*}"
 cd "${PACKAGE_DIR}/test"
 
 setup() {
-    docker compose --env-file .env -p system-test down --volumes
-    #
+    pixl down --env-file .env -p pixl_test --volumes
+
     # Note: cannot run as single docker compose command due to different build contexts
-    docker compose --env-file .env -p system-test up --wait -d --build --remove-orphans
+    docker compose --env-file .env -p pixl_test up --wait -d --build --remove-orphans
     # Warning: Requires to be run from the project root
     (
     	cd "${PACKAGE_DIR}"
-    	docker compose --env-file test/.env --env-file test/.secrets.env -p system-test up --wait -d --build
+        pixl up --env-file test/.env --env-file test/.secrets.env -p pixl_test
     )
 }
 
