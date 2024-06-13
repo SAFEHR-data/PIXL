@@ -31,7 +31,7 @@ from loguru import logger
 
 from pixl_cli._config import SERVICE_SETTINGS, api_config_for_queue
 from pixl_cli._database import filter_exported_or_add_to_db, processed_images_for_project
-from pixl_cli._docker import run_docker_compose
+from pixl_cli._docker_commands import down, up
 from pixl_cli._io import (
     HOST_EXPORT_ROOT_DIR,
     copy_parquet_return_logfile_fields,
@@ -54,6 +54,10 @@ def cli(*, debug: bool) -> None:
     logging_level = "INFO" if not debug else "DEBUG"
     logger.remove()  # Remove all handlers
     logger.add(sys.stderr, level=logging_level)
+
+
+cli.add_command(up)
+cli.add_command(down)
 
 
 @cli.command()
@@ -83,59 +87,6 @@ def check_env(*, error: bool, sample_env_file: Path) -> None:
             logger.warning("Environment variable {} is not set", key)
             if error:
                 raise
-
-
-ALLOWED_PROJECT_NAMES = ["pixl_dev", "pixl_test", "pixl_prod"]
-
-
-# Required to allow passing unkown options to docker-compose
-# https://click.palletsprojects.com/en/8.1.x/advanced/#forwarding-unknown-options
-@cli.command(context_settings={"ignore_unknown_options": True})
-@click.option(
-    "--project",
-    type=click.Choice(ALLOWED_PROJECT_NAMES, case_sensitive=False),
-    default="pixl_dev",
-    show_default=True,
-    help="Project to run the service for",
-)
-@click.option(
-    "--env-file",
-    type=click.Path(exists=True),
-    default=".env",
-    show_default=True,
-    help="Path to the .env file to use with docker compose",
-)
-@click.argument("extra_args", nargs=-1, type=click.UNPROCESSED)
-def up(project: str, env_file: Path, *, extra_args: list) -> None:
-    """Start all the PIXL services"""
-    # Construct the docker-compose arguments
-    docker_args = ["up", "--wait", "--detach", "--build", "--remove-orphans", *extra_args]
-    run_docker_compose(project, env_file, docker_args, working_dir=PIXL_ROOT)
-
-
-# Required to allow passing unkown options to docker-compose
-# https://click.palletsprojects.com/en/8.1.x/advanced/#forwarding-unknown-options
-@cli.command(context_settings={"ignore_unknown_options": True})
-@click.option(
-    "--project",
-    type=click.Choice(ALLOWED_PROJECT_NAMES, case_sensitive=False),
-    default="pixl_dev",
-    show_default=True,
-    help="Project to run the service for",
-)
-@click.option(
-    "--env-file",
-    type=click.Path(exists=True),
-    default=".env",
-    show_default=True,
-    help="Path to the .env file to use with docker compose",
-)
-@click.argument("extra_args", nargs=-1, type=click.UNPROCESSED)
-def down(project: str, env_file: Path, *, extra_args: list) -> None:
-    """Stop all the PIXL services"""
-    # Construct the docker-compose arguments
-    docker_args = ["down", *extra_args]
-    run_docker_compose(project, env_file, docker_args, working_dir=PIXL_ROOT)
 
 
 @cli.command()
