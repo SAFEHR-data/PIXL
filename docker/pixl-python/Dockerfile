@@ -32,11 +32,6 @@ RUN  apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
 HEALTHCHECK CMD /usr/bin/curl -f http://0.0.0.0:8000/heart-beat || exit 1
 
 WORKDIR /app
-# Add pixl user
-ARG PIXL_USER_UID
-ARG PIXL_USER_GID
-RUN groupadd --gid $PIXL_USER_GID pixl && useradd --uid $PIXL_USER_UID --gid $PIXL_USER_GID pixl
-USER pixl
 
 # specify which of our packages we're installing using build time arg
 ARG PIXL_PACKAGE_DIR
@@ -54,6 +49,11 @@ RUN pip install --no-cache-dir --force-reinstall --no-deps pixl_core/ \
     --no-cache-dir --force-reinstall --no-deps . && \
     if [ "$TEST" = "true" ]; then pip install --no-cache-dir pixl_core/[test] .[test]; fi
 
+# Add pixl user
+ARG PIXL_USER_UID
+ARG PIXL_USER_GID
+RUN groupadd --gid $PIXL_USER_GID pixl && useradd --uid $PIXL_USER_UID --gid $PIXL_USER_GID pixl
+USER pixl
 
 # Each container should be run with a different entry point
 FROM pixl_python_base AS export_api
