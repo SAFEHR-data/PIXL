@@ -54,7 +54,7 @@ RUN mkdir "$ORTHANC_DATA_VOLUME" && chown orthanc:orthanc "$ORTHANC_DATA_VOLUME"
 
 FROM pixl_orthanc_base AS pixl_orthanc_raw
 
-COPY ./orthanc/orthanc-raw/plugin/pixl.py /etc/orthanc/pixl.py
+COPY --chown=orthanc:orthanc ./orthanc/orthanc-raw/plugin/pixl.py /etc/orthanc/pixl.py
 
 # Orthanc can't substitute environment veriables as integers so copy and replace before running
 ARG ORTHANC_RAW_MAXIMUM_STORAGE_SIZE
@@ -68,6 +68,6 @@ RUN sed -i "s/\${ORTHANC_RAW_CONCURRENT_JOBS}/${ORTHANC_RAW_CONCURRENT_JOBS:-5}/
 ENV PYTHONPATH=/.venv/lib64/python3.11/site-packages/
 
 FROM pixl_orthanc_base AS pixl_orthanc_anon
-COPY ./orthanc/orthanc-anon/plugin/pixl.py /etc/orthanc/pixl.py
+COPY --chown=orthanc:orthanc ./orthanc/orthanc-anon/plugin/pixl.py /etc/orthanc/pixl.py
 
 ENV PYTHONPATH=/.venv/lib64/python3.11/site-packages/
