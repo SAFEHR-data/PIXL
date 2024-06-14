@@ -69,6 +69,7 @@ def messages_from_csv(filepath: Path) -> list[Message]:
 
     # First line is column names
     messages_df = pd.read_csv(filepath, header=0, dtype=str)
+    _raise_if_column_names_not_found(messages_df, expected_col_names)
     # Parse non string columns
     messages_df["procedure_id"] = messages_df["procedure_id"].astype(int)
     messages_df["study_date"] = pd.to_datetime(
@@ -80,8 +81,6 @@ def messages_from_csv(filepath: Path) -> list[Message]:
         errors="raise",
         utc=True,
     )
-
-    _raise_if_column_names_not_found(messages_df, expected_col_names)
 
     (
         procedure_id_col_name,
