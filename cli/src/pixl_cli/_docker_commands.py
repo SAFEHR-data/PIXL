@@ -51,8 +51,14 @@ def up(env_file: list[Path], *, extra_args: tuple[str]) -> None:
 @click.command(context_settings={"ignore_unknown_options": True})
 @docker_env_option
 @docker_extra_args
-def down(env_file: list[Path], *, extra_args: tuple[str]) -> None:
+def down(env_file: list[Path], *, extra_args: tuple[str, ...]) -> None:
     """Stop all the PIXL services"""
+    if config("ENV") == "prod" and "--volumes" in extra_args:
+        click.secho("WARNING: Attempting to remove volumes in production.", fg="yellow")
+        if not click.confirm("Are you sure you want to remove the volumes?"):
+            click.secho("Running 'docker compose down' without removing volumes.", fg="blue")
+            extra_args = tuple(arg for arg in extra_args if arg != "--volumes")
+
     # Construct the docker-compose arguments
     docker_args = ["down", *extra_args]
     run_docker_compose(env_file, docker_args, working_dir=PIXL_ROOT)
