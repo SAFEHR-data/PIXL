@@ -48,7 +48,7 @@ docker_extra_args = click.argument("extra_args", nargs=-1, type=click.UNPROCESSE
 @docker_project_option
 @docker_env_option
 @docker_extra_args
-def up(project: str, env_file: Path, *, extra_args: list) -> None:
+def up(project: str, env_file: list[Path], *, extra_args: list) -> None:
     """Start all the PIXL services"""
     # Construct the docker-compose arguments
     docker_args = ["up", "--wait", "--detach", "--build", "--remove-orphans", *extra_args]
@@ -61,7 +61,7 @@ def up(project: str, env_file: Path, *, extra_args: list) -> None:
 @docker_project_option
 @docker_env_option
 @docker_extra_args
-def down(project: str, env_file: Path, *, extra_args: list) -> None:
+def down(project: str, env_file: list[Path], *, extra_args: list) -> None:
     """Stop all the PIXL services"""
     # Construct the docker-compose arguments
     docker_args = ["down", *extra_args]
@@ -69,7 +69,7 @@ def down(project: str, env_file: Path, *, extra_args: list) -> None:
 
 
 def run_docker_compose(
-    project: str, env_file: Path, args: list, working_dir: Optional[Path]
+    project: str, env_file: list[Path], args: list, working_dir: Optional[Path]
 ) -> None:
     """Wrapper to run docker-compose through the CLI."""
     docker_cmd = shutil.which("docker")
@@ -83,8 +83,8 @@ def run_docker_compose(
         "compose",
         "--project-name",
         project,
-        "--env-file",
-        str(env_file),
+        # env_file will be a list of paths, so we need to flatten it
+        *[f"--env-file={f}" for f in env_file],
         *args,
     ]
     logger.debug("Running docker compose with: {}, from {}", docker_args, working_dir)
