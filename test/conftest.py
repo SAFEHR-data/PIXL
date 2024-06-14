@@ -14,8 +14,17 @@
 """System/E2E test setup"""
 
 # ruff: noqa: C408 dict() makes test data easier to read and write
+import os
+from collections.abc import Generator
 from pathlib import Path
 from typing import Any
+
+# Setting env variables before loading modules
+os.environ["PIXL_DB_HOST"] = "localhost"
+os.environ["PIXL_DB_PORT"] = "7001"
+os.environ["PIXL_DB_USER"] = "pixl_db_username"
+os.environ["PIXL_DB_PASSWORD"] = "pixl_db_password"
+os.environ["PIXL_DB_NAME"] = "pixl"
 
 import pytest
 import requests
@@ -23,7 +32,7 @@ from pytest_pixl.dicom import generate_dicom_dataset
 from pytest_pixl.ftpserver import PixlFTPServer
 from pytest_pixl.helpers import run_subprocess
 from pytest_pixl.plugin import FtpHostAddress
-from utils import wait_for_stable_orthanc_anon
+from utils import wait_for_images_to_be_exported
 
 pytest_plugins = "pytest_pixl"
 
@@ -138,7 +147,7 @@ def _setup_pixl_cli(ftps_server: PixlFTPServer, _populate_vna: None) -> None:
     """Run pixl populate/start. Cleanup intermediate export dir on exit."""
     run_subprocess(["pixl", "populate", str(RESOURCES_OMOP_DIR.absolute())], TEST_DIR)
     # poll here for two minutes to check for imaging to be processed, printing progress
-    wait_for_stable_orthanc_anon(121, 5, 15, min_instances=3)
+    wait_for_stable_orthanc_anon(181, 5, 15, min_instances=3)
 
 
 @pytest.fixture(scope="session")
@@ -146,7 +155,7 @@ def _setup_pixl_cli_dicomweb(_populate_vna: None) -> None:
     """Run pixl populate/start. Cleanup intermediate export dir on exit."""
     run_subprocess(["pixl", "populate", str(RESOURCES_OMOP_DICOMWEB_DIR.absolute())], TEST_DIR)
     # poll here for two minutes to check for imaging to be processed, printing progress
-    wait_for_stable_orthanc_anon(121, 5, 15, min_instances=3)
+    wait_for_stable_orthanc_anon(181, 5, 15, min_instances=3)
 
 
 @pytest.fixture(scope="session")
