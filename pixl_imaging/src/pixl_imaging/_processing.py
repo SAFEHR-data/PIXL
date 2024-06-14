@@ -34,7 +34,7 @@ async def process_message(message: Message) -> None:
     We may receive multiple messages with same Patient + Acc Num, either as retries or because
     they are needed for multiple projects.
     """
-    logger.debug("Processing: {}", message.identifier)
+    logger.trace("Processing: {}", message.identifier)
 
     study = ImagingStudy.from_message(message)
     orthanc_raw = PIXLRawOrthanc()
@@ -54,6 +54,7 @@ async def process_message(message: Message) -> None:
 
 async def _process_message(study: ImagingStudy, orthanc_raw: PIXLRawOrthanc) -> None:
     await orthanc_raw.raise_if_pending_jobs()
+    logger.info("Processing: {}", study.message.identifier)
 
     study_exists = await _update_or_resend_existing_study_(
         study.message.project_name, orthanc_raw, study
