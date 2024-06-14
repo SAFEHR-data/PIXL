@@ -51,7 +51,7 @@ docker_extra_args = click.argument("extra_args", nargs=-1, type=click.UNPROCESSE
 def up(project: str, env_file: list[Path], *, extra_args: list) -> None:
     """Start all the PIXL services"""
     # Construct the docker-compose arguments
-    docker_args = ["up", "--wait", "--detach", "--build", "--remove-orphans", *extra_args]
+    docker_args = ["up", "--wait", "--build", "--remove-orphans", *extra_args]
     run_docker_compose(project, env_file, docker_args, working_dir=PIXL_ROOT)
 
 
