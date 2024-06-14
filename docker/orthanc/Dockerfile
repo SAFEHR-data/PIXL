@@ -42,7 +42,7 @@ RUN --mount=type=cache,target=/root/.cache \
     /.venv/bin/pip install --no-cache-dir --force-reinstall --no-deps ./pixl_dcmd
 
 ARG PIXL_USER_GID
-RUN groupadd --gid $PIXL_USER_GID pixl
+RUN groupadd --gid $PIXL_USER_GID pixl && usermod -a -G pixl orthanc
 USER orthanc
 
 # Because the volume contents inherit the ownership of the mountpoint if it already exists,
