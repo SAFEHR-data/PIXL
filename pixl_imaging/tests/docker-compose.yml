@@ -53,6 +53,8 @@ services:
             context: ../../
             dockerfile: ./docker/orthanc/Dockerfile
             target: pixl_orthanc_raw
+            args:
+                PIXL_USER_GID: 9999
         environment:
             ORTHANC_NAME: "PIXL: Raw"
             ORTHANC_USERNAME: "orthanc"
