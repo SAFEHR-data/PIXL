@@ -42,14 +42,14 @@ USER pixl
 ARG PIXL_PACKAGE_DIR
 
 # Install requirements before copying modules
-COPY ./pixl_core/pyproject.toml ./pixl_core/pyproject.toml
-COPY ./$PIXL_PACKAGE_DIR/pyproject.toml ./$PIXL_PACKAGE_DIR/pyproject.toml
+COPY --chown=pixl:pixl ./pixl_core/pyproject.toml ./pixl_core/pyproject.toml
+COPY --chown=pixl:pixl ./$PIXL_PACKAGE_DIR/pyproject.toml ./$PIXL_PACKAGE_DIR/pyproject.toml
 RUN pip3 install --no-cache-dir pixl_core/ \
     && pip3 install --no-cache-dir $PIXL_PACKAGE_DIR/
 
 # Install our code
-COPY ./pixl_core/ pixl_core/
-COPY ./$PIXL_PACKAGE_DIR/ .
+COPY --chown=pixl:pixl ./pixl_core/ pixl_core/
+COPY --chown=pixl:pixl ./$PIXL_PACKAGE_DIR/ .
 RUN pip install --no-cache-dir --force-reinstall --no-deps pixl_core/ \
     --no-cache-dir --force-reinstall --no-deps . && \
     if [ "$TEST" = "true" ]; then pip install --no-cache-dir pixl_core/[test] .[test]; fi
