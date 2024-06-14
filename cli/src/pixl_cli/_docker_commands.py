@@ -39,7 +39,7 @@ docker_extra_args = click.argument("extra_args", nargs=-1, type=click.UNPROCESSE
 @click.command(context_settings={"ignore_unknown_options": True})
 @docker_env_option
 @docker_extra_args
-def up(env_file: list[Path], *, extra_args: list) -> None:
+def up(env_file: list[Path], *, extra_args: tuple[str]) -> None:
     """Start all the PIXL services"""
     # Construct the docker-compose arguments
     docker_args = ["up", "--wait", "--build", "--remove-orphans", *extra_args]
@@ -51,7 +51,7 @@ def up(env_file: list[Path], *, extra_args: list) -> None:
 @click.command(context_settings={"ignore_unknown_options": True})
 @docker_env_option
 @docker_extra_args
-def down(env_file: list[Path], *, extra_args: list) -> None:
+def down(env_file: list[Path], *, extra_args: tuple[str]) -> None:
     """Stop all the PIXL services"""
     # Construct the docker-compose arguments
     docker_args = ["down", *extra_args]
