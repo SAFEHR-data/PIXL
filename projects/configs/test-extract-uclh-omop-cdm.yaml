@@ -20,7 +20,7 @@ project:
 tag_operation_files:
     base:
         - "test-extract-uclh-omop-cdm.yaml"
-    manufacturer_overrides: ["mri.yaml", "mri-diffusion.yaml"]
+    manufacturer_overrides: ["mri-diffusion.yaml"]
 
 series_filters:
     - "localizer"
