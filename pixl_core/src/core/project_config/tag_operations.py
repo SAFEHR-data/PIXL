@@ -61,7 +61,7 @@ class TagOperations(BaseModel):
     """
 
     base: list[list[dict]]
-    manufacturer_overrides: Optional[list[dict]]
+    manufacturer_overrides: Optional[list[list[dict]]]
 
     @field_validator("base")
     @classmethod
@@ -77,19 +77,20 @@ class TagOperations(BaseModel):
     @field_validator("manufacturer_overrides")
     @classmethod
     def _valid_manufacturer_overrides(
-        cls, manufacturer_overrides: Optional[list[dict]]
-    ) -> Optional[list[dict]]:
+        cls, manufacturer_overrides: Optional[list[list[dict]]]
+    ) -> Optional[list[list[dict]]]:
         if manufacturer_overrides is None:
             return None
-        if not isinstance(manufacturer_overrides, list):
-            msg = "Tags must be a list of dictionaries."
-            raise TypeError(msg)
-        for override in manufacturer_overrides:
-            if "manufacturer" not in override or "tags" not in override:
-                msg = "Manufacturer overrides must have 'manufacturer' and 'tags' keys."
-                raise ValueError(msg)
-            for tag in override["tags"]:
-                _check_tag_format(tag)
+        for manufacturer_override in manufacturer_overrides:
+            if not isinstance(manufacturer_override, list):
+                msg = "Tags must be a list of dictionaries."
+                raise TypeError(msg)
+            for override in manufacturer_override:
+                if "manufacturer" not in override or "tags" not in override:
+                    msg = "Manufacturer overrides must have 'manufacturer' and 'tags' keys."
+                    raise ValueError(msg)
+                for tag in override["tags"]:
+                    _check_tag_format(tag)
 
         return manufacturer_overrides
 

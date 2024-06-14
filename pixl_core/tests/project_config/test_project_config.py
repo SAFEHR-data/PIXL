@@ -121,7 +121,7 @@ def test_load_tag_operations_no_manufacturer_overrides(base_yaml_data):
     tag_operations = load_tag_operations(project_config)
 
     # Assert
-    assert tag_operations.manufacturer_overrides is None
+    assert tag_operations.manufacturer_overrides == []
 
 
 @pytest.fixture()
