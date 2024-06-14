@@ -40,12 +40,12 @@ def load_tag_operations(pixl_config: PixlConfig) -> TagOperations:
     :param pixl_config: Project configuration
     """
     base = [_load_scheme(f) for f in pixl_config.tag_operation_files.base]
-    manufacturer_overrides = None
+    manufacturer_overrides = []
 
     if pixl_config.tag_operation_files.manufacturer_overrides:
-        manufacturer_overrides = _load_scheme(
-            pixl_config.tag_operation_files.manufacturer_overrides
-        )
+        for override_file in pixl_config.tag_operation_files.manufacturer_overrides:
+            override_dict = _load_scheme(override_file)
+            manufacturer_overrides.append(override_dict)
 
     return TagOperations(base=base, manufacturer_overrides=manufacturer_overrides)
 
