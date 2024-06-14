@@ -42,7 +42,7 @@ RUN --mount=type=cache,target=/root/.cache \
     /.venv/bin/pip install --no-cache-dir --force-reinstall --no-deps ./pixl_dcmd
 
 ARG PIXL_USER_GID
-RUN groupadd --gid $PIXL_USER_GID orthanc
+RUN groupadd --gid $PIXL_USER_GID pixl
 USER orthanc
 
 # Because the volume contents inherit the ownership of the mountpoint if it already exists,
@@ -50,7 +50,7 @@ USER orthanc
 # See https://devops.stackexchange.com/a/4542 although the docs no longer seem to mention this.
 # The VOLUME instruction is not needed because this is specified by the docker compose file.
 ARG ORTHANC_DATA_VOLUME=/var/lib/orthanc/db/
-RUN mkdir "$ORTHANC_DATA_VOLUME" && chown orthanc:$PIXL_USER_GID "$ORTHANC_DATA_VOLUME"
+RUN mkdir "$ORTHANC_DATA_VOLUME" && chown orthanc:pixl "$ORTHANC_DATA_VOLUME"
 
 FROM pixl_orthanc_base AS pixl_orthanc_raw
 
