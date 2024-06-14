@@ -72,20 +72,21 @@ def run_docker_compose(
     project: str, env_file: Path, args: list, working_dir: Optional[Path]
 ) -> None:
     """Wrapper to run docker-compose through the CLI."""
-    docker_compose_cmd = shutil.which("docker-compose")
+    docker_cmd = shutil.which("docker")
 
-    if not docker_compose_cmd:
-        err_msg = "docker-compose not found in $PATH. Please make sure it's installed."
+    if not docker_cmd:
+        err_msg = "docker not found in $PATH. Please make sure it's installed."
         raise FileNotFoundError(err_msg)
 
     docker_args = [
-        docker_compose_cmd,
+        docker_cmd,
+        "compose",
         "--project-name",
         project,
         "--env-file",
         str(env_file),
         *args,
     ]
-    logger.debug("Running docker-compose with: {}, from {}", docker_args, working_dir)
+    logger.debug("Running docker compose with: {}, from {}", docker_args, working_dir)
 
     subprocess.run(docker_args, check=True, cwd=working_dir)  # noqa: S603
