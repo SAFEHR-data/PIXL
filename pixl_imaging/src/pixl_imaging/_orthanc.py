@@ -112,7 +112,8 @@ class Orthanc(ABC):
                 raise PixlDiscardError(msg)
 
             if (time() - start_time) > timeout:
-                msg = f"Failed to transfer {job_id} in {timeout} seconds"
+                msg = f"Failed to transfer {job_id} in {timeout} seconds, deleting job"
+                await self._post(path=f"/jobs/{job_id}/cancel", data={}, timeout=timeout)
                 raise PixlDiscardError(msg)
 
             await sleep(1)
