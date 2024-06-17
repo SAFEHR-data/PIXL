@@ -18,14 +18,17 @@ PACKAGE_DIR="${BIN_DIR%/*}"
 cd "${PACKAGE_DIR}/test"
 
 setup() {
-    pixl down --env-file .env -p pixl_test --volumes
+    # NOTE: the `pixl up` and `pixl down` commands only work when run from the PIXL project root.
+    # However, doing so will fail unless a valid .env file with all the necessary environment 
+    # variables is present.
+    docker compose --env-file .env -p pixl_test down --volumes
 
     # Note: cannot run as single docker compose command due to different build contexts
     docker compose --env-file .env -p pixl_test up --wait -d --build --remove-orphans
     # Warning: Requires to be run from the project root
     (
     	cd "${PACKAGE_DIR}"
-        pixl up --env-file test/.env --env-file test/.secrets.env -p pixl_test
+        pixl up --env-file test/.env --env-file test/.secrets.env
     )
 }
 
