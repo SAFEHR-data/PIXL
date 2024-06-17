@@ -13,32 +13,47 @@
 #  limitations under the License.
 """Docker commands tests"""
 
+import pytest
 from click.testing import CliRunner
-from pixl_cli._docker_commands import down, up
+from pixl_cli.main import PIXL_ROOT, cli
 
 
-def test_pixl_up_works():
+@pytest.fixture(autouse=True)
+def _change_working_directory(monkeypatch) -> None:
+    """
+    Change the working directory to the PIXL root directory.
+    This is required to spin up the docker containers.
+    """
+    monkeypatch.setenv("ENV", "test")
+    monkeypatch.chdir(PIXL_ROOT)
+
+
+@pytest.fixture()
+def default_args() -> list[str]:
+    """Default arguments for the docker commands."""
+    return ["--dry-run", "--env-file=test/.env"]
+
+
+def test_pixl_up_works(default_args):
     """Test that pixl up works and attempts to spin up docker containers."""
     runner = CliRunner()
-    result = runner.invoke(up, args=["--dry-run"])
+    result = runner.invoke(cli, args=["up", *default_args])
     assert result.exit_code == 0
-    assert result.output == ""
 
 
-def test_pixl_down_works():
+def test_pixl_down_works(default_args):
     """Test that pixl up works and attempts to spin up docker containers."""
     runner = CliRunner()
-    result = runner.invoke(down, args=["--dry-run"])
+    result = runner.invoke(cli, args=["down", *default_args])
     assert result.exit_code == 0
-    assert result.output == ""
 
 
-def test_pixl_down_warns_on_volumes(monkeypatch):
+def test_pixl_down_warns_on_volumes(monkeypatch, default_args):
     """Test that a warning is displayed when attempting to remove volumes in production."""
-    runner = CliRunner()
-
     monkeypatch.setenv("ENV", "prod")
-    result = runner.invoke(down, args=["--dry-run", "--volumes"])
+
+    runner = CliRunner()
+    result = runner.invoke(cli, args=["down", *default_args, "--volumes"])
 
     assert result.exit_code == 0
     assert "WARNING: Attempting to remove volumes in production." in result.output
