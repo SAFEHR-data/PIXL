@@ -137,7 +137,6 @@ services:
             DICOM_WEB_PLUGIN_ENABLED: ${ENABLE_DICOM_WEB}
             HASHER_API_AZ_NAME: "hasher-api"
             HASHER_API_PORT: 8000
-            HTTP_TIMEOUT: ${ORTHANC_ANON_HTTP_TIMEOUT}
             AZ_DICOM_ENDPOINT_NAME: ${AZ_DICOM_ENDPOINT_NAME}
             AZ_DICOM_ENDPOINT_URL: ${AZ_DICOM_ENDPOINT_URL}
             AZ_DICOM_ENDPOINT_TOKEN: ${AZ_DICOM_ENDPOINT_TOKEN}
@@ -272,6 +271,7 @@ services:
             ORTHANC_ANON_PASSWORD: ${ORTHANC_ANON_PASSWORD}
             PROJECT_CONFIGS_DIR: /${PROJECT_CONFIGS_DIR:-/projects/configs}
             PIXL_MAX_MESSAGES_IN_FLIGHT: ${PIXL_MAX_MESSAGES_IN_FLIGHT}
+            HTTP_TIMEOUT: ${PIXL_DICOM_TRANSFER_TIMEOUT}
         env_file:
             - ./docker/common.env
         depends_on:
