@@ -93,7 +93,7 @@ class Orthanc(ABC):
         )
         logger.debug("Modify studies Job: {}", response)
         job_id = str(response["ID"])
-        await self.wait_for_job_success_or_raise(job_id, timeout=timeout)
+        await self.wait_for_job_success_or_raise(job_id, "modify", timeout=timeout)
 
     async def retrieve_from_remote(self, query_id: str) -> str:
         response = await self._post(
@@ -102,7 +102,9 @@ class Orthanc(ABC):
         )
         return str(response["ID"])
 
-    async def wait_for_job_success_or_raise(self, job_id: str, timeout: float) -> None:
+    async def wait_for_job_success_or_raise(
+        self, job_id: str, job_type: str, timeout: float
+    ) -> None:
         """Wait for job to complete successfully, or raise exception if fails or exceeds timeout."""
         job_info = {"State": "Pending"}
         start_time = time()
@@ -116,7 +118,9 @@ class Orthanc(ABC):
                 raise PixlDiscardError(msg)
 
             if (time() - start_time) > timeout:
-                msg = f"Failed to transfer {job_id} in {timeout} seconds, cancelling job"
+                msg = (
+                    f"Failed to finish {job_type} job {job_id} in {timeout} seconds, cancelling job"
+                )
                 await self._post(path=f"/jobs/{job_id}/cancel", data={}, timeout=timeout)
                 await sleep(1)
                 raise PixlDiscardError(msg)

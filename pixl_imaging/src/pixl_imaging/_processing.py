@@ -65,7 +65,7 @@ async def _process_message(study: ImagingStudy, orthanc_raw: PIXLRawOrthanc) -> 
 
     query_id = await _find_study_in_vna_or_raise(orthanc_raw, study)
     job_id = await orthanc_raw.retrieve_from_remote(query_id=query_id)  # C-Move
-    await orthanc_raw.wait_for_job_success_or_raise(job_id, timeout)
+    await orthanc_raw.wait_for_job_success_or_raise(job_id, "c-move", timeout)
 
     # Now that instance has arrived in orthanc raw, we can set its project name tag via the API
     studies = await orthanc_raw.query_local(study.orthanc_query_dict)
