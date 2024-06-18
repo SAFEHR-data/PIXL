@@ -56,26 +56,27 @@ async def _process_message(study: ImagingStudy, orthanc_raw: PIXLRawOrthanc) -> 
     await orthanc_raw.raise_if_pending_jobs()
     logger.info("Processing: {}", study.message.identifier)
 
+    timeout: float = config("PIXL_DICOM_TRANSFER_TIMEOUT", cast=float)
     study_exists = await _update_or_resend_existing_study_(
-        study.message.project_name, orthanc_raw, study
+        study.message.project_name, orthanc_raw, study, timeout
     )
     if study_exists:
         return
 
     query_id = await _find_study_in_vna_or_raise(orthanc_raw, study)
-    timeout: float = config("PIXL_DICOM_TRANSFER_TIMEOUT", cast=float)
-    await orthanc_raw.wait_for_job_success_or_raise(query_id, timeout)
+    job_id = await orthanc_raw.retrieve_from_remote(query_id=query_id)  # C-Move
+    await orthanc_raw.wait_for_job_success_or_raise(job_id, timeout)
 
     # Now that instance has arrived in orthanc raw, we can set its project name tag via the API
     studies = await orthanc_raw.query_local(study.orthanc_query_dict)
     logger.debug("Local instances for study: {}", studies)
-    await _add_project_to_study(study.message.project_name, orthanc_raw, studies)
+    await _add_project_to_study(study.message.project_name, orthanc_raw, studies, timeout=timeout)
 
     return
 
 
 async def _update_or_resend_existing_study_(
-    project_name: str, orthanc_raw: PIXLRawOrthanc, study: ImagingStudy
+    project_name: str, orthanc_raw: PIXLRawOrthanc, study: ImagingStudy, timeout: float
 ) -> bool:
     """
     If study does not yet exist in orthanc raw, do nothing.
@@ -113,14 +114,14 @@ async def _update_or_resend_existing_study_(
             different_project.append(resource["ID"])
 
     if different_project:
-        await _add_project_to_study(project_name, orthanc_raw, different_project)
+        await _add_project_to_study(project_name, orthanc_raw, different_project, timeout=timeout)
         return True
     await orthanc_raw.send_existing_study_to_anon(existing_resources[0]["ID"])
     return True
 
 
 async def _add_project_to_study(
-    project_name: str, orthanc_raw: PIXLRawOrthanc, studies: list[str]
+    project_name: str, orthanc_raw: PIXLRawOrthanc, studies: list[str], timeout: float
 ) -> None:
     if len(studies) > 1:
         logger.error(
@@ -136,6 +137,7 @@ async def _add_project_to_study(
                 # The tag here needs to be defined in orthanc's dictionary
                 DICOM_TAG_PROJECT_NAME.tag_nickname: project_name,
             },
+            timeout=timeout,
         )
 
 
