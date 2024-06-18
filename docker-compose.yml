@@ -124,6 +124,7 @@ services:
             ORTHANC_RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
             ORTHANC_RAW_DICOM_PORT: "4242"
             ORTHANC_RAW_HOSTNAME: "orthanc-raw"
+            PIXL_DICOM_TRANSFER_TIMEOUT: ${PIXL_DICOM_TRANSFER_TIMEOUT}
             # For the export API
             ORTHANC_ANON_URL: "http://localhost:8042"
             ORTHANC_ANON_USERNAME: ${ORTHANC_ANON_USERNAME}
