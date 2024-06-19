@@ -23,48 +23,35 @@ from loguru import logger
 
 PIXL_ROOT = Path(__file__).parents[3].resolve()
 
-docker_env_option = click.option(
-    "--env-file",
-    type=click.Path(exists=True),
-    multiple=True,
-    default=[".env"],
-    show_default=True,
-    help="Path to the .env file to use with docker compose",
-)
-docker_extra_args = click.argument("extra_args", nargs=-1, type=click.UNPROCESSED)
-
 
 # Required to allow passing unkown options to docker-compose
 # https://click.palletsprojects.com/en/8.1.x/advanced/#forwarding-unknown-options
 @click.command(context_settings={"ignore_unknown_options": True})
-@docker_env_option
-@docker_extra_args
-def up(env_file: list[Path], *, extra_args: tuple[str]) -> None:
-    """Start all the PIXL services"""
-    # Construct the docker-compose arguments
-    docker_args = ["up", "--wait", "--build", "--remove-orphans", *extra_args]
-    run_docker_compose(env_file, docker_args, working_dir=PIXL_ROOT)
+@click.argument("args", nargs=-1, type=click.UNPROCESSED)
+def dc(args: tuple[str]) -> None:
+    """Wrapper around docker compose for PIXL"""
+    # Construct the docker-compose arguments based on subcommand
+    docker_args = list(args)
+
+    if "up" in args:
+        docker_args = [*args, "--wait", "--build", "--remove-orphans"]
+    if "down" in args:
+        docker_args = _check_down_args(args)
+
+    run_docker_compose(docker_args, working_dir=PIXL_ROOT)
 
 
-# Required to allow passing unkown options to docker-compose
-# https://click.palletsprojects.com/en/8.1.x/advanced/#forwarding-unknown-options
-@click.command(context_settings={"ignore_unknown_options": True})
-@docker_env_option
-@docker_extra_args
-def down(env_file: list[Path], *, extra_args: tuple[str, ...]) -> None:
+def _check_down_args(args: tuple[str, ...]) -> list:
     """Stop all the PIXL services"""
-    if config("ENV") == "prod" and "--volumes" in extra_args:
+    if config("ENV") == "prod" and "--volumes" in args:
         click.secho("WARNING: Attempting to remove volumes in production.", fg="yellow")
         if not click.confirm("Are you sure you want to remove the volumes?"):
             click.secho("Running 'docker compose down' without removing volumes.", fg="blue")
-            extra_args = tuple(arg for arg in extra_args if arg != "--volumes")
-
-    # Construct the docker-compose arguments
-    docker_args = ["down", *extra_args]
-    run_docker_compose(env_file, docker_args, working_dir=PIXL_ROOT)
+            return [arg for arg in args if arg != "--volumes"]
+    return list(args)
 
 
-def run_docker_compose(env_file: list[Path], args: list, working_dir: Optional[Path]) -> None:
+def run_docker_compose(args: list, working_dir: Optional[Path]) -> None:
     """Wrapper to run docker-compose through the CLI."""
     docker_cmd = shutil.which("docker")
 
@@ -79,10 +66,8 @@ def run_docker_compose(env_file: list[Path], args: list, working_dir: Optional[P
         "compose",
         "--project-name",
         f"pixl_{pixl_env}",
-        # env_file will be a list of paths, so we need to flatten it
-        *[f"--env-file={f}" for f in env_file],
         *args,
     ]
-    logger.debug("Running docker compose with: {}, from {}", docker_args, working_dir)
+    logger.info("Running docker compose with: {}, from {}", docker_args, working_dir)
 
     subprocess.run(docker_args, check=True, cwd=working_dir)  # noqa: S603

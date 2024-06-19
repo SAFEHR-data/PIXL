@@ -37,14 +37,14 @@ def default_args() -> list[str]:
 def test_pixl_up_works(default_args):
     """Test that pixl up works and attempts to spin up docker containers."""
     runner = CliRunner()
-    result = runner.invoke(cli, args=["up", *default_args])
+    result = runner.invoke(cli, args=["dc", "up", *default_args])
     assert result.exit_code == 0
 
 
 def test_pixl_down_works(default_args):
     """Test that pixl up works and attempts to spin up docker containers."""
     runner = CliRunner()
-    result = runner.invoke(cli, args=["down", *default_args])
+    result = runner.invoke(cli, args=["dc", "down", *default_args])
     assert result.exit_code == 0
 
 
@@ -53,7 +53,7 @@ def test_pixl_down_warns_on_volumes(monkeypatch, default_args):
     monkeypatch.setenv("ENV", "prod")
 
     runner = CliRunner()
-    result = runner.invoke(cli, args=["down", *default_args, "--volumes"])
+    result = runner.invoke(cli, args=["dc", "down", *default_args, "--volumes"])
 
     assert result.exit_code == 0
     assert "WARNING: Attempting to remove volumes in production." in result.output

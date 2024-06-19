@@ -31,7 +31,7 @@ from loguru import logger
 
 from pixl_cli._config import SERVICE_SETTINGS, api_config_for_queue
 from pixl_cli._database import filter_exported_or_add_to_db, processed_images_for_project
-from pixl_cli._docker_commands import down, up
+from pixl_cli._docker_commands import dc
 from pixl_cli._io import (
     HOST_EXPORT_ROOT_DIR,
     copy_parquet_return_logfile_fields,
@@ -56,8 +56,7 @@ def cli(*, debug: bool) -> None:
     logger.add(sys.stderr, level=logging_level)
 
 
-cli.add_command(up)
-cli.add_command(down)
+cli.add_command(dc)
 
 
 @cli.command()
