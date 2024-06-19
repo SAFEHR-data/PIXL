@@ -13,6 +13,9 @@
   // doubling them, or replaced by forward slashes "/".
   "StorageDirectory" : "/var/lib/orthanc/db",
 
+  // overwrite instances with the same UID if we get them for a second time
+  "OverwriteInstances" : true,
+
   // Limit the maximum number of instances
   "MaximumPatientCount": 200,
 
