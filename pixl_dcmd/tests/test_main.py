@@ -64,9 +64,11 @@ def _mri_diffusion_tags(manufacturer: str = "Philips") -> list[PrivateDicomTag]:
     """
     project_config = load_project_config(TEST_PROJECT_SLUG)
     tag_ops = load_tag_operations(project_config)
+    mri_diffusion_overrides = tag_ops.manufacturer_overrides[0]
+
     manufacturer_overrides = [
         override
-        for override in tag_ops.manufacturer_overrides
+        for override in mri_diffusion_overrides
         if re.search(override["manufacturer"], manufacturer, re.IGNORECASE)
     ][0]
 
