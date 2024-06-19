@@ -18,7 +18,7 @@ PACKAGE_DIR="${BIN_DIR%/*}"
 cd "${PACKAGE_DIR}/test"
 
 setup() {
-    # NOTE: the `pixl up` and `pixl down` commands only work when run from the PIXL project root.
+    # NOTE: the `pixl dc` command only work when run from the PIXL project root.
     # However, doing so will fail unless a valid .env file with all the necessary environment 
     # variables is present.
     docker compose --env-file .env -p system-test down --volumes

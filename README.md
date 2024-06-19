@@ -214,7 +214,7 @@ See the [hasher documentation](./hasher/README.md) for more information.
 From the _PIXL_ directory:
 
 ```bash
-pixl up
+pixl dc up
 ```
 
 Once the services are running, you can interact with the services using the [`pixl` CLI](./cli/README.md).
@@ -224,7 +224,7 @@ Once the services are running, you can interact with the services using the [`pi
 From the _PIXL_ directory:
 
 ```bash
-pixl down  # --volumes to remove all data volumes
+pixl dc down  # --volumes to remove all data volumes
 ```
 ```
 
