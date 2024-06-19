@@ -40,12 +40,12 @@ def load_tag_operations(pixl_config: PixlConfig) -> TagOperations:
     :param pixl_config: Project configuration
     """
     base = [_load_scheme(f) for f in pixl_config.tag_operation_files.base]
-    manufacturer_overrides = None
+    manufacturer_overrides = []
 
     if pixl_config.tag_operation_files.manufacturer_overrides:
-        manufacturer_overrides = _load_scheme(
-            pixl_config.tag_operation_files.manufacturer_overrides
-        )
+        for override_file in pixl_config.tag_operation_files.manufacturer_overrides:
+            override_dict = _load_scheme(override_file)
+            manufacturer_overrides.append(override_dict)
 
     return TagOperations(base=base, manufacturer_overrides=manufacturer_overrides)
 
@@ -61,7 +61,7 @@ class TagOperations(BaseModel):
     """
 
     base: list[list[dict]]
-    manufacturer_overrides: Optional[list[dict]]
+    manufacturer_overrides: Optional[list[list[dict]]]
 
     @field_validator("base")
     @classmethod
@@ -77,19 +77,20 @@ class TagOperations(BaseModel):
     @field_validator("manufacturer_overrides")
     @classmethod
     def _valid_manufacturer_overrides(
-        cls, manufacturer_overrides: Optional[list[dict]]
-    ) -> Optional[list[dict]]:
+        cls, manufacturer_overrides: Optional[list[list[dict]]]
+    ) -> Optional[list[list[dict]]]:
         if manufacturer_overrides is None:
             return None
-        if not isinstance(manufacturer_overrides, list):
-            msg = "Tags must be a list of dictionaries."
-            raise TypeError(msg)
-        for override in manufacturer_overrides:
-            if "manufacturer" not in override or "tags" not in override:
-                msg = "Manufacturer overrides must have 'manufacturer' and 'tags' keys."
-                raise ValueError(msg)
-            for tag in override["tags"]:
-                _check_tag_format(tag)
+        for manufacturer_override in manufacturer_overrides:
+            if not isinstance(manufacturer_override, list):
+                msg = "Tags must be a list of dictionaries."
+                raise TypeError(msg)
+            for override in manufacturer_override:
+                if "manufacturer" not in override or "tags" not in override:
+                    msg = "Manufacturer overrides must have 'manufacturer' and 'tags' keys."
+                    raise ValueError(msg)
+                for tag in override["tags"]:
+                    _check_tag_format(tag)
 
         return manufacturer_overrides
 
