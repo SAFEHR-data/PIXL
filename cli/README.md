@@ -25,16 +25,17 @@ pip install -e ../pixl_core/ -e .
 
 ## Usage
 
-> **Note** The `rabbitmq`, `export-api` and `imaging-api` services must be started prior to using the CLI
-> This is typically done by spinning up the necessary Docker containers through `docker compose`.
-> For convenience, we provide the [`bin/pixldc`](../bin/pixldc) script to spin up the relevant
-> services in production.
+**Note** The `rabbitmq`, `export-api` and `imaging-api` services must be started prior to using the CLI
+This is done by spinning up the necessary Docker containers through `docker compose`.
+For convenience, we provide the `pixl dc` command, which acts as a wrapper for `docker compose`,
+but takes care of some of the configuration for you.
 
 See the commands and subcommands with
 
 ```bash
 pixl --help
 ```
+
 ### Configuration
 
 The `rabbitmq` and `postgres` services are configured by setting the following environment variables

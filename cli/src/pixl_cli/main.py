@@ -31,6 +31,7 @@ from loguru import logger
 
 from pixl_cli._config import SERVICE_SETTINGS, api_config_for_queue
 from pixl_cli._database import filter_exported_or_add_to_db, processed_images_for_project
+from pixl_cli._docker_commands import dc
 from pixl_cli._io import (
     HOST_EXPORT_ROOT_DIR,
     copy_parquet_return_logfile_fields,
@@ -43,6 +44,8 @@ from pixl_cli._io import (
 # localhost needs to be added to the NO_PROXY environment variables on GAEs
 os.environ["NO_PROXY"] = os.environ["no_proxy"] = "localhost"
 
+PIXL_ROOT = Path(__file__).parents[3].resolve()
+
 
 @click.group()
 @click.option("--debug/--no-debug", default=False)
@@ -51,6 +54,9 @@ def cli(*, debug: bool) -> None:
     logging_level = "INFO" if not debug else "DEBUG"
     logger.remove()  # Remove all handlers
     logger.add(sys.stderr, level=logging_level)
+
+
+cli.add_command(dc)
 
 
 @cli.command()
@@ -68,10 +74,10 @@ def cli(*, debug: bool) -> None:
     type=click.Path(exists=True),
     help="Path to the sample env file",
 )
-def check_env(*, error: bool, sample_env_file: click.Path) -> None:
+def check_env(*, error: bool, sample_env_file: Path) -> None:
     """Check that all variables from .env.sample are set either in .env or in environ"""
     if not sample_env_file:
-        sample_env_file = Path(__file__).parents[3] / ".env.sample"
+        sample_env_file = PIXL_ROOT / ".env.sample"
     sample_config = RepositoryEnv(sample_env_file)
     for key in sample_config.data:
         try:
