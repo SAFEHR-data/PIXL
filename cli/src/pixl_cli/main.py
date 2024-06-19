@@ -142,6 +142,9 @@ def populate(  # too many args
     queues_to_populate = queues.split(",")
     if start_processing:
         _start_or_update_extract(queues=queues_to_populate, rate=rate)
+    else:
+        logger.info("Starting to process messages disabled, setting `--num-retries` to 0")
+        num_retries = 0
 
     logger.info("Populating queue(s) {} from {}", queues_to_populate, parquet_path)
     if parquet_path.is_file() and parquet_path.suffix == ".csv":
