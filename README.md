@@ -13,6 +13,15 @@ several services orchestrated by [Docker Compose](https://docs.docker.com/compos
 
 To get access to the GAE, [see the documentation on Slab](https://uclh.slab.com/posts/gae-access-7hkddxap)
 
+## Installation
+
+Install the PIXL CLI by running
+
+```shell
+pip install -e cli/
+```
+
+
 ## Development
 
 [Follow the developer setup instructions](./docs/setup/developer.md).
@@ -143,6 +152,8 @@ To configure a new project, follow these steps:
 
 #### The config YAML file
 
+<details><summary>The config YAML file</summary>
+<p>
 The configuration file defines:
 
 - Project name: the `<project-slug>` name of the Project
@@ -178,8 +189,13 @@ The configuration file defines:
     <!--   Requires the `AZURE_*` environment variables to be set in `.env` -->
     <!-- - `"dicomweb"`: a DICOMweb server (for _DICOM_ files only) -->
     <!--   Requires the `DICOMWEB_*` environment variables to be set in `.env` -->
+</p>
+</details> 
 
 #### Project secrets
+
+<details><summary>Project secrets</summary>
+<p>
 
 Any credentials required for uploading the project's results should be stored in an **Azure Key Vault**
 (set up instructions below).
@@ -206,6 +222,8 @@ This kevyault is configured with the following environment variables:
 - `HASHER_API_AZ_KEY_VAULT_NAME` the name of the key vault, used to connect to the correct key vault
 
 See the [hasher documentation](./hasher/README.md) for more information.
+</p>
+</details> 
 
 ## Run
 
@@ -213,7 +231,7 @@ See the [hasher documentation](./hasher/README.md) for more information.
 
 From the _PIXL_ directory:
 
-```bash
+```shell=
 pixl dc up
 ```
 
@@ -223,9 +241,8 @@ Once the services are running, you can interact with the services using the [`pi
 
 From the _PIXL_ directory:
 
-```bash
+```shell
 pixl dc down  # --volumes to remove all data volumes
-```
 ```
 
 ## Analysis
