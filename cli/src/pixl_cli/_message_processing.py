@@ -22,6 +22,7 @@ import tqdm
 from _operator import attrgetter
 from core.patient_queue._base import PixlBlockingInterface
 from core.patient_queue.producer import PixlProducer
+from decouple import config
 from loguru import logger
 
 from pixl_cli._config import SERVICE_SETTINGS
@@ -36,14 +37,21 @@ def retry_until_export_count_is_unchanged(
 ) -> None:
     """Retry populating messages until there is no change in the number of exported studies."""
     last_exported_count = 0
+
+    total_wait_seconds = config("CLI_RETRY_SECONDS", default=300, cast=int)
+    wait_to_display = f"{total_wait_seconds //60} minutes"
+    if total_wait_seconds % 60:
+        wait_to_display = f"{total_wait_seconds //60} minutes & {total_wait_seconds % 60} seconds"
+
     logger.info(
-        "Retrying extraction every 5 minutes until no new extracts are found, max retries: {}",
+        "Retrying extraction every {} until no new extracts are found, max retries: {}",
+        wait_to_display,
         num_retries,
     )
     for i in range(1, num_retries + 1):
         _wait_for_queues_to_empty(queues_to_populate)
         logger.info("Waiting 5 minutes for new extracts to be found")
-        with tqdm.tqdm(range(300), desc="Waiting for series to be fully processed"):
+        with tqdm.tqdm(total_wait_seconds, desc="Waiting for series to be fully processed"):
             sleep(1)
 
         images = exported_images_for_project(project_name)
