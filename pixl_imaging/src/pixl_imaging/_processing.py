@@ -59,7 +59,13 @@ async def _process_message(study: ImagingStudy, orthanc_raw: PIXLRawOrthanc) -> 
     # Now that instance has arrived in orthanc raw, we can set its project name tag via the API
     studies = await orthanc_raw.query_local(study.orthanc_query_dict)
     logger.debug("Local instances for study: {}", studies)
-    await _add_project_to_study(study.message.project_name, orthanc_raw, studies, timeout=timeout)
+    await _add_project_to_study(
+        study.message.project_name,
+        orthanc_raw,
+        studies,
+        timeout=timeout,
+        image_identifier=study.message.project_name,
+    )
 
     return
 
@@ -103,20 +109,27 @@ async def _update_or_resend_existing_study_(
             different_project.append(resource["ID"])
 
     if different_project:
-        await _add_project_to_study(project_name, orthanc_raw, different_project, timeout=timeout)
+        await _add_project_to_study(
+            project_name,
+            orthanc_raw,
+            different_project,
+            timeout=timeout,
+            image_identifier=study.message.project_name,
+        )
         return True
     await orthanc_raw.send_existing_study_to_anon(existing_resources[0]["ID"])
     return True
 
 
 async def _add_project_to_study(
-    project_name: str, orthanc_raw: PIXLRawOrthanc, studies: list[str], timeout: float
+    project_name: str,
+    orthanc_raw: PIXLRawOrthanc,
+    studies: list[str],
+    timeout: float,
+    image_identifier: str,
 ) -> None:
     if len(studies) > 1:
-        logger.error(
-            "Got {} studies with matching accession number and patient ID, expected 1",
-            studies,
-        )
+        logger.warning("Got {} studies with matching {}, expected 1", studies, image_identifier)
     for study in studies:
         logger.debug("Adding private tag to study ID {}", study)
         await orthanc_raw.modify_private_tags_by_study(
