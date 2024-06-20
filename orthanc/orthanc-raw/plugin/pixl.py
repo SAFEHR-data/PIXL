@@ -62,7 +62,7 @@ def OnChange(changeType, level, resourceId):  # noqa: ARG001
         return
     if _get_project_name_from_study_id(resourceId) == DICOM_TAG_PROJECT_NAME.PLACEHOLDER_VALUE:
         logger.warning("Study {} has not been set with a pixl project name, deleting")
-        orthanc.RestApiDelete("/studies", resourceId)
+        orthanc.RestApiDelete(f"/studies/{resourceId}")
         return
     # delete via rest API and don't autoroute
     if should_auto_route():
