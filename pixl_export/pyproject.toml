@@ -33,6 +33,22 @@ dev = [
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
+[tool.coverage.report]
+exclude_also = [
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "except subprocess.CalledProcessError as exception:",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "if typing.TYPE_CHECKING",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
 [tool.pytest.ini_options]
 markers = ["processing"]
 
@@ -44,3 +60,4 @@ extend = "../ruff.toml"
 
 [tool.setuptools.package-data]
 pixl_export = ["sql/*.sql", "report_deid/*.txt"]
+
