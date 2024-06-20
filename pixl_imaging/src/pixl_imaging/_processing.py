@@ -64,7 +64,7 @@ async def _process_message(study: ImagingStudy, orthanc_raw: PIXLRawOrthanc) -> 
         orthanc_raw,
         studies,
         timeout=timeout,
-        image_identifier=study.message.project_name,
+        image_identifier=study.message.identifier,
     )
 
     return
@@ -114,7 +114,7 @@ async def _update_or_resend_existing_study_(
             orthanc_raw,
             different_project,
             timeout=timeout,
-            image_identifier=study.message.project_name,
+            image_identifier=study.message.identifier,
         )
         return True
     await orthanc_raw.send_existing_study_to_anon(existing_resources[0]["ID"])
@@ -129,7 +129,7 @@ async def _add_project_to_study(
     image_identifier: str,
 ) -> None:
     if len(studies) > 1:
-        logger.warning("Got {} studies with matching {}, expected 1", studies, image_identifier)
+        logger.warning("Got {} studies matching {}, expected 1", studies, image_identifier)
     for study in studies:
         logger.debug("Adding private tag to study ID {}", study)
         await orthanc_raw.modify_private_tags_by_study(
