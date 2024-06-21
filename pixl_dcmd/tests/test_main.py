@@ -40,6 +40,7 @@ from pytest_pixl.helpers import run_subprocess
 
 from pixl_dcmd.main import (
     _anonymise_dicom_from_scheme,
+    check_valid_dicom,
     enforce_whitelist,
     anonymise_dicom,
     should_exclude_series,
@@ -133,6 +134,10 @@ def test_enforce_whitelist_removes_overlay_plane() -> None:
     assert (0x6000, 0x3000) not in ds
 
 
+def test_validation_check_works(vanilla_dicom_image: Dataset) -> None:
+    assert check_valid_dicom(vanilla_dicom_image)
+
+
 def test_anonymisation(row_for_dicom_testing, vanilla_dicom_image: Dataset) -> None:
     """
     Test whether anonymisation works as expected on a vanilla DICOM dataset
@@ -149,6 +154,9 @@ def test_anonymisation(row_for_dicom_testing, vanilla_dicom_image: Dataset) -> N
     assert vanilla_dicom_image.PatientID != orig_patient_id
     assert vanilla_dicom_image.PatientName != orig_patient_name
     assert "StudyDate" not in vanilla_dicom_image
+
+    # Check that anonymised Dicom is valid
+    assert check_valid_dicom(vanilla_dicom_image)
 
 
 def test_anonymisation_with_overrides(
