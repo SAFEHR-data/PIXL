@@ -118,10 +118,7 @@ class Orthanc(ABC):
                 raise PixlDiscardError(msg)
 
             if (time() - start_time) > timeout:
-                msg = (
-                    f"Failed to finish {job_type} job {job_id} in {timeout} seconds, cancelling job"
-                )
-                await self._post(path=f"/jobs/{job_id}/cancel", data={}, timeout=timeout)
+                msg = f"Failed to finish {job_type} job {job_id} in {timeout} seconds"
                 await sleep(10)
                 raise PixlDiscardError(msg)
 
@@ -181,9 +178,16 @@ class PIXLRawOrthanc(Orthanc):
         PixlRequeueMessageError will cause the rabbitmq message to be requeued
         """
         jobs = await self.get_jobs()
-        unfinished_jobs =  [x for x in jobs if x["State"] not in ("Success", "Failure")]
+        unfinished_jobs = [x for x in jobs if x["State"] not in ("Success", "Failure")]
         for job in unfinished_jobs:
-            logger.trace("{}, {}, {}, {}, {}", job["State"], job.get("CreationTime"), job.get("ID"), job.get("Type"), job.get("EffectiveRuntime"))
+            logger.trace(
+                "{}, {}, {}, {}, {}",
+                job["State"],
+                job.get("CreationTime"),
+                job.get("ID"),
+                job.get("Type"),
+                job.get("EffectiveRuntime"),
+            )
         for job in jobs:
             if job["State"] == "Pending":
                 msg = "Pending messages in orthanc raw"
