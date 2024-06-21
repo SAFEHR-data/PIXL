@@ -222,7 +222,7 @@ def _whitelist_tag(dataset: Dataset, de: DataElement, tag_scheme: list[dict]) ->
 
 
 # NOTE: do we want to make the standard configurable per project?
-def check_valid_dicom(dataset: Dataset) -> None:
+def check_valid_dicom(dataset: Dataset) -> bool:
     """Validate the DICOM dataset against the given standard."""
 
     # Default from dicom_validator but defining here to be explicit
@@ -244,6 +244,7 @@ def check_valid_dicom(dataset: Dataset) -> None:
     if not res:
         msg = f"DICOM validation failed with: {_parse_validation_results(res)}"
         raise PixlDiscardError(msg)
+    return True
 
 
 def _parse_validation_results(results: dict) -> str:
