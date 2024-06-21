@@ -16,6 +16,7 @@ from __future__ import annotations
 from io import BytesIO
 from loguru import logger
 from os import PathLike
+from pathlib import Path
 from typing import Any, BinaryIO, Callable, Union
 
 from core.exceptions import PixlDiscardError
@@ -29,6 +30,8 @@ from dicomanonymizer.simpledicomanonymizer import (
     actions_map_name_functions,
     anonymize_dataset,
 )
+from dicom_validator.validator.iod_validator import IODValidator
+from dicom_validator.spec_reader.edition_reader import EditionReader
 
 from pixl_dcmd._dicom_helpers import get_project_name_as_string
 from pixl_dcmd._tag_schemes import merge_tag_schemes, _scheme_list_to_dict
@@ -216,3 +219,36 @@ def _whitelist_tag(dataset: Dataset, de: DataElement, tag_scheme: list[dict]) ->
     ]["op"] != "delete":
         return
     del dataset[de.tag]
+
+
+# NOTE: do we want to make the standard configurable per project?
+def check_valid_dicom(dataset: Dataset) -> None:
+    """Validate the DICOM dataset against the given standard."""
+
+    # Default from dicom_validator but defining here to be explicit
+    standard_path = str(Path.home() / "dicom-validator")
+    revision = "current"
+
+    # dicom_validator doesn't have a dedicated API, so setting up the components ourselves. Taken from
+    # https://github.com/pydicom/dicom-validator/blob/37a5f9770ae8f44fa6fb2aaa6bfed57743e01896/dicom_validator/validate_iods.py
+    edition_reader = EditionReader(standard_path)
+    destination = edition_reader.get_revision(revision, False)
+    json_path = Path(destination, "json")
+    dicom_info = EditionReader.load_dicom_info(json_path)
+
+    # NOTE: dicom_validator returns a dict with all deviations from the standard
+    # Currently we're only letting datasets pass that don't have any exceptions
+    # This is likely to stringent for most applications, so we might want to parse the results more
+    # intelligently
+    res = IODValidator(dataset, dicom_info).validate()
+    if not res:
+        msg = f"DICOM validation failed with: {_parse_validation_results(res)}"
+        raise PixlDiscardError(msg)
+
+
+def _parse_validation_results(results: dict) -> str:
+    """Parse the validation results into a human-readable string."""
+    res_str = ""
+    for key, value in results.items():
+        res_str += f"{key}: {value}\n"
+    return res_str
