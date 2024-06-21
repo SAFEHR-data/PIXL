@@ -231,7 +231,7 @@ See the [hasher documentation](./hasher/README.md) for more information.
 
 From the _PIXL_ directory:
 
-```shell=
+```shell
 pixl dc up
 ```
 
