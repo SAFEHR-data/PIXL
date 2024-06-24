@@ -238,7 +238,7 @@ def check_valid_dicom(dataset: Dataset) -> bool:
 
     # NOTE: dicom_validator returns a dict with all deviations from the standard
     # Currently we're only letting datasets pass that don't have any exceptions
-    # This is likely to stringent for most applications, so we might want to parse the results more
+    # This is likely too stringent for most applications, so we might want to parse the results more
     # intelligently
     res = IODValidator(dataset, dicom_info).validate()
     if not res:
