@@ -39,8 +39,8 @@ from pydicom import dcmread
 import orthanc
 from pixl_dcmd.main import (
     anonymise_dicom,
-    check_valid_dicom,
     should_exclude_series,
+    validate_dicom,
     write_dataset_to_bytes,
 )
 
@@ -248,9 +248,10 @@ def _process_dicom_instance(receivedDicom: bytes) -> tuple[orthanc.ReceivedInsta
 
     # Attempt to anonymise and drop the study if any exceptions occur or if the anonymisation
     # returns non-valid DICOM.
+    orig_dataset = dataset.copy()
     try:
         anonymise_dicom(dataset)
-        check_valid_dicom(dataset)
+        validate_dicom(dataset, orig_dataset)
         return orthanc.ReceivedInstanceAction.MODIFY, write_dataset_to_bytes(dataset)
     except PixlDiscardError as error:
         logger.debug("Skipping instance: {}", error)

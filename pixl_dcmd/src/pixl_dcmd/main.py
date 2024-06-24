@@ -222,8 +222,11 @@ def _whitelist_tag(dataset: Dataset, de: DataElement, tag_scheme: list[dict]) ->
 
 
 # NOTE: do we want to make the standard configurable per project?
-def check_valid_dicom(dataset: Dataset) -> bool:
-    """Validate the DICOM dataset against the given standard."""
+def validate_dicom(dataset: Dataset, original_dataset: Dataset) -> bool:
+    """
+    Validate anonymised DICOM dataset against the given standard.
+    We only flag the dataset as invalid if there are new errors introduced by the anonymisation.
+    """
 
     logger.info("Validating DICOM dataset")
 
