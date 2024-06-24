@@ -225,6 +225,8 @@ def _whitelist_tag(dataset: Dataset, de: DataElement, tag_scheme: list[dict]) ->
 def check_valid_dicom(dataset: Dataset) -> bool:
     """Validate the DICOM dataset against the given standard."""
 
+    logger.info("Validating DICOM dataset")
+
     # Default from dicom_validator but defining here to be explicit
     standard_path = str(Path.home() / "dicom-validator")
     revision = "current"
