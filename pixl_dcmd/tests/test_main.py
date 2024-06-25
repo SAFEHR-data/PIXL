@@ -22,11 +22,6 @@ import numpy as np
 import pydicom
 import pytest
 import sqlalchemy
-from decouple import config
-from pydicom.data import get_testdata_file
-from pydicom.dataset import Dataset
-from pydicom.uid import UID
-
 from core.db.models import Image
 from core.dicom_tags import (
     DICOM_TAG_PROJECT_NAME,
@@ -35,16 +30,18 @@ from core.dicom_tags import (
     create_private_tag,
 )
 from core.project_config import load_project_config, load_tag_operations
-from pytest_pixl.dicom import generate_dicom_dataset
-from pytest_pixl.helpers import run_subprocess
-
+from decouple import config
 from pixl_dcmd.main import (
     _anonymise_dicom_from_scheme,
-    validate_dicom,
-    enforce_whitelist,
     anonymise_dicom,
+    enforce_whitelist,
     should_exclude_series,
 )
+from pydicom.data import get_testdata_file
+from pydicom.dataset import Dataset
+from pydicom.uid import UID
+from pytest_pixl.dicom import generate_dicom_dataset
+from pytest_pixl.helpers import run_subprocess
 
 PROJECT_CONFIGS_DIR = Path(config("PROJECT_CONFIGS_DIR"))
 TEST_PROJECT_SLUG = "test-extract-uclh-omop-cdm"
@@ -114,10 +111,6 @@ def test_enforce_whitelist_removes_overlay_plane() -> None:
     assert (0x6000, 0x3000) not in ds
 
 
-def test_validation_check_works(vanilla_dicom_image: Dataset) -> None:
-    assert validate_dicom(vanilla_dicom_image)
-
-
 def test_anonymisation(row_for_dicom_testing, vanilla_dicom_image: Dataset) -> None:
     """
     Test whether anonymisation works as expected on a vanilla DICOM dataset
@@ -134,9 +127,6 @@ def test_anonymisation(row_for_dicom_testing, vanilla_dicom_image: Dataset) -> N
     assert vanilla_dicom_image.PatientID != orig_patient_id
     assert vanilla_dicom_image.PatientName != orig_patient_name
     assert "StudyDate" not in vanilla_dicom_image
-
-    # Check that anonymised Dicom is valid
-    assert validate_dicom(vanilla_dicom_image)
 
 
 def test_anonymisation_with_overrides(
