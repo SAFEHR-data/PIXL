@@ -14,28 +14,23 @@
 from __future__ import annotations
 
 from io import BytesIO
-from loguru import logger
 from os import PathLike
-from pathlib import Path
 from typing import Any, BinaryIO, Callable, Union
 
-from core.exceptions import PixlDiscardError
-from core.project_config import load_project_config
-
 import requests
-from core.project_config import load_tag_operations
+from core.exceptions import PixlDiscardError
+from core.project_config import load_project_config, load_tag_operations
 from decouple import config
-from pydicom import DataElement, Dataset, dcmwrite
 from dicomanonymizer.simpledicomanonymizer import (
     actions_map_name_functions,
     anonymize_dataset,
 )
-from dicom_validator.validator.iod_validator import IODValidator
-from dicom_validator.spec_reader.edition_reader import EditionReader
+from loguru import logger
+from pydicom import DataElement, Dataset, dcmwrite
 
-from pixl_dcmd._dicom_helpers import get_project_name_as_string
-from pixl_dcmd._tag_schemes import merge_tag_schemes, _scheme_list_to_dict
 from pixl_dcmd._database import get_uniq_pseudo_study_uid_and_update_db
+from pixl_dcmd._dicom_helpers import DicomValidator, get_project_name_as_string
+from pixl_dcmd._tag_schemes import _scheme_list_to_dict, merge_tag_schemes
 
 DicomDataSetType = Union[Union[str, bytes, PathLike[Any]], BinaryIO]
 
@@ -64,6 +59,22 @@ def should_exclude_series(dataset: Dataset) -> bool:
     return False
 
 
+def anonymise_and_validate_dicom(dataset: Dataset) -> None:
+    # Set up Dicom validator and validate the original dataset
+    dicom_validator = DicomValidator(edition="current")
+    dicom_validator.validate_original(dataset)
+
+    anonymise_dicom(dataset)
+
+    # Validate the anonymised dataset
+    validation_errors = dicom_validator.validate_anonymised(dataset)
+    if validation_errors:
+        logger.warning(
+            f"The anonymisation introduced the following validation errors:\n \
+            {_parse_validation_results(validation_errors)}"
+        )
+
+
 def anonymise_dicom(dataset: Dataset) -> None:
     """
     Anonymises a DICOM dataset as Received by Orthanc in place.
@@ -79,8 +90,6 @@ def anonymise_dicom(dataset: Dataset) -> None:
     if dataset.Modality not in project_config.project.modalities:
         msg = f"Dropping DICOM Modality: {dataset.Modality}"
         raise PixlDiscardError(msg)
-
-    logger.info("Anonymising received instance")
 
     # Merge tag schemes
     tag_operations = load_tag_operations(project_config)
@@ -98,9 +107,7 @@ def anonymise_dicom(dataset: Dataset) -> None:
         raise PixlDiscardError(msg)
 
     logger.info("Anonymising received instance")
-
     _anonymise_dicom_from_scheme(dataset, project_slug, tag_scheme)
-
     enforce_whitelist(dataset, tag_scheme, recursive=True)
 
 
@@ -219,37 +226,6 @@ def _whitelist_tag(dataset: Dataset, de: DataElement, tag_scheme: list[dict]) ->
     ]["op"] != "delete":
         return
     del dataset[de.tag]
-
-
-# NOTE: do we want to make the standard configurable per project?
-def validate_dicom(dataset: Dataset, original_dataset: Dataset) -> bool:
-    """
-    Validate anonymised DICOM dataset against the given standard.
-    We only flag the dataset as invalid if there are new errors introduced by the anonymisation.
-    """
-
-    logger.info("Validating DICOM dataset")
-
-    # Default from dicom_validator but defining here to be explicit
-    standard_path = str(Path.home() / "dicom-validator")
-    revision = "current"
-
-    # dicom_validator doesn't have a dedicated API, so setting up the components ourselves. Taken from
-    # https://github.com/pydicom/dicom-validator/blob/37a5f9770ae8f44fa6fb2aaa6bfed57743e01896/dicom_validator/validate_iods.py
-    edition_reader = EditionReader(standard_path)
-    destination = edition_reader.get_revision(revision, False)
-    json_path = Path(destination, "json")
-    dicom_info = EditionReader.load_dicom_info(json_path)
-
-    # NOTE: dicom_validator returns a dict with all deviations from the standard
-    # Currently we're only letting datasets pass that don't have any exceptions
-    # This is likely too stringent for most applications, so we might want to parse the results more
-    # intelligently
-    res = IODValidator(dataset, dicom_info).validate()
-    if not res:
-        msg = f"DICOM validation failed with: {_parse_validation_results(res)}"
-        raise PixlDiscardError(msg)
-    return True
 
 
 def _parse_validation_results(results: dict) -> str:
