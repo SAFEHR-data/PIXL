@@ -59,7 +59,7 @@ def should_exclude_series(dataset: Dataset) -> bool:
     return False
 
 
-def anonymise_and_validate_dicom(dataset: Dataset) -> None:
+def anonymise_and_validate_dicom(dataset: Dataset) -> dict:
     # Set up Dicom validator and validate the original dataset
     dicom_validator = DicomValidator(edition="current")
     dicom_validator.validate_original(dataset)
@@ -73,6 +73,7 @@ def anonymise_and_validate_dicom(dataset: Dataset) -> None:
             f"The anonymisation introduced the following validation errors:\n \
             {_parse_validation_results(validation_errors)}"
         )
+    return validation_errors
 
 
 def anonymise_dicom(dataset: Dataset) -> None:
