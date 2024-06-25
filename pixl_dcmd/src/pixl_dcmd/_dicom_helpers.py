@@ -67,16 +67,19 @@ class DicomValidator:
 
         # Temporarily disable logging to avoid spamming the console
         logging.disable(logging.ERROR)
-        anon_errors = IODValidator(dataset, self.dicom_info).validate()
+        self.anon_errors = IODValidator(dataset, self.dicom_info).validate()
         logging.disable(logging.NOTSET)
 
-        diff_errors: dict = {}
+        self.diff_errors: dict = {}
 
-        for key in anon_errors.keys():
+        for key in self.anon_errors.keys():
             if key in self.original_errors.keys():
-                diff_errors[key] = dict(
-                    # Keep only errors introduced after the anonymisation
-                    set(anon_errors[key].items()) - set(orig_errors[key].items())
-                )
+                # Keep only errors introduced after the anonymisation
+                # The keys of the dictionary containt the actual errors
+                diff = set(self.anon_errors[key].keys()) - set(orig_errors[key].keys())
+                if diff:
+                    self.diff_errors[key] = diff
+            else:
+                self.diff_errors[key] = self.anon_errors[key]
 
-        return diff_errors
+        return self.diff_errors
