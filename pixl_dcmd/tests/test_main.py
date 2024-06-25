@@ -13,6 +13,7 @@
 #  limitations under the License.
 from __future__ import annotations
 
+import logging
 import pathlib
 import re
 from pathlib import Path
@@ -33,6 +34,7 @@ from core.project_config import load_project_config, load_tag_operations
 from decouple import config
 from pixl_dcmd.main import (
     _anonymise_dicom_from_scheme,
+    anonymise_and_validate_dicom,
     anonymise_dicom,
     enforce_whitelist,
     should_exclude_series,
@@ -127,6 +129,21 @@ def test_anonymisation(row_for_dicom_testing, vanilla_dicom_image: Dataset) -> N
     assert vanilla_dicom_image.PatientID != orig_patient_id
     assert vanilla_dicom_image.PatientName != orig_patient_name
     assert "StudyDate" not in vanilla_dicom_image
+
+
+def test_anonymisation_and_validation(
+    row_for_dicom_testing, vanilla_dicom_image: Dataset, caplog
+) -> None:
+    """
+    Test whether anonymisation and validation works as expected on a vanilla DICOM dataset
+    No warnings should be generated for a valid anonymisation
+    """
+    caplog.clear()
+    caplog.set_level(logging.WARNING)
+    validation_errors = anonymise_and_validate_dicom(vanilla_dicom_image)
+    # Check no warnings were generated
+    assert "WARNING" not in [record.levelname for record in caplog.records]
+    assert not validation_errors
 
 
 def test_anonymisation_with_overrides(
