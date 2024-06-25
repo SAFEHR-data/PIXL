@@ -80,26 +80,6 @@ def _mri_diffusion_tags(manufacturer: str = "Philips") -> list[PrivateDicomTag]:
 
 
 @pytest.fixture()
-def vanilla_dicom_image() -> Dataset:
-    """
-    A DICOM image with diffusion data to test the anonymisation process.
-    Private tags were added to match the tag operations defined in the project config, so we can
-    test whether the anonymisation process works as expected when defining overrides.
-    """
-    ds = generate_dicom_dataset(Modality="DX")
-
-    # Make sure the project name tag is added for anonymisation to work
-    add_private_tag(ds, DICOM_TAG_PROJECT_NAME)
-    # Update the project name tag to a known value
-    block = ds.private_block(
-        DICOM_TAG_PROJECT_NAME.group_id, DICOM_TAG_PROJECT_NAME.creator_string
-    )
-    ds[block.get_tag(DICOM_TAG_PROJECT_NAME.offset_id)].value = TEST_PROJECT_SLUG
-
-    return ds
-
-
-@pytest.fixture()
 def mri_diffusion_dicom_image() -> Dataset:
     """
     A DICOM image with diffusion data to test the anonymisation process.
