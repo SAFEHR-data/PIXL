@@ -93,7 +93,12 @@ class Orthanc(ABC):
         )
         logger.debug("Modify studies Job: {}", response)
         job_id = str(response["ID"])
-        await self.wait_for_job_success_or_raise(job_id, "modify", timeout=timeout)
+        try:
+            await self.wait_for_job_success_or_raise(job_id, "modify", timeout=timeout)
+        except PixlDiscardError:
+            logger.warning(f"Deleting study {study_id} as modify job failed")
+            await self.delete(f"/studies/{study_id}")
+            raise
 
     async def retrieve_from_remote(self, query_id: str) -> str:
         response = await self._post(
