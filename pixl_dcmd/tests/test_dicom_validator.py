@@ -48,7 +48,7 @@ def test_validation_fails_after_invalid_tag_modification(vanilla_dicom_image) ->
     """
     GIVEN a DICOM dataset
     WHEN an invalid tag operation is performed (e.g. deleting a required tag)
-    THEN validation should fail
+    THEN validation should return a non-empty list of errors
     """
     validator = DicomValidator()
     validator.validate_original(vanilla_dicom_image)

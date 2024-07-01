@@ -245,8 +245,7 @@ def _process_dicom_instance(receivedDicom: bytes) -> tuple[orthanc.ReceivedInsta
         orthanc.LogWarning("DICOM instance discarded due to its series description")
         return orthanc.ReceivedInstanceAction.DISCARD, None
 
-    # Attempt to anonymise and drop the study if any exceptions occur or if the anonymisation
-    # returns non-valid DICOM.
+    # Attempt to anonymise and drop the study if any exceptions occur
     try:
         anonymise_and_validate_dicom(dataset)
         return orthanc.ReceivedInstanceAction.MODIFY, write_dataset_to_bytes(dataset)
