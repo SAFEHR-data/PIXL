@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import pytest
 from pixl_dcmd._dicom_helpers import DicomValidator
 from pixl_dcmd.main import anonymise_dicom
 from pydicom import Dataset
@@ -42,6 +43,27 @@ def test_validation_after_anonymisation_works(
     validator.validate_original(vanilla_dicom_image)
     anonymise_dicom(vanilla_dicom_image)
     assert not validator.validate_anonymised(vanilla_dicom_image)
+
+
+@pytest.fixture()
+def non_compliant_dicom_image(
+    row_for_dicom_testing, vanilla_dicom_image: Dataset
+) -> Dataset:
+    """A DICOM dataset that is not compliant with the DICOM standard."""
+    del vanilla_dicom_image.PatientName
+    return vanilla_dicom_image
+
+
+def test_validation_passes_for_non_compliant_dicom(non_compliant_dicom_image) -> None:
+    """
+    GIVEN a DICOM dataset that is not compliant with the DICOM standard
+    WHEN the dataset is validated after anonymisation
+    THEN no errors should be raised
+    """
+    validator = DicomValidator()
+    validator.validate_original(non_compliant_dicom_image)
+    anonymise_dicom(non_compliant_dicom_image)
+    assert not validator.validate_anonymised(non_compliant_dicom_image)
 
 
 def test_validation_fails_after_invalid_tag_modification(vanilla_dicom_image) -> None:
