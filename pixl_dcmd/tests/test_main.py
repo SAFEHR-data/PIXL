@@ -113,7 +113,7 @@ def test_enforce_whitelist_removes_overlay_plane() -> None:
     assert (0x6000, 0x3000) not in ds
 
 
-def test_anonymisation(row_for_dicom_testing, vanilla_dicom_image: Dataset) -> None:
+def test_anonymisation(vanilla_dicom_image: Dataset) -> None:
     """
     Test whether anonymisation works as expected on a vanilla DICOM dataset
     """
@@ -131,9 +131,7 @@ def test_anonymisation(row_for_dicom_testing, vanilla_dicom_image: Dataset) -> N
     assert "StudyDate" not in vanilla_dicom_image
 
 
-def test_anonymisation_and_validation(
-    row_for_dicom_testing, vanilla_dicom_image: Dataset, caplog
-) -> None:
+def test_anonymisation_and_validation(vanilla_dicom_image: Dataset, caplog) -> None:
     """
     Test whether anonymisation and validation works as expected on a vanilla DICOM dataset
     No warnings should be generated for a valid anonymisation
@@ -146,9 +144,7 @@ def test_anonymisation_and_validation(
     assert not validation_errors
 
 
-def test_anonymisation_with_overrides(
-    row_for_dicom_testing, mri_diffusion_dicom_image: Dataset
-) -> None:
+def test_anonymisation_with_overrides(mri_diffusion_dicom_image: Dataset) -> None:
     """
     Test that the anonymisation process works with manufacturer overrides.
     GIVEN a dicom image with manufacturer-specific private tags

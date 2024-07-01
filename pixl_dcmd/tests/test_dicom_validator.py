@@ -31,9 +31,7 @@ def test_validation_check_works(vanilla_dicom_image: Dataset) -> None:
     assert not validator.validate_anonymised(vanilla_dicom_image)
 
 
-def test_validation_after_anonymisation_works(
-    row_for_dicom_testing, vanilla_dicom_image: Dataset
-) -> None:
+def test_validation_after_anonymisation_works(vanilla_dicom_image: Dataset) -> None:
     """
     GIVEN a DICOM dataset
     WHEN the dataset is validated after anonymisation
@@ -46,9 +44,7 @@ def test_validation_after_anonymisation_works(
 
 
 @pytest.fixture()
-def non_compliant_dicom_image(
-    row_for_dicom_testing, vanilla_dicom_image: Dataset
-) -> Dataset:
+def non_compliant_dicom_image(vanilla_dicom_image: Dataset) -> Dataset:
     """A DICOM dataset that is not compliant with the DICOM standard."""
     del vanilla_dicom_image.PatientName
     return vanilla_dicom_image

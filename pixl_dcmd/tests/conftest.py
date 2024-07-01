@@ -185,11 +185,13 @@ def mock_header_record_path(monkeypatch, tmpdir):
 
 
 @pytest.fixture()
-def vanilla_dicom_image() -> Dataset:
+def vanilla_dicom_image(row_for_dicom_testing) -> Dataset:
     """
     A DICOM image with diffusion data to test the anonymisation process.
     Private tags were added to match the tag operations defined in the project config, so we can
     test whether the anonymisation process works as expected when defining overrides.
+    The row_for_dicom_testing dependency is to make sure the database is populated with the
+    project slug, which is used to anonymise the DICOM image.
     """
     ds = generate_dicom_dataset(Modality="DX")
 
