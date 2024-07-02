@@ -112,6 +112,7 @@ services:
             dockerfile: ./docker/orthanc-anon/Dockerfile
             args:
                 <<: *build-args-common
+                ORTHANC_CONCURRENT_JOBS: ${ORTHANC_CONCURRENT_JOBS}
         platform: linux/amd64
         command: /run/secrets
         environment:
@@ -149,7 +150,6 @@ services:
             - type: volume
               source: orthanc-anon-data
               target: /var/lib/orthanc/db
-            - ${PWD}/orthanc/orthanc-anon/config:/run/secrets:ro
             - ${PWD}/projects/configs:/${PROJECT_CONFIGS_DIR:-/projects/configs}:ro
         networks:
             - pixl-net
@@ -179,7 +179,7 @@ services:
                 <<: *build-args-common
                 ORTHANC_RAW_MAXIMUM_STORAGE_SIZE: ${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE}
                 ORTHANC_RAW_JOB_HISTORY_SIZE: ${ORTHANC_RAW_JOB_HISTORY_SIZE}
-                ORTHANC_RAW_CONCURRENT_JOBS: ${ORTHANC_RAW_CONCURRENT_JOBS}
+                ORTHANC_CONCURRENT_JOBS: ${ORTHANC_CONCURRENT_JOBS}
                 PIXL_DICOM_TRANSFER_TIMEOUT: ${PIXL_DICOM_TRANSFER_TIMEOUT}
         platform: linux/amd64
         command: /run/secrets

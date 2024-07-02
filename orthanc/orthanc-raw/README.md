@@ -26,7 +26,7 @@ for this instance have been shared with the PACS team.
   - `ORTHANC_RAW_MAXIMUM_STORAGE_SIZE` to limit the storage size
   - `ORTHANC_RAW_JOB_HISTORY_SIZE` has been increased so that while there is concurrent processing,
     the job should always exist for being able to query its status
-  - `ORTHANC_RAW_CONCURRENT_JOBS` has been increased to allow for more concurrent transfers from
+  - `ORTHANC_CONCURRENT_JOBS` has been increased to allow for more concurrent transfers from
     the VNA to orthanc raw.  
 - All configuration is driven through customised JSON config files stored in the [config](./config/)
 directory.

@@ -20,7 +20,7 @@
   "MaximumStorageMode" : "Recycle",
   // Enable concurrency
   "JobsHistorySize": ${ORTHANC_RAW_JOB_HISTORY_SIZE}, // replaced in Dockerfile because its an integer
-  "ConcurrentJobs" : ${ORTHANC_RAW_CONCURRENT_JOBS}, // replaced in Dockerfile because its an integer
+  "ConcurrentJobs" : ${ORTHANC_CONCURRENT_JOBS}, // replaced in Dockerfile because its an integer
   // overwrite instances with the same UID if we get them for a second time
   "OverwriteInstances" : true,
   // Path to the directory that holds the SQLite index (if unset, the

@@ -24,8 +24,7 @@
   // a RAM-drive or a SSD device for performance reasons.
   "IndexDirectory" : "/var/lib/orthanc/db",
 
-  "ConcurrentJobs" : 5, // TODO: replaced in Dockerfile because its an integer
-
+  "ConcurrentJobs" : ${ORTHANC_CONCURRENT_JOBS}, // replaced in Dockerfile because its an integer
 
   // To enable plugins:
   "Plugins" : [ "/usr/share/orthanc/plugins" ],
