@@ -181,6 +181,7 @@ services:
                 ORTHANC_RAW_JOB_HISTORY_SIZE: ${ORTHANC_RAW_JOB_HISTORY_SIZE}
                 ORTHANC_CONCURRENT_JOBS: ${ORTHANC_CONCURRENT_JOBS}
                 PIXL_DICOM_TRANSFER_TIMEOUT: ${PIXL_DICOM_TRANSFER_TIMEOUT}
+                ORTHANC_RAW_EXTRA_STABLE_SECONDS: ${ORTHANC_RAW_EXTRA_STABLE_SECONDS}
         platform: linux/amd64
         command: /run/secrets
         environment:
