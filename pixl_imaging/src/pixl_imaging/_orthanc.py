@@ -121,13 +121,14 @@ class Orthanc(ABC):
                     f"Error code={job_info['ErrorCode']} Cause={job_info['ErrorDescription']}"
                 )
                 raise PixlDiscardError(msg)
-
+            if job_type == "modify":
+                logger.info("Modify job: {}", job_info)
             if (time() - start_time) > timeout:
                 msg = f"Failed to finish {job_type} job {job_id} in {timeout} seconds"
                 await sleep(10)
                 raise PixlDiscardError(msg)
 
-            await sleep(1)
+            await sleep(10)
             job_info = await self.job_state(job_id=job_id)
 
     async def job_state(self, job_id: str) -> Any:
