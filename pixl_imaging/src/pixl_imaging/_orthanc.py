@@ -122,7 +122,7 @@ class Orthanc(ABC):
                 )
                 raise PixlDiscardError(msg)
             if job_type == "modify":
-                logger.info("Modify job: {}", job_info)
+                logger.debug("Modify job: {}", job_info)
             if (time() - start_time) > timeout:
                 msg = f"Failed to finish {job_type} job {job_id} in {timeout} seconds"
                 await sleep(10)
