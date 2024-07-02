@@ -61,6 +61,7 @@ exclude_also = [
     "if 0:",
     "if __name__ == .__main__.:",
     "if TYPE_CHECKING:",
+    "if typing.TYPE_CHECKING",
     "class .*\\bProtocol\\):",
     "@(abc\\.)?abstractmethod",
 ]

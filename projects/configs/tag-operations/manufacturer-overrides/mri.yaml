@@ -11,22 +11,21 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-from __future__ import annotations
 
-from pathlib import Path
-
-
-def clear_file(filepath: Path) -> None:
-    """Clear the contents of a file"""
-    filepath.open("w").close()
-
-
-def string_is_non_empty(string: str) -> bool:
-    """Does a string have more than just spaces and newlines?"""
-    return len(string.split()) > 0
-
-
-def remove_file_if_it_exists(filepath: Path) -> None:
-    """If a file exists remove it"""
-    if filepath.exists():
-        Path.unlink(filepath)
+- manufacturer: ^philips
+  tags:
+    - group: 0x2001
+      element: 0x1003
+      op: "keep"
+    - name: "Flip angle" # public version can have rounding issues
+      group: 0x2001
+      element: 0x1023
+      op: "keep"
+    - name: "Scale Slope"
+      group: 0x2005
+      element: 0x100e
+      op: "keep"
+    - name: "Repetition Time" # public version can have rounding issues
+      group: 0x2005
+      element: 0x1030
+      op: "keep"

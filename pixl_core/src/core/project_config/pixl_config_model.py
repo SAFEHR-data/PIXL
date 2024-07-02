@@ -65,7 +65,7 @@ class TagOperationFiles(BaseModel):
     """Tag operations files for a project. At least a base file is required."""
 
     base: list[Path]
-    manufacturer_overrides: Optional[Path]
+    manufacturer_overrides: Optional[list[Path]]
 
     @field_validator("base")
     @classmethod
@@ -87,16 +87,24 @@ class TagOperationFiles(BaseModel):
 
     @field_validator("manufacturer_overrides")
     @classmethod
-    def _valid_manufacturer_overrides(cls, tags_file: str) -> Optional[Path]:
-        if not tags_file:
+    def _valid_manufacturer_overrides(cls, tag_files: list[str]) -> Optional[list[Path]]:
+        if not tag_files:
             return None
 
-        tags_file_path = Path(config("PROJECT_CONFIGS_DIR")) / "tag-operations" / tags_file
-        # Pydantic does not appear to automatically check if the file exists
-        if not tags_file_path.exists():
-            # For pydantic, you must raise a ValueError (or AssertionError)
-            raise ValueError from FileNotFoundError(tags_file_path)
-        return tags_file_path
+        tag_file_paths = []
+        for tag_file in tag_files:
+            tag_file_path = (
+                Path(config("PROJECT_CONFIGS_DIR"))
+                / "tag-operations"
+                / "manufacturer-overrides"
+                / tag_file
+            )
+            # Pydantic does not appear to automatically check if the file exists
+            if not tag_file_path.exists():
+                # For pydantic, you must raise a ValueError (or AssertionError)
+                raise ValueError from FileNotFoundError(tag_file_path)
+            tag_file_paths.append(tag_file_path)
+        return tag_file_paths
 
 
 class _DestinationEnum(str, Enum):
