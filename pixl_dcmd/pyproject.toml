@@ -15,6 +15,7 @@ dependencies = [
     "python-decouple==3.6",
     "types-requests~=2.28",
     "dicom-anonymizer==1.0.12",
+    "dicom-validator==0.5.1",
 ]
 
 [project.optional-dependencies]
@@ -24,6 +25,22 @@ dev = ["mypy", "pre-commit", "ruff"]
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
+
+[tool.coverage.report]
+exclude_also = [
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "except subprocess.CalledProcessError as exception:",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "if typing.TYPE_CHECKING",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
 
 [tool.ruff]
 extend = "./ruff.toml"

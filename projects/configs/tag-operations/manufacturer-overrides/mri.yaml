@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 #  Copyright (c) University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,10 +11,21 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-set -euxo pipefail
 
-BIN_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-PACKAGE_DIR="${BIN_DIR%/*}"
-cd "$PACKAGE_DIR"
-
-pytest tests
+- manufacturer: ^philips
+  tags:
+    - group: 0x2001
+      element: 0x1003
+      op: "keep"
+    - name: "Flip angle" # public version can have rounding issues
+      group: 0x2001
+      element: 0x1023
+      op: "keep"
+    - name: "Scale Slope"
+      group: 0x2005
+      element: 0x100e
+      op: "keep"
+    - name: "Repetition Time" # public version can have rounding issues
+      group: 0x2005
+      element: 0x1030
+      op: "keep"

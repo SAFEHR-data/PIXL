@@ -18,10 +18,6 @@
     - group: 0x2001
       element: 0x1003
       op: "keep"
-    - name: "ScaleSlope" # may need to have this for all MRs rather than just DW?
-      group: 0x2005
-      element: 0x100e
-      op: "keep"
     - group: 0x2005
       element: 0x10b0
       op: "keep"

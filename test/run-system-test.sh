@@ -19,8 +19,11 @@ EXPORTS_DIR="${PACKAGE_DIR}/projects/exports"
 cd "${PACKAGE_DIR}/test"
 
 setup() {
+    # NOTE: the `pixl dc` command only work when run from the PIXL project root.
+    # However, doing so will fail unless a valid .env file with all the necessary environment 
+    # variables is present.
     docker compose --env-file .env -p system-test down --volumes
-    #
+
     # Note: cannot run as single docker compose command due to different build contexts
     docker compose --env-file .env -p system-test up --wait -d --build --remove-orphans
     # Warning: Requires to be run from the project root

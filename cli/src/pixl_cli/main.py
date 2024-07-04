@@ -18,7 +18,6 @@ from __future__ import annotations
 import json
 import os
 import sys
-from operator import attrgetter
 from pathlib import Path
 from typing import Any, Optional
 
@@ -30,7 +29,8 @@ from decouple import RepositoryEnv, UndefinedValueError, config
 from loguru import logger
 
 from pixl_cli._config import SERVICE_SETTINGS, api_config_for_queue
-from pixl_cli._database import filter_exported_or_add_to_db, processed_images_for_project
+from pixl_cli._database import exported_images_for_project
+from pixl_cli._docker_commands import dc
 from pixl_cli._io import (
     HOST_EXPORT_ROOT_DIR,
     copy_parquet_return_logfile_fields,
@@ -39,9 +39,15 @@ from pixl_cli._io import (
     messages_from_parquet,
     project_info,
 )
+from pixl_cli._message_processing import (
+    populate_queue_and_db,
+    retry_until_export_count_is_unchanged,
+)
 
 # localhost needs to be added to the NO_PROXY environment variables on GAEs
 os.environ["NO_PROXY"] = os.environ["no_proxy"] = "localhost"
+
+PIXL_ROOT = Path(__file__).parents[3].resolve()
 
 
 @click.group()
@@ -51,6 +57,9 @@ def cli(*, debug: bool) -> None:
     logging_level = "INFO" if not debug else "DEBUG"
     logger.remove()  # Remove all handlers
     logger.add(sys.stderr, level=logging_level)
+
+
+cli.add_command(dc)
 
 
 @cli.command()
@@ -68,10 +77,10 @@ def cli(*, debug: bool) -> None:
     type=click.Path(exists=True),
     help="Path to the sample env file",
 )
-def check_env(*, error: bool, sample_env_file: click.Path) -> None:
+def check_env(*, error: bool, sample_env_file: Path) -> None:
     """Check that all variables from .env.sample are set either in .env or in environ"""
     if not sample_env_file:
-        sample_env_file = Path(__file__).parents[3] / ".env.sample"
+        sample_env_file = PIXL_ROOT / ".env.sample"
     sample_config = RepositoryEnv(sample_env_file)
     for key in sample_config.data:
         try:
@@ -83,6 +92,9 @@ def check_env(*, error: bool, sample_env_file: click.Path) -> None:
 
 
 @cli.command()
+@click.argument(
+    "parquet-path", required=True, type=click.Path(path_type=Path, exists=True, file_okay=True)
+)
 @click.option(
     "--queues",
     default="imaging",
@@ -103,11 +115,21 @@ def check_env(*, error: bool, sample_env_file: click.Path) -> None:
     default=None,
     help="Rate at which to process items from a queue (in items per second).",
 )
-@click.argument(
-    "parquet-path", required=True, type=click.Path(path_type=Path, exists=True, file_okay=True)
+@click.option(
+    "--num-retries",
+    "num_retries",
+    type=int,
+    show_default=True,
+    default=5,
+    help="Number of retries to attempt before giving up, 5 minute wait inbetween",
 )
-def populate(
-    parquet_path: Path, *, queues: str, start_processing: bool, rate: Optional[float]
+def populate(  # too many args
+    parquet_path: Path,
+    *,
+    queues: str,
+    rate: Optional[float],
+    num_retries: int,
+    start_processing: bool,
 ) -> None:
     """
     Populate a (set of) queue(s) from a parquet file directory
@@ -123,26 +145,26 @@ def populate(
             │   └── PROCEDURE_OCCURRENCE.parquet
             └── extract_summary.json
     """
+    queues_to_populate = queues.split(",")
     if start_processing:
-        _start_or_update_extract(queues=queues.split(","), rate=rate)
+        _start_or_update_extract(queues=queues_to_populate, rate=rate)
+    else:
+        logger.info("Starting to process messages disabled, setting `--num-retries` to 0")
+        num_retries = 0
 
-    logger.info("Populating queue(s) {} from {}", queues, parquet_path)
+    logger.info("Populating queue(s) {} from {}", queues_to_populate, parquet_path)
     if parquet_path.is_file() and parquet_path.suffix == ".csv":
         messages = messages_from_csv(parquet_path)
+        project_name = messages[0].project_name
     else:
         project_name, omop_es_datetime = copy_parquet_return_logfile_fields(parquet_path)
         messages = messages_from_parquet(parquet_path, project_name, omop_es_datetime)
 
-    for queue in queues.split(","):
-        sorted_messages = sorted(messages, key=attrgetter("study_date"))
-        # For imaging, we don't want to query again for images that have already been exported
-        if queue == "imaging" and messages:
-            logger.info("Filtering out exported images and uploading new ones to the database")
-            sorted_messages = filter_exported_or_add_to_db(
-                sorted_messages, messages[0].project_name
-            )
-        with PixlProducer(queue_name=queue, **SERVICE_SETTINGS["rabbitmq"]) as producer:
-            producer.publish(sorted_messages)
+    populate_queue_and_db(queues_to_populate, messages)
+    if num_retries != 0:
+        retry_until_export_count_is_unchanged(
+            messages, num_retries, queues_to_populate, project_name
+        )
 
 
 @cli.command()
@@ -165,7 +187,7 @@ def export_patient_data(parquet_dir: Path, timeout: int) -> None:
     project_name_raw, omop_es_datetime = project_info(parquet_dir)
     export = ParquetExport(project_name_raw, omop_es_datetime, HOST_EXPORT_ROOT_DIR)
 
-    images = processed_images_for_project(export.project_slug)
+    images = exported_images_for_project(export.project_slug)
     linker_data = make_radiology_linker_table(parquet_dir, images)
     export.export_radiology_linker(linker_data)
 

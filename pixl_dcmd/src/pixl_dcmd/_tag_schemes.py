@@ -33,13 +33,14 @@ def merge_tag_schemes(
         all_tags.update(_scheme_list_to_dict(base_tags))
 
     if tag_operations.manufacturer_overrides and manufacturer:
-        manufacturer_tags = [
-            tag
-            for override in tag_operations.manufacturer_overrides
-            if re.search(override["manufacturer"], manufacturer, re.IGNORECASE)
-            for tag in override["tags"]
-        ]
-        all_tags.update(_scheme_list_to_dict(manufacturer_tags))
+        for override_file in tag_operations.manufacturer_overrides:
+            manufacturer_tags = [
+                tag
+                for override in override_file
+                if re.search(override["manufacturer"], manufacturer, re.IGNORECASE)
+                for tag in override["tags"]
+            ]
+            all_tags.update(_scheme_list_to_dict(manufacturer_tags))
 
     return list(all_tags.values())
 

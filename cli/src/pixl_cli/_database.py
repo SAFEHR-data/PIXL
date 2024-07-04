@@ -114,7 +114,7 @@ def _add_new_image_to_session(extract: Extract, message: Message, session: Sessi
     return new_image
 
 
-def processed_images_for_project(project_slug: str) -> list[Image]:
+def exported_images_for_project(project_slug: str) -> list[Image]:
     """Given a project, get all images in the DB for that project."""
     PixlSession = sessionmaker(engine)
     with PixlSession() as session:

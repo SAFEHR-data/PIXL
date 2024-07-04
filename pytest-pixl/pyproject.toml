@@ -16,6 +16,7 @@ dependencies = [
     "python-decouple==3.6",
     "pyOpenSSL==24.0.0",
     "requests==2.31.0",
+    "pytest-loguru==0.4.0",
 ]
 
 [project.optional-dependencies]
@@ -32,6 +33,23 @@ dev = [
 [build-system]
 requires = ["setuptools>=61.0", "setuptools-scm>=8.0"]
 build-backend = "setuptools.build_meta"
+
+
+[tool.coverage.report]
+exclude_also = [
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "except subprocess.CalledProcessError as exception:",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "if typing.TYPE_CHECKING",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
 
 [tool.setuptools.package-data]
 pytest_pixl = ["*.key", "*.crt"]

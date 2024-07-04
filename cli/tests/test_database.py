@@ -19,7 +19,7 @@ import datetime
 import pytest
 from core.db.models import Extract, Image
 from core.patient_queue.message import Message
-from pixl_cli._database import filter_exported_or_add_to_db, processed_images_for_project
+from pixl_cli._database import exported_images_for_project, filter_exported_or_add_to_db
 from sqlalchemy.orm import Session
 
 STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
@@ -124,6 +124,6 @@ def test_processed_images_for_project(rows_in_session):
     WHEN the processed_images_for_project function is called
     THEN only the exported images are returned
     """
-    processed = processed_images_for_project("i-am-a-project")
+    processed = exported_images_for_project("i-am-a-project")
     assert len(processed) == 1
     assert processed[0].accession_number == "123"
