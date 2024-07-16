@@ -15,7 +15,9 @@
 
 from pathlib import Path
 
+import pytest
 from click.testing import CliRunner
+from decouple import UndefinedValueError
 from pixl_cli.main import check_env
 
 SAMPLE_ENV_FILE = Path(__file__).parents[2] / ".env.sample"
@@ -28,7 +30,7 @@ def test_check_env():
     - current test env file matches the sample env file
     """
     runner = CliRunner()
-    result = runner.invoke(check_env)
+    result = runner.invoke(check_env, args=["--error"])
     assert result.exit_code == 0
 
 
@@ -40,5 +42,9 @@ def test_check_env_fails(tmp_path):
     tmp_sample_env_file.write_text("NONEXISTENT_VARIABLE=")
 
     runner = CliRunner()
-    result = runner.invoke(check_env, str(tmp_sample_env_file))
-    assert result.exit_code != 0
+    with pytest.raises(UndefinedValueError, match="not found"):
+        runner.invoke(
+            check_env,
+            args=["--error", "--sample-env-file", tmp_sample_env_file],
+            catch_exceptions=False,
+        )
