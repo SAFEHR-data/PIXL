@@ -2,6 +2,12 @@
 
 Installable `pytest` plugin module providing common test fixtures used throughout PIXL.
 
+## Installation
+
+```bash
+python -m pip install -e ../pixl_core -e ".[test]"
+```
+
 ## Available fixtures
 
 ### `ftps_server`

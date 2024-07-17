@@ -20,7 +20,7 @@ management tool such as [conda](https://docs.conda.io/en/latest/) or
 Then install in editable mode by running
 
 ```bash
-pip install -e ../pixl_core/ -e .
+python -m pip install -e ../pixl_core/ -e .
 ```
 
 ## Usage
@@ -130,7 +130,7 @@ Commands:
 Install locally in editable mode with the development and testing dependencies by running
 
 ```bash
-pip install -e ../pixl_core/ -e .[test]
+python -m pip install -e ../pixl_core/ -e ".[test]"
 ```
 
 ### Running tests

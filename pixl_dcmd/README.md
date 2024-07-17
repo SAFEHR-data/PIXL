@@ -16,7 +16,7 @@ Specifically, the `pixl_dcmd` package provides the following functionality:
 Install the Python dependencies with
 
 ```bash
-pip install -e ../pixl_core/ -e .[test,dev]
+python -m pip install -e ../pixl_core/ -e ".[test,dev]"
 ```
 
 ## Test
