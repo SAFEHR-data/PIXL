@@ -14,61 +14,8 @@
 
 """Test database interaction methods for the cli."""
 
-import datetime
-
-import pytest
 from core.db.models import Extract, Image
-from core.patient_queue.message import Message
 from pixl_cli._database import exported_images_for_project, filter_exported_or_add_to_db
-from sqlalchemy.orm import Session
-
-STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
-
-
-def _make_message(project_name: str, accession_number: str, mrn: str) -> Message:
-    return Message(
-        project_name=project_name,
-        accession_number=accession_number,
-        mrn=mrn,
-        study_date=STUDY_DATE,
-        procedure_occurrence_id=1,
-        extract_generated_timestamp=datetime.datetime.now(tz=datetime.UTC),
-    )
-
-
-@pytest.fixture()
-def example_messages():
-    """Test input data."""
-    return [
-        _make_message(project_name="i-am-a-project", accession_number="123", mrn="mrn"),
-        _make_message(project_name="i-am-a-project", accession_number="234", mrn="mrn"),
-        _make_message(project_name="i-am-a-project", accession_number="345", mrn="mrn"),
-    ]
-
-
-@pytest.fixture()
-def rows_in_session(db_session) -> Session:
-    """Insert a test row for each table, returning the session for use in tests."""
-    extract = Extract(slug="i-am-a-project")
-
-    image_exported = Image(
-        accession_number="123",
-        study_date=STUDY_DATE,
-        mrn="mrn",
-        extract=extract,
-        exported_at=datetime.datetime.now(tz=datetime.UTC),
-    )
-    image_not_exported = Image(
-        accession_number="234",
-        study_date=STUDY_DATE,
-        mrn="mrn",
-        extract=extract,
-    )
-    with db_session:
-        db_session.add_all([extract, image_exported, image_not_exported])
-        db_session.commit()
-
-    return db_session
 
 
 def test_project_doesnt_exist(example_messages, db_session):
