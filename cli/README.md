@@ -15,12 +15,12 @@ Running the tests requires [docker](https://docs.docker.com/get-docker/) to be i
 
 We recommend installing in a project specific virtual environment created using a environment
 management tool such as [conda](https://docs.conda.io/en/latest/) or
-[virtualenv](https://virtualenv.pypa.io/en/latest/).
+[virtualenv](https://virtualenv.pypa.io/en/latest/). See detaled insctructions [here](virtual-environment.md)
 
 Then install in editable mode by running
 
 ```bash
-python -m pip install -e ../pixl_core/ -e .
+pip install -e ../pixl_core/ -e .
 ```
 
 ## Usage
