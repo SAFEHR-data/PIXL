@@ -60,11 +60,13 @@ def OnChange(changeType, level, resourceId):  # noqa: ARG001
     """
     if changeType != orthanc.ChangeType.STABLE_STUDY:
         return
+
+    # imaging-api didn't get to updating pixl project name, could be incomplete so delete
     if _get_project_name_from_study_id(resourceId) == DICOM_TAG_PROJECT_NAME.PLACEHOLDER_VALUE:
         logger.warning("Study {} has not been set with a pixl project name, deleting", resourceId)
         orthanc.RestApiDelete(f"/studies/{resourceId}")
         return
-    # delete via rest API and don't autoroute
+
     if should_auto_route():
         logger.debug("Sending study: {}", resourceId)
         # Although this can throw, since we have nowhere to report errors
