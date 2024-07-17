@@ -24,7 +24,7 @@ python -m pip install -e .
 ## Testing
 
 ```bash
-pytohn -m pip install -e ../pytest-pixl -e ".[test]"
+python -m pip install -e ../pytest-pixl -e ".[test]"
 pytest
 ```
 
