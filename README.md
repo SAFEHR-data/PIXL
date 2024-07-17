@@ -33,31 +33,10 @@ Note, the CLI currently [needs to be installed in editable mode](https://github.
 
 [Follow the developer setup instructions](./docs/setup/developer.md).
 
-Before raising a PR, make sure to **run the tests** for the PIXL module you have been working on .
-In addition, make sure to [have `pre-commit` installed](/docs/setup/developer.md#linting) to
-automatically check your code before committing.
+Before raising a PR, make sure to **run the tests** for every PIXL module, not just the one you
+have been working on. In addition, make sure to [have `pre-commit` installed](/docs/setup/developer.md#linting)
+to automatically check your code before committing.
 
-You can run most of the module-level tests from the root of the repo with:
-
-```shell
-pytest
-```
-
-The `pytest.ini` file in the root of the repo contains the configuration for running most of the module-level tests at once.
-`pixl_dcmd` and `hasher` have `conftests.py` files that clash, so only `pixl_dcmd` is included as a `testpath` in the top-level
-`pytest.ini`. You will therefore need to run tests for `hasher` from the `hasher` directory.
-
-There are also integration tests in `PIXL/test/` that can be run using the `PIXL/test/run-system-test.sh`. See the
-[integration test docs](test/README.md) for more info.
-
-We run [pre-commit](https://pre-commit.com/) as part of the GitHub Actions CI. To install and run it locally, do:
-
-```shell
-python -m pip install pre-commit
-pre-commit install
-```
-
-The configuration can be found in [`.pre-commit-config.yml`](./.pre-commit-config.yaml)
 
 ## Design
 

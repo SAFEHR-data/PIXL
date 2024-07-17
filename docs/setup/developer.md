@@ -29,9 +29,22 @@ cd pixl_core/
 pytest
 ```
 
+Alternatively, you can run most of the module-level tests from the root of the repo with:
+
+```shell
+pytest
+```
+
+The `pytest.ini` file in the root of the repo contains the configuration for running most of the module-level tests at once.
+However, `pixl_dcmd` and `hasher` have `conftests.py` files that clash, so only `pixl_dcmd` is included as a `testpath` in the
+top-level `pytest.ini`. You will therefore need to run tests for `hasher` from the `hasher` directory.
+
+
 ### Integration tests
 
-There are integration tests in the [`PIXL/test` directory.](../../test/README.md)
+There are also integration tests in `PIXL/test/` directory that can be run using the `PIXL/test/run-system-test.sh`. See the
+[integration test docs](test/README.md) for more info.
+
 
 ### Workflow
 
