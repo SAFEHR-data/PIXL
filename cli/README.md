@@ -104,27 +104,11 @@ pixl stop
 
 ## Development
 
-The CLI is created using [click](https://click.palletsprojects.com/en/8.0.x/), and curently provides
-the following commands:
+The CLI is created using [click](https://click.palletsprojects.com/en/8.0.x/). To see which commands
+are currently available, you can use the `pixl --help` command:
 
 ```sh
 $ pixl --help
-Usage: pixl [OPTIONS] COMMAND [ARGS]...
-
-  PIXL command line interface
-
-Options:
-  --debug / --no-debug
-  --help                Show this message and exit.
-
-Commands:
-  extract-radiology-reports  Export processed radiology reports to...
-  kill                       Stop all the PIXL services
-  populate                   Populate a (set of) queue(s) from a parquet...
-  start                      Start consumers for a set of queues
-  status                     Get the status of the PIXL consumers
-  stop                       Stop extracting data
-  update                     Update one or a list of consumers with a...
 ```
 
 Install locally in editable mode with the development and testing dependencies by running
