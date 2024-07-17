@@ -14,25 +14,23 @@
 from __future__ import annotations
 
 from io import BytesIO
-from loguru import logger
 from os import PathLike
 from typing import Any, BinaryIO, Callable, Union
 
-from core.exceptions import PixlDiscardError
-from core.project_config import load_project_config
-
 import requests
-from core.project_config import load_tag_operations
+from core.exceptions import PixlDiscardError
+from core.project_config import load_project_config, load_tag_operations
 from decouple import config
-from pydicom import DataElement, Dataset, dcmwrite
 from dicomanonymizer.simpledicomanonymizer import (
     actions_map_name_functions,
     anonymize_dataset,
 )
+from loguru import logger
+from pydicom import DataElement, Dataset, dcmwrite
 
-from pixl_dcmd._dicom_helpers import get_project_name_as_string
-from pixl_dcmd._tag_schemes import merge_tag_schemes, _scheme_list_to_dict
 from pixl_dcmd._database import get_uniq_pseudo_study_uid_and_update_db
+from pixl_dcmd._dicom_helpers import DicomValidator, get_project_name_as_string
+from pixl_dcmd._tag_schemes import _scheme_list_to_dict, merge_tag_schemes
 
 DicomDataSetType = Union[Union[str, bytes, PathLike[Any]], BinaryIO]
 
@@ -59,6 +57,23 @@ def should_exclude_series(dataset: Dataset) -> bool:
         logger.info("FILTERING OUT series description: {}", series_description)
         return True
     return False
+
+
+def anonymise_and_validate_dicom(dataset: Dataset) -> dict:
+    # Set up Dicom validator and validate the original dataset
+    dicom_validator = DicomValidator(edition="current")
+    dicom_validator.validate_original(dataset)
+
+    anonymise_dicom(dataset)
+
+    # Validate the anonymised dataset
+    validation_errors = dicom_validator.validate_anonymised(dataset)
+    if validation_errors:
+        logger.warning(
+            f"The anonymisation introduced the following validation errors:\n \
+            {_parse_validation_results(validation_errors)}"
+        )
+    return validation_errors
 
 
 def anonymise_dicom(dataset: Dataset) -> None:
@@ -99,7 +114,6 @@ def anonymise_dicom(dataset: Dataset) -> None:
         raise PixlDiscardError(msg)
 
     _anonymise_dicom_from_scheme(dataset, project_slug, tag_scheme)
-
     enforce_whitelist(dataset, tag_scheme, recursive=True)
 
 
@@ -218,3 +232,11 @@ def _whitelist_tag(dataset: Dataset, de: DataElement, tag_scheme: list[dict]) ->
     ]["op"] != "delete":
         return
     del dataset[de.tag]
+
+
+def _parse_validation_results(results: dict) -> str:
+    """Parse the validation results into a human-readable string."""
+    res_str = ""
+    for key, value in results.items():
+        res_str += f"{key}: {value}\n"
+    return res_str
