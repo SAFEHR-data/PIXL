@@ -18,13 +18,8 @@ To get access to the GAE, [see the documentation on Slab](https://uclh.slab.com/
 Install the PIXL Python modules by running the following commands from the top-level `PIXL/` directory:
 
 ```shell
-python -m pip install pixl_core/
-python -m pip install pytest-pixl/
+python -m pip install -e pixl_core/
 python -m pip install -e cli/
-python -m pip install pixl_imaging/
-python -m pip install pixl_dcmd/
-python -m pip install pixl_export/
-python -m pip install hasher/
 ```
 
 Note, the CLI currently [needs to be installed in editable mode](https://github.com/UCLH-Foundry/PIXL/issues/318).
