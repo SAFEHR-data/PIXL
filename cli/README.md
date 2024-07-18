@@ -6,12 +6,13 @@ Once a set of queues are populated the consumers can be started, updated and the
 stopped cleanly.
 
 ## Prerequisites
-* Python version 3.10 via [virtual-environment.md](virtual-environment.md)
+* Python version 3.10
 * [Docker](https://docs.docker.com/get-docker/) with version `>=27.0.3`
 * [Docker Compose](https://docs.docker.com/compose/install/#installation-scenarios) with version `>=v2.28.1-desktop.1`
-* We recommend installing in a project specific virtual environment created using a environment
+* We recommend installing PIXL project in specific virtual environment using a environment
 management tool such as [conda](https://docs.conda.io/en/latest/) or
-[virtualenv](https://virtualenv.pypa.io/en/latest/). See detaled insctructions [here](virtual-environment.md)
+[virtualenv](https://virtualenv.pypa.io/en/latest/). 
+See detailed insctructions [here](../docs/setup/developer.md#python-virtual-environment)
 
 ## Installation
 Activate your python virtual environment and install `PIXL` project in editable mode by running

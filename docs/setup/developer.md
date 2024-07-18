@@ -1,5 +1,29 @@
 # Developer setup
 
+## Setting up Python virtual environment
+
+### Using conda
+```
+conda create -n "pixlVE" python=3.10  pip -c conda-forge
+conda activate pixlVE
+conda list -n pixlVE #to check installed packages
+conda deactivate && conda remove -n pixlVE --all #in case you want to remove it
+```
+
+### Using python virtual environment
+```
+# Installing dependencies in Ubuntu 22.04
+sudo apt-get install -y python3-pip
+sudo apt-get install -y python3-venv
+# Create path for venv
+cd $HOME
+mkdir *VE
+cd *VE
+# Create virtual environment
+python3 -m venv pixlVE
+source pixlVE/bin/activate
+```
+
 ## Installation
 
 You can install all PIXL Python modules by running the following commands from the `PIXL/` directory:
@@ -57,6 +81,11 @@ and not just the component you have been working on as this will help us catch u
 For Python development we use [ruff](https://docs.astral.sh/ruff/) and [mypy](https://mypy.readthedocs.io/)
 alongside [pytest](https://www.pytest.org/).
 There is support (sometimes through plugins) for these tools in most IDEs & editors.
+
+Before raising a PR, make sure to **run all tests** for each PIXL module
+and not just the component you have been working on as this will help us catch unintentional regressions without spending GH actions minutes :-)
+
+## Linting
 
 We run [pre-commit](https://pre-commit.com/) as part of the GitHub Actions CI. To install and run it locally, do:
 
