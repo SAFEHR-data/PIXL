@@ -6,18 +6,15 @@ Once a set of queues are populated the consumers can be started, updated and the
 stopped cleanly.
 
 ## Prerequisites
-
-`PIXL CLI` requires Python version 3.10.
-
-Running the tests requires [docker](https://docs.docker.com/get-docker/) to be installed.
-
-## Installation
-
-We recommend installing in a project specific virtual environment created using a environment
+* Python version 3.10 via [virtual-environment.md](virtual-environment.md)
+* [Docker](https://docs.docker.com/get-docker/) with version `>=27.0.3`
+* [Docker Compose](https://docs.docker.com/compose/install/#installation-scenarios) with version `>=v2.28.1-desktop.1`
+* We recommend installing in a project specific virtual environment created using a environment
 management tool such as [conda](https://docs.conda.io/en/latest/) or
 [virtualenv](https://virtualenv.pypa.io/en/latest/). See detaled insctructions [here](virtual-environment.md)
 
-Then install in editable mode by running
+## Installation
+Install project in editable mode by running
 
 ```bash
 pip install -e ../pixl_core/ -e .
@@ -103,7 +100,7 @@ pixl stop
 ```
 
 ## Development
-
+### Help commands
 The CLI is created using [click](https://click.palletsprojects.com/en/8.0.x/). To see which commands
 are currently available, you can use the `pixl --help` command:
 
@@ -111,18 +108,20 @@ are currently available, you can use the `pixl --help` command:
 $ pixl --help
 ```
 
+### Installation
 Install locally in editable mode with the development and testing dependencies by running
 
 ```bash
-python -m pip install -e ../pixl_core/ -e ".[test]"
+conda activate pixlVE
+pip install -e ../pixl_core -e ../pytest-pixl -e .[test] -e .[dev]
 ```
 
 ### Running tests
-
 The CLI tests require a running instance of the `rabbitmq` service, for which we provide a
 `docker-compose` [file](./tests/docker-compose.yml). The service is automatically started by the
 `run_containers` _pytest_ fixture. So to run the tests, run
 
 ```bash
-pytest
+pytest -vs tests #for all tests
+pytest -vs tests/test_docker_commands.py #e.g., for particular tests
 ```
