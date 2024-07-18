@@ -25,29 +25,35 @@ from core.patient_queue.message import Message
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
+# Load environment variables from test .env file
+with (Path(__file__).parents[2] / "test/.env").open() as f:
+    for line in f.readlines():
+        if "=" in line:
+            key, value = line.strip().split("=")
+            os.environ[key] = value
+
+# Set the remaining environment variables
 os.environ["PROJECT_CONFIGS_DIR"] = str(Path(__file__).parents[2] / "projects/configs")
 
-# Set the necessary environment variables
-os.environ["PIXL_EXPORT_API_HOST"] = "localhost"
-os.environ["PIXL_EXPORT_API_PORT"] = "7006"
+os.environ["EXPORT_AZ_CLIENT_ID"] = "export client id"
+os.environ["EXPORT_AZ_CLIENT_PASSWORD"] = "export client password"
+os.environ["EXPORT_AZ_TENANT_ID"] = "export tenant id"
+os.environ["EXPORT_AZ_KEY_VAULT_NAME"] = "export key vault name"
 
-os.environ["PIXL_IMAGING_API_HOST"] = "localhost"
-os.environ["PIXL_IMAGING_API_RATE"] = "1"
-os.environ["PIXL_IMAGING_API_PORT"] = "7007"
+os.environ["HASHER_API_AZ_CLIENT_ID"] = "hasher client id"
+os.environ["HASHER_API_AZ_CLIENT_PASSWORD"] = "hasher client password"
+os.environ["HASHER_API_AZ_TENANT_ID"] = "hasher tenant id"
+os.environ["HASHER_API_AZ_KEY_VAULT_NAME"] = "hasher key vault name"
 
-os.environ["RABBITMQ_HOST"] = "localhost"
-os.environ["RABBITMQ_USERNAME"] = "rabbitmq_username"
-os.environ["RABBITMQ_PASSWORD"] = "rabbitmq_password"
-os.environ["RABBITMQ_PORT"] = "7008"
+os.environ["ORTHANC_RAW_JOB_HISTORY_SIZE"] = "100"
+os.environ["ORTHANC_CONCURRENT_JOBS"] = "20"
 
-os.environ["PIXL_DB_USER"] = "pixl_db_username"
-os.environ["PIXL_DB_PASSWORD"] = "pixl_db_password"
-os.environ["POSTGRES_HOST"] = "locahost"
-os.environ["POSTGRES_PORT"] = "7001"
-os.environ["PIXL_DB_NAME"] = "pixl"
-
-os.environ["ORTHANC_ANON_USERNAME"] = "orthanc"
-os.environ["ORTHANC_ANON_PASSWORD"] = "orthanc"
+os.environ["AZ_DICOM_ENDPOINT_NAME"] = "dicom endpoint name"
+os.environ["AZ_DICOM_ENDPOINT_URL"] = "dicom endpoint url"
+os.environ["AZ_DICOM_ENDPOINT_TOKEN"] = "dicom endpoint token"
+os.environ["AZ_DICOM_ENDPOINT_CLIENT_ID"] = "dicom endpoint client id"
+os.environ["AZ_DICOM_ENDPOINT_CLIENT_SECRET"] = "dicom endpoint client secret"
+os.environ["AZ_DICOM_ENDPOINT_TENANT_ID"] = "dicom endpoint tenant id"
 
 
 @pytest.fixture(autouse=True)
