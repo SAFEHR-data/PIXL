@@ -299,7 +299,7 @@ EXPORT_ROOT/PROJECT_SLUG/all_extracts/EXTRACT_DATETIME/radiology/IMAGE_LINKER.pa
 ....................................................../omop/public/*.parquet
 ```
 
-This directory is current located in `projects/exports` relative to the source code root.
+This directory is currently located in `projects/exports` relative to the source code root.
 
 [Further discussion about docker permissions and the exports directory is found here](docs/setup/docker_perms.md)
 
