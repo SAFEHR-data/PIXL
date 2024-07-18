@@ -12,7 +12,7 @@ stopped cleanly.
 * We recommend installing PIXL project in specific virtual environment using a environment
 management tool such as [conda](https://docs.conda.io/en/latest/) or
 [virtualenv](https://virtualenv.pypa.io/en/latest/). 
-See detailed insctructions [here](../docs/setup/developer.md#python-virtual-environment)
+See detailed instructions [here](../docs/setup/developer.md#setting-up-python-virtual-environment)
 
 ## Installation
 Activate your python virtual environment and install `PIXL` project in editable mode by running
@@ -107,7 +107,7 @@ are currently available, you can use the `pixl --help` command:
 ### Local installation
 Activate your python environment and install project locally in editable mode with the development and testing dependencies by running
 ```bash
-pip install -e ../pixl_core -e ../pytest-pixl -e .[test] -e .[dev]
+python -m pip install -e ../pixl_core -e ../pytest-pixl -e .[test] -e .[dev]
 ```
 
 ### Running tests
