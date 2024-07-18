@@ -14,10 +14,9 @@ management tool such as [conda](https://docs.conda.io/en/latest/) or
 [virtualenv](https://virtualenv.pypa.io/en/latest/). See detaled insctructions [here](virtual-environment.md)
 
 ## Installation
-Install project in editable mode by running
-
+Activate your python virtual environment and install `PIXL` project in editable mode by running
 ```bash
-pip install -e ../pixl_core/ -e .
+pip install -e ../pixl_core -e .
 ```
 
 ## Usage
@@ -104,15 +103,9 @@ pixl stop
 The CLI is created using [click](https://click.palletsprojects.com/en/8.0.x/). To see which commands
 are currently available, you can use the `pixl --help` command:
 
-```sh
-$ pixl --help
-```
-
-### Installation
-Install locally in editable mode with the development and testing dependencies by running
-
+### Local installation
+Activate your python environment and install project locally in editable mode with the development and testing dependencies by running
 ```bash
-conda activate pixlVE
 pip install -e ../pixl_core -e ../pytest-pixl -e .[test] -e .[dev]
 ```
 
