@@ -18,13 +18,13 @@ Specifically, it defines:
 ## Installation
 
 ```bash
-pip install -e .
+python -m pip install -e .
 ```
 
 ## Testing
 
 ```bash
-pip install -e .[test] && pip install -e ../pytest-pixl
+python -m pip install -e ../pytest-pixl -e ".[test]"
 pytest
 ```
 

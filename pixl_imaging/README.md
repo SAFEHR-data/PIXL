@@ -12,9 +12,9 @@ for the requested imaging study, if it didn't already exist.
 
 ```bash
 python -m pip install --upgrade pip
-pip install -e pytest-pixl/
-pip install -e pixl_core/[test]
-pip install -e pixl_imaging/[test]
+python -m pip install -e pytest-pixl/
+python -m pip install -e "pixl_core/[test]"
+python -m pip install -e "pixl_imaging/[test]"
 ```
 
 ## Test

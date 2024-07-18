@@ -15,37 +15,23 @@ To get access to the GAE, [see the documentation on Slab](https://uclh.slab.com/
 
 ## Installation
 
-Install the PIXL CLI by running
+Install the PIXL Python modules by running the following commands from the top-level `PIXL/` directory:
 
 ```shell
-pip install -e cli/
+python -m pip install -e pixl_core/
+python -m pip install -e cli/
 ```
 
+Note, the CLI currently [needs to be installed in editable mode](https://github.com/UCLH-Foundry/PIXL/issues/318).
 
 ## Development
 
 [Follow the developer setup instructions](./docs/setup/developer.md).
 
-Before raising a PR, make sure to **run the tests** for the PIXL module you have been working on .
-In addition, make sure to [have `pre-commit` installed](/docs/setup/developer.md#linting) to
-automatically check your code before committing.
+Before raising a PR, make sure to **run the tests** for every PIXL module, not just the one you
+have been working on. In addition, make sure to [have `pre-commit` installed](/docs/setup/developer.md#linting)
+to automatically check your code before committing.
 
-You can run all tests from the root of the repo with:
-
-```shell
-pytest
-```
-
-The `pytest.ini` file in the root of the repo contains the configuration for running all tests at once.
-
-We run [pre-commit](https://pre-commit.com/) as part of the GitHub Actions CI. To install and run it locally, do:
-
-```shell
-pip install pre-commit
-pre-commit install
-```
-
-The configuration can be found in [`.pre-commit-config.yml`](./.pre-commit-config.yaml)
 
 ## Design
 
