@@ -16,23 +16,12 @@ Please delete options accordingly to the description.
 <!-- You do not need to complete all the items by the time you submit the pull request, but most likely the changes will only be merged if all the tasks are done. -->
 
 <!-- Write an `x` in all the boxes that apply -->
-- [ ] I have performed a self-review of my own code
-- [ ] I have made corresponding changes to the documentation 
-- [ ] My changes generate no new warnings 
-- [ ] I have commented my code, particularly in hard-to-understand areas 
-- [ ] I have read the CONTRIBUTING docs
-- [ ] My code passes, following the style guidelines `pre-commit run -a` 
-- [ ] My code is properly tested with `pytest -sv tests`
-- [ ] This pull request is ready to be reviewed
-- [ ] Make sure your branch is up-to-date with main branch. See below a general example if `rebase` is need.
-```
-git checkout main
-git pull origin main
-git checkout FEATURE_BRANCH 
-git rebase main
-#git status
-#edit conflicting files with your editor
-#git rebase --continue
-#git add .
-git push --force origin FEATURE_BRANCH
-```
+- [ ] I have performed a self-review of my own code.
+- [ ] I have made corresponding changes to the documentation.
+- [ ] My changes generate no new warnings.
+- [ ] I have commented my code, particularly in hard-to-understand areas.
+- [ ] I have read the [CONTRIBUTING](https://github.com/UCLH-Foundry/PIXL/blob/main/CONTRIBUTING.md) docs
+- [ ] If you are developing in your local host, please check that your code passes the following the style guidelines `pre-commit run -a` (this is also tested in CI).
+- [ ] If you are developping in your local host, please check that your code is properly tested with `pytest` (this is also tested in CI).
+- [ ] I have marked this PR as draft. Otherwise, you are good to go for PR review by selecting `UCLH-Foundtry/arc-dev`
+- [ ] Make sure your branch is up-to-date with main branch. See [CONTRIBUTING](https://github.com/UCLH-Foundry/PIXL/blob/main/CONTRIBUTING.md) for a general example if `rebase` is need.
