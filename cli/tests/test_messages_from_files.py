@@ -55,6 +55,32 @@ def test_messages_from_csv(omop_resources: Path) -> None:
     assert messages == expected_messages
 
 
+def test_messages_from_csv_batches(omop_resources: Path) -> None:
+    """
+    Given a csv with multiple datasets.
+    When the messages are generated from the directory
+    Then one message should be generated
+    """
+    # Arrange
+    test_csv = omop_resources / "test_batches.csv"
+    # Act
+    messages = messages_from_csv(test_csv)
+    # Assert
+    assert all(isinstance(msg, Message) for msg in messages)
+
+    expected_messages = [
+        Message(
+            procedure_occurrence_id=0,
+            mrn="patient_identifier",
+            accession_number="000000000",
+            project_name="ms-pinpoint-test",
+            extract_generated_timestamp=datetime.datetime.fromisoformat("2023-01-01T00:01:00Z"),
+            study_date=datetime.date.fromisoformat("2022-01-01"),
+        ),
+    ]
+    assert messages == expected_messages
+
+
 def test_messages_from_parquet(omop_resources: Path) -> None:
     """
     Given a valid OMOP ES extract with 4 procedures, two of which are x-rays.
@@ -64,7 +90,6 @@ def test_messages_from_parquet(omop_resources: Path) -> None:
     # Arrange
     omop_parquet_dir = omop_resources / "omop"
     project_name, omop_es_datetime = copy_parquet_return_logfile_fields(omop_parquet_dir)
-    # Act
     messages = messages_from_parquet(omop_parquet_dir, project_name, omop_es_datetime)
     # Assert
     assert all(isinstance(msg, Message) for msg in messages)
@@ -89,3 +114,5 @@ def test_messages_from_parquet(omop_resources: Path) -> None:
     ]
 
     assert messages == expected_messages
+
+

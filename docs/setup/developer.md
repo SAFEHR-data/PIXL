@@ -67,6 +67,13 @@ The `pytest.ini` file in the root of the repo contains the configuration for run
 However, `pixl_dcmd` and `hasher` have `conftests.py` files that clash, so only `pixl_dcmd` is included as a `testpath` in the
 top-level `pytest.ini`. You will therefore need to run tests for `hasher` from the `hasher` directory.
 
+### Testing cli
+Tests include various modules and you might like to run particular test within your tests script, so below you will find a example.
+```
+cd PIXL/cli
+clear && pytest -vs tests/test_messages_from_files.py::test_messages_from_csv_batches 
+```
+
 
 ### Integration tests
 
