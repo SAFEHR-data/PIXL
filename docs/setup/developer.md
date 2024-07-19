@@ -4,7 +4,7 @@
 
 ### Using conda
 ```
-conda create -n "pixlVE" python=3.10  pip -c conda-forge
+conda create -n "pixlVE" python=3.11  pip -c conda-forge
 conda activate pixlVE
 conda list -n pixlVE #to check installed packages
 conda deactivate && conda remove -n pixlVE --all #in case you want to remove it
