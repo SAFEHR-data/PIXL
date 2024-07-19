@@ -7,18 +7,17 @@
 conda create -n "pixlVE" python=3.11  pip -c conda-forge
 conda activate pixlVE
 conda list -n pixlVE #to check installed packages
-conda deactivate && conda remove -n pixlVE --all #in case you want to remove it
+conda deactivate #to deactivate VE 
+conda remove -n pixlVE --all #to remove pixlVE environment 
 ```
 
 ### Using python virtual environment
+You require `python3-venv` to setup your `venv`. See further details [here](https://docs.python.org/3/library/venv.html).
 ```
-# Installing dependencies in Ubuntu 22.04
-sudo apt-get install -y python3-pip
-sudo apt-get install -y python3-venv
 # Create path for venv
 cd $HOME
-mkdir *VE
-cd *VE
+mkdir pixlVE
+cd pixlVE
 # Create virtual environment
 python3 -m venv pixlVE
 source pixlVE/bin/activate
@@ -60,7 +59,7 @@ pytest
 Alternatively, you can run most of the module-level tests from the root of the repo with:
 
 ```shell
-pytest -vs tests #for all tests
+pytest #to test all tests `testpaths` pytest.ini
 ```
 
 The `pytest.ini` file in the root of the repo contains the configuration for running most of the module-level tests at once.

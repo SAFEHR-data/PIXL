@@ -107,7 +107,7 @@ are currently available, you can use the `pixl --help` command:
 ### Local installation
 Activate your python environment and install project locally in editable mode with the development and testing dependencies by running
 ```bash
-python -m pip install -e ../pixl_core -e ../pytest-pixl -e .[test] -e .[dev]
+python -m pip install -e ../pixl_core -e ../pytest-pixl -e ".[test]" -e ".[dev]"
 ```
 
 ### Running tests
