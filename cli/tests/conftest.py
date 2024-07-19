@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 import datetime
+from datetime import timezone
 import os
 from pathlib import Path
 
@@ -126,7 +127,7 @@ def _make_message(project_name: str, accession_number: str, mrn: str) -> Message
         mrn=mrn,
         study_date=STUDY_DATE,
         procedure_occurrence_id=1,
-        extract_generated_timestamp=datetime.datetime.now(tz=datetime.UTC),
+        extract_generated_timestamp=datetime.datetime.now(timezone.utc),
     )
 
 
@@ -150,7 +151,7 @@ def rows_in_session(db_session) -> Session:
         study_date=STUDY_DATE,
         mrn="mrn",
         extract=extract,
-        exported_at=datetime.datetime.now(tz=datetime.UTC),
+        exported_at=datetime.datetime.now(timezone.utc),
     )
     image_not_exported = Image(
         accession_number="234",
