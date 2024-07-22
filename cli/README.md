@@ -17,7 +17,7 @@ See detailed instructions [here](../docs/setup/developer.md#setting-up-python-vi
 ## Installation
 Activate your python virtual environment and install `PIXL` project in editable mode by running
 ```bash
-pip install -e ../pixl_core -e .
+python -m pip install -e ../pixl_core -e .
 ```
 
 ## Usage

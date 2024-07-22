@@ -1,6 +1,6 @@
 # Developer setup
 
-## Setting up Python virtual environment
+## Setting up `Python` Virtual Environment (VE)
 
 ### Using conda
 ```
@@ -11,7 +11,7 @@ conda deactivate #to deactivate VE
 conda remove -n pixlVE --all #to remove pixlVE environment 
 ```
 
-### Using python virtual environment
+### Using python virtual environment `venv`
 You require `python3-venv` to setup your `venv`. See further details [here](https://docs.python.org/3/library/venv.html).
 ```
 # Create path for venv
