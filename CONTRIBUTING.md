@@ -58,11 +58,13 @@ git checkout FEATURE_BRANCH
 git rebase main
 git push --force origin FEATURE_BRANCH
 ```
-5. Run `pre-commit` to tidy up code and documentation (see next section). 
-6. Request a PR review.
+5. Run `pre-commit run -a` to tidy up code and documentation (this is also tested in [CI](https://github.com/UCLH-Foundry/PIXL/blob/main/.github/workflows/main.yml)).
+6. If you are developing in your local host, please check that your code is properly tested with `pytest` (this is also tested in [CI](https://github.com/UCLH-Foundry/PIXL/blob/main/.github/workflows/main.yml)).
+7. Request a PR review.
 See [collaborating-with-pull-requests](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests) for further details.
-7. Once your PRs has been approved, procced to merge it to main. See [Merging a pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/merging-a-pull-request)
-8. Remove your merged branch from your repo and in the list of https://github.com/UCL/real-time-ai-for-surgery/branches
+8. Once your PRs has been approved, procced to merge it to main. See [Merging a pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/merging-a-pull-request)
+9. Remove your merged branch from your repo and in the list of https://github.com/UCLH-Foundry/PIXL/branches
+You can also delete local and remove merged branches using the following commands
 ```
 #Local git clear
 git branch --merged | grep -v '\*\|master\|main\|develop' | xargs -n 1 git branch -d
@@ -70,8 +72,4 @@ git branch --merged | grep -v '\*\|master\|main\|develop' | xargs -n 1 git branc
 git branch -r --merged | grep -v '\*\|master\|main\|develop' | sed 's/origin\///' | xargs -n 1 git push --delete origin
 ```
 
-## Local Testing
-If you are developing in your local host:
-* please check that your code passes the following the style guidelines `pre-commit run -a` (this is also tested in [CI](https://github.com/UCLH-Foundry/PIXL/blob/main/.github/workflows/main.yml)).
-* please check that your code is properly tested with `pytest` (this is also tested in [CI](https://github.com/UCLH-Foundry/PIXL/blob/main/.github/workflows/main.yml)).
 
