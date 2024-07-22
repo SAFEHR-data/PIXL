@@ -28,18 +28,21 @@ git clone git@github.com:UCLH-Foundry/PIXL.git
 ```  
 
 ## Committing and pushing changes 
+The following commands are typed or copied via command line. 
+Altenatively, you can use the features of your integrated development environment (pycharm, code, vim, etc).
+
 1. Clone this repo 
 ```
 git clone git@github.com:UCLH-Foundry/PIXL.git
 ``` 
-2. Create new branch using issue number
+2. Create new branch `{FEATURE_BRANCH_NAME}` using issue number `{ISSUE_NUMBER}`
 ```
-git checkout -b ISSUENUMBER-branch-name 
+git checkout -b ISSUE_NUMBER-FEATURE_BRANCH_NAME #(e.g. `git checkout -b 422-my-feature-branch`)
 ```
 3. Commit changes and push to your branch
 ```
 git add .
-git commit -m 'short message (#ISSUENUMBER)'
+git commit -m 'short message #ISSUE_NUMBER' #(e.g. git commit -m 'adding a message to my feature branch #422' 
 git push origin ISSUENUMBER-branch-name
 ```
 4. Submit a Pull Request against the `main` branch. 
@@ -50,11 +53,11 @@ git push origin ISSUENUMBER-branch-name
 3. Type a title and description of your PR and create PR
 4. Please keep your PR in sync with the base branch.
 It is recommended that you use [Squashing and merging a long-running branch](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/about-pull-request-merges#squashing-and-merging-a-long-running-branch).
-Otherwise, you have the option to rebase your `FEATURE_BRANCH` branch with the base branch (e.g. `main`).
+Otherwise, you have the option to rebase your `{ISSUE_NUMBER-FEATURE_BRANCH_NAME}` branch with the base branch (e.g. `main`).
 ```
 git checkout main
 git pull origin main
-git checkout FEATURE_BRANCH
+git checkout ISSUE_NUMBER-FEATURE_BRANCH #(e.g. git checkout 422-my-feature-branch)
 git rebase main
 git push --force origin FEATURE_BRANCH
 ```
