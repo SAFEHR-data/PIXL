@@ -76,4 +76,8 @@ git branch --merged | grep -v '\*\|master\|main\|develop' | xargs -n 1 git branc
 git branch -r --merged | grep -v '\*\|master\|main\|develop' | sed 's/origin\///' | xargs -n 1 git push --delete origin
 ```
 
+## Local Testing
+If you are developing in your local host:
+* please check that your code passes the following the style guidelines `pre-commit run -a` (this is also tested in [CI](https://github.com/UCLH-Foundry/PIXL/blob/main/.github/workflows/main.yml)).
+* please check that your code is properly tested with `pytest` (this is also tested in [CI](https://github.com/UCLH-Foundry/PIXL/blob/main/.github/workflows/main.yml)).
 
