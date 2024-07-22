@@ -49,20 +49,14 @@ git push origin ISSUENUMBER-branch-name
 2. Click `Compare and pull request` and create PR for the associated branch.
 3. Type a title and description of your PR and create PR
 4. Please keep your PR in sync with the base branch.
+It is recommended that you use [Squashing and merging a long-running branch](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/about-pull-request-merges#squashing-and-merging-a-long-running-branch).
+Otherwise, you have the option to rebase your `FEATURE_BRANCH` branch with the base branch (e.g. `main`).
 ```
 git checkout main
 git pull origin main
 git checkout FEATURE_BRANCH
 git rebase main
 git push --force origin FEATURE_BRANCH
-```
-4.1 In case you are in a different `MY_FEATURE_BRANCH` branch, follow:
-```
-git checkout FEATURE_BRANCH
-git pull origin FEATURE_BRANCH
-git checkout MY_FEATURE_BRANCH 
-git rebase FEATURE_BRANCH
-git push --force origin MY_FEATURE_BRANCH
 ```
 5. Run `pre-commit` to tidy up code and documentation (see next section). 
 6. Request a PR review.
