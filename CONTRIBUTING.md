@@ -66,13 +66,12 @@ git push --force origin FEATURE_BRANCH
 7. Request a PR review.
 See [collaborating-with-pull-requests](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests) for further details.
 8. Once your PRs has been approved, procced to merge it to main. See [Merging a pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/merging-a-pull-request)
-9. Remove your merged branch from your repo and in the list of https://github.com/UCLH-Foundry/PIXL/branches
-You can also delete local and remove merged branches using the following commands
+9. Delete and remove your merged branch
+9.1 You can navigate branches in https://github.com/UCLH-Foundry/PIXL/branches and removed merged branches by clickling :wastebasket: icon.
+9.2 Alternatively, you can delete your local and merged branches using the following commands:
 ```
 #Local git clear
 git branch --merged | grep -v '\*\|master\|main\|develop' | xargs -n 1 git branch -d
 #Remote git clear
 git branch -r --merged | grep -v '\*\|master\|main\|develop' | sed 's/origin\///' | xargs -n 1 git push --delete origin
 ```
-
-
