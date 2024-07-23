@@ -25,6 +25,8 @@ from core.exports import ParquetExport
 from core.patient_queue.message import Message
 from loguru import logger
 
+from pixl_cli._message_processing import populate_queue_and_db
+
 if TYPE_CHECKING:
     from core.db.models import Image
 
@@ -208,3 +210,19 @@ def _raise_if_column_names_not_found(
                 f"column names"
             )
             raise ValueError(msg)
+
+
+def parse_input_update_db_and_populate(
+    queues_to_populate: list[str], input_path: Path
+) -> tuple[list[Message], str]:
+    """Parse input data, add to new items to the database and filter out exported."""
+    logger.info("Populating queue(s) {} from {}", queues_to_populate, input_path)
+    if input_path.is_file() and input_path.suffix == ".csv":
+        messages = messages_from_csv(input_path)
+        project_name = messages[0].project_name
+    else:
+        project_name, omop_es_datetime = copy_parquet_return_logfile_fields(input_path)
+        messages = messages_from_parquet(input_path, project_name, omop_es_datetime)
+
+    populate_queue_and_db(queues_to_populate, messages)
+    return messages, project_name
