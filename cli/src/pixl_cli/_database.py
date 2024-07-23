@@ -15,6 +15,7 @@
 """Interaction with the PIXL database."""
 
 from typing import cast
+
 import pandas as pd
 from core.db.models import Extract, Image
 from core.patient_queue.message import Message
