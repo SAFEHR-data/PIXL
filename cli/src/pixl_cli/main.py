@@ -90,7 +90,7 @@ def check_env(*, error: bool, sample_env_file: Path) -> None:
 
 @cli.command()
 @click.argument(
-    "parquet-path", required=True, type=click.Path(path_type=Path, exists=True, file_okay=True)
+    "input-path", required=True, type=click.Path(path_type=Path, exists=True, file_okay=True)
 )
 @click.option(
     "--queues",
