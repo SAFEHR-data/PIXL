@@ -14,6 +14,8 @@
 
 """Interaction with the PIXL database."""
 
+from typing import TYPE_CHECKING
+
 from decouple import config  # type: ignore [import-untyped]
 import pydicom
 from pydicom.uid import generate_uid, UID
@@ -22,6 +24,9 @@ from sqlalchemy.orm.session import Session
 from core.db.models import Image, Extract
 from sqlalchemy import URL, create_engine, exists
 from sqlalchemy.orm import sessionmaker
+
+if TYPE_CHECKING:
+    from pixl_dcmd._dicom_helpers import StudyInfo
 
 url = URL.create(
     drivername="postgresql+psycopg2",
@@ -36,7 +41,7 @@ engine = create_engine(url)
 
 
 def get_uniq_pseudo_study_uid_and_update_db(
-    project_slug: str, mrn: str, accession_number: str
+    project_slug: str, study_info: StudyInfo
 ) -> UID:
     """
     Checks if record (slug, mrn, acc_num) exists in the database,
@@ -46,7 +51,10 @@ def get_uniq_pseudo_study_uid_and_update_db(
     PixlSession = sessionmaker(engine)
     with PixlSession() as pixl_session, pixl_session.begin():
         existing_image = get_unexported_image(
-            project_slug, mrn, accession_number, pixl_session
+            project_slug,
+            study_info.mrn,
+            study_info.accession_number,
+            pixl_session,
         )
         if existing_image.pseudo_study_uid is None:
             pseudo_study_uid = generate_uid()
