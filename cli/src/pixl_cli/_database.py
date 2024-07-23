@@ -67,7 +67,9 @@ def _get_or_create_project(project_slug: str, session: Session) -> tuple[Extract
 def _filter_exported_messages(
     extract: Extract, messages: list[Message], session: Session, *, extract_created: bool
 ) -> list[Message]:
-    database_images = pd.read_sql(session.query(Image).filter(Image.extract == extract).statement, session.bind)
+    database_images = pd.read_sql(
+        session.query(Image).filter(Image.extract == extract).statement, session.bind
+    )
     output_messages = []
     for message in messages:
         _, image_exported = _get_image_and_check_exported(
