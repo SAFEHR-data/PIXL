@@ -14,8 +14,6 @@
 
 """Interaction with the PIXL database."""
 
-from typing import TYPE_CHECKING
-
 from decouple import config  # type: ignore [import-untyped]
 import pydicom
 from pydicom.uid import generate_uid, UID
@@ -25,8 +23,7 @@ from core.db.models import Image, Extract
 from sqlalchemy import URL, create_engine, exists
 from sqlalchemy.orm import sessionmaker
 
-if TYPE_CHECKING:
-    from pixl_dcmd._dicom_helpers import StudyInfo
+from pixl_dcmd._dicom_helpers import StudyInfo
 
 url = URL.create(
     drivername="postgresql+psycopg2",
