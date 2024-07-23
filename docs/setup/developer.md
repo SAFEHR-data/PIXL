@@ -1,6 +1,34 @@
 # Developer setup
 
-## Installation
+## Setting up `Python` Virtual Environment (VE)
+
+### Using conda
+```
+conda create -n "pixlVE" python=3.11  pip -c conda-forge
+conda activate pixlVE
+conda list -n pixlVE #to check installed packages
+conda deactivate #to deactivate VE 
+conda remove -n pixlVE --all #to remove pixlVE environment 
+```
+
+### Using python virtual environment `venv`
+You require `python3-venv` to setup your `venv`. See further details [here](https://docs.python.org/3/library/venv.html).
+```
+# Create path for venv
+cd $HOME
+mkdir pixlVE
+cd pixlVE
+# Create virtual environment
+python3 -m venv pixlVE
+source pixlVE/bin/activate
+```
+
+## Docker requirements 
+Most modules require `docker` and `docker-compose` to be installed to run tests.
+* [Docker](https://docs.docker.com/get-docker/) with version `>=27.0.3`
+* [Docker Compose](https://docs.docker.com/compose/install/#installation-scenarios) with version `>=v2.28.1-desktop.1`
+
+## Installation of `PIXL` modules
 
 You can install all PIXL Python modules by running the following commands from the `PIXL/` directory:
 
@@ -16,7 +44,6 @@ python -m pip install -e "hasher/[dev,test]"
 ```
 
 See each service's README for instructions for individual developing and testing instructions.
-Most modules require [`docker`](https://docs.docker.com/desktop/) and `docker-compose` to be installed to run tests.
 
 ## Testing
 
@@ -32,7 +59,7 @@ pytest
 Alternatively, you can run most of the module-level tests from the root of the repo with:
 
 ```shell
-pytest
+pytest #to test all tests `testpaths` pytest.ini
 ```
 
 The `pytest.ini` file in the root of the repo contains the configuration for running most of the module-level tests at once.
@@ -49,7 +76,7 @@ There are also integration tests in `PIXL/test/` directory that can be run using
 ### Workflow
 
 Before raising a PR, make sure to **run all tests** for each PIXL module
-and not just the component you have been working on as this will help us catch unintentional regressions without spending GH actions minutes :-)
+and not just the component you have been working on as this will help us catch unintentional regressions without spending GH actions minutes.
 
 
 ## Linting
@@ -57,6 +84,7 @@ and not just the component you have been working on as this will help us catch u
 For Python development we use [ruff](https://docs.astral.sh/ruff/) and [mypy](https://mypy.readthedocs.io/)
 alongside [pytest](https://www.pytest.org/).
 There is support (sometimes through plugins) for these tools in most IDEs & editors.
+
 
 We run [pre-commit](https://pre-commit.com/) as part of the GitHub Actions CI. To install and run it locally, do:
 

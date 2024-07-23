@@ -1,0 +1,45 @@
+#  Copyright (c) University College London Hospitals NHS Foundation Trust
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+name: 🐛Bug
+description: Have you got a bug? Please report it here!
+projects: [ "UCLH-Foundry/13" ]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A clear and concise description of what the bug is. Please use a short, concise title for the bug and elaborate here
+  - type: textarea
+    id: reproducing_bug
+    attributes:
+      label: What did you do?
+      description: What can someone see/do when this task is done.
+      placeholder: "- [ ] Please provide a minimal working example (code, system info, terminal logs). If possible: https://stackoverflow.com/help/minimal-reproducible-example"
+    validations:
+      required: true
+  - type: textarea
+    id: expected_behaviour
+    attributes:
+      label: What did you expect?
+      description: A clear and concise description of what you expected to happen.
+      placeholder: " "
+    validations:
+      required: false
+  - type: textarea
+    id: actual_behaviour
+    attributes:
+      label: What did you get?
+      description: A clear and concise description of what actually happens.
+      placeholder: "If you have a code sample, error messages, stack traces, please provide it here as well"
+    validations:
+      required: false
