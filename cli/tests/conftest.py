@@ -18,12 +18,19 @@ from __future__ import annotations
 import datetime
 import os
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 from core.db.models import Base, Extract, Image
 from core.patient_queue.message import Message
+from core.patient_queue.producer import PixlProducer
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+    from unittest.mock import Mock
+
 
 # Load environment variables from test .env file
 with (Path(__file__).parents[2] / "test/.env").open() as f:
@@ -163,3 +170,12 @@ def rows_in_session(db_session) -> Session:
         db_session.commit()
 
     return db_session
+
+
+@pytest.fixture()
+def mock_publisher(mocker) -> Generator[Mock, None, None]:
+    """Patched publisher that does nothing, returns MagicMock of the publish method."""
+    mocker.patch.object(PixlProducer, "__init__", return_value=None)
+    mocker.patch.object(PixlProducer, "__enter__", return_value=PixlProducer)
+    mocker.patch.object(PixlProducer, "__exit__")
+    return mocker.patch.object(PixlProducer, "publish")

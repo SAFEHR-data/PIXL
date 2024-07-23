@@ -92,11 +92,12 @@ def _message_count(queues_to_populate: list[str]) -> int:
     return messages_in_queues
 
 
-def populate_queue_and_db(queues: list[str], messages: list[Message]) -> None:
+def populate_queue_and_db(queues: list[str], messages: list[Message]) -> list[Message]:
     """
     Populate queues with messages,
     for imaging queue update the database and filter out exported studies.
     """
+    output_messages = []
     for queue in queues:
         sorted_messages = sorted(messages, key=attrgetter("study_date"))
         # For imaging, we don't want to query again for images that have already been exported
@@ -107,3 +108,5 @@ def populate_queue_and_db(queues: list[str], messages: list[Message]) -> None:
             )
         with PixlProducer(queue_name=queue, **SERVICE_SETTINGS["rabbitmq"]) as producer:
             producer.publish(sorted_messages)
+        output_messages.extend(sorted_messages)
+    return output_messages

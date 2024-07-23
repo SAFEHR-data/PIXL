@@ -224,5 +224,5 @@ def parse_input_update_db_and_populate(
         project_name, omop_es_datetime = copy_parquet_return_logfile_fields(input_path)
         messages = messages_from_parquet(input_path, project_name, omop_es_datetime)
 
-    populate_queue_and_db(queues_to_populate, messages)
-    return messages, project_name
+    published_messages = populate_queue_and_db(queues_to_populate, messages)
+    return published_messages, project_name

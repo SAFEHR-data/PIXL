@@ -90,7 +90,6 @@ def _get_image_and_check_exported(
             Image.extract == extract,
             Image.accession_number == message.accession_number,
             Image.mrn == message.mrn,
-            Image.study_date == message.study_date,
         )
         .one_or_none()
     )

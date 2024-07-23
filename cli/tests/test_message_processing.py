@@ -15,12 +15,9 @@
 """Test message processing module."""
 
 import os
-from collections.abc import Generator
-from unittest.mock import Mock
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
-from core.patient_queue.producer import PixlProducer
 from pixl_cli._message_processing import retry_until_export_count_is_unchanged
 
 
@@ -28,15 +25,6 @@ from pixl_cli._message_processing import retry_until_export_count_is_unchanged
 def _zero_message_count(monkeypatch: MonkeyPatch) -> None:
     """Ensure that message count is always zero, so that we don't have to deal with rabbitmq"""
     monkeypatch.setattr("pixl_cli._message_processing._message_count", lambda _: 0)
-
-
-@pytest.fixture()
-def mock_publisher(mocker) -> Generator[Mock, None, None]:
-    """Patched publisher that does nothing, returns MagicMock of the publish method."""
-    mocker.patch.object(PixlProducer, "__init__", return_value=None)
-    mocker.patch.object(PixlProducer, "__enter__", return_value=PixlProducer)
-    mocker.patch.object(PixlProducer, "__exit__")
-    return mocker.patch.object(PixlProducer, "publish")
 
 
 @pytest.mark.usefixtures("_zero_message_count")
