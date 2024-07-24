@@ -19,6 +19,10 @@ import os
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from pixl_cli._message_processing import retry_until_export_count_is_unchanged
+from pixl_cli._io import messages_from_csv
+from core.patient_queue.message import Message
+
+from pathlib import Path
 
 
 @pytest.fixture()
@@ -45,7 +49,7 @@ def test_no_retry_if_none_exported(example_messages, db_session, mock_publisher)
 
 
 @pytest.mark.usefixtures("_zero_message_count")
-def test_retry_with_image_exported_and_no_change(example_messages, rows_in_session, mock_publisher):
+def test_retry_with_image_exported_and_no_change(example_messages, rows_in_session, mock_publisher, omop_resources: Path):
     """
     GIVEN one image already has been exported, and num_retries set to 5
     WHEN rabbitmq messages set to zero and no messages are published to queue
@@ -54,8 +58,15 @@ def test_retry_with_image_exported_and_no_change(example_messages, rows_in_sessi
     os.environ["CLI_RETRY_SECONDS"] = "1"
     project_name = example_messages[0].project_name
 
+    test_csv_message_batch = omop_resources / "batch_input.csv"
+    read_messages_from_csv = messages_from_csv(test_csv_message_batch)
+    expected_messages = example_messages
+
+    assert all(isinstance(msg, Message) for msg in read_messages_from_csv)
+    assert all(isinstance(msg, Message) for msg in expected_messages)
+
     retry_until_export_count_is_unchanged(
-        example_messages, num_retries=5, queues_to_populate=["imaging"], project_name=project_name
+        read_messages_from_csv, num_retries=5, queues_to_populate=["imaging"], project_name=project_name
     )
 
     mock_publisher.assert_called_once()
