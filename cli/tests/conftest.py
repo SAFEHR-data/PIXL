@@ -164,6 +164,7 @@ def rows_in_session(db_session) -> Session:
         study_date=STUDY_DATE,
         mrn="mrn",
         extract=extract,
+        extract_id=extract.extract_id,
         exported_at=datetime.datetime.now(tz=datetime.UTC),
     )
     image_not_exported = Image(
@@ -171,6 +172,7 @@ def rows_in_session(db_session) -> Session:
         study_date=STUDY_DATE,
         mrn="mrn",
         extract=extract,
+        extract_id=extract.extract_id,
     )
     with db_session:
         db_session.add_all([extract, image_exported, image_not_exported])

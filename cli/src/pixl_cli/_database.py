@@ -53,8 +53,8 @@ def filter_exported_or_add_to_db(messages_df: pd.DataFrame, project_slug: str) -
             missing_images_df = _filter_existing_images(messages_df, db_images_df)
             messages_df = _filter_exported_messages(messages_df, db_images_df)
         else:
-            extract = Extract(slug=project_slug)
-            pixl_session.add(extract)
+            pixl_session.add(Extract(slug=project_slug))
+            extract = pixl_session.query(Extract).filter(Extract.slug == project_slug).one_or_none()
             missing_images_df = messages_df
 
         _add_images_to_session(extract, missing_images_df, pixl_session)
@@ -87,14 +87,18 @@ def _filter_exported_messages(
 
 
 def _add_images_to_session(extract: Extract, images_df: pd.DataFrame, session: Session) -> None:
+    images = []
     for _, row in images_df.iterrows():
         new_image = Image(
             accession_number=row["accession_number"],
             study_date=row["study_date"],
             mrn=row["mrn"],
             extract=extract,
+            extract_id=extract.extract_id,
         )
-        session.add(new_image)
+        images.append(new_image)
+    session.bulk_save_objects(images)
+    session.commit()
 
 
 def all_images_for_project(project_slug: str) -> pd.DataFrame:
@@ -120,7 +124,6 @@ def exported_images_for_project(project_slug: str) -> list[Image]:
     """
     PixlSession = sessionmaker(engine)
     with PixlSession() as session:
-        session.select()
         return cast(
             list[Image],
             session.query(Image)
