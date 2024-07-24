@@ -34,10 +34,11 @@ from pixl_cli._docker_commands import dc
 from pixl_cli._io import (
     HOST_EXPORT_ROOT_DIR,
     make_radiology_linker_table,
-    parse_input_update_db_and_populate,
     project_info,
+    read_patient_info,
 )
 from pixl_cli._message_processing import (
+    populate_queue_and_db,
     retry_until_export_count_is_unchanged,
 )
 
@@ -90,7 +91,7 @@ def check_env(*, error: bool, sample_env_file: Path) -> None:
 
 @cli.command()
 @click.argument(
-    "input-path", required=True, type=click.Path(path_type=Path, exists=True, file_okay=True)
+    "parquet-path", required=True, type=click.Path(path_type=Path, exists=True, file_okay=True)
 )
 @click.option(
     "--queues",
@@ -120,8 +121,8 @@ def check_env(*, error: bool, sample_env_file: Path) -> None:
     default=5,
     help="Number of retries to attempt before giving up, 5 minute wait inbetween",
 )
-def populate(
-    input_path: Path,
+def populate(  # too many args
+    parquet_path: Path,
     *,
     queues: str,
     rate: Optional[float],
@@ -130,8 +131,7 @@ def populate(
 ) -> None:
     """
     Populate a (set of) queue(s) from a parquet file directory
-    input_path: flat csv file or an omop-es directory.
-        The omop-es directory contains the public and private parquet input files and an
+    PARQUET_DIR: Directory containing the public and private parquet input files and an
         extract_summary.json log file.
         It's expected that the directory structure will be:
 
@@ -150,10 +150,14 @@ def populate(
         logger.info("Starting to process messages disabled, setting `--num-retries` to 0")
         num_retries = 0
 
-    messages, project_name = parse_input_update_db_and_populate(queues_to_populate, input_path)
+    logger.info("Populating queue(s) {} from {}", queues_to_populate, parquet_path)
+    messages_df = read_patient_info(parquet_path)
+    project_name = messages_df["project_name"].iloc[0]
+
+    populate_queue_and_db(queues_to_populate, messages_df)
     if num_retries != 0:
         retry_until_export_count_is_unchanged(
-            messages, num_retries, queues_to_populate, project_name
+            messages_df, num_retries, queues_to_populate, project_name
         )
 
 
