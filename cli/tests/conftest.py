@@ -20,6 +20,7 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import pandas as pd
 import pytest
 from core.db.models import Base, Extract, Image
 from core.patient_queue.message import Message
@@ -145,6 +146,12 @@ def example_messages():
         _make_message(project_name="i-am-a-project", accession_number="234", mrn="mrn"),
         _make_message(project_name="i-am-a-project", accession_number="345", mrn="mrn"),
     ]
+
+
+@pytest.fixture()
+def example_messages_df(example_messages):
+    """Test input data in a DataFrame."""
+    return pd.DataFrame.from_records([vars(im) for im in example_messages])
 
 
 @pytest.fixture()
