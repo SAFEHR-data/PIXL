@@ -20,7 +20,7 @@ tag_operation_files:
     base:
         - "mri.yaml"
         - "ms-pinpoint.yaml"
-    manufacturer_overrides: []
+    manufacturer_overrides: ["mri.yaml"]
 
 series_filters:
     - "localizer"
