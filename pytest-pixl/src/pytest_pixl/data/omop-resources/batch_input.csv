@@ -1,0 +1,4 @@
+procedure_id,mrn,accession_number,project_name,extract_generated_timestamp,study_date
+1,mrn,123,i-am-a-project,2023-01-01T00:00:00Z,2023-01-01
+2,mrn,234,i-am-a-project,2023-01-01T00:00:00Z,2023-01-01
+3,mrn,345,i-am-a-project,2023-01-01T00:00:00Z,2023-01-01

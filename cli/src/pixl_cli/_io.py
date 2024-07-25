@@ -17,12 +17,12 @@ from __future__ import annotations
 
 import json
 from datetime import datetime
+from enum import StrEnum, auto
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pandas as pd
 from core.exports import ParquetExport
-from core.patient_queue.message import Message
 from loguru import logger
 
 if TYPE_CHECKING:
@@ -53,25 +53,41 @@ def copy_parquet_return_logfile_fields(resources_path: Path) -> tuple[str, datet
     return project_name_slug, extract_generated_timestamp
 
 
-def messages_from_csv(filepath: Path) -> list[Message]:
+def read_patient_info(resources_path: Path) -> pd.DataFrame:
+    """
+    Read patient information from a CSV file or parquet files within directory structure.
+    :param resources_path: Path for CSV file or parquet directory containing private and public
+    :return: DataFrame with patient information
+    """
+    if resources_path.is_file() and resources_path.suffix == ".csv":
+        messages_df = _load_csv(resources_path)
+    else:
+        messages_df = _load_parquet(resources_path)
+
+    messages_df = messages_df.sort_values(by=["study_date"])
+    messages_df = messages_df.drop_duplicates(subset=["mrn", "accession_number", "study_date"])
+
+    if len(messages_df) == 0:
+        msg = f"Failed to find any messages in {resources_path}"
+        raise ValueError(msg)
+
+    logger.info("Created {} messages from {}", len(messages_df), resources_path)
+
+    return messages_df
+
+
+def _load_csv(filepath: Path) -> pd.DataFrame:
     """
     Reads patient information from CSV and transforms that into messages.
     :param filepath: Path for CSV file to be read
     """
-    expected_col_names = [
-        "procedure_id",
-        "mrn",
-        "accession_number",
-        "project_name",
-        "extract_generated_timestamp",
-        "study_date",
-    ]
-
     # First line is column names
     messages_df = pd.read_csv(filepath, header=0, dtype=str)
-    _raise_if_column_names_not_found(messages_df, expected_col_names)
+    messages_df = _map_columns(messages_df, MAP_CSV_TO_MESSAGE_KEYS)
+    _raise_if_column_names_not_found(messages_df, [col.name for col in DF_COLUMNS])
+
     # Parse non string columns
-    messages_df["procedure_id"] = messages_df["procedure_id"].astype(int)
+    messages_df["procedure_occurrence_id"] = messages_df["procedure_occurrence_id"].astype(int)
     messages_df["study_date"] = pd.to_datetime(
         messages_df["study_date"], format="%Y-%m-%d", errors="raise"
     ).dt.date
@@ -82,81 +98,29 @@ def messages_from_csv(filepath: Path) -> list[Message]:
         utc=True,
     )
 
-    (
-        procedure_id_col_name,
-        mrn_col_name,
-        acc_num_col_name,
-        project_col_name,
-        extract_col_name,
-        dt_col_name,
-    ) = expected_col_names
-
-    messages = []
-    for _, row in messages_df.iterrows():
-        message = Message(
-            mrn=row[mrn_col_name],
-            accession_number=row[acc_num_col_name],
-            study_date=row[dt_col_name],
-            procedure_occurrence_id=row[procedure_id_col_name],
-            project_name=row[project_col_name],
-            extract_generated_timestamp=row[extract_col_name].to_pydatetime(),
-        )
-        messages.append(message)
-
-    if len(messages) == 0:
-        msg = f"Failed to find any messages in {filepath}"
-        raise ValueError(msg)
-
-    logger.info("Created {} messages from {}", len(messages), filepath)
-    return messages
+    return messages_df
 
 
-def messages_from_parquet(
-    dir_path: Path, project_name: str, extract_generated_timestamp: datetime
-) -> list[Message]:
+def _load_parquet(
+    dir_path: Path,
+) -> pd.DataFrame:
     """
     Reads patient information from parquet files within directory structure
-    and transforms that into messages.
+    and transforms that into a DataFrame
 
     :param dir_path: Path for parquet directory containing private and public
-    :param project_name: Name of the project, should be a slug, so it can match the export directory
-    :param extract_generated_timestamp: Datetime that OMOP ES ran the extract
-    files
     """
     public_dir = dir_path / "public"
     private_dir = dir_path / "private"
 
-    cohort_data = _check_and_parse_parquet(private_dir, public_dir)
-    cohort_data_mapped = _map_columns(cohort_data)
+    messages_df = _check_and_parse_parquet(private_dir, public_dir)
+    messages_df = _map_columns(messages_df, MAP_PARQUET_TO_MESSAGE_KEYS)
 
-    messages = []
-    for _, row in cohort_data_mapped.iterrows():
-        message = Message(
-            project_name=project_name,
-            extract_generated_timestamp=extract_generated_timestamp,
-            **{column: row[column] for column in MAP_PARQUET_TO_MESSAGE_KEYS.values()},
-        )
-        messages.append(message)
+    project_name, extract_generated_timestamp = copy_parquet_return_logfile_fields(dir_path)
+    messages_df["project_name"] = project_name
+    messages_df["extract_generated_timestamp"] = extract_generated_timestamp
 
-    if len(messages) == 0:
-        msg = f"Failed to find any messages in {dir_path}"
-        raise ValueError(msg)
-
-    logger.info("Created {} messages from {}", len(messages), dir_path)
-    return messages
-
-
-MAP_PARQUET_TO_MESSAGE_KEYS = {
-    "PrimaryMrn": "mrn",
-    "AccessionNumber": "accession_number",
-    "procedure_date": "study_date",
-    "procedure_occurrence_id": "procedure_occurrence_id",
-}
-
-
-def _map_columns(input_df: pd.DataFrame) -> pd.DataFrame:
-    _raise_if_column_names_not_found(input_df, list(MAP_PARQUET_TO_MESSAGE_KEYS.keys()))
-    return input_df.rename(MAP_PARQUET_TO_MESSAGE_KEYS, axis=1)
+    return messages_df
 
 
 def _check_and_parse_parquet(private_dir: Path, public_dir: Path) -> pd.DataFrame:
@@ -178,21 +142,30 @@ def _check_and_parse_parquet(private_dir: Path, public_dir: Path) -> pd.DataFram
     return people_procedures_accessions[~people_procedures_accessions["AccessionNumber"].isna()]
 
 
-def make_radiology_linker_table(parquet_dir: Path, images: list[Image]) -> pd.DataFrame:
-    """
-    Make a table linking the OMOP procedure_occurrence_id to the pseudo image/study ID.
-    :param parquet_dir: location of OMOP extract
-                        (this gives us: procedure_occurrence_id <-> mrn+accession mapping)
-    :param images: the images already processed by PIXL, from the DB
-                        (this gives us: mrn+accession <-> pseudo_study_uid)
-    """
-    public_dir = parquet_dir / "public"
-    private_dir = parquet_dir / "private"
-    people_procedures_accessions = _map_columns(_check_and_parse_parquet(private_dir, public_dir))
+class DF_COLUMNS(StrEnum):  # noqa: N801
+    procedure_occurrence_id = auto()
+    mrn = auto()
+    accession_number = auto()
+    project_name = auto()
+    extract_generated_timestamp = auto()
+    study_date = auto()
 
-    images_df = pd.DataFrame.from_records([vars(im) for im in images])
-    merged = people_procedures_accessions.merge(images_df, on=("mrn", "accession_number"))
-    return merged[["procedure_occurrence_id", "pseudo_study_uid"]]
+
+MAP_CSV_TO_MESSAGE_KEYS = {
+    "procedure_id": "procedure_occurrence_id",
+}
+
+
+MAP_PARQUET_TO_MESSAGE_KEYS = {
+    "PrimaryMrn": "mrn",
+    "AccessionNumber": "accession_number",
+    "procedure_date": "study_date",
+}
+
+
+def _map_columns(input_df: pd.DataFrame, columns: dict) -> pd.DataFrame:
+    _raise_if_column_names_not_found(input_df, list(columns.keys()))
+    return input_df.rename(columns, axis=1)
 
 
 def _raise_if_column_names_not_found(
@@ -208,3 +181,23 @@ def _raise_if_column_names_not_found(
                 f"column names"
             )
             raise ValueError(msg)
+
+
+def make_radiology_linker_table(parquet_dir: Path, images: list[Image]) -> pd.DataFrame:
+    """
+    Make a table linking the OMOP procedure_occurrence_id to the pseudo image/study ID.
+    :param parquet_dir: location of OMOP extract
+                        (this gives us: procedure_occurrence_id <-> mrn+accession mapping)
+    :param images: the images already processed by PIXL, from the DB
+                        (this gives us: mrn+accession <-> pseudo_study_uid)
+    """
+    public_dir = parquet_dir / "public"
+    private_dir = parquet_dir / "private"
+    people_procedures_accessions = _map_columns(
+        _check_and_parse_parquet(private_dir, public_dir),
+        MAP_PARQUET_TO_MESSAGE_KEYS,
+    )
+
+    images_df = pd.DataFrame.from_records([vars(im) for im in images])
+    merged = people_procedures_accessions.merge(images_df, on=("mrn", "accession_number"))
+    return merged[["procedure_occurrence_id", "pseudo_study_uid"]]

@@ -15,12 +15,13 @@
 
 from __future__ import annotations
 
-import typing
 from time import sleep
+from typing import TYPE_CHECKING
 
+import pandas as pd
 import tqdm
-from _operator import attrgetter
 from core.patient_queue._base import PixlBlockingInterface
+from core.patient_queue.message import Message
 from core.patient_queue.producer import PixlProducer
 from decouple import config
 from loguru import logger
@@ -28,12 +29,35 @@ from loguru import logger
 from pixl_cli._config import SERVICE_SETTINGS
 from pixl_cli._database import exported_images_for_project, filter_exported_or_add_to_db
 
-if typing.TYPE_CHECKING:
-    from core.patient_queue.message import Message
+if TYPE_CHECKING:
+    import pandas as pd
+
+
+def messages_from_df(
+    df: pd.DataFrame,
+) -> list[Message]:
+    """
+    Reads patient information from a DataFrame and transforms that into messages.
+
+    :param messages_df: DataFrame containing patient information
+    """
+    messages = []
+    for _, row in df.iterrows():
+        message = Message(
+            mrn=row["mrn"],
+            accession_number=row["accession_number"],
+            study_date=row["study_date"],
+            procedure_occurrence_id=row["procedure_occurrence_id"],
+            project_name=row["project_name"],
+            extract_generated_timestamp=row["extract_generated_timestamp"].to_pydatetime(),
+        )
+        messages.append(message)
+
+    return messages
 
 
 def retry_until_export_count_is_unchanged(
-    messages: list[Message], num_retries: int, queues_to_populate: list[str], project_name: str
+    messages_df: pd.DataFrame, num_retries: int, queues_to_populate: list[str], project_name: str
 ) -> None:
     """Retry populating messages until there is no change in the number of exported studies."""
     last_exported_count = 0
@@ -71,7 +95,7 @@ def retry_until_export_count_is_unchanged(
             num_retries,
         )
         last_exported_count = new_last_exported_count
-        populate_queue_and_db(queues_to_populate, messages)
+        populate_queue_and_db(queues_to_populate, messages_df)
 
 
 def _wait_for_queues_to_empty(queues_to_populate: list[str]) -> None:
@@ -92,18 +116,23 @@ def _message_count(queues_to_populate: list[str]) -> int:
     return messages_in_queues
 
 
-def populate_queue_and_db(queues: list[str], messages: list[Message]) -> None:
+def populate_queue_and_db(queues: list[str], messages_df: pd.DataFrame) -> list[Message]:
     """
     Populate queues with messages,
     for imaging queue update the database and filter out exported studies.
     """
+    output_messages = []
     for queue in queues:
-        sorted_messages = sorted(messages, key=attrgetter("study_date"))
         # For imaging, we don't want to query again for images that have already been exported
-        if queue == "imaging" and messages:
+        if queue == "imaging" and len(messages_df):
             logger.info("Filtering out exported images and uploading new ones to the database")
-            sorted_messages = filter_exported_or_add_to_db(
-                sorted_messages, messages[0].project_name
+            messages_df = filter_exported_or_add_to_db(
+                messages_df, messages_df.iloc[0].project_name
             )
+
+        messages = messages_from_df(messages_df)
         with PixlProducer(queue_name=queue, **SERVICE_SETTINGS["rabbitmq"]) as producer:
-            producer.publish(sorted_messages)
+            producer.publish(messages)
+        output_messages.extend(messages)
+
+    return output_messages
