@@ -123,8 +123,6 @@ def populate_queue_and_db(queues: list[str], messages_df: pd.DataFrame) -> list[
     """
     output_messages = []
     for queue in queues:
-        messages_df = messages_df.sort_values(by=["study_date"])
-
         # For imaging, we don't want to query again for images that have already been exported
         if queue == "imaging" and len(messages_df):
             logger.info("Filtering out exported images and uploading new ones to the database")

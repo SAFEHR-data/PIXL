@@ -64,6 +64,9 @@ def read_patient_info(resources_path: Path) -> pd.DataFrame:
     else:
         messages_df = _load_parquet(resources_path)
 
+    messages_df = messages_df.sort_values(by=["study_date"])
+    messages_df = messages_df.drop_duplicates(subset=["mrn", "accession_number", "study_date"])
+
     if len(messages_df) == 0:
         msg = f"Failed to find any messages in {resources_path}"
         raise ValueError(msg)

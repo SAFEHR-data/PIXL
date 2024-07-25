@@ -53,6 +53,8 @@ def filter_exported_or_add_to_db(messages_df: pd.DataFrame, project_slug: str) -
             missing_images_df = _filter_existing_images(messages_df, db_images_df)
             messages_df = _filter_exported_messages(messages_df, db_images_df)
         else:
+            # We need to add the extract to the database and retrive it again so
+            # we can access extract.extract_id (needed by session.bulk_save_objects(images))
             pixl_session.add(Extract(slug=project_slug))
             extract = pixl_session.query(Extract).filter(Extract.slug == project_slug).one_or_none()
             missing_images_df = messages_df
@@ -66,8 +68,11 @@ def _filter_existing_images(
     messages_df: pd.DataFrame,
     images_df: pd.DataFrame,
 ) -> pd.DataFrame:
-    columns = ["accession_number", "mrn"]
-    keep_indices = ~messages_df[columns].isin(images_df[columns]).all(axis="columns")
+    # DataFrame indices must batch when using df.isin (or df.index.isin)
+    # So we re-index the DataFrames to match on the columns we want to compare
+    messages_df_reindexed = messages_df.set_index(["accession_number", "mrn", "study_date"])
+    images_df_reindexed = images_df.set_index(["accession_number", "mrn", "study_date"])
+    keep_indices = ~messages_df_reindexed.index.isin(images_df_reindexed.index)
     return messages_df[keep_indices]
 
 
