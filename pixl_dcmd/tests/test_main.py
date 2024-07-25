@@ -31,6 +31,8 @@ from core.dicom_tags import (
 )
 from core.project_config import load_project_config, load_tag_operations
 from decouple import config
+
+from pixl_dcmd._dicom_helpers import StudyInfo
 from pixl_dcmd.main import (
     _anonymise_dicom_from_scheme,
     anonymise_dicom,
@@ -133,7 +135,9 @@ def test_anonymisation(vanilla_dicom_image: Dataset) -> None:
 # https://github.com/UCLH-Foundry/PIXL/issues/418
 
 
-def test_anonymisation_with_overrides(mri_diffusion_dicom_image: Dataset) -> None:
+def test_anonymisation_with_overrides(
+    mri_diffusion_dicom_image: Dataset, row_for_dicom_testing
+) -> None:
     """
     Test that the anonymisation process works with manufacturer overrides.
     GIVEN a dicom image with manufacturer-specific private tags
@@ -287,11 +291,12 @@ def test_can_nifti_convert_post_anonymisation(
             "op": "keep",
         },
     ]
+    study_info = StudyInfo("ID123456", "BB01234567")
 
     # Get test DICOMs from the fixture, anonymise and save
     for dcm_path in directory_of_mri_dicoms.glob("*.dcm"):
         dcm = pydicom.dcmread(dcm_path)
-        _anonymise_dicom_from_scheme(dcm, TEST_PROJECT_SLUG, tag_scheme)
+        _anonymise_dicom_from_scheme(dcm, TEST_PROJECT_SLUG, tag_scheme, study_info)
         pydicom.dcmwrite(anon_dicom_dir / dcm_path.name, dcm)
 
     # Convert the anonymised DICOMs to NIFTI with dcm2niix
@@ -416,7 +421,12 @@ def test_del_tag_keep_sq(sequenced_dicom_mock_db):
     ]
 
     ## ACT
-    _anonymise_dicom_from_scheme(sequenced_dicom_mock_db, TEST_PROJECT_SLUG, tag_scheme)
+    _anonymise_dicom_from_scheme(
+        sequenced_dicom_mock_db,
+        TEST_PROJECT_SLUG,
+        tag_scheme,
+        StudyInfo("mrn", "accession"),
+    )
 
     ## ASSERT
     # Check that the sequence tag has been kept
@@ -464,9 +474,13 @@ def test_keep_tag_del_sq(sequenced_dicom_mock_db):
             "op": "replace",
         },
     ]
-
     ## ACT
-    _anonymise_dicom_from_scheme(sequenced_dicom_mock_db, TEST_PROJECT_SLUG, tag_scheme)
+    _anonymise_dicom_from_scheme(
+        sequenced_dicom_mock_db,
+        TEST_PROJECT_SLUG,
+        tag_scheme,
+        StudyInfo("mrn", "accession"),
+    )
 
     ## ASSERT
     # Check that the sequence tag has been deleted
