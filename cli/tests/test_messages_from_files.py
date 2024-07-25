@@ -110,8 +110,8 @@ def test_batch_upload(omop_resources: Path, rows_in_session, mock_publisher) -> 
 def test_duplicate_upload(omop_resources: Path, rows_in_session, mock_publisher) -> None:
     """
     GIVEN the database has a single Export entity, with one exported Image, one un-exported Image
-    WHEN we parse a file with duplicated entries of the new Image
-    THEN the database should have 3 Images, with one message returned.
+    WHEN we parse a file with duplicated entries the two existing images and one new image
+    THEN the database should have 3 Images, with two message returned.
     """
     input_file = omop_resources / "duplicate_input.csv"
     messages_df = read_patient_info(input_file)
@@ -120,5 +120,5 @@ def test_duplicate_upload(omop_resources: Path, rows_in_session, mock_publisher)
     # Database has 3 rows now
     images_in_db = rows_in_session.query(Image).all()
     assert len(images_in_db) == 3
-    # Duplicate message filtered out
-    assert len(messages) == 1
+    # Exported and duplicate messages filtered out
+    assert len(messages) == 2
