@@ -18,12 +18,10 @@ from __future__ import annotations
 import datetime
 from typing import TYPE_CHECKING
 
+from core.db.models import Image
 from core.patient_queue.message import Message
-from pixl_cli._io import (
-    copy_parquet_return_logfile_fields,
-    messages_from_csv,
-    messages_from_parquet,
-)
+from pixl_cli._io import read_patient_info
+from pixl_cli._message_processing import messages_from_df, populate_queue_and_db
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -37,8 +35,9 @@ def test_messages_from_csv(omop_resources: Path) -> None:
     """
     # Arrange
     test_csv = omop_resources / "test.csv"
+    messages_df = read_patient_info(test_csv)
     # Act
-    messages = messages_from_csv(test_csv)
+    messages = messages_from_df(messages_df)
     # Assert
     assert all(isinstance(msg, Message) for msg in messages)
 
@@ -63,9 +62,9 @@ def test_messages_from_parquet(omop_resources: Path) -> None:
     """
     # Arrange
     omop_parquet_dir = omop_resources / "omop"
-    project_name, omop_es_datetime = copy_parquet_return_logfile_fields(omop_parquet_dir)
+    messages_df = read_patient_info(omop_parquet_dir)
     # Act
-    messages = messages_from_parquet(omop_parquet_dir, project_name, omop_es_datetime)
+    messages = messages_from_df(messages_df)
     # Assert
     assert all(isinstance(msg, Message) for msg in messages)
 
@@ -89,3 +88,37 @@ def test_messages_from_parquet(omop_resources: Path) -> None:
     ]
 
     assert messages == expected_messages
+
+
+def test_batch_upload(omop_resources: Path, rows_in_session, mock_publisher) -> None:
+    """
+    GIVEN the database has a single Export entity, with one exported Image, one unexported Image
+    WHEN we parse a file with the two existing images and one new image
+    THEN the database should have 3 images, returned messages excludes the exported image.
+    """
+    input_file = omop_resources / "batch_input.csv"
+    messages_df = read_patient_info(input_file)
+    messages = populate_queue_and_db(["imaging"], messages_df)
+
+    # Database has 3 rows now
+    images_in_db = rows_in_session.query(Image).all()
+    assert len(images_in_db) == 3
+    # Exported image filtered out
+    assert len(messages) == 2
+
+
+def test_duplicate_upload(omop_resources: Path, rows_in_session, mock_publisher) -> None:
+    """
+    GIVEN the database has a single Export entity, with one exported Image, one un-exported Image
+    WHEN we parse a file with duplicated entries the two existing images and one new image
+    THEN the database should have 3 Images, with two message returned.
+    """
+    input_file = omop_resources / "duplicate_input.csv"
+    messages_df = read_patient_info(input_file)
+    messages = populate_queue_and_db(["imaging"], messages_df)
+
+    # Database has 3 rows now
+    images_in_db = rows_in_session.query(Image).all()
+    assert len(images_in_db) == 3
+    # Exported and duplicate messages filtered out
+    assert len(messages) == 2

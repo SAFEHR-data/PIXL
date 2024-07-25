@@ -33,11 +33,9 @@ from pixl_cli._database import exported_images_for_project
 from pixl_cli._docker_commands import dc
 from pixl_cli._io import (
     HOST_EXPORT_ROOT_DIR,
-    copy_parquet_return_logfile_fields,
     make_radiology_linker_table,
-    messages_from_csv,
-    messages_from_parquet,
     project_info,
+    read_patient_info,
 )
 from pixl_cli._message_processing import (
     populate_queue_and_db,
@@ -153,17 +151,13 @@ def populate(  # too many args
         num_retries = 0
 
     logger.info("Populating queue(s) {} from {}", queues_to_populate, parquet_path)
-    if parquet_path.is_file() and parquet_path.suffix == ".csv":
-        messages = messages_from_csv(parquet_path)
-        project_name = messages[0].project_name
-    else:
-        project_name, omop_es_datetime = copy_parquet_return_logfile_fields(parquet_path)
-        messages = messages_from_parquet(parquet_path, project_name, omop_es_datetime)
+    messages_df = read_patient_info(parquet_path)
+    project_name = messages_df["project_name"].iloc[0]
 
-    populate_queue_and_db(queues_to_populate, messages)
+    populate_queue_and_db(queues_to_populate, messages_df)
     if num_retries != 0:
         retry_until_export_count_is_unchanged(
-            messages, num_retries, queues_to_populate, project_name
+            messages_df, num_retries, queues_to_populate, project_name
         )
 
 
