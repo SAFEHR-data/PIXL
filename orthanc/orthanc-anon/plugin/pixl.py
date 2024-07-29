@@ -256,6 +256,8 @@ def _process_dicom_instance(receivedDicom: bytes) -> tuple[orthanc.ReceivedInsta
         logger.warning("Skipping {}: {}", study_identifiers, error)
         return orthanc.ReceivedInstanceAction.DISCARD, None
     except:  # noqa: E722 Allow bare except
+        # Called from a callback in orthanc so will never take down the service
+        # we want to do dicard anything on failure so we don't leak identifiable information
         logger.exception("{} failed", study_identifiers)
         return orthanc.ReceivedInstanceAction.DISCARD, None
 
