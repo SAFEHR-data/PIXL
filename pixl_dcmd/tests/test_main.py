@@ -131,6 +131,28 @@ def test_anonymisation(vanilla_dicom_image: Dataset) -> None:
     assert "StudyDate" not in vanilla_dicom_image
 
 
+def test_anonymise_unimplemented_tag(vanilla_dicom_image: Dataset) -> None:
+    """
+    GIVEN DICOM with OB data type within a sequence, that has "replace" tag operation
+    WHEN anonymise_dicom is run
+    THEN the anonymisation should pass and the OB data type should not be present
+
+    VR OB is not implemented by the dicom anonymisation library, so this
+    is testing that we can still successfully de-identify data with this data type
+    """
+    nested_ds = Dataset()
+    nested_block = nested_ds.private_block(0x0013, "VR OB CREATOR", create=True)
+    nested_block.add_new(0x0011, "OB", b"")
+
+    # create private sequence tag with the nested dataset
+    block = vanilla_dicom_image.private_block(0x0013, "VR OB CREATOR", create=True)
+    block.add_new(0x0010, "SQ", [nested_ds])
+
+    anonymise_dicom(vanilla_dicom_image)
+
+    assert (0x0011, 0x1011) not in vanilla_dicom_image
+
+
 # TODO: test that anonymise_and_validate_dicom() works as expected
 # https://github.com/UCLH-Foundry/PIXL/issues/418
 
