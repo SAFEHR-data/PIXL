@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
 from pathlib import Path
 
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
@@ -83,3 +84,19 @@ class DicomValidator:
                 self.diff_errors[key] = self.anon_errors[key]
 
         return self.diff_errors
+
+
+@dataclass
+class StudyInfo:
+    """Identifiers used for an imaging study"""
+
+    mrn: str
+    accession_number: str
+
+
+def get_study_info(dataset: Dataset) -> StudyInfo:
+    """Read study identifiers from dicom dataset."""
+    return StudyInfo(
+        mrn=dataset[0x0010, 0x0020].value,
+        accession_number=dataset[0x0008, 0x0050].value,
+    )

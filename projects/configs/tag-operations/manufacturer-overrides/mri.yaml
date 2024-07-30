@@ -12,14 +12,24 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+# https://www.documents.philips.com/doclib/enc/fetch/8554818/DICOM_Conformance_Statement_MR_Applications_on_IntelliSpace_Portal_V4.0.pdf
 - manufacturer: ^philips
   tags:
-    - group: 0x2001
-      element: 0x1003
+    - name: "Private Creator Group 2001"
+      group: 0x2001
+      element: 0x0010
+      op: "keep"
+    - name: "Private Creator Group 2001 (90)"
+      group: 0x2001
+      element: 0x0090
       op: "keep"
     - name: "Flip angle" # public version can have rounding issues
       group: 0x2001
       element: 0x1023
+      op: "keep"
+    - name: "Private Creator Group 2005"
+      group: 0x2005
+      element: 0x0010
       op: "keep"
     - name: "Scale Slope"
       group: 0x2005
