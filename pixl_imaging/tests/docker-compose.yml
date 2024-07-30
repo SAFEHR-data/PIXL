@@ -55,6 +55,7 @@ services:
             target: pixl_orthanc_raw
             args:
                 PIXL_USER_GID: 9999
+                PIXL_DICOM_TRANSFER_TIMEOUT: 20
         environment:
             ORTHANC_NAME: "PIXL: Raw"
             ORTHANC_USERNAME: "orthanc"

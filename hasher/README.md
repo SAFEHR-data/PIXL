@@ -27,7 +27,7 @@ It is assumed you have a Python virtual environment configured using a tool like
 Install `hasher` locally with:
 
 ```shell
-pip install -e .
+python -m pip install -e .
 ```
 
 ### Setup

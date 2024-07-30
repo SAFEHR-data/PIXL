@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from io import BytesIO
 from os import PathLike
-from typing import Any, BinaryIO, Callable, Union
+from typing import Any, BinaryIO, Callable, TYPE_CHECKING, Union
 
 import requests
 from core.exceptions import PixlDiscardError
@@ -29,10 +29,17 @@ from loguru import logger
 from pydicom import DataElement, Dataset, dcmwrite
 
 from pixl_dcmd._database import get_uniq_pseudo_study_uid_and_update_db
-from pixl_dcmd._dicom_helpers import DicomValidator, get_project_name_as_string
+from pixl_dcmd._dicom_helpers import (
+    DicomValidator,
+    get_project_name_as_string,
+    get_study_info,
+)
 from pixl_dcmd._tag_schemes import _scheme_list_to_dict, merge_tag_schemes
 
 DicomDataSetType = Union[Union[str, bytes, PathLike[Any]], BinaryIO]
+
+if TYPE_CHECKING:
+    from pixl_dcmd._dicom_helpers import StudyInfo
 
 
 def write_dataset_to_bytes(dataset: Dataset) -> bytes:
@@ -84,13 +91,17 @@ def anonymise_dicom(dataset: Dataset) -> None:
     - recursively applying tag operations based on the config file
     - deleting any tags not in the tag scheme recursively
     """
+    study_info = get_study_info(dataset)
+
     project_slug = get_project_name_as_string(dataset)
 
     project_config = load_project_config(project_slug)
-    logger.debug(f"Received instance for project {project_slug}")
+    logger.debug(f"Received instance for project {project_slug}:  {study_info}")
     if dataset.Modality not in project_config.project.modalities:
         msg = f"Dropping DICOM Modality: {dataset.Modality}"
         raise PixlDiscardError(msg)
+
+    logger.info("Anonymising received instance: {}", study_info)
 
     # Merge tag schemes
     tag_operations = load_tag_operations(project_config)
@@ -98,7 +109,7 @@ def anonymise_dicom(dataset: Dataset) -> None:
 
     modalities = project_config.project.modalities
 
-    logger.info(
+    logger.debug(
         f"Applying DICOM tag anonymisation according to {project_config.tag_operation_files}"
     )
     logger.trace(f"Tag scheme: {tag_scheme}")
@@ -107,26 +118,26 @@ def anonymise_dicom(dataset: Dataset) -> None:
         msg = f"Dropping DICOM Modality: {dataset.Modality}"
         raise PixlDiscardError(msg)
 
-    logger.info("Anonymising received instance")
-    _anonymise_dicom_from_scheme(dataset, project_slug, tag_scheme)
     enforce_whitelist(dataset, tag_scheme, recursive=True)
+    _anonymise_dicom_from_scheme(dataset, project_slug, tag_scheme, study_info)
 
 
 def _anonymise_dicom_from_scheme(
-    dataset: Dataset, project_slug: str, tag_scheme: list[dict]
+    dataset: Dataset,
+    project_slug: str,
+    tag_scheme: list[dict],
+    study_info: StudyInfo,
 ) -> None:
     """
     Converts tag scheme to tag actions and calls _anonymise_recursively.
     """
     tag_actions = _convert_schema_to_actions(dataset, project_slug, tag_scheme)
-    # Get the MRN, Accession Number before we've anonymised them
-    mrn = dataset[0x0010, 0x0020].value  # Patient ID
-    accession_number = dataset[0x0008, 0x0050].value  # Accession Number
+
     _anonymise_recursively(dataset, tag_actions)
 
     # Update the dataset with the new pseudo study ID
     dataset[0x0020, 0x000D].value = get_uniq_pseudo_study_uid_and_update_db(
-        project_slug, mrn, accession_number
+        project_slug, study_info
     )
 
 

@@ -37,6 +37,7 @@ from loguru import logger
 from pydicom import dcmread
 
 import orthanc
+from pixl_dcmd._dicom_helpers import get_study_info
 from pixl_dcmd.main import (
     anonymise_and_validate_dicom,
     should_exclude_series,
@@ -170,7 +171,8 @@ def notify_export_api_of_readiness(study_id: str):
     """
     url = EXPORT_API_URL + "/export-dicom-from-orthanc"
     payload = {"study_id": study_id}
-    response = requests.post(url, json=payload, timeout=30)
+    timeout: float = config("PIXL_DICOM_TRANSFER_TIMEOUT", default=180, cast=float)
+    response = requests.post(url, json=payload, timeout=timeout)
     response.raise_for_status()
 
 
@@ -247,10 +249,16 @@ def _process_dicom_instance(receivedDicom: bytes) -> tuple[orthanc.ReceivedInsta
 
     # Attempt to anonymise and drop the study if any exceptions occur
     try:
+        study_identifiers = get_study_info(dataset)
         anonymise_and_validate_dicom(dataset)
         return orthanc.ReceivedInstanceAction.MODIFY, write_dataset_to_bytes(dataset)
     except PixlDiscardError as error:
-        logger.debug("Skipping instance: {}", error)
+        logger.warning("Skipping {}: {}", study_identifiers, error)
+        return orthanc.ReceivedInstanceAction.DISCARD, None
+    except:  # noqa: E722 Allow bare except
+        # Called from a callback in orthanc so will never take down the service
+        # we want to do dicard anything on failure so we don't leak identifiable information
+        logger.exception("{} failed", study_identifiers)
         return orthanc.ReceivedInstanceAction.DISCARD, None
 
 

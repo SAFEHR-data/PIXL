@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pytest
 from core.db.models import Extract, Image
-from pixl_cli._io import make_radiology_linker_table, messages_from_csv
+from pixl_cli._io import make_radiology_linker_table, read_patient_info
 from pydicom.uid import generate_uid
 
 
@@ -30,7 +30,7 @@ def test_message_from_csv_raises_for_malformed_input(tmpdir):
     csv_file.write("procedure_id,mrn,accession_number,extract_generated_timestamp,study_date\n")
     csv_file.write("1,123,1234,01/01/2021 00:00,01/01/2021\n")
     with pytest.raises(ValueError, match=".*expected to have at least.*"):
-        messages_from_csv(csv_file)
+        read_patient_info(Path(csv_file))
 
 
 def test_make_radiology_linker_table(omop_resources: Path):

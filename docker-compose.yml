@@ -118,6 +118,7 @@ services:
             target: pixl_orthanc_anon
             args:
                 <<: *build-args-common
+                ORTHANC_CONCURRENT_JOBS: ${ORTHANC_CONCURRENT_JOBS}
         platform: linux/amd64
         command: /run/secrets
         environment:
@@ -130,6 +131,7 @@ services:
             ORTHANC_RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
             ORTHANC_RAW_DICOM_PORT: "4242"
             ORTHANC_RAW_HOSTNAME: "orthanc-raw"
+            PIXL_DICOM_TRANSFER_TIMEOUT: ${PIXL_DICOM_TRANSFER_TIMEOUT}
             # For the export API
             ORTHANC_ANON_URL: "http://localhost:8042"
             ORTHANC_ANON_USERNAME: ${ORTHANC_ANON_USERNAME}
@@ -137,7 +139,6 @@ services:
             DICOM_WEB_PLUGIN_ENABLED: ${ENABLE_DICOM_WEB}
             HASHER_API_AZ_NAME: "hasher-api"
             HASHER_API_PORT: 8000
-            HTTP_TIMEOUT: ${ORTHANC_ANON_HTTP_TIMEOUT}
             AZ_DICOM_ENDPOINT_NAME: ${AZ_DICOM_ENDPOINT_NAME}
             AZ_DICOM_ENDPOINT_URL: ${AZ_DICOM_ENDPOINT_URL}
             AZ_DICOM_ENDPOINT_TOKEN: ${AZ_DICOM_ENDPOINT_TOKEN}
@@ -155,7 +156,6 @@ services:
             - type: volume
               source: orthanc-anon-data
               target: /var/lib/orthanc/db
-            - ${PWD}/orthanc/orthanc-anon/config:/run/secrets:ro
             - ${PWD}/projects/configs:/${PROJECT_CONFIGS_DIR:-/projects/configs}:ro
         networks:
             - pixl-net
@@ -186,7 +186,9 @@ services:
                 <<: *build-args-common
                 ORTHANC_RAW_MAXIMUM_STORAGE_SIZE: ${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE}
                 ORTHANC_RAW_JOB_HISTORY_SIZE: ${ORTHANC_RAW_JOB_HISTORY_SIZE}
-                ORTHANC_RAW_CONCURRENT_JOBS: ${ORTHANC_RAW_CONCURRENT_JOBS}
+                ORTHANC_CONCURRENT_JOBS: ${ORTHANC_CONCURRENT_JOBS}
+                PIXL_DICOM_TRANSFER_TIMEOUT: ${PIXL_DICOM_TRANSFER_TIMEOUT}
+                ORTHANC_RAW_EXTRA_STABLE_SECONDS: ${ORTHANC_RAW_EXTRA_STABLE_SECONDS}
         platform: linux/amd64
         command: /run/secrets
         environment:
@@ -275,6 +277,7 @@ services:
             ORTHANC_ANON_PASSWORD: ${ORTHANC_ANON_PASSWORD}
             PROJECT_CONFIGS_DIR: /${PROJECT_CONFIGS_DIR:-/projects/configs}
             PIXL_MAX_MESSAGES_IN_FLIGHT: ${PIXL_MAX_MESSAGES_IN_FLIGHT}
+            HTTP_TIMEOUT: ${PIXL_DICOM_TRANSFER_TIMEOUT}
         env_file:
             - ./docker/common.env
         depends_on:

@@ -52,22 +52,37 @@ USER orthanc
 ARG ORTHANC_DATA_VOLUME=/var/lib/orthanc/db/
 RUN mkdir "$ORTHANC_DATA_VOLUME" && chown orthanc:orthanc "$ORTHANC_DATA_VOLUME"
 
+
+# Orthanc-raw
+# =================================================================================================
 FROM pixl_orthanc_base AS pixl_orthanc_raw
 
 COPY --chown=orthanc:orthanc ./orthanc/orthanc-raw/plugin/pixl.py /etc/orthanc/pixl.py
 
-# Orthanc can't substitute environment veriables as integers so copy and replace before running
 ARG ORTHANC_RAW_MAXIMUM_STORAGE_SIZE
 ARG ORTHANC_RAW_JOB_HISTORY_SIZE
-ARG ORTHANC_RAW_CONCURRENT_JOBS
+ARG ORTHANC_CONCURRENT_JOBS
+ARG ORTHANC_RAW_EXTRA_STABLE_SECONDS
+ARG PIXL_DICOM_TRANSFER_TIMEOUT
+
+# Orthanc can't substitute environment veriables as integers so copy and replace before running
 COPY --chown=orthanc:orthanc ./orthanc/orthanc-raw/config /run/secrets
 RUN sed -i "s/\${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE}/${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE:-0}/g" /run/secrets/orthanc.json
 RUN sed -i "s/\${ORTHANC_RAW_JOB_HISTORY_SIZE}/${ORTHANC_RAW_JOB_HISTORY_SIZE:-100}/g" /run/secrets/orthanc.json
-RUN sed -i "s/\${ORTHANC_RAW_CONCURRENT_JOBS}/${ORTHANC_RAW_CONCURRENT_JOBS:-5}/g" /run/secrets/orthanc.json
+RUN sed -i "s/\${ORTHANC_CONCURRENT_JOBS}/${ORTHANC_CONCURRENT_JOBS:-5}/g" /run/secrets/orthanc.json
+RUN sed -i "s/\${ORTHANC_RAW_STABLE_SECONDS}/$((PIXL_DICOM_TRANSFER_TIMEOUT + ${ORTHANC_RAW_EXTRA_STABLE_SECONDS:-60}))/g" /run/secrets/orthanc.json
 
 ENV PYTHONPATH=/.venv/lib64/python3.11/site-packages/
 
+
+# Orthanc-anon
+# =================================================================================================
 FROM pixl_orthanc_base AS pixl_orthanc_anon
+
 COPY --chown=orthanc:orthanc ./orthanc/orthanc-anon/plugin/pixl.py /etc/orthanc/pixl.py
+COPY --chown=orthanc:orthanc ./orthanc/orthanc-anon/config /run/secrets
+
+RUN sed -i "s/\${ORTHANC_CONCURRENT_JOBS}/${ORTHANC_CONCURRENT_JOBS:-5}/g" /run/secrets/orthanc.json
+
 
 ENV PYTHONPATH=/.venv/lib64/python3.11/site-packages/

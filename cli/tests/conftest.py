@@ -15,37 +15,53 @@
 
 from __future__ import annotations
 
+import datetime
 import os
 from pathlib import Path
+from typing import TYPE_CHECKING
 
+import pandas as pd
 import pytest
 from core.db.models import Base, Extract, Image
+from core.patient_queue.message import Message
+from core.patient_queue.producer import PixlProducer
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
+if TYPE_CHECKING:
+    from collections.abc import Generator
+    from unittest.mock import Mock
+
+
+# Load environment variables from test .env file
+with (Path(__file__).parents[2] / "test/.env").open() as f:
+    for line in f.readlines():
+        if "=" in line:
+            key, value = line.strip().split("=")
+            os.environ[key] = value
+
+# Set the remaining environment variables
 os.environ["PROJECT_CONFIGS_DIR"] = str(Path(__file__).parents[2] / "projects/configs")
 
-# Set the necessary environment variables
-os.environ["PIXL_EXPORT_API_HOST"] = "localhost"
-os.environ["PIXL_EXPORT_API_PORT"] = "7006"
+os.environ["EXPORT_AZ_CLIENT_ID"] = "export client id"
+os.environ["EXPORT_AZ_CLIENT_PASSWORD"] = "export client password"
+os.environ["EXPORT_AZ_TENANT_ID"] = "export tenant id"
+os.environ["EXPORT_AZ_KEY_VAULT_NAME"] = "export key vault name"
 
-os.environ["PIXL_IMAGING_API_HOST"] = "localhost"
-os.environ["PIXL_IMAGING_API_RATE"] = "1"
-os.environ["PIXL_IMAGING_API_PORT"] = "7007"
+os.environ["HASHER_API_AZ_CLIENT_ID"] = "hasher client id"
+os.environ["HASHER_API_AZ_CLIENT_PASSWORD"] = "hasher client password"
+os.environ["HASHER_API_AZ_TENANT_ID"] = "hasher tenant id"
+os.environ["HASHER_API_AZ_KEY_VAULT_NAME"] = "hasher key vault name"
 
-os.environ["RABBITMQ_HOST"] = "localhost"
-os.environ["RABBITMQ_USERNAME"] = "rabbitmq_username"
-os.environ["RABBITMQ_PASSWORD"] = "rabbitmq_password"
-os.environ["RABBITMQ_PORT"] = "7008"
+os.environ["ORTHANC_RAW_JOB_HISTORY_SIZE"] = "100"
+os.environ["ORTHANC_CONCURRENT_JOBS"] = "20"
 
-os.environ["PIXL_DB_USER"] = "pixl_db_username"
-os.environ["PIXL_DB_PASSWORD"] = "pixl_db_password"
-os.environ["POSTGRES_HOST"] = "locahost"
-os.environ["POSTGRES_PORT"] = "7001"
-os.environ["PIXL_DB_NAME"] = "pixl"
-
-os.environ["ORTHANC_ANON_USERNAME"] = "orthanc"
-os.environ["ORTHANC_ANON_PASSWORD"] = "orthanc"
+os.environ["AZ_DICOM_ENDPOINT_NAME"] = "dicom endpoint name"
+os.environ["AZ_DICOM_ENDPOINT_URL"] = "dicom endpoint url"
+os.environ["AZ_DICOM_ENDPOINT_TOKEN"] = "dicom endpoint token"
+os.environ["AZ_DICOM_ENDPOINT_CLIENT_ID"] = "dicom endpoint client id"
+os.environ["AZ_DICOM_ENDPOINT_CLIENT_SECRET"] = "dicom endpoint client secret"
+os.environ["AZ_DICOM_ENDPOINT_TENANT_ID"] = "dicom endpoint tenant id"
 
 
 @pytest.fixture(autouse=True)
@@ -106,3 +122,69 @@ def db_session(db_engine) -> Session:
         session.query(Extract).delete()
         yield session
     session.close()
+
+
+STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
+
+
+def _make_message(project_name: str, accession_number: str, mrn: str) -> Message:
+    return Message(
+        project_name=project_name,
+        accession_number=accession_number,
+        mrn=mrn,
+        study_date=STUDY_DATE,
+        procedure_occurrence_id=1,
+        extract_generated_timestamp=datetime.datetime.now(tz=datetime.UTC),
+    )
+
+
+@pytest.fixture()
+def example_messages():
+    """Test input data."""
+    return [
+        _make_message(project_name="i-am-a-project", accession_number="123", mrn="mrn"),
+        _make_message(project_name="i-am-a-project", accession_number="234", mrn="mrn"),
+        _make_message(project_name="i-am-a-project", accession_number="345", mrn="mrn"),
+    ]
+
+
+@pytest.fixture()
+def example_messages_df(example_messages):
+    """Test input data in a DataFrame."""
+    return pd.DataFrame.from_records([vars(im) for im in example_messages])
+
+
+@pytest.fixture()
+def rows_in_session(db_session) -> Session:
+    """Insert a test row for each table, returning the session for use in tests."""
+    extract = Extract(slug="i-am-a-project")
+
+    image_exported = Image(
+        accession_number="123",
+        study_date=STUDY_DATE,
+        mrn="mrn",
+        extract=extract,
+        extract_id=extract.extract_id,
+        exported_at=datetime.datetime.now(tz=datetime.UTC),
+    )
+    image_not_exported = Image(
+        accession_number="234",
+        study_date=STUDY_DATE,
+        mrn="mrn",
+        extract=extract,
+        extract_id=extract.extract_id,
+    )
+    with db_session:
+        db_session.add_all([extract, image_exported, image_not_exported])
+        db_session.commit()
+
+    return db_session
+
+
+@pytest.fixture()
+def mock_publisher(mocker) -> Generator[Mock, None, None]:
+    """Patched publisher that does nothing, returns MagicMock of the publish method."""
+    mocker.patch.object(PixlProducer, "__init__", return_value=None)
+    mocker.patch.object(PixlProducer, "__enter__", return_value=PixlProducer)
+    mocker.patch.object(PixlProducer, "__exit__")
+    return mocker.patch.object(PixlProducer, "publish")
