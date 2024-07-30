@@ -152,7 +152,8 @@ def test_anonymise_unimplemented_tag(vanilla_dicom_image: Dataset) -> None:
 
     assert (0x0013, 0x0010) in vanilla_dicom_image
     assert (0x0013, 0x1010) in vanilla_dicom_image
-    assert (0x0013, 0x1011) not in vanilla_dicom_image
+    sequence = vanilla_dicom_image[(0x0013, 0x1010)]
+    assert (0x0013, 0x1011) not in sequence[0]
 
 
 # TODO: test that anonymise_and_validate_dicom() works as expected
