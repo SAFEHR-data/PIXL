@@ -149,6 +149,7 @@ class DF_COLUMNS(StrEnum):  # noqa: N801
     project_name = auto()
     extract_generated_timestamp = auto()
     study_date = auto()
+    study_uid = auto()
 
 
 MAP_CSV_TO_MESSAGE_KEYS = {
@@ -160,6 +161,7 @@ MAP_PARQUET_TO_MESSAGE_KEYS = {
     "PrimaryMrn": "mrn",
     "AccessionNumber": "accession_number",
     "procedure_date": "study_date",
+    "StudyUid_X": "study_uid",
 }
 
 
