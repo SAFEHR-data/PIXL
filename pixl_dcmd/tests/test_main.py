@@ -133,9 +133,9 @@ def test_anonymisation(vanilla_dicom_image: Dataset) -> None:
 
 def test_anonymise_unimplemented_tag(vanilla_dicom_image: Dataset) -> None:
     """
-    GIVEN DICOM with OB data type within a sequence, that has "replace" tag operation
-    WHEN anonymise_dicom is run
-    THEN the anonymisation should pass
+    GIVEN DICOM data with an OB data type tag within a sequence
+    WHEN anonymise_dicom is run that has "replace" tag operation on the sequence, but not the OB element
+    THEN the sequence should exist, but not the OB element
 
     VR OB is not implemented by the dicom anonymisation library, so this
     is testing that we can still successfully de-identify data with this data type
@@ -151,6 +151,8 @@ def test_anonymise_unimplemented_tag(vanilla_dicom_image: Dataset) -> None:
     anonymise_dicom(vanilla_dicom_image)
 
     assert (0x0013, 0x0010) in vanilla_dicom_image
+    assert (0x0013, 0x1010) in vanilla_dicom_image
+    assert (0x0013, 0x1011) not in vanilla_dicom_image
 
 
 # TODO: test that anonymise_and_validate_dicom() works as expected
