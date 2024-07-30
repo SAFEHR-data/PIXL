@@ -298,6 +298,10 @@
   group: 0x0028
   element: 0x0301
   op: "keep"
+- name: "LUTDescriptor"
+  group: 0x0028
+  element: 0x0302
+  op: "keep"
 - name: "Pixel Spacing Calibration Type"
   group: 0x0028
   element: 0x0a02

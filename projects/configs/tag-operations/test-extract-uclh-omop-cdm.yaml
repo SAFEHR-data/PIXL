@@ -206,7 +206,15 @@
 - name: "Private Creator Data Element"
   group: 0x0011
   element: 0x0010
-  op: "delete"
+  op: "replace"
+- name: "VR OB Creator"
+  group: 0x0013
+  element: 0x0010
+  op: "keep"
+- name: "VR OB sequence"
+  group: 0x0013
+  element: 0x1010
+  op: "replace"
 - name: "Body Part Examined"
   group: 0x0018
   element: 0x0015
