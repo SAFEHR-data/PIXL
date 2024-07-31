@@ -9,7 +9,7 @@ classifiers = ["Programming Language :: Python :: 3"]
 dependencies = [
     "core",
     "uvicorn==0.23.2",
-    "python-decouple==3.6",
+    "python-decouple==3.8",
     "psycopg2-binary==2.9.9",
     "azure-identity==1.12.0",
     "azure-storage-blob==12.14.1",
