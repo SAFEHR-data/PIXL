@@ -20,7 +20,7 @@ dependencies = [
     "loguru==0.7.2",
     "sqlalchemy==2.0.24",
     "psycopg2-binary==2.9.9",
-    "pandas==2.2.1",
+    "pandas==2.2.2",
     "pyarrow==14.0.1",
     "PyYAML==6.0.1",
     "pydantic==2.6.3",
