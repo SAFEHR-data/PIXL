@@ -316,12 +316,10 @@ def test_can_nifti_convert_post_anonymisation(
             "op": "keep",
         },
     ]
-    study_info = StudyInfo("ID123456", "BB01234567")
-
     # Get test DICOMs from the fixture, anonymise and save
     for dcm_path in directory_of_mri_dicoms.glob("*.dcm"):
         dcm = pydicom.dcmread(dcm_path)
-        _anonymise_dicom_from_scheme(dcm, TEST_PROJECT_SLUG, tag_scheme, study_info)
+        _anonymise_dicom_from_scheme(dcm, TEST_PROJECT_SLUG, tag_scheme)
         pydicom.dcmwrite(anon_dicom_dir / dcm_path.name, dcm)
 
     # Convert the anonymised DICOMs to NIFTI with dcm2niix

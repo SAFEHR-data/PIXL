@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from io import BytesIO
 from os import PathLike
-from typing import Any, BinaryIO, Callable, TYPE_CHECKING, Union
+from typing import Any, BinaryIO, Callable, Union
 
 import requests
 from core.exceptions import PixlDiscardError
@@ -37,9 +37,6 @@ from pixl_dcmd._dicom_helpers import (
 from pixl_dcmd._tag_schemes import _scheme_list_to_dict, merge_tag_schemes
 
 DicomDataSetType = Union[Union[str, bytes, PathLike[Any]], BinaryIO]
-
-if TYPE_CHECKING:
-    from pixl_dcmd._dicom_helpers import StudyInfo
 
 
 def write_dataset_to_bytes(dataset: Dataset) -> bytes:
@@ -92,7 +89,6 @@ def anonymise_dicom(dataset: Dataset) -> None:
     - deleting any tags not in the tag scheme recursively
     """
     study_info = get_study_info(dataset)
-
     project_slug = get_project_name_as_string(dataset)
 
     project_config = load_project_config(project_slug)
@@ -119,14 +115,18 @@ def anonymise_dicom(dataset: Dataset) -> None:
         raise PixlDiscardError(msg)
 
     enforce_whitelist(dataset, tag_scheme, recursive=True)
-    _anonymise_dicom_from_scheme(dataset, project_slug, tag_scheme, study_info)
+    _anonymise_dicom_from_scheme(dataset, project_slug, tag_scheme)
+
+    # Update the dataset with the new pseudo study ID
+    dataset[0x0020, 0x000D].value = get_uniq_pseudo_study_uid_and_update_db(
+        project_slug, study_info
+    )
 
 
 def _anonymise_dicom_from_scheme(
     dataset: Dataset,
     project_slug: str,
     tag_scheme: list[dict],
-    study_info: StudyInfo,
 ) -> None:
     """
     Converts tag scheme to tag actions and calls _anonymise_recursively.
@@ -134,11 +134,6 @@ def _anonymise_dicom_from_scheme(
     tag_actions = _convert_schema_to_actions(dataset, project_slug, tag_scheme)
 
     _anonymise_recursively(dataset, tag_actions)
-
-    # Update the dataset with the new pseudo study ID
-    dataset[0x0020, 0x000D].value = get_uniq_pseudo_study_uid_and_update_db(
-        project_slug, study_info
-    )
 
 
 def _anonymise_recursively(
