@@ -78,7 +78,7 @@ jobs:
                   AZURE_KEY_VAULT_SECRET_NAME: test
 
             - name: Upload coverage reports to Codecov
-              uses: codecov/codecov-action@v4.2.0
+              uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673 # v4.5.0
               with:
                   directory: ${{ matrix.package_dir }}
               env:
@@ -148,7 +148,7 @@ jobs:
                   docker logs -t system-test-imaging-api-1 2>&1
 
             - name: Upload coverage reports to Codecov
-              uses: codecov/codecov-action@v4.2.0
+              uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673 # v4.5.0
               with:
                 directory: test
               env:
