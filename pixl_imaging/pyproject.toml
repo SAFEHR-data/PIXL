@@ -11,7 +11,7 @@ dependencies = [
     "alembic==1.13.2",
     "pydicom==2.4.4",
     "python-decouple==3.8",
-    "uvicorn==0.23.2",
+    "uvicorn==0.30.3",
 ]
 
 [project.optional-dependencies]
