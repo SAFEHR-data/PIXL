@@ -18,6 +18,7 @@ from __future__ import annotations
 import datetime
 import pathlib
 import shlex
+from typing import TYPE_CHECKING
 
 import pytest
 from core.patient_queue.message import Message
@@ -27,6 +28,10 @@ from pixl_imaging._processing import ImagingStudy, process_message
 from pydicom import dcmread
 from pydicom.data import get_testdata_file
 from pytest_pixl.helpers import run_subprocess
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
 
 pytest_plugins = ("pytest_asyncio",)
 
@@ -61,10 +66,10 @@ class WritableOrthanc(Orthanc):
 
 
 @pytest.fixture(scope="module")
-def _add_image_to_fake_vna(run_containers) -> None:
+def _add_image_to_fake_vna(run_containers) -> Generator[None]:
     """Add single fake image to VNA."""
     image_filename = "test.dcm"
-    path = get_testdata_file("CT_small.dcm")
+    path = str(get_testdata_file("CT_small.dcm"))
     ds = dcmread(path)
     ds.AccessionNumber = ACCESSION_NUMBER
     ds.PatientID = PATIENT_ID
