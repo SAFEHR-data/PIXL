@@ -15,7 +15,7 @@ dependencies = [
     "pyftpdlib==1.5.9",
     "python-decouple==3.6",
     "pyOpenSSL==24.0.0",
-    "requests==2.31.0",
+    "requests==2.32.2",
     "pytest-loguru==0.4.0",
 ]
 
