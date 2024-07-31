@@ -14,7 +14,7 @@ dependencies = [
     "pydicom==2.4.4",
     "pyftpdlib==1.5.10",
     "python-decouple==3.6",
-    "pyOpenSSL==24.0.0",
+    "pyOpenSSL==24.2.1",
     "requests==2.31.0",
     "pytest-loguru==0.4.0",
 ]
