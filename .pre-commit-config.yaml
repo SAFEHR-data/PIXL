@@ -30,7 +30,7 @@ repos:
             pass_filenames: false
             additional_dependencies:
                 [
-                    "mypy==1.9.0",
+                    "mypy==1.11.1",
                     "types-PyYAML",
                     "types-requests",
                     "types-python-slugify",

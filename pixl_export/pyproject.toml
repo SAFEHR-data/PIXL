@@ -13,7 +13,7 @@ dependencies = [
     "psycopg2-binary==2.9.9",
     "azure-identity==1.12.0",
     "azure-storage-blob==12.21.0",
-    "pyarrow==14.0.1",
+    "pyarrow==17.0.0",
 ]
 
 [project.optional-dependencies]
