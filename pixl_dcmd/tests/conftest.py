@@ -22,6 +22,7 @@ import tempfile
 from collections.abc import Generator
 from typing import Optional
 
+from pixl_dcmd._dicom_helpers import get_study_info
 import pytest
 import pytest_pixl.dicom
 import requests
@@ -30,7 +31,7 @@ from core.dicom_tags import (
     DICOM_TAG_PROJECT_NAME,
     add_private_tag,
 )
-from pydicom import Dataset
+from pydicom import Dataset, dcmread
 from pytest_pixl.dicom import generate_dicom_dataset
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
@@ -46,26 +47,44 @@ os.environ["PROJECT_CONFIGS_DIR"] = str(
 STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
 TEST_PROJECT_SLUG = "test-extract-uclh-omop-cdm"
 
-EXPORTED_MRN = "987654321"
-EXPORTED_ACCESSION_NUMBER = "AA12345601"
+
+@pytest.fixture()
+def exported_dicom_dataset() -> Dataset:
+    exported_dicom_file = (
+        pathlib.Path(__file__).parents[2] / "test/resources/Dicom1.dcm"
+    )
+    return dcmread(exported_dicom_file)
 
 
 @pytest.fixture()
-def rows_in_session(db_session) -> Session:
+def not_exported_dicom_dataset() -> Dataset:
+    exported_dicom_file = (
+        pathlib.Path(__file__).parents[2] / "test/resources/Dicom2.dcm"
+    )
+    return dcmread(exported_dicom_file)
+
+
+@pytest.fixture()
+def rows_in_session(
+    db_session, exported_dicom_dataset, not_exported_dicom_dataset
+) -> Session:
     """Insert a test row for each table, returning the session for use in tests."""
     extract = Extract(slug=TEST_PROJECT_SLUG)
 
+    exported_study_info = get_study_info(exported_dicom_dataset)
+    not_exported_study_info = get_study_info(not_exported_dicom_dataset)
+
     image_exported = Image(
-        accession_number=EXPORTED_ACCESSION_NUMBER,
+        mrn=exported_study_info.mrn,
+        accession_number=exported_study_info.accession_number,
         study_date=STUDY_DATE,
-        mrn=EXPORTED_MRN,
         extract=extract,
         exported_at=datetime.datetime.now(tz=datetime.timezone.utc),
     )
     image_not_exported = Image(
-        accession_number="AA12345605",
+        mrn=not_exported_study_info.mrn,
+        accession_number=not_exported_study_info.accession_number,
         study_date=STUDY_DATE,
-        mrn="987654321",
         extract=extract,
     )
     with db_session:
