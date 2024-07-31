@@ -12,7 +12,7 @@ dependencies = [
     "python-decouple==3.8",
     "psycopg2-binary==2.9.9",
     "azure-identity==1.16.1",
-    "azure-storage-blob==12.14.1",
+    "azure-storage-blob==12.21.0",
     "pyarrow==17.0.0",
 ]
 
