@@ -32,10 +32,10 @@ jobs:
         timeout-minutes: 5
         steps:
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
 
             - name: Run pre-commit
-              uses: pre-commit/action@v3.0.1
+              uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
               with:
                   extra_args: --all-files
 
@@ -54,10 +54,10 @@ jobs:
                 package_dir: [pixl_core, hasher, pixl_dcmd, cli, pixl_export, pixl_imaging]
 
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
 
             - name: Init Python
-              uses: actions/setup-python@v5
+              uses: actions/setup-python@39cd14951b08e74b54015e9e001cdefcf80e669f # v5
               with:
                   python-version: "3.11"
                   cache: "pip"
@@ -78,7 +78,7 @@ jobs:
                   AZURE_KEY_VAULT_SECRET_NAME: test
 
             - name: Upload coverage reports to Codecov
-              uses: codecov/codecov-action@v4.2.0
+              uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673 # v4.5.0
               with:
                   directory: ${{ matrix.package_dir }}
               env:
@@ -89,10 +89,10 @@ jobs:
         runs-on: ubuntu-22.04
         timeout-minutes: 30
         steps:
-            - uses: actions/checkout@v4
-            - uses: docker/setup-buildx-action@v3
+            - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+            - uses: docker/setup-buildx-action@988b5a0280414f521da01fcc63a27aeeb4b104db # v3
             - name: Init Python
-              uses: actions/setup-python@v5
+              uses: actions/setup-python@39cd14951b08e74b54015e9e001cdefcf80e669f # v5
               with:
                   python-version: "3.11"
                   cache: "pip"
@@ -148,7 +148,7 @@ jobs:
                   docker logs -t system-test-imaging-api-1 2>&1
 
             - name: Upload coverage reports to Codecov
-              uses: codecov/codecov-action@v4.2.0
+              uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673 # v4.5.0
               with:
                 directory: test
               env:

@@ -86,9 +86,7 @@ class DicomWebUploader(Uploader):
             timeout=self.http_timeout,
         )
         success_code = 200
-        if response.status_code != success_code:
-            return False
-        return True
+        return response.status_code == success_code
 
     def _validate_dicomweb_server(self) -> None:
         """Check if the DICOMweb server is reachable from within the Orthanc instance."""
