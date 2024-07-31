@@ -32,9 +32,11 @@ pytest_plugins = ("pytest_asyncio",)
 
 ACCESSION_NUMBER = "abc"
 PATIENT_ID = "a_patient"
+STUDY_UID = "12345678"
 message = Message(
     mrn=PATIENT_ID,
     accession_number=ACCESSION_NUMBER,
+    study_uid=STUDY_UID,
     study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
         tzinfo=datetime.timezone.utc
     ),
@@ -66,6 +68,7 @@ def _add_image_to_fake_vna(run_containers) -> None:
     ds = dcmread(path)
     ds.AccessionNumber = ACCESSION_NUMBER
     ds.PatientID = PATIENT_ID
+    ds.StudyInstanceUID = STUDY_UID
     ds.save_as(image_filename)
 
     vna = WritableOrthanc(
