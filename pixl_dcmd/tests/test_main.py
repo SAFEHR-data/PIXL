@@ -32,7 +32,7 @@ from core.dicom_tags import (
 from core.project_config import load_project_config, load_tag_operations
 from decouple import config
 
-from pixl_dcmd._dicom_helpers import StudyInfo, get_study_info
+from pixl_dcmd._dicom_helpers import get_study_info
 from pixl_dcmd.main import (
     _anonymise_dicom_from_scheme,
     anonymise_dicom,
@@ -443,12 +443,7 @@ def test_del_tag_keep_sq(sequenced_dicom_mock_db):
     ]
 
     ## ACT
-    _anonymise_dicom_from_scheme(
-        sequenced_dicom_mock_db,
-        TEST_PROJECT_SLUG,
-        tag_scheme,
-        StudyInfo("mrn", "accession"),
-    )
+    _anonymise_dicom_from_scheme(sequenced_dicom_mock_db, TEST_PROJECT_SLUG, tag_scheme)
 
     ## ASSERT
     # Check that the sequence tag has been kept
@@ -497,12 +492,7 @@ def test_keep_tag_del_sq(sequenced_dicom_mock_db):
         },
     ]
     ## ACT
-    _anonymise_dicom_from_scheme(
-        sequenced_dicom_mock_db,
-        TEST_PROJECT_SLUG,
-        tag_scheme,
-        StudyInfo("mrn", "accession"),
-    )
+    _anonymise_dicom_from_scheme(sequenced_dicom_mock_db, TEST_PROJECT_SLUG, tag_scheme)
 
     ## ASSERT
     # Check that the sequence tag has been deleted
