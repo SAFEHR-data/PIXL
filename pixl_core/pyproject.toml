@@ -18,7 +18,7 @@ dependencies = [
     "requests==2.32.2",
     "jsonpickle==3.0.2",
     "loguru==0.7.2",
-    "sqlalchemy==2.0.24",
+    "sqlalchemy==2.0.31",
     "psycopg2-binary==2.9.9",
     "pandas==2.2.2",
     "pyarrow==17.0.0",
