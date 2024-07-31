@@ -21,7 +21,7 @@ dependencies = [
     "sqlalchemy==2.0.24",
     "psycopg2-binary==2.9.9",
     "pandas==2.2.1",
-    "pyarrow==14.0.1",
+    "pyarrow==17.0.0",
     "PyYAML==6.0.1",
     "pydantic==2.6.3",
 ]
