@@ -49,6 +49,17 @@ message = Message(
     project_name="test project",
     extract_generated_timestamp=datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
 )
+no_uid_message = Message(
+    mrn=PATIENT_ID,
+    accession_number=ACCESSION_NUMBER,
+    study_uid="idontexist",
+    study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
+        tzinfo=datetime.timezone.utc
+    ),
+    procedure_occurrence_id=234,
+    project_name="test project",
+    extract_generated_timestamp=datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
+)
 
 
 class WritableOrthanc(Orthanc):
@@ -141,3 +152,25 @@ async def test_existing_message_sent_twice(orthanc_raw) -> None:
 
     # Check update time hasn't changed
     assert first_processing_resource[0]["LastUpdate"] == second_processing_resource[0]["LastUpdate"]
+
+
+@pytest.mark.processing()
+@pytest.mark.asyncio()
+@pytest.mark.usefixtures("_add_image_to_fake_vna")
+async def test_querying_without_uid(orthanc_raw, caplog) -> None:
+    """
+    Given a message with non-existent study_uid
+    When we query the VNA
+    Then the querying falls back to using the MRN and accession number
+    """
+    study = ImagingStudy.from_message(no_uid_message)
+    orthanc = await orthanc_raw
+
+    assert not await study.query_local(orthanc)
+    await process_message(no_uid_message)
+    assert await study.query_local(orthanc)
+
+    expected_msg = (
+        f"No study found with UID {study.message.study_uid}, trying MRN and accession number"
+    )
+    assert expected_msg in caplog.text
