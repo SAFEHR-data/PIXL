@@ -41,7 +41,7 @@ def get_uniq_pseudo_study_uid_and_update_db(
     project_slug: str, study_info: StudyInfo
 ) -> UID:
     """
-    Checks if record (slug, mrn, acc_num) exists in the database,
+    Checks if record (slug, study UID) exists in the database,
     gets the pseudo_study_uid if it is not None or records a new, unique one.
     Returns the pseudo_study_uid.
     """
@@ -49,8 +49,7 @@ def get_uniq_pseudo_study_uid_and_update_db(
     with PixlSession() as pixl_session, pixl_session.begin():
         existing_image = get_unexported_image(
             project_slug,
-            study_info.mrn,
-            study_info.accession_number,
+            study_info.study_uid,
             pixl_session,
         )
         if existing_image.pseudo_study_uid is None:
@@ -85,24 +84,21 @@ def is_unique_pseudo_study_uid(pseudo_study_uid: str, pixl_session: Session) -> 
 
 def get_unexported_image(
     project_slug: str,
-    mrn: str,
-    accession_number: str,
+    study_uid: str,
     pixl_session: Session,
 ) -> Image:
     """
     Get an existing, non-exported (for this project) image record from the database
-    identified by MRN and Accession Number.
+    identified by the study UID.
     """
     existing_image: Image = (
         pixl_session.query(Image)
         .join(Extract)
         .filter(
             Extract.slug == project_slug,
-            Image.accession_number == accession_number,
-            Image.mrn == mrn,
+            Image.study_uid == study_uid,
             Image.exported_at == None,  # noqa: E711
         )
         .one()
     )
-
     return existing_image
