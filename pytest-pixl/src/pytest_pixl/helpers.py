@@ -39,11 +39,11 @@ def run_subprocess(
     """
     logger.info("Running command {}", cmd)
     try:
-        cp = subprocess.run(  # noqa: S603 `subprocess` call: check for execution of untrusted input
+        cp = subprocess.run(  # noqa: S603 input is trusted
             cmd,
             check=True,
             cwd=working_dir,
-            shell=shell,  # input is trusted
+            shell=shell,
             timeout=timeout,
             capture_output=True,
         )
