@@ -13,7 +13,7 @@ dependencies = [
     "token-bucket==0.3.0",
     "python-decouple==3.8",
     "python-slugify==8.0.4",
-    "pika==1.3.1",
+    "pika==1.3.2",
     "aio_pika==9.4.2",
     "requests==2.32.2",
     "jsonpickle==3.0.2",
