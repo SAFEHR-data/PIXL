@@ -46,6 +46,7 @@ def messages_from_df(
         message = Message(
             mrn=row["mrn"],
             accession_number=row["accession_number"],
+            study_uid=row["study_uid"],
             study_date=row["study_date"],
             procedure_occurrence_id=row["procedure_occurrence_id"],
             project_name=row["project_name"],
