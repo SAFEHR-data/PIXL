@@ -10,7 +10,7 @@ dependencies = [
     "core",
     "azure-identity==1.12.0",
     "azure-keyvault==4.2.0",
-    "fastapi==0.109.1",
+    "fastapi==0.111.1",
     "hypothesis==6.56.0",
     "requests==2.31.0",
     "uvicorn==0.23.2",
