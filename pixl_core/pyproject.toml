@@ -11,7 +11,7 @@ dependencies = [
     "azure-keyvault==4.2.0",
     "fastapi==0.111.1",
     "token-bucket==0.3.0",
-    "python-decouple==3.6",
+    "python-decouple==3.8",
     "python-slugify==8.0.4",
     "pika==1.3.1",
     "aio_pika==9.4.2",
