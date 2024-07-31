@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 class Database:
     """Fake database wrapper"""
 
-    def __init__(  # noqa: PLR0913 Too many arguments in function definition
+    def __init__(  # Too many arguments in function definition
         self,
         db_name: Optional[str] = None,
         username: Optional[str] = None,

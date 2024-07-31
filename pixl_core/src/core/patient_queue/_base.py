@@ -21,7 +21,7 @@ from loguru import logger
 
 
 class PixlQueueInterface:
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         queue_name: str,
         host: str = "localhost",
