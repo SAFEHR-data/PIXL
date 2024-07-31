@@ -77,6 +77,7 @@ def rows_in_session(
     image_exported = Image(
         mrn=exported_study_info.mrn,
         accession_number=exported_study_info.accession_number,
+        study_uid=exported_study_info.study_uid,
         study_date=STUDY_DATE,
         extract=extract,
         exported_at=datetime.datetime.now(tz=datetime.timezone.utc),
@@ -84,6 +85,7 @@ def rows_in_session(
     image_not_exported = Image(
         mrn=not_exported_study_info.mrn,
         accession_number=not_exported_study_info.accession_number,
+        study_uid=not_exported_study_info.study_uid,
         study_date=STUDY_DATE,
         extract=extract,
     )
@@ -107,6 +109,7 @@ def row_for_mri_dicom_testing(db_session) -> Session:
     image_not_exported = Image(
         mrn=study_info.mrn,
         accession_number=study_info.accession_number,
+        study_uid=study_info.study_uid,
         study_date=STUDY_DATE,
         extract=extract,
     )
