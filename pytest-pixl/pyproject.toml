@@ -22,7 +22,7 @@ dependencies = [
 [project.optional-dependencies]
 test = [
     "core", # pixl_core
-    "pytest==7.4.2",
+    "pytest==8.3.2",
 ]
 dev = [
     "mypy",

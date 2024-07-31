@@ -17,7 +17,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = ["pytest==7.4.*", "httpx==0.24.*"]
+test = ["pytest==8.3.*", "httpx==0.24.*"]
 dev = ["mypy", "pre-commit", "ruff"]
 
 [build-system]
