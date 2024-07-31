@@ -80,7 +80,20 @@ setfacl -R -m d:g::rwX /gae/pixl_dev
 
 Following clone, the exports directory needs to be permissioned appropriately:
 
+## Create a PIXL system account
+
+To avoid [running Docker containers as root](https://github.com/UCLH-Foundry/PIXL/issues/234), we set up a service account on the GAE as follows 
+
+```shell
+groupadd  -r -g 250 PIXL
+useradd -r -s /usr/bin/false -c "PIXL Service Account" -u 250 -g 250 PIXL
+usermod -a -G PIXL $user_to_add
+```
+
+Ask [@dram1964](https://github.com/dram1964) for help with this.
+
 Change these values in your production `.env` file:
+
 ```
 PIXL_USER_UID=???
 PIXL_USER_GID=???
