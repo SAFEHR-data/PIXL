@@ -13,7 +13,7 @@ dependencies = [
     "fastapi==0.111.1",
     "hypothesis==6.108.5",
     "requests==2.32.2",
-    "uvicorn==0.30.3",
+    "uvicorn==0.30.4",
 ]
 
 [project.optional-dependencies]
