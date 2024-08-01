@@ -139,7 +139,12 @@ def _check_and_parse_parquet(private_dir: Path, public_dir: Path) -> pd.DataFram
     # joining data together
     people_procedures = people.merge(procedure, on="person_id")
     people_procedures_accessions = people_procedures.merge(accessions, on="procedure_occurrence_id")
-    return people_procedures_accessions[~people_procedures_accessions["AccessionNumber"].isna()]
+
+    # Filter out any rows where accession number is NA or an empty string
+    return people_procedures_accessions[
+        ~people_procedures_accessions["AccessionNumber"].isna()
+        & (people_procedures_accessions["AccessionNumber"] != "")
+    ]
 
 
 class DF_COLUMNS(StrEnum):  # noqa: N801
