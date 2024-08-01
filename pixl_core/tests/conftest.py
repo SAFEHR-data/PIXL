@@ -154,6 +154,7 @@ def rows_in_session(db_session) -> Session:
         accession_number="123",
         study_date=STUDY_DATE,
         mrn="mrn",
+        study_uid="1.2.3",
         extract=extract,
         exported_at=datetime.datetime.now(tz=datetime.timezone.utc),
         pseudo_study_uid=generate_uid(entropy_srcs=["already_exported"]),
@@ -162,6 +163,7 @@ def rows_in_session(db_session) -> Session:
         accession_number="234",
         study_date=STUDY_DATE,
         mrn="mrn",
+        study_uid="2.3.4",
         extract=extract,
         pseudo_study_uid=generate_uid(entropy_srcs=["not_yet_exported"]),
     )
