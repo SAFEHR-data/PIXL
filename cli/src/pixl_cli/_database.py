@@ -98,6 +98,7 @@ def _add_images_to_session(extract: Extract, images_df: pd.DataFrame, session: S
             accession_number=row["accession_number"],
             study_date=row["study_date"],
             mrn=row["mrn"],
+            study_uid=row["study_uid"],
             extract=extract,
             extract_id=extract.extract_id,
         )
