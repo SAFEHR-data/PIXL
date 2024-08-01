@@ -46,6 +46,7 @@ def test_messages_from_csv(omop_resources: Path) -> None:
             procedure_occurrence_id=0,
             mrn="patient_identifier",
             accession_number="123456789",
+            study_uid="1.2.3.4.5.6.7.8",
             project_name="ms-pinpoint-test",
             extract_generated_timestamp=datetime.datetime.fromisoformat("2023-01-01T00:01:00Z"),
             study_date=datetime.date.fromisoformat("2022-01-01"),
@@ -72,6 +73,7 @@ def test_messages_from_parquet(omop_resources: Path) -> None:
         Message(
             mrn="987654321",
             accession_number="AA12345601",
+            study_uid="1.3.6.1.4.1.14519.5.2.1.99.1071.12985477682660597455732044031486",
             study_date=datetime.date.fromisoformat("2020-05-23"),
             procedure_occurrence_id=4,
             project_name="test-extract-uclh-omop-cdm",
@@ -80,6 +82,7 @@ def test_messages_from_parquet(omop_resources: Path) -> None:
         Message(
             mrn="987654321",
             accession_number="AA12345605",
+            study_uid="1.2.276.0.7230010.3.1.2.929116473.1.1710754859.579485",
             study_date=datetime.date.fromisoformat("2020-05-23"),
             procedure_occurrence_id=5,
             project_name="test-extract-uclh-omop-cdm",
