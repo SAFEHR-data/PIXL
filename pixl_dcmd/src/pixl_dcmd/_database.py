@@ -14,7 +14,6 @@
 
 """Interaction with the PIXL database."""
 
-from core.exceptions import PixlDiscardError
 from decouple import config  # type: ignore [import-untyped]
 import pydicom
 from pydicom.uid import generate_uid, UID
@@ -22,7 +21,7 @@ from sqlalchemy.orm.session import Session
 
 from core.db.models import Image, Extract
 from sqlalchemy import URL, create_engine, exists
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, exc
 
 from pixl_dcmd._dicom_helpers import StudyInfo
 
@@ -93,18 +92,19 @@ def get_unexported_image(
     identified by the study UID. If no result is found, retry with querying on
     MRN + accession number. If this fails as well, raise a PixlDiscardError.
     """
-    existing_image: Image = (
-        pixl_session.query(Image)
-        .join(Extract)
-        .filter(
-            Extract.slug == project_slug,
-            Image.study_uid == study_info.study_uid,
-            Image.exported_at == None,  # noqa: E711
+    try:
+        existing_image: Image = (
+            pixl_session.query(Image)
+            .join(Extract)
+            .filter(
+                Extract.slug == project_slug,
+                Image.study_uid == study_info.study_uid,
+                Image.exported_at == None,  # noqa: E711
+            )
+            .one()
         )
-        .one()
-    )
     # If no image is found by study UID, try MRN + accession number
-    if not existing_image:
+    except exc.NoResultFound:
         existing_image = (
             pixl_session.query(Image)
             .join(Extract)
@@ -116,9 +116,4 @@ def get_unexported_image(
             )
             .one()
         )
-
-    if not existing_image:
-        msg = f"No unexported image found for project {project_slug} and study {study_info}"
-        raise PixlDiscardError(msg)
-
     return existing_image
