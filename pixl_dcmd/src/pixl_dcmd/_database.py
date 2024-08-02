@@ -14,6 +14,7 @@
 
 """Interaction with the PIXL database."""
 
+from core.exceptions import PixlDiscardError
 from decouple import config  # type: ignore [import-untyped]
 import pydicom
 from pydicom.uid import generate_uid, UID
@@ -49,7 +50,7 @@ def get_uniq_pseudo_study_uid_and_update_db(
     with PixlSession() as pixl_session, pixl_session.begin():
         existing_image = get_unexported_image(
             project_slug,
-            study_info.study_uid,
+            study_info,
             pixl_session,
         )
         if existing_image.pseudo_study_uid is None:
@@ -84,21 +85,40 @@ def is_unique_pseudo_study_uid(pseudo_study_uid: str, pixl_session: Session) -> 
 
 def get_unexported_image(
     project_slug: str,
-    study_uid: str,
+    study_info: StudyInfo,
     pixl_session: Session,
 ) -> Image:
     """
     Get an existing, non-exported (for this project) image record from the database
-    identified by the study UID.
+    identified by the study UID. If no result is found, retry with querying on
+    MRN + accession number. If this fails as well, raise a PixlDiscardError.
     """
     existing_image: Image = (
         pixl_session.query(Image)
         .join(Extract)
         .filter(
             Extract.slug == project_slug,
-            Image.study_uid == study_uid,
+            Image.study_uid == study_info.study_uid,
             Image.exported_at == None,  # noqa: E711
         )
         .one()
     )
+    # If no image is found by study UID, try MRN + accession number
+    if not existing_image:
+        existing_image = (
+            pixl_session.query(Image)
+            .join(Extract)
+            .filter(
+                Extract.slug == project_slug,
+                Image.mrn == study_info.mrn,
+                Image.accession_number == study_info.accession_number,
+                Image.exported_at == None,  # noqa: E711
+            )
+            .one()
+        )
+
+    if not existing_image:
+        msg = f"No unexported image found for project {project_slug} and study {study_info}"
+        raise PixlDiscardError(msg)
+
     return existing_image
