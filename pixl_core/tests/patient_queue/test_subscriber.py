@@ -17,20 +17,11 @@ import asyncio
 from unittest.mock import AsyncMock
 
 import pytest
-from core.patient_queue.message import Message
 from core.patient_queue.producer import PixlProducer
 from core.patient_queue.subscriber import PixlConsumer
 from core.token_buffer.tokens import TokenBucket
 
 TEST_QUEUE = "test_consume"
-TEST_MESSAGE = Message(
-    mrn="111",
-    accession_number="123",
-    study_date="2022-11-22T13:33:00+00:00",
-    procedure_occurrence_id="234",
-    project_name="test project",
-    extract_generated_timestamp="2023-12-07T14:08:00+00:00",
-)
 
 
 class ExpectedTestError(Exception):
@@ -42,10 +33,10 @@ class ExpectedTestError(Exception):
 @pytest.mark.xfail(
     reason="Sanity check that async test gets run", strict=True, raises=ExpectedTestError
 )
-async def test_create() -> None:
+async def test_create(mock_message) -> None:
     """Checks consume is working."""
     with PixlProducer(queue_name=TEST_QUEUE) as producer:
-        producer.publish(messages=[TEST_MESSAGE])
+        producer.publish(messages=[mock_message])
 
     consume = AsyncMock()
     async with PixlConsumer(

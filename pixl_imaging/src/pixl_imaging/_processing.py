@@ -144,10 +144,20 @@ async def _add_project_to_study(
 
 
 async def _find_study_in_vna_or_raise(orthanc_raw: Orthanc, study: ImagingStudy) -> str:
-    """Query the VNA for the study, raise exception if it doesn't exist"""
+    """
+    Query the VNA for the study using its UID, fallback to querying on MRN + accession number if
+    UID is not available, raise exception if it doesn't exist
+    """
     query_id = await orthanc_raw.query_remote(
-        study.orthanc_query_dict, modality=config("VNAQR_MODALITY")
+        study.orthanc_uid_query_dict, modality=config("VNAQR_MODALITY")
     )
+    if query_id is None:
+        logger.info(
+            "No study found with UID {}, trying MRN and accession number", study.message.study_uid
+        )
+        query_id = await orthanc_raw.query_remote(
+            study.orthanc_query_dict, modality=config("VNAQR_MODALITY")
+        )
     if query_id is None:
         msg = "Failed to find in the VNA"
         raise PixlDiscardError(msg)
@@ -166,8 +176,18 @@ class ImagingStudy:
         return ImagingStudy(message=message)
 
     @property
+    def orthanc_uid_query_dict(self) -> dict:
+        """Build a dictionary to query a study with a study UID."""
+        return {
+            "Level": "Study",
+            "Query": {
+                "StudyInstanceUID": self.message.study_uid,
+            },
+        }
+
+    @property
     def orthanc_query_dict(self) -> dict:
-        """Build a dictionary to query a study."""
+        """Build a dictionary to query a study on MRN and accession number."""
         return {
             "Level": "Study",
             "Query": {

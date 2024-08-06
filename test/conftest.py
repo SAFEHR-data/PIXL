@@ -66,12 +66,6 @@ def _populate_vna(tmp_path_factory: pytest.TempPathFactory) -> None:
     # more detailed series testing is found in pixl_dcmd tests, but here
     # we just stick an instance to each study, one of which is expected to be propagated through
 
-    # studies are also defined by the StudyID, the StudyInstanceUID
-    def study_instance_uid(offset: int) -> dict[str, str]:
-        baseline = "1.3.46.670589.11.38023.5.0.14068.2023012517090166000"
-        offset_str = f"{offset:04d}"
-        return dict(StudyInstanceUID=baseline[: -len(offset_str)] + offset_str)
-
     def series_instance_uid(offset: int) -> dict[str, str]:
         baseline = "1.3.46.670589.11.38023.5.0.7404.2023012517551898153"
         offset_str = f"{offset:04d}"
@@ -86,13 +80,13 @@ def _populate_vna(tmp_path_factory: pytest.TempPathFactory) -> None:
         AccessionNumber="AA12345601",
         PatientID="987654321",
         StudyID="12340001",
-        **study_instance_uid(1),
+        StudyInstanceUID="1.3.6.1.4.1.14519.5.2.1.99.1071.12985477682660597455732044031486",
     )
     study_2 = dict(
         AccessionNumber="AA12345605",
         PatientID="987654321",
         StudyID="12340002",
-        **study_instance_uid(2),
+        StudyInstanceUID="1.2.276.0.7230010.3.1.2.929116473.1.1710754859.579485",
     )
 
     # Series are also defined by the SeriesInstanceUID and SeriesNumber.

@@ -139,7 +139,12 @@ def _check_and_parse_parquet(private_dir: Path, public_dir: Path) -> pd.DataFram
     # joining data together
     people_procedures = people.merge(procedure, on="person_id")
     people_procedures_accessions = people_procedures.merge(accessions, on="procedure_occurrence_id")
-    return people_procedures_accessions[~people_procedures_accessions["AccessionNumber"].isna()]
+
+    # Filter out any rows where accession number is NA or an empty string
+    return people_procedures_accessions[
+        ~people_procedures_accessions["AccessionNumber"].isna()
+        & (people_procedures_accessions["AccessionNumber"] != "")
+    ]
 
 
 class DF_COLUMNS(StrEnum):  # noqa: N801
@@ -149,6 +154,7 @@ class DF_COLUMNS(StrEnum):  # noqa: N801
     project_name = auto()
     extract_generated_timestamp = auto()
     study_date = auto()
+    study_uid = auto()
 
 
 MAP_CSV_TO_MESSAGE_KEYS = {
@@ -160,6 +166,7 @@ MAP_PARQUET_TO_MESSAGE_KEYS = {
     "PrimaryMrn": "mrn",
     "AccessionNumber": "accession_number",
     "procedure_date": "study_date",
+    "StudyUid_X": "study_uid",
 }
 
 

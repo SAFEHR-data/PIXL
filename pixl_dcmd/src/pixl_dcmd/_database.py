@@ -21,7 +21,7 @@ from sqlalchemy.orm.session import Session
 
 from core.db.models import Image, Extract
 from sqlalchemy import URL, create_engine, exists
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, exc
 
 from pixl_dcmd._dicom_helpers import StudyInfo
 
@@ -41,7 +41,7 @@ def get_uniq_pseudo_study_uid_and_update_db(
     project_slug: str, study_info: StudyInfo
 ) -> UID:
     """
-    Checks if record (slug, mrn, acc_num) exists in the database,
+    Checks if record (by slug and study info) exists in the database,
     gets the pseudo_study_uid if it is not None or records a new, unique one.
     Returns the pseudo_study_uid.
     """
@@ -49,8 +49,7 @@ def get_uniq_pseudo_study_uid_and_update_db(
     with PixlSession() as pixl_session, pixl_session.begin():
         existing_image = get_unexported_image(
             project_slug,
-            study_info.mrn,
-            study_info.accession_number,
+            study_info,
             pixl_session,
         )
         if existing_image.pseudo_study_uid is None:
@@ -85,24 +84,36 @@ def is_unique_pseudo_study_uid(pseudo_study_uid: str, pixl_session: Session) -> 
 
 def get_unexported_image(
     project_slug: str,
-    mrn: str,
-    accession_number: str,
+    study_info: StudyInfo,
     pixl_session: Session,
 ) -> Image:
     """
     Get an existing, non-exported (for this project) image record from the database
-    identified by MRN and Accession Number.
+    identified by the study UID. If no result is found, retry with querying on
+    MRN + accession number. If this fails as well, raise a PixlDiscardError.
     """
-    existing_image: Image = (
-        pixl_session.query(Image)
-        .join(Extract)
-        .filter(
-            Extract.slug == project_slug,
-            Image.accession_number == accession_number,
-            Image.mrn == mrn,
-            Image.exported_at == None,  # noqa: E711
+    try:
+        existing_image: Image = (
+            pixl_session.query(Image)
+            .join(Extract)
+            .filter(
+                Extract.slug == project_slug,
+                Image.study_uid == study_info.study_uid,
+                Image.exported_at == None,  # noqa: E711
+            )
+            .one()
         )
-        .one()
-    )
-
+    # If no image is found by study UID, try MRN + accession number
+    except exc.NoResultFound:
+        existing_image = (
+            pixl_session.query(Image)
+            .join(Extract)
+            .filter(
+                Extract.slug == project_slug,
+                Image.mrn == study_info.mrn,
+                Image.accession_number == study_info.accession_number,
+                Image.exported_at == None,  # noqa: E711
+            )
+            .one()
+        )
     return existing_image

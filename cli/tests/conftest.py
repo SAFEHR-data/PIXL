@@ -106,7 +106,7 @@ def db_engine(monkeymodule) -> Engine:
 
 
 @pytest.fixture()
-def db_session(db_engine) -> Session:
+def db_session(db_engine) -> Generator[Session]:
     """
     Creates a session for interacting with an in memory database.
 
@@ -127,11 +127,12 @@ def db_session(db_engine) -> Session:
 STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
 
 
-def _make_message(project_name: str, accession_number: str, mrn: str) -> Message:
+def _make_message(project_name: str, accession_number: str, mrn: str, study_uid: str) -> Message:
     return Message(
         project_name=project_name,
         accession_number=accession_number,
         mrn=mrn,
+        study_uid=study_uid,
         study_date=STUDY_DATE,
         procedure_occurrence_id=1,
         extract_generated_timestamp=datetime.datetime.now(tz=datetime.UTC),
@@ -142,9 +143,15 @@ def _make_message(project_name: str, accession_number: str, mrn: str) -> Message
 def example_messages():
     """Test input data."""
     return [
-        _make_message(project_name="i-am-a-project", accession_number="123", mrn="mrn"),
-        _make_message(project_name="i-am-a-project", accession_number="234", mrn="mrn"),
-        _make_message(project_name="i-am-a-project", accession_number="345", mrn="mrn"),
+        _make_message(
+            project_name="i-am-a-project", accession_number="123", mrn="mrn", study_uid="1.2.3"
+        ),
+        _make_message(
+            project_name="i-am-a-project", accession_number="234", mrn="mrn", study_uid="2.3.4"
+        ),
+        _make_message(
+            project_name="i-am-a-project", accession_number="345", mrn="mrn", study_uid="3.4.5"
+        ),
     ]
 
 
@@ -163,6 +170,7 @@ def rows_in_session(db_session) -> Session:
         accession_number="123",
         study_date=STUDY_DATE,
         mrn="mrn",
+        study_uid="1.2.3",
         extract=extract,
         extract_id=extract.extract_id,
         exported_at=datetime.datetime.now(tz=datetime.UTC),
@@ -171,6 +179,7 @@ def rows_in_session(db_session) -> Session:
         accession_number="234",
         study_date=STUDY_DATE,
         mrn="mrn",
+        study_uid="2.3.4",
         extract=extract,
         extract_id=extract.extract_id,
     )
