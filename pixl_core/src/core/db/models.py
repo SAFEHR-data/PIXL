@@ -52,7 +52,7 @@ class Image(Base):
     accession_number: Mapped[str]
     study_date: Mapped[Date] = mapped_column(Date())
     mrn: Mapped[str]
-    study_uid: Mapped[str]
+    study_uid: Mapped[Optional[str]]
     pseudo_study_uid: Mapped[Optional[str]]
     exported_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), nullable=True)
     extract: Mapped[Extract] = relationship()
