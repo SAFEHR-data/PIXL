@@ -41,7 +41,7 @@ def get_uniq_pseudo_study_uid_and_update_db(
     project_slug: str, study_info: StudyInfo
 ) -> UID:
     """
-    Checks if record (slug, study UID) exists in the database,
+    Checks if record (by slug and study info) exists in the database,
     gets the pseudo_study_uid if it is not None or records a new, unique one.
     Returns the pseudo_study_uid.
     """
