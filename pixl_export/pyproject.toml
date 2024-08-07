@@ -1,6 +1,6 @@
 [project]
 name = "pixl_export"
-version = "0.0.2"
+version = "0.1.0"
 authors = [{ name = "PIXL authors" }]
 description = "PIXL electronic health record extractor"
 readme = "README.md"

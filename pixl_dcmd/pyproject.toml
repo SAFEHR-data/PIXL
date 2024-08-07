@@ -1,6 +1,6 @@
 [project]
 name = "pixl_dcmd"
-version = "0.0.2"
+version = "0.1.0"
 authors = [{ name = "PIXL authors" }]
 description = "DICOM header anonymisation functions"
 readme = "README.md"
