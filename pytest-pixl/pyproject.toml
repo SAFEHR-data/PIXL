@@ -1,9 +1,7 @@
 [project]
 name = "pytest-pixl"
-version = "0.0.1"
-authors = [
-  { name="PIXL core functionality" },
-]
+version = "0.1.0"
+authors = [{ name = "PIXL authors" }]
 description = "Pytest plugin for PIXL"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -21,7 +19,7 @@ dependencies = [
 
 [project.optional-dependencies]
 test = [
-    "core", # pixl_core
+    "core==0.1.0",
     "pytest==8.3.2",
 ]
 dev = [
