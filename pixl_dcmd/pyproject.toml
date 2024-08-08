@@ -1,12 +1,13 @@
 [project]
 name = "pixl_dcmd"
-version = "0.0.2"
+version = "0.2.0rc0"
 authors = [{ name = "PIXL authors" }]
 description = "DICOM header anonymisation functions"
 readme = "README.md"
 requires-python = ">=3.11"
 classifiers = ["Programming Language :: Python :: 3"]
 dependencies = [
+    "core==0.2.0rc0",
     "arrow==1.3.0",
     "pydicom==2.4.4",
     "pydicom-data",
@@ -19,7 +20,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = ["dcm2niix==1.0.20220715", "nibabel==5.2.1", "pytest==8.3.2"]
+test = ["dcm2niix==1.0.20220715", "nibabel==5.2.1", "pytest==8.3.2", "pytest-pixl==0.2.0rc0"]
 dev = ["mypy", "pre-commit", "ruff"]
 
 [build-system]
