@@ -68,7 +68,7 @@ def test_messages_from_csv_multiple_projects(
     messages_df = read_patient_info(input_file)
     messages = populate_queue_and_db(["imaging"], messages_df)
 
-    # Database has 3 rows now
+    # Database has 6 rows now
     images_in_db = rows_in_session.query(Image).all()
     assert len(images_in_db) == 6
     # Exported image filtered out
