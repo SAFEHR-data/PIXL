@@ -63,7 +63,7 @@ where the `*_RATE` variables set the default querying rate for the message queue
 
 ### Running the pipeline
 
-Populate queue for Imaging
+Populate queue for Imaging using parquet files:
 
 ```bash
 pixl populate </path/to/parquet_dir>
@@ -80,6 +80,8 @@ parquet_dir
 └── public
     └── PROCEDURE_OCCURRENCE.parquet
 ```
+
+Alternatively, the queue can be populated based on
 
 Extraction will start automatically after populating the queues.  If granular
 customisation of the rate per queue is required or a queue should not be started
