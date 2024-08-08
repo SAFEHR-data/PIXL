@@ -60,8 +60,9 @@ def test_messages_from_csv_multiple_projects(
 ) -> None:
     """
     GIVEN the database has a single Export entity, with one exported Image, one un-exported Image,
-    WHEN we parse a file with two Export entities, one new and one with two existing images and
-    one new image,
+    WHEN we parse a file with two projects, each with the same 3 images
+      where one project has already exported one of the images 
+      and the other project has not exported any images
     THEN the database should have 6 Images, with 5 messages returned.
     """
     input_file = omop_resources / "multiple_projects.csv"
