@@ -1,13 +1,13 @@
 [project]
 name = "hasher"
-version = "0.2.0-rc"
+version = "0.2.0rc0"
 authors = [{ name = "PIXL authors" }]
 description = "Service to securely hash identifiers"
 readme = "README.md"
 requires-python = ">=3.10"
 classifiers = ["Programming Language :: Python :: 3"]
 dependencies = [
-    "core>=0.1.0",
+    "core==0.2.0rc0",
     "azure-identity==1.16.1",
     "azure-keyvault==4.2.0",
     "fastapi==0.112.0",
