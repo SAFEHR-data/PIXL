@@ -37,31 +37,50 @@ url = URL.create(
 engine = create_engine(url)
 
 
-def filter_exported_or_add_to_db(messages_df: pd.DataFrame, project_slug: str) -> pd.DataFrame:
+def filter_exported_or_add_to_db(messages_df: pd.DataFrame) -> pd.DataFrame:
     """
-    Filter exported images for this project, and adds missing extract and images to database.
+    Filter exported images for multiple projects, and adds missing extract and images to database.
 
     :param messages: Initial messages to filter if they already exist
-    :param project_slug: project slug to query on
-    :return messages that have not been exported
+    :return DataFrame of messages that have not been exported
     """
     PixlSession = sessionmaker(engine)
     with PixlSession() as pixl_session, pixl_session.begin():
-        extract = pixl_session.query(Extract).filter(Extract.slug == project_slug).one_or_none()
-        if extract:
-            db_images_df = all_images_for_project(project_slug)
-            missing_images_df = _filter_existing_images(messages_df, db_images_df)
-            messages_df = _filter_exported_messages(messages_df, db_images_df)
-        else:
-            # We need to add the extract to the database and retrive it again so
-            # we can access extract.extract_id (needed by session.bulk_save_objects(images))
-            pixl_session.add(Extract(slug=project_slug))
-            extract = pixl_session.query(Extract).filter(Extract.slug == project_slug).one_or_none()
-            missing_images_df = messages_df
+        messages_dfs = [
+            _filter_exported_or_add_to_db_for_project(
+                pixl_session, project_messages_df, project_slug
+            )
+            for project_slug, project_messages_df in messages_df.groupby("project_name")
+        ]
+    return pd.concat(messages_dfs)
 
-        _add_images_to_session(extract, missing_images_df, pixl_session)
 
-        return messages_df
+def _filter_exported_or_add_to_db_for_project(
+    session: Session, messages_df: pd.DataFrame, project_slug: str
+) -> pd.DataFrame:
+    """
+    Filter exported images for this project, and adds missing extract and images to database.
+
+    :param session: SQLAlchemy session
+    :param messages: Initial messages to filter if they already exist
+    :param project_slug: project slug to query on
+    :return DataFrame of messages that have not been exported for this project
+    """
+    extract = session.query(Extract).filter(Extract.slug == project_slug).one_or_none()
+    if extract:
+        db_images_df = all_images_for_project(project_slug)
+        missing_images_df = _filter_existing_images(messages_df, db_images_df)
+        messages_df = _filter_exported_messages(messages_df, db_images_df)
+    else:
+        # We need to add the extract to the database and retrive it again so
+        # we can access extract.extract_id (needed by session.bulk_save_objects(images))
+        session.add(Extract(slug=project_slug))
+        extract = session.query(Extract).filter(Extract.slug == project_slug).one_or_none()
+        missing_images_df = messages_df
+
+    _add_images_to_session(extract, missing_images_df, session)
+
+    return messages_df
 
 
 def _filter_existing_images(
@@ -104,7 +123,6 @@ def _add_images_to_session(extract: Extract, images_df: pd.DataFrame, session: S
         )
         images.append(new_image)
     session.bulk_save_objects(images)
-    session.commit()
 
 
 def all_images_for_project(project_slug: str) -> pd.DataFrame:
