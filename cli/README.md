@@ -81,7 +81,15 @@ parquet_dir
     └── PROCEDURE_OCCURRENCE.parquet
 ```
 
-Alternatively, the queue can be populated based on
+Alternatively, the queue can be populated based on records in CSV files:
+
+```bash
+pixl populate <path/to/file.csv>
+```
+
+One advantage of using a CSV file is that multiple projects can be listed
+for export in the file. Using the parquet format, in contrast, only supports
+exporting a single project per call to `pixl populate`.
 
 Extraction will start automatically after populating the queues.  If granular
 customisation of the rate per queue is required or a queue should not be started
