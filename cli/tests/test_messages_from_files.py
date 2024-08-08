@@ -55,6 +55,27 @@ def test_messages_from_csv(omop_resources: Path) -> None:
     assert messages == expected_messages
 
 
+def test_messages_from_csv_multiple_projects(
+    omop_resources: Path, rows_in_session, mock_publisher
+) -> None:
+    """
+    GIVEN the database has a single Export entity, with one exported Image, one un-exported Image,
+    WHEN we parse a file with two projects, each with the same 3 images
+      where one project has already exported one of the images
+      and the other project has not exported any images
+    THEN the database should have 6 Images, with 5 messages returned.
+    """
+    input_file = omop_resources / "multiple_projects.csv"
+    messages_df = read_patient_info(input_file)
+    messages = populate_queue_and_db(["imaging"], messages_df)
+
+    # Database has 6 rows now
+    images_in_db = rows_in_session.query(Image).all()
+    assert len(images_in_db) == 6
+    # Exported image filtered out
+    assert len(messages) == 5
+
+
 def test_messages_from_parquet(omop_resources: Path) -> None:
     """
     Given a valid OMOP ES extract with 4 procedures, two of which are x-rays.

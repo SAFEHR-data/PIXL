@@ -21,7 +21,7 @@ from pixl_cli._database import exported_images_for_project, filter_exported_or_a
 
 def test_project_doesnt_exist(example_messages_df, db_session):
     """If project doesn't exist, no filtering and then project & messages saved to database"""
-    output = filter_exported_or_add_to_db(example_messages_df, "i-am-a-project")
+    output = filter_exported_or_add_to_db(example_messages_df)
     assert_frame_equal(output, example_messages_df)
     extract = db_session.query(Extract).one()
     images = db_session.query(Image).filter(Image.extract == extract).all()
@@ -35,7 +35,7 @@ def test_first_image_exported(example_messages_df, rows_in_session):
     THEN the first message that has an exported_at value should not be in the filtered list
         and all images should be saved to the database
     """
-    output = filter_exported_or_add_to_db(example_messages_df, "i-am-a-project")
+    output = filter_exported_or_add_to_db(example_messages_df)
     assert len(output) == len(example_messages_df) - 1
     assert "123" not in output.accession_number.to_numpy()
     extract = rows_in_session.query(Extract).one()
@@ -52,7 +52,7 @@ def test_new_extract_with_overlapping_images(example_messages_df, rows_in_sessio
     new_project_name = "new-project"
     example_messages_df["project_name"] = new_project_name
 
-    output = filter_exported_or_add_to_db(example_messages_df, new_project_name)
+    output = filter_exported_or_add_to_db(example_messages_df)
 
     # none filtered out
     assert len(output) == len(example_messages_df)
