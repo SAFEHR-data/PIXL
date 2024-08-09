@@ -73,3 +73,23 @@ def test_retry_with_image_exported_and_no_change(
     )
 
     mock_publisher.assert_called_once()
+
+
+@pytest.mark.usefixtures("_zero_message_count")
+def test_retry_with_image_exported_and_no_change_multiple_projects(
+    example_messages_multiple_projects_df, rows_in_session, mock_publisher
+):
+    """
+    GIVEN one image across two projects has been exported, and num_retries set to 5
+    WHEN rabbitmq messages set to zero and no messages are published to queue
+    THEN populate_queue_and_db should be called once
+    """
+    os.environ["CLI_RETRY_SECONDS"] = "1"
+
+    retry_until_export_count_is_unchanged(
+        example_messages_multiple_projects_df,
+        num_retries=5,
+        queues_to_populate=["imaging"],
+    )
+
+    mock_publisher.assert_called_once()
