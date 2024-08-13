@@ -55,6 +55,35 @@ def test_messages_from_csv(omop_resources: Path) -> None:
     assert messages == expected_messages
 
 
+def test_messages_from_csv_with_participant_id(omop_resources: Path) -> None:
+    """
+    Given a csv with a single dataset that has participant_id defined.
+    When the messages are generated from the directory
+    Then one message should be generated
+    """
+    # Arrange
+    test_csv = omop_resources / "test.csv"
+    messages_df = read_patient_info(test_csv)
+    # Act
+    messages = messages_from_df(messages_df)
+    # Assert
+    assert all(isinstance(msg, Message) for msg in messages)
+
+    expected_messages = [
+        Message(
+            procedure_occurrence_id=0,
+            participant_id="AAA00",
+            mrn="patient_identifier",
+            accession_number="123456789",
+            study_uid="1.2.3.4.5.6.7.8",
+            project_name="ms-pinpoint-test",
+            extract_generated_timestamp=datetime.datetime.fromisoformat("2023-01-01T00:01:00Z"),
+            study_date=datetime.date.fromisoformat("2022-01-01"),
+        ),
+    ]
+    assert messages == expected_messages
+
+
 def test_messages_from_csv_multiple_projects(
     omop_resources: Path, rows_in_session, mock_publisher
 ) -> None:
@@ -132,6 +161,23 @@ def test_batch_upload(omop_resources: Path, rows_in_session, mock_publisher) -> 
 
 
 def test_duplicate_upload(omop_resources: Path, rows_in_session, mock_publisher) -> None:
+    """
+    GIVEN the database has a single Export entity, with one exported Image, one un-exported Image
+    WHEN we parse a file with duplicated entries the two existing images and one new image
+    THEN the database should have 3 Images, with two message returned.
+    """
+    input_file = omop_resources / "duplicate_input.csv"
+    messages_df = read_patient_info(input_file)
+    messages = populate_queue_and_db(["imaging"], messages_df)
+
+    # Database has 3 rows now
+    images_in_db = rows_in_session.query(Image).all()
+    assert len(images_in_db) == 3
+    # Exported and duplicate messages filtered out
+    assert len(messages) == 2
+
+
+def test_participant_id_in_csv(omop_resources: Path, rows_in_session, mock_publisher) -> None:
     """
     GIVEN the database has a single Export entity, with one exported Image, one un-exported Image
     WHEN we parse a file with duplicated entries the two existing images and one new image
