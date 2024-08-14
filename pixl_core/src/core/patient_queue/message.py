@@ -37,6 +37,7 @@ class Message:
     procedure_occurrence_id: int
     project_name: str
     extract_generated_timestamp: datetime
+    participant_id: str
 
     @property
     def identifier(self) -> str:
