@@ -60,6 +60,9 @@ def test_messages_from_csv_with_participant_id(omop_resources: Path) -> None:
     Given a csv with a single dataset that has participant_id defined.
     When the messages are generated from the directory
     Then one message should be generated
+    
+    Testing from the terminal:
+    clear && pytest -vs tests/test_messages_from_files.py::test_messages_from_csv_with_participant_id
     """
     # To get this test passing:
     # - update pixl_cli._io._load_csv to read participant_id from the csv if it exists,
