@@ -127,9 +127,10 @@ def db_session(db_engine) -> Generator[Session]:
 STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
 
 
-def _make_message(project_name: str, accession_number: str, mrn: str, study_uid: str) -> Message:
+def _make_message(project_name: str, accession_number: str, mrn: str, study_uid: str, pseudo_patient_id: str = None) -> Message:
     return Message(
         project_name=project_name,
+        pseudo_patient_id=pseudo_patient_id,
         accession_number=accession_number,
         mrn=mrn,
         study_uid=study_uid,

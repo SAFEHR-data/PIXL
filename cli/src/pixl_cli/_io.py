@@ -88,6 +88,11 @@ def _load_csv(filepath: Path) -> pd.DataFrame:
     messages_df = _map_columns(messages_df, MAP_CSV_TO_MESSAGE_KEYS)
     _raise_if_column_names_not_found(messages_df, [col.name for col in DF_COLUMNS])
 
+    if "participant_id" in messages_df:
+        messages_df["pseudo_patient_id"]=messages_df["participant_id"]
+    else:
+        messages_df["pseudo_patient_id"]=None
+    
     # Parse non string columns
     messages_df["procedure_occurrence_id"] = messages_df["procedure_occurrence_id"].astype(int)
     messages_df["study_date"] = pd.to_datetime(
@@ -121,6 +126,7 @@ def _load_parquet(
     project_name, extract_generated_timestamp = copy_parquet_return_logfile_fields(dir_path)
     messages_df["project_name"] = project_name
     messages_df["extract_generated_timestamp"] = extract_generated_timestamp
+    messages_df["pseudo_patient_id"]=None
 
     return messages_df
 

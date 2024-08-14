@@ -44,6 +44,7 @@ def test_messages_from_csv(omop_resources: Path) -> None:
     expected_messages = [
         Message(
             procedure_occurrence_id=0,
+            pseudo_patient_id=None,
             mrn="patient_identifier",
             accession_number="123456789",
             study_uid="1.2.3.4.5.6.7.8",
@@ -85,7 +86,7 @@ def test_messages_from_csv_with_participant_id(omop_resources: Path) -> None:
     expected_messages = [
         Message(
             procedure_occurrence_id=0,
-            participant_id="AAA00",
+            pseudo_patient_id="AAA00",
             mrn="patient_identifier",
             accession_number="123456789",
             study_uid="1.2.3.4.5.6.7.8",
@@ -135,6 +136,7 @@ def test_messages_from_parquet(omop_resources: Path) -> None:
     expected_messages = [
         Message(
             mrn="987654321",
+            pseudo_patient_id=None,
             accession_number="AA12345601",
             study_uid="1.3.6.1.4.1.14519.5.2.1.99.1071.12985477682660597455732044031486",
             study_date=datetime.date.fromisoformat("2020-05-23"),
@@ -144,6 +146,7 @@ def test_messages_from_parquet(omop_resources: Path) -> None:
         ),
         Message(
             mrn="987654321",
+            pseudo_patient_id=None,
             accession_number="AA12345605",
             study_uid="1.2.276.0.7230010.3.1.2.929116473.1.1710754859.579485",
             study_date=datetime.date.fromisoformat("2020-05-23"),
