@@ -42,6 +42,7 @@ def messages_from_df(
     :param messages_df: DataFrame containing patient information
     """
     messages = []
+    # print(df["participant_id"].item)
     for _, row in df.iterrows():
         message = Message(
             mrn=row["mrn"],
@@ -51,7 +52,7 @@ def messages_from_df(
             procedure_occurrence_id=row["procedure_occurrence_id"],
             project_name=row["project_name"],
             extract_generated_timestamp=row["extract_generated_timestamp"].to_pydatetime(),
-            participant_id=row["participant_id"]
+            # participant_id=row["participant_id"]
         )
         messages.append(message)
 
