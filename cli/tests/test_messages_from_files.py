@@ -56,7 +56,7 @@ def test_messages_from_csv(omop_resources: Path) -> None:
     assert messages == expected_messages
 
 
-def test_messages_from_csv_with_participant_id(omop_resources: Path, rows_in_session, mock_publisher) -> None:
+def test_messages_from_csv_with_participant_id(omop_resources: Path) -> None:
     """
     Given a csv with a single dataset that has participant_id defined.
     When the messages are generated from the directory
@@ -77,8 +77,6 @@ def test_messages_from_csv_with_participant_id(omop_resources: Path, rows_in_ses
     # Assert
     assert all(isinstance(msg, Message) for msg in messages)
 
-    messages_ = populate_queue_and_db(["imaging"], messages_df)
-
     expected_messages = [
         Message(
             procedure_occurrence_id=0,
@@ -92,7 +90,6 @@ def test_messages_from_csv_with_participant_id(omop_resources: Path, rows_in_ses
         ),
     ]
     assert messages == expected_messages
-
 
 def test_messages_from_csv_multiple_projects(
     omop_resources: Path, rows_in_session, mock_publisher
