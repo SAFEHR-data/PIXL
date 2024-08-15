@@ -56,20 +56,14 @@ def test_messages_from_csv(omop_resources: Path) -> None:
     assert messages == expected_messages
 
 
-def test_messages_from_csv_with_participant_id(omop_resources: Path) -> None:
+def test_messages_from_csv_with_participant_id(omop_resources: Path, rows_in_session, mock_publisher) -> None:
     """
     Given a csv with a single dataset that has participant_id defined.
     When the messages are generated from the directory
     Then one message should be generated
     
-    Testing from the terminal:
-    clear && pytest -vs tests/test_messages_from_files.py::test_messages_from_csv_with_participant_id
     """
     # To get this test passing:
-    # - update pixl_cli._io._load_csv to read participant_id from the csv if it exists,
-    # storing the values in a column called "pseudo_patient_id"
-    # - update pixl_cli._io.read_patient_info to set pseudo_patient_id to None if
-    # it does not exist in the dataframe
     # - update core.db.models.Image to include pseudo_patient_id as a str, make optional with default to None
     # - update pixl_cli._database._add_images_to_session to pass pseudo_patient_id to the Image
     # - update core.patient_queue.message.Message to include pseudo_patient_id
@@ -82,6 +76,8 @@ def test_messages_from_csv_with_participant_id(omop_resources: Path) -> None:
     messages = messages_from_df(messages_df)
     # Assert
     assert all(isinstance(msg, Message) for msg in messages)
+
+    messages_ = populate_queue_and_db(["imaging"], messages_df)
 
     expected_messages = [
         Message(
