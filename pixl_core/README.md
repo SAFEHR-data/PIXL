@@ -194,9 +194,28 @@ Configuration for XNAT as an endpoint is done by storing the following secrets i
 where `az_prefix` is either the project slug or is defined in the [project configuration file](../template_config.yaml)
 as `azure_kv_alias`.
 
-The project name defined in the configuration file **must** match the
-[XNAT Project ID](https://wiki.xnat.org/documentation/creating-and-managing-projects). If the project name does
-not match the XNAT Project ID, the upload will fail.
+> Note
+>
+> The project name defined in the configuration file **must** match the
+> [XNAT Project ID](https://wiki.xnat.org/documentation/creating-and-managing-projects). If the project name does
+> not match the XNAT Project ID, the upload will fail.
+
+The following environment variables must also be set to determine the XNAT destination and how to handle conflicts
+with existing session and series data:
+
+`"XNAT_DESTINATION"`:
+
+- if `"/archive"`, will send data straight to the archive
+- if `"/prearchive"`, will send data to the [prearchive](https://wiki.xnat.org/documentation/using-the-prearchive)
+  for manual review before archiving
+
+`"XNAT_OVERWRITE"`:
+
+- if `"none"`, will error if the session already exists.
+- if `"append"`, will append the data to an existing session or create a new one if it doesn't exist.
+        If there is a conflict with existing series, an error will be raised.
+- if `"delete"`, will append the data to an existing session or create a new one if it doesn't exist.
+        If there is a conflict with existing series, the existing series will be overwritten.
 
 ### XNAT testing setup
 
