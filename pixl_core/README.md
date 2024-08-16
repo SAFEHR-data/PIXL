@@ -194,6 +194,10 @@ Configuration for XNAT as an endpoint is done by storing the following secrets i
 where `az_prefix` is either the project slug or is defined in the [project configuration file](../template_config.yaml)
 as `azure_kv_alias`.
 
+The project name defined in the configuration file **must** match the
+[XNAT Project ID](https://wiki.xnat.org/documentation/creating-and-managing-projects). If the project name does
+not match the XNAT Project ID, the upload will fail.
+
 ### XNAT testing setup
 
 For unit testing, we use [`xnat4tests`](https://github.com/Australian-Imaging-Service/xnat4tests) to spin up an XNAT
