@@ -58,6 +58,8 @@ os.environ["XNAT_HOST"] = "localhost"
 os.environ["XNAT_USER_NAME"] = "pixl"
 os.environ["XNAT_PASSWORD"] = "longpassword"
 os.environ["XNAT_PORT"] = "8080"
+os.environ["XNAT_DESTINATION"] = "/archive"
+os.environ["XNAT_OVERWRITE"] = "none"
 
 
 @pytest.fixture(scope="package")

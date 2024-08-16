@@ -37,6 +37,8 @@ class MockXNATUploader(XNATUploader):
         self.password = os.environ["XNAT_PASSWORD"]
         self.port = os.environ["XNAT_PORT"]
         self.url = f"http://{self.host}:{self.port}"
+        self.destination = os.environ["XNAT_DESTINATION"]
+        self.overwrite = os.environ["XNAT_OVERWRITE"]
 
 
 @pytest.fixture()
@@ -116,26 +118,48 @@ def xnat_server(xnat_study_tags) -> Generator:
                 enabled=True,
             ),
             headers={"Content-Type": "application/json"},
-            accepted_status=[201],
+            accepted_status=[201, 409],
         )
 
         # XNAT requires project metadata to be uploaded as XML
         with (TEST_DIR / "data" / "xnat_project.xml").open() as file:
             project_xml = file.read()
+        session.skip_response_content_check = (
+            True  # so XNATPy doesn't raise an error if the project exists
+        )
         session.post(
             path="/data/projects",
             data=project_xml,
             headers={"Content-Type": "application/xml"},
-            accepted_status=[200],
+            accepted_status=[200, 409],
         )
-
         session.put(
             path=f"/data/projects/{xnat_study_tags.project_slug}/users/Owners/pixl",
             accepted_status=[200],
         )
 
     yield config.xnat_uri
-    xnat4tests.stop_xnat(config)
+
+    # If a test instance already exists, xnat4tests will reuse it for subsequent tests.
+    # This can save a lot of time when testing locally as it takes several minutes to start
+    # the XNAT server.
+    if os.environ.get("XNAT_DESTROY_INSTANCE", "False").lower() == "true":
+        xnat4tests.stop_xnat(config)
+        return
+
+    # If we're keeping the instance, we need to remove the data before next test run.
+    # We do not delete the project itself as Project IDs cannot be reused.
+    with xnat.connect(
+        server=config.xnat_uri,
+        user="admin",
+        password="admin",  # noqa: S106
+    ) as session:
+        project = session.projects[xnat_study_tags.project_slug]
+        for subject in project.subjects.values():
+            session.delete(
+                path=f"/data/projects/{project.id}/subjects/{subject.label}",
+                query={"removeFiles": "True"},
+            )
 
 
 @pytest.mark.usefixtures("xnat_server")
