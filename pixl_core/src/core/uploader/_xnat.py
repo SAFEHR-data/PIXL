@@ -28,6 +28,7 @@ from ._orthanc import get_study_zip_archive
 if TYPE_CHECKING:
     from xnat.core import XNATBaseObject
 
+    from core.exports import ParquetExport
     from core.uploader._orthanc import StudyTags
 
 
@@ -81,6 +82,6 @@ class XNATUploader(Uploader):
                 import_handler="DICOM-zip",
             )
 
-    def upload_parquet_files(self) -> None:
+    def upload_parquet_files(self, parquet_export: ParquetExport) -> None:  # noqa: ARG002
         msg = "XNATUploader does not support parquet files"
         raise NotImplementedError(msg)

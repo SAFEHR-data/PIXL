@@ -46,7 +46,15 @@ def xnat_uploader() -> MockXNATUploader:
 
 
 @pytest.fixture()
-def zip_content() -> Generator:
+def zip_parquet() -> Generator:
+    """Directory containing parquet test data."""
+    test_zip_file = TEST_DIR / "data" / "public.zip"
+    with test_zip_file.open("rb") as file_content:
+        yield file_content
+
+
+@pytest.fixture()
+def zip_dicoms() -> Generator:
     """
     Zip file containing the test DICOMs for uploading to the XNAT instance.
 
@@ -131,10 +139,10 @@ def xnat_server(xnat_study_tags) -> Generator:
 
 
 @pytest.mark.usefixtures("xnat_server")
-def test_upload_to_xnat(zip_content, xnat_uploader, xnat_study_tags) -> None:
+def test_upload_to_xnat(zip_dicoms, xnat_uploader, xnat_study_tags) -> None:
     """Tests that DICOM image can be uploaded to the correct location"""
     xnat_uploader.upload_to_xnat(
-        zip_content=zip_content,
+        zip_content=zip_dicoms,
         study_tags=xnat_study_tags,
     )
 
@@ -153,3 +161,9 @@ def test_upload_to_xnat(zip_content, xnat_uploader, xnat_study_tags) -> None:
         experiment = subject.experiments[0]
         assert experiment.label == xnat_study_tags.pseudo_anon_image_id.replace(".", "_")
         assert len(experiment.scans) == 2
+
+
+def test_parquet_export_not_implemented(xnat_uploader, zip_parquet) -> None:
+    """Tests that calling XNATUploader.upload_parquet_files raises an error."""
+    with pytest.raises(NotImplementedError, match="XNATUploader does not support parquet files"):
+        xnat_uploader.upload_parquet_files(zip_parquet)
