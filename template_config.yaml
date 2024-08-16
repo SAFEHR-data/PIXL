@@ -23,5 +23,5 @@ tag_operation_files: # DICOM tag anonymisation operations
     manufacturer_overrides: none # Manufactuer-dependendent overrides
 
 destination:
-    dicom: "ftps" # alternatives: "dicomweb", "none"
+    dicom: "ftps" # alternatives: "dicomweb", "xnat", "none"
     parquet: "ftps" # alternatives: "none"
