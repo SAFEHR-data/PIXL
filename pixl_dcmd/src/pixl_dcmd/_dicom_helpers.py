@@ -93,7 +93,7 @@ class StudyInfo:
     mrn: str
     accession_number: str
     study_uid: str
-
+    pseudo_patient_id: str = None
 
 def get_study_info(dataset: Dataset) -> StudyInfo:
     """Read study identifiers from dicom dataset."""
@@ -101,4 +101,5 @@ def get_study_info(dataset: Dataset) -> StudyInfo:
         mrn=dataset[0x0010, 0x0020].value,
         accession_number=dataset[0x0008, 0x0050].value,
         study_uid=dataset[0x0020, 0x000D].value,
+        pseudo_patient_id=dataset[0x0010, 0x0020].value
     )

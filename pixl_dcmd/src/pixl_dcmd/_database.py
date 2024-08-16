@@ -62,6 +62,26 @@ def get_uniq_pseudo_study_uid_and_update_db(
         return UID(pseudo_study_uid, validation_mode=pydicom.config.RAISE)
 
 
+def get_pseudo_patient_id_and_update_db(
+    project_slug: str, study_info: StudyInfo
+) -> UID:
+    """
+    Checks if record (by slug and study info) exists in the database,
+    gets the pseudo_paitent_id if it is not None or records a new, unique one.
+    Returns the pseudo_paitent_uid.
+    """
+    PixlSession = sessionmaker(engine)
+    with PixlSession() as pixl_session, pixl_session.begin():
+        existing_image = get_unexported_image(
+            project_slug,
+            study_info,
+            pixl_session,
+        )
+        pseudo_patient_id = existing_image.pseudo_patient_id
+
+        return UID(pseudo_patient_id, validation_mode=pydicom.config.RAISE)
+
+
 def add_pseudo_study_uid_to_db(
     existing_image: Image, pseudo_study_uid: str, pixl_session: Session
 ) -> None:

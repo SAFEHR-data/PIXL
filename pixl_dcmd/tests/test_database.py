@@ -20,6 +20,7 @@ from core.db.models import Extract, Image
 from pixl_dcmd._database import (
     get_unexported_image,
     get_uniq_pseudo_study_uid_and_update_db,
+    get_pseudo_patient_id_and_update_db,
 )
 from pixl_dcmd._dicom_helpers import StudyInfo
 from sqlalchemy.orm import Session
@@ -36,7 +37,12 @@ TEST_STUDY_INFO_WITH_PSEUDO_UID = StudyInfo(
     accession_number="bcdef",
     study_uid="2.3.4.5.6",
 )
-
+TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_UID = StudyInfo(
+    mrn="234567",
+    accession_number="bcdef",
+    study_uid="2.3.4.5.6",
+    pseudo_patient_id="0"
+)
 
 @pytest.fixture()
 def rows_for_database_testing(db_session) -> Session:
@@ -63,6 +69,7 @@ def rows_for_database_testing(db_session) -> Session:
         # This should be a valid VR UI value!
         # https://dicom.nema.org/medical/dicom/current/output/html/part05.html#table_6.2-1
         pseudo_study_uid="0.0.0.0.0.0",
+        pseudo_patient_id="0"
     )
 
     with db_session:
@@ -84,6 +91,18 @@ def test_get_uniq_pseudo_study_uid_and_update_db(rows_for_database_testing, db_s
         TEST_PROJECT_SLUG, TEST_STUDY_INFO_WITH_PSEUDO_UID
     )
     assert pseudo_study_uid == "0.0.0.0.0.0"
+
+
+def test_get_pseudo_patient_id_and_update_db(rows_for_database_testing, db_session):
+    """
+    GIVEN
+    WHEN
+    THEN
+    """
+    pseudo_patient_id = get_pseudo_patient_id_and_update_db(
+        TEST_PROJECT_SLUG, TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_UID
+    )
+    assert pseudo_patient_id == "0"
 
 
 def test_get_unexported_image_fallback(rows_for_database_testing, db_session):
