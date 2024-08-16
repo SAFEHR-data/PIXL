@@ -71,7 +71,15 @@ def xnat_study_tags() -> StudyTags:
 
 @pytest.fixture(scope="session")
 def xnat_server(xnat_study_tags) -> Generator:
-    """Start the XNAT server."""
+    """
+    Start the XNAT server.
+
+    Note, it can take several minutes for the server to start up.
+
+    Once the server has started, you can log in by visiting http://localhost:8080
+    with the username and password set in the `XNAT_USER_NAME` and `XNAT_PASSWORD`
+    environment variables.
+    """
     config = xnat4tests.Config(
         xnat_port=os.environ["XNAT_PORT"],
         docker_host=os.environ["XNAT_HOST"],
