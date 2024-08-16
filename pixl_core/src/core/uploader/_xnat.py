@@ -16,6 +16,7 @@
 
 from __future__ import annotations
 
+import os
 from typing import TYPE_CHECKING, BinaryIO, Optional
 
 import xnat
@@ -40,6 +41,22 @@ class XNATUploader(Uploader):
         super().__init__(project_slug, keyvault_alias)
 
     def _set_config(self) -> None:
+        """
+        Configure XNATUploader.
+
+        "XNAT_DESTINATION":
+        - if "/archive", will send data straight to the archive
+        - if "/prearchive", will send data to the prearchive for manual review before archiving
+
+        "XNAT_OVERWRITE":
+          - if 'none', will error if the session already exists.
+          - if 'append', will append the data to an existing session or create a new one if it
+            doesn't exist.
+            If there is a conflict with existing series, an error will be raised.
+          - if 'delete', will append the data to an existing session or create a new one if it
+            doesn't exist.
+            If there is a conflict with existing series, the existing series will be overwritten.
+        """
         # Use the Azure KV alias as prefix if it exists, otherwise use the project name
         az_prefix = self.keyvault_alias
         az_prefix = az_prefix if az_prefix else self.project_slug
@@ -49,6 +66,8 @@ class XNATUploader(Uploader):
         self.password = self.keyvault.fetch_secret(f"{az_prefix}--xnat--password")
         self.port = int(self.keyvault.fetch_secret(f"{az_prefix}--xnat--port"))
         self.url = f"https://{self.host}:{self.port}"
+        self.destination = os.environ["XNAT_DESTINATION"]
+        self.overwrite = os.environ["XNAT_OVERWRITE"]
 
     def _upload_dicom_image(
         self,
@@ -71,10 +90,10 @@ class XNATUploader(Uploader):
             user=self.user,
             password=self.password,
         ) as session:
-            return session.services.import_(
+            session.services.import_(
                 data=zip_content,
-                overwrite=None,
-                destination="/archive",
+                overwrite=self.overwrite,
+                destination=self.destination,
                 project=study_tags.project_slug,
                 subject=study_tags.patient_id,
                 experiment=study_tags.pseudo_anon_image_id,
