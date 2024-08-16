@@ -47,7 +47,13 @@ def xnat_uploader() -> MockXNATUploader:
 
 @pytest.fixture()
 def zip_content() -> Generator:
-    """Directory containing the test DICOMs for uploading to the XNAT instance."""
+    """
+    Zip file containing the test DICOMs for uploading to the XNAT instance.
+
+    The zip file contains a single study with two DICOMs:
+    - 987654321_AA12345601_AP.dcm
+    - 987654321_AA12345601_include123.dcm
+    """
     test_zip_file = TEST_DIR / "data" / "dicom_series.zip"
     with test_zip_file.open("rb") as file_content:
         yield io.BytesIO(file_content.read())
