@@ -51,7 +51,7 @@ def messages_from_df(
             procedure_occurrence_id=row["procedure_occurrence_id"],
             project_name=row["project_name"],
             extract_generated_timestamp=row["extract_generated_timestamp"].to_pydatetime(),
-            pseudo_patient_id=row["pseudo_patient_id"]
+            pseudo_patient_id=row["pseudo_patient_id"],
         )
         messages.append(message)
 

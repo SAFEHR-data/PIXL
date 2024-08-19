@@ -38,11 +38,9 @@ TEST_STUDY_INFO_WITH_PSEUDO_UID = StudyInfo(
     study_uid="2.3.4.5.6",
 )
 TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_UID = StudyInfo(
-    mrn="234567",
-    accession_number="bcdef",
-    study_uid="2.3.4.5.6",
-    pseudo_patient_id="0"
+    mrn="234567", accession_number="bcdef", study_uid="2.3.4.5.6", pseudo_patient_id="9"
 )
+
 
 @pytest.fixture()
 def rows_for_database_testing(db_session) -> Session:
@@ -61,15 +59,15 @@ def rows_for_database_testing(db_session) -> Session:
     )
 
     existing_image_with_pseudo_study_uid = Image(
-        mrn=TEST_STUDY_INFO_WITH_PSEUDO_UID.mrn,
-        accession_number=TEST_STUDY_INFO_WITH_PSEUDO_UID.accession_number,
-        study_uid=TEST_STUDY_INFO_WITH_PSEUDO_UID.study_uid,
+        mrn=TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_UID.mrn,
+        accession_number=TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_UID.accession_number,
+        study_uid=TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_UID.study_uid,
         study_date=STUDY_DATE,
         extract=extract,
         # This should be a valid VR UI value!
         # https://dicom.nema.org/medical/dicom/current/output/html/part05.html#table_6.2-1
         pseudo_study_uid="0.0.0.0.0.0",
-        pseudo_patient_id="0"
+        pseudo_patient_id="0",
     )
 
     with db_session:
@@ -95,9 +93,9 @@ def test_get_uniq_pseudo_study_uid_and_update_db(rows_for_database_testing, db_s
 
 def test_get_pseudo_patient_id_and_update_db(rows_for_database_testing, db_session):
     """
-    GIVEN
-    WHEN
-    THEN
+    GIVEN an exixting image that already has pseudo_patient_id
+    WHEN we query the dataset for that image
+    THEN the funcion should return the existing pseudo_patient_id
     """
     pseudo_patient_id = get_pseudo_patient_id_and_update_db(
         TEST_PROJECT_SLUG, TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_UID

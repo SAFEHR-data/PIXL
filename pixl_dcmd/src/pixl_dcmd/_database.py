@@ -77,7 +77,11 @@ def get_pseudo_patient_id_and_update_db(
             study_info,
             pixl_session,
         )
-        pseudo_patient_id = existing_image.pseudo_patient_id
+
+        if existing_image.pseudo_patient_id is None:
+            pseudo_patient_id = generate_uid()
+        else:
+            pseudo_patient_id = existing_image.pseudo_patient_id
 
         return UID(pseudo_patient_id, validation_mode=pydicom.config.RAISE)
 
@@ -120,6 +124,7 @@ def get_unexported_image(
                 Extract.slug == project_slug,
                 Image.study_uid == study_info.study_uid,
                 Image.exported_at == None,  # noqa: E711
+                Image.pseudo_patient_id == study_info.pseudo_patient_id,
             )
             .one()
         )

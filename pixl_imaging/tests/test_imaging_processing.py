@@ -48,7 +48,7 @@ message = Message(
     procedure_occurrence_id=234,
     project_name="test project",
     extract_generated_timestamp=datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
-    pseudo_patient_id=None
+    pseudo_patient_id=None,
 )
 no_uid_message = Message(
     mrn=PATIENT_ID,
@@ -60,7 +60,7 @@ no_uid_message = Message(
     procedure_occurrence_id=234,
     project_name="test project",
     extract_generated_timestamp=datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
-    pseudo_patient_id=None
+    pseudo_patient_id=None,
 )
 
 
