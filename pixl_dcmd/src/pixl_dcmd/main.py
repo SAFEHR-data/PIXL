@@ -103,16 +103,10 @@ def anonymise_dicom(dataset: Dataset) -> None:
     tag_operations = load_tag_operations(project_config)
     tag_scheme = merge_tag_schemes(tag_operations, manufacturer=dataset.Manufacturer)
 
-    modalities = project_config.project.modalities
-
     logger.debug(
         f"Applying DICOM tag anonymisation according to {project_config.tag_operation_files}"
     )
     logger.trace(f"Tag scheme: {tag_scheme}")
-
-    if (0x0008, 0x0060) in dataset and dataset.Modality not in modalities:
-        msg = f"Dropping DICOM Modality: {dataset.Modality}"
-        raise PixlDiscardError(msg)
 
     enforce_whitelist(dataset, tag_scheme, recursive=True)
     _anonymise_dicom_from_scheme(dataset, project_slug, tag_scheme)
