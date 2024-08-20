@@ -70,7 +70,7 @@ top-level `pytest.ini`. You will therefore need to run tests for `hasher` from t
 #### Enabling default Docker socket for testing `pixl_core`
 
 We have tests in `pixl_core` for uploading DICOM to XNAT as an endpoint. These tests use
-[`xnat4tests`](https://github.com/Australian-Imaging-Service/xnat4tests) to spin up a docker images running XNAT.
+[`xnat4tests`](https://github.com/Australian-Imaging-Service/xnat4tests) to spin up a docker container running XNAT.
 
 `xnat4tests` requires you to allow the Docker daemon to listen for Docker Engine API requests via the default
 socket. This is because `xnat4tests` set up the XNAT Container Service for launching other containers that run
