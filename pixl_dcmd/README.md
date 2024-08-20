@@ -15,7 +15,7 @@ For external users, the `pixl_dcmd` package provides the following functionality
 
 ## Installation
 
-Install the Python dependencies from the `pixl_dcmc` directory:
+Install the Python dependencies from the `pixl_dcmd` directory:
 
 ```bash
 python -m pip install -e ../pixl_core/ -e ".[test,dev]"
