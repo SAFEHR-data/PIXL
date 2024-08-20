@@ -24,8 +24,7 @@ def test_serialise(mock_message) -> None:
         b'"study_date": "2022-11-22", '
         b'"procedure_occurrence_id": "234", '
         b'"project_name": "test project", '
-        b'"extract_generated_timestamp": "2023-12-07T14:08:00+00:00", '
-        b'"pseudo_patient_id": "0"}'
+        b'"extract_generated_timestamp": "2023-12-07T14:08:00+00:00"}'
     )
 
 

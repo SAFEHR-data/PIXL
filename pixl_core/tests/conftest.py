@@ -222,5 +222,4 @@ def mock_message() -> Message:
         extract_generated_timestamp=datetime.datetime.strptime(
             "Dec 7 2023 2:08PM", "%b %d %Y %I:%M%p"
         ).replace(tzinfo=datetime.timezone.utc),
-        pseudo_patient_id="0",
     )

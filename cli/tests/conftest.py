@@ -132,11 +132,9 @@ def _make_message(
     accession_number: str,
     mrn: str,
     study_uid: str,
-    pseudo_patient_id: str = None,  # noqa: RUF013
 ) -> Message:
     return Message(
         project_name=project_name,
-        pseudo_patient_id=pseudo_patient_id,
         accession_number=accession_number,
         mrn=mrn,
         study_uid=study_uid,
@@ -165,7 +163,9 @@ def example_messages() -> list[Message]:
 @pytest.fixture()
 def example_messages_df(example_messages):
     """Test input data in a DataFrame."""
-    return pd.DataFrame.from_records([vars(im) for im in example_messages])
+    messages_df = pd.DataFrame.from_records([vars(im) for im in example_messages])
+    messages_df["pseudo_patient_id"]=0
+    return messages_df
 
 
 @pytest.fixture()
@@ -205,7 +205,9 @@ def example_messages_multiple_projects() -> list[Message]:
 @pytest.fixture()
 def example_messages_multiple_projects_df(example_messages_multiple_projects) -> pd.DataFrame:
     """Test input data."""
-    return pd.DataFrame.from_records([vars(im) for im in example_messages_multiple_projects])
+    messages_df = pd.DataFrame.from_records([vars(im) for im in example_messages_multiple_projects])
+    messages_df["pseudo_patient_id"]=0
+    return messages_df
 
 
 @pytest.fixture()

@@ -88,11 +88,6 @@ def _load_csv(filepath: Path) -> pd.DataFrame:
     messages_df = _map_columns(messages_df, MAP_CSV_TO_MESSAGE_KEYS)
     _raise_if_column_names_not_found(messages_df, [col.name for col in DF_COLUMNS])
 
-    if "participant_id" in messages_df:  # noqa: SIM401
-        messages_df["pseudo_patient_id"] = messages_df["participant_id"]
-    else:
-        messages_df["pseudo_patient_id"] = None
-
     # Parse non string columns
     messages_df["procedure_occurrence_id"] = messages_df["procedure_occurrence_id"].astype(int)
     messages_df["study_date"] = pd.to_datetime(
@@ -167,6 +162,7 @@ class DF_COLUMNS(StrEnum):  # noqa: N801
 
 MAP_CSV_TO_MESSAGE_KEYS = {
     "procedure_id": "procedure_occurrence_id",
+    "participant_id": "pseudo_patient_id"
 }
 
 
