@@ -3,17 +3,19 @@
 The `pixl_dcmd` package provides helper functions for de-identifying DICOM data. It is currently
 only used by the [`orthanc-anon` plugin](../orthanc/orthanc-anon/plugin/pixl.py).
 
-The reason for having this as a separate package instead of having the functionality in `pixl_core`
-is because `orthanc` requires Python 3.9, whereas the rest of PIXL is on 3.10 or higher.
+For external users, the `pixl_dcmd` package provides the following functionality:
 
-Specifically, the `pixl_dcmd` package provides the following functionality:
-
-- `anonymise_dicom()`: Applies the [anonymisation operations](#tag-scheme-anonymisation) for the appropriate tag scheme using [Kitware Dicom Anonymizer](https://github.com/KitwareMedical/dicom-anonymizer)) and deletes any tags not mentioned in the tag scheme.
-- `write_dataset_to_bytes()`: writes a DICOM dataset to a bytes object
+- `anonymise_dicom()`: Applies the [anonymisation operations](#tag-scheme-anonymisation) 
+   for the appropriate tag scheme using [Kitware Dicom Anonymizer](https://github.com/KitwareMedical/dicom-anonymizer)
+   and deletes any tags not mentioned in the tag scheme.
+   There is also an option to synchronise to the PIXL database, external users can avoid this
+   to just run the allow-list and applying the tag scheme. 
+- `anonymise_and_validate_dicom()`: Compares DICOM validation issues before and after calling `anonymise_dicom`
+  and returns a dictionary of the new issues. Can also avoid synchronising with PIXL database
 
 ## Installation
 
-Install the Python dependencies with
+Install the Python dependencies from the `pixl_dcmc` directory:
 
 ```bash
 python -m pip install -e ../pixl_core/ -e ".[test,dev]"
