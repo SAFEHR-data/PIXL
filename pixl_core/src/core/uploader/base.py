@@ -19,6 +19,8 @@ from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, Optional
 
+from loguru import logger
+
 from core.db.queries import have_already_exported_image, update_exported_at
 from core.project_config.secrets import AzureKeyVault
 from core.uploader._orthanc import get_tags_by_study
@@ -61,7 +63,20 @@ class Uploader(ABC):
         """
         study_tags = self._get_tags_by_study(study_id)
         self.check_already_exported(study_tags.pseudo_anon_image_id)
+
+        logger.info(
+            "Starting {} upload of '{}' for {}",
+            self.__class__.__name__.removesuffix("Uploader"),
+            study_tags.pseudo_anon_image_id,
+            study_tags.project_slug,
+        )
         self._upload_dicom_image(study_id, study_tags)
+        logger.success(
+            "Finished {} upload of '{}'",
+            self.__class__.__name__.removesuffix("Uploader"),
+            study_tags.pseudo_anon_image_id,
+        )
+
         update_exported_at(study_tags.pseudo_anon_image_id, datetime.now(tz=timezone.utc))
 
     @abstractmethod

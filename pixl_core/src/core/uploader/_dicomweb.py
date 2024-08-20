@@ -56,14 +56,9 @@ class DicomWebUploader(Uploader):
     def _upload_dicom_image(
         self,
         study_id: str,
-        study_tags: StudyTags,
+        study_tags: StudyTags,  # noqa: ARG002
     ) -> None:
         """Upload a Dicom resource to the DicomWeb server from within Orthanc."""
-        logger.info(
-            "Starting DICOMweb upload of '{}' for {}",
-            study_tags.pseudo_anon_image_id,
-            study_tags.project_slug,
-        )
         if not self._check_dicomweb_server_exists():
             logger.info("Creating new DICOMWeb credentials")
             self._setup_dicomweb_credentials()
@@ -85,7 +80,6 @@ class DicomWebUploader(Uploader):
         except requests.exceptions.RequestException:
             logger.error("Failed to send via stow")
             raise
-        logger.info("Finished DICOMweb upload of '{}'", study_tags.pseudo_anon_image_id)
 
     def _check_dicomweb_server_exists(self) -> bool:
         """Checks if the dicomweb server exists."""

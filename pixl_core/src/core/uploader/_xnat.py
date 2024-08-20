@@ -20,7 +20,6 @@ import os
 from typing import TYPE_CHECKING, BinaryIO, Optional
 
 import xnat
-from loguru import logger
 
 from core.uploader.base import Uploader
 
@@ -76,9 +75,7 @@ class XNATUploader(Uploader):
     ) -> None:
         """Upload a DICOM image to the XNAT instance."""
         zip_content = get_study_zip_archive(study_id)
-        logger.info("Starting XNAT upload of '{}'", study_tags)
         self.upload_to_xnat(zip_content, study_tags)
-        logger.info("Finished XNAT upload of '{}'", study_tags.pseudo_anon_image_id)
 
     def upload_to_xnat(
         self,

@@ -83,14 +83,12 @@ class FTPSUploader(Uploader):
         study_tags: StudyTags,
     ) -> None:
         """Upload a DICOM image to the FTPS server."""
-        logger.info("Starting FTPS upload of '{}'", study_tags.pseudo_anon_image_id)
         zip_content = get_study_zip_archive(study_id)
         self.send_via_ftps(
             zip_content,
             study_tags.pseudo_anon_image_id,
             remote_directory=study_tags.project_slug,
         )
-        logger.info("Finished FTPS upload of '{}'", study_tags.pseudo_anon_image_id)
 
     def send_via_ftps(
         self, zip_content: BinaryIO, pseudo_anon_image_id: str, remote_directory: str
