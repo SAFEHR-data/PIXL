@@ -211,7 +211,8 @@ with existing session and series data:
 
 `"XNAT_OVERWRITE"`:
 
-- if `"none"`, will error if the session already exists.
+- if `"none"`, will error if the session already exists. Upon error, data will be sent to the prearchive,
+  even if `XNAT_DESTINATION` is `/archive`
 - if `"append"`, will append the data to an existing session or create a new one if it doesn't exist.
         If there is a conflict with existing series, an error will be raised.
 - if `"delete"`, will append the data to an existing session or create a new one if it doesn't exist.
