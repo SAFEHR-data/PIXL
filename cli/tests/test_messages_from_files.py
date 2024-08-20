@@ -63,7 +63,6 @@ def test_messages_from_csv_with_participant_id(omop_resources: Path) -> None:
     Then one message should be generated
 
     """
-
     # Arrange
     test_csv = omop_resources / "participant_id.csv"
     messages_df = read_patient_info(test_csv)

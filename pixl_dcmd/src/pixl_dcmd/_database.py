@@ -78,12 +78,7 @@ def get_pseudo_patient_id_and_update_db(
             pixl_session,
         )
 
-        if existing_image.pseudo_patient_id is None:
-            pseudo_patient_id = generate_uid()
-        else:
-            pseudo_patient_id = existing_image.pseudo_patient_id
-
-        return UID(pseudo_patient_id, validation_mode=pydicom.config.RAISE)
+        return existing_image.pseudo_patient_id
 
 
 def add_pseudo_study_uid_to_db(
