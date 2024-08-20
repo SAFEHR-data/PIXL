@@ -164,7 +164,7 @@ def example_messages() -> list[Message]:
 def example_messages_df(example_messages):
     """Test input data in a DataFrame."""
     messages_df = pd.DataFrame.from_records([vars(im) for im in example_messages])
-    messages_df["pseudo_patient_id"]=0
+    messages_df["pseudo_patient_id"] = 0
     return messages_df
 
 
@@ -206,7 +206,7 @@ def example_messages_multiple_projects() -> list[Message]:
 def example_messages_multiple_projects_df(example_messages_multiple_projects) -> pd.DataFrame:
     """Test input data."""
     messages_df = pd.DataFrame.from_records([vars(im) for im in example_messages_multiple_projects])
-    messages_df["pseudo_patient_id"]=0
+    messages_df["pseudo_patient_id"] = 0
     return messages_df
 
 
