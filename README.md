@@ -171,11 +171,11 @@ The configuration file defines:
   [parquet files](./docs/file_types/parquet_files.md). We currently support the following endpoints:
     - `"none"`: no upload
     - `"ftps"`: a secure FTP server (for both _DICOM_ and _parquet_ files)
-    - `"xnat"`: an [XNAT](https://www.xnat.org/) instance (for _DICOM_)
+    - `"dicomweb"`: a DICOMweb server (for _DICOM_ files only).
+      Requires the `DICOMWEB_*` environment variables to be set in `.env`
+    - `"xnat"`: an [XNAT](https://www.xnat.org/) instance (for _DICOM_ files only)
     <!-- - `"azure"`: a secure Azure Dicom web service (for both _DICOM_ and _parquet_ files) -->
     <!--   Requires the `AZURE_*` environment variables to be set in `.env` -->
-    <!-- - `"dicomweb"`: a DICOMweb server (for _DICOM_ files only) -->
-    <!--   Requires the `DICOMWEB_*` environment variables to be set in `.env` -->
 </p>
 </details> 
 
