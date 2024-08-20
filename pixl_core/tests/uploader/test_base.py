@@ -16,6 +16,7 @@
 import pytest
 import sqlalchemy
 from core.db.models import Image
+from core.uploader import DicomWebUploader, FTPSUploader, XNATUploader, get_uploader
 from core.uploader._orthanc import StudyTags
 from core.uploader.base import Uploader
 from loguru import logger
@@ -107,3 +108,26 @@ def test_study_already_exported_raises(already_exported_dicom_image) -> None:
 
     with pytest.raises(RuntimeError, match="Image already exported"):
         uploader.upload_dicom_and_update_database(study_id)
+
+
+@pytest.mark.parametrize(
+    ("project_slug", "expected_uploader_class"),
+    [
+        ("test-extract-uclh-omop-cdm", FTPSUploader),
+        ("test-extract-uclh-omop-cdm-dicomweb", DicomWebUploader),
+        ("test-extract-uclh-omop-cdm-xnat", XNATUploader),
+    ],
+)
+def test_get_uploader(project_slug, expected_uploader_class, monkeypatch) -> None:
+    """Test the correct uploader class is returned."""
+    with monkeypatch.context() as m:
+        # Mock the __init__ method so that we don't attempt to connect to AzureKeyVault.
+        # Otherwise AzureKeyVault._check_envvars will raise an exception for undefined
+        # environment variables.
+        m.setattr(
+            "core.uploader.base.Uploader.__init__",
+            lambda self, project_slug, keyvault_alias: None,  # noqa: ARG005
+        )
+
+        uploader = get_uploader(project_slug)
+        assert isinstance(uploader, expected_uploader_class)
