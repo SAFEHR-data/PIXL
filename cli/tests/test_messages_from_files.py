@@ -63,13 +63,6 @@ def test_messages_from_csv_with_participant_id(omop_resources: Path) -> None:
     Then one message should be generated
 
     """
-    # To get this test passing:
-    # - update core.db.models.Image to include pseudo_patient_id as a str,
-    #   make optional with default to None
-    # - update pixl_cli._database._add_images_to_session to pass pseudo_patient_id to the Image
-    # - update core.patient_queue.message.Message to include pseudo_patient_id
-    # - update pixl_cli._message_processing.messages_from_df to include
-    #   pseudo_patient_id in the Message
 
     # Arrange
     test_csv = omop_resources / "participant_id.csv"
