@@ -24,9 +24,11 @@ import yaml
 
 
 def record_dicom_headers(receivedDicom: bytes) -> None:
-    with importlib.resources.files("pixl_dcmd").joinpath(
-        "resources/recorded-headers.yml"
-    ).open() as f:
+    with (
+        importlib.resources.files("pixl_dcmd")
+        .joinpath("resources/recorded-headers.yml")
+        .open() as f
+    ):
         recording_config = yaml.safe_load(f)
     dataset = dcmread(BytesIO(receivedDicom))
     with _header_log_path().open("a") as f:
