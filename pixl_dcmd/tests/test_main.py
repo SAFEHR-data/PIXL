@@ -36,8 +36,8 @@ from pixl_dcmd._dicom_helpers import get_study_info
 from pixl_dcmd.main import (
     _anonymise_dicom_from_scheme,
     anonymise_dicom,
-    enforce_whitelist,
-    should_exclude_series,
+    _enforce_allowlist,
+    _should_exclude_series,
 )
 from pydicom.data import get_testdata_file
 from pydicom.dataset import Dataset
@@ -102,14 +102,14 @@ def mri_diffusion_dicom_image() -> Dataset:
     return ds
 
 
-def test_enforce_whitelist_removes_overlay_plane() -> None:
+def test_enforce_allowlist_removes_overlay_plane() -> None:
     """Checks that overlay planes are removed."""
     ds = get_testdata_file(
         "MR-SIEMENS-DICOM-WithOverlays.dcm", read=True, download=True
     )
     assert (0x6000, 0x3000) in ds
 
-    enforce_whitelist(ds, {}, recursive=True)
+    _enforce_allowlist(ds, {}, recursive=True)
     assert (0x6000, 0x3000) not in ds
 
 
@@ -171,7 +171,7 @@ def test_anonymisation_with_overrides(
     """
 
     # Sanity check
-    # (0x2001, 0x1003) is one of the tags whitelisted by the overrides for Philips manufacturer
+    # (0x2001, 0x1003) is one of the tags allow-listed by the overrides for Philips manufacturer
     assert (0x2001, 0x1003) in mri_diffusion_dicom_image
     original_patient_id = mri_diffusion_dicom_image.PatientID
     original_private_tag = mri_diffusion_dicom_image[(0x2001, 0x1003)]
@@ -283,9 +283,9 @@ def _make_dicom(series_description) -> Dataset:
 
 def test_should_exclude_series(dicom_series_to_exclude, dicom_series_to_keep):
     for s in dicom_series_to_keep:
-        assert not should_exclude_series(s)
+        assert not _should_exclude_series(s)
     for s in dicom_series_to_exclude:
-        assert should_exclude_series(s)
+        assert _should_exclude_series(s)
 
 
 def test_can_nifti_convert_post_anonymisation(
@@ -501,7 +501,7 @@ def test_keep_tag_del_sq(sequenced_dicom_mock_db):
         sequenced_dicom_mock_db.get_private_item(0x0011, 0x0010, "UCLH PIXL")
 
 
-def test_whitelist_child_elements_deleted(sequenced_dicom_mock_db):
+def test_allowlist_child_elements_deleted(sequenced_dicom_mock_db):
     """
     GIVEN a dicom image that has a public and private sequence tags
     WHEN the dicom tag scheme is applied
@@ -533,7 +533,7 @@ def test_whitelist_child_elements_deleted(sequenced_dicom_mock_db):
         },
     ]
     # Whitelist
-    enforce_whitelist(sequenced_dicom_mock_db, tag_scheme, recursive=True)
+    _enforce_allowlist(sequenced_dicom_mock_db, tag_scheme, recursive=True)
 
     # Check that the sequence tag is kept
     assert (0x0011, 0x0010) in sequenced_dicom_mock_db

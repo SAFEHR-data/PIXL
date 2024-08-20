@@ -43,8 +43,6 @@ exclude_also = [
     "@(abc\\.)?abstractmethod",
 ]
 
-[tool.ruff]
-extend = "./ruff.toml"
 
 [tool.ruff.lint.extend-per-file-ignores]
 "./tests/**" = ["D100"]

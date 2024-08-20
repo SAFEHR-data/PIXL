@@ -14,8 +14,7 @@
 from __future__ import annotations
 
 from io import BytesIO
-from os import PathLike
-from typing import Any, BinaryIO, Callable, Union
+from typing import Callable
 
 import requests
 from core.exceptions import PixlDiscardError
@@ -36,8 +35,6 @@ from pixl_dcmd._dicom_helpers import (
 )
 from pixl_dcmd._tag_schemes import _scheme_list_to_dict, merge_tag_schemes
 
-DicomDataSetType = Union[Union[str, bytes, PathLike[Any]], BinaryIO]
-
 
 def write_dataset_to_bytes(dataset: Dataset) -> bytes:
     """
@@ -52,7 +49,7 @@ def write_dataset_to_bytes(dataset: Dataset) -> bytes:
         return buffer.read()
 
 
-def should_exclude_series(dataset: Dataset) -> bool:
+def _should_exclude_series(dataset: Dataset) -> bool:
     slug = get_project_name_as_string(dataset)
 
     series_description = dataset.get("SeriesDescription")
@@ -135,7 +132,7 @@ def anonymise_dicom(dataset: Dataset, synchronise_pixl_db: bool = True) -> None:
     )
     logger.trace(f"Tag scheme: {tag_scheme}")
 
-    enforce_whitelist(dataset, tag_scheme, recursive=True)
+    _enforce_allowlist(dataset, tag_scheme, recursive=True)
     _anonymise_dicom_from_scheme(dataset, project_slug, tag_scheme)
 
     if synchronise_pixl_db:
@@ -238,16 +235,16 @@ def _hash_values(pat_value: str, project_slug: str, hash_len: int = 0) -> str:
     return response.text
 
 
-def enforce_whitelist(
+def _enforce_allowlist(
     dataset: Dataset, tag_scheme: list[dict], recursive: bool
 ) -> None:
     """
-    Enforce the whitelist on the dataset.
+    Enforce the allowlist on the dataset.
     """
-    dataset.walk(lambda ds, de: _whitelist_tag(ds, de, tag_scheme), recursive)
+    dataset.walk(lambda ds, de: _allowlist_tag(ds, de, tag_scheme), recursive)
 
 
-def _whitelist_tag(dataset: Dataset, de: DataElement, tag_scheme: list[dict]) -> None:
+def _allowlist_tag(dataset: Dataset, de: DataElement, tag_scheme: list[dict]) -> None:
     """Delete element if it is not in the tagging schemе."""
     tag_dict = _scheme_list_to_dict(tag_scheme)
     if (de.tag.group, de.tag.element) in tag_dict and tag_dict[
