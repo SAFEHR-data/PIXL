@@ -11,16 +11,23 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-from __future__ import annotations
 
-from pixl_dcmd.main import (
-    anonymise_dicom,
-    write_dataset_to_bytes,
-    anonymise_and_validate_dicom,
-)
+project:
+    name: "test-external-user"
+    modalities: ["MR"]
 
-__all__ = [
-    "anonymise_dicom",
-    "write_dataset_to_bytes",
-    "anonymise_and_validate_dicom",
-]
+tag_operation_files:
+    base:
+        - "test-external-user.yaml"
+        - "diffusion-weighted-mri.yaml"
+    manufacturer_overrides: ["mri-diffusion.yaml"]
+
+series_filters:
+    - "localizer"
+    - "localiser"
+    - "scout"
+    - "positioning"
+
+destination:
+    dicom: "none"
+    parquet: "none"
