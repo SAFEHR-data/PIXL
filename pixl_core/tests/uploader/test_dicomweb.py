@@ -20,6 +20,7 @@ import time
 import pytest
 import requests
 from core.uploader._dicomweb import DicomWebUploader
+from core.uploader._orthanc import StudyTags
 from decouple import config  # type ignore [import-untyped]
 
 ORTHANC_ANON_URL = config("ORTHANC_ANON_URL")
@@ -93,8 +94,14 @@ def test_upload_dicom_image(
     study_id, run_containers, dicomweb_uploader, not_yet_exported_dicom_image
 ) -> None:
     """Tests that DICOM image can be uploaded to a DICOMWeb server"""
+    study_tags = StudyTags(
+        pseudo_anon_image_id=not_yet_exported_dicom_image.pseudo_study_uid,
+        project_slug="project",
+        patient_id="patient",
+    )
     dicomweb_uploader._upload_dicom_image(  # noqa: SLF001
-        study_id, not_yet_exported_dicom_image.pseudo_study_uid, "project"
+        study_id,
+        study_tags,
     )
 
     # Check that the instance has arrived in the DICOMweb server

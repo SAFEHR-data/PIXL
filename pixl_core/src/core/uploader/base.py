@@ -17,11 +17,16 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any, Optional
+
+from loguru import logger
 
 from core.db.queries import have_already_exported_image, update_exported_at
 from core.project_config.secrets import AzureKeyVault
 from core.uploader._orthanc import get_tags_by_study
+
+if TYPE_CHECKING:
+    from core.uploader._orthanc import StudyTags
 
 
 class Uploader(ABC):
@@ -56,14 +61,29 @@ class Uploader(ABC):
         :param study_id: Orthanc Study ID
         :raise: if the image has already been exported
         """
-        pseudo_anon_image_id, project_slug = self._get_tags_by_study(study_id)
-        self.check_already_exported(pseudo_anon_image_id)
-        self._upload_dicom_image(study_id, pseudo_anon_image_id, project_slug)
-        update_exported_at(pseudo_anon_image_id, datetime.now(tz=timezone.utc))
+        study_tags = self._get_tags_by_study(study_id)
+        self.check_already_exported(study_tags.pseudo_anon_image_id)
+
+        logger.info(
+            "Starting {} upload of '{}' for {}",
+            self.__class__.__name__.removesuffix("Uploader"),
+            study_tags.pseudo_anon_image_id,
+            study_tags.project_slug,
+        )
+        self._upload_dicom_image(study_id, study_tags)
+        logger.success(
+            "Finished {} upload of '{}'",
+            self.__class__.__name__.removesuffix("Uploader"),
+            study_tags.pseudo_anon_image_id,
+        )
+
+        update_exported_at(study_tags.pseudo_anon_image_id, datetime.now(tz=timezone.utc))
 
     @abstractmethod
     def _upload_dicom_image(
-        self, study_id: str, pseudo_anon_image_id: str, project_slug: str
+        self,
+        study_id: str,
+        study_tags: StudyTags,
     ) -> None:
         """
         Abstract method to upload DICOM images, should not be called directly.
@@ -88,6 +108,6 @@ class Uploader(ABC):
             raise RuntimeError(msg)
 
     @staticmethod
-    def _get_tags_by_study(study_id: str) -> tuple[str, str]:
+    def _get_tags_by_study(study_id: str) -> StudyTags:
         """Helper method for getting tags by study ID, can be overriden for testing."""
         return get_tags_by_study(study_id)

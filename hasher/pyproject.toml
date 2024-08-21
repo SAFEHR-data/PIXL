@@ -30,3 +30,19 @@ extend = "../ruff.toml"
 [tool.ruff.lint.extend-per-file-ignores]
 "./tests/**" = ["D1"]
 "./src/hasher/endpoints.py" = ["D103"]
+
+[tool.coverage.report]
+exclude_also = [
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "except subprocess.CalledProcessError as exception:",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "if typing.TYPE_CHECKING",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]

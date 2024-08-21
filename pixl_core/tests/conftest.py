@@ -54,6 +54,13 @@ os.environ["ORTHANC_ANON_URL"] = "http://localhost:8043"
 os.environ["ORTHANC_ANON_USERNAME"] = "orthanc"
 os.environ["ORTHANC_ANON_PASSWORD"] = "orthanc"
 
+os.environ["XNAT_HOST"] = "localhost"
+os.environ["XNAT_USER_NAME"] = "pixl"
+os.environ["XNAT_PASSWORD"] = "longpassword"
+os.environ["XNAT_PORT"] = "8080"
+os.environ["XNAT_DESTINATION"] = "/archive"
+os.environ["XNAT_OVERWRITE"] = "none"
+
 
 @pytest.fixture(scope="package")
 def run_containers() -> Generator[subprocess.CompletedProcess[bytes], None, None]:
