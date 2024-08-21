@@ -13,8 +13,8 @@
 #  limitations under the License.
 from __future__ import annotations
 
+import typing
 from io import BytesIO
-from typing import Callable
 
 import requests
 from core.exceptions import PixlDiscardError
@@ -27,6 +27,7 @@ from dicomanonymizer.simpledicomanonymizer import (
 from loguru import logger
 from pydicom import DataElement, Dataset, dcmwrite
 
+from core.project_config.pixl_config_model import PixlConfig, load_config_and_validate
 from pixl_dcmd._database import get_uniq_pseudo_study_uid_and_update_db
 from pixl_dcmd._dicom_helpers import (
     DicomValidator,
@@ -34,6 +35,9 @@ from pixl_dcmd._dicom_helpers import (
     get_study_info,
 )
 from pixl_dcmd._tag_schemes import _scheme_list_to_dict, merge_tag_schemes
+
+if typing.TYPE_CHECKING:
+    from pathlib import Path
 
 
 def write_dataset_to_bytes(dataset: Dataset) -> bytes:
@@ -49,11 +53,8 @@ def write_dataset_to_bytes(dataset: Dataset) -> bytes:
         return buffer.read()
 
 
-def _should_exclude_series(dataset: Dataset) -> bool:
-    slug = get_project_name_as_string(dataset)
-
+def _should_exclude_series(dataset: Dataset, cfg: PixlConfig) -> bool:
     series_description = dataset.get("SeriesDescription")
-    cfg = load_project_config(slug)
     if cfg.is_series_excluded(series_description):
         logger.info("FILTERING OUT series description: {}", series_description)
         return True
@@ -61,7 +62,10 @@ def _should_exclude_series(dataset: Dataset) -> bool:
 
 
 def anonymise_and_validate_dicom(
-    dataset: Dataset, synchronise_pixl_db: bool = True
+    dataset: Dataset,
+    *,
+    config_path: Path | None = None,
+    synchronise_pixl_db: bool = True,
 ) -> dict:
     """
     Anonymise dataset using allow list and compare DICOM validation errors before
@@ -75,6 +79,8 @@ def anonymise_and_validate_dicom(
     - pseudo_patient_id -> DICOM patient identifier tag
 
     :param dataset: DICOM dataset to be anonymised
+    :param config_path: path to config, for external users.
+      if not set then this will be determined using the PIXL project tag in the DICOM
     :param synchronise_pixl_db: synchronise the anonymisation with the pixl database
     :return: dictionary of validation errors
     """
@@ -82,19 +88,23 @@ def anonymise_and_validate_dicom(
     dicom_validator = DicomValidator(edition="current")
     dicom_validator.validate_original(dataset)
 
-    anonymise_dicom(dataset, synchronise_pixl_db)
+    anonymise_dicom(
+        dataset, config_path=config_path, synchronise_pixl_db=synchronise_pixl_db
+    )
 
     # Validate the anonymised dataset
     validation_errors = dicom_validator.validate_anonymised(dataset)
     if validation_errors:
         logger.warning(
-            f"The anonymisation introduced the following validation errors:\n \
-            {_parse_validation_results(validation_errors)}"
+            "The anonymisation introduced the following validation errors:\n{}",
+            _parse_validation_results(validation_errors),
         )
     return validation_errors
 
 
-def anonymise_dicom(dataset: Dataset, synchronise_pixl_db: bool = True) -> None:
+def anonymise_dicom(
+    dataset: Dataset, config_path: Path | None = None, synchronise_pixl_db: bool = True
+) -> None:
     """
     Anonymises a DICOM dataset as Received by Orthanc in place.
     Finds appropriate configuration based on project name and anonymises by
@@ -110,13 +120,26 @@ def anonymise_dicom(dataset: Dataset, synchronise_pixl_db: bool = True) -> None:
     - pseudo_patient_id -> DICOM patient identifier tag
 
     :param dataset: DICOM dataset to be anonymised
+    :param config_path: path to config, for external users.
+      if not set then this will be determined using the PIXL project tag in the DICOM
     :param synchronise_pixl_db: synchronise the anonymisation with the pixl database
     """
-    study_info = get_study_info(dataset)
-    project_slug = get_project_name_as_string(dataset)
 
-    project_config = load_project_config(project_slug)
-    logger.debug(f"Received instance for project {project_slug}:  {study_info}")
+    study_info = get_study_info(dataset)
+
+    if config_path:
+        project_config = load_config_and_validate(config_path)
+        project_name = project_config.project.name
+    else:
+        project_name = get_project_name_as_string(dataset)
+        project_config = load_project_config(project_name)
+    logger.debug(f"Processing instance for project {project_name}:  {study_info}")
+
+    # Do before anonymisation in case someone decides to delete the
+    # Series Description tag as part of anonymisation.
+    if _should_exclude_series(dataset, project_config):
+        msg = "DICOM instance discarded due to its series description"
+        raise PixlDiscardError(msg)
     if dataset.Modality not in project_config.project.modalities:
         msg = f"Dropping DICOM Modality: {dataset.Modality}"
         raise PixlDiscardError(msg)
@@ -133,12 +156,12 @@ def anonymise_dicom(dataset: Dataset, synchronise_pixl_db: bool = True) -> None:
     logger.trace(f"Tag scheme: {tag_scheme}")
 
     _enforce_allowlist(dataset, tag_scheme, recursive=True)
-    _anonymise_dicom_from_scheme(dataset, project_slug, tag_scheme)
+    _anonymise_dicom_from_scheme(dataset, project_name, tag_scheme)
 
     if synchronise_pixl_db:
         # Update the dataset with the new pseudo study ID
         dataset[0x0020, 0x000D].value = get_uniq_pseudo_study_uid_and_update_db(
-            project_slug, study_info
+            project_name, study_info
         )
 
 
@@ -156,7 +179,7 @@ def _anonymise_dicom_from_scheme(
 
 
 def _anonymise_recursively(
-    dataset: Dataset, tag_actions: dict[tuple, Callable]
+    dataset: Dataset, tag_actions: dict[tuple, typing.Callable]
 ) -> None:
     """
     Anonymises a DICOM dataset recursively (for items in sequences) in place.
@@ -170,7 +193,7 @@ def _anonymise_recursively(
 
 def _convert_schema_to_actions(
     dataset: Dataset, project_slug: str, tags_list: list[dict]
-) -> dict[tuple, Callable]:
+) -> dict[tuple, typing.Callable]:
     """
     Convert the tag schema to actions (funcitons) for the anonymiser.
     See https://github.com/KitwareMedical/dicom-anonymizer for more details.

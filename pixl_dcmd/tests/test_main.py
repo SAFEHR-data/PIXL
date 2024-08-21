@@ -35,13 +35,11 @@ from decouple import config
 from pixl_dcmd._dicom_helpers import get_study_info
 from pixl_dcmd.main import (
     _anonymise_dicom_from_scheme,
+    anonymise_and_validate_dicom,
     anonymise_dicom,
     _enforce_allowlist,
     _should_exclude_series,
 )
-from pydicom.data import get_testdata_file
-from pydicom.dataset import Dataset
-from pydicom.uid import UID
 from pytest_pixl.dicom import generate_dicom_dataset
 from pytest_pixl.helpers import run_subprocess
 
@@ -79,7 +77,7 @@ def _mri_diffusion_tags(manufacturer: str = "Philips") -> list[PrivateDicomTag]:
 
 
 @pytest.fixture()
-def mri_diffusion_dicom_image() -> Dataset:
+def mri_diffusion_dicom_image() -> pydicom.Dataset:
     """
     A DICOM image with diffusion data to test the anonymisation process.
     Private tags were added to match the tag operations defined in the project config, so we can
@@ -104,7 +102,7 @@ def mri_diffusion_dicom_image() -> Dataset:
 
 def test_enforce_allowlist_removes_overlay_plane() -> None:
     """Checks that overlay planes are removed."""
-    ds = get_testdata_file(
+    ds = pydicom.data.get_testdata_file(
         "MR-SIEMENS-DICOM-WithOverlays.dcm", read=True, download=True
     )
     assert (0x6000, 0x3000) in ds
@@ -113,7 +111,7 @@ def test_enforce_allowlist_removes_overlay_plane() -> None:
     assert (0x6000, 0x3000) not in ds
 
 
-def test_anonymisation(vanilla_dicom_image: Dataset) -> None:
+def test_anonymisation(vanilla_dicom_image: pydicom.Dataset) -> None:
     """
     Test whether anonymisation works as expected on a vanilla DICOM dataset
     """
@@ -131,7 +129,7 @@ def test_anonymisation(vanilla_dicom_image: Dataset) -> None:
     assert "StudyDate" not in vanilla_dicom_image
 
 
-def test_anonymise_unimplemented_tag(vanilla_dicom_image: Dataset) -> None:
+def test_anonymise_unimplemented_tag(vanilla_dicom_image: pydicom.Dataset) -> None:
     """
     GIVEN DICOM data with an OB data type tag within a sequence
     WHEN anonymise_dicom is run that has "replace" tag operation on the sequence, but not the OB element
@@ -140,7 +138,7 @@ def test_anonymise_unimplemented_tag(vanilla_dicom_image: Dataset) -> None:
     VR OB is not implemented by the dicom anonymisation library, so this
     is testing that we can still successfully de-identify data with this data type
     """
-    nested_ds = Dataset()
+    nested_ds = pydicom.Dataset()
     nested_block = nested_ds.private_block(0x0013, "VR OB CREATOR", create=True)
     nested_block.add_new(0x0011, "OB", b"")
 
@@ -156,12 +154,36 @@ def test_anonymise_unimplemented_tag(vanilla_dicom_image: Dataset) -> None:
     assert (0x0013, 0x1011) not in sequence[0]
 
 
+def test_anonymise_and_validate_as_external_user() -> None:
+    """
+    GIVEN an example MR dataset and configuration to anonymise this
+    WHEN the anonymisation and validation is called not using PIXL infrastructure
+    THEN the dataset is anonymised inplace
+
+    Note: If we update this test, make sure to update the documentation stub.
+    Or if we end up building docs, then convert this test to a doctest
+    """
+    dataset_path = pydicom.data.get_testdata_file(
+        "MR-SIEMENS-DICOM-WithOverlays.dcm", download=True
+    )
+    config_path = (
+        pathlib.Path(__file__).parents[2] / "projects/configs/test-external-user.yaml"
+    )
+    dataset = pydicom.dcmread(dataset_path)
+    validation_issues = anonymise_and_validate_dicom(
+        dataset, config_path=config_path, synchronise_pixl_db=False
+    )
+
+    assert validation_issues == {}
+    assert dataset != pydicom.dcmread(dataset_path)
+
+
 # TODO: test that anonymise_and_validate_dicom() works as expected
 # https://github.com/UCLH-Foundry/PIXL/issues/418
 
 
 def test_anonymisation_with_overrides(
-    mri_diffusion_dicom_image: Dataset, row_for_mri_dicom_testing
+    mri_diffusion_dicom_image: pydicom.Dataset, row_for_mri_dicom_testing
 ) -> None:
     """
     Test that the anonymisation process works with manufacturer overrides.
@@ -224,7 +246,7 @@ def test_pseudo_identifier_processing(
         def fake_uid(cls):
             uid = f"2.25.{cls.i}"
             cls.i += 1
-            return UID(uid)
+            return pydicom.uid.UID(uid)
 
     monkeypatch.setattr("pixl_dcmd._database.generate_uid", FakeUID.fake_uid)
     other_image = (
@@ -252,7 +274,7 @@ def test_pseudo_identifier_processing(
 
 
 @pytest.fixture()
-def dicom_series_to_keep() -> list[Dataset]:
+def dicom_series_to_keep() -> list[pydicom.Dataset]:
     series = [
         "",
         "whatever",
@@ -261,7 +283,7 @@ def dicom_series_to_keep() -> list[Dataset]:
 
 
 @pytest.fixture()
-def dicom_series_to_exclude() -> list[Dataset]:
+def dicom_series_to_exclude() -> list[pydicom.Dataset]:
     series = [
         "positioning",
         "foo_barpositioning",
@@ -275,17 +297,18 @@ def dicom_series_to_exclude() -> list[Dataset]:
     return [_make_dicom(s) for s in series]
 
 
-def _make_dicom(series_description) -> Dataset:
+def _make_dicom(series_description) -> pydicom.Dataset:
     ds = generate_dicom_dataset(SeriesDescription=series_description)
     add_private_tag(ds, DICOM_TAG_PROJECT_NAME, "test-extract-uclh-omop-cdm")
     return ds
 
 
 def test_should_exclude_series(dicom_series_to_exclude, dicom_series_to_keep):
+    config = load_project_config(TEST_PROJECT_SLUG)
     for s in dicom_series_to_keep:
-        assert not _should_exclude_series(s)
+        assert not _should_exclude_series(s, config)
     for s in dicom_series_to_exclude:
-        assert _should_exclude_series(s)
+        assert _should_exclude_series(s, config)
 
 
 def test_can_nifti_convert_post_anonymisation(
@@ -368,7 +391,7 @@ def sequenced_dicom_mock_db(monkeypatch):
     exported_dicom = pathlib.Path(__file__).parents[2] / "test/resources/Dicom1.dcm"
     dataset = pydicom.dcmread(exported_dicom)
     # create nested dataset to put into sequence
-    nested_ds = Dataset()
+    nested_ds = pydicom.Dataset()
     # nested public tag
     nested_ds.add_new((0x0010, 0x0020), "LO", "987654321")
     # nested private tag

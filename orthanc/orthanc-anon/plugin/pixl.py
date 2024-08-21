@@ -39,7 +39,6 @@ from pydicom import dcmread
 import orthanc
 from pixl_dcmd._dicom_helpers import get_study_info
 from pixl_dcmd.main import (
-    _should_exclude_series,
     anonymise_and_validate_dicom,
     write_dataset_to_bytes,
 )
@@ -240,12 +239,6 @@ def ReceivedInstanceCallback(receivedDicom: bytes, origin: str) -> Any:
 def _process_dicom_instance(receivedDicom: bytes) -> tuple[orthanc.ReceivedInstanceAction, None]:
     # Read the bytes as DICOM/
     dataset = dcmread(BytesIO(receivedDicom))
-
-    # Do before anonymisation in case someone decides to delete the
-    # Series Description tag as part of anonymisation.
-    if _should_exclude_series(dataset):
-        orthanc.LogWarning("DICOM instance discarded due to its series description")
-        return orthanc.ReceivedInstanceAction.DISCARD, None
 
     # Attempt to anonymise and drop the study if any exceptions occur
     try:

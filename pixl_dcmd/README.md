@@ -7,11 +7,32 @@ For external users, the `pixl_dcmd` package provides the following functionality
 
 - `anonymise_dicom()`: Applies the [anonymisation operations](#tag-scheme-anonymisation) 
    for the appropriate tag scheme using [Kitware Dicom Anonymizer](https://github.com/KitwareMedical/dicom-anonymizer)
-   and deletes any tags not mentioned in the tag scheme.
-   There is also an option to synchronise to the PIXL database, external users can avoid this
-   to just run the allow-list and applying the tag scheme. 
+   and deletes any tags not mentioned in the tag scheme. The dataset is updated in place.
+     - There is also an option to synchronise to the PIXL database, external users can avoid this
+   to just run the allow-list and applying the tag scheme.
+     - Will throw a PixlDiscardError for any series based on the project config file. 
+       - Series description matches `series_filters` (usually to remove localiser series) 
+       - Modality of the DICOM is not in `modalities`
 - `anonymise_and_validate_dicom()`: Compares DICOM validation issues before and after calling `anonymise_dicom`
   and returns a dictionary of the new issues. Can also avoid synchronising with PIXL database
+
+```python
+import pathlib
+import pydicom
+
+from pixl_dcmd import anonymise_and_validate_dicom
+
+dataset_path = pydicom.data.get_testdata_file(
+    "MR-SIEMENS-DICOM-WithOverlays.dcm", download=True
+)
+config_path = pathlib.Path(__file__).parents[2] / "projects/configs/test-extract-uclh-omop-cdm.yaml"
+# updated inplace
+dataset = pydicom.dcmread(dataset_path)
+validation_issues = anonymise_and_validate_dicom(dataset, config_path=config_path, synchronise_pixl_db=False)
+assert validation_issues == {}
+assert dataset != pydicom.dcmread(dataset_path)
+```
+
 
 ## Installation
 
