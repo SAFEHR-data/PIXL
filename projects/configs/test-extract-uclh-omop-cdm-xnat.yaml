@@ -15,7 +15,7 @@
 project:
     name: "test-extract-uclh-omop-cdm-xnat"
     azure_kv_alias: "test"
-    modalities: ["DX", "CR"]
+    modalities: ["DX", "CR", "MR"]
 
 tag_operation_files:
     base:
