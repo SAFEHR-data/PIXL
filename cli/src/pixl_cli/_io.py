@@ -162,7 +162,7 @@ class DF_COLUMNS(StrEnum):  # noqa: N801
 
 MAP_CSV_TO_MESSAGE_KEYS = {
     "procedure_id": "procedure_occurrence_id",
-    "participant_id": "pseudo_patient_id",
+    "pseudo_patient_id": "pseudo_patient_id",
 }
 
 
