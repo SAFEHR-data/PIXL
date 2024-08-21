@@ -28,17 +28,13 @@ from sqlalchemy.orm import Session
 STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
 TEST_PROJECT_SLUG = "test-extract-uclh-omop-cdm"
 TEST_STUDY_INFO = StudyInfo(
-    mrn="123456",
-    accession_number="abcde",
-    study_uid="1.2.3.4.5",
+    mrn="123456", accession_number="abcde", study_uid="1.2.3.4.5", pseudo_patient_id="9"
 )
 TEST_STUDY_INFO_WITH_PSEUDO_UID = StudyInfo(
-    mrn="234567",
-    accession_number="bcdef",
-    study_uid="2.3.4.5.6",
+    mrn="234567", accession_number="bcdef", study_uid="2.3.4.5.6", pseudo_patient_id="0"
 )
 TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_UID = StudyInfo(
-    mrn="234567", accession_number="bcdef", study_uid="2.3.4.5.6", pseudo_patient_id="9"
+    mrn="234567", accession_number="bcdef", study_uid="2.3.4.5.6", pseudo_patient_id="0"
 )
 
 
@@ -67,7 +63,7 @@ def rows_for_database_testing(db_session) -> Session:
         # This should be a valid VR UI value!
         # https://dicom.nema.org/medical/dicom/current/output/html/part05.html#table_6.2-1
         pseudo_study_uid="0.0.0.0.0.0",
-        pseudo_patient_id="0",
+        pseudo_patient_id=TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_UID.pseudo_patient_id,
     )
 
     with db_session:
@@ -97,10 +93,16 @@ def test_get_pseudo_patient_id_and_update_db(rows_for_database_testing, db_sessi
     WHEN we query the dataset for that image
     THEN the funcion should return the existing pseudo_patient_id
     """
-    pseudo_patient_id = get_pseudo_patient_id_and_update_db(
+    get_pseudo_patient_id_and_update_db(
         TEST_PROJECT_SLUG, TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_UID
     )
-    assert pseudo_patient_id == "0"
+    result = get_unexported_image(
+        TEST_PROJECT_SLUG, TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_UID, db_session
+    )
+    assert (
+        result.pseudo_patient_id
+        == TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_UID.pseudo_patient_id
+    )
 
 
 def test_get_unexported_image_fallback(rows_for_database_testing, db_session):
@@ -109,6 +111,23 @@ def test_get_unexported_image_fallback(rows_for_database_testing, db_session):
     WHEN we query that image with a non-matching study UID
     THEN the querying should fall back to querying on MRN and accession number and return the image.
     """
-    wrong_uid_info = StudyInfo(mrn="123456", accession_number="abcde", study_uid="nope")
+    wrong_uid_info = StudyInfo(
+        mrn="123456",
+        accession_number="abcde",
+        study_uid="nope",
+        pseudo_patient_id="None",
+    )
     result = get_unexported_image(TEST_PROJECT_SLUG, wrong_uid_info, db_session)
     assert result.study_uid == TEST_STUDY_INFO.study_uid
+
+
+def test_no_pseudo_patient_id(rows_for_database_testing, db_session) -> None:
+    """
+    GIVEN the database has a single Export entity, with one exported Image, one un-exported Image
+    WHEN we parse a file with duplicated entries the two existing images and one new image
+    THEN the database should have 3 Images, with two message returned.
+    """
+
+    get_pseudo_patient_id_and_update_db(TEST_PROJECT_SLUG, TEST_STUDY_INFO)
+    result = get_unexported_image(TEST_PROJECT_SLUG, TEST_STUDY_INFO, db_session)
+    assert result.pseudo_patient_id == TEST_STUDY_INFO.pseudo_patient_id
