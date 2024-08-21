@@ -3,9 +3,9 @@
 
   "DicomModalities" : {
     "UCVNAQR" : {
-      "AET" : "${VNAQR_AE_TITLE}",
-      "Port" : "${VNAQR_DICOM_PORT}",
-      "Host" : "${VNAQR_IP_ADDR}",
+      "AET" : "${PRIMARY_DICOM_AE_TITLE}",
+      "Port" : "${PRIMARY_DICOM_PORT}",
+      "Host" : "${PRIMARY_DICOM_IP_ADDR}",
       "Manufacturer" : "Generic",
       "AllowEcho" : true,
       "AllowFind" : false,
