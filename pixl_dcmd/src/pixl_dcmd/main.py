@@ -78,7 +78,7 @@ def anonymise_and_validate_dicom(
     - pseudo_study_uid -> DICOM study uid tag
     - pseudo_patient_id -> DICOM patient identifier tag
 
-    :param dataset: DICOM dataset to be anonymised
+    :param dataset: DICOM dataset to be anonymised, updated in place
     :param config_path: path to config, for external users.
       if not set then this will be determined using the PIXL project tag in the DICOM
     :param synchronise_pixl_db: synchronise the anonymisation with the pixl database
@@ -119,7 +119,7 @@ def anonymise_dicom(
     - pseudo_study_uid -> DICOM study uid tag
     - pseudo_patient_id -> DICOM patient identifier tag
 
-    :param dataset: DICOM dataset to be anonymised
+    :param dataset: DICOM dataset to be anonymised, updated in place
     :param config_path: path to config, for external users.
       if not set then this will be determined using the PIXL project tag in the DICOM
     :param synchronise_pixl_db: synchronise the anonymisation with the pixl database

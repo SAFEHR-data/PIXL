@@ -243,7 +243,7 @@ def _process_dicom_instance(receivedDicom: bytes) -> tuple[orthanc.ReceivedInsta
     # Attempt to anonymise and drop the study if any exceptions occur
     try:
         study_identifiers = get_study_info(dataset)
-        anonymise_and_validate_dicom(dataset)
+        anonymise_and_validate_dicom(dataset, config_path=None, synchronise_pixl_db=True)
         return orthanc.ReceivedInstanceAction.MODIFY, write_dataset_to_bytes(dataset)
     except PixlDiscardError as error:
         logger.warning("Skipping {}: {}", study_identifiers, error)
