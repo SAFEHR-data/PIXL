@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """
-<Description of changes to models>
+Add pseudo patient ID to image table
 
 Revision ID: d947cc715eb1
 Revises: 83dcb3812628
