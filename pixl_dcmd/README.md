@@ -36,7 +36,7 @@ assert dataset != pydicom.dcmread(dataset_path)
 
 ## Installation
 
-Install the Python dependencies from the `pixl_dcmc` directory:
+Install the Python dependencies from the `pixl_dcmd` directory:
 
 ```bash
 python -m pip install -e ../pixl_core/ -e ".[test,dev]"
