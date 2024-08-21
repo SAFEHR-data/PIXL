@@ -78,7 +78,9 @@ def get_pseudo_patient_id_and_update_db(
             pixl_session,
         )
 
-        return UID(existing_image.pseudo_patient_id, validation_mode=pydicom.config.RAISE)
+        return UID(
+            existing_image.pseudo_patient_id, validation_mode=pydicom.config.RAISE
+        )
 
 
 def add_pseudo_study_uid_to_db(
