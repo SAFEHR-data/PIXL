@@ -61,11 +61,41 @@ no_uid_message = Message(
     extract_generated_timestamp=datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
 )
 
+PACS_ACCESSION_NUMBER = "def"
+PACS_PATIENT_ID = "another_patient"
+PACS_STUDY_UID = "87654321"
+pacs_message = Message(
+    mrn=PACS_PATIENT_ID,
+    accession_number=PACS_ACCESSION_NUMBER,
+    study_uid=PACS_STUDY_UID,
+    study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
+        tzinfo=datetime.timezone.utc
+    ),
+    procedure_occurrence_id=234,
+    project_name="test project",
+    extract_generated_timestamp=datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
+)
+pacs_no_uid_message = Message(
+    mrn=PACS_PATIENT_ID,
+    accession_number=PACS_ACCESSION_NUMBER,
+    study_uid="ialsodontexist",
+    study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
+        tzinfo=datetime.timezone.utc
+    ),
+    procedure_occurrence_id=234,
+    project_name="test project",
+    extract_generated_timestamp=datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
+)
+
 
 class WritableOrthanc(Orthanc):
+    def __init__(self, url: str, username: str, password: str, aet: str) -> None:
+        super().__init__(url=url, username=username, password=password)
+        self._aet = aet
+
     @property
     def aet(self) -> str:
-        return "VNAQR"
+        return self._aet
 
     def upload(self, filename: str) -> None:
         run_subprocess(
@@ -88,11 +118,34 @@ def _add_image_to_fake_vna(run_containers) -> Generator[None]:
     ds.save_as(image_filename)
 
     vna = WritableOrthanc(
+        aet="VNAQR",
         url=config("ORTHANC_VNA_URL"),
         username=config("ORTHANC_VNA_USERNAME"),
         password=config("ORTHANC_VNA_PASSWORD"),
     )
     vna.upload(image_filename)
+    yield
+    pathlib.Path(image_filename).unlink(missing_ok=True)
+
+
+@pytest.fixture(scope="module")
+def _add_image_to_fake_pacs(run_containers) -> Generator[None]:
+    """Add single fake image to PACS."""
+    image_filename = "test-mr.dcm"
+    path = str(get_testdata_file("MR_small.dcm"))
+    ds = dcmread(path)
+    ds.AccessionNumber = PACS_ACCESSION_NUMBER
+    ds.PatientID = PACS_PATIENT_ID
+    ds.StudyInstanceUID = PACS_STUDY_UID
+    ds.save_as(image_filename)
+
+    pacs = WritableOrthanc(
+        aet="PACSQR",
+        url=config("ORTHANC_PACS_URL"),
+        username=config("ORTHANC_PACS_USERNAME"),
+        password=config("ORTHANC_PACS_PASSWORD"),
+    )
+    pacs.upload(image_filename)
     yield
     pathlib.Path(image_filename).unlink(missing_ok=True)
 
@@ -112,6 +165,7 @@ async def orthanc_raw(run_containers) -> PIXLRawOrthanc:
 @pytest.mark.processing()
 @pytest.mark.asyncio()
 @pytest.mark.usefixtures("_add_image_to_fake_vna")
+@pytest.mark.usefixtures("_add_image_to_fake_pacs")
 async def test_image_saved(orthanc_raw) -> None:
     """
     Given the VNA has images, and orthanc raw has no images
@@ -130,6 +184,7 @@ async def test_image_saved(orthanc_raw) -> None:
 @pytest.mark.processing()
 @pytest.mark.asyncio()
 @pytest.mark.usefixtures("_add_image_to_fake_vna")
+@pytest.mark.usefixtures("_add_image_to_fake_pacs")
 async def test_existing_message_sent_twice(orthanc_raw) -> None:
     """
     Given the VNA has images, and orthanc raw has no images
@@ -157,6 +212,7 @@ async def test_existing_message_sent_twice(orthanc_raw) -> None:
 @pytest.mark.processing()
 @pytest.mark.asyncio()
 @pytest.mark.usefixtures("_add_image_to_fake_vna")
+@pytest.mark.usefixtures("_add_image_to_fake_pacs")
 async def test_querying_without_uid(orthanc_raw, caplog) -> None:
     """
     Given a message with non-existent study_uid

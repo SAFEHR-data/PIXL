@@ -46,6 +46,22 @@ services:
         volumes:
             - ../../test/vna_config/:/run/secrets:ro
         <<: *orthanc-healthcheck
+    pacs-qr:
+        image: orthancteam/orthanc:24.3.3
+        environment:
+            ORTHANC_NAME: "PACSQR"
+            ORTHANC_USERNAME: "orthanc"
+            ORTHANC_PASSWORD: "orthanc"
+            ORTHANC_AE_TITLE: "PACSQR"
+            RAW_AE_TITLE: "PIXLRAW"
+            RAW_DICOM_PORT: "4242"
+            RAW_IP_ADDR: "orthanc-raw" # aka. hostname
+        ports:
+            - "127.0.0.1:4245:4242"
+            - "127.0.0.1:8045:8042"
+        volumes:
+            - ../../test/vna_config/:/run/secrets:ro
+        <<: *orthanc-healthcheck
 
     orthanc-raw:
         build:
@@ -61,6 +77,9 @@ services:
             PRIMARY_DICOM_AE_TITLE: "VNAQR"
             PRIMARY_DICOM_PORT: "4242"
             PRIMARY_DICOM_IP_ADDR: "vna-qr"
+            SECONDARY_DICOM_AE_TITLE: "PACSQR"
+            SECONDARY_DICOM_PORT: "4242"
+            SECONDARY_DICOM_IP_ADDR: "pacs-qr"
             ORTHANC_ANON_AE_TITLE: "unused"
             ORTHANC_ANON_DICOM_PORT: "4242"
             ORTHANC_ANON_HOSTNAME: "orthanc-anon"

@@ -9,6 +9,12 @@
       "Host" : "${PRIMARY_DICOM_IP_ADDR}",
       "Manufacturer" : "Generic"
     },
+    "UCPACSQR" : {
+      "AET" : "${SECONDARY_DICOM_AE_TITLE}",
+      "Port" : "${SECONDARY_DICOM_PORT}",
+      "Host" : "${SECONDARY_DICOM_IP_ADDR}",
+      "Manufacturer" : "Generic"
+    },
     "PIXLR" : {
       "AET" : "${ORTHANC_AE_TITLE}",
       "Port" : "4242",

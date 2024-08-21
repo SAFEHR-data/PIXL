@@ -18,6 +18,22 @@
       "UseDicomTls" : false,
       "Timeout" : 60
     },
+    "UCPACSQR" : {
+      "AET" : "${SECONDARY_DICOM_AE_TITLE}",
+      "Port" : "${SECONDARY_DICOM_PORT}",
+      "Host" : "${SECONDARY_DICOM_IP_ADDR}",
+      "Manufacturer" : "Generic",
+      "AllowEcho" : true,
+      "AllowFind" : false,
+      "AllowFindWorklist" : false,
+      "AllowGet"  : false,
+      "AllowMove" : false,
+      "AllowStore" : true,
+      "AllowStorageCommitment" : false,
+      "AllowTranscoding" : true,
+      "UseDicomTls" : false,
+      "Timeout" : 60
+    },
     "PIXL-Anon" : {
       "AET" : "${ORTHANC_ANON_AE_TITLE}",
       "Port" : "${ORTHANC_ANON_DICOM_PORT}",
