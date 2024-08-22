@@ -170,7 +170,6 @@ services:
             retries: 2
             interval: 3s
             timeout: 2s
-        restart: "no"
 
     orthanc-raw:
         build:
