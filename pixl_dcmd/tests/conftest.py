@@ -74,16 +74,15 @@ def rows_in_session(
     exported_study_info = get_study_info(exported_dicom_dataset)
     not_exported_study_info = get_study_info(not_exported_dicom_dataset)
 
-    image_exported_with_patient_id = Image(
+    image_exported = Image(
         mrn=exported_study_info.mrn,
         accession_number=exported_study_info.accession_number,
         study_uid=exported_study_info.study_uid,
         study_date=STUDY_DATE,
         extract=extract,
         exported_at=datetime.datetime.now(tz=datetime.timezone.utc),
-        pseudo_patient_id="AAA00",
     )
-    image_not_exported_no_patient_id = Image(
+    image_not_exported = Image(
         mrn=not_exported_study_info.mrn,
         accession_number=not_exported_study_info.accession_number,
         study_uid=not_exported_study_info.study_uid,
@@ -91,9 +90,30 @@ def rows_in_session(
         extract=extract,
     )
     with db_session:
-        db_session.add_all(
-            [extract, image_exported_with_patient_id, image_not_exported_no_patient_id]
-        )
+        db_session.add_all([extract, image_exported, image_not_exported])
+        db_session.commit()
+
+    return db_session
+
+
+@pytest.fixture()
+def row_for_testing_image_with_pseudo_patient_id(
+    db_session, not_exported_dicom_dataset
+) -> Session:
+    """Insert a test row for the image with a pseudo patient ID."""
+    extract = Extract(slug=TEST_PROJECT_SLUG)
+
+    study_info = get_study_info(not_exported_dicom_dataset)
+    image = Image(
+        mrn=study_info.mrn,
+        accession_number=study_info.accession_number,
+        study_uid=study_info.study_uid,
+        study_date=STUDY_DATE,
+        extract=extract,
+        pseudo_patient_id="AAA00",
+    )
+    with db_session:
+        db_session.add_all([extract, image])
         db_session.commit()
 
     return db_session

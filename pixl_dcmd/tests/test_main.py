@@ -274,7 +274,7 @@ def test_pseudo_identifier_processing(
 
 
 def test_pseudo_patient_id_processing(
-    rows_in_session, monkeypatch, exported_dicom_dataset
+    row_for_testing_image_with_pseudo_patient_id, not_exported_dicom_dataset
 ):
     """
     GIVEN an `Image` entity in the database which has a `pseudo_patient_id` set
@@ -282,33 +282,33 @@ def test_pseudo_patient_id_processing(
     THEN the DICOM's patient ID tag should be the original `pseudo_study_id`
     value from the database, the database's `pseudo_patient_id` shouldn't have changed
     """
-    study_info = get_study_info(exported_dicom_dataset)
+    study_info = get_study_info(not_exported_dicom_dataset)
     original_image: Image = (
-        rows_in_session.query(Image)
+        row_for_testing_image_with_pseudo_patient_id.query(Image)
         .filter(Image.accession_number == study_info.accession_number)
         .one()
     )
     assert (
-        exported_dicom_dataset[0x0010, 0x0020].value != original_image.pseudo_patient_id
+        not_exported_dicom_dataset[0x0010, 0x0020].value
+        != original_image.pseudo_patient_id
     )
 
-    anonymise_dicom(exported_dicom_dataset)
+    anonymise_dicom(not_exported_dicom_dataset)
 
     anonymised_image: Image = (
-        rows_in_session.query(Image)
+        row_for_testing_image_with_pseudo_patient_id.query(Image)
         .filter(Image.accession_number == study_info.accession_number)
         .one()
     )
 
     assert original_image.pseudo_patient_id == anonymised_image.pseudo_patient_id
     assert (
-        exported_dicom_dataset[0x0010, 0x0020].value == original_image.pseudo_patient_id
+        not_exported_dicom_dataset[0x0010, 0x0020].value
+        == original_image.pseudo_patient_id
     )
 
 
-def test_no_pseudo_patient_id_processing(
-    rows_in_session, monkeypatch, not_exported_dicom_dataset
-):
+def test_no_pseudo_patient_id_processing(rows_in_session, not_exported_dicom_dataset):
     """
     GIVEN an `Image` entity in the database which doesn't have a `pseudo_patient_id` set
     WHEN the matching DICOM data is anonymised
