@@ -312,7 +312,7 @@ def test_no_pseudo_patient_id_processing(
     """
     GIVEN an `Image` entity in the database which doesn't have a `pseudo_patient_id` set
     WHEN the matching DICOM data is anonymised
-    THEN database's `pseudo_study_id` tag should be set, and match the value from the
+    THEN database's `pseudo_patient_id` field should be set, and match the value from the
     DICOM's patient identifier tag at the end of anonymisation
     """
     study_info = get_study_info(not_exported_dicom_dataset)
