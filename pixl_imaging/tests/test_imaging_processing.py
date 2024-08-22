@@ -235,11 +235,19 @@ async def test_querying_without_uid(orthanc_raw, caplog) -> None:
     assert expected_msg in caplog.text
 
 
+class MockDateTime(datetime.datetime):
+    """Mock the date and time to be a Monday at 2 am."""
+
+    @classmethod
+    def now(cls, tz=None) -> datetime.datetime:
+        return MockDateTime(2024, 1, 1, 2, 0, tzinfo=tz)
+
+
 @pytest.mark.processing()
 @pytest.mark.asyncio()
 @pytest.mark.usefixtures("_add_image_to_fake_vna")
 @pytest.mark.usefixtures("_add_image_to_fake_pacs")
-async def test_querying_pacs_with_uid(orthanc_raw, caplog) -> None:
+async def test_querying_pacs_with_uid(orthanc_raw, caplog, monkeypatch) -> None:
     """
     Given a message with study_uid exists in PACS but not VNA,
     When we query the archives
@@ -249,7 +257,17 @@ async def test_querying_pacs_with_uid(orthanc_raw, caplog) -> None:
     orthanc = await orthanc_raw
 
     assert not await study.query_local(orthanc)
-    await process_message(pacs_message)
+
+    with monkeypatch.context() as m:
+        # PACS is not queried during the daytime nor at the weekend.
+        # Set today to be a Monday at 2 am.
+        m.setattr(
+            datetime,
+            "datetime",
+            MockDateTime,
+        )
+        await process_message(pacs_message)
+
     assert await study.query_local(orthanc)
 
     expected_msg = (
@@ -275,7 +293,7 @@ async def test_querying_pacs_with_uid(orthanc_raw, caplog) -> None:
 @pytest.mark.asyncio()
 @pytest.mark.usefixtures("_add_image_to_fake_vna")
 @pytest.mark.usefixtures("_add_image_to_fake_pacs")
-async def test_querying_pacs_without_uid(orthanc_raw, caplog) -> None:
+async def test_querying_pacs_without_uid(orthanc_raw, caplog, monkeypatch) -> None:
     """
     Given a message with non-existent study_uid exists in PACS but not VNA,
     When we query the archives
@@ -285,7 +303,17 @@ async def test_querying_pacs_without_uid(orthanc_raw, caplog) -> None:
     orthanc = await orthanc_raw
 
     assert not await study.query_local(orthanc)
-    await process_message(pacs_no_uid_message)
+
+    with monkeypatch.context() as m:
+        # PACS is not queried during the daytime nor at the weekend.
+        # Set today to be a Monday at 2 am.
+        m.setattr(
+            datetime,
+            "datetime",
+            MockDateTime,
+        )
+        await process_message(pacs_no_uid_message)
+
     assert await study.query_local(orthanc)
 
     expected_msg = (

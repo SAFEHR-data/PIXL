@@ -13,8 +13,9 @@
 #  limitations under the License.
 from __future__ import annotations
 
+import datetime
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional
 
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
 from core.exceptions import PixlDiscardError
@@ -52,7 +53,7 @@ async def _process_message(study: ImagingStudy, orthanc_raw: PIXLRawOrthanc) -> 
     if study_exists:
         return
 
-    query_id = await _find_study_in_vna_or_raise(orthanc_raw, study)
+    query_id = await _find_study_in_archives_or_raise(orthanc_raw, study)
     job_id = await orthanc_raw.retrieve_from_remote(query_id=query_id)  # C-Move
     await orthanc_raw.wait_for_job_success_or_raise(job_id, "c-move", timeout)
 
@@ -143,25 +144,110 @@ async def _add_project_to_study(
         )
 
 
-async def _find_study_in_vna_or_raise(orthanc_raw: Orthanc, study: ImagingStudy) -> str:
+async def _find_study_in_archives_or_raise(orthanc_raw: Orthanc, study: ImagingStudy) -> str:
     """
-    Query the VNA for the study using its UID, fallback to querying on MRN + accession number if
-    UID is not available, raise exception if it doesn't exist
+    Query primary and secondary archives for a study.
+
+    - Query the primary archive for the study using its UID. If UID is not available, query on
+      MRN and accession number.
+    - If not found in the primary archive, and it is a weekday between 8 pm and 8 am, query the
+      online secondary archive using the study UID. If UID is not available, query on
+      MRN + accession number.
+    - If not found in the online secondary archive, query the nearline secondary archive. If found
+      in the nearline, assume the study is in the primary archive and log it.
+    - If not found in either the primary archive or the online secondary archive,
+      raise a PixlDiscardError.
     """
-    query_id = await orthanc_raw.query_remote(
-        study.orthanc_uid_query_dict, modality=config("PRIMARY_DICOM_MODALITY")
+    query_id = await _find_study_in_archive(
+        orthanc_raw=orthanc_raw,
+        study=study,
+        modality=config("PRIMARY_DICOM_MODALITY"),
     )
-    if query_id is None:
-        logger.info(
-            "No study found with UID {}, trying MRN and accession number", study.message.study_uid
+
+    if query_id is not None:
+        return str(query_id)
+    if _is_daytime() or _is_weekend():
+        msg = (
+            f"Failed to find study {study.message.study_uid} in primary archive. "
+            "Not querying secondary archive during the daytime or on the weekend."
         )
-        query_id = await orthanc_raw.query_remote(
-            study.orthanc_query_dict, modality=config("PRIMARY_DICOM_MODALITY")
-        )
-    if query_id is None:
-        msg = "Failed to find in the VNA"
         raise PixlDiscardError(msg)
+
+    logger.info(
+        "Failed to find study {} in primary archive, trying secondary archive",
+        study.message.study_uid,
+    )
+    query_id = await _find_study_in_archive(
+        study=study,
+        orthanc_raw=orthanc_raw,
+        modality=config("SECONDARY_DICOM_MODALITY"),
+    )
+
+    if query_id is None:
+        msg = f"Failed to find study {study.message.study_uid} in primary or secondary archive."
+        raise PixlDiscardError(msg)
+
+    # Check the study is in the online secondary archive
+    query_answers = await orthanc_raw.get_remote_query_answers(query_id)
+    query_answer_content = await orthanc_raw.get_remote_query_answer_content(
+        query_id=query_id,
+        answer_id=query_answers[0],
+    )
+    availablility_tag = "0008,0056"
+    availability = query_answer_content[availablility_tag]["Value"]
+    if availability != "ONLINE":
+        msg = (
+            f"Study {study.message.study_uid} found in {availability} secondary archive "
+            "but we only pull from the online secondary archive."
+        )
+        raise PixlDiscardError(msg)
+
     return query_id
+
+
+async def _find_study_in_archive(
+    orthanc_raw: Orthanc,
+    study: ImagingStudy,
+    modality: str,
+) -> Optional[str]:
+    """
+    Query the primary archive for the study using its UID.
+    If UID is not available, query on MRN and accession number.
+    """
+    # We don't want to normalize the query otherwise only MainDicomTags will be returned
+    # (InstanceAvailability will be ignored)
+    additional_data = {"Normalize": False}
+    query_response = await orthanc_raw.query_remote(
+        data=study.orthanc_uid_query_dict | additional_data,
+        modality=modality,
+    )
+
+    if query_response is not None:
+        return query_response
+
+    logger.info(
+        "No study found in modality {} with UID {}, trying MRN and accession number",
+        modality,
+        study.message.study_uid,
+    )
+    return await orthanc_raw.query_remote(
+        study.orthanc_query_dict | additional_data,
+        modality=modality,
+    )
+
+
+def _is_daytime() -> bool:
+    """Check if the current time is between 8 am and 8 pm."""
+    after_8am = datetime.time(8, 00) <= datetime.datetime.now(tz=datetime.UTC).time()
+    before_8pm = datetime.datetime.now(tz=datetime.UTC).time() <= datetime.time(20, 00)
+    return after_8am and before_8pm
+
+
+def _is_weekend() -> bool:
+    """Check if it's the weekend."""
+    saturday = 5
+    sunday = 6
+    return datetime.datetime.now(tz=datetime.UTC).weekday() in (saturday, sunday)
 
 
 @dataclass
@@ -182,6 +268,7 @@ class ImagingStudy:
             "Level": "Study",
             "Query": {
                 "StudyInstanceUID": self.message.study_uid,
+                "InstanceAvailability": "",
             },
         }
 
@@ -193,6 +280,7 @@ class ImagingStudy:
             "Query": {
                 "PatientID": self.message.mrn,
                 "AccessionNumber": self.message.accession_number,
+                "InstanceAvailability": "",
             },
         }
 
