@@ -3,17 +3,40 @@
 The `pixl_dcmd` package provides helper functions for de-identifying DICOM data. It is currently
 only used by the [`orthanc-anon` plugin](../orthanc/orthanc-anon/plugin/pixl.py).
 
-The reason for having this as a separate package instead of having the functionality in `pixl_core`
-is because `orthanc` requires Python 3.9, whereas the rest of PIXL is on 3.10 or higher.
+For external users, the `pixl_dcmd` package provides the following functionality:
 
-Specifically, the `pixl_dcmd` package provides the following functionality:
+- `anonymise_dicom()`: Applies the [anonymisation operations](#tag-scheme-anonymisation) 
+   for the appropriate tag scheme using [Kitware Dicom Anonymizer](https://github.com/KitwareMedical/dicom-anonymizer)
+   and deletes any tags not mentioned in the tag scheme. The dataset is updated in place.
+     - There is also an option to synchronise to the PIXL database, external users can avoid this
+   to just run the allow-list and applying the tag scheme.
+     - Will throw a PixlDiscardError for any series based on the project config file. 
+       - Series description matches `series_filters` (usually to remove localiser series) 
+       - Modality of the DICOM is not in `modalities`
+- `anonymise_and_validate_dicom()`: Compares DICOM validation issues before and after calling `anonymise_dicom`
+  and returns a dictionary of the new issues. Can also avoid synchronising with PIXL database
 
-- `anonymise_dicom()`: Applies the [anonymisation operations](#tag-scheme-anonymisation) for the appropriate tag scheme using [Kitware Dicom Anonymizer](https://github.com/KitwareMedical/dicom-anonymizer)) and deletes any tags not mentioned in the tag scheme.
-- `write_dataset_to_bytes()`: writes a DICOM dataset to a bytes object
+```python
+import pathlib
+import pydicom
+
+from pixl_dcmd import anonymise_and_validate_dicom
+
+dataset_path = pydicom.data.get_testdata_file(
+    "MR-SIEMENS-DICOM-WithOverlays.dcm", download=True
+)
+config_path = pathlib.Path(__file__).parents[2] / "projects/configs/test-extract-uclh-omop-cdm.yaml"
+# updated inplace
+dataset = pydicom.dcmread(dataset_path)
+validation_issues = anonymise_and_validate_dicom(dataset, config_path=config_path, synchronise_pixl_db=False)
+assert validation_issues == {}
+assert dataset != pydicom.dcmread(dataset_path)
+```
+
 
 ## Installation
 
-Install the Python dependencies with
+Install the Python dependencies from the `pixl_dcmd` directory:
 
 ```bash
 python -m pip install -e ../pixl_core/ -e ".[test,dev]"
