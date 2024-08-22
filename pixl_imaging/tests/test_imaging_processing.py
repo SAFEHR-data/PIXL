@@ -27,6 +27,7 @@ from pixl_imaging._orthanc import Orthanc, PIXLRawOrthanc
 from pixl_imaging._processing import ImagingStudy, process_message
 from pydicom import dcmread
 from pydicom.data import get_testdata_file
+from pydicom.dataelem import DataElement
 from pytest_pixl.helpers import run_subprocess
 
 if TYPE_CHECKING:
@@ -137,6 +138,7 @@ def _add_image_to_fake_pacs(run_containers) -> Generator[None]:
     ds.AccessionNumber = PACS_ACCESSION_NUMBER
     ds.PatientID = PACS_PATIENT_ID
     ds.StudyInstanceUID = PACS_STUDY_UID
+    ds[0x0008, 0x0056] = DataElement((0x0008, 0x0056), "CS", "ONLINE")
     ds.save_as(image_filename)
 
     pacs = WritableOrthanc(
@@ -227,6 +229,79 @@ async def test_querying_without_uid(orthanc_raw, caplog) -> None:
     assert await study.query_local(orthanc)
 
     expected_msg = (
-        f"No study found with UID {study.message.study_uid}, trying MRN and accession number"
+        f"No study found in modality UCVNAQR with UID {study.message.study_uid}, "
+        "trying MRN and accession number"
+    )
+    assert expected_msg in caplog.text
+
+
+@pytest.mark.processing()
+@pytest.mark.asyncio()
+@pytest.mark.usefixtures("_add_image_to_fake_vna")
+@pytest.mark.usefixtures("_add_image_to_fake_pacs")
+async def test_querying_pacs_with_uid(orthanc_raw, caplog) -> None:
+    """
+    Given a message with study_uid exists in PACS but not VNA,
+    When we query the archives
+    Then the querying finds the study in PACS with the study_uid
+    """
+    study = ImagingStudy.from_message(pacs_message)
+    orthanc = await orthanc_raw
+
+    assert not await study.query_local(orthanc)
+    await process_message(pacs_message)
+    assert await study.query_local(orthanc)
+
+    expected_msg = (
+        f"No study found in modality UCVNAQR with UID {study.message.study_uid}, "
+        "trying MRN and accession number"
+    )
+    assert expected_msg in caplog.text
+
+    expected_msg = (
+        f"Failed to find study {study.message.study_uid} in primary archive, "
+        "trying secondary archive"
+    )
+    assert expected_msg in caplog.text
+
+    unexpected_msg = (
+        f"No study found in modality UCPACSQR with UID {study.message.study_uid}, "
+        "trying MRN and accession number"
+    )
+    assert unexpected_msg not in caplog.text
+
+
+@pytest.mark.processing()
+@pytest.mark.asyncio()
+@pytest.mark.usefixtures("_add_image_to_fake_vna")
+@pytest.mark.usefixtures("_add_image_to_fake_pacs")
+async def test_querying_pacs_without_uid(orthanc_raw, caplog) -> None:
+    """
+    Given a message with non-existent study_uid exists in PACS but not VNA,
+    When we query the archives
+    Then the querying falls back to using the MRN and accession number and finds the study in PACS
+    """
+    study = ImagingStudy.from_message(pacs_no_uid_message)
+    orthanc = await orthanc_raw
+
+    assert not await study.query_local(orthanc)
+    await process_message(pacs_no_uid_message)
+    assert await study.query_local(orthanc)
+
+    expected_msg = (
+        f"No study found in modality UCVNAQR with UID {study.message.study_uid}, "
+        "trying MRN and accession number"
+    )
+    assert expected_msg in caplog.text
+
+    expected_msg = (
+        f"Failed to find study {study.message.study_uid} in primary archive, "
+        "trying secondary archive"
+    )
+    assert expected_msg in caplog.text
+
+    expected_msg = (
+        f"No study found in modality UCPACSQR with UID {study.message.study_uid}, "
+        "trying MRN and accession number"
     )
     assert expected_msg in caplog.text
