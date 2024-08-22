@@ -118,8 +118,7 @@ def test_batch_upload(omop_resources: Path, rows_in_session, mock_publisher) -> 
     """
     GIVEN the database has a single Export entity, with one exported Image, one unexported Image
     WHEN we parse a file with the two existing images and one new image with no participant_ids
-    THEN the database should have 3 images with no pseudo_patient_ids, and returned messages
-    excludes the exported image.
+    THEN the database should have 3 images, and returned messages excludes the exported image.
     """
     input_file = omop_resources / "batch_input.csv"
     messages_df = read_patient_info(input_file)
@@ -130,8 +129,6 @@ def test_batch_upload(omop_resources: Path, rows_in_session, mock_publisher) -> 
     assert len(images_in_db) == 3
     # Exported image filtered out
     assert len(messages) == 2
-    # No pseudo_patient_ids
-    assert all(image.pseudo_patient_id is None for image in images_in_db)
 
 
 def test_duplicate_upload(omop_resources: Path, rows_in_session, mock_publisher) -> None:
@@ -151,23 +148,43 @@ def test_duplicate_upload(omop_resources: Path, rows_in_session, mock_publisher)
     assert len(messages) == 2
 
 
-def test_upload_with_participant_id(omop_resources: Path, rows_in_session, mock_publisher) -> None:
+def test_upload_with_participant_id(omop_resources: Path, db_session, mock_publisher) -> None:
     """
-    GIVEN the database has a single Export entity, with one exported Image and one un-exported Image
-    WHEN we parse a file with the two existing images and one new image with participant_ids set,
-    THEN the database should have 3 images and the pseudo_patient_ids should be set for the
-    new image only.
+    GIVEN the database is empty,
+    WHEN we parse a file with the images that have participant_ids,
+    THEN the database should have 3 images and the `pseudo_patient_id`s in the database should
+    math the participant_ids in the CSV file.
     """
     input_file = omop_resources / "participant_id.csv"
     messages_df = read_patient_info(input_file)
     messages = populate_queue_and_db(["imaging"], messages_df)
 
     # Database has 3 rows now
-    images_in_db: list[Image] = rows_in_session.query(Image).all()
+    images_in_db: list[Image] = db_session.query(Image).all()
     assert len(images_in_db) == 3
-    # Exported and duplicate messages filtered out
-    assert len(messages) == 2
+    # A message per image
+    assert len(messages) == 3
     # Pseudo_patient_id for new image is same as participant_ids in CSV file
-    assert images_in_db[0].pseudo_patient_id is None
-    assert images_in_db[1].pseudo_patient_id is None
+    assert images_in_db[0].pseudo_patient_id == "AAA00"
+    assert images_in_db[1].pseudo_patient_id == "BBB22"
     assert images_in_db[2].pseudo_patient_id == "CCC22"
+
+
+def test_upload_with_no_participant_id(omop_resources: Path, db_session, mock_publisher) -> None:
+    """
+    GIVEN the database is empty,
+    WHEN we parse a file with images that do not have participant_ids,
+    THEN the database should have 3 images and the `pseudo_patient_id`s should be `None` in the
+    database.
+    """
+    input_file = omop_resources / "batch_input.csv"
+    messages_df = read_patient_info(input_file)
+    messages = populate_queue_and_db(["imaging"], messages_df)
+
+    # Database has 3 rows now
+    images_in_db: list[Image] = db_session.query(Image).all()
+    assert len(images_in_db) == 3
+    # A message per image
+    assert len(messages) == 3
+    # Pseudo_patient_id for new image is same as participant_ids in CSV file
+    assert all(image.pseudo_patient_id is None for image in images_in_db)
