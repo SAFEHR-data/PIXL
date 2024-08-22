@@ -35,6 +35,9 @@
     "ResourceModification": 0  // for /anonymize, /modify
   },
 
+  "DicomScpTimeout" : 1800,
+
+
   // To enable plugins:
   "Plugins" : [ "/usr/share/orthanc/plugins" ],
   "PythonScript" : "/etc/orthanc/pixl.py",
