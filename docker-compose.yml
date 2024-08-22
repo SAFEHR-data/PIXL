@@ -115,6 +115,7 @@ services:
                 ORTHANC_CONCURRENT_JOBS: ${ORTHANC_CONCURRENT_JOBS}
         platform: linux/amd64
         command: /run/secrets
+        restart: always
         environment:
             <<: [*pixl-db, *proxy-common, *pixl-common-env, *azure-keyvault]
             ORTHANC_NAME: "PIXL: Anon"
