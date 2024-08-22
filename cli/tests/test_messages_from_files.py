@@ -155,9 +155,10 @@ def test_upload_with_participant_id(omop_resources: Path, rows_in_session, mock_
     """
     GIVEN the database has a single Export entity, with one exported Image and one un-exported Image
     WHEN we parse a file with the two existing images and one new image with participant_ids set,
-    THEN the database should have 3 images and the pseudo_patient_ids should be set.
+    THEN the database should have 3 images and the pseudo_patient_ids should be set for the
+    new image only.
     """
-    input_file = omop_resources / "duplicate_input.csv"
+    input_file = omop_resources / "participant_id.csv"
     messages_df = read_patient_info(input_file)
     messages = populate_queue_and_db(["imaging"], messages_df)
 
@@ -166,7 +167,7 @@ def test_upload_with_participant_id(omop_resources: Path, rows_in_session, mock_
     assert len(images_in_db) == 3
     # Exported and duplicate messages filtered out
     assert len(messages) == 2
-    # Pseudo_patient_ids are same as participant_ids in CSV file
-    assert images_in_db[0].pseudo_patient_id == "AAA00"
-    assert images_in_db[1].pseudo_patient_id == "BBB11"
+    # Pseudo_patient_id for new image is same as participant_ids in CSV file
+    assert images_in_db[0].pseudo_patient_id is None
+    assert images_in_db[1].pseudo_patient_id is None
     assert images_in_db[2].pseudo_patient_id == "CCC22"
