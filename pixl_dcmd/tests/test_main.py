@@ -306,6 +306,38 @@ def test_pseudo_patient_id_processing(
     )
 
 
+def test_no_pseudo_patient_id_processing(
+    rows_in_session, monkeypatch, not_exported_dicom_dataset
+):
+    """
+    GIVEN an `Image` entity in the database which doesn't have a `pseudo_patient_id` set
+    WHEN the matching DICOM data is anonymised
+    THEN database's `pseudo_study_id` tag should be set, and match the value from the
+    DICOM's patient identifier tag at the end of anonymisation
+    """
+    study_info = get_study_info(not_exported_dicom_dataset)
+    original_image: Image = (
+        rows_in_session.query(Image)
+        .filter(Image.accession_number == study_info.accession_number)
+        .one()
+    )
+    assert original_image.pseudo_patient_id is None
+
+    anonymise_dicom(not_exported_dicom_dataset)
+
+    anonymised_image: Image = (
+        rows_in_session.query(Image)
+        .filter(Image.accession_number == study_info.accession_number)
+        .one()
+    )
+
+    assert anonymised_image.pseudo_patient_id is not None
+    assert (
+        anonymised_image.pseudo_patient_id
+        == not_exported_dicom_dataset[0x0010, 0x0020].value
+    )
+
+
 @pytest.fixture()
 def dicom_series_to_keep() -> list[pydicom.Dataset]:
     series = [
