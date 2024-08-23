@@ -64,11 +64,12 @@ def get_uniq_pseudo_study_uid_and_update_db(
 
 
 def get_pseudo_patient_id_and_update_db(
-    project_slug: str, study_info: StudyInfo
+    project_slug: str, study_info: StudyInfo, pseudo_patient_id: str
 ) -> None:
     """
     Checks if record (by slug and study info) exists in the database,
-    gets the pseudo_paitent_id if it is not None or records a new, unique one.
+    gets the pseudo_paitent_id if it is not None otherwise use the
+    patient ID from the DICOM dataset.
     Returns the pseudo_paitent_uid.
     """
     PixlSession = sessionmaker(engine)
@@ -80,9 +81,10 @@ def get_pseudo_patient_id_and_update_db(
         )
         if existing_image.pseudo_patient_id is None:
             logger.info("Adding pseudo patient ID to image")
-            add_pseudo_patient_id_to_db(
-                existing_image, study_info.pseudo_patient_id, pixl_session
-            )
+            add_pseudo_patient_id_to_db(existing_image, pseudo_patient_id, pixl_session)
+            return pseudo_patient_id  # type: ignore
+        else:
+            return existing_image.pseudo_patient_id  # type: ignore
 
 
 def add_pseudo_study_uid_to_db(

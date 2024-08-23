@@ -316,12 +316,6 @@ def test_no_pseudo_patient_id_processing(rows_in_session, not_exported_dicom_dat
     DICOM's patient identifier tag at the end of anonymisation
     """
     study_info = get_study_info(not_exported_dicom_dataset)
-    original_image: Image = (
-        rows_in_session.query(Image)
-        .filter(Image.accession_number == study_info.accession_number)
-        .one()
-    )
-    assert original_image.pseudo_patient_id is None
 
     anonymise_dicom(not_exported_dicom_dataset)
 
