@@ -14,14 +14,11 @@ dependencies = [
 
 [project.optional-dependencies]
 test = [
-    "pytest==8.3.*",
+    "core[test]==0.2.0rc",
     "pytest-mock==3.14.*",
-    "pytest-pixl"
 ]
 dev = [
-    "mypy",
-    "pre-commit",
-    "ruff",
+    "core[dev]==0.2.0rc",
 ]
 
 [project.scripts]
