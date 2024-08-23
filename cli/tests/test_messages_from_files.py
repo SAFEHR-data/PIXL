@@ -166,7 +166,7 @@ def test_upload_with_participant_id(omop_resources: Path, db_session, mock_publi
     assert len(messages) == 3
     # Pseudo_patient_id for new image is same as participant_ids in CSV file
     assert images_in_db[0].pseudo_patient_id == "AAA00"
-    assert images_in_db[1].pseudo_patient_id == "BBB22"
+    assert images_in_db[1].pseudo_patient_id == "BBB11"
     assert images_in_db[2].pseudo_patient_id == "CCC22"
 
 
