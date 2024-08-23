@@ -22,6 +22,7 @@ import requests
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
 from loguru import logger
 from pydicom.uid import UID
+from pytest_check import check
 from pytest_pixl.ftpserver import PixlFTPServer
 from pytest_pixl.helpers import run_subprocess, wait_for_condition
 
@@ -183,8 +184,8 @@ class TestFtpsUpload:
             else:
                 assert private_tag.value == TestFtpsUpload.project_slug
         # check the basic info about the instances exactly matches
-
-        assert actual_instances == expected_study["instances"]
+        with check:
+            assert actual_instances == expected_study["instances"]
 
 
 @pytest.mark.usefixtures("_setup_pixl_cli_dicomweb")
