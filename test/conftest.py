@@ -19,6 +19,10 @@ from collections.abc import Generator
 from pathlib import Path
 from typing import Any
 
+from core.db.models import Base
+from sqlalchemy import URL, create_engine
+from sqlalchemy.orm import sessionmaker
+
 # Setting env variables before loading modules
 os.environ["PIXL_DB_HOST"] = "localhost"
 os.environ["PIXL_DB_PORT"] = "7001"
@@ -197,3 +201,28 @@ def _export_patient_data(_setup_pixl_cli) -> None:  # type: ignore [no-untyped-d
     is synchronous (whether that is itself wise is another matter).
     """
     run_subprocess(["pixl", "export-patient-data", str(RESOURCES_OMOP_DIR.absolute())], TEST_DIR)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _cleanup_database() -> Generator:
+    """
+    Remove the test data from the database so we can re-run the tests.
+
+    If the database is not cleaned, the data will not be exported when the
+    tests are re-run, which results in `wait_for_condition` timing out.
+    """
+    yield
+    url = URL.create(
+        drivername="postgresql+psycopg2",
+        username=os.environ["PIXL_DB_USER"],
+        password=os.environ["PIXL_DB_PASSWORD"],
+        host="localhost",
+        port=os.environ["PIXL_DB_PORT"],
+        database=os.environ["PIXL_DB_NAME"],
+    )
+    engine = create_engine(url)
+    PixlSession = sessionmaker(engine)
+    with PixlSession() as session:
+        for table in reversed(Base.metadata.sorted_tables):
+            session.execute(table.delete())
+        session.commit()
