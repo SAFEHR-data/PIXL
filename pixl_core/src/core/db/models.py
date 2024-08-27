@@ -21,7 +21,7 @@ from typing import Optional
 from sqlalchemy import MetaData
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.schema import ForeignKey
-from sqlalchemy.types import Date, DateTime, String
+from sqlalchemy.types import Date, DateTime
 
 
 class Base(DeclarativeBase):
@@ -57,7 +57,7 @@ class Image(Base):
     exported_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), nullable=True)
     extract: Mapped[Extract] = relationship()
     extract_id: Mapped[int] = mapped_column(ForeignKey("extract.extract_id"))
-    pseudo_patient_id: Mapped[str] = mapped_column(String(255), nullable=True)
+    pseudo_patient_id: Mapped[Optional[str]]
 
     def __repr__(self) -> str:
         """Nice representation for printing."""
