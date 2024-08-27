@@ -2,7 +2,7 @@
   "DicomAet" : "${ORTHANC_RAW_AE_TITLE}",
 
   "DicomModalities" : {
-    "UCVNAQR" : {
+    "UCPRIMARYQR" : {
       "AET" : "${PRIMARY_DICOM_AE_TITLE}",
       "Port" : "${PRIMARY_DICOM_PORT}",
       "Host" : "${PRIMARY_DICOM_IP_ADDR}",
@@ -18,7 +18,7 @@
       "UseDicomTls" : false,
       "Timeout" : 60
     },
-    "UCPACSQR" : {
+    "UCSECONDARYQR" : {
       "AET" : "${SECONDARY_DICOM_AE_TITLE}",
       "Port" : "${SECONDARY_DICOM_PORT}",
       "Host" : "${SECONDARY_DICOM_IP_ADDR}",

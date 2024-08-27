@@ -25,7 +25,7 @@ services:
             ORTHANC_NAME: ${PRIMARY_DICOM_AE_TITLE}
             ORTHANC_USERNAME: "orthanc"
             ORTHANC_PASSWORD: "orthanc"
-            ORTHANC_AE_TITLE: "VNAQR"
+            ORTHANC_AE_TITLE: "PRIMARYQR"
             RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
             RAW_DICOM_PORT: "4242"
             RAW_IP_ADDR: "orthanc-raw" # aka. hostname

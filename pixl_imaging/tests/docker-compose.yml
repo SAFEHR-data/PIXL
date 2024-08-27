@@ -33,10 +33,10 @@ services:
     vna-qr:
         image: orthancteam/orthanc:24.3.3
         environment:
-            ORTHANC_NAME: "VNAQR"
+            ORTHANC_NAME: "PRIMARYQR"
             ORTHANC_USERNAME: "orthanc"
             ORTHANC_PASSWORD: "orthanc"
-            ORTHANC_AE_TITLE: "VNAQR"
+            ORTHANC_AE_TITLE: "PRIMARYQR"
             RAW_AE_TITLE: "PIXLRAW"
             RAW_DICOM_PORT: "4242"
             RAW_IP_ADDR: "orthanc-raw" # aka. hostname
@@ -49,10 +49,10 @@ services:
     pacs-qr:
         image: orthancteam/orthanc:24.3.3
         environment:
-            ORTHANC_NAME: "PACSQR"
+            ORTHANC_NAME: "SECONDARYQR"
             ORTHANC_USERNAME: "orthanc"
             ORTHANC_PASSWORD: "orthanc"
-            ORTHANC_AE_TITLE: "PACSQR"
+            ORTHANC_AE_TITLE: "SECONDARYQR"
             RAW_AE_TITLE: "PIXLRAW"
             RAW_DICOM_PORT: "4242"
             RAW_IP_ADDR: "orthanc-raw" # aka. hostname
@@ -74,10 +74,10 @@ services:
             ORTHANC_USERNAME: "orthanc"
             ORTHANC_PASSWORD: "orthanc"
             ORTHANC_AE_TITLE: "PIXLRAW"
-            PRIMARY_DICOM_AE_TITLE: "VNAQR"
+            PRIMARY_DICOM_AE_TITLE: "PRIMARYQR"
             PRIMARY_DICOM_PORT: "4242"
             PRIMARY_DICOM_IP_ADDR: "vna-qr"
-            SECONDARY_DICOM_AE_TITLE: "PACSQR"
+            SECONDARY_DICOM_AE_TITLE: "SECONDARYQR"
             SECONDARY_DICOM_PORT: "4242"
             SECONDARY_DICOM_IP_ADDR: "pacs-qr"
             ORTHANC_ANON_AE_TITLE: "unused"

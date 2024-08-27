@@ -119,7 +119,7 @@ def _add_image_to_fake_vna(run_containers) -> Generator[None]:
     ds.save_as(image_filename)
 
     vna = WritableOrthanc(
-        aet="VNAQR",
+        aet="PRIMARYQR",
         url=config("ORTHANC_VNA_URL"),
         username=config("ORTHANC_VNA_USERNAME"),
         password=config("ORTHANC_VNA_PASSWORD"),
@@ -142,7 +142,7 @@ def _add_image_to_fake_pacs(run_containers) -> Generator[None]:
     ds.save_as(image_filename)
 
     pacs = WritableOrthanc(
-        aet="PACSQR",
+        aet="SECONDARYQR",
         url=config("ORTHANC_PACS_URL"),
         username=config("ORTHANC_PACS_USERNAME"),
         password=config("ORTHANC_PACS_PASSWORD"),
@@ -229,7 +229,7 @@ async def test_querying_without_uid(orthanc_raw, caplog) -> None:
     assert await study.query_local(orthanc)
 
     expected_msg = (
-        f"No study found in modality UCVNAQR with UID {study.message.study_uid}, "
+        f"No study found in modality UCPRIMARYQR with UID {study.message.study_uid}, "
         "trying MRN and accession number"
     )
     assert expected_msg in caplog.text
@@ -271,7 +271,7 @@ async def test_querying_pacs_with_uid(orthanc_raw, caplog, monkeypatch) -> None:
     assert await study.query_local(orthanc)
 
     expected_msg = (
-        f"No study found in modality UCVNAQR with UID {study.message.study_uid}, "
+        f"No study found in modality UCPRIMARYQR with UID {study.message.study_uid}, "
         "trying MRN and accession number"
     )
     assert expected_msg in caplog.text
@@ -283,7 +283,7 @@ async def test_querying_pacs_with_uid(orthanc_raw, caplog, monkeypatch) -> None:
     assert expected_msg in caplog.text
 
     unexpected_msg = (
-        f"No study found in modality UCPACSQR with UID {study.message.study_uid}, "
+        f"No study found in modality UCSECONDARYQR with UID {study.message.study_uid}, "
         "trying MRN and accession number"
     )
     assert unexpected_msg not in caplog.text
@@ -317,7 +317,7 @@ async def test_querying_pacs_without_uid(orthanc_raw, caplog, monkeypatch) -> No
     assert await study.query_local(orthanc)
 
     expected_msg = (
-        f"No study found in modality UCVNAQR with UID {study.message.study_uid}, "
+        f"No study found in modality UCPRIMARYQR with UID {study.message.study_uid}, "
         "trying MRN and accession number"
     )
     assert expected_msg in caplog.text
@@ -329,7 +329,7 @@ async def test_querying_pacs_without_uid(orthanc_raw, caplog, monkeypatch) -> No
     assert expected_msg in caplog.text
 
     expected_msg = (
-        f"No study found in modality UCPACSQR with UID {study.message.study_uid}, "
+        f"No study found in modality UCSECONDARYQR with UID {study.message.study_uid}, "
         "trying MRN and accession number"
     )
     assert expected_msg in caplog.text

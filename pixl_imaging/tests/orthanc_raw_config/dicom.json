@@ -3,13 +3,13 @@
   "DicomAlwaysAllowEcho" : true,
   "DicomCheckModalityHost" : true,
   "DicomModalities" : {
-    "UCVNAQR" : {
+    "UCPRIMARYQR" : {
       "AET" : "${PRIMARY_DICOM_AE_TITLE}",
       "Port" : "${PRIMARY_DICOM_PORT}",
       "Host" : "${PRIMARY_DICOM_IP_ADDR}",
       "Manufacturer" : "Generic"
     },
-    "UCPACSQR" : {
+    "UCSECONDARYQR" : {
       "AET" : "${SECONDARY_DICOM_AE_TITLE}",
       "Port" : "${SECONDARY_DICOM_PORT}",
       "Host" : "${SECONDARY_DICOM_IP_ADDR}",
