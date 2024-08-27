@@ -89,9 +89,9 @@ def test_get_uniq_pseudo_study_uid_and_update_db(rows_for_database_testing, db_s
 
 def test_get_pseudo_patient_id_and_update_db(rows_for_database_testing, db_session):
     """
-    GIVEN an exixting image that already has pseudo_patient_id
+    GIVEN an existing image that already has pseudo_patient_id in the database
     WHEN we query the dataset for that image
-    THEN the funcion should return the existing pseudo_patient_id
+    THEN the function should return the existing pseudo_patient_id
     """
     get_pseudo_patient_id_and_update_db(
         TEST_PROJECT_SLUG,
