@@ -19,10 +19,13 @@ import datetime
 import pathlib
 import shlex
 from typing import TYPE_CHECKING
+from zoneinfo import ZoneInfo
 
 import pytest
+from core.exceptions import PixlDiscardError
 from core.patient_queue.message import Message
 from decouple import config
+from freezegun import freeze_time
 from pixl_imaging._orthanc import Orthanc, PIXLRawOrthanc
 from pixl_imaging._processing import ImagingStudy, process_message
 from pydicom import dcmread
@@ -235,19 +238,25 @@ async def test_querying_without_uid(orthanc_raw, caplog) -> None:
     assert expected_msg in caplog.text
 
 
-class MockDateTime(datetime.datetime):
-    """Mock the date and time to be a Monday at 2 am."""
+@pytest.fixture()
+def monday_2am() -> None:
+    return datetime.datetime(2024, 1, 1, 2, 0, tzinfo=ZoneInfo("Europe/London"))
 
-    @classmethod
-    def now(cls, tz=None) -> datetime.datetime:
-        return MockDateTime(2024, 1, 1, 2, 0, tzinfo=tz)
+
+@pytest.fixture()
+def monday_11am() -> None:
+    return datetime.datetime(2024, 1, 1, 11, 0, tzinfo=ZoneInfo("Europe/London"))
+
+
+@pytest.fixture()
+def saturday_2am() -> None:
+    return datetime.datetime(2024, 1, 6, 2, 0, tzinfo=ZoneInfo("Europe/London"))
 
 
 @pytest.mark.processing()
 @pytest.mark.asyncio()
-@pytest.mark.usefixtures("_add_image_to_fake_vna")
 @pytest.mark.usefixtures("_add_image_to_fake_pacs")
-async def test_querying_pacs_with_uid(orthanc_raw, caplog, monkeypatch) -> None:
+async def test_querying_pacs_with_uid(orthanc_raw, caplog, monday_2am) -> None:
     """
     Given a message with study_uid exists in PACS but not VNA,
     When we query the archives
@@ -258,14 +267,9 @@ async def test_querying_pacs_with_uid(orthanc_raw, caplog, monkeypatch) -> None:
 
     assert not await study.query_local(orthanc)
 
-    with monkeypatch.context() as m:
-        # PACS is not queried during the daytime nor at the weekend.
-        # Set today to be a Monday at 2 am.
-        m.setattr(
-            datetime,
-            "datetime",
-            MockDateTime,
-        )
+    # PACS is not queried during the daytime nor at the weekend.
+    # Set today to be a Monday at 2 am.
+    with freeze_time(monday_2am):
         await process_message(pacs_message)
 
     assert await study.query_local(orthanc)
@@ -291,9 +295,8 @@ async def test_querying_pacs_with_uid(orthanc_raw, caplog, monkeypatch) -> None:
 
 @pytest.mark.processing()
 @pytest.mark.asyncio()
-@pytest.mark.usefixtures("_add_image_to_fake_vna")
 @pytest.mark.usefixtures("_add_image_to_fake_pacs")
-async def test_querying_pacs_without_uid(orthanc_raw, caplog, monkeypatch) -> None:
+async def test_querying_pacs_without_uid(orthanc_raw, caplog, monday_2am) -> None:
     """
     Given a message with non-existent study_uid exists in PACS but not VNA,
     When we query the archives
@@ -304,14 +307,9 @@ async def test_querying_pacs_without_uid(orthanc_raw, caplog, monkeypatch) -> No
 
     assert not await study.query_local(orthanc)
 
-    with monkeypatch.context() as m:
-        # PACS is not queried during the daytime nor at the weekend.
-        # Set today to be a Monday at 2 am.
-        m.setattr(
-            datetime,
-            "datetime",
-            MockDateTime,
-        )
+    # PACS is not queried during the daytime nor at the weekend.
+    # Set today to be a Monday at 2 am.
+    with freeze_time(monday_2am):
         await process_message(pacs_no_uid_message)
 
     assert await study.query_local(orthanc)
@@ -333,3 +331,54 @@ async def test_querying_pacs_without_uid(orthanc_raw, caplog, monkeypatch) -> No
         "trying MRN and accession number"
     )
     assert expected_msg in caplog.text
+
+
+@pytest.mark.processing()
+@pytest.mark.asyncio()
+async def test_querying_missing_image(orthanc_raw, caplog, monday_2am) -> None:
+    """
+    Given a message for a study that is missing in both the VNA and PACS,
+    When we query the archives outside of the window of Monday-Friday 8am-8pm,
+    Then the querying tries both the VNA and PACS and raises a PIXLDiscardError
+    """
+    study = ImagingStudy.from_message(message)
+    orthanc = await orthanc_raw
+
+    assert not await study.query_local(orthanc)
+
+    # PACS is not queried during the daytime nor at the weekend.
+    # Set today to be a Monday at 2 am.
+    match = f"Failed to find study {message.study_uid} in primary or secondary archive."
+    with freeze_time(monday_2am), pytest.raises(PixlDiscardError, match=match):
+        await process_message(message)
+
+
+@pytest.mark.processing()
+@pytest.mark.asyncio()
+@pytest.mark.parametrize(
+    "query_date",
+    [
+        ("monday_11am",),
+        ("saturday_2am",),
+    ],
+)
+async def test_querying_pacs_weekday_daytime(orthanc_raw, caplog, query_date, request) -> None:
+    """
+    Given a message for a study that is missing in both the VNA and PACS,
+    When we query the archives between of Monday-Friday 8am-8pm,
+    Then the querying try only the VNA and and raises a PIXLDiscardError
+    """
+    study = ImagingStudy.from_message(message)
+    orthanc = await orthanc_raw
+
+    assert not await study.query_local(orthanc)
+
+    match = (
+        f"Failed to find study {message.study_uid} in primary archive. "
+        "Not querying secondary archive during the daytime or on the weekend."
+    )
+    with (
+        freeze_time(request.getfixturevalue(query_date)),
+        pytest.raises(PixlDiscardError, match=match),
+    ):
+        await process_message(message)
