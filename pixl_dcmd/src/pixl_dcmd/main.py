@@ -168,7 +168,7 @@ def anonymise_dicom(
         )
         anonymised_study_info = get_study_info(dataset)
         dataset[0x0010, 0x0020].value = get_pseudo_patient_id_and_update_db(
-            project_name, study_info, anonymise_study_info.mrn
+            project_name, study_info, anonymised_study_info.mrn
         )  # type: ignore[func-returns-value]
 
 
