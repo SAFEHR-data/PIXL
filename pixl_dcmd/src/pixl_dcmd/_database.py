@@ -70,7 +70,7 @@ def get_pseudo_patient_id_and_update_db(
     Checks if record (by slug and study info) exists in the database,
     gets the pseudo_paitent_id if it is not None otherwise use the
     patient ID from the DICOM dataset.
-    Returns the pseudo_paitent_uid.
+    Returns the pseudo_paitent_id.
     """
     PixlSession = sessionmaker(engine)
     with PixlSession() as pixl_session, pixl_session.begin():
