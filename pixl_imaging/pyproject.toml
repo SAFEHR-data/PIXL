@@ -11,13 +11,16 @@ dependencies = [
     "aiohttp==3.10.1",
     "alembic==1.13.2",
     "pydicom==2.4.4",
-    "python-decouple==3.8",
     "uvicorn==0.30.4",
 ]
 
 [project.optional-dependencies]
-test = ["pytest==8.3.2", "pytest-asyncio==0.23.8", "pytest-pixl==0.2.0rc0"]
-dev = ["mypy", "pre-commit", "ruff"]
+test = [
+    "core[test]==0.2.0rc0",
+]
+dev = [
+    "core[dev]==0.2.0rc0",
+]
 
 [build-system]
 requires = ["setuptools>=61.0"]
