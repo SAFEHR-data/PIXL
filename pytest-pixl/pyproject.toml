@@ -23,7 +23,7 @@ test = [
     "pytest==8.3.2",
 ]
 dev = [
-    "core[dev]==0.2.0rc",
+    "core[dev]==0.2.0rc0",
 ]
 
 [build-system]
