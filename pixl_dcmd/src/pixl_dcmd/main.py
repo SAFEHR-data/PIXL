@@ -28,7 +28,10 @@ from loguru import logger
 from pydicom import DataElement, Dataset, dcmwrite
 
 from core.project_config.pixl_config_model import PixlConfig, load_config_and_validate
-from pixl_dcmd._database import get_uniq_pseudo_study_uid_and_update_db
+from pixl_dcmd._database import (
+    get_uniq_pseudo_study_uid_and_update_db,
+    get_pseudo_patient_id_and_update_db,
+)
 from pixl_dcmd._dicom_helpers import (
     DicomValidator,
     get_project_name_as_string,
@@ -163,6 +166,10 @@ def anonymise_dicom(
         dataset[0x0020, 0x000D].value = get_uniq_pseudo_study_uid_and_update_db(
             project_name, study_info
         )
+        anonymised_study_info = get_study_info(dataset)
+        dataset[0x0010, 0x0020].value = get_pseudo_patient_id_and_update_db(
+            project_name, study_info, anonymised_study_info.mrn
+        )  # type: ignore[func-returns-value]
 
 
 def _anonymise_dicom_from_scheme(

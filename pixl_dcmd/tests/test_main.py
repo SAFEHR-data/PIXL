@@ -273,6 +273,65 @@ def test_pseudo_identifier_processing(
     assert image.pseudo_study_uid == "2.25.2"  # 2nd image in the db
 
 
+def test_pseudo_patient_id_processing(
+    row_for_testing_image_with_pseudo_patient_id, not_exported_dicom_dataset
+):
+    """
+    GIVEN an `Image` entity in the database which has a `pseudo_patient_id` set
+    WHEN the matching DICOM data is anonymised
+    THEN the DICOM's patient ID tag should be the original `pseudo_study_id`
+    value from the database, the database's `pseudo_patient_id` shouldn't have changed
+    """
+    study_info = get_study_info(not_exported_dicom_dataset)
+    original_image: Image = (
+        row_for_testing_image_with_pseudo_patient_id.query(Image)
+        .filter(Image.accession_number == study_info.accession_number)
+        .one()
+    )
+    assert (
+        not_exported_dicom_dataset[0x0010, 0x0020].value
+        != original_image.pseudo_patient_id
+    )
+
+    anonymise_dicom(not_exported_dicom_dataset)
+
+    anonymised_image: Image = (
+        row_for_testing_image_with_pseudo_patient_id.query(Image)
+        .filter(Image.accession_number == study_info.accession_number)
+        .one()
+    )
+
+    assert original_image.pseudo_patient_id == anonymised_image.pseudo_patient_id
+    assert (
+        not_exported_dicom_dataset[0x0010, 0x0020].value
+        == original_image.pseudo_patient_id
+    )
+
+
+def test_no_pseudo_patient_id_processing(rows_in_session, not_exported_dicom_dataset):
+    """
+    GIVEN an `Image` entity in the database which doesn't have a `pseudo_patient_id` set
+    WHEN the matching DICOM data is anonymised
+    THEN database's `pseudo_patient_id` field should be set, and match the value from the
+    DICOM's patient identifier tag at the end of anonymisation
+    """
+    study_info = get_study_info(not_exported_dicom_dataset)
+
+    anonymise_dicom(not_exported_dicom_dataset)
+
+    anonymised_image: Image = (
+        rows_in_session.query(Image)
+        .filter(Image.accession_number == study_info.accession_number)
+        .one()
+    )
+
+    assert anonymised_image.pseudo_patient_id is not None
+    assert (
+        anonymised_image.pseudo_patient_id
+        == not_exported_dicom_dataset[0x0010, 0x0020].value
+    )
+
+
 @pytest.fixture()
 def dicom_series_to_keep() -> list[pydicom.Dataset]:
     series = [

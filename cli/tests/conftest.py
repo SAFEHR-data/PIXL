@@ -127,7 +127,12 @@ def db_session(db_engine) -> Generator[Session]:
 STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
 
 
-def _make_message(project_name: str, accession_number: str, mrn: str, study_uid: str) -> Message:
+def _make_message(
+    project_name: str,
+    accession_number: str,
+    mrn: str,
+    study_uid: str,
+) -> Message:
     return Message(
         project_name=project_name,
         accession_number=accession_number,
@@ -158,7 +163,9 @@ def example_messages() -> list[Message]:
 @pytest.fixture()
 def example_messages_df(example_messages):
     """Test input data in a DataFrame."""
-    return pd.DataFrame.from_records([vars(im) for im in example_messages])
+    messages_df = pd.DataFrame.from_records([vars(im) for im in example_messages])
+    messages_df["pseudo_patient_id"] = None
+    return messages_df
 
 
 @pytest.fixture()
@@ -198,7 +205,9 @@ def example_messages_multiple_projects() -> list[Message]:
 @pytest.fixture()
 def example_messages_multiple_projects_df(example_messages_multiple_projects) -> pd.DataFrame:
     """Test input data."""
-    return pd.DataFrame.from_records([vars(im) for im in example_messages_multiple_projects])
+    messages_df = pd.DataFrame.from_records([vars(im) for im in example_messages_multiple_projects])
+    messages_df["pseudo_patient_id"] = None
+    return messages_df
 
 
 @pytest.fixture()
