@@ -80,7 +80,7 @@ def get_pseudo_patient_id_and_update_db(
             pixl_session,
         )
         if existing_image.pseudo_patient_id is None:
-            logger.info("Adding pseudo patient ID to image")
+            logger.debug("Adding pseudo patient ID to image")
             add_pseudo_patient_id_to_db(existing_image, pseudo_patient_id, pixl_session)
             return pseudo_patient_id  # type: ignore
         else:
