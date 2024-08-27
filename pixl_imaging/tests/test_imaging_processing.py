@@ -335,7 +335,7 @@ async def test_querying_pacs_without_uid(orthanc_raw, caplog, monday_2am) -> Non
 async def test_querying_missing_image(orthanc_raw, caplog, monday_2am) -> None:
     """
     Given a message for a study that is missing in both the VNA and PACS,
-    When we query the archives outside of the window of Monday-Friday 8am-8pm,
+    When we query the archives within the window of Monday-Friday 8pm to 8am,
     Then the querying tries both the VNA and PACS and raises a PIXLDiscardError
     """
     study = ImagingStudy.from_message(message)
@@ -359,10 +359,10 @@ async def test_querying_missing_image(orthanc_raw, caplog, monday_2am) -> None:
         ("saturday_2am",),
     ],
 )
-async def test_querying_pacs_weekday_daytime(orthanc_raw, caplog, query_date, request) -> None:
+async def test_querying_pacs_during_working_hours(orthanc_raw, caplog, query_date, request) -> None:
     """
     Given a message for a study that is missing in both the VNA and PACS,
-    When we query the archives between of Monday-Friday 8am-8pm,
+    When we query the archives outside of Monday-Friday 8pm-8am,
     Then the querying try only the VNA and and raises a PIXLDiscardError
     """
     study = ImagingStudy.from_message(message)
