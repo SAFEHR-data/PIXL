@@ -30,9 +30,6 @@ TEST_PROJECT_SLUG = "test-extract-uclh-omop-cdm"
 TEST_STUDY_INFO = StudyInfo(
     mrn="123456", accession_number="abcde", study_uid="1.2.3.4.5"
 )
-TEST_STUDY_INFO_WITH_PSEUDO_UID = StudyInfo(
-    mrn="234567", accession_number="bcdef", study_uid="2.3.4.5.6"
-)
 TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID = StudyInfo(
     mrn="234567", accession_number="bcdef", study_uid="2.3.4.5.6"
 )
@@ -82,7 +79,7 @@ def test_get_uniq_pseudo_study_uid_and_update_db(rows_for_database_testing, db_s
     THEN the function should return the existing pseudo_study_uid.
     """
     pseudo_study_uid = get_uniq_pseudo_study_uid_and_update_db(
-        TEST_PROJECT_SLUG, TEST_STUDY_INFO_WITH_PSEUDO_UID
+        TEST_PROJECT_SLUG, TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID
     )
     assert pseudo_study_uid == "0.0.0.0.0.0"
 
