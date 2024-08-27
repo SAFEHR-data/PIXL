@@ -46,6 +46,7 @@ os.environ["PIXL_DICOM_TRANSFER_TIMEOUT"] = "30"
 os.environ["SKIP_ALEMBIC"] = "true"
 os.environ["PIXL_MAX_MESSAGES_IN_FLIGHT"] = "20"
 os.environ["ORTHANC_AUTOROUTE_RAW_TO_ANON"] = "false"
+os.environ["TZ"] = "Europe/London"
 
 
 @pytest.fixture(autouse=True)
