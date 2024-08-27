@@ -52,15 +52,17 @@ class Image(Base):
     accession_number: Mapped[str]
     study_date: Mapped[Date] = mapped_column(Date())
     mrn: Mapped[str]
+    study_uid: Mapped[Optional[str]]
     pseudo_study_uid: Mapped[Optional[str]]
     exported_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), nullable=True)
     extract: Mapped[Extract] = relationship()
     extract_id: Mapped[int] = mapped_column(ForeignKey("extract.extract_id"))
+    pseudo_patient_id: Mapped[Optional[str]]
 
     def __repr__(self) -> str:
         """Nice representation for printing."""
         return (
             f"<{self.__class__.__name__} "
-            f"{self.image_id=} {self.accession_number=} {self.mrn=} "
+            f"{self.image_id=} {self.accession_number=} {self.mrn=} {self.study_uid=}"
             f"{self.pseudo_study_uid} {self.extract_id}>"
         ).replace(" self.", " ")

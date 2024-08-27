@@ -20,8 +20,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Optional
 
-import yaml  # type: ignore [import-untyped]
-from decouple import Config, RepositoryEmpty, RepositoryEnv  # type: ignore [import-untyped]
+import yaml
+from decouple import Config, RepositoryEmpty, RepositoryEnv
 from loguru import logger
 from pydantic import BaseModel, field_validator
 
@@ -38,19 +38,19 @@ def load_project_config(project_slug: str) -> PixlConfig | Any:
     Project needs to have a corresponding yaml file in the `$PROJECT_CONFIGS_DIR` directory.
     """
     configpath = Path(config("PROJECT_CONFIGS_DIR")) / f"{project_slug}.yaml"
-    logger.debug("Loading config for {} from {}", project_slug, configpath)
     try:
-        return _load_and_validate(configpath)
+        return load_config_and_validate(configpath)
     except FileNotFoundError as error:
         msg = f"No config for {project_slug}. Please submit PR and redeploy."
         raise PixlDiscardError(msg) from error
 
 
-def _load_and_validate(filename: Path) -> PixlConfig | Any:
+def load_config_and_validate(filename: Path) -> PixlConfig | Any:
     """
     Load configuration from a yaml file.
     :param filename: Path to the yaml file
     """
+    logger.debug("Loading config from {}", filename)
     yaml_data = yaml.safe_load(filename.read_text())
     return PixlConfig.model_validate(yaml_data)
 
@@ -113,6 +113,7 @@ class _DestinationEnum(str, Enum):
     none = "none"
     ftps = "ftps"
     dicomweb = "dicomweb"
+    xnat = "xnat"
 
 
 class _Destination(BaseModel):
@@ -122,8 +123,8 @@ class _Destination(BaseModel):
     @field_validator("parquet")
     @classmethod
     def valid_parquet_destination(cls, v: str) -> str:
-        if v == "dicomweb":
-            msg = "Parquet destination cannot be dicomweb"
+        if v in ("dicomweb", "xnat"):
+            msg = f"Parquet destination cannot be {v}"
             raise ValueError(msg)
         return v
 

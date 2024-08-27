@@ -105,7 +105,7 @@ def export_dicom_from_orthanc(study_data: StudyData) -> None:
     the Pseudo Study UID (a randomly selected, but consistent UID).
     """
     study_id = study_data.study_id
-    _, project_slug = get_tags_by_study(study_id)
+    project_slug = get_tags_by_study(study_id).project_slug
 
     uploader = get_uploader(project_slug)
     logger.debug("Sending {} via '{}'", study_id, type(uploader).__name__)

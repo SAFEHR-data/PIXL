@@ -92,6 +92,7 @@ class StudyInfo:
 
     mrn: str
     accession_number: str
+    study_uid: str
 
 
 def get_study_info(dataset: Dataset) -> StudyInfo:
@@ -99,4 +100,5 @@ def get_study_info(dataset: Dataset) -> StudyInfo:
     return StudyInfo(
         mrn=dataset[0x0010, 0x0020].value,
         accession_number=dataset[0x0008, 0x0050].value,
+        study_uid=dataset[0x0020, 0x000D].value,
     )

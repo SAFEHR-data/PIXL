@@ -16,6 +16,8 @@
 import pytest
 import sqlalchemy
 from core.db.models import Image
+from core.uploader import DicomWebUploader, FTPSUploader, XNATUploader, get_uploader
+from core.uploader._orthanc import StudyTags
 from core.uploader.base import Uploader
 from loguru import logger
 from sqlalchemy.orm import sessionmaker
@@ -32,18 +34,21 @@ class DumbUploader(Uploader):
         """Initialise the mock uploader with hardcoded values for FTPS config."""
         self.pseudo_study_uid = pseudo_study_uid
 
-    def _get_tags_by_study(self, study_id: str) -> tuple[str, str]:
+    def _get_tags_by_study(self, study_id: str) -> StudyTags:
         logger.info("Mocked getting tags for: {} to return {}", study_id, self.pseudo_study_uid)
-        return self.pseudo_study_uid, "project_slug"
+        return StudyTags(self.pseudo_study_uid, "project_slug", "patient-id")
 
     def _upload_dicom_image(
-        self, study_id: str, pseudo_anon_image_id: str, project_slug: str
+        self,
+        study_id: str,
+        study_tags: StudyTags,
     ) -> None:
         logger.info(
             "Mocked uploader with no upload functionality for {}, {}, {}",
             study_id,
-            pseudo_anon_image_id,
-            project_slug,
+            study_tags.pseudo_anon_image_id,
+            study_tags.project_slug,
+            study_tags.patient_id,
         )
 
     def _set_config(self) -> None:
@@ -103,3 +108,26 @@ def test_study_already_exported_raises(already_exported_dicom_image) -> None:
 
     with pytest.raises(RuntimeError, match="Image already exported"):
         uploader.upload_dicom_and_update_database(study_id)
+
+
+@pytest.mark.parametrize(
+    ("project_slug", "expected_uploader_class"),
+    [
+        ("test-extract-uclh-omop-cdm", FTPSUploader),
+        ("test-extract-uclh-omop-cdm-dicomweb", DicomWebUploader),
+        ("test-extract-uclh-omop-cdm-xnat", XNATUploader),
+    ],
+)
+def test_get_uploader(project_slug, expected_uploader_class, monkeypatch) -> None:
+    """Test the correct uploader class is returned."""
+    with monkeypatch.context() as m:
+        # Mock the __init__ method so that we don't attempt to connect to AzureKeyVault.
+        # Otherwise AzureKeyVault._check_envvars will raise an exception for undefined
+        # environment variables.
+        m.setattr(
+            "core.uploader.base.Uploader.__init__",
+            lambda self, project_slug, keyvault_alias: None,  # noqa: ARG005
+        )
+
+        uploader = get_uploader(project_slug)
+        assert isinstance(uploader, expected_uploader_class)

@@ -1,40 +1,47 @@
 [project]
 name = "core"
-version = "0.0.1"
+version = "0.2.0rc0"
 authors = [{ name = "PIXL core functionality" }]
 description = ""
 readme = "README.md"
 requires-python = ">=3.9"
 classifiers = ["Programming Language :: Python :: 3"]
 dependencies = [
+    "aio_pika==9.4.2",
     "azure-identity==1.16.1",
     "azure-keyvault==4.2.0",
-    "fastapi==0.111.1",
-    "token-bucket==0.3.0",
+    "fastapi==0.112.0",
+    "jsonpickle==3.2.2",
+    "loguru==0.7.2",
+    "pandas==2.2.2",
+    "pika==1.3.2",
+    "psycopg2-binary==2.9.9",
+    "pyarrow==17.0.0",
+    "pydantic==2.8.2",
     "python-decouple==3.8",
     "python-slugify==8.0.4",
-    "pika==1.3.1",
-    "aio_pika==9.4.2",
-    "requests==2.32.2",
-    "jsonpickle==3.0.2",
-    "loguru==0.7.2",
-    "sqlalchemy==2.0.31",
-    "psycopg2-binary==2.9.9",
-    "pandas==2.2.2",
-    "pyarrow==17.0.0",
     "PyYAML==6.0.1",
-    "pydantic==2.6.3",
+    "requests==2.32.2",
+    "sqlalchemy==2.0.32",
+    "token-bucket==0.3.0",
+    "xnat==0.6.2",
 ]
 
 [project.optional-dependencies]
 test = [
-    "pytest==8.3.2",
-    "pytest-cov==5.0.0",
-    "pytest-asyncio==0.23.8",
     "httpx==0.27.*",
-    "pytest-pixl",
+    "pytest==8.3.2",
+    "pytest-asyncio==0.23.8",
+    "pytest-check==2.3.1",
+    "pytest-cov==5.0.0",
+    "pytest-pixl==0.2.0rc0",
+    "xnat4tests==0.3.11",
 ]
-dev = ["mypy", "pre-commit", "ruff"]
+dev = [
+    "mypy",
+    "pre-commit",
+    "ruff",
+]
 
 [build-system]
 requires = ["setuptools>=61.0"]

@@ -1,27 +1,24 @@
 [project]
 name = "pixl_cli"
-version = "0.0.4"
+version = "0.2.0rc0"
 authors = [{ name = "PIXL authors" }]
 description = "PIXL command line interface"
 readme = "README.md"
 requires-python = ">=3.10"
 classifiers = ["Programming Language :: Python :: 3"]
 dependencies = [
-    "core",
+    "core==0.2.0rc0",
     "click==8.1.7",
     "tqdm==4.66.4",
 ]
 
 [project.optional-dependencies]
 test = [
-    "pytest==8.3.*",
+    "core[test]==0.2.0rc0",
     "pytest-mock==3.14.*",
-    "pytest-pixl"
 ]
 dev = [
-    "mypy",
-    "pre-commit",
-    "ruff",
+    "core[dev]==0.2.0rc0",
 ]
 
 [project.scripts]

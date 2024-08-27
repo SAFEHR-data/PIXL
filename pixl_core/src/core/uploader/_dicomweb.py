@@ -17,13 +17,16 @@
 from __future__ import annotations
 
 import json
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import requests
 from decouple import config  # type: ignore [import-untyped]
 from loguru import logger
 
 from core.uploader.base import Uploader
+
+if TYPE_CHECKING:
+    from core.uploader._orthanc import StudyTags
 
 
 class DicomWebUploader(Uploader):
@@ -51,10 +54,11 @@ class DicomWebUploader(Uploader):
         self.http_timeout = int(config("HTTP_TIMEOUT", default=30))
 
     def _upload_dicom_image(
-        self, study_id: str, pseudo_anon_image_id: str, project_slug: str
+        self,
+        study_id: str,
+        study_tags: StudyTags,  # noqa: ARG002
     ) -> None:
         """Upload a Dicom resource to the DicomWeb server from within Orthanc."""
-        logger.info("Starting DICOMweb upload of '{}' for {}", pseudo_anon_image_id, project_slug)
         if not self._check_dicomweb_server_exists():
             logger.info("Creating new DICOMWeb credentials")
             self._setup_dicomweb_credentials()
@@ -76,7 +80,6 @@ class DicomWebUploader(Uploader):
         except requests.exceptions.RequestException:
             logger.error("Failed to send via stow")
             raise
-        logger.info("Finished DICOMweb upload of '{}'", pseudo_anon_image_id)
 
     def _check_dicomweb_server_exists(self) -> bool:
         """Checks if the dicomweb server exists."""
