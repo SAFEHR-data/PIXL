@@ -55,15 +55,15 @@ def rows_for_database_testing(db_session) -> Session:
     )
 
     existing_image_with_pseudo_study_uid = Image(
-        mrn=TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_UID.mrn,
-        accession_number=TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_UID.accession_number,
-        study_uid=TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_UID.study_uid,
+        mrn=TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID.mrn,
+        accession_number=TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID.accession_number,
+        study_uid=TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID.study_uid,
         study_date=STUDY_DATE,
         extract=extract,
         # This should be a valid VR UI value!
         # https://dicom.nema.org/medical/dicom/current/output/html/part05.html#table_6.2-1
         pseudo_study_uid="0.0.0.0.0.0",
-        pseudo_patient_id=TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_UID.mrn,
+        pseudo_patient_id=TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID.mrn,
     )
 
     with db_session:
@@ -95,13 +95,13 @@ def test_get_pseudo_patient_id_and_update_db(rows_for_database_testing, db_sessi
     """
     get_pseudo_patient_id_and_update_db(
         TEST_PROJECT_SLUG,
-        TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_UID,
-        TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_UID.mrn,
+        TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID,
+        TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID.mrn,
     )
     result = get_unexported_image(
-        TEST_PROJECT_SLUG, TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_UID, db_session
+        TEST_PROJECT_SLUG, TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID, db_session
     )
-    assert result.pseudo_patient_id == TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_UID.mrn
+    assert result.pseudo_patient_id == TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID.mrn
 
 
 def test_get_unexported_image_fallback(rows_for_database_testing, db_session):
