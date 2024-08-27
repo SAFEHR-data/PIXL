@@ -33,7 +33,7 @@ TEST_STUDY_INFO = StudyInfo(
 TEST_STUDY_INFO_WITH_PSEUDO_UID = StudyInfo(
     mrn="234567", accession_number="bcdef", study_uid="2.3.4.5.6"
 )
-TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_UID = StudyInfo(
+TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID = StudyInfo(
     mrn="234567", accession_number="bcdef", study_uid="2.3.4.5.6"
 )
 
