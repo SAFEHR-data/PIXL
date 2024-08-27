@@ -170,7 +170,6 @@ async def orthanc_raw(run_containers) -> PIXLRawOrthanc:
 @pytest.mark.processing()
 @pytest.mark.asyncio()
 @pytest.mark.usefixtures("_add_image_to_fake_vna")
-@pytest.mark.usefixtures("_add_image_to_fake_pacs")
 async def test_image_saved(orthanc_raw) -> None:
     """
     Given the VNA has images, and orthanc raw has no images
@@ -189,7 +188,6 @@ async def test_image_saved(orthanc_raw) -> None:
 @pytest.mark.processing()
 @pytest.mark.asyncio()
 @pytest.mark.usefixtures("_add_image_to_fake_vna")
-@pytest.mark.usefixtures("_add_image_to_fake_pacs")
 async def test_existing_message_sent_twice(orthanc_raw) -> None:
     """
     Given the VNA has images, and orthanc raw has no images
@@ -217,7 +215,6 @@ async def test_existing_message_sent_twice(orthanc_raw) -> None:
 @pytest.mark.processing()
 @pytest.mark.asyncio()
 @pytest.mark.usefixtures("_add_image_to_fake_vna")
-@pytest.mark.usefixtures("_add_image_to_fake_pacs")
 async def test_querying_without_uid(orthanc_raw, caplog) -> None:
     """
     Given a message with non-existent study_uid
@@ -239,17 +236,17 @@ async def test_querying_without_uid(orthanc_raw, caplog) -> None:
 
 
 @pytest.fixture()
-def monday_2am() -> None:
+def monday_2am() -> datetime.datetime:
     return datetime.datetime(2024, 1, 1, 2, 0, tzinfo=ZoneInfo("Europe/London"))
 
 
 @pytest.fixture()
-def monday_11am() -> None:
+def monday_11am() -> datetime.datetime:
     return datetime.datetime(2024, 1, 1, 11, 0, tzinfo=ZoneInfo("Europe/London"))
 
 
 @pytest.fixture()
-def saturday_2am() -> None:
+def saturday_2am() -> datetime.datetime:
     return datetime.datetime(2024, 1, 6, 2, 0, tzinfo=ZoneInfo("Europe/London"))
 
 
