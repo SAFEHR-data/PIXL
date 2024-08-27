@@ -20,6 +20,7 @@ from core.db.models import Extract, Image
 from pixl_dcmd._database import (
     get_unexported_image,
     get_uniq_pseudo_study_uid_and_update_db,
+    get_pseudo_patient_id_and_update_db,
 )
 from pixl_dcmd._dicom_helpers import StudyInfo
 from sqlalchemy.orm import Session
@@ -27,14 +28,10 @@ from sqlalchemy.orm import Session
 STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
 TEST_PROJECT_SLUG = "test-extract-uclh-omop-cdm"
 TEST_STUDY_INFO = StudyInfo(
-    mrn="123456",
-    accession_number="abcde",
-    study_uid="1.2.3.4.5",
+    mrn="123456", accession_number="abcde", study_uid="1.2.3.4.5"
 )
-TEST_STUDY_INFO_WITH_PSEUDO_UID = StudyInfo(
-    mrn="234567",
-    accession_number="bcdef",
-    study_uid="2.3.4.5.6",
+TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID = StudyInfo(
+    mrn="234567", accession_number="bcdef", study_uid="2.3.4.5.6"
 )
 
 
@@ -55,14 +52,15 @@ def rows_for_database_testing(db_session) -> Session:
     )
 
     existing_image_with_pseudo_study_uid = Image(
-        mrn=TEST_STUDY_INFO_WITH_PSEUDO_UID.mrn,
-        accession_number=TEST_STUDY_INFO_WITH_PSEUDO_UID.accession_number,
-        study_uid=TEST_STUDY_INFO_WITH_PSEUDO_UID.study_uid,
+        mrn=TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID.mrn,
+        accession_number=TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID.accession_number,
+        study_uid=TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID.study_uid,
         study_date=STUDY_DATE,
         extract=extract,
         # This should be a valid VR UI value!
         # https://dicom.nema.org/medical/dicom/current/output/html/part05.html#table_6.2-1
         pseudo_study_uid="0.0.0.0.0.0",
+        pseudo_patient_id=TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID.mrn,
     )
 
     with db_session:
@@ -81,9 +79,26 @@ def test_get_uniq_pseudo_study_uid_and_update_db(rows_for_database_testing, db_s
     THEN the function should return the existing pseudo_study_uid.
     """
     pseudo_study_uid = get_uniq_pseudo_study_uid_and_update_db(
-        TEST_PROJECT_SLUG, TEST_STUDY_INFO_WITH_PSEUDO_UID
+        TEST_PROJECT_SLUG, TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID
     )
     assert pseudo_study_uid == "0.0.0.0.0.0"
+
+
+def test_get_pseudo_patient_id_and_update_db(rows_for_database_testing, db_session):
+    """
+    GIVEN an existing image that already has pseudo_patient_id in the database
+    WHEN we query the dataset for that image
+    THEN the function should return the existing pseudo_patient_id
+    """
+    get_pseudo_patient_id_and_update_db(
+        TEST_PROJECT_SLUG,
+        TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID,
+        TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID.mrn,
+    )
+    result = get_unexported_image(
+        TEST_PROJECT_SLUG, TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID, db_session
+    )
+    assert result.pseudo_patient_id == TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID.mrn
 
 
 def test_get_unexported_image_fallback(rows_for_database_testing, db_session):
@@ -92,6 +107,10 @@ def test_get_unexported_image_fallback(rows_for_database_testing, db_session):
     WHEN we query that image with a non-matching study UID
     THEN the querying should fall back to querying on MRN and accession number and return the image.
     """
-    wrong_uid_info = StudyInfo(mrn="123456", accession_number="abcde", study_uid="nope")
+    wrong_uid_info = StudyInfo(
+        mrn="123456",
+        accession_number="abcde",
+        study_uid="nope",
+    )
     result = get_unexported_image(TEST_PROJECT_SLUG, wrong_uid_info, db_session)
     assert result.study_uid == TEST_STUDY_INFO.study_uid

@@ -120,6 +120,7 @@ def _add_images_to_session(extract: Extract, images_df: pd.DataFrame, session: S
             study_uid=row["study_uid"],
             extract=extract,
             extract_id=extract.extract_id,
+            pseudo_patient_id=row["pseudo_patient_id"],
         )
         images.append(new_image)
     session.bulk_save_objects(images)

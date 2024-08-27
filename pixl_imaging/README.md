@@ -43,8 +43,8 @@ Usage should be from the CLI driver, which interacts with the endpoint.
 
 The database tables are updated using alembic, see the [alembic](alembic) dir for more details.
 
-The `SKIP_ALEMBIC` environmental variable is used to control whether migrations are applied to the database.
+The `SKIP_ALEMBIC` environmental variable is used to control whether migrations are applied to the database (see variable at '.env.sample' and 'test/.env').
 
-- Tests that don't use the database use `SKIP_ALEMBIC=true`, but otherwise you probably want to run this.
+- `SKIP_ALEMBIC` is set to true for tests that do not use the database (e.g. `SKIP_ALEMBIC=true`). Otherwise you probably want to run this.
 - If you wanted to test out new migrations from a test/dev deployment on the GAE with data in,
   then you can redeploy just the `imaging-api` container while keeping the `postgres` container up. 

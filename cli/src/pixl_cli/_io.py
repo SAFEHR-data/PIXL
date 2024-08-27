@@ -21,6 +21,7 @@ from enum import StrEnum, auto
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import numpy as np
 import pandas as pd
 from core.exports import ParquetExport
 from loguru import logger
@@ -87,6 +88,7 @@ def _load_csv(filepath: Path) -> pd.DataFrame:
     messages_df = pd.read_csv(filepath, header=0, dtype=str)
     messages_df = _map_columns(messages_df, MAP_CSV_TO_MESSAGE_KEYS)
     _raise_if_column_names_not_found(messages_df, [col.name for col in DF_COLUMNS])
+    messages_df["pseudo_patient_id"] = messages_df["pseudo_patient_id"].replace(np.nan, None)
 
     # Parse non string columns
     messages_df["procedure_occurrence_id"] = messages_df["procedure_occurrence_id"].astype(int)
@@ -121,6 +123,7 @@ def _load_parquet(
     project_name, extract_generated_timestamp = copy_parquet_return_logfile_fields(dir_path)
     messages_df["project_name"] = project_name
     messages_df["extract_generated_timestamp"] = extract_generated_timestamp
+    messages_df["pseudo_patient_id"] = None
 
     return messages_df
 
@@ -157,10 +160,12 @@ class DF_COLUMNS(StrEnum):  # noqa: N801
     extract_generated_timestamp = auto()
     study_date = auto()
     study_uid = auto()
+    pseudo_patient_id = auto()
 
 
 MAP_CSV_TO_MESSAGE_KEYS = {
     "procedure_id": "procedure_occurrence_id",
+    "participant_id": "pseudo_patient_id",
 }
 
 

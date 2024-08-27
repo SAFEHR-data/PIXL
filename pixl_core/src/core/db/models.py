@@ -57,6 +57,7 @@ class Image(Base):
     exported_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), nullable=True)
     extract: Mapped[Extract] = relationship()
     extract_id: Mapped[int] = mapped_column(ForeignKey("extract.extract_id"))
+    pseudo_patient_id: Mapped[Optional[str]]
 
     def __repr__(self) -> str:
         """Nice representation for printing."""

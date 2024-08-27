@@ -358,7 +358,7 @@ services:
         ports:
             - "${POSTGRES_PORT}:5432"
         healthcheck:
-            test: ["CMD", "pg_isready", "-U", "${PIXL_DB_USER}"]
+            test: ["CMD", "pg_isready", "-U", "${PIXL_DB_USER}", "--dbname", "${PIXL_DB_NAME}"]
             interval: 10s
             timeout: 30s
             retries: 5
