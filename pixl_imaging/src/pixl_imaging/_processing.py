@@ -148,9 +148,11 @@ async def _find_study_in_vna_or_raise(orthanc_raw: Orthanc, study: ImagingStudy)
     Query the VNA for the study using its UID, fallback to querying on MRN + accession number if
     UID is not available, raise exception if it doesn't exist
     """
-    query_id = await orthanc_raw.query_remote(
-        study.orthanc_uid_query_dict, modality=config("VNAQR_MODALITY")
-    )
+    query_id = None
+    if study.message.study_uid:
+        query_id = await orthanc_raw.query_remote(
+            study.orthanc_uid_query_dict, modality=config("VNAQR_MODALITY")
+        )
     if query_id is None:
         logger.info(
             "No study found with UID {}, trying MRN and accession number", study.message.study_uid
