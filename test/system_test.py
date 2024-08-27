@@ -22,6 +22,7 @@ import requests
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
 from loguru import logger
 from pydicom.uid import UID
+from pytest_check import check
 from pytest_pixl.ftpserver import PixlFTPServer
 from pytest_pixl.helpers import run_subprocess, wait_for_condition
 
@@ -142,6 +143,7 @@ class TestFtpsUpload:
         for z in zip_files:
             unzip_dir = tmp_path_factory.mktemp("unzip_dir", numbered=True)
             procedure = radiology_linker_data.loc[z.stem]["procedure_occurrence_id"]
+            logger.info("Checking tags in zip file {} for procedure {}", z, procedure)
             self._check_dcm_tags_from_zip(z, unzip_dir, expected_studies[procedure])
 
     def _check_dcm_tags_from_zip(
@@ -182,7 +184,8 @@ class TestFtpsUpload:
             else:
                 assert private_tag.value == TestFtpsUpload.project_slug
         # check the basic info about the instances exactly matches
-        assert actual_instances == expected_study["instances"]
+        with check:
+            assert actual_instances == expected_study["instances"]
 
 
 @pytest.mark.usefixtures("_setup_pixl_cli_dicomweb")
