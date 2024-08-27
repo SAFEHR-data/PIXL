@@ -83,8 +83,7 @@ def get_pseudo_patient_id_and_update_db(
             logger.debug("Adding pseudo patient ID to image")
             add_pseudo_patient_id_to_db(existing_image, pseudo_patient_id, pixl_session)
             return pseudo_patient_id  # type: ignore
-        else:
-            return existing_image.pseudo_patient_id  # type: ignore
+        return existing_image.pseudo_patient_id  # type: ignore
 
 
 def add_pseudo_study_uid_to_db(
