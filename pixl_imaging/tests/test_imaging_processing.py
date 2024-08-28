@@ -19,13 +19,11 @@ import datetime
 import pathlib
 import shlex
 from typing import TYPE_CHECKING
-from zoneinfo import ZoneInfo
 
 import pytest
 from core.exceptions import PixlDiscardError
 from core.patient_queue.message import Message
 from decouple import config
-from freezegun import freeze_time
 from pixl_imaging._orthanc import Orthanc, PIXLRawOrthanc
 from pixl_imaging._processing import ImagingStudy, process_message
 from pydicom import dcmread
@@ -34,7 +32,7 @@ from pydicom.dataelem import DataElement
 from pytest_pixl.helpers import run_subprocess
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
+    from collections.abc import AsyncGenerator
 
 
 pytest_plugins = ("pytest_asyncio",)
@@ -109,9 +107,14 @@ class WritableOrthanc(Orthanc):
             )
         )
 
+    async def delete_studies(self) -> None:
+        all_studies = await self._get("/studies")
+        for study in all_studies:
+            await self.delete(f"/studies/{study}")
+
 
 @pytest.fixture(scope="module")
-def _add_image_to_fake_vna(run_containers) -> Generator[None]:
+async def _add_image_to_fake_vna(run_containers) -> AsyncGenerator[None]:
     """Add single fake image to VNA."""
     image_filename = "test.dcm"
     path = str(get_testdata_file("CT_small.dcm"))
@@ -129,11 +132,12 @@ def _add_image_to_fake_vna(run_containers) -> Generator[None]:
     )
     vna.upload(image_filename)
     yield
+    await vna.delete_studies()
     pathlib.Path(image_filename).unlink(missing_ok=True)
 
 
 @pytest.fixture(scope="module")
-def _add_image_to_fake_pacs(run_containers) -> Generator[None]:
+async def _add_image_to_fake_pacs(run_containers) -> AsyncGenerator[None]:
     """Add single fake image to PACS."""
     image_filename = "test-mr.dcm"
     path = str(get_testdata_file("MR_small.dcm"))
@@ -152,6 +156,7 @@ def _add_image_to_fake_pacs(run_containers) -> Generator[None]:
     )
     pacs.upload(image_filename)
     yield
+    await pacs.delete_studies()
     pathlib.Path(image_filename).unlink(missing_ok=True)
 
 
@@ -159,12 +164,10 @@ def _add_image_to_fake_pacs(run_containers) -> Generator[None]:
 async def orthanc_raw(run_containers) -> PIXLRawOrthanc:
     """Set up orthanc raw and remove all studies in teardown."""
     orthanc_raw = PIXLRawOrthanc()
-    try:
-        return orthanc_raw
-    finally:
-        all_studies = await orthanc_raw._get("/studies")
-        for study in all_studies:
-            await orthanc_raw.delete(f"/studies/{study}")
+    yield orthanc_raw
+    all_studies = await orthanc_raw._get("/studies")
+    for study in all_studies:
+        await orthanc_raw.delete(f"/studies/{study}")
 
 
 @pytest.mark.processing()
@@ -235,25 +238,28 @@ async def test_querying_without_uid(orthanc_raw, caplog) -> None:
     assert expected_msg in caplog.text
 
 
-@pytest.fixture()
-def monday_2am() -> datetime.datetime:
-    return datetime.datetime(2024, 1, 1, 2, 0, tzinfo=ZoneInfo("Europe/London"))
+class Monday2AM(datetime.datetime):
+    @classmethod
+    def now(cls, tz=None) -> datetime.datetime:
+        return cls(2024, 1, 1, 2, 0, tzinfo=tz)
 
 
-@pytest.fixture()
-def monday_11am() -> datetime.datetime:
-    return datetime.datetime(2024, 1, 1, 11, 0, tzinfo=ZoneInfo("Europe/London"))
+class Monday11AM(datetime.datetime):
+    @classmethod
+    def now(cls, tz=None) -> datetime.datetime:
+        return cls(2024, 1, 1, 11, 0, tzinfo=tz)
 
 
-@pytest.fixture()
-def saturday_2am() -> datetime.datetime:
-    return datetime.datetime(2024, 1, 6, 2, 0, tzinfo=ZoneInfo("Europe/London"))
+class Saturday2AM(datetime.datetime):
+    @classmethod
+    def now(cls, tz=None) -> datetime.datetime:
+        return datetime.datetime(2024, 1, 6, 2, 0, tzinfo=tz)
 
 
 @pytest.mark.processing()
 @pytest.mark.asyncio()
 @pytest.mark.usefixtures("_add_image_to_fake_pacs")
-async def test_querying_pacs_with_uid(orthanc_raw, caplog, monday_2am) -> None:
+async def test_querying_pacs_with_uid(orthanc_raw, caplog, monkeypatch) -> None:
     """
     Given a message with study_uid exists in PACS but not VNA,
     When we query the archives
@@ -266,7 +272,8 @@ async def test_querying_pacs_with_uid(orthanc_raw, caplog, monday_2am) -> None:
 
     # PACS is not queried during the daytime nor at the weekend.
     # Set today to be a Monday at 2 am.
-    with freeze_time(monday_2am):
+    with monkeypatch.context() as mp:
+        mp.setattr(datetime, "datetime", Monday2AM)
         await process_message(pacs_message)
 
     assert await study.query_local(orthanc)
@@ -293,7 +300,7 @@ async def test_querying_pacs_with_uid(orthanc_raw, caplog, monday_2am) -> None:
 @pytest.mark.processing()
 @pytest.mark.asyncio()
 @pytest.mark.usefixtures("_add_image_to_fake_pacs")
-async def test_querying_pacs_without_uid(orthanc_raw, caplog, monday_2am) -> None:
+async def test_querying_pacs_without_uid(orthanc_raw, caplog, monkeypatch) -> None:
     """
     Given a message with non-existent study_uid exists in PACS but not VNA,
     When we query the archives
@@ -306,7 +313,8 @@ async def test_querying_pacs_without_uid(orthanc_raw, caplog, monday_2am) -> Non
 
     # PACS is not queried during the daytime nor at the weekend.
     # Set today to be a Monday at 2 am.
-    with freeze_time(monday_2am):
+    with monkeypatch.context() as mp:
+        mp.setattr(datetime, "datetime", Monday2AM)
         await process_message(pacs_no_uid_message)
 
     assert await study.query_local(orthanc)
@@ -332,7 +340,7 @@ async def test_querying_pacs_without_uid(orthanc_raw, caplog, monday_2am) -> Non
 
 @pytest.mark.processing()
 @pytest.mark.asyncio()
-async def test_querying_missing_image(orthanc_raw, caplog, monday_2am) -> None:
+async def test_querying_missing_image(orthanc_raw, monkeypatch) -> None:
     """
     Given a message for a study that is missing in both the VNA and PACS,
     When we query the archives within the window of Monday-Friday 8pm to 8am,
@@ -346,7 +354,8 @@ async def test_querying_missing_image(orthanc_raw, caplog, monday_2am) -> None:
     # PACS is not queried during the daytime nor at the weekend.
     # Set today to be a Monday at 2 am.
     match = f"Failed to find study {message.study_uid} in primary or secondary archive."
-    with freeze_time(monday_2am), pytest.raises(PixlDiscardError, match=match):
+    with monkeypatch.context() as mp, pytest.raises(PixlDiscardError, match=match):  # noqa: PT012
+        mp.setattr(datetime, "datetime", Monday2AM)
         await process_message(message)
 
 
@@ -355,11 +364,11 @@ async def test_querying_missing_image(orthanc_raw, caplog, monday_2am) -> None:
 @pytest.mark.parametrize(
     "query_date",
     [
-        ("monday_11am",),
-        ("saturday_2am",),
+        (Monday11AM),
+        (Saturday2AM),
     ],
 )
-async def test_querying_pacs_during_working_hours(orthanc_raw, query_date, request) -> None:
+async def test_querying_pacs_during_working_hours(orthanc_raw, query_date, monkeypatch) -> None:
     """
     Given a message for a study that is missing in both the VNA and PACS,
     When we query the archives outside of Monday-Friday 8pm-8am,
@@ -374,10 +383,8 @@ async def test_querying_pacs_during_working_hours(orthanc_raw, query_date, reque
         f"Failed to find study {message.study_uid} in primary archive. "
         "Not querying secondary archive during the daytime or on the weekend."
     )
-    with (
-        freeze_time(request.getfixturevalue(query_date)),
-        pytest.raises(PixlDiscardError, match=match),
-    ):
+    with monkeypatch.context() as mp, pytest.raises(PixlDiscardError, match=match):  # noqa: PT012
+        mp.setattr(datetime, "datetime", query_date)
         await process_message(message)
 
 
@@ -403,5 +410,5 @@ async def test_querying_pacs_not_defined(orthanc_raw, monkeypatch) -> None:
         monkeypatch.context() as mp,
         pytest.raises(PixlDiscardError, match=match),
     ):
-        (mp.delenv("SECONDARY_DICOM_AE_TITLE"),)
+        mp.delenv("SECONDARY_DICOM_AE_TITLE")
         await process_message(message)
