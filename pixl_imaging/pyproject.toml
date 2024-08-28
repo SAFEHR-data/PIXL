@@ -17,7 +17,6 @@ dependencies = [
 [project.optional-dependencies]
 test = [
     "core[test]==0.2.0rc0",
-    "freezegun==1.5.1",
 ]
 dev = [
     "core[dev]==0.2.0rc0",
