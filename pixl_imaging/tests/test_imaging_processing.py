@@ -32,7 +32,7 @@ from pydicom.dataelem import DataElement
 from pytest_pixl.helpers import run_subprocess
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncGenerator
+    from collections.abc import Generator
 
 
 pytest_plugins = ("pytest_asyncio",)
@@ -89,6 +89,21 @@ pacs_no_uid_message = Message(
     extract_generated_timestamp=datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
 )
 
+MISSING_ACCESSION_NUMBER = "ghi"
+MISSING_PATIENT_ID = "missing_patient"
+MISSING_STUDY_UID = "00000000"
+missing_message = Message(
+    mrn=MISSING_PATIENT_ID,
+    accession_number=MISSING_ACCESSION_NUMBER,
+    study_uid=MISSING_STUDY_UID,
+    study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
+        tzinfo=datetime.timezone.utc
+    ),
+    procedure_occurrence_id=345,
+    project_name="test project",
+    extract_generated_timestamp=datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
+)
+
 
 class WritableOrthanc(Orthanc):
     def __init__(self, url: str, username: str, password: str, aet: str) -> None:
@@ -107,14 +122,9 @@ class WritableOrthanc(Orthanc):
             )
         )
 
-    async def delete_studies(self) -> None:
-        all_studies = await self._get("/studies")
-        for study in all_studies:
-            await self.delete(f"/studies/{study}")
-
 
 @pytest.fixture(scope="module")
-async def _add_image_to_fake_vna(run_containers) -> AsyncGenerator[None]:
+def _add_image_to_fake_vna(run_containers) -> Generator[None]:
     """Add single fake image to VNA."""
     image_filename = "test.dcm"
     path = str(get_testdata_file("CT_small.dcm"))
@@ -132,12 +142,11 @@ async def _add_image_to_fake_vna(run_containers) -> AsyncGenerator[None]:
     )
     vna.upload(image_filename)
     yield
-    await vna.delete_studies()
     pathlib.Path(image_filename).unlink(missing_ok=True)
 
 
 @pytest.fixture(scope="module")
-async def _add_image_to_fake_pacs(run_containers) -> AsyncGenerator[None]:
+def _add_image_to_fake_pacs(run_containers) -> Generator[None]:
     """Add single fake image to PACS."""
     image_filename = "test-mr.dcm"
     path = str(get_testdata_file("MR_small.dcm"))
@@ -156,7 +165,6 @@ async def _add_image_to_fake_pacs(run_containers) -> AsyncGenerator[None]:
     )
     pacs.upload(image_filename)
     yield
-    await pacs.delete_studies()
     pathlib.Path(image_filename).unlink(missing_ok=True)
 
 
@@ -164,10 +172,12 @@ async def _add_image_to_fake_pacs(run_containers) -> AsyncGenerator[None]:
 async def orthanc_raw(run_containers) -> PIXLRawOrthanc:
     """Set up orthanc raw and remove all studies in teardown."""
     orthanc_raw = PIXLRawOrthanc()
-    yield orthanc_raw
-    all_studies = await orthanc_raw._get("/studies")
-    for study in all_studies:
-        await orthanc_raw.delete(f"/studies/{study}")
+    try:
+        return orthanc_raw
+    finally:
+        all_studies = await orthanc_raw._get("/studies")
+        for study in all_studies:
+            await orthanc_raw.delete(f"/studies/{study}")
 
 
 @pytest.mark.processing()
@@ -346,17 +356,17 @@ async def test_querying_missing_image(orthanc_raw, monkeypatch) -> None:
     When we query the archives within the window of Monday-Friday 8pm to 8am,
     Then the querying tries both the VNA and PACS and raises a PIXLDiscardError
     """
-    study = ImagingStudy.from_message(message)
+    study = ImagingStudy.from_message(missing_message)
     orthanc = await orthanc_raw
 
     assert not await study.query_local(orthanc)
 
     # PACS is not queried during the daytime nor at the weekend.
     # Set today to be a Monday at 2 am.
-    match = f"Failed to find study {message.study_uid} in primary or secondary archive."
+    match = f"Failed to find study {missing_message.study_uid} in primary or secondary archive."
     with monkeypatch.context() as mp, pytest.raises(PixlDiscardError, match=match):  # noqa: PT012
         mp.setattr(datetime, "datetime", Monday2AM)
-        await process_message(message)
+        await process_message(missing_message)
 
 
 @pytest.mark.processing()
@@ -374,18 +384,18 @@ async def test_querying_pacs_during_working_hours(orthanc_raw, query_date, monke
     When we query the archives outside of Monday-Friday 8pm-8am,
     Then the querying tries only the VNA and raises a PixlDiscardError
     """
-    study = ImagingStudy.from_message(message)
+    study = ImagingStudy.from_message(missing_message)
     orthanc = await orthanc_raw
 
     assert not await study.query_local(orthanc)
 
     match = (
-        f"Failed to find study {message.study_uid} in primary archive. "
+        f"Failed to find study {missing_message.study_uid} in primary archive. "
         "Not querying secondary archive during the daytime or on the weekend."
     )
     with monkeypatch.context() as mp, pytest.raises(PixlDiscardError, match=match):  # noqa: PT012
         mp.setattr(datetime, "datetime", query_date)
-        await process_message(message)
+        await process_message(missing_message)
 
 
 @pytest.mark.processing()
@@ -397,13 +407,13 @@ async def test_querying_pacs_not_defined(orthanc_raw, monkeypatch) -> None:
     When we query the archive,
     Then the querying tries the VNA and then raises a PixlDiscardError
     """
-    study = ImagingStudy.from_message(message)
+    study = ImagingStudy.from_message(missing_message)
     orthanc = await orthanc_raw
 
     assert not await study.query_local(orthanc)
 
     match = (
-        f"Failed to find study {message.study_uid} in primary archive "
+        f"Failed to find study {missing_message.study_uid} in primary archive "
         "and SECONDARY_DICOM_AE_TITLE is undefined."
     )
     with (  # noqa: PT012
@@ -411,4 +421,4 @@ async def test_querying_pacs_not_defined(orthanc_raw, monkeypatch) -> None:
         pytest.raises(PixlDiscardError, match=match),
     ):
         mp.delenv("SECONDARY_DICOM_AE_TITLE")
-        await process_message(message)
+        await process_message(missing_message)
