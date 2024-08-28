@@ -16,6 +16,7 @@ from __future__ import annotations
 import pathlib
 import re
 from pathlib import Path
+import logging
 
 import nibabel
 import numpy as np
@@ -368,6 +369,21 @@ def test_should_exclude_series(dicom_series_to_exclude, dicom_series_to_keep):
         assert not _should_exclude_series(s, config)
     for s in dicom_series_to_exclude:
         assert _should_exclude_series(s, config)
+
+
+def test_anonymisation_and_validation(
+    vanilla_dicom_image: pydicom.Dataset, caplog
+) -> None:
+    """
+    Test whether anonymisation and validation works as expected on a vanilla DICOM dataset
+    No warnings should be generated for a valid anonymisation
+    """
+    caplog.clear()
+    caplog.set_level(logging.WARNING)
+    validation_errors = anonymise_and_validate_dicom(vanilla_dicom_image)
+
+    assert "WARNING" not in [record.levelname for record in caplog.records]
+    assert not validation_errors
 
 
 def test_can_nifti_convert_post_anonymisation(
