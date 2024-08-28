@@ -359,11 +359,11 @@ async def test_querying_missing_image(orthanc_raw, caplog, monday_2am) -> None:
         ("saturday_2am",),
     ],
 )
-async def test_querying_pacs_during_working_hours(orthanc_raw, caplog, query_date, request) -> None:
+async def test_querying_pacs_during_working_hours(orthanc_raw, query_date, request) -> None:
     """
     Given a message for a study that is missing in both the VNA and PACS,
     When we query the archives outside of Monday-Friday 8pm-8am,
-    Then the querying try only the VNA and and raises a PIXLDiscardError
+    Then the querying tries only the VNA and raises a PixlDiscardError
     """
     study = ImagingStudy.from_message(message)
     orthanc = await orthanc_raw
@@ -378,4 +378,30 @@ async def test_querying_pacs_during_working_hours(orthanc_raw, caplog, query_dat
         freeze_time(request.getfixturevalue(query_date)),
         pytest.raises(PixlDiscardError, match=match),
     ):
+        await process_message(message)
+
+
+@pytest.mark.processing()
+@pytest.mark.asyncio()
+async def test_querying_pacs_not_defined(orthanc_raw, monkeypatch) -> None:
+    """
+    Given a message for a study that is missing in the VNA and the SECONDARY_DICOM modality
+    is not defined
+    When we query the archive,
+    Then the querying tries the VNA and then raises a PixlDiscardError
+    """
+    study = ImagingStudy.from_message(message)
+    orthanc = await orthanc_raw
+
+    assert not await study.query_local(orthanc)
+
+    match = (
+        f"Failed to find study {message.study_uid} in primary archive "
+        "and SECONDARY_DICOM_AE_TITLE is undefined."
+    )
+    with (  # noqa: PT012
+        monkeypatch.context() as mp,
+        pytest.raises(PixlDiscardError, match=match),
+    ):
+        (mp.delenv("SECONDARY_DICOM_AE_TITLE"),)
         await process_message(message)

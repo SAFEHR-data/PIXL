@@ -167,6 +167,14 @@ async def _find_study_in_archives_or_raise(orthanc_raw: Orthanc, study: ImagingS
 
     if query_id is not None:
         return str(query_id)
+
+    if not config("SECONDARY_DICOM_AE_TITLE", default=""):
+        msg = (
+            f"Failed to find study {study.message.study_uid} in primary archive "
+            "and SECONDARY_DICOM_AE_TITLE is undefined."
+        )
+        raise PixlDiscardError(msg)
+
     if _is_daytime() or _is_weekend():
         msg = (
             f"Failed to find study {study.message.study_uid} in primary archive. "
