@@ -40,7 +40,6 @@ def test_validation_after_anonymisation_works(vanilla_dicom_image: Dataset) -> N
     validator = DicomValidator()
     validator.validate_original(vanilla_dicom_image)
     anonymise_dicom(vanilla_dicom_image)
-    print(validator.validate_anonymised(vanilla_dicom_image))
 
     assert not validator.validate_anonymised(vanilla_dicom_image)
 

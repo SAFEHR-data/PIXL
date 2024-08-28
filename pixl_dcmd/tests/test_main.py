@@ -371,7 +371,7 @@ def test_should_exclude_series(dicom_series_to_exclude, dicom_series_to_keep):
         assert _should_exclude_series(s, config)
 
 
-def test_anonymisation_and_validation(
+def test_anonymisation_and_validation_dicom(
     vanilla_dicom_image: pydicom.Dataset, caplog
 ) -> None:
     """
