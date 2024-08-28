@@ -175,7 +175,7 @@ class TestFtpsUpload:
             assert private_tag is not None
             if isinstance(private_tag.value, bytes):
                 # Allow this for the time being, until it has been investigated
-                # See https://github.com/UCLH-Foundry/PIXL/issues/363
+                # See https://github.com/SAFEHR-data/PIXL/issues/363
                 logger.error(
                     "TEMPORARILY IGNORE: tag value {} should be of type str, but is of type bytes",
                     private_tag.value,
