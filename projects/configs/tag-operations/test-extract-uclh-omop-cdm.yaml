@@ -30,7 +30,7 @@
 - name: "Study Date"
   group: 0x0008
   element: 0x0020
-  op: "delete"
+  op: "replace"
 - name: "Series Date"
   group: 0x0008
   element: 0x0021
@@ -50,7 +50,7 @@
 - name: "Study Time"
   group: 0x0008
   element: 0x0030
-  op: "delete"
+  op: "replace"
 - name: "Series Time"
   group: 0x0008
   element: 0x0031
@@ -94,7 +94,7 @@
 - name: "Referring Physicians Name"
   group: 0x0008
   element: 0x0090
-  op: "delete"
+  op: "replace"
 - name: "Station Name"
   group: 0x0008
   element: 0x1010
@@ -607,3 +607,55 @@
   group: 0x000d
   element: 0x1001
   op: "keep"
+- name: "Position Reference Indicator"
+  group: 0x0020
+  element: 0x1040
+  op: "replace"
+- name: "Patient Position"
+  group: 0x0018
+  element: 0x5100
+  op: "replace"
+- name: "Slice Thickness"
+  group: 0x0018
+  element: 0x0050
+  op: "replace"
+- name: "Image Position (Patient)"
+  group: 0x0020
+  element: 0x0032
+  op: "replace"
+- name: "Image Orientation (Patient)"
+  group: 0x0020
+  element: 0x0037
+  op: "replace"
+- name: "Scanning Sequence"
+  group: 0x0018
+  element: 0x0020
+  op: "replace"
+- name: "Scanning Variant"
+  group: 0x0018
+  element: 0x0021
+  op: "replace"
+- name: "Scanning Options"
+  group: 0x0018
+  element: 0x0022
+  op: "replace"
+- name: "MR Acquisition Type"
+  group: 0x0018
+  element: 0x0023
+  op: "replace"
+- name: "Echo Time"
+  group: 0x0018
+  element: 0x0081
+  op: "replace"
+- name: "Echo Train Length"
+  group: 0x0018
+  element: 0x0091
+  op: "replace"
+- name: "Patient's Birth Date"
+  group: 0x0010
+  element: 0x0030
+  op: "replace"
+- name: "Patient's Sex"
+  group: 0x0010
+  element: 0x0040
+  op: "replace"
