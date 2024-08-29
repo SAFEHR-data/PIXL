@@ -149,15 +149,22 @@ async def _find_study_in_archives_or_raise(orthanc_raw: Orthanc, study: ImagingS
     """
     Query primary and secondary archives for a study.
 
-    - Query the primary archive for the study using its UID. If UID is not available, query on
-      MRN and accession number.
-    - If not found in the primary archive, and it is a weekday between 8 pm and 8 am, query the
-      online secondary archive using the study UID. If UID is not available, query on
-      MRN + accession number.
-    - If not found in the online secondary archive, query the nearline secondary archive. If found
-      in the nearline, assume the study is in the primary archive and log it.
-    - If not found in either the primary archive or the online secondary archive,
+    The following steps are taken until either a query ID is returned or a PixlDiscardError is
+    raised:
+
+    1. Query the primary archive for the study using its UID. If UID is not available, query on
+      MRN and accession number
+        i) Return the query id if the study is found.
+        ii) If not found in the primary archive, and the secondary archive is the same as the
+            primary,
       raise a PixlDiscardError.
+        iii) If not found in the primary archive and it is daytime or the weekend, raise a
+            PixlDiscardError.
+    2. Query the secondary archive using the study UID. If UID is not available, query on
+      MRN + accession number.
+        a) If not found, raise a PixlDiscardError.
+        a) If found in the ONLINE secondary archive, return the query id.
+        b) if found in the secondary archive but not ONLINE, raise a PixlDiscardError.
     """
     query_id = await _find_study_in_archive(
         orthanc_raw=orthanc_raw,
@@ -168,10 +175,10 @@ async def _find_study_in_archives_or_raise(orthanc_raw: Orthanc, study: ImagingS
     if query_id is not None:
         return str(query_id)
 
-    if not config("SECONDARY_DICOM_SOURCE_AE_TITLE", default=""):
+    if config("SECONDARY_DICOM_SOURCE_AE_TITLE") == config("PRIMARY_DICOM_SOURCE_AE_TITLE"):
         msg = (
             f"Failed to find study {study.message.study_uid} in primary archive "
-            "and SECONDARY_DICOM_SOURCE_AE_TITLE is undefined."
+            "and SECONDARY_DICOM_SOURCE_AE_TITLE is the same as PRIMARY_DICOM_SOURCE_AE_TITLE."
         )
         raise PixlDiscardError(msg)
 
