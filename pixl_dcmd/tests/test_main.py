@@ -119,15 +119,13 @@ def test_anonymisation(vanilla_dicom_image: pydicom.Dataset) -> None:
 
     orig_patient_id = vanilla_dicom_image.PatientID
     orig_patient_name = vanilla_dicom_image.PatientName
-
-    # Sanity check: study date should be present before anonymisation
-    assert "StudyDate" in vanilla_dicom_image
+    orig_study_date = vanilla_dicom_image.StudyDate
 
     anonymise_dicom(vanilla_dicom_image)
 
     assert vanilla_dicom_image.PatientID != orig_patient_id
     assert vanilla_dicom_image.PatientName != orig_patient_name
-    assert "StudyDate" not in vanilla_dicom_image
+    assert vanilla_dicom_image.StudyDate != orig_study_date
 
 
 def test_anonymise_unimplemented_tag(vanilla_dicom_image: pydicom.Dataset) -> None:
