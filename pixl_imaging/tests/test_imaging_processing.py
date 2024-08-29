@@ -41,69 +41,94 @@ pytest_plugins = ("pytest_asyncio",)
 ACCESSION_NUMBER = "abc"
 PATIENT_ID = "a_patient"
 STUDY_UID = "12345678"
-message = Message(
-    mrn=PATIENT_ID,
-    accession_number=ACCESSION_NUMBER,
-    study_uid=STUDY_UID,
-    study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
-        tzinfo=datetime.timezone.utc
-    ),
-    procedure_occurrence_id=234,
-    project_name="test project",
-    extract_generated_timestamp=datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
-)
-no_uid_message = Message(
-    mrn=PATIENT_ID,
-    accession_number=ACCESSION_NUMBER,
-    study_uid="idontexist",
-    study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
-        tzinfo=datetime.timezone.utc
-    ),
-    procedure_occurrence_id=234,
-    project_name="test project",
-    extract_generated_timestamp=datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
-)
 
 PACS_ACCESSION_NUMBER = "def"
 PACS_PATIENT_ID = "another_patient"
 PACS_STUDY_UID = "87654321"
-pacs_message = Message(
-    mrn=PACS_PATIENT_ID,
-    accession_number=PACS_ACCESSION_NUMBER,
-    study_uid=PACS_STUDY_UID,
-    study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
-        tzinfo=datetime.timezone.utc
-    ),
-    procedure_occurrence_id=234,
-    project_name="test project",
-    extract_generated_timestamp=datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
-)
-pacs_no_uid_message = Message(
-    mrn=PACS_PATIENT_ID,
-    accession_number=PACS_ACCESSION_NUMBER,
-    study_uid="ialsodontexist",
-    study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
-        tzinfo=datetime.timezone.utc
-    ),
-    procedure_occurrence_id=234,
-    project_name="test project",
-    extract_generated_timestamp=datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
-)
 
 MISSING_ACCESSION_NUMBER = "ghi"
 MISSING_PATIENT_ID = "missing_patient"
 MISSING_STUDY_UID = "00000000"
-missing_message = Message(
-    mrn=MISSING_PATIENT_ID,
-    accession_number=MISSING_ACCESSION_NUMBER,
-    study_uid=MISSING_STUDY_UID,
-    study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
-        tzinfo=datetime.timezone.utc
-    ),
-    procedure_occurrence_id=345,
-    project_name="test project",
-    extract_generated_timestamp=datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
-)
+
+
+@pytest.fixture(scope="module")
+def message() -> Message:
+    """A Message with a valid study_uid."""
+    return Message(
+        mrn=PATIENT_ID,
+        accession_number=ACCESSION_NUMBER,
+        study_uid=STUDY_UID,
+        study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
+            tzinfo=datetime.timezone.utc
+        ),
+        procedure_occurrence_id=234,
+        project_name="test project",
+        extract_generated_timestamp=datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
+    )
+
+
+@pytest.fixture(scope="module")
+def no_uid_message() -> Message:
+    """A Message with a study_uid that does not exist in the database."""
+    return Message(
+        mrn=PATIENT_ID,
+        accession_number=ACCESSION_NUMBER,
+        study_uid="idontexist",
+        study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
+            tzinfo=datetime.timezone.utc
+        ),
+        procedure_occurrence_id=234,
+        project_name="test project",
+        extract_generated_timestamp=datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
+    )
+
+
+@pytest.fixture(scope="module")
+def pacs_message() -> Message:
+    """A Message with a valid study_uid for a study that exists in PACS but not VNA."""
+    return Message(
+        mrn=PACS_PATIENT_ID,
+        accession_number=PACS_ACCESSION_NUMBER,
+        study_uid=PACS_STUDY_UID,
+        study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
+            tzinfo=datetime.timezone.utc
+        ),
+        procedure_occurrence_id=234,
+        project_name="test project",
+        extract_generated_timestamp=datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
+    )
+
+
+@pytest.fixture(scope="module")
+def pacs_no_uid_message() -> Message:
+    """A Message without a valid study_uid for a study that exists in PACS but not the VNA."""
+    return Message(
+        mrn=PACS_PATIENT_ID,
+        accession_number=PACS_ACCESSION_NUMBER,
+        study_uid="ialsodontexist",
+        study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
+            tzinfo=datetime.timezone.utc
+        ),
+        procedure_occurrence_id=234,
+        project_name="test project",
+        extract_generated_timestamp=datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
+    )
+
+
+@pytest.fixture(scope="module")
+def missing_message() -> Message:
+    """A Message for a study that does not exist in PACS nor the VNA."""
+    return Message(
+        mrn=MISSING_PATIENT_ID,
+        accession_number=MISSING_ACCESSION_NUMBER,
+        study_uid=MISSING_STUDY_UID,
+        study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
+            tzinfo=datetime.timezone.utc
+        ),
+        procedure_occurrence_id=345,
+        project_name="test project",
+        extract_generated_timestamp=datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
+    )
 
 
 class WritableOrthanc(Orthanc):
@@ -184,7 +209,7 @@ async def orthanc_raw(run_containers) -> PIXLRawOrthanc:
 @pytest.mark.processing()
 @pytest.mark.asyncio()
 @pytest.mark.usefixtures("_add_image_to_fake_vna")
-async def test_image_saved(orthanc_raw) -> None:
+async def test_image_saved(orthanc_raw, message: Message) -> None:
     """
     Given the VNA has images, and orthanc raw has no images
     When we run process_message
@@ -202,7 +227,7 @@ async def test_image_saved(orthanc_raw) -> None:
 @pytest.mark.processing()
 @pytest.mark.asyncio()
 @pytest.mark.usefixtures("_add_image_to_fake_vna")
-async def test_existing_message_sent_twice(orthanc_raw) -> None:
+async def test_existing_message_sent_twice(orthanc_raw, message: Message) -> None:
     """
     Given the VNA has images, and orthanc raw has no images
     When we run process_message on the same message twice
@@ -229,7 +254,7 @@ async def test_existing_message_sent_twice(orthanc_raw) -> None:
 @pytest.mark.processing()
 @pytest.mark.asyncio()
 @pytest.mark.usefixtures("_add_image_to_fake_vna")
-async def test_querying_without_uid(orthanc_raw, caplog) -> None:
+async def test_querying_without_uid(orthanc_raw, caplog, no_uid_message: Message) -> None:
     """
     Given a message with non-existent study_uid
     When we query the VNA
@@ -270,7 +295,9 @@ class Saturday2AM(datetime.datetime):
 @pytest.mark.processing()
 @pytest.mark.asyncio()
 @pytest.mark.usefixtures("_add_image_to_fake_pacs")
-async def test_querying_pacs_with_uid(orthanc_raw, caplog, monkeypatch) -> None:
+async def test_querying_pacs_with_uid(
+    orthanc_raw, caplog, monkeypatch, pacs_message: Message
+) -> None:
     """
     Given a message with study_uid exists in PACS but not VNA,
     When we query the archives
@@ -311,7 +338,9 @@ async def test_querying_pacs_with_uid(orthanc_raw, caplog, monkeypatch) -> None:
 @pytest.mark.processing()
 @pytest.mark.asyncio()
 @pytest.mark.usefixtures("_add_image_to_fake_pacs")
-async def test_querying_pacs_without_uid(orthanc_raw, caplog, monkeypatch) -> None:
+async def test_querying_pacs_without_uid(
+    orthanc_raw, caplog, monkeypatch, pacs_no_uid_message: Message
+) -> None:
     """
     Given a message with non-existent study_uid exists in PACS but not VNA,
     When we query the archives
@@ -351,7 +380,7 @@ async def test_querying_pacs_without_uid(orthanc_raw, caplog, monkeypatch) -> No
 
 @pytest.mark.processing()
 @pytest.mark.asyncio()
-async def test_querying_missing_image(orthanc_raw, monkeypatch) -> None:
+async def test_querying_missing_image(orthanc_raw, monkeypatch, missing_message: Message) -> None:
     """
     Given a message for a study that is missing in both the VNA and PACS,
     When we query the archives within the window of Monday-Friday 8pm to 8am,
@@ -379,7 +408,9 @@ async def test_querying_missing_image(orthanc_raw, monkeypatch) -> None:
         (Saturday2AM),
     ],
 )
-async def test_querying_pacs_during_working_hours(orthanc_raw, query_date, monkeypatch) -> None:
+async def test_querying_pacs_during_working_hours(
+    orthanc_raw, query_date, monkeypatch, missing_message: Message
+) -> None:
     """
     Given a message for a study that is missing in both the VNA and PACS,
     When we query the archives outside of Monday-Friday 8pm-8am,
@@ -401,7 +432,9 @@ async def test_querying_pacs_during_working_hours(orthanc_raw, query_date, monke
 
 @pytest.mark.processing()
 @pytest.mark.asyncio()
-async def test_querying_pacs_not_defined(orthanc_raw, monkeypatch) -> None:
+async def test_querying_pacs_not_defined(
+    orthanc_raw, monkeypatch, missing_message: Message
+) -> None:
     """
     Given a message for a study that is missing in the VNA and the SECONDARY_DICOM_SOURCE_AE_TITLE
     is the same as the PRIMARY_DICOM_SOURCE_AE_TITLE
