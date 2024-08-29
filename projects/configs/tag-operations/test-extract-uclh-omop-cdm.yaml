@@ -630,7 +630,7 @@
 - name: "Scanning Sequence"
   group: 0x0018
   element: 0x0020
-  op: "replace"
+  op: "keep"
 - name: "Scanning Variant"
   group: 0x0018
   element: 0x0021
@@ -642,7 +642,7 @@
 - name: "MR Acquisition Type"
   group: 0x0018
   element: 0x0023
-  op: "replace"
+  op: "keep"
 - name: "Echo Time"
   group: 0x0018
   element: 0x0081
@@ -658,4 +658,4 @@
 - name: "Patient's Sex"
   group: 0x0010
   element: 0x0040
-  op: "replace"
+  op: "keep"
