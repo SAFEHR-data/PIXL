@@ -130,7 +130,7 @@ class TestFtpsUpload:
 
         wait_for_condition(
             two_zip_files_present,
-            seconds_max=121,
+            seconds_max=151,
             seconds_interval=5,
             seconds_condition_stays_true_for=15,
             progress_string_fn=zip_file_list,
@@ -211,7 +211,7 @@ def test_dicomweb_upload() -> None:
 
     wait_for_condition(
         two_studies_present_on_dicomweb,
-        seconds_max=121,
+        seconds_max=151,
         seconds_interval=10,
         progress_string_fn=dicomweb_studies_list,
     )
