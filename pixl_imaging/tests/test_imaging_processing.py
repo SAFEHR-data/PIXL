@@ -402,7 +402,7 @@ async def test_querying_pacs_during_working_hours(orthanc_raw, query_date, monke
 @pytest.mark.asyncio()
 async def test_querying_pacs_not_defined(orthanc_raw, monkeypatch) -> None:
     """
-    Given a message for a study that is missing in the VNA and the SECONDARY_DICOM modality
+    Given a message for a study that is missing in the VNA and the SECONDARY_DICOM_SOURCE modality
     is not defined
     When we query the archive,
     Then the querying tries the VNA and then raises a PixlDiscardError
@@ -414,11 +414,11 @@ async def test_querying_pacs_not_defined(orthanc_raw, monkeypatch) -> None:
 
     match = (
         f"Failed to find study {missing_message.study_uid} in primary archive "
-        "and SECONDARY_DICOM_AE_TITLE is undefined."
+        "and SECONDARY_DICOM_SOURCE_AE_TITLE is undefined."
     )
     with (  # noqa: PT012
         monkeypatch.context() as mp,
         pytest.raises(PixlDiscardError, match=match),
     ):
-        mp.delenv("SECONDARY_DICOM_AE_TITLE")
+        mp.delenv("SECONDARY_DICOM_SOURCE_AE_TITLE")
         await process_message(missing_message)

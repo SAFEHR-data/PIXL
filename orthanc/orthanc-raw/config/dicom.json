@@ -3,9 +3,9 @@
 
   "DicomModalities" : {
     "UCPRIMARYQR" : {
-      "AET" : "${PRIMARY_DICOM_AE_TITLE}",
-      "Port" : "${PRIMARY_DICOM_PORT}",
-      "Host" : "${PRIMARY_DICOM_IP_ADDR}",
+      "AET" : "${PRIMARY_DICOM_SOURCE_AE_TITLE}",
+      "Port" : "${PRIMARY_DICOM_SOURCE_PORT}",
+      "Host" : "${PRIMARY_DICOM_SOURCE_IP_ADDR}",
       "Manufacturer" : "Generic",
       "AllowEcho" : true,
       "AllowFind" : false,
@@ -19,9 +19,9 @@
       "Timeout" : 60
     },
     "UCSECONDARYQR" : {
-      "AET" : "${SECONDARY_DICOM_AE_TITLE}",
-      "Port" : "${SECONDARY_DICOM_PORT}",
-      "Host" : "${SECONDARY_DICOM_IP_ADDR}",
+      "AET" : "${SECONDARY_DICOM_SOURCE_AE_TITLE}",
+      "Port" : "${SECONDARY_DICOM_SOURCE_PORT}",
+      "Host" : "${SECONDARY_DICOM_SOURCE_IP_ADDR}",
       "Manufacturer" : "Generic",
       "AllowEcho" : true,
       "AllowFind" : false,

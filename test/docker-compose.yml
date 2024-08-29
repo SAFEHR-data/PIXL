@@ -22,7 +22,7 @@ services:
         image: orthancteam/orthanc:24.3.3
         platform: linux/amd64
         environment:
-            ORTHANC_NAME: ${PRIMARY_DICOM_AE_TITLE}
+            ORTHANC_NAME: ${PRIMARY_DICOM_SOURCE_AE_TITLE}
             ORTHANC_USERNAME: "orthanc"
             ORTHANC_PASSWORD: "orthanc"
             ORTHANC_AE_TITLE: "PRIMARYQR"

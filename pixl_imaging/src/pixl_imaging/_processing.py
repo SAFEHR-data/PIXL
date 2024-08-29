@@ -162,16 +162,16 @@ async def _find_study_in_archives_or_raise(orthanc_raw: Orthanc, study: ImagingS
     query_id = await _find_study_in_archive(
         orthanc_raw=orthanc_raw,
         study=study,
-        modality=config("PRIMARY_DICOM_MODALITY"),
+        modality=config("PRIMARY_DICOM_SOURCE_MODALITY"),
     )
 
     if query_id is not None:
         return str(query_id)
 
-    if not config("SECONDARY_DICOM_AE_TITLE", default=""):
+    if not config("SECONDARY_DICOM_SOURCE_AE_TITLE", default=""):
         msg = (
             f"Failed to find study {study.message.study_uid} in primary archive "
-            "and SECONDARY_DICOM_AE_TITLE is undefined."
+            "and SECONDARY_DICOM_SOURCE_AE_TITLE is undefined."
         )
         raise PixlDiscardError(msg)
 
@@ -189,7 +189,7 @@ async def _find_study_in_archives_or_raise(orthanc_raw: Orthanc, study: ImagingS
     query_id = await _find_study_in_archive(
         study=study,
         orthanc_raw=orthanc_raw,
-        modality=config("SECONDARY_DICOM_MODALITY"),
+        modality=config("SECONDARY_DICOM_SOURCE_MODALITY"),
     )
 
     if query_id is None:
