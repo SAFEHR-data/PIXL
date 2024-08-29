@@ -202,7 +202,7 @@ def _convert_schema_to_actions(
     dataset: Dataset, project_slug: str, tags_list: list[dict]
 ) -> dict[tuple, typing.Callable]:
     """
-    Convert the tag schema to actions (funcitons) for the anonymiser.
+    Convert the tag schema to actions (functions) for the anonymiser.
     See https://github.com/KitwareMedical/dicom-anonymizer for more details.
     Added custom function secure-hash for linking purposes. This function needs the MRN and
     Accession Number, hence why the dataset is passed in as well.
