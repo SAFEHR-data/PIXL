@@ -179,8 +179,27 @@ def test_anonymise_and_validate_as_external_user() -> None:
     assert dataset != pydicom.dcmread(dataset_path)
 
 
-# TODO: test that anonymise_and_validate_dicom() works as expected
-# https://github.com/SAFEHR-data/PIXL/issues/418
+def test_anonymise_and_validate_dicom(
+    vanilla_dicom_image: pydicom.Dataset, caplog
+) -> None:
+    """
+    Test whether anonymisation and validation works as expected on a vanilla DICOM dataset
+    No warnings should be generated for a valid anonymisation
+    """
+    caplog.clear()
+    caplog.set_level(logging.WARNING)
+    dataset = vanilla_dicom_image
+    config_path = (
+        pathlib.Path(__file__).parents[2]
+        / "projects/configs/test-extract-uclh-omop-cdm.yaml"
+    )
+
+    validation_errors = anonymise_and_validate_dicom(
+        dataset, config_path=config_path, synchronise_pixl_db=True
+    )
+
+    assert "WARNING" not in [record.levelname for record in caplog.records]
+    assert not validation_errors
 
 
 def test_anonymisation_with_overrides(
@@ -369,21 +388,6 @@ def test_should_exclude_series(dicom_series_to_exclude, dicom_series_to_keep):
         assert not _should_exclude_series(s, config)
     for s in dicom_series_to_exclude:
         assert _should_exclude_series(s, config)
-
-
-def test_anonymisation_and_validation_dicom(
-    vanilla_dicom_image: pydicom.Dataset, caplog
-) -> None:
-    """
-    Test whether anonymisation and validation works as expected on a vanilla DICOM dataset
-    No warnings should be generated for a valid anonymisation
-    """
-    caplog.clear()
-    caplog.set_level(logging.WARNING)
-    validation_errors = anonymise_and_validate_dicom(vanilla_dicom_image)
-
-    assert "WARNING" not in [record.levelname for record in caplog.records]
-    assert not validation_errors
 
 
 def test_can_nifti_convert_post_anonymisation(

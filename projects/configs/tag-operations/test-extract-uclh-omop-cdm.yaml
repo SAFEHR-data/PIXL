@@ -30,7 +30,7 @@
 - name: "Study Date"
   group: 0x0008
   element: 0x0020
-  op: "replace"
+  op: "delete"
 - name: "Series Date"
   group: 0x0008
   element: 0x0021
