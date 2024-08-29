@@ -247,7 +247,7 @@ async def _find_study_in_archive(
 
 def _is_daytime() -> bool:
     """Check if the current time is between 8 am and 8 pm."""
-    timezone = ZoneInfo(config("TZ", default="Europe/London"))
+    timezone = ZoneInfo(config("TZ"))
     after_8am = datetime.time(8, 00) <= datetime.datetime.now(tz=timezone).time()
     before_8pm = datetime.datetime.now(tz=timezone).time() <= datetime.time(20, 00)
     return after_8am and before_8pm
@@ -255,7 +255,7 @@ def _is_daytime() -> bool:
 
 def _is_weekend() -> bool:
     """Check if it's the weekend."""
-    timezone = ZoneInfo(config("TZ", default="Europe/London"))
+    timezone = ZoneInfo(config("TZ"))
     saturday = 5
     sunday = 6
     return datetime.datetime.now(tz=timezone).weekday() in (saturday, sunday)
