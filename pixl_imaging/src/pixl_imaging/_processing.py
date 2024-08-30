@@ -77,8 +77,10 @@ async def _update_or_resend_existing_study_(
 ) -> bool:
     """
     If study does not yet exist in orthanc raw, do nothing.
-    If study exists in orthanc raw and has the wrong project name, update it.
-    If study exists in orthanc raw and has the correct project name, send to orthanc anon.
+    Otherwise:
+        - it multiple studies exist, keep the most recently updated one
+        - if the study has the wrong project name, update it
+        - send the study to orthanc anon
 
     Return True if study exists in orthanc raw, otherwise False.
     """
@@ -90,10 +92,14 @@ async def _update_or_resend_existing_study_(
     different_project: list[str] = []
 
     if len(existing_resources) > 1:
-        # Only keep one study, the one which has the largest number of series
-        sorted_resources = sorted(existing_resources, key=lambda x: len(x["LastUpdate"]))
+        # Only keep one study, the one which was last updated
+        sorted_resources = sorted(
+            existing_resources,
+            key=lambda resource: datetime.datetime.fromisoformat(resource["LastUpdate"]),
+        )
         logger.debug(
-            "Found more than one resource for study, only keeping the last updated resource: {}",
+            "Found {} resources for study, only keeping the last updated resource: {}",
+            len(sorted_resources),
             sorted_resources,
         )
         existing_resources = [sorted_resources.pop(-1)]
