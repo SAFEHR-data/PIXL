@@ -44,21 +44,39 @@ async def process_message(message: Message) -> None:
 
 
 async def _process_message(study: ImagingStudy, orthanc_raw: PIXLRawOrthanc) -> None:
+    """
+    Check if the study already exists in Orthanc raw.
+
+    If it doesn't:
+        - query the VNA / PACS for the study
+        - retrieve the study from the VNA / PACS
+        - set the project name tag for the study
+    If it does:
+        - update the project name tag if it is incorrect
+        - if the project name is correct, send the existing study to Orthanc anon
+        - query VNA / PASC to determine whether any instances are missing
+        - if no instances are missing, return
+        - otherwise, retrieve any missing instances (which will be automatically forwarded to
+            Orthanc anon) and then set the project name tag for the study
+    """
     await orthanc_raw.raise_if_pending_jobs()
     logger.info("Processing: {}", study.message.identifier)
 
     timeout: float = config("PIXL_DICOM_TRANSFER_TIMEOUT", cast=float)
-    study_exists = await _update_or_resend_existing_study_(
+    existing_resource = await _get_existing_study(
         study.message.project_name, orthanc_raw, study, timeout
     )
-    if study_exists:
-        return
 
-    query_id = await _find_study_in_archives_or_raise(orthanc_raw, study)
-    job_id = await orthanc_raw.retrieve_from_remote(query_id=query_id)  # C-Move
-    await orthanc_raw.wait_for_job_success_or_raise(job_id, "c-move", timeout)
+    if existing_resource is None:
+        await _retrieve_study(orthanc_raw, study, timeout)
+    else:
+        added_instances = await _retrieve_missing_instances(
+            existing_resource, orthanc_raw, study, timeout
+        )
+        if added_instances is None:
+            return
 
-    # Now that instance has arrived in orthanc raw, we can set its project name tag via the API
+    # Now that study has arrived in orthanc raw, we can set its project name tag via the API
     studies = await orthanc_raw.query_local(study.orthanc_query_dict)
     logger.debug("Local instances for study: {}", studies)
     await _add_project_to_study(
@@ -69,63 +87,90 @@ async def _process_message(study: ImagingStudy, orthanc_raw: PIXLRawOrthanc) -> 
         image_identifier=study.message.identifier,
     )
 
-    return
 
-
-async def _update_or_resend_existing_study_(
+async def _get_existing_study(
     project_name: str, orthanc_raw: PIXLRawOrthanc, study: ImagingStudy, timeout: float
-) -> bool:
+) -> Optional[Any]:
     """
-    If study does not yet exist in orthanc raw, do nothing.
+    If study does not yet exist in orthanc raw, return None.
     Otherwise:
-        - it multiple studies exist, keep the most recently updated one
-        - if the study has the wrong project name, update it
-        - send the study to orthanc anon
-
-    Return True if study exists in orthanc raw, otherwise False.
+        - if multiple studies exist, keep the most recently updated one
+        - if the study has the wrong project name, update it and return the resource
+        - if the study name is correct, send the existing study to orthanc anon and
+            return the resource
     """
     existing_resources = await study.query_local(orthanc_raw, project_tag=True)
     if len(existing_resources) == 0:
+        return None
+
+    # keep the most recently updated study only
+    resource = await _delete_old_studies(
+        resources=existing_resources,
+        orthanc_raw=orthanc_raw,
+    )
+
+    if await _update_project_tags(
+        project_name=project_name,
+        orthanc_raw=orthanc_raw,
+        resource=resource,
+        image_identifier=study.message.identifier,
+        timeout=timeout,
+    ):
+        return resource
+
+    await orthanc_raw.send_existing_study_to_anon(existing_resources[0]["ID"])
+    return resource
+
+
+async def _delete_old_studies(
+    resources: list[dict],
+    orthanc_raw: PIXLRawOrthanc,
+) -> dict:
+    """Delete studies from Orthanc."""
+    sorted_resources = sorted(
+        resources,
+        key=lambda resource: datetime.datetime.fromisoformat(resource["LastUpdate"]),
+    )
+    logger.debug(
+        "Found {} resources for study, only keeping the last updated resource: {}",
+        len(sorted_resources),
+        sorted_resources,
+    )
+    most_recent_resource = sorted_resources.pop(-1)
+    for delete_resource in sorted_resources:
+        await orthanc_raw.delete(f"/studies/{delete_resource['ID']}")
+
+    return most_recent_resource
+
+
+async def _update_project_tags(
+    project_name: str,
+    orthanc_raw: PIXLRawOrthanc,
+    resource: dict,
+    timeout: float,
+    image_identifier: str,
+) -> bool:
+    """
+    Update the project tags for a study.
+
+    Return True if the project name has been updated, False otherwise
+    """
+    project_tags = (
+        resource["RequestedTags"].get(DICOM_TAG_PROJECT_NAME.tag_nickname),
+        resource["RequestedTags"].get(
+            "Unknown Tag & Data"
+        ),  # Fallback for testing where we're not using the entire plugin, remains undefined
+    )
+    if project_name in project_tags:
         return False
 
-    # Check whether study already has the correct project name
-    different_project: list[str] = []
-
-    if len(existing_resources) > 1:
-        # Only keep one study, the one which was last updated
-        sorted_resources = sorted(
-            existing_resources,
-            key=lambda resource: datetime.datetime.fromisoformat(resource["LastUpdate"]),
-        )
-        logger.debug(
-            "Found {} resources for study, only keeping the last updated resource: {}",
-            len(sorted_resources),
-            sorted_resources,
-        )
-        existing_resources = [sorted_resources.pop(-1)]
-        for delete_resource in sorted_resources:
-            await orthanc_raw.delete(f"/studies/{delete_resource['ID']}")
-
-    for resource in existing_resources:
-        project_tags = (
-            resource["RequestedTags"].get(DICOM_TAG_PROJECT_NAME.tag_nickname),
-            resource["RequestedTags"].get(
-                "Unknown Tag & Data"
-            ),  # Fallback for testing where we're not using the entire plugin, remains undefined
-        )
-        if project_name not in project_tags:
-            different_project.append(resource["ID"])
-
-    if different_project:
-        await _add_project_to_study(
-            project_name,
-            orthanc_raw,
-            different_project,
-            timeout=timeout,
-            image_identifier=study.message.identifier,
-        )
-        return True
-    await orthanc_raw.send_existing_study_to_anon(existing_resources[0]["ID"])
+    await _add_project_to_study(
+        project_name=project_name,
+        orthanc_raw=orthanc_raw,
+        studies=[resource["ID"]],
+        timeout=timeout,
+        image_identifier=image_identifier,
+    )
     return True
 
 
@@ -272,6 +317,77 @@ def _is_weekend() -> bool:
     saturday = 5
     sunday = 6
     return datetime.datetime.now(tz=timezone).weekday() in (saturday, sunday)
+
+
+async def _get_missing_instances(
+    orthanc_raw: Orthanc,
+    study: ImagingStudy,
+    resource: dict,
+) -> Optional[list[tuple[str, str]]]:
+    """
+    Check if any study instances are missing from Orthanc Raw.
+
+    Return None if not studies are missing.
+    Return a list of (query_id, answer_id) tuples that can be used to retrieve missing instances.
+    """
+    # First get all SOPInstanceUIDs for the study that are in Orthanc Raw
+    orthanc_raw_sop_instance_uids = []
+    for series_id in resource["Series"]:
+        series = await orthanc_raw.query_local_series(series_id)
+        for instance_id in series["Instances"]:
+            instance = await orthanc_raw.query_local_instance(instance_id)
+            orthanc_raw_sop_instance_uids.append(instance["MainDicomTags"]["SOPInstanceUID"])
+
+    # Now query the VNA / PACS for the study instances
+    study_query_id = await _find_study_in_archives_or_raise(orthanc_raw, study)
+    study_query_answers = await orthanc_raw.get_remote_query_answers(study_query_id)
+    instances_query_id = await orthanc_raw.get_remote_query_answer_instances(
+        query_id=study_query_id,
+        answer_id=study_query_answers[0],
+    )
+    instances_query_answers = await orthanc_raw.get_remote_query_answers(instances_query_id)
+
+    if len(instances_query_answers) == len(orthanc_raw_sop_instance_uids):
+        return None
+
+    # If the SOPInstanceUID is not in the list of instances in Orthanc Raw
+    # retrieve the instance from the VNA / PACS
+    sop_instance_uid_tag = "0008,0018"
+    missing_instances: list[tuple[str, str]] = []
+    for instance_query_answer in instances_query_answers:
+        instance_query_answer_content = await orthanc_raw.get_remote_query_answer_content(
+            query_id=instances_query_id,
+            answer_id=instance_query_answer,
+        )
+        sop_instance_uid = instance_query_answer_content[sop_instance_uid_tag]["Value"]
+        if sop_instance_uid in orthanc_raw_sop_instance_uids:
+            continue
+
+        missing_instances.append((instances_query_id, instance_query_answer))
+
+    return missing_instances
+
+
+async def _retrieve_study(orthanc_raw: Orthanc, study: ImagingStudy, timeout: float) -> None:
+    """Retrieve all instances for a study from the VNA / PACS."""
+    query_id = await _find_study_in_archives_or_raise(orthanc_raw, study)
+    job_id = await orthanc_raw.retrieve_from_remote(query_id=query_id)  # C-Move
+    await orthanc_raw.wait_for_job_success_or_raise(job_id, "c-move", timeout)
+
+
+async def _retrieve_missing_instances(
+    existing_resource: dict, orthanc_raw: Orthanc, study: ImagingStudy, timeout: float
+) -> Optional[list[tuple[str, str]]]:
+    """Retrieve missing instances for a study from the VNA / PACS."""
+    missing_instances = await _get_missing_instances(orthanc_raw, study, existing_resource)
+    if missing_instances is None:
+        return None
+    for instances_query_id, instance_query_answer in missing_instances:
+        job_id = await orthanc_raw.retrieve_instance_from_remote(
+            query_id=instances_query_id, answer_id=instance_query_answer
+        )  # C-Move
+        await orthanc_raw.wait_for_job_success_or_raise(job_id, "c-move", timeout)
+    return missing_instances
 
 
 @dataclass

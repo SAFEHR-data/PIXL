@@ -53,6 +53,14 @@ class Orthanc(ABC):
         """Query local Orthanc instance for resourceId."""
         return await self._post("/tools/find", data=data)
 
+    async def query_local_series(self, series_id: str) -> Any:
+        """Query local Orthanc instance for series."""
+        return await self._get(f"/series/{series_id}")
+
+    async def query_local_instance(self, instance_id: str) -> Any:
+        """Query local Orthanc instance for instance."""
+        return await self._get(f"/instances/{instance_id}")
+
     async def query_remote(self, data: dict, modality: str) -> Optional[str]:
         """Query a particular modality, available from this node"""
         logger.debug("Running query on modality: {} with {}", modality, data)
@@ -76,6 +84,13 @@ class Orthanc(ABC):
     async def get_remote_query_answer_content(self, query_id: str, answer_id: str) -> Any:
         """Get the content of a query answer"""
         return await self._get(f"/queries/{query_id}/answers/{answer_id}/content")
+
+    async def get_remote_query_answer_instances(self, query_id: str, answer_id: str) -> Any:
+        """Get the instances of a query answer"""
+        response = await self._post(
+            f"/queries/{query_id}/answers/{answer_id}/query-instances", data={"Query": {}}
+        )
+        return response["ID"]
 
     async def modify_private_tags_by_study(
         self,
@@ -111,6 +126,13 @@ class Orthanc(ABC):
     async def retrieve_from_remote(self, query_id: str) -> str:
         response = await self._post(
             f"/queries/{query_id}/retrieve",
+            data={"TargetAet": self.aet, "Synchronous": False},
+        )
+        return str(response["ID"])
+
+    async def retrieve_instance_from_remote(self, query_id: str, answer_id: str) -> str:
+        response = await self._post(
+            f"/queries/{query_id}/answers/{answer_id}/retrieve",
             data={"TargetAet": self.aet, "Synchronous": False},
         )
         return str(response["ID"])
