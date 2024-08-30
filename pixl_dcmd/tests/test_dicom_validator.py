@@ -20,35 +20,35 @@ from pixl_dcmd.main import anonymise_dicom
 from pydicom import Dataset
 
 
-def test_validation_check_works(vanilla_dicom_image: Dataset) -> None:
+def test_validation_check_works(vanilla_dicom_image_DX: Dataset) -> None:
     """
     GIVEN a DICOM dataset
     WHEN the dataset is validated against itself (withouth anonymisation)
     THEN no errors should be raised
     """
     validator = DicomValidator()
-    validator.validate_original(vanilla_dicom_image)
-    assert not validator.validate_anonymised(vanilla_dicom_image)
+    validator.validate_original(vanilla_dicom_image_DX)
+    assert not validator.validate_anonymised(vanilla_dicom_image_DX)
 
 
-def test_validation_after_anonymisation_works(vanilla_dicom_image: Dataset) -> None:
+def test_validation_after_anonymisation_works(vanilla_dicom_image_DX: Dataset) -> None:
     """
     GIVEN a DICOM dataset
     WHEN the dataset is validated after anonymisation
     THEN no errors should be raised
     """
     validator = DicomValidator()
-    validator.validate_original(vanilla_dicom_image)
-    anonymise_dicom(vanilla_dicom_image)
+    validator.validate_original(vanilla_dicom_image_DX)
+    anonymise_dicom(vanilla_dicom_image_DX)
 
-    assert not validator.validate_anonymised(vanilla_dicom_image)
+    assert not validator.validate_anonymised(vanilla_dicom_image_DX)
 
 
 @pytest.fixture()
-def non_compliant_dicom_image(vanilla_dicom_image: Dataset) -> Dataset:
+def non_compliant_dicom_image(vanilla_dicom_image_DX: Dataset) -> Dataset:
     """A DICOM dataset that is not compliant with the DICOM standard."""
-    del vanilla_dicom_image.PatientName
-    return vanilla_dicom_image
+    del vanilla_dicom_image_DX.PatientName
+    return vanilla_dicom_image_DX
 
 
 def test_validation_passes_for_non_compliant_dicom(non_compliant_dicom_image) -> None:
@@ -62,16 +62,18 @@ def test_validation_passes_for_non_compliant_dicom(non_compliant_dicom_image) ->
     assert not validator.validate_anonymised(non_compliant_dicom_image)
 
 
-def test_validation_fails_after_invalid_tag_modification(vanilla_dicom_image) -> None:
+def test_validation_fails_after_invalid_tag_modification(
+    vanilla_dicom_image_DX,
+) -> None:
     """
     GIVEN a DICOM dataset
     WHEN an invalid tag operation is performed (e.g. deleting a required tag)
     THEN validation should return a non-empty list of errors
     """
     validator = DicomValidator()
-    validator.validate_original(vanilla_dicom_image)
-    del vanilla_dicom_image.PatientName
-    validation_result = validator.validate_anonymised(vanilla_dicom_image)
+    validator.validate_original(vanilla_dicom_image_DX)
+    del vanilla_dicom_image_DX.PatientName
+    validation_result = validator.validate_anonymised(vanilla_dicom_image_DX)
 
     assert len(validation_result) == 1
     assert "Patient" in validation_result.keys()
