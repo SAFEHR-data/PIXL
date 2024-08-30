@@ -30,7 +30,7 @@
 - name: "Study Date"
   group: 0x0008
   element: 0x0020
-  op: "delete"
+  op: "replace"
 - name: "Series Date"
   group: 0x0008
   element: 0x0021
@@ -50,7 +50,7 @@
 - name: "Study Time"
   group: 0x0008
   element: 0x0030
-  op: "delete"
+  op: "replace"
 - name: "Series Time"
   group: 0x0008
   element: 0x0031
@@ -94,7 +94,7 @@
 - name: "Referring Physicians Name"
   group: 0x0008
   element: 0x0090
-  op: "delete"
+  op: "replace"
 - name: "Station Name"
   group: 0x0008
   element: 0x1010
@@ -158,7 +158,7 @@
 - name: "Patients Birth Date"
   group: 0x0010
   element: 0x0030
-  op: "delete"
+  op: "replace"
 - name: "Patients Birth Time"
   group: 0x0010
   element: 0x0032
@@ -166,7 +166,7 @@
 - name: "Patients Sex"
   group: 0x0010
   element: 0x0040
-  op: "delete"
+  op: "keep"
 - name: "Other Patient IDs"
   group: 0x0010
   element: 0x1000
@@ -374,6 +374,10 @@
 - name: "Patient Orientation"
   group: 0x0020
   element: 0x0020
+  op: "keep"
+- name: "Patient Orientation Code Sequence"
+  group: 0x0054
+  element: 0x0410
   op: "keep"
 - name: "Image Laterality"
   group: 0x0020
@@ -598,4 +602,56 @@
 - name: "UCLH Project Name"
   group: 0x000d
   element: 0x1001
+  op: "keep"
+- name: "Position Reference Indicator"
+  group: 0x0020
+  element: 0x1040
+  op: "keep"
+- name: "Patient Position"
+  group: 0x0018
+  element: 0x5100
+  op: "keep"
+- name: "Slice Thickness"
+  group: 0x0018
+  element: 0x0050
+  op: "keep"
+- name: "Slice Thickness"
+  group: 0x0018
+  element: 0x0050
+  op: "keep"
+- name: "Image Position (Patient)"
+  group: 0x0020
+  element: 0x0032
+  op: "keep"
+- name: "Image Orientation (Patient)"
+  group: 0x0020
+  element: 0x0037
+  op: "keep"
+- name: "Image Orientation (Patient)"
+  group: 0x0020
+  element: 0x0037
+  op: "keep"
+- name: "Scanning Sequence"
+  group: 0x0018
+  element: 0x0020
+  op: "keep"
+- name: "Scanning Variant"
+  group: 0x0018
+  element: 0x0021
+  op: "keep"
+- name: "Scan Options"
+  group: 0x0018
+  element: 0x0022
+  op: "keep"
+- name: "MR Acquisition Type"
+  group: 0x0018
+  element: 0x0023
+  op: "keep"
+- name: "Echo Time"
+  group: 0x0018
+  element: 0x0081
+  op: "keep"
+- name: "Echo Train Lenght"
+  group: 0x0018
+  element: 0x0091
   op: "keep"
