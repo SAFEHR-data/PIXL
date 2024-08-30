@@ -30,6 +30,7 @@ from pixl_imaging._processing import ImagingStudy, process_message
 from pydicom import dcmread
 from pydicom.data import get_testdata_file
 from pydicom.dataelem import DataElement
+from pytest_check import check
 from pytest_pixl.helpers import run_subprocess
 
 if TYPE_CHECKING:
@@ -41,6 +42,8 @@ pytest_plugins = ("pytest_asyncio",)
 ACCESSION_NUMBER = "abc"
 PATIENT_ID = "a_patient"
 STUDY_UID = "12345678"
+SOP_INSTANCE_UID = "1.1.1.1.1.1.1111.1.1.1.1.1.11111111111111.11111"
+SOP_INSTANCE_UID_2 = "2.2.2.2.2.2.2222.2.2.2.2.2.22222222222222.22222"
 
 PACS_ACCESSION_NUMBER = "def"
 PACS_PATIENT_ID = "another_patient"
@@ -152,23 +155,31 @@ class WritableOrthanc(Orthanc):
 @pytest.fixture(scope="module")
 def _add_image_to_fake_vna(run_containers) -> Generator[None]:
     """Add single fake image to VNA."""
-    image_filename = "test.dcm"
-    path = str(get_testdata_file("CT_small.dcm"))
-    ds = dcmread(path)
-    ds.AccessionNumber = ACCESSION_NUMBER
-    ds.PatientID = PATIENT_ID
-    ds.StudyInstanceUID = STUDY_UID
-    ds.save_as(image_filename)
-
     vna = WritableOrthanc(
         aet="PRIMARYQR",
         url=config("ORTHANC_VNA_URL"),
         username=config("ORTHANC_VNA_USERNAME"),
         password=config("ORTHANC_VNA_PASSWORD"),
     )
+
+    image_filename = "test.dcm"
+    path = str(get_testdata_file("CT_small.dcm"))
+    ds = dcmread(path)
+    ds.AccessionNumber = ACCESSION_NUMBER
+    ds.PatientID = PATIENT_ID
+    ds.StudyInstanceUID = STUDY_UID
+    ds.SOPInstanceUID = SOP_INSTANCE_UID
+    ds.save_as(image_filename)
     vna.upload(image_filename)
+
+    instance_2_image_filename = "test_2.dcm"
+    ds.SOPInstanceUID = SOP_INSTANCE_UID_2
+    ds.save_as(instance_2_image_filename)
+    vna.upload(instance_2_image_filename)
+
     yield
     pathlib.Path(image_filename).unlink(missing_ok=True)
+    pathlib.Path(instance_2_image_filename).unlink(missing_ok=True)
 
 
 @pytest.fixture(scope="module")
@@ -222,6 +233,47 @@ async def test_image_saved(orthanc_raw, message: Message) -> None:
     assert not await study.query_local(orthanc)
     await process_message(message)
     assert await study.query_local(orthanc)
+
+
+@pytest.mark.processing()
+@pytest.mark.asyncio()
+@pytest.mark.usefixtures("_add_image_to_fake_vna")
+async def test_partial_retrieve(orthanc_raw, message: Message, caplog) -> None:
+    """
+    Given the VNA has a single study with 2 instances, and orthanc raw has the same study with
+    1 instance
+    When we run process_message
+    Then orthanc raw will contain both instances after retrieving only the missing instance
+    """
+    study = ImagingStudy.from_message(message)
+
+    orthanc = await orthanc_raw
+
+    assert not await study.query_local(orthanc)
+    await process_message(message)
+    assert await study.query_local(orthanc)
+
+    all_instances = await orthanc._get("/instances")
+    assert len(all_instances) == 2
+
+    with check:
+        for instance in all_instances:
+            instance_info = await orthanc._get(f"/instances/{instance}")
+            sop_instance_uid = instance_info["MainDicomTags"]["SOPInstanceUID"]
+            assert sop_instance_uid in (SOP_INSTANCE_UID, SOP_INSTANCE_UID_2)
+
+    instance_to_delete = all_instances.pop()
+    await orthanc.delete(f"/instances/{instance_to_delete}")
+
+    await process_message(message)
+    all_instances = await orthanc._get("/instances")
+    assert len(all_instances) == 2
+
+    expected_msg = f"Retrieving missing instance for study {STUDY_UID}"
+    assert caplog.text.count(expected_msg) == 1
+
+    expected_msg = (f"Instance {SOP_INSTANCE_UID_2} is missing from study {STUDY_UID}",)
+    assert expected_msg in caplog.text
 
 
 @pytest.mark.processing()

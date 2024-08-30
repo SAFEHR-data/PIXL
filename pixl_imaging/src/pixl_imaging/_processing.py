@@ -363,6 +363,11 @@ async def _get_missing_instances(
         if sop_instance_uid in orthanc_raw_sop_instance_uids:
             continue
 
+        logger.info(
+            "Instance {} is missing from study {}",
+            sop_instance_uid,
+            study.message.study_uid,
+        )
         missing_instances.append((instances_query_id, instance_query_answer))
 
     return missing_instances
@@ -383,9 +388,13 @@ async def _retrieve_missing_instances(
     if missing_instances is None:
         return None
     for instances_query_id, instance_query_answer in missing_instances:
+        logger.info(
+            "Retrieving missing instance for study {}",
+            study.message.study_uid,
+        )
         job_id = await orthanc_raw.retrieve_instance_from_remote(
             query_id=instances_query_id, answer_id=instance_query_answer
-        )  # C-Move
+        )
         await orthanc_raw.wait_for_job_success_or_raise(job_id, "c-move", timeout)
     return missing_instances
 
