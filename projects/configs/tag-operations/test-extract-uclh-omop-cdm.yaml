@@ -11,6 +11,14 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+- name: "Private Creator Data Element"
+  group: 0x000d
+  element: 0x0010
+  op: "keep"
+- name: "UCLH Project Name"
+  group: 0x000d
+  element: 0x1001
+  op: "keep"
 - name: "Specific Character Set"
   group: 0x0008
   element: 0x0005
@@ -19,6 +27,10 @@
   group: 0x0008
   element: 0x0008
   op: "keep"
+- name: "Instance Creator UID"
+  group: 0x0008
+  element: 0x0014
+  op: "replace_UID"
 - name: "SOP Class UID"
   group: 0x0008
   element: 0x0016
@@ -111,9 +123,17 @@
   group: 0x0008
   element: 0x1040
   op: "delete"
+- name: "Physicians Of Record"
+  group: 0x0008
+  element: 0x1048
+  op: "delete"
 - name: "Performing Physicians Name"
   group: 0x0008
   element: 0x1050
+  op: "delete"
+- name: "Name Of Physicians Reading Study"
+  group: 0x0008
+  element: 0x1060
   op: "delete"
 - name: "Operators Name"
   group: 0x0008
@@ -131,6 +151,10 @@
   group: 0x0008
   element: 0x1120
   op: "delete"
+- name: "Referenced SOP Instance UID"
+  group: 0x0008
+  element: 0x1155
+  op: "replace_UID"
 - name: "Source Image Sequence"
   group: 0x0008
   element: 0x2112
@@ -199,6 +223,18 @@
   group: 0x0010
   element: 0x2110
   op: "delete"
+- name: "Additional Patient History"
+  group: 0x0010
+  element: 0x21b0
+  op: "delete"
+- name: "Pregnancy Status"
+  group: 0x0010
+  element: 0x21c0
+  op: "delete"
+- name: "Ethnic Group"
+  group: 0x0010
+  element: 0x2160
+  op: "delete"
 - name: "Patient Comments"
   group: 0x0010
   element: 0x4000
@@ -219,10 +255,42 @@
   group: 0x0018
   element: 0x0015
   op: "keep"
+- name: "Scanning Sequence"
+  group: 0x0018
+  element: 0x0020
+  op: "keep"
+- name: "Scanning Variant"
+  group: 0x0018
+  element: 0x0021
+  op: "replace"
+- name: "Scanning Options"
+  group: 0x0018
+  element: 0x0022
+  op: "replace"
+- name: "MR Acquisition Type"
+  group: 0x0018
+  element: 0x0023
+  op: "keep"
+- name: "Slice Thickness"
+  group: 0x0018
+  element: 0x0050
+  op: "replace"
 - name: "kVp"
   group: 0x0018
   element: 0x0060
   op: "keep"
+- name: "Echo Time"
+  group: 0x0018
+  element: 0x0081
+  op: "replace"
+- name: "Echo Train Length"
+  group: 0x0018
+  element: 0x0091
+  op: "replace"
+- name: "Device Serial Number"
+  group: 0x0018
+  element: 0x1000
+  op: "delete"
 - name: "Software Version"
   group: 0x0018
   element: 0x1020
@@ -295,6 +363,10 @@
   group: 0x0018
   element: 0x1720
   op: "keep"
+- name: "Patient Position"
+  group: 0x0018
+  element: 0x5100
+  op: "replace"
 - name: "View Position"
   group: 0x0018
   element: 0x5101
@@ -383,13 +455,37 @@
   group: 0x0020
   element: 0x0020
   op: "keep"
+- name: "Image Position (Patient)"
+  group: 0x0020
+  element: 0x0032
+  op: "replace"
+- name: "Image Orientation (Patient)"
+  group: 0x0020
+  element: 0x0037
+  op: "replace"
+- name: "Frame of Reference UID"
+  group: 0x0020
+  element: 0x0052
+  op: "replace_UID"
 - name: "Image Laterality"
   group: 0x0020
   element: 0x0062
   op: "keep"
+- name: "Synchronization Frame of Reference UID"
+  group: 0x0020
+  element: 0x0200
+  op: "replace_UID"
+- name: "Position Reference Indicator"
+  group: 0x0020
+  element: 0x1040
+  op: "replace"
 - name: "Number Of Study Related Images"
   group: 0x0020
   element: 0x1208
+  op: "delete"
+- name: "Image Comments"
+  group: 0x0020
+  element: 0x4000
   op: "delete"
 - name: "Samples Per Pixel"
   group: 0x0028
@@ -483,6 +579,10 @@
   group: 0x0028
   element: 0x3010
   op: "keep"
+- name: "Study Comments [Retired]"
+  group: 0x0032
+  element: 0x4000
+  op: "delete"
 - name: "Current Patient Location"
   group: 0x0038
   element: 0x0300
@@ -491,6 +591,10 @@
   group: 0x0038
   element: 0x0500
   op: "delete"
+- name: "UID"
+  group: 0x0040
+  element: 0xA124
+  op: "replace_UID"
 - name: "Performed Procedure Start Date"
   group: 0x0040
   element: 0x0244
@@ -531,123 +635,19 @@
   group: 0x0054
   element: 0x0220
   op: "keep"
-- name: "Image Comments"
-  group: 0x0020
-  element: 0x4000
-  op: "delete"
-- name: "Instance Creator UID"
-  group: 0x0008
-  element: 0x0014
-  op: "replace_UID"
-- name: "Referenced SOP Instance UID"
-  group: 0x0008
-  element: 0x1155
-  op: "replace_UID"
-- name: "Frame of Reference UID"
-  group: 0x0020
-  element: 0x0052
-  op: "replace_UID"
-- name: "Synchronization Frame of Reference UID"
-  group: 0x0020
-  element: 0x0200
-  op: "replace_UID"
 - name: "Storage Media File-set UID"
   group: 0x0088
   element: 0x0140
-  op: "replace_UID"
-- name: "Referenced Frame of Reference UID"
-  group: 0x3006
-  element: 0x0024
   op: "replace_UID"
 - name: "Related Frame of Reference UID"
   group: 0x3006
   element: 0x00C2
   op: "replace_UID"
-- name: "UID"
-  group: 0x0040
-  element: 0xA124
+- name: "Referenced Frame of Reference UID"
+  group: 0x3006
+  element: 0x0024
   op: "replace_UID"
-- name: "Study Comments [Retired]"
-  group: 0x0032
-  element: 0x4000
-  op: "delete"
-- name: "Ethnic Group"
-  group: 0x0010
-  element: 0x2160
-  op: "delete"
-- name: "Physicians Of Record"
-  group: 0x0008
-  element: 0x1048
-  op: "delete"
-- name: "Name Of Physicians Reading Study"
-  group: 0x0008
-  element: 0x1060
-  op: "delete"
-- name: "Device Serial Number"
-  group: 0x0018
-  element: 0x1000
-  op: "delete"
-- name: "Additional Patient History"
-  group: 0x0010
-  element: 0x21b0
-  op: "delete"
-- name: "Pregnancy Status"
-  group: 0x0010
-  element: 0x21c0
-  op: "delete"
 - name: "Pixel Data"
   group: 0x7fe0
   element: 0x0010
   op: "keep"
-- name: "Private Creator Data Element"
-  group: 0x000d
-  element: 0x0010
-  op: "keep"
-- name: "UCLH Project Name"
-  group: 0x000d
-  element: 0x1001
-  op: "keep"
-- name: "Position Reference Indicator"
-  group: 0x0020
-  element: 0x1040
-  op: "replace"
-- name: "Patient Position"
-  group: 0x0018
-  element: 0x5100
-  op: "replace"
-- name: "Slice Thickness"
-  group: 0x0018
-  element: 0x0050
-  op: "replace"
-- name: "Image Position (Patient)"
-  group: 0x0020
-  element: 0x0032
-  op: "replace"
-- name: "Image Orientation (Patient)"
-  group: 0x0020
-  element: 0x0037
-  op: "replace"
-- name: "Scanning Sequence"
-  group: 0x0018
-  element: 0x0020
-  op: "keep"
-- name: "Scanning Variant"
-  group: 0x0018
-  element: 0x0021
-  op: "replace"
-- name: "Scanning Options"
-  group: 0x0018
-  element: 0x0022
-  op: "replace"
-- name: "MR Acquisition Type"
-  group: 0x0018
-  element: 0x0023
-  op: "keep"
-- name: "Echo Time"
-  group: 0x0018
-  element: 0x0081
-  op: "replace"
-- name: "Echo Train Length"
-  group: 0x0018
-  element: 0x0091
-  op: "replace"
