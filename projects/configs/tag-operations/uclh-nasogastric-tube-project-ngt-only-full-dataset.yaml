@@ -651,7 +651,7 @@
   group: 0x0018
   element: 0x0081
   op: "keep"
-- name: "Echo Train Lenght"
+- name: "Echo Train Length"
   group: 0x0018
   element: 0x0091
   op: "keep"
