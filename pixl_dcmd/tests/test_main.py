@@ -43,6 +43,7 @@ from pixl_dcmd.main import (
 )
 from pytest_pixl.dicom import generate_dicom_dataset
 from pytest_pixl.helpers import run_subprocess
+from conftest import ids_for_parameterised_test
 
 PROJECT_CONFIGS_DIR = Path(config("PROJECT_CONFIGS_DIR"))
 TEST_PROJECT_SLUG = "test-extract-uclh-omop-cdm"
@@ -179,13 +180,6 @@ def test_anonymise_and_validate_as_external_user() -> None:
 
     assert validation_issues == {}
     assert dataset != pydicom.dcmread(dataset_path)
-
-
-def ids_for_parameterised_test(val):
-    """Generate test ID for parameterised tests"""
-    if isinstance(val, pathlib.Path):
-        return val.stem
-    return str(val)
 
 
 @pytest.mark.parametrize(

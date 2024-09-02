@@ -11,7 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-"""CLI testing fixtures."""
+"""DCMD testing fixtures."""
 
 from __future__ import annotations
 
@@ -124,11 +124,9 @@ def row_for_testing_image_with_pseudo_patient_id(
     return db_session
 
 
-def ids_for_parameterised_test(val):
+def ids_for_parameterised_test(val: pathlib.Path) -> str:
     """Generate test ID for parameterised tests"""
-    if isinstance(val, pathlib.Path):
-        return val.stem
-    return str(val)
+    return str(val.stem)
 
 
 @pytest.fixture()
