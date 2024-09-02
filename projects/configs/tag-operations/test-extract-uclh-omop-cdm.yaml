@@ -155,10 +155,10 @@
   group: 0x0010
   element: 0x0021
   op: "delete"
-- name: "Patients Birth Date"
+- name: "Patient's Birth Date"
   group: 0x0010
   element: 0x0030
-  op: "delete"
+  op: "replace"
 - name: "Patients Birth Time"
   group: 0x0010
   element: 0x0032
@@ -166,7 +166,7 @@
 - name: "Patients Sex"
   group: 0x0010
   element: 0x0040
-  op: "delete"
+  op: "keep"
 - name: "Other Patient IDs"
   group: 0x0010
   element: 0x1000
@@ -651,11 +651,3 @@
   group: 0x0018
   element: 0x0091
   op: "replace"
-- name: "Patient's Birth Date"
-  group: 0x0010
-  element: 0x0030
-  op: "replace"
-- name: "Patient's Sex"
-  group: 0x0010
-  element: 0x0040
-  op: "keep"
