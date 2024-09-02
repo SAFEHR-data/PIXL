@@ -46,6 +46,14 @@
   group: 0x0008
   element: 0x0050
   op: "replace"
+- name: "Study Date"
+  group: 0x0008
+  element: 0x0020
+  op: "replace"
+- name: "General Study"
+  group: 0x0008
+  element: 0x0030
+  op: "replace"
 - name: "Modality"
   group: 0x0008
   element: 0x0060
@@ -58,6 +66,10 @@
   group: 0x0008
   element: 0x0070
   op: "keep"
+- name: "Referring Physician's Name"
+  group: 0x0008
+  element: 0x0090
+  op: "replace"
 - name: "Study Description"
   group: 0x0008
   element: 0x1030
@@ -106,6 +118,14 @@
   group: 0x0010
   element: 0x0020
   op: "secure-hash"
+- name: "Patient's Birth Date Attribute"
+  group: 0x0010
+  element: 0x0030
+  op: "replace"
+- name: "Patient's Sex"
+  group: 0x0010
+  element: 0x0040
+  op: "keep"
 - name: "Scanning Sequence"
   group: 0x0018
   element: 0x0020
@@ -114,6 +134,10 @@
   group: 0x0018
   element: 0x0021
   op: "keep"
+- name: "MR Image"
+  group: 0x0018
+  element: 0x0022
+  op: "replace"
 - name: "MR Acquisition Type"
   group: 0x0018
   element: 0x0023
@@ -202,6 +226,10 @@
   group: 0x0018
   element: 0x1400
   op: "keep"
+- name: "Patient Position"
+  group: 0x0018
+  element: 0x5100
+  op: "replace"
 - name: "MR Acquisition Frequency Encoding Steps"
   group: 0x0018
   element: 0x9058
@@ -258,6 +286,10 @@
   group: 0x0020
   element: 0x0200
   op: "replace_UID"
+- name: "Position Reference Indicator"
+  group: 0x0020
+  element: 0x1040
+  op: "replace"
 - name: "Samples Per Pixel"
   group: 0x0028
   element: 0x0002
@@ -281,6 +313,10 @@
 - name: "Pixel Spacing"
   group: 0x0028
   element: 0x0030
+  op: "keep"
+- name: "Bits Allocated"
+  group: 0x0028
+  element: 0x0100
   op: "keep"
 - name: "Bits Stored"
   group: 0x0028
@@ -385,40 +421,4 @@
 - name: "Pixel Data"
   group: 0x7fe0
   element: 0x0010
-  op: "keep"
-- name: "Position Reference Indicator"
-  group: 0x0020
-  element: 0x1040
-  op: "replace"
-- name: "Patient Position"
-  group: 0x0018
-  element: 0x5100
-  op: "replace"
-- name: "Study Date"
-  group: 0x0008
-  element: 0x0020
-  op: "replace"
-- name: "General Study"
-  group: 0x0008
-  element: 0x0030
-  op: "replace"
-- name: "MR Image"
-  group: 0x0018
-  element: 0x0022
-  op: "replace"
-- name: "Patient"
-  group: 0x0010
-  element: 0x0030
-  op: "replace"
-- name: "Referring Physician's Name"
-  group: 0x0008
-  element: 0x0090
-  op: "replace"
-- name: "Bits Allocated"
-  group: 0x0028
-  element: 0x0100
-  op: "keep"
-- name: "Patient's Sex"
-  group: 0x0010
-  element: 0x0040
   op: "keep"
