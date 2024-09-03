@@ -232,7 +232,14 @@ async def test_image_saved(orthanc_raw, message: Message) -> None:
 
     assert not await study.query_local(orthanc)
     await process_message(message)
-    assert await study.query_local(orthanc)
+
+    studies = await study.query_local(orthanc)
+    assert len(studies) == 1
+
+    study_info = orthanc._get(f"/studies/{studies[0]}")
+    assert study_info["MainDicomTags"]["AccessionNumber"] == ACCESSION_NUMBER
+    assert study_info["PatientMainDicomTags"]["PatientID"] == PATIENT_ID
+    assert study_info["MainDicomTags"]["StudyInstanceUID"] == STUDY_UID
 
 
 @pytest.mark.processing()
