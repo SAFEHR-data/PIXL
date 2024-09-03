@@ -15,8 +15,6 @@
 Facilitates routing of stable studies from orthanc-raw to orthanc-anon
 
 This module provides:
--OnChange: route stable studies and if auto-routing enabled
--should_auto_route: checks whether auto-routing is enabled
 -OnHeartBeat: extends the REST API
 """
 
@@ -51,36 +49,6 @@ logger.add(sys.stdout, level=logging_level)
 logger.warning("Running logging at level {}", logging_level)
 
 
-def OnChange(changeType, level, resourceId):  # noqa: ARG001
-    """
-    # Taken from:
-    # https://book.orthanc-server.com/plugins/python.html#auto-routing-studies
-    This routes any stable study to a modality named PIXL-Anon if
-    should_auto_route returns true
-    """
-    if changeType != orthanc.ChangeType.STABLE_STUDY:
-        return
-
-    # imaging-api didn't get to updating pixl project name, could be incomplete so delete
-    if _get_project_name_from_study_id(resourceId) == DICOM_TAG_PROJECT_NAME.PLACEHOLDER_VALUE:
-        logger.warning("Study {} has not been set with a pixl project name, deleting", resourceId)
-        orthanc.RestApiDelete(f"/studies/{resourceId}")
-        return
-
-    if should_auto_route():
-        logger.debug("Sending study: {}", resourceId)
-        # Although this can throw, since we have nowhere to report errors
-        # back to (e.g. an HTTP client), don't try to handle anything here.
-        # The client will have to detect that it hasn't happened and retry.
-        orthanc_anon_store_study(resourceId)
-
-
-def _get_project_name_from_study_id(study_id: str) -> str:
-    response_study = orthanc.RestApiGet(f"/studies/{study_id}/shared-tags?simplify=true")
-    json_response = json.loads(response_study)
-    return json_response["UCLHPIXLProjectName"]
-
-
 def orthanc_anon_store_study(resource_id):
     """Call the API to send the specified resource (study) to the orthanc anon server."""
     # RestApiPost raises an orthanc.OrthancException if it fails
@@ -107,14 +75,6 @@ def should_record_headers() -> bool:
     set to true or false
     """
     return os.environ.get("ORTHANC_RAW_RECORD_HEADERS", "false").lower() == "true"
-
-
-def should_auto_route():
-    """
-    Checks whether ORTHANC_AUTOROUTE_RAW_TO_ANON environment variable is
-    set to true or false
-    """
-    return os.environ.get("ORTHANC_AUTOROUTE_RAW_TO_ANON", "false").lower() == "true"
 
 
 def modify_dicom_tags(receivedDicom: bytes, origin: str) -> Any:
@@ -169,14 +129,6 @@ def log_and_return_http(
 def SendResourceToAnon(output, uri, **request):  # noqa: ARG001
     """Send an existing study to the anon modality"""
     orthanc.LogWarning(f"Received request to send study to anon modality: {request}")
-    if not should_auto_route():
-        log_and_return_http(
-            output,
-            200,
-            "Auto-routing is not enabled",
-            f"Auto-routing is not enabled, dropping request {request}",
-        )
-        return
     try:
         body = json.loads(request["body"])
         resource_id = body["ResourceId"]
@@ -201,7 +153,6 @@ def SendResourceToAnon(output, uri, **request):  # noqa: ARG001
         log_and_return_http(output, 200, "OK")
 
 
-orthanc.RegisterOnChangeCallback(OnChange)
 orthanc.RegisterReceivedInstanceCallback(ReceivedInstanceCallback)
 orthanc.RegisterRestCallback("/heart-beat", OnHeartBeat)
 orthanc.RegisterRestCallback("/send-to-anon", SendResourceToAnon)

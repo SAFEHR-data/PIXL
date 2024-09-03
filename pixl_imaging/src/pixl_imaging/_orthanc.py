@@ -233,6 +233,6 @@ class PIXLRawOrthanc(Orthanc):
     def aet(self) -> str:
         return str(config("ORTHANC_RAW_AE_TITLE"))
 
-    async def send_existing_study_to_anon(self, resource_id: str) -> Any:
+    async def send_study_to_anon(self, resource_id: str) -> Any:
         """Send study to orthanc anon."""
         return await self._post("/send-to-anon", data={"ResourceId": resource_id})

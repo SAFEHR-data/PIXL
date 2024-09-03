@@ -85,7 +85,6 @@ services:
             ORTHANC_ANON_AE_TITLE: "unused"
             ORTHANC_ANON_DICOM_PORT: "4242"
             ORTHANC_ANON_HOSTNAME: "orthanc-anon"
-            ORTHANC_AUTOROUTE_RAW_TO_ANON: "false"
             PROJECT_CONFIGS_DIR: "/projects/configs"
             TZ: "Europe/London"
         ports:

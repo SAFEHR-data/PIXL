@@ -47,21 +47,18 @@ os.environ["SECONDARY_DICOM_SOURCE_AE_TITLE"] = "SECONDARYQR"
 os.environ["PIXL_DICOM_TRANSFER_TIMEOUT"] = "30"
 os.environ["SKIP_ALEMBIC"] = "true"
 os.environ["PIXL_MAX_MESSAGES_IN_FLIGHT"] = "20"
-os.environ["ORTHANC_AUTOROUTE_RAW_TO_ANON"] = "false"
 os.environ["TZ"] = "Europe/London"
 
 
 @pytest.fixture(autouse=True)
-def _patch_send_existing_study_to_anon(monkeypatch: Generator[MonkeyPatch, None, None]) -> None:
-    """Patch send_existing_study_to_anon in Orthanc as orthanc raw doesn't use the pixl plugin."""
+def _patch_send_study_to_anon(monkeypatch: Generator[MonkeyPatch, None, None]) -> None:
+    """Patch send_study_to_anon in Orthanc as orthanc raw doesn't use the pixl plugin."""
 
     async def patched_send(self, resource_id: str) -> None:
-        """Replaces send_existing_study_to_anon."""
+        """Replaces send_study_to_anon."""
         logger.info("Intercepted request to send '{}' to anon", resource_id)
 
-    monkeypatch.setattr(
-        "pixl_imaging._orthanc.PIXLRawOrthanc.send_existing_study_to_anon", patched_send
-    )
+    monkeypatch.setattr("pixl_imaging._orthanc.PIXLRawOrthanc.send_study_to_anon", patched_send)
 
 
 TEST_DIR = Path(__file__).parent
