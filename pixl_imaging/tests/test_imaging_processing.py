@@ -30,6 +30,7 @@ from pixl_imaging._processing import ImagingStudy, process_message
 from pydicom import dcmread
 from pydicom.data import get_testdata_file
 from pydicom.dataelem import DataElement
+from pydicom.uid import generate_uid
 from pytest_check import check
 from pytest_pixl.helpers import run_subprocess
 
@@ -41,7 +42,9 @@ pytest_plugins = ("pytest_asyncio",)
 
 ACCESSION_NUMBER = "abc"
 PATIENT_ID = "a_patient"
-STUDY_UID = "12345678"
+STUDY_UID = generate_uid(entropy_srcs=["12345678"])
+SERIES_UID = generate_uid(entropy_srcs=["12345678.1"])
+SOP_UID = generate_uid(entropy_srcs=["12345678.1.1"])
 message = Message(
     mrn=PATIENT_ID,
     accession_number=ACCESSION_NUMBER,
@@ -134,6 +137,8 @@ def _add_image_to_fake_vna(run_containers) -> Generator[None]:
     ds.AccessionNumber = ACCESSION_NUMBER
     ds.PatientID = PATIENT_ID
     ds.StudyInstanceUID = STUDY_UID
+    ds.SeriesInstanceUID = SERIES_UID
+    ds.SOPInstanceUID = SOP_UID
     ds.save_as(image_filename)
 
     vna = WritableOrthanc(
@@ -207,6 +212,14 @@ async def test_image_saved(orthanc_raw) -> None:
         assert study_info["PatientMainDicomTags"]["PatientID"] == PATIENT_ID
         assert study_info["MainDicomTags"]["StudyInstanceUID"] == STUDY_UID
 
+    series_info = await orthanc._get(f"/series/{study_info['Series'][0]}")
+    with check:
+        assert series_info["MainDicomTags"]["SeriesInstanceUID"] == SERIES_UID
+
+    instance_info = await orthanc._get(f"/instances/{series_info['Instances'][0]}")
+    with check:
+        assert instance_info["MainDicomTags"]["SOPInstanceUID"] == SOP_UID
+
 
 @pytest.mark.processing()
 @pytest.mark.asyncio()
@@ -233,6 +246,23 @@ async def test_existing_message_sent_twice(orthanc_raw) -> None:
 
     # Check update time hasn't changed
     assert first_processing_resource[0]["LastUpdate"] == second_processing_resource[0]["LastUpdate"]
+
+    studies = await study.query_local(orthanc)
+    assert len(studies) == 1
+
+    study_info = await orthanc._get(f"/studies/{studies[0]}")
+    with check:
+        assert study_info["MainDicomTags"]["AccessionNumber"] == ACCESSION_NUMBER
+        assert study_info["PatientMainDicomTags"]["PatientID"] == PATIENT_ID
+        assert study_info["MainDicomTags"]["StudyInstanceUID"] == STUDY_UID
+
+    series_info = await orthanc._get(f"/series/{study_info['Series'][0]}")
+    with check:
+        assert series_info["MainDicomTags"]["SeriesInstanceUID"] == SERIES_UID
+
+    instance_info = await orthanc._get(f"/instances/{series_info['Instances'][0]}")
+    with check:
+        assert instance_info["MainDicomTags"]["SOPInstanceUID"] == SOP_UID
 
 
 @pytest.mark.processing()
