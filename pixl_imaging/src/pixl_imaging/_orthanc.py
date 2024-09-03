@@ -93,7 +93,7 @@ class Orthanc(ABC):
             f"/studies/{study_id}/modify",
             {
                 "PrivateCreator": private_creator,
-                "Permissive": True,
+                "Permissive": False,
                 "Replace": tag_replacement,
                 "Asynchronous": True,
                 "Force": True,
