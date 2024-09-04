@@ -18,6 +18,7 @@ project:
 
 tag_operation_files:
     base:
+        - "base.yaml"
         - "mri.yaml"
         - "ms-pinpoint.yaml"
     manufacturer_overrides: ["mri.yaml"]
