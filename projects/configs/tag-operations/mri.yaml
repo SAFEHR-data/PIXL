@@ -118,7 +118,7 @@
   group: 0x0010
   element: 0x0020
   op: "secure-hash"
-- name: "Patient's Birth Date Attribute"
+- name: "Patient's Birth Date"
   group: 0x0010
   element: 0x0030
   op: "replace"
