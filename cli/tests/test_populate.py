@@ -41,7 +41,7 @@ class MockProducer(PixlProducer):
         """Context exit point."""
         return
 
-    def publish(self, messages: list[Message]) -> None:  # noqa: ARG002 don't access messages
+    def publish(self, messages: list[Message], priority: int) -> None:  # noqa: ARG002 don't access messages or priority
         """Dummy method for publish."""
         return
 

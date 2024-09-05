@@ -34,7 +34,7 @@ def test_publish(mock_message) -> None:
     """
     with PixlProducer(queue_name=TEST_QUEUE) as pp:
         pp.clear_queue()
-        pp.publish(messages=[mock_message])
+        pp.publish(messages=[mock_message], priority=1)
 
     with PixlProducer(queue_name=TEST_QUEUE) as pp:
         assert pp.message_count == 1
