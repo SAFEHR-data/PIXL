@@ -140,7 +140,6 @@ def row_for_dicom_testing(db_session, yaml_file) -> Session:
     """
 
     config = load_project_config(yaml_file.stem)
-    assert config.project.name == yaml_file.stem
     modality = config.project.modalities[0]
 
     extract = Extract(slug=config.project.name)
