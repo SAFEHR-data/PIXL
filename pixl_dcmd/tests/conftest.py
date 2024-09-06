@@ -304,7 +304,7 @@ def vanilla_single_dicom_image_DX(row_for_single_dicom_testing) -> Dataset:
     A DICOM image with diffusion data to test the anonymisation process.
     Private tags were added to match the tag operations defined in the project config, so we can
     test whether the anonymisation process works as expected when defining overrides.
-    The row_for_mri_dicom_testing dependency is to make sure the database is populated with the
+    The row_for_single_dicom_testing dependency is to make sure the database is populated with the
     project slug, which is used to anonymise the DICOM image.
     """
     ds = generate_dicom_dataset(Modality="DX")
@@ -323,7 +323,7 @@ def vanilla_single_dicom_image_DX(row_for_single_dicom_testing) -> Dataset:
 @pytest.fixture()
 def vanilla_dicom_image_MR(row_for_dicom_testing) -> Dataset:
     """
-    A DICOM image with diffusion data to test the anonymisation process.
+    A DICOM image with MX data to test the anonymisation process.
     Private tags were added to match the tag operations defined in the project config, so we can
     test whether the anonymisation process works as expected when defining overrides.
     The row_for_mri_dicom_testing dependency is to make sure the database is populated with the

@@ -188,7 +188,9 @@ def test_anonymise_and_validate_as_external_user() -> None:
 def test_anonymise_and_validate_dicom(caplog, request, yaml_file) -> None:
     """
     Test whether anonymisation and validation works as expected on a vanilla DICOM dataset
-    No warnings should be generated for a valid anonymisation
+    GIVEN a project configuration with tag operations that creates a DICOM dataset
+    WHEN the anonymisation and validation process is run
+    THEN the dataset should be anonymised and validated without any warnings or errors
     """
     caplog.clear()
     caplog.set_level(logging.WARNING)
