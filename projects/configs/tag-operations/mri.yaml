@@ -98,7 +98,7 @@
   group: 0x0008
   element: 0x9206
   op: "keep"
-- name: "Volume Based Calculation Technique Attribute"
+- name: "Volume Based Calculation Technique"
   group: 0x0008
   element: 0x9207
   op: "keep"
