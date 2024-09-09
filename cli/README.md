@@ -109,6 +109,19 @@ Stop Imaging extraction
 pixl stop
 ```
 
+### High-priority messages
+
+By default, messages will be sent to the queue with the lowest priority (1).
+
+To send to the queue with a different priority, you can use the `--priority` argument to
+`populate`:
+
+```bash
+pixl populate --priority 5 <path/to/file.csv>
+```
+
+`priority` must be an integer between 1 and 5, with 5 being the highest priority.
+
 ## Development
 ### Help commands
 The CLI is created using [click](https://click.palletsprojects.com/en/8.0.x/). To see which commands

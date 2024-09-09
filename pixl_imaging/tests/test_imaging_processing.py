@@ -30,6 +30,7 @@ from pixl_imaging._processing import ImagingStudy, process_message
 from pydicom import dcmread
 from pydicom.data import get_testdata_file
 from pydicom.dataelem import DataElement
+from pydicom.uid import generate_uid
 from pytest_check import check
 from pytest_pixl.helpers import run_subprocess
 
@@ -41,7 +42,8 @@ pytest_plugins = ("pytest_asyncio",)
 
 ACCESSION_NUMBER = "abc"
 PATIENT_ID = "a_patient"
-STUDY_UID = "12345678"
+STUDY_UID = generate_uid(entropy_srcs=["12345678"])
+SERIES_UID = generate_uid(entropy_srcs=["12345678.1"])
 SOP_INSTANCE_UID = "1.1.1.1.1.1.1111.1.1.1.1.1.11111111111111.11111"
 SOP_INSTANCE_UID_2 = "2.2.2.2.2.2.2222.2.2.2.2.2.22222222222222.22222"
 
@@ -61,22 +63,6 @@ def message() -> Message:
         mrn=PATIENT_ID,
         accession_number=ACCESSION_NUMBER,
         study_uid=STUDY_UID,
-        study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
-            tzinfo=datetime.timezone.utc
-        ),
-        procedure_occurrence_id=234,
-        project_name="test project",
-        extract_generated_timestamp=datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
-    )
-
-
-@pytest.fixture(scope="module")
-def no_uid_message() -> Message:
-    """A Message with a study_uid that does not exist in the database."""
-    return Message(
-        mrn=PATIENT_ID,
-        accession_number=ACCESSION_NUMBER,
-        study_uid="idontexist",
         study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
             tzinfo=datetime.timezone.utc
         ),
@@ -168,8 +154,16 @@ def _add_image_to_fake_vna(run_containers) -> Generator[None]:
     ds.AccessionNumber = ACCESSION_NUMBER
     ds.PatientID = PATIENT_ID
     ds.StudyInstanceUID = STUDY_UID
+    ds.SeriesInstanceUID = SERIES_UID
     ds.SOPInstanceUID = SOP_INSTANCE_UID
     ds.save_as(image_filename)
+
+    vna = WritableOrthanc(
+        aet="PRIMARYQR",
+        url=config("ORTHANC_VNA_URL"),
+        username=config("ORTHANC_VNA_USERNAME"),
+        password=config("ORTHANC_VNA_PASSWORD"),
+    )
     vna.upload(image_filename)
 
     instance_2_image_filename = "test_2.dcm"
@@ -232,7 +226,23 @@ async def test_image_saved(orthanc_raw, message: Message) -> None:
 
     assert not await study.query_local(orthanc)
     await process_message(message)
-    assert await study.query_local(orthanc)
+
+    studies = await study.query_local(orthanc)
+    assert len(studies) == 1
+
+    study_info = await orthanc._get(f"/studies/{studies[0]}")
+    with check:
+        assert study_info["MainDicomTags"]["AccessionNumber"] == ACCESSION_NUMBER
+        assert study_info["PatientMainDicomTags"]["PatientID"] == PATIENT_ID
+        assert study_info["MainDicomTags"]["StudyInstanceUID"] == STUDY_UID
+
+    series_info = await orthanc._get(f"/series/{study_info['Series'][0]}")
+    with check:
+        assert series_info["MainDicomTags"]["SeriesInstanceUID"] == SERIES_UID
+
+    instance_info = await orthanc._get(f"/instances/{series_info['Instances'][0]}")
+    with check:
+        assert instance_info["MainDicomTags"]["SOPInstanceUID"] == SOP_INSTANCE_UID
 
 
 @pytest.mark.processing()
@@ -301,6 +311,23 @@ async def test_existing_message_sent_twice(orthanc_raw, message: Message) -> Non
 
     # Check update time hasn't changed
     assert first_processing_resource[0]["LastUpdate"] == second_processing_resource[0]["LastUpdate"]
+
+    studies = await study.query_local(orthanc)
+    assert len(studies) == 1
+
+    study_info = await orthanc._get(f"/studies/{studies[0]}")
+    with check:
+        assert study_info["MainDicomTags"]["AccessionNumber"] == ACCESSION_NUMBER
+        assert study_info["PatientMainDicomTags"]["PatientID"] == PATIENT_ID
+        assert study_info["MainDicomTags"]["StudyInstanceUID"] == STUDY_UID
+
+    series_info = await orthanc._get(f"/series/{study_info['Series'][0]}")
+    with check:
+        assert series_info["MainDicomTags"]["SeriesInstanceUID"] == SERIES_UID
+
+    instance_info = await orthanc._get(f"/instances/{series_info['Instances'][0]}")
+    with check:
+        assert instance_info["MainDicomTags"]["SOPInstanceUID"] == SOP_INSTANCE_UID
 
 
 @pytest.mark.processing()
