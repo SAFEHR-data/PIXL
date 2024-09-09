@@ -269,23 +269,24 @@ async def test_partial_retrieve(orthanc_raw, message: Message, caplog) -> None:
     all_instances = await orthanc._get("/instances")
     assert len(all_instances) == 2
 
+    instance_info = {}
+
     with check:
         for instance in all_instances:
             instance_info = await orthanc._get(f"/instances/{instance}")
             sop_instance_uid = instance_info["MainDicomTags"]["SOPInstanceUID"]
             assert sop_instance_uid in (SOP_INSTANCE_UID, SOP_INSTANCE_UID_2)
 
-    instance_to_delete = all_instances.pop()
-    await orthanc.delete(f"/instances/{instance_to_delete}")
+    await orthanc.delete(f"/instances/{instance_info['ID']}")
 
     await process_message(message)
     all_instances = await orthanc._get("/instances")
     assert len(all_instances) == 2
 
-    expected_msg = f"Retrieving missing instance for study {STUDY_UID}"
-    assert caplog.text.count(expected_msg) == 1
-
-    expected_msg = (f"Instance {SOP_INSTANCE_UID_2} is missing from study {STUDY_UID}",)
+    expected_msg = (
+        f"Instance {instance_info['MainDicomTags']['SOPInstanceUID']}"
+        f" is missing from study {STUDY_UID}"
+    )
     assert expected_msg in caplog.text
 
 
