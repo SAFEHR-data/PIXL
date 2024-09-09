@@ -30,10 +30,11 @@ from loguru import logger
 class PixlProducer(PixlBlockingInterface):
     """Generic publisher for RabbitMQ"""
 
-    def publish(self, messages: list[Message]) -> None:
+    def publish(self, messages: list[Message], priority: int) -> None:
         """
         Sends a list of serialised messages to a queue.
         :param messages: list of messages to be sent to queue
+        :param priority: priority of the messages, from 1 (lowest) to 5 (highest)
         """
         logger.info("Publishing {} messages to queue: {}", len(messages), self.queue_name)
         if len(messages) > 0:
@@ -43,9 +44,14 @@ class PixlProducer(PixlBlockingInterface):
                     exchange="",
                     routing_key=self.queue_name,
                     body=serialised_msg,
-                    properties=BasicProperties(delivery_mode=DeliveryMode.Persistent),
+                    properties=BasicProperties(
+                        delivery_mode=DeliveryMode.Persistent,
+                        priority=priority,
+                    ),
                 )
-                logger.debug("Message {} published to queue {}", msg, self.queue_name)
+                logger.debug(
+                    "Message {} published to queue {} with priority", msg, self.queue_name, priority
+                )
         else:
             logger.warning("List of messages is empty so nothing will be published to queue.")
 
