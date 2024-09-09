@@ -102,6 +102,11 @@
   // modality initiating a DICOM connection (as listed in the
   // "DicomModalities" option above). If this option is set to
   // "false", Orthanc only checks the AET of the remote modality.
-  "DicomCheckModalityHost" : false
+  "DicomCheckModalityHost" : false,
+
+  // Overwrite instances with the same UID
+  // This allows us to set the project name tag in-place without modifying the
+  //StudyInstanceUID, SeriesInstanceUID, and SOPInstanceUID
+  "OverwriteInstance": true
 
 }
