@@ -67,7 +67,7 @@ def test_messages_from_csv_multiple_projects(
     """
     input_file = omop_resources / "multiple_projects.csv"
     messages_df = read_patient_info(input_file)
-    messages = populate_queue_and_db(["imaging"], messages_df)
+    messages = populate_queue_and_db(["imaging"], messages_df, messages_priority=1)
 
     # Database has 6 rows now
     images_in_db = rows_in_session.query(Image).all()
@@ -122,7 +122,7 @@ def test_batch_upload(omop_resources: Path, rows_in_session, mock_publisher) -> 
     """
     input_file = omop_resources / "batch_input.csv"
     messages_df = read_patient_info(input_file)
-    messages = populate_queue_and_db(["imaging"], messages_df)
+    messages = populate_queue_and_db(["imaging"], messages_df, messages_priority=1)
 
     # Database has 3 rows now
     images_in_db: list[Image] = rows_in_session.query(Image).all()
@@ -139,7 +139,7 @@ def test_duplicate_upload(omop_resources: Path, rows_in_session, mock_publisher)
     """
     input_file = omop_resources / "duplicate_input.csv"
     messages_df = read_patient_info(input_file)
-    messages = populate_queue_and_db(["imaging"], messages_df)
+    messages = populate_queue_and_db(["imaging"], messages_df, messages_priority=1)
 
     # Database has 3 rows now
     images_in_db = rows_in_session.query(Image).all()
@@ -157,7 +157,7 @@ def test_upload_with_participant_id(omop_resources: Path, db_session, mock_publi
     """
     input_file = omop_resources / "participant_id.csv"
     messages_df = read_patient_info(input_file)
-    messages = populate_queue_and_db(["imaging"], messages_df)
+    messages = populate_queue_and_db(["imaging"], messages_df, messages_priority=1)
 
     # Database has 3 rows now
     images_in_db: list[Image] = db_session.query(Image).all()
@@ -179,7 +179,7 @@ def test_upload_with_no_participant_id(omop_resources: Path, db_session, mock_pu
     """
     input_file = omop_resources / "batch_input.csv"
     messages_df = read_patient_info(input_file)
-    messages = populate_queue_and_db(["imaging"], messages_df)
+    messages = populate_queue_and_db(["imaging"], messages_df, messages_priority=1)
 
     # Database has 3 rows now
     images_in_db: list[Image] = db_session.query(Image).all()

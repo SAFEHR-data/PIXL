@@ -94,9 +94,10 @@ class Orthanc(ABC):
             {
                 "PrivateCreator": private_creator,
                 "Permissive": False,
-                "KeepSource": False,
                 "Replace": tag_replacement,
                 "Asynchronous": True,
+                "Force": True,
+                "Keep": ["StudyInstanceUID", "SeriesInstanceUID", "SOPInstanceUID"],
             },
         )
         logger.debug("Modify studies Job: {}", response)
