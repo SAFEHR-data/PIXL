@@ -134,7 +134,7 @@
   group: 0x0018
   element: 0x0021
   op: "keep"
-- name: "MR Image"
+- name: "Scan Options Attribute"
   group: 0x0018
   element: 0x0022
   op: "replace"
