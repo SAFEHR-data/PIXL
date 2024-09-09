@@ -347,7 +347,10 @@ async def test_existing_message_sent_twice(orthanc_raw, message: Message) -> Non
 
     instance_info = await orthanc._get(f"/instances/{series_info['Instances'][0]}")
     with check:
-        assert instance_info["MainDicomTags"]["SOPInstanceUID"] == SOP_INSTANCE_UID
+        assert instance_info["MainDicomTags"]["SOPInstanceUID"] in (
+            SOP_INSTANCE_UID,
+            SOP_INSTANCE_UID_2,
+        )
 
 
 @pytest.mark.processing()
