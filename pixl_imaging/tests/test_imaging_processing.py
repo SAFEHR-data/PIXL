@@ -73,6 +73,22 @@ def message() -> Message:
 
 
 @pytest.fixture(scope="module")
+def no_uid_message() -> Message:
+    """A Message with a valid study_uid."""
+    return Message(
+        mrn=PATIENT_ID,
+        accession_number=ACCESSION_NUMBER,
+        study_uid="ialsodontexist",
+        study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
+            tzinfo=datetime.timezone.utc
+        ),
+        procedure_occurrence_id=234,
+        project_name="test project",
+        extract_generated_timestamp=datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
+    )
+
+
+@pytest.fixture(scope="module")
 def pacs_message() -> Message:
     """A Message with a valid study_uid for a study that exists in PACS but not VNA."""
     return Message(
