@@ -32,10 +32,13 @@
   // jobs (for the jobs that can be parallelized).
   // A value of "0" indicates to use all the available CPU logical cores
   "JobsEngineThreadsCount" : {
-    "ResourceModification": 0  // for /anonymize, /modify
+    "ResourceModification": 20  // for /anonymize, /modify
   },
 
-  // To enable plugins:
+
+  "DicomScpTimeout" : 1800,
+
+// To enable plugins:
   "Plugins" : [ "/usr/share/orthanc/plugins" ],
   "PythonScript" : "/etc/orthanc/pixl.py",
   "PythonVerbose" : false,

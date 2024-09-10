@@ -32,7 +32,7 @@
       "AllowStorageCommitment" : false,
       "AllowTranscoding" : true,
       "UseDicomTls" : false,
-      "Timeout" : 60
+      "Timeout" : 1800
     },
     "PIXL-Anon" : {
       "AET" : "${ORTHANC_ANON_AE_TITLE}",
@@ -48,7 +48,7 @@
       "AllowStorageCommitment" : false,
       "AllowTranscoding" : true,
       "UseDicomTls" : false,
-      "Timeout" : 60
+      "Timeout" : 600
     }
   },
 
