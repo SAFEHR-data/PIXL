@@ -315,7 +315,7 @@ async def _retrieve_missing_instances(
     missing_instances = await _get_missing_instances(orthanc_raw, study, resource)
     if missing_instances is None:
         return
-    logger.info(
+    logger.debug(
         "Retrieving {} missing instances for study {}",
         len(missing_instances),
         study.message.study_uid,
@@ -371,7 +371,7 @@ async def _get_missing_instances(
         if sop_instance_uid in orthanc_raw_sop_instance_uids:
             continue
 
-        logger.info(
+        logger.debug(
             "Instance {} is missing from study {}",
             sop_instance_uid,
             study.message.study_uid,
