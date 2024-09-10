@@ -85,10 +85,13 @@ class Orthanc(ABC):
         """Get the content of a query answer"""
         return await self._get(f"/queries/{query_id}/answers/{answer_id}/content")
 
-    async def get_remote_query_answer_instances(self, query_id: str, answer_id: str) -> Any:
+    async def get_remote_query_answer_instances(
+        self, query_id: str, answer_id: str, timeout: float
+    ) -> Any:
         """Get the instances of a query answer"""
         response = await self._post(
-            f"/queries/{query_id}/answers/{answer_id}/query-instances", data={"Query": {}}
+            f"/queries/{query_id}/answers/{answer_id}/query-instances",
+            data={"Query": {}, "Timeout": timeout},
         )
         return response["ID"]
 

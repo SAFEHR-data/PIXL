@@ -294,7 +294,7 @@ async def _retrieve_missing_instances(
     resource: dict, orthanc_raw: Orthanc, study: ImagingStudy, timeout: float
 ) -> None:
     """Retrieve missing instances for a study from the VNA / PACS."""
-    missing_instances = await _get_missing_instances(orthanc_raw, study, resource)
+    missing_instances = await _get_missing_instances(orthanc_raw, study, resource, timeout)
     if missing_instances is None:
         return
     logger.debug(
@@ -313,6 +313,7 @@ async def _get_missing_instances(
     orthanc_raw: Orthanc,
     study: ImagingStudy,
     resource: dict,
+    timeout: float,
 ) -> Optional[list[tuple[str, str]]]:
     """
     Check if any study instances are missing from Orthanc Raw.
@@ -332,8 +333,7 @@ async def _get_missing_instances(
     study_query_id = await _find_study_in_archives_or_raise(orthanc_raw, study)
     study_query_answers = await orthanc_raw.get_remote_query_answers(study_query_id)
     instances_query_id = await orthanc_raw.get_remote_query_answer_instances(
-        query_id=study_query_id,
-        answer_id=study_query_answers[0],
+        query_id=study_query_id, answer_id=study_query_answers[0], timeout=timeout
     )
     instances_query_answers = await orthanc_raw.get_remote_query_answers(instances_query_id)
 
