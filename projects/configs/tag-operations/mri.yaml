@@ -237,12 +237,14 @@
   group: 0x0020
   element: 0x000e
   op: "replace_UID"
-  element: 0x5100
-  op: "replace"
 - name: "Study ID"
   group: 0x0020
   element: 0x0010
   op: "replace"
+- name: "Series Number"
+  group: 0x0020
+  element: 0x0011
+  op: "keep"
 - name: "Acquisition Number"
   group: 0x0020
   element: 0x0012
