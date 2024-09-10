@@ -12,8 +12,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-# Default configuration for Standard MR Image 
-# Using 
+# Default configuration for Standard MR Image
+# Using
 # https://dicom.innolitics.com/ciods/mr-image
 # https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_A.4.3.html#table_A.4-1
 
@@ -53,6 +53,10 @@
   group: 0x0008
   element: 0x0020
   op: "replace"
+- name: "General Study"
+  group: 0x0008
+  element: 0x0030
+  op: "replace"
 - name: "Modality"
   group: 0x0008
   element: 0x0060
@@ -81,6 +85,22 @@
   group: 0x0008
   element: 0x9205
   op: "keep"
+- name: "Volumetric Properties"
+  group: 0x0008
+  element: 0x9206
+  op: "keep"
+- name: "Volume Based Calculation Technique"
+  group: 0x0008
+  element: 0x9207
+  op: "keep"
+- name: "Complex Image Component"
+  group: 0x0008
+  element: 0x9208
+  op: "keep"
+- name: "Acquisition Contrast"
+  group: 0x0008
+  element: 0x9209
+  op: "keep"
 - name: "Patients Name"
   group: 0x0010
   element: 0x0010
@@ -105,6 +125,10 @@
   group: 0x0018
   element: 0x0021
   op: "keep"
+- name: "MR Image"
+  group: 0x0018
+  element: 0x0022
+  op: "replace"
 - name: "MR Acquisition Type"
   group: 0x0018
   element: 0x0023
@@ -153,6 +177,22 @@
   group: 0x0018
   element: 0x1020
   op: "keep"
+- name: "Field Of View Dimension"
+  group: 0x0018
+  element: 0x1149
+  op: "keep"
+- name: "Imager Pixel Spacing"
+  group: 0x0018
+  element: 0x1164
+  op: "keep"
+- name: "Grid"
+  group: 0x0018
+  element: 0x1166
+  op: "keep"
+- name: "Focal Spot"
+  group: 0x0018
+  element: 0x1190
+  op: "keep"
 - name: "Protocol Name"
   group: 0x0018
   element: 0x1030
@@ -173,8 +213,30 @@
   group: 0x0018
   element: 0x1316
   op: "keep"
+- name: "Acquisition Device Processing Description"
+  group: 0x0018
+  element: 0x1400
+  op: "keep"
 - name: "Patient Position"
   group: 0x0018
+  element: 0x5100
+  op: "replace"
+- name: "MR Acquisition Frequency Encoding Steps"
+  group: 0x0018
+  element: 0x9058
+  op: "keep"
+- name: "MR Acquisition Phase Encoding Steps in-plane"
+  group: 0x0018
+  element: 0x9231
+  op: "keep"
+- name: "Study Instance UID"
+  group: 0x0020
+  element: 0x000d
+  op: "replace_UID"
+- name: "Series Instance UID"
+  group: 0x0020
+  element: 0x000e
+  op: "replace_UID"
   element: 0x5100
   op: "replace"
 - name: "Study ID"
@@ -213,6 +275,10 @@
   group: 0x0020
   element: 0x1040
   op: "replace"
+- name: "Synchronization Frame of Reference UID"
+  group: 0x0020
+  element: 0x0200
+  op: "replace_UID"
 - name: "Samples Per Pixel"
   group: 0x0028
   element: 0x0002
@@ -277,9 +343,9 @@
   group: 0x0028
   element: 0x3010
   op: "keep"
-- name: "UID"
+- name: "UID Attribute"
   group: 0x0040
-  element: 0xa124
+  element: 0xA124
   op: "replace_UID"
 - name: "View Code Sequence"
   group: 0x0054
