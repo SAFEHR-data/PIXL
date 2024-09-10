@@ -209,21 +209,21 @@ async def _find_study_in_archives_or_raise(orthanc_raw: Orthanc, study: ImagingS
 
     if config("SECONDARY_DICOM_SOURCE_AE_TITLE") == config("PRIMARY_DICOM_SOURCE_AE_TITLE"):
         msg = (
-            f"Failed to find study {study.message.study_uid} in primary archive "
+            f"Failed to find study {study.message.identifier} in primary archive "
             "and SECONDARY_DICOM_SOURCE_AE_TITLE is the same as PRIMARY_DICOM_SOURCE_AE_TITLE."
         )
         raise PixlDiscardError(msg)
 
     if _is_daytime() or _is_weekend():
         msg = (
-            f"Failed to find study {study.message.study_uid} in primary archive. "
+            f"Failed to find study {study.message.identifier} in primary archive. "
             "Not querying secondary archive during the daytime or on the weekend."
         )
         raise PixlDiscardError(msg)
 
-    logger.info(
+    logger.debug(
         "Failed to find study {} in primary archive, trying secondary archive",
-        study.message.study_uid,
+        study.message.identifier,
     )
     query_id = await _find_study_in_archive(
         study=study,
@@ -232,7 +232,7 @@ async def _find_study_in_archives_or_raise(orthanc_raw: Orthanc, study: ImagingS
     )
 
     if query_id is None:
-        msg = f"Failed to find study {study.message.study_uid} in primary or secondary archive."
+        msg = f"Failed to find study {study.message.identifier} in primary or secondary archive."
         raise PixlDiscardError(msg)
 
     return query_id
@@ -256,13 +256,13 @@ async def _find_study_in_archive(
     if query_response is not None:
         return query_response
 
-    logger.info(
-        "No study found in modality {} with UID {}, trying MRN and accession number",
+    logger.debug(
+        "No study found in modality {} with UID '{}', trying MRN and accession number",
         modality,
         study.message.study_uid,
     )
     return await orthanc_raw.query_remote(
-        study.orthanc_query_dict | additional_data,
+        study.orthanc_query_dict,
         modality=modality,
     )
 
