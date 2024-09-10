@@ -381,7 +381,6 @@ class ImagingStudy:
             "Level": "Study",
             "Query": {
                 "StudyInstanceUID": self.message.study_uid,
-                "InstanceAvailability": "",
             },
         }
 
@@ -393,7 +392,6 @@ class ImagingStudy:
             "Query": {
                 "PatientID": self.message.mrn,
                 "AccessionNumber": self.message.accession_number,
-                "InstanceAvailability": "",
             },
         }
 
