@@ -190,10 +190,6 @@
   group: 0x0018
   element: 0x1020
   op: "keep"
-- name: "Protocol Name"
-  group: 0x0018
-  element: 0x1030
-  op: "delete"
 - name: "Field Of View Dimension"
   group: 0x0018
   element: 0x1149
@@ -386,10 +382,6 @@
   group: 0x0028
   element: 0x3010
   op: "keep"
-- name: "Current Patient Location"
-  group: 0x0038
-  element: 0x0300
-  op: "delete"
 - name: "UID"
   group: 0x0040
   element: 0xA124

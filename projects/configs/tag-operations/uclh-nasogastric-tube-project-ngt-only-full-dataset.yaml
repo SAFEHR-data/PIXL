@@ -39,22 +39,6 @@
   group: 0x0008
   element: 0x0020
   op: "replace"
-- name: "Series Date"
-  group: 0x0008
-  element: 0x0021
-  op: "delete"
-- name: "Acquisition Date"
-  group: 0x0008
-  element: 0x0022
-  op: "delete"
-- name: "Image Date"
-  group: 0x0008
-  element: 0x0023
-  op: "delete"
-- name: "Acquisition Date Time"
-  group: 0x0008
-  element: 0x002a
-  op: "delete"
 - name: "Instance Creator UID"
   group: 0x0008
   element: 0x0014
@@ -63,18 +47,6 @@
   group: 0x0008
   element: 0x0030
   op: "replace"
-- name: "Series Time"
-  group: 0x0008
-  element: 0x0031
-  op: "delete"
-- name: "Acquisition Time"
-  group: 0x0008
-  element: 0x0032
-  op: "delete"
-- name: "Image Time"
-  group: 0x0008
-  element: 0x0033
-  op: "delete"
 - name: "Accession Number"
   group: 0x0008
   element: 0x0050
@@ -87,30 +59,14 @@
   group: 0x0008
   element: 0x0061
   op: "keep"
-- name: "Presentation Intent Type"
-  group: 0x0008
-  element: 0x0068
-  op: "delete"
 - name: "Manufacturer"
   group: 0x0008
   element: 0x0070
   op: "keep"
-- name: "Institution Name"
-  group: 0x0008
-  element: 0x0080
-  op: "delete"
-- name: "Institution Address"
-  group: 0x0008
-  element: 0x0081
-  op: "delete"
 - name: "Referring Physicians Name"
   group: 0x0008
   element: 0x0090
   op: "replace"
-- name: "Station Name"
-  group: 0x0008
-  element: 0x1010
-  op: "delete"
 - name: "Study Description"
   group: 0x0008
   element: 0x1030
@@ -119,54 +75,14 @@
   group: 0x0008
   element: 0x103e
   op: "keep"
-- name: "Institutional Department Name"
-  group: 0x0008
-  element: 0x1040
-  op: "delete"
-- name: "Physicians Of Record"
-  group: 0x0008
-  element: 0x1048
-  op: "delete"
-- name: "Performing Physicians Name"
-  group: 0x0008
-  element: 0x1050
-  op: "delete"
-- name: "Name Of Physicians Reading Study"
-  group: 0x0008
-  element: 0x1060
-  op: "delete"
-- name: "Operators Name"
-  group: 0x0008
-  element: 0x1070
-  op: "delete"
 - name: "Manufacturers Model Name"
   group: 0x0008
   element: 0x1090
   op: "keep"
-- name: "Referenced Study Sequence"
-  group: 0x0008
-  element: 0x1110
-  op: "delete"
-- name: "Referenced Patient Sequence"
-  group: 0x0008
-  element: 0x1120
-  op: "delete"
 - name: "Referenced SOP Instance UID"
   group: 0x0008
   element: 0x1155
   op: "replace_UID"
-- name: "Source Image Sequence"
-  group: 0x0008
-  element: 0x2112
-  op: "delete"
-- name: "Anatomic Region Sequence"
-  group: 0x0008
-  element: 0x2218
-  op: "delete"
-- name: "Irradiation Event UID"
-  group: 0x0008
-  element: 0x3010
-  op: "delete"
 - name: "Patients Name"
   group: 0x0010
   element: 0x0010
@@ -175,34 +91,14 @@
   group: 0x0010
   element: 0x0020
   op: "secure-hash"
-- name: "Issuer Of Patient ID"
-  group: 0x0010
-  element: 0x0021
-  op: "delete"
 - name: "Patients Birth Date"
   group: 0x0010
   element: 0x0030
   op: "replace"
-- name: "Patients Birth Time"
-  group: 0x0010
-  element: 0x0032
-  op: "delete"
 - name: "Patients Sex"
   group: 0x0010
   element: 0x0040
   op: "keep"
-- name: "Other Patient IDs"
-  group: 0x0010
-  element: 0x1000
-  op: "delete"
-- name: "Other Patient Names"
-  group: 0x0010
-  element: 0x1001
-  op: "delete"
-- name: "Patients Age"
-  group: 0x0010
-  element: 0x1010
-  op: "delete"
 - name: "Patients Size"
   group: 0x0010
   element: 0x1020
@@ -211,38 +107,6 @@
   group: 0x0010
   element: 0x1030
   op: "keep"
-- name: "Patients Address"
-  group: 0x0010
-  element: 0x1040
-  op: "delete"
-- name: "Medical Alerts"
-  group: 0x0010
-  element: 0x2000
-  op: "delete"
-- name: "Additional Patient History"
-  group: 0x0010
-  element: 0x21b0
-  op: "delete"
-- name: "Pregnancy Status"
-  group: 0x0010
-  element: 0x21c0
-  op: "delete"
-- name: "Contrast Allergies"
-  group: 0x0010
-  element: 0x2110
-  op: "delete"
-- name: "Ethnic Group"
-  group: 0x0010
-  element: 0x2160
-  op: "delete"
-- name: "Patient Comments"
-  group: 0x0010
-  element: 0x4000
-  op: "delete"
-- name: "Private Creator Data Element"
-  group: 0x0011
-  element: 0x0010
-  op: "delete"
 - name: "Body Part Examined"
   group: 0x0018
   element: 0x0015
@@ -279,18 +143,10 @@
   group: 0x0018
   element: 0x0091
   op: "keep"
-- name: "Device Serial Number"
-  group: 0x0018
-  element: 0x1000
-  op: "delete"
 - name: "Software Version"
   group: 0x0018
   element: 0x1020
   op: "keep"
-- name: "Protocol Name"
-  group: 0x0018
-  element: 0x1030
-  op: "delete"
 - name: "Field Of View Dimension"
   group: 0x0018
   element: 0x1149
@@ -467,10 +323,6 @@
   group: 0x0020
   element: 0x0062
   op: "keep"
-- name: "Number Of Study Related Images"
-  group: 0x0020
-  element: 0x1208
-  op: "delete"
 - name: "Samples Per Pixel"
   group: 0x0028
   element: 0x0002
@@ -563,58 +415,10 @@
   group: 0x0028
   element: 0x3010
   op: "keep"
-- name: "Current Patient Location"
-  group: 0x0038
-  element: 0x0300
-  op: "delete"
-- name: "Patient State"
-  group: 0x0038
-  element: 0x0500
-  op: "delete"
-- name: "Performed Procedure Start Date"
-  group: 0x0040
-  element: 0x0244
-  op: "delete"
-- name: "Performed Procedure Start Time"
-  group: 0x0040
-  element: 0x0245
-  op: "delete"
-- name: "Performed Procedure Step ID"
-  group: 0x0040
-  element: 0x0253
-  op: "delete"
-- name: "Performed Procedure Step Description"
-  group: 0x0040
-  element: 0x0254
-  op: "delete"
-- name: "Performed Action Item Sequence"
-  group: 0x0040
-  element: 0x0260
-  op: "delete"
-- name: "Request Attributes Sequence"
-  group: 0x0040
-  element: 0x0275
-  op: "delete"
-- name: "Acquisition Context Sequence"
-  group: 0x0040
-  element: 0x0555
-  op: "delete"
-- name: "Confidentiality Code"
-  group: 0x0040
-  element: 0x1008
-  op: "delete"
-- name: "Private Creator Data Element"
-  group: 0x0045
-  element: 0x0010
-  op: "delete"
 - name: "View Code Sequence"
   group: 0x0054
   element: 0x0220
   op: "keep"
-- name: "Image Comments"
-  group: 0x0020
-  element: 0x4000
-  op: "delete"
 - name: "Frame of Reference UID"
   group: 0x0020
   element: 0x0052
@@ -627,10 +431,6 @@
   group: 0x0088
   element: 0x0140
   op: "replace_UID"
-- name: "Study Comments [Retired]"
-  group: 0x0032
-  element: 0x4000
-  op: "delete"
 - name: "UID"
   group: 0x0040
   element: 0xA124
