@@ -431,7 +431,7 @@
   group: 0x0028
   element: 0x3010
   op: "keep"
-- name: "UID"
+- name: "UID Attribute"
   group: 0x0040
   element: 0xA124
   op: "replace_UID"
