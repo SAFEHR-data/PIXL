@@ -193,10 +193,6 @@
   group: 0x0018
   element: 0x1190
   op: "keep"
-- name: "Protocol Name"
-  group: 0x0018
-  element: 0x1030
-  op: "delete"
 - name: "Receive Coil Name"
   group: 0x0018
   element: 0x1250
