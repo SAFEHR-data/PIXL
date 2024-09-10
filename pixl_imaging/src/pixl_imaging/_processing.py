@@ -247,14 +247,12 @@ async def _find_study_in_archive(
     Query the primary archive for the study using its UID.
     If UID is not available, query on MRN and accession number.
     """
-    # We don't want to normalize the query otherwise only MainDicomTags will be returned
-    # (InstanceAvailability will be ignored)
-    additional_data = {"Normalize": False}
-    query_response = await orthanc_raw.query_remote(
-        data=study.orthanc_uid_query_dict | additional_data,
-        modality=modality,
-    )
-
+    query_response = None
+    if study.message.study_uid:
+        query_response = await orthanc_raw.query_remote(
+            data=study.orthanc_uid_query_dict,
+            modality=modality,
+        )
     if query_response is not None:
         return query_response
 
