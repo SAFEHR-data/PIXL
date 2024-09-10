@@ -8,9 +8,7 @@ The imaging API will:
 - query the [VNA](https://en.wikipedia.org/wiki/Vendor_Neutral_Archive) for existing images
 - if a study is not found in the VNA, query
   [PACS](https://en.wikipedia.org/wiki/Picture_archiving_and_communication_system) for existing images.
-  The study will only be pulled if it's available
-  [ONLINE](https://dicom.nema.org/medical/dicom/2020b/output/chtml/part03/sect_C.4.23.html) (i.e.
-  it can be pulled from the Retrieve AE Title)
+
 
 The imaging API exposes a single HTTP endpoint that expects a JSON-formatted message structured as defined by the
 [`Message`](../pixl_core/src/core/patient_queue/message.py) class in `pixl_core/patient_queue`.

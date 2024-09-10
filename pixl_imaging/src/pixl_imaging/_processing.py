@@ -196,8 +196,7 @@ async def _find_study_in_archives_or_raise(orthanc_raw: Orthanc, study: ImagingS
     2. Query the secondary archive using the study UID. If UID is not available, query on
       MRN + accession number.
         a) If not found, raise a PixlDiscardError.
-        a) If found in the ONLINE secondary archive, return the query id.
-        b) if found in the secondary archive but not ONLINE, raise a PixlDiscardError.
+        a) If found in the secondary archive, return the query id.
     """
     query_id = await _find_study_in_archive(
         orthanc_raw=orthanc_raw,
@@ -234,21 +233,6 @@ async def _find_study_in_archives_or_raise(orthanc_raw: Orthanc, study: ImagingS
 
     if query_id is None:
         msg = f"Failed to find study {study.message.study_uid} in primary or secondary archive."
-        raise PixlDiscardError(msg)
-
-    # Check the study is in the online secondary archive
-    query_answers = await orthanc_raw.get_remote_query_answers(query_id)
-    query_answer_content = await orthanc_raw.get_remote_query_answer_content(
-        query_id=query_id,
-        answer_id=query_answers[0],
-    )
-    availablility_tag = "0008,0056"
-    availability = query_answer_content[availablility_tag]["Value"]
-    if availability != "ONLINE":
-        msg = (
-            f"Study {study.message.study_uid} found in {availability} secondary archive "
-            "but we only pull from the online secondary archive."
-        )
         raise PixlDiscardError(msg)
 
     return query_id

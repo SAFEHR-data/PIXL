@@ -29,7 +29,6 @@ from pixl_imaging._orthanc import Orthanc, PIXLRawOrthanc
 from pixl_imaging._processing import ImagingStudy, process_message
 from pydicom import dcmread
 from pydicom.data import get_testdata_file
-from pydicom.dataelem import DataElement
 from pydicom.uid import generate_uid
 from pytest_check import check
 from pytest_pixl.helpers import run_subprocess
@@ -201,7 +200,6 @@ def _add_image_to_fake_pacs(run_containers) -> Generator[None]:
     ds.AccessionNumber = PACS_ACCESSION_NUMBER
     ds.PatientID = PACS_PATIENT_ID
     ds.StudyInstanceUID = PACS_STUDY_UID
-    ds[0x0008, 0x0056] = DataElement((0x0008, 0x0056), "CS", "ONLINE")
     ds.save_as(image_filename)
 
     pacs = WritableOrthanc(
