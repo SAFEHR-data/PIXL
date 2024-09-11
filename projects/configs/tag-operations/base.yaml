@@ -506,7 +506,30 @@
   group: 0x0088
   element: 0x0140
   op: "replace_UID"
-# NOTE: not found!
+#https://dicom.innolitics.com/ciods/ultrasound-image/patient/00101100/0040e022/00880140
+#https://dicom.innolitics.com/ciods/mr-image/patient/00101100/0040e022/00880140
+#https://dicom.innolitics.com/ciods/nuclear-medicine-image/patient/00101100/0040e022/00880140
+#https://dicom.innolitics.com/ciods/ct-image/patient/00101100/0040e022/00880140
+#https://dicom.innolitics.com/ciods/computed-radiography-image/patient/00101100/0040e022/00880140
+#https://dicom.innolitics.com/ciods/ultrasound-multi-frame-image/patient/00101100/0040e022/00880140
+#https://dicom.innolitics.com/ciods/secondary-capture-image/patient/00101100/0040e022/00880140
+#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/patient/00101100/0040e022/00880140
+#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/patient/00101100/0040e022/00880140
+#https://dicom.innolitics.com/ciods/rt-image/patient/00101100/0040e022/00880140
+#https://dicom.innolitics.com/ciods/positron-emission-tomography-image/patient/00101100/0040e022/00880140
+#https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/patient/00101100/0040e022/00880140
+#https://dicom.innolitics.com/ciods/digital-x-ray-image/patient/00101100/0040e022/00880140
+#https://dicom.innolitics.com/ciods/vl-endoscopic-image/patient/00101100/0040e022/00880140
+#https://dicom.innolitics.com/ciods/video-endoscopic-image/patient/00101100/0040e022/00880140
+#https://dicom.innolitics.com/ciods/vl-slide-coordinates-microscopic-image/patient/00101100/0040e022/00880140
+#https://dicom.innolitics.com/ciods/vl-microscopic-image/patient/00101100/0040e022/00880140
+#https://dicom.innolitics.com/ciods/vl-photographic-image/patient/00101100/0040e022/00880140
+#https://dicom.innolitics.com/ciods/real-time-video-endoscopic-image/patient/00101100/0040e022/00880140
+#https://dicom.innolitics.com/ciods/real-time-video-photographic-image/patient/00101100/0040e022/00880140
+#https://dicom.innolitics.com/ciods/video-microscopic-image/patient/00101100/0040e022/00880140
+#https://dicom.innolitics.com/ciods/video-photographic-image/patient/00101100/0040e022/00880140
+#https://dicom.innolitics.com/ciods/vl-whole-slide-microscopy-image/patient/00101100/0040e022/00880140
+#https://dicom.innolitics.com/ciods/dermoscopic-photography-image/patient/00101100/0040e022/00880140
 #################################### 3006 Group ###################################
 #
 #
