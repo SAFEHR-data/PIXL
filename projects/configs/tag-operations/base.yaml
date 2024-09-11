@@ -206,50 +206,147 @@
   group: 0x0018
   element: 0x0023
   op: "keep"
-- name: "Sequence Name"
-  group: 0x0018
-  element: 0x0024
-  op: "keep"
+#https://dicom.innolitics.com/ciods/mr-image/mr-image/00180023
+#https://dicom.innolitics.com/ciods/enhanced-mr-image/mr-pulse-sequence/00180023
+#https://dicom.innolitics.com/ciods/enhanced-mr-color-image/mr-pulse-sequence/00180023
 - name: "Repetition Time"
   group: 0x0018
   element: 0x0080
   op: "keep"
-- name: "Echo Time"
-  group: 0x0018
-  element: 0x0081
-  op: "keep"
-- name: "Inversion Time"
-  group: 0x0018
-  element: 0x0082
-  op: "keep"
+#https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image-multi-frame-functional-groups/52009229/00189112/00180080
+#https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-color-image-multi-frame-functional-groups/52009229/00189112/00180080
 - name: "Number of Averages"
   group: 0x0018
   element: 0x0083
   op: "keep"
+#https://dicom.innolitics.com/ciods/mr-image/mr-image/00180083
+#https://dicom.innolitics.com/ciods/mr-spectroscopy/mr-spectroscopy-multi-frame-functional-groups/52009229/00189119/00180083
+#https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image-multi-frame-functional-groups/52009230/00189119/00180083
+#https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-color-image-multi-frame-functional-groups/52009229/00189119/00180083
 - name: "Magnetic Field Strength"
   group: 0x0018
   element: 0x0087
   op: "keep"
+#https://dicom.innolitics.com/ciods/mr-image/mr-image/00180087
+#https://dicom.innolitics.com/ciods/mr-spectroscopy/mr-spectroscopy/00180087
+#https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image/00180087
+#https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-image/00180087
+#https://dicom.innolitics.com/ciods/legacy-converted-enhanced-mr-image/enhanced-mr-image/00180087
 - name: "Spacing Between Slices"
   group: 0x0018
   element: 0x0088
   op: "keep"
+#https://dicom.innolitics.com/ciods/ct-image/image-plane/00180088
+#https://dicom.innolitics.com/ciods/mr-image/image-plane/00180088
+#https://dicom.innolitics.com/ciods/nuclear-medicine-image/nm-reconstruction/00180088
+#https://dicom.innolitics.com/ciods/positron-emission-tomography-image/image-plane/00180088
+#https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image-multi-frame-functional-groups/52009229/00289110/00180088
+#https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-color-image-multi-frame-functional-groups/52009229/00289110/00180088
+#https://dicom.innolitics.com/ciods/enhanced-ct-image/enhanced-ct-image-multi-frame-functional-groups/52009229/00289110/00180088
+#https://dicom.innolitics.com/ciods/enhanced-pet-image/enhanced-pet-image-multi-frame-functional-groups/52009229/00289110/00180088
+#https://dicom.innolitics.com/ciods/breast-tomosynthesis-image/breast-tomosynthesis-image-multi-frame-functional-groups/52009229/00289110/00180088
+#https://dicom.innolitics.com/ciods/ophthalmic-tomography-image/ophthalmic-tomography-image-multi-frame-functional-groups/52009229/00289110/00180088
+#https://dicom.innolitics.com/ciods/enhanced-rt-image/enhanced-rt-image-multi-frame-functional-groups/52009229/00289110/00180088
+#https://dicom.innolitics.com/ciods/confocal-microscopy-image/confocal-microscopy-image-multi-frame-functional-groups/52009229/00289110/00180088
+#https://dicom.innolitics.com/ciods/multi-frame-grayscale-byte-secondary-capture-image/multi-frame-grayscale-byte-secondary-capture-image-multi-frame-functional-groups/52009229/00289110/00180088
+#https://dicom.innolitics.com/ciods/multi-frame-grayscale-word-secondary-capture-image/multi-frame-grayscale-word-secondary-capture-image-multi-frame-functional-groups/52009229/00289110/00180088
+#https://dicom.innolitics.com/ciods/multi-frame-true-color-secondary-capture-image/multi-frame-true-color-secondary-capture-image-multi-frame-functional-groups/52009229/00289110/00180088
+#https://dicom.innolitics.com/ciods/vl-whole-slide-microscopy-image/vl-whole-slide-microscopy-image-multi-frame-functional-groups/52009229/00289110/00180088
+#https://dicom.innolitics.com/ciods/x-ray-3d-angiographic-image/x-ray-3d-angiographic-image-multi-frame-functional-groups/52009229/00289110/00180088
+#https://dicom.innolitics.com/ciods/x-ray-3d-craniofacial-image/x-ray-3d-craniofacial-image-multi-frame-functional-groups/52009229/00289110/00180088
+#https://dicom.innolitics.com/ciods/intravascular-optical-coherence-tomography-image/intravascular-optical-coherence-tomography-image-multi-frame-functional-groups/52009229/00289110/00180088
+#https://dicom.innolitics.com/ciods/legacy-converted-enhanced-ct-image/legacy-converted-enhanced-ct-image-multi-frame-functional-groups/52009229/00289110/00180088
+#https://dicom.innolitics.com/ciods/legacy-converted-enhanced-mr-image/legacy-converted-enhanced-mr-image-multi-frame-functional-groups/52009229/00289110/00180088
+#https://dicom.innolitics.com/ciods/legacy-converted-enhanced-pet-image/legacy-converted-enhanced-pet-image-multi-frame-functional-groups/52009229/00289110/00180088
+#https://dicom.innolitics.com/ciods/confocal-microscopy-tiled-pyramidal-image/confocal-microscopy-tiled-pyramidal-image-multi-frame-functional-groups/52009229/00289110/00180088
 - name: "Echo train length"
   group: 0x0018
   element: 0x0091
   op: "keep"
+#https://dicom.innolitics.com/ciods/mr-image/mr-image/00180091
+#https://dicom.innolitics.com/ciods/mr-spectroscopy/mr-spectroscopy-multi-frame-functional-groups/52009229/00189112/00180091
+#https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image-multi-frame-functional-groups/52009229/00189112/00180091
+#https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-color-image-multi-frame-functional-groups/52009229/00189112/00180091
 - name: "Percent Phase Field of View"
   group: 0x0018
   element: 0x0094
   op: "keep"
+#https://dicom.innolitics.com/ciods/mr-image/mr-image/00180094
+#https://dicom.innolitics.com/ciods/mr-spectroscopy/mr-spectroscopy-multi-frame-functional-groups/52009229/00189103/00180094
+#https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image-multi-frame-functional-groups/52009229/00189125/00180094
+#https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-color-image-multi-frame-functional-groups/52009229/00189125/00180094
 - name: "Software Version"
   group: 0x0018
   element: 0x1020
   op: "keep"
+#https://dicom.innolitics.com/ciods/computed-radiography-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/ct-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/mr-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/ultrasound-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/nuclear-medicine-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/secondary-capture-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/rt-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/video-endoscopic-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/vl-microscopic-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/vl-photographic-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/video-photographic-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/video-microscopic-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/dermoscopic-photography-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/mr-spectroscopy/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/enhanced-mr-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/enhanced-ct-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/enhanced-xa-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/enhanced-xrf-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/enhanced-pet-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/enhanced-rt-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/photoacoustic-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/confocal-microscopy-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/ultrasound-multi-frame-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/multi-frame-grayscale-word-secondary-capture-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/multi-frame-single-bit-secondary-capture-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/multi-frame-grayscale-byte-secondary-capture-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/multi-frame-grayscale-word-secondary-capture-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/multi-frame-true-color-secondary-capture-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/positron-emission-tomography-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/digital-x-ray-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/vl-slide-coordinates-microscopic-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/vl-whole-slide-microscopy-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/real-time-video-endoscopic-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/dermoscopic-photography-image/enhanced-general-equipment/00181020
+#https://dicom.innolitics.com/ciods/color-softcopy-presentation-state/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/real-time-video-photographic-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/enhanced-mr-color-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/ophthalmic-photography-16-bit-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/ophthalmic-photography-8-bit-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/x-ray-3d-angiographic-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/x-ray-3d-craniofacial-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/legacy-converted-enhanced-ct-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/legacy-converted-enhanced-mr-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/breast-projection-x-ray-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/legacy-converted-enhanced-pet-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/wide-field-ophthalmic-photography-3d-coordinates-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/enhanced-continuous-rt-image/general-equipment/00181020
+#https://dicom.innolitics.com/ciods/confocal-microscopy-tiled-pyramidal-image/general-equipment/00181020
+#NOTE The search of "00181020" found 579 results
 - name: "Field Of View Dimension"
   group: 0x0018
   element: 0x1149
   op: "keep"
+#https://dicom.innolitics.com/ciods/nuclear-medicine-image/nm-detector/00540022/00181149
+#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/dx-detector/00181149
+#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/dx-detector/00181149
+#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/x-ray-acquisition/00181149
+#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/x-ray-acquisition/00181149
+#https://dicom.innolitics.com/ciods/digital-x-ray-image/dx-detector/00181149
+#https://dicom.innolitics.com/ciods/positron-emission-tomography-image/pet-series/00181149
+#https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/dx-detector/00181149
+#https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/dx-detector/00181149
+#https://dicom.innolitics.com/ciods/confocal-microscopy-image/cutaneous-confocal-microscopy-image-acquisition-parameters/00181149
+#https://dicom.innolitics.com/ciods/confocal-microscopy-tiled-pyramidal-image/cutaneous-confocal-microscopy-image-acquisition-parameters/00181149
 - name: "Imager Pixel Spacing"
   group: 0x0018
   element: 0x1164
