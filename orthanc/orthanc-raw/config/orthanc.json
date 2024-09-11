@@ -36,7 +36,7 @@
   },
 
 
-  "DicomScpTimeout" : 1800,
+  "DicomScpTimeout" : 600,
 
 // To enable plugins:
   "Plugins" : [ "/usr/share/orthanc/plugins" ],
