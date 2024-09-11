@@ -14,6 +14,9 @@
 
 # Default configuration for base with commented links to their respective image modalities
 
+#################################### 000d Group ###################################
+#
+#
 - name: "Private Creator Data Element"
   group: 0x000d
   element: 0x0010
@@ -22,7 +25,9 @@
   group: 0x000d
   element: 0x1001
   op: "keep"
-####### 0008 Group #######
+#################################### 0008 Group ###################################
+#
+#
 - name: "Specific Character Set"
   group: 0x0008
   element: 0x0005
@@ -59,29 +64,6 @@
 #https://dicom.innolitics.com/ciods/mr-image/sop-common/00080014
 #https://dicom.innolitics.com/ciods/ultrasound-image/sop-common/00080014
 #https://dicom.innolitics.com/ciods/rt-image/sop-common/00080014
-#NOTE: Not sure if the following ones are need here but just put them in case we need them,
-#      otherwise we remove anything different from image modality!
-#https://dicom.innolitics.com/ciods/rt-plan/sop-common/00080014
-#https://dicom.innolitics.com/ciods/rt-dose/sop-common/00080014
-#https://dicom.innolitics.com/ciods/enhanced-sr/sop-common/00080014
-#https://dicom.innolitics.com/ciods/sleep-electroencephalogram/sop-common/00080014
-#https://dicom.innolitics.com/ciods/hemodynamic-waveform/sop-common/00080014
-#https://dicom.innolitics.com/ciods/respiratory-waveform/sop-common/00080014
-#https://dicom.innolitics.com/ciods/ambulatory-ecg/sop-common/00080014
-#https://dicom.innolitics.com/ciods/general-ecg/sop-common/00080014
-#https://dicom.innolitics.com/ciods/electromyogram/sop-common/00080014
-#https://dicom.innolitics.com/ciods/electrooculogram/sop-common/00080014
-#https://dicom.innolitics.com/ciods/comprehensive-sr/sop-common/00080014
-#https://dicom.innolitics.com/ciods/procedure-log/sop-common/00080014
-#https://dicom.innolitics.com/ciods/extensible-sr/sop-common/00080014
-#https://dicom.innolitics.com/ciods/mr-spectroscopy/sop-common/00080014
-#https://dicom.innolitics.com/ciods/spatial-registration/sop-common/00080014
-#https://dicom.innolitics.com/ciods/raw-data/sop-common/00080014
-#https://dicom.innolitics.com/ciods/encapsulated-pdf/sop-common/00080014
-#https://dicom.innolitics.com/ciods/spatial-fiducials/sop-common/00080014
-#https://dicom.innolitics.com/ciods/stereometric-relationship/sop-common/00080014
-#https://dicom.innolitics.com/ciods/hanging-protocol/sop-common/00080014
-#...
 #NOTE List of searched term continutes
 - name: "SOP Class UID"
   group: 0x0008
@@ -170,7 +152,9 @@
   group: 0x0008
   element: 0x9209
   op: "keep"
-####### 0010 Group #######
+#################################### 0010 Group ###################################
+#
+#
 - name: "Patients Name"
   group: 0x0010
   element: 0x0010
@@ -205,7 +189,9 @@
   group: 0x0010
   element: 0x0040
   op: "keep"
-####### 0018 Group #######
+#################################### 0018 Group ###################################
+#
+#
 - name: "Scan Options Attribute"
   group: 0x0018
   element: 0x0022
@@ -308,7 +294,9 @@
   group: 0x0018
   element: 0x9231
   op: "keep"
-####### 0020 Group #######
+#################################### 0020 Group ###################################
+#
+#
 - name: "Study Instance UID"
   group: 0x0020
   element: 0x000d
@@ -368,7 +356,9 @@
   group: 0x0020
   element: 0x1040
   op: "replace"
-####### 0028 Group #######
+#################################### 0028 Group ###################################
+#
+#
 - name: "Samples Per Pixel"
   group: 0x0028
   element: 0x0002
@@ -474,7 +464,9 @@
   group: 0x0028
   element: 0x3010
   op: "keep"
-####### 0040 Group #######
+#################################### 0040 Group ###################################
+#
+#
 - name: "UID Attribute"
   group: 0x0040
   element: 0xA124
@@ -494,7 +486,9 @@
   group: 0x0040
   element: 0x9925
   op: "replace_UID"
-####### 0054 Group #######
+#################################### 0054 Group ###################################
+#
+#
 - name: "View Code Sequence"
   group: 0x0054
   element: 0x0220
@@ -505,13 +499,17 @@
 #https://dicom.innolitics.com/ciods/ultrasound-multi-frame-image/us-image/00540220
 #https://dicom.innolitics.com/ciods/multi-frame-single-bit-secondary-capture-image/sc-image/00540220
 #NOTE List of searched term continutes
-####### 0088 Group #######
+#################################### 0088 Group ###################################
+#
+#
 - name: "Storage Media File-set UID"
   group: 0x0088
   element: 0x0140
   op: "replace_UID"
 # NOTE: not found!
-####### 3006 Group #######
+#################################### 3006 Group ###################################
+#
+#
 - name: "Referenced Frame of Reference UID"
   group: 0x3006
   element: 0x0024
@@ -522,7 +520,9 @@
   group: 0x3006
   element: 0x00C2
   op: "replace_UID"
-####### 7FE0 Group #######
+#################################### 7FE0 Group ###################################
+#
+#
 - name: "Pixel Data"
   group: 0x7fe0
   element: 0x0010
