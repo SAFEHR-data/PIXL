@@ -86,7 +86,7 @@ class Orthanc(ABC):
         return await self._get(f"/queries/{query_id}/answers/{answer_id}/content")
 
     async def get_remote_query_answer_instances(
-        self, query_id: str, answer_id: str, timeout: float
+        self, query_id: str, answer_id: str, timeout: int
     ) -> Any:
         """Get the instances of a query answer"""
         response = await self._post(
@@ -101,7 +101,7 @@ class Orthanc(ABC):
         study_id: str,
         private_creator: str,
         tag_replacement: dict,
-        timeout: float,
+        timeout: int,
     ) -> None:
         # According to the docs, you can't modify tags for an instance using the instance API
         # (the best you can do is download a modified version), so do it via the studies API.
@@ -141,9 +141,7 @@ class Orthanc(ABC):
         )
         return str(response["ID"])
 
-    async def wait_for_job_success_or_raise(
-        self, job_id: str, job_type: str, timeout: float
-    ) -> None:
+    async def wait_for_job_success_or_raise(self, job_id: str, job_type: str, timeout: int) -> None:
         """Wait for job to complete successfully, or raise exception if fails or exceeds timeout."""
         job_info = {"State": "Pending"}
         start_time = time()

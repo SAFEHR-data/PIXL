@@ -62,7 +62,7 @@ async def _process_message(study: ImagingStudy, orthanc_raw: PIXLRawOrthanc) -> 
     await orthanc_raw.raise_if_pending_jobs()
     logger.info("Processing: {}", study.message.identifier)
 
-    timeout: float = config("PIXL_DICOM_TRANSFER_TIMEOUT", cast=float)
+    timeout: int = config("PIXL_DICOM_TRANSFER_TIMEOUT", cast=int)
     existing_resource = await _get_existing_study(
         orthanc_raw=orthanc_raw,
         study=study,
@@ -164,7 +164,7 @@ async def _add_project_to_study(
     project_name: str,
     orthanc_raw: PIXLRawOrthanc,
     study: str,
-    timeout: float,
+    timeout: int,
 ) -> None:
     logger.debug("Adding private tag to study ID {}", study)
     await orthanc_raw.modify_private_tags_by_study(
@@ -283,7 +283,7 @@ def _is_weekend() -> bool:
     return datetime.datetime.now(tz=timezone).weekday() in (saturday, sunday)
 
 
-async def _retrieve_study(orthanc_raw: Orthanc, study: ImagingStudy, timeout: float) -> None:
+async def _retrieve_study(orthanc_raw: Orthanc, study: ImagingStudy, timeout: int) -> None:
     """Retrieve all instances for a study from the VNA / PACS."""
     query_id = await _find_study_in_archives_or_raise(orthanc_raw, study)
     job_id = await orthanc_raw.retrieve_from_remote(query_id=query_id)  # C-Move
@@ -291,7 +291,7 @@ async def _retrieve_study(orthanc_raw: Orthanc, study: ImagingStudy, timeout: fl
 
 
 async def _retrieve_missing_instances(
-    resource: dict, orthanc_raw: Orthanc, study: ImagingStudy, timeout: float
+    resource: dict, orthanc_raw: Orthanc, study: ImagingStudy, timeout: int
 ) -> None:
     """Retrieve missing instances for a study from the VNA / PACS."""
     missing_instances = await _get_missing_instances(orthanc_raw, study, resource, timeout)
@@ -313,7 +313,7 @@ async def _get_missing_instances(
     orthanc_raw: Orthanc,
     study: ImagingStudy,
     resource: dict,
-    timeout: float,
+    timeout: int,
 ) -> Optional[list[tuple[str, str]]]:
     """
     Check if any study instances are missing from Orthanc Raw.
