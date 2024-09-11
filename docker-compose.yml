@@ -254,7 +254,6 @@ services:
             <<:
                 [
                     *pixl-db,
-                    *emap-db,
                     *proxy-common,
                     *pixl-common-env,
                     *pixl-rabbit-mq,
