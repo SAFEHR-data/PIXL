@@ -42,7 +42,7 @@ COPY ./orthanc/orthanc-raw/plugin/pixl.py /etc/orthanc/pixl.py
 # Orthanc can't substitute environment veriables as integers so copy and replace before running
 ARG ORTHANC_RAW_MAXIMUM_STORAGE_SIZE
 ARG ORTHANC_RAW_JOB_HISTORY_SIZE
-ARG ORTHANC_CONCURRENT_JOBS
+ARG ORTHANC_CONCURRENT_JOBSgit pul
 ARG PIXL_DICOM_TRANSFER_TIMEOUT
 COPY ./orthanc/orthanc-raw/config /run/secrets
 RUN sed -i "s/\${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE}/${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE:-0}/g" /run/secrets/orthanc.json
