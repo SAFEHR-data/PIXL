@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-# Default configuration for base
+# Default configuration for base with commented links to their respective image modalities
 
 - name: "Private Creator Data Element"
   group: 0x000d
@@ -27,22 +27,81 @@
   group: 0x0008
   element: 0x0005
   op: "keep"
+#https://dicom.innolitics.com/ciods/ct-image/sop-common/00080005
+#https://dicom.innolitics.com/ciods/mr-image/sop-common/00080005
+#https://dicom.innolitics.com/ciods/ultrasound-image/sop-common/00080005
+#https://dicom.innolitics.com/ciods/rt-image/sop-common/00080005
 - name: "Image Type"
   group: 0x0008
   element: 0x0008
   op: "keep"
+#https://dicom.innolitics.com/ciods/computed-radiography-image/general-image/00080008
+#https://dicom.innolitics.com/ciods/ct-image/general-image/00080008
+#https://dicom.innolitics.com/ciods/mr-image/general-image/00080008
+#https://dicom.innolitics.com/ciods/ultrasound-image/general-image/00080008
+#https://dicom.innolitics.com/ciods/nuclear-medicine-image/general-image/00080008
+#https://dicom.innolitics.com/ciods/secondary-capture-image/general-image/00080008
+#https://dicom.innolitics.com/ciods/rt-image/general-image/00080008
+#https://dicom.innolitics.com/ciods/video-endoscopic-image/general-image/00080008
+#https://dicom.innolitics.com/ciods/vl-microscopic-image/general-image/00080008
+#https://dicom.innolitics.com/ciods/vl-photographic-image/general-image/00080008
+#https://dicom.innolitics.com/ciods/vl-endoscopic-image/general-image/00080008
+#https://dicom.innolitics.com/ciods/video-photographic-image/general-image/00080008
+#https://dicom.innolitics.com/ciods/video-microscopic-image/general-image/00080008
+#https://dicom.innolitics.com/ciods/dermoscopic-photography-image/general-image/00080008
+#https://dicom.innolitics.com/ciods/photoacoustic-image/general-image/00080008
+#https://dicom.innolitics.com/ciods/confocal-microscopy-image/general-image/00080008
 - name: "Instance Creator UID"
   group: 0x0008
   element: 0x0014
   op: "replace_UID"
+#https://dicom.innolitics.com/ciods/ct-image/sop-common/00080014
+#https://dicom.innolitics.com/ciods/mr-image/sop-common/00080014
+#https://dicom.innolitics.com/ciods/ultrasound-image/sop-common/00080014
+#https://dicom.innolitics.com/ciods/rt-image/sop-common/00080014
+#NOTE: Not sure if the following ones are need here but just put them in case we need them,
+#      otherwise we remove anything different from image modality!
+#https://dicom.innolitics.com/ciods/rt-plan/sop-common/00080014
+#https://dicom.innolitics.com/ciods/rt-dose/sop-common/00080014
+#https://dicom.innolitics.com/ciods/enhanced-sr/sop-common/00080014
+#https://dicom.innolitics.com/ciods/sleep-electroencephalogram/sop-common/00080014
+#https://dicom.innolitics.com/ciods/hemodynamic-waveform/sop-common/00080014
+#https://dicom.innolitics.com/ciods/respiratory-waveform/sop-common/00080014
+#https://dicom.innolitics.com/ciods/ambulatory-ecg/sop-common/00080014
+#https://dicom.innolitics.com/ciods/general-ecg/sop-common/00080014
+#https://dicom.innolitics.com/ciods/electromyogram/sop-common/00080014
+#https://dicom.innolitics.com/ciods/electrooculogram/sop-common/00080014
+#https://dicom.innolitics.com/ciods/comprehensive-sr/sop-common/00080014
+#https://dicom.innolitics.com/ciods/procedure-log/sop-common/00080014
+#https://dicom.innolitics.com/ciods/extensible-sr/sop-common/00080014
+#https://dicom.innolitics.com/ciods/mr-spectroscopy/sop-common/00080014
+#https://dicom.innolitics.com/ciods/spatial-registration/sop-common/00080014
+#https://dicom.innolitics.com/ciods/raw-data/sop-common/00080014
+#https://dicom.innolitics.com/ciods/encapsulated-pdf/sop-common/00080014
+#https://dicom.innolitics.com/ciods/spatial-fiducials/sop-common/00080014
+#https://dicom.innolitics.com/ciods/stereometric-relationship/sop-common/00080014
+#https://dicom.innolitics.com/ciods/hanging-protocol/sop-common/00080014
+#...
+#NOTE List of searched term continutes
 - name: "SOP Class UID"
   group: 0x0008
   element: 0x0016
   op: "keep"
+#https://dicom.innolitics.com/ciods/mr-image/sop-common/00080016
+#https://dicom.innolitics.com/ciods/ct-image/sop-common/00080016
+#https://dicom.innolitics.com/ciods/ultrasound-image/sop-common/00080016
+#https://dicom.innolitics.com/ciods/rt-image/sop-common/00080016
+#https://dicom.innolitics.com/ciods/mr-spectroscopy/sop-common/00080016
+#NOTE List of searched term continutes
 - name: "SOP Instance UID"
   group: 0x0008
   element: 0x0018
   op: "replace_UID"
+#https://dicom.innolitics.com/ciods/mr-image/sop-common/00080018
+#https://dicom.innolitics.com/ciods/ct-image/sop-common/00080018
+#https://dicom.innolitics.com/ciods/rt-image/sop-common/00080018
+#https://dicom.innolitics.com/ciods/mr-spectroscopy/sop-common/00080018
+#NOTE List of searched term continutes
 - name: "Accession Number"
   group: 0x0008
   element: 0x0050
@@ -116,6 +175,24 @@
   group: 0x0010
   element: 0x0010
   op: "replace"
+#https://dicom.innolitics.com/ciods/ultrasound-image/patient/00100010
+#https://dicom.innolitics.com/ciods/ct-image/patient/00100010
+#https://dicom.innolitics.com/ciods/nuclear-medicine-image/patient/00100010
+#https://dicom.innolitics.com/ciods/computed-radiography-image/patient/00100010
+#https://dicom.innolitics.com/ciods/ultrasound-multi-frame-image/patient/00100010
+#https://dicom.innolitics.com/ciods/secondary-capture-image/patient/00100010
+#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/patient/00100010
+#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/patient/00100010
+#https://dicom.innolitics.com/ciods/rt-image/patient/00100010
+#https://dicom.innolitics.com/ciods/positron-emission-tomography-image/patient/00100010
+#https://dicom.innolitics.com/ciods/digital-x-ray-image/patient/00100010
+#https://dicom.innolitics.com/ciods/vl-endoscopic-image/patient/00100010
+#https://dicom.innolitics.com/ciods/video-endoscopic-image/patient/00100010
+#https://dicom.innolitics.com/ciods/vl-microscopic-image/patient/00100010
+#https://dicom.innolitics.com/ciods/vl-photographic-image/patient/00100010
+#https://dicom.innolitics.com/ciods/video-microscopic-image/patient/00100010
+#https://dicom.innolitics.com/ciods/video-photographic-image/patient/00100010
+#https://dicom.innolitics.com/ciods/dermoscopic-photography-image/patient/00100010
 - name: "Patient ID"
   group: 0x0010
   element: 0x0020
@@ -129,18 +206,16 @@
   element: 0x0040
   op: "keep"
 ####### 0018 Group #######
-- name: "Scanning Sequence"
-  group: 0x0018
-  element: 0x0020
-  op: "keep"
-- name: "Sequence Variant"
-  group: 0x0018
-  element: 0x0021
-  op: "keep"
 - name: "Scan Options Attribute"
   group: 0x0018
   element: 0x0022
   op: "replace"
+#https://dicom.innolitics.com/ciods/ct-image/ct-image/00180022
+#https://dicom.innolitics.com/ciods/mr-image/mr-image/00180022
+#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/x-ray-image/00180022
+#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/x-ray-image/00180022
+#https://dicom.innolitics.com/ciods/enhanced-xrf-image/enhanced-xa-xrf-image/00180022
+#https://dicom.innolitics.com/ciods/enhanced-xa-image/enhanced-xa-xrf-image/00180022
 - name: "MR Acquisition Type"
   group: 0x0018
   element: 0x0023
@@ -238,6 +313,13 @@
   group: 0x0020
   element: 0x000d
   op: "replace_UID"
+#https://dicom.innolitics.com/ciods/ultrasound-image/general-study/0020000d
+#https://dicom.innolitics.com/ciods/mr-image/general-study/0020000d
+#https://dicom.innolitics.com/ciods/ct-image/general-study/0020000d
+#https://dicom.innolitics.com/ciods/rt-image/general-study/0020000d
+#https://dicom.innolitics.com/ciods/photoacoustic-image/general-study/0020000d
+#https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-image/0008113a/0020000d
+#NOTE List of searched term continutes
 - name: "Series Instance UID"
   group: 0x0020
   element: 0x000e
@@ -291,6 +373,15 @@
   group: 0x0028
   element: 0x0002
   op: "keep"
+#https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280002
+#https://dicom.innolitics.com/ciods/ct-image/ct-image/00280002
+#https://dicom.innolitics.com/ciods/mr-image/image-pixel/00280002
+#https://dicom.innolitics.com/ciods/mr-image/mr-image/00280002
+#https://dicom.innolitics.com/ciods/ultrasound-image/image-pixel/00280002
+#https://dicom.innolitics.com/ciods/ultrasound-image/us-image/00280002
+#https://dicom.innolitics.com/ciods/rt-image/image-pixel/00280002
+#https://dicom.innolitics.com/ciods/rt-image/rt-image/00280002
+#NOTE List of searched term continutes
 - name: "Photometric Interpretation"
   group: 0x0028
   element: 0x0004
@@ -384,10 +475,17 @@
   element: 0x3010
   op: "keep"
 ####### 0040 Group #######
-- name: "UID"
+- name: "UID Attribute"
   group: 0x0040
   element: 0xA124
   op: "replace_UID"
+#https://dicom.innolitics.com/ciods/ct-image/specimen/00400560/00400620/0040a124
+#https://dicom.innolitics.com/ciods/mr-image/specimen/00400560/00400620/0040a124
+#https://dicom.innolitics.com/ciods/ultrasound-image/specimen/00400560/00400620/0040a124
+#https://dicom.innolitics.com/ciods/photoacoustic-image/specimen/00400560/00400620/0040a124
+#https://dicom.innolitics.com/ciods/ct-image/general-image/00409096/00409220/0040a124
+#https://dicom.innolitics.com/ciods/nuclear-medicine-image/general-image/00409096/00409220/00400441/0040a124
+#NOTE List of searched term continutes
 - name: "Real World Value Intercept"
   group: 0x0040
   element: 0x9924
@@ -401,16 +499,25 @@
   group: 0x0054
   element: 0x0220
   op: "keep"
+#https://dicom.innolitics.com/ciods/ct-image/ct-image/00540220
+#https://dicom.innolitics.com/ciods/mr-image/mr-image/00540220
+#https://dicom.innolitics.com/ciods/ultrasound-image/us-image/00540220
+#https://dicom.innolitics.com/ciods/ultrasound-multi-frame-image/us-image/00540220
+#https://dicom.innolitics.com/ciods/multi-frame-single-bit-secondary-capture-image/sc-image/00540220
+#NOTE List of searched term continutes
 ####### 0088 Group #######
 - name: "Storage Media File-set UID"
   group: 0x0088
   element: 0x0140
   op: "replace_UID"
+# NOTE: not found!
 ####### 3006 Group #######
 - name: "Referenced Frame of Reference UID"
   group: 0x3006
   element: 0x0024
   op: "replace_UID"
+#https://dicom.innolitics.com/ciods/rt-structure-set/structure-set/30060020/30060024
+# NOTE: dont' see image modalities
 - name: "Related Frame of Reference UID"
   group: 0x3006
   element: 0x00C2
@@ -420,3 +527,10 @@
   group: 0x7fe0
   element: 0x0010
   op: "keep"
+#https://dicom.innolitics.com/ciods/computed-radiography-image/image-pixel/7fe00010
+#https://dicom.innolitics.com/ciods/ct-image/general-image/00880200/7fe00010
+#https://dicom.innolitics.com/ciods/ultrasound-image/general-image/00880200/7fe00010
+#https://dicom.innolitics.com/ciods/nuclear-medicine-image/image-pixel/7fe00010
+#https://dicom.innolitics.com/ciods/secondary-capture-image/image-pixel/7fe00010
+#https://dicom.innolitics.com/ciods/rt-image/image-pixel/7fe00010
+#NOTE List of searched term continutes
