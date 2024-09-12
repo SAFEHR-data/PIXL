@@ -40,22 +40,10 @@
   group: 0x0008
   element: 0x0008
   op: "keep"
-#https://dicom.innolitics.com/ciods/computed-radiography-image/general-image/00080008
 #https://dicom.innolitics.com/ciods/ct-image/general-image/00080008
 #https://dicom.innolitics.com/ciods/mr-image/general-image/00080008
 #https://dicom.innolitics.com/ciods/ultrasound-image/general-image/00080008
-#https://dicom.innolitics.com/ciods/nuclear-medicine-image/general-image/00080008
-#https://dicom.innolitics.com/ciods/secondary-capture-image/general-image/00080008
 #https://dicom.innolitics.com/ciods/rt-image/general-image/00080008
-#https://dicom.innolitics.com/ciods/video-endoscopic-image/general-image/00080008
-#https://dicom.innolitics.com/ciods/vl-microscopic-image/general-image/00080008
-#https://dicom.innolitics.com/ciods/vl-photographic-image/general-image/00080008
-#https://dicom.innolitics.com/ciods/vl-endoscopic-image/general-image/00080008
-#https://dicom.innolitics.com/ciods/video-photographic-image/general-image/00080008
-#https://dicom.innolitics.com/ciods/video-microscopic-image/general-image/00080008
-#https://dicom.innolitics.com/ciods/dermoscopic-photography-image/general-image/00080008
-#https://dicom.innolitics.com/ciods/photoacoustic-image/general-image/00080008
-#https://dicom.innolitics.com/ciods/confocal-microscopy-image/general-image/00080008
 - name: "Instance Creator UID"
   group: 0x0008
   element: 0x0014
@@ -161,22 +149,11 @@
   op: "replace"
 #https://dicom.innolitics.com/ciods/ultrasound-image/patient/00100010
 #https://dicom.innolitics.com/ciods/ct-image/patient/00100010
-#https://dicom.innolitics.com/ciods/nuclear-medicine-image/patient/00100010
-#https://dicom.innolitics.com/ciods/computed-radiography-image/patient/00100010
 #https://dicom.innolitics.com/ciods/ultrasound-multi-frame-image/patient/00100010
-#https://dicom.innolitics.com/ciods/secondary-capture-image/patient/00100010
 #https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/patient/00100010
 #https://dicom.innolitics.com/ciods/x-ray-angiographic-image/patient/00100010
 #https://dicom.innolitics.com/ciods/rt-image/patient/00100010
-#https://dicom.innolitics.com/ciods/positron-emission-tomography-image/patient/00100010
 #https://dicom.innolitics.com/ciods/digital-x-ray-image/patient/00100010
-#https://dicom.innolitics.com/ciods/vl-endoscopic-image/patient/00100010
-#https://dicom.innolitics.com/ciods/video-endoscopic-image/patient/00100010
-#https://dicom.innolitics.com/ciods/vl-microscopic-image/patient/00100010
-#https://dicom.innolitics.com/ciods/vl-photographic-image/patient/00100010
-#https://dicom.innolitics.com/ciods/video-microscopic-image/patient/00100010
-#https://dicom.innolitics.com/ciods/video-photographic-image/patient/00100010
-#https://dicom.innolitics.com/ciods/dermoscopic-photography-image/patient/00100010
 - name: "Patient ID"
   group: 0x0010
   element: 0x0020
@@ -200,8 +177,6 @@
 #https://dicom.innolitics.com/ciods/mr-image/mr-image/00180022
 #https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/x-ray-image/00180022
 #https://dicom.innolitics.com/ciods/x-ray-angiographic-image/x-ray-image/00180022
-#https://dicom.innolitics.com/ciods/enhanced-xrf-image/enhanced-xa-xrf-image/00180022
-#https://dicom.innolitics.com/ciods/enhanced-xa-image/enhanced-xa-xrf-image/00180022
 - name: "MR Acquisition Type"
   group: 0x0018
   element: 0x0023
@@ -228,7 +203,6 @@
   element: 0x0087
   op: "keep"
 #https://dicom.innolitics.com/ciods/mr-image/mr-image/00180087
-#https://dicom.innolitics.com/ciods/mr-spectroscopy/mr-spectroscopy/00180087
 #https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image/00180087
 #https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-image/00180087
 #https://dicom.innolitics.com/ciods/legacy-converted-enhanced-mr-image/enhanced-mr-image/00180087
@@ -238,27 +212,8 @@
   op: "keep"
 #https://dicom.innolitics.com/ciods/ct-image/image-plane/00180088
 #https://dicom.innolitics.com/ciods/mr-image/image-plane/00180088
-#https://dicom.innolitics.com/ciods/nuclear-medicine-image/nm-reconstruction/00180088
-#https://dicom.innolitics.com/ciods/positron-emission-tomography-image/image-plane/00180088
-#https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image-multi-frame-functional-groups/52009229/00289110/00180088
-#https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-color-image-multi-frame-functional-groups/52009229/00289110/00180088
-#https://dicom.innolitics.com/ciods/enhanced-ct-image/enhanced-ct-image-multi-frame-functional-groups/52009229/00289110/00180088
-#https://dicom.innolitics.com/ciods/enhanced-pet-image/enhanced-pet-image-multi-frame-functional-groups/52009229/00289110/00180088
-#https://dicom.innolitics.com/ciods/breast-tomosynthesis-image/breast-tomosynthesis-image-multi-frame-functional-groups/52009229/00289110/00180088
-#https://dicom.innolitics.com/ciods/ophthalmic-tomography-image/ophthalmic-tomography-image-multi-frame-functional-groups/52009229/00289110/00180088
-#https://dicom.innolitics.com/ciods/enhanced-rt-image/enhanced-rt-image-multi-frame-functional-groups/52009229/00289110/00180088
-#https://dicom.innolitics.com/ciods/confocal-microscopy-image/confocal-microscopy-image-multi-frame-functional-groups/52009229/00289110/00180088
-#https://dicom.innolitics.com/ciods/multi-frame-grayscale-byte-secondary-capture-image/multi-frame-grayscale-byte-secondary-capture-image-multi-frame-functional-groups/52009229/00289110/00180088
-#https://dicom.innolitics.com/ciods/multi-frame-grayscale-word-secondary-capture-image/multi-frame-grayscale-word-secondary-capture-image-multi-frame-functional-groups/52009229/00289110/00180088
-#https://dicom.innolitics.com/ciods/multi-frame-true-color-secondary-capture-image/multi-frame-true-color-secondary-capture-image-multi-frame-functional-groups/52009229/00289110/00180088
-#https://dicom.innolitics.com/ciods/vl-whole-slide-microscopy-image/vl-whole-slide-microscopy-image-multi-frame-functional-groups/52009229/00289110/00180088
 #https://dicom.innolitics.com/ciods/x-ray-3d-angiographic-image/x-ray-3d-angiographic-image-multi-frame-functional-groups/52009229/00289110/00180088
 #https://dicom.innolitics.com/ciods/x-ray-3d-craniofacial-image/x-ray-3d-craniofacial-image-multi-frame-functional-groups/52009229/00289110/00180088
-#https://dicom.innolitics.com/ciods/intravascular-optical-coherence-tomography-image/intravascular-optical-coherence-tomography-image-multi-frame-functional-groups/52009229/00289110/00180088
-#https://dicom.innolitics.com/ciods/legacy-converted-enhanced-ct-image/legacy-converted-enhanced-ct-image-multi-frame-functional-groups/52009229/00289110/00180088
-#https://dicom.innolitics.com/ciods/legacy-converted-enhanced-mr-image/legacy-converted-enhanced-mr-image-multi-frame-functional-groups/52009229/00289110/00180088
-#https://dicom.innolitics.com/ciods/legacy-converted-enhanced-pet-image/legacy-converted-enhanced-pet-image-multi-frame-functional-groups/52009229/00289110/00180088
-#https://dicom.innolitics.com/ciods/confocal-microscopy-tiled-pyramidal-image/confocal-microscopy-tiled-pyramidal-image-multi-frame-functional-groups/52009229/00289110/00180088
 - name: "Echo train length"
   group: 0x0018
   element: 0x0091
@@ -279,111 +234,49 @@
   group: 0x0018
   element: 0x1020
   op: "keep"
-#https://dicom.innolitics.com/ciods/computed-radiography-image/general-equipment/00181020
 #https://dicom.innolitics.com/ciods/ct-image/general-equipment/00181020
 #https://dicom.innolitics.com/ciods/mr-image/general-equipment/00181020
 #https://dicom.innolitics.com/ciods/ultrasound-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/nuclear-medicine-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/secondary-capture-image/general-equipment/00181020
 #https://dicom.innolitics.com/ciods/rt-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/video-endoscopic-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/vl-microscopic-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/vl-photographic-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/video-photographic-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/video-microscopic-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/dermoscopic-photography-image/general-equipment/00181020
 #https://dicom.innolitics.com/ciods/mr-spectroscopy/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/enhanced-mr-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/enhanced-ct-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/enhanced-xa-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/enhanced-xrf-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/enhanced-pet-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/enhanced-rt-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/photoacoustic-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/confocal-microscopy-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/ultrasound-multi-frame-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/multi-frame-grayscale-word-secondary-capture-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/multi-frame-single-bit-secondary-capture-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/multi-frame-grayscale-byte-secondary-capture-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/multi-frame-grayscale-word-secondary-capture-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/multi-frame-true-color-secondary-capture-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/positron-emission-tomography-image/general-equipment/00181020
 #https://dicom.innolitics.com/ciods/digital-x-ray-image/general-equipment/00181020
 #https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/general-equipment/00181020
 #https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/vl-slide-coordinates-microscopic-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/vl-whole-slide-microscopy-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/real-time-video-endoscopic-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/dermoscopic-photography-image/enhanced-general-equipment/00181020
-#https://dicom.innolitics.com/ciods/color-softcopy-presentation-state/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/real-time-video-photographic-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/enhanced-mr-color-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/ophthalmic-photography-16-bit-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/ophthalmic-photography-8-bit-image/general-equipment/00181020
 #https://dicom.innolitics.com/ciods/x-ray-3d-angiographic-image/general-equipment/00181020
 #https://dicom.innolitics.com/ciods/x-ray-3d-craniofacial-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/legacy-converted-enhanced-ct-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/legacy-converted-enhanced-mr-image/general-equipment/00181020
 #https://dicom.innolitics.com/ciods/breast-projection-x-ray-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/legacy-converted-enhanced-pet-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/wide-field-ophthalmic-photography-3d-coordinates-image/general-equipment/00181020
 #https://dicom.innolitics.com/ciods/enhanced-continuous-rt-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/confocal-microscopy-tiled-pyramidal-image/general-equipment/00181020
 #NOTE The search of "00181020" found 579 results
 - name: "Field Of View Dimension"
   group: 0x0018
   element: 0x1149
   op: "keep"
-#https://dicom.innolitics.com/ciods/nuclear-medicine-image/nm-detector/00540022/00181149
 #https://dicom.innolitics.com/ciods/x-ray-angiographic-image/dx-detector/00181149
 #https://dicom.innolitics.com/ciods/x-ray-angiographic-image/dx-detector/00181149
 #https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/x-ray-acquisition/00181149
 #https://dicom.innolitics.com/ciods/x-ray-angiographic-image/x-ray-acquisition/00181149
 #https://dicom.innolitics.com/ciods/digital-x-ray-image/dx-detector/00181149
-#https://dicom.innolitics.com/ciods/positron-emission-tomography-image/pet-series/00181149
 #https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/dx-detector/00181149
 #https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/dx-detector/00181149
-#https://dicom.innolitics.com/ciods/confocal-microscopy-image/cutaneous-confocal-microscopy-image-acquisition-parameters/00181149
-#https://dicom.innolitics.com/ciods/confocal-microscopy-tiled-pyramidal-image/cutaneous-confocal-microscopy-image-acquisition-parameters/00181149
 - name: "Imager Pixel Spacing"
   group: 0x0018
   element: 0x1164
   op: "keep"
-#https://dicom.innolitics.com/ciods/computed-radiography-image/cr-image/00181164
 #https://dicom.innolitics.com/ciods/x-ray-angiographic-image/dx-detector/00181164
 #https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/x-ray-acquisition/00181164
 #https://dicom.innolitics.com/ciods/x-ray-angiographic-image/x-ray-acquisition/00181164
 #https://dicom.innolitics.com/ciods/digital-x-ray-image/dx-detector/00181164
 #https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/dx-detector/00181164
 #https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/dx-detector/00181164
-#https://dicom.innolitics.com/ciods/vl-endoscopic-image/vl-image/00181164
-#https://dicom.innolitics.com/ciods/video-endoscopic-image/vl-image/00181164
-#https://dicom.innolitics.com/ciods/vl-slide-coordinates-microscopic-image/vl-image/00181164
-#https://dicom.innolitics.com/ciods/vl-microscopic-image/vl-image/00181164
-#https://dicom.innolitics.com/ciods/vl-photographic-image/vl-image/00181164
-#https://dicom.innolitics.com/ciods/real-time-video-endoscopic-image/vl-image/00181164
-#https://dicom.innolitics.com/ciods/video-photographic-image/vl-image/00181164
-#https://dicom.innolitics.com/ciods/video-microscopic-image/vl-image/00181164
-#https://dicom.innolitics.com/ciods/real-time-video-photographic-image/vl-image/00181164
-#https://dicom.innolitics.com/ciods/dermoscopic-photography-image/vl-image/00181164
-#https://dicom.innolitics.com/ciods/enhanced-xrf-image/enhanced-xrf-image-multi-frame-functional-groups/52009229/00289443/00181164
-#https://dicom.innolitics.com/ciods/enhanced-xa-image/enhanced-xa-image-multi-frame-functional-groups/52009229/00289443/00181164
-#https://dicom.innolitics.com/ciods/x-ray-3d-craniofacial-image/x-ray-3d-craniofacial-image-contributing-sources/00189506/00181164
-#https://dicom.innolitics.com/ciods/breast-projection-x-ray-image/breast-projection-x-ray-image-multi-frame-functional-groups/52009229/00289443/00181164
 - name: "Grid"
   group: 0x0018
   element: 0x1166
   op: "keep"
-#https://dicom.innolitics.com/ciods/enhanced-xrf-image/x-ray-grid/00181166
-#https://dicom.innolitics.com/ciods/enhanced-xa-image/x-ray-grid/00181166
 #https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/x-ray-acquisition/00181166
 #https://dicom.innolitics.com/ciods/x-ray-angiographic-image/x-ray-acquisition/00181166
 #https://dicom.innolitics.com/ciods/digital-x-ray-image/x-ray-grid/00181166
 #https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/x-ray-grid/00181166
 #https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/x-ray-grid/00181166
-#https://dicom.innolitics.com/ciods/breast-tomosynthesis-image/breast-tomosynthesis-acquisition/00189507/00181166
 #https://dicom.innolitics.com/ciods/x-ray-3d-craniofacial-image/x-ray-3d-craniofacial-acquisition/00189507/00181166
 #https://dicom.innolitics.com/ciods/x-ray-3d-angiographic-image/x-ray-3d-angiographic-acquisition/00189507/00181166
 #https://dicom.innolitics.com/ciods/breast-projection-x-ray-image/breast-projection-x-ray-image-multi-frame-functional-groups/52009229/00189555/00181166
@@ -392,18 +285,13 @@
   element: 0x1190
   op: "keep"
 #https://dicom.innolitics.com/ciods/ct-image/ct-image/00181190
-#https://dicom.innolitics.com/ciods/computed-radiography-image/cr-series/00181190
 #https://dicom.innolitics.com/ciods/ct-image/ct-image/00189360/00181190
 #https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/x-ray-acquisition/00181190
 #https://dicom.innolitics.com/ciods/x-ray-angiographic-image/x-ray-acquisition/00181190
 #https://dicom.innolitics.com/ciods/digital-x-ray-image/x-ray-generation/00181190
 #https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/x-ray-generation/00181190
 #https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/x-ray-generation/00181190
-#https://dicom.innolitics.com/ciods/enhanced-xrf-image/xa-xrf-acquisition/00181190
-#https://dicom.innolitics.com/ciods/breast-tomosynthesis-image/breast-tomosynthesis-acquisition/00189507/00181190
-#https://dicom.innolitics.com/ciods/enhanced-xa-image/xa-xrf-acquisition/00181190
 #https://dicom.innolitics.com/ciods/breast-projection-x-ray-image/enhanced-mammography-image/00181190
-#https://dicom.innolitics.com/ciods/enhanced-ct-image/enhanced-ct-image-multi-frame-functional-groups/52009229/00189325/00181190
 #https://dicom.innolitics.com/ciods/x-ray-3d-angiographic-image/x-ray-3d-angiographic-acquisition/00189507/00181190
 - name: "Receive Coil Name"
   group: 0x0018
@@ -432,15 +320,11 @@
   group: 0x0018
   element: 0x1400
   op: "keep"
-#https://dicom.innolitics.com/ciods/computed-radiography-image/cr-image/00181400
 #https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/x-ray-image/00181400
 #https://dicom.innolitics.com/ciods/x-ray-angiographic-image/x-ray-image/00181400
 #https://dicom.innolitics.com/ciods/digital-x-ray-image/dx-image/00181400
 #https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/dx-image/00181400
 #https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/dx-image/00181400
-#https://dicom.innolitics.com/ciods/vl-whole-slide-microscopy-image/whole-slide-microscopy-image/00181400
-#https://dicom.innolitics.com/ciods/enhanced-xrf-image/enhanced-xrf-image-multi-frame-functional-groups/52009229/00189412/00181400
-#https://dicom.innolitics.com/ciods/enhanced-xa-image/enhanced-xa-image-multi-frame-functional-groups/52009229/00189412/00181400
 #https://dicom.innolitics.com/ciods/x-ray-3d-craniofacial-image/x-ray-3d-craniofacial-image-contributing-sources/00189506/00181400
 #https://dicom.innolitics.com/ciods/x-ray-3d-angiographic-image/x-ray-3d-angiographic-image-contributing-sources/00189506/00181400
 #https://dicom.innolitics.com/ciods/breast-projection-x-ray-image/breast-projection-x-ray-image-multi-frame-functional-groups/52009229/00189412/00181400
@@ -450,26 +334,7 @@
   op: "replace"
 #https://dicom.innolitics.com/ciods/ultrasound-image/general-series/00185100
 #https://dicom.innolitics.com/ciods/mr-image/general-series/00185100
-#https://dicom.innolitics.com/ciods/nuclear-medicine-image/general-series/00185100
 #https://dicom.innolitics.com/ciods/ct-image/general-series/00185100
-#https://dicom.innolitics.com/ciods/computed-radiography-image/general-series/00185100
-#https://dicom.innolitics.com/ciods/secondary-capture-image/general-series/00185100
-#https://dicom.innolitics.com/ciods/video-endoscopic-image/general-series/00185100
-#https://dicom.innolitics.com/ciods/vl-microscopic-image/general-series/00185100
-#https://dicom.innolitics.com/ciods/vl-photographic-image/general-series/00185100
-#https://dicom.innolitics.com/ciods/vl-endoscopic-image/general-series/00185100
-#https://dicom.innolitics.com/ciods/video-microscopic-image/general-series/00185100
-#https://dicom.innolitics.com/ciods/video-photographic-image/general-series/00185100
-#https://dicom.innolitics.com/ciods/dermoscopic-photography-image/general-series/00185100
-#https://dicom.innolitics.com/ciods/enhanced-mr-image/general-series/00185100
-#https://dicom.innolitics.com/ciods/enhanced-ct-image/general-series/00185100
-#https://dicom.innolitics.com/ciods/enhanced-xa-image/general-series/00185100
-#https://dicom.innolitics.com/ciods/enhanced-xrf-image/general-series/00185100
-#https://dicom.innolitics.com/ciods/enhanced-pet-image/general-series/00185100
-#https://dicom.innolitics.com/ciods/breast-tomosynthesis-image/general-series/00185100
-#https://dicom.innolitics.com/ciods/ophthalmic-tomography-image/general-series/00185100
-#https://dicom.innolitics.com/ciods/enhanced-rt-image/general-series/00185100
-#https://dicom.innolitics.com/ciods/confocal-microscopy-image/general-series/00185100
 #NOTE: Seach term: "00185100 Image General Series"
 - name: "MR Acquisition Frequency Encoding Steps"
   group: 0x0018
@@ -494,17 +359,49 @@
 #https://dicom.innolitics.com/ciods/mr-image/general-study/0020000d
 #https://dicom.innolitics.com/ciods/ct-image/general-study/0020000d
 #https://dicom.innolitics.com/ciods/rt-image/general-study/0020000d
-#https://dicom.innolitics.com/ciods/photoacoustic-image/general-study/0020000d
-#https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-image/0008113a/0020000d
-#NOTE List of searched term continutes
+#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/general-study/0020000d
+#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/general-study/0020000d
+#https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/general-study/0020000d
+#https://dicom.innolitics.com/ciods/digital-x-ray-image/general-study/0020000d
+#https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/general-study/0020000d
+#https://dicom.innolitics.com/ciods/vl-slide-coordinates-microscopic-image/general-study/0020000d
+#https://dicom.innolitics.com/ciods/x-ray-3d-craniofacial-image/general-study/0020000d
+#https://dicom.innolitics.com/ciods/x-ray-3d-angiographic-image/general-study/0020000d
+#https://dicom.innolitics.com/ciods/breast-projection-x-ray-image/general-study/0020000d
+#https://dicom.innolitics.com/ciods/legacy-converted-enhanced-pet-image/general-study/0020000d
+#https://dicom.innolitics.com/ciods/enhanced-rt-image/general-study/0020000d
+#https://dicom.innolitics.com/ciods/enhanced-continuous-rt-image/general-study/0020000d
+#NOTE Search term "0020000d Image General Study"
 - name: "Series Instance UID"
   group: 0x0020
   element: 0x000e
   op: "replace_UID"
+#https://dicom.innolitics.com/ciods/ultrasound-image/general-series/0020000e
+#https://dicom.innolitics.com/ciods/mr-image/general-series/0020000e
+#https://dicom.innolitics.com/ciods/ct-image/general-series/0020000e
+#https://dicom.innolitics.com/ciods/rt-image/rt-series/0020000e
+#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/general-series/0020000e
+#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/general-series/0020000e
+#https://dicom.innolitics.com/ciods/digital-x-ray-image/general-series/0020000e
+#https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/general-series/0020000e
+#https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/general-series/0020000e
+#https://dicom.innolitics.com/ciods/x-ray-3d-craniofacial-image/general-series/0020000e
+#https://dicom.innolitics.com/ciods/x-ray-3d-angiographic-image/general-series/0020000e
+#https://dicom.innolitics.com/ciods/legacy-converted-enhanced-ct-image/general-series/0020000e
+#https://dicom.innolitics.com/ciods/legacy-converted-enhanced-mr-image/general-series/0020000e
+#https://dicom.innolitics.com/ciods/breast-projection-x-ray-image/general-series/0020000e
+#https://dicom.innolitics.com/ciods/legacy-converted-enhanced-pet-image/general-series/0020000e
+#https://dicom.innolitics.com/ciods/enhanced-rt-image/general-series/0020000e
+#https://dicom.innolitics.com/ciods/enhanced-continuous-rt-image/general-series/0020000e
+#NOTE Search term "0020000e Image General Series"
 - name: "Study ID"
   group: 0x0020
   element: 0x0010
   op: "replace"
+#https://dicom.innolitics.com/ciods/ultrasound-image/general-study/00200010
+#https://dicom.innolitics.com/ciods/mr-image/general-study/00200010
+#https://dicom.innolitics.com/ciods/ct-image/general-study/00200010
+#https://dicom.innolitics.com/ciods/rt-image/general-study/00200010
 - name: "Series Number"
   group: 0x0020
   element: 0x0011
@@ -665,7 +562,6 @@
 #https://dicom.innolitics.com/ciods/ultrasound-image/specimen/00400560/00400620/0040a124
 #https://dicom.innolitics.com/ciods/photoacoustic-image/specimen/00400560/00400620/0040a124
 #https://dicom.innolitics.com/ciods/ct-image/general-image/00409096/00409220/0040a124
-#https://dicom.innolitics.com/ciods/nuclear-medicine-image/general-image/00409096/00409220/00400441/0040a124
 #NOTE List of searched term continutes
 - name: "Real World Value Intercept"
   group: 0x0040
@@ -686,7 +582,6 @@
 #https://dicom.innolitics.com/ciods/mr-image/mr-image/00540220
 #https://dicom.innolitics.com/ciods/ultrasound-image/us-image/00540220
 #https://dicom.innolitics.com/ciods/ultrasound-multi-frame-image/us-image/00540220
-#https://dicom.innolitics.com/ciods/multi-frame-single-bit-secondary-capture-image/sc-image/00540220
 #NOTE List of searched term continutes
 #################################### 0088 Group ###################################
 #
@@ -697,28 +592,13 @@
   op: "replace_UID"
 #https://dicom.innolitics.com/ciods/ultrasound-image/patient/00101100/0040e022/00880140
 #https://dicom.innolitics.com/ciods/mr-image/patient/00101100/0040e022/00880140
-#https://dicom.innolitics.com/ciods/nuclear-medicine-image/patient/00101100/0040e022/00880140
 #https://dicom.innolitics.com/ciods/ct-image/patient/00101100/0040e022/00880140
-#https://dicom.innolitics.com/ciods/computed-radiography-image/patient/00101100/0040e022/00880140
 #https://dicom.innolitics.com/ciods/ultrasound-multi-frame-image/patient/00101100/0040e022/00880140
-#https://dicom.innolitics.com/ciods/secondary-capture-image/patient/00101100/0040e022/00880140
 #https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/patient/00101100/0040e022/00880140
 #https://dicom.innolitics.com/ciods/x-ray-angiographic-image/patient/00101100/0040e022/00880140
 #https://dicom.innolitics.com/ciods/rt-image/patient/00101100/0040e022/00880140
-#https://dicom.innolitics.com/ciods/positron-emission-tomography-image/patient/00101100/0040e022/00880140
 #https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/patient/00101100/0040e022/00880140
 #https://dicom.innolitics.com/ciods/digital-x-ray-image/patient/00101100/0040e022/00880140
-#https://dicom.innolitics.com/ciods/vl-endoscopic-image/patient/00101100/0040e022/00880140
-#https://dicom.innolitics.com/ciods/video-endoscopic-image/patient/00101100/0040e022/00880140
-#https://dicom.innolitics.com/ciods/vl-slide-coordinates-microscopic-image/patient/00101100/0040e022/00880140
-#https://dicom.innolitics.com/ciods/vl-microscopic-image/patient/00101100/0040e022/00880140
-#https://dicom.innolitics.com/ciods/vl-photographic-image/patient/00101100/0040e022/00880140
-#https://dicom.innolitics.com/ciods/real-time-video-endoscopic-image/patient/00101100/0040e022/00880140
-#https://dicom.innolitics.com/ciods/real-time-video-photographic-image/patient/00101100/0040e022/00880140
-#https://dicom.innolitics.com/ciods/video-microscopic-image/patient/00101100/0040e022/00880140
-#https://dicom.innolitics.com/ciods/video-photographic-image/patient/00101100/0040e022/00880140
-#https://dicom.innolitics.com/ciods/vl-whole-slide-microscopy-image/patient/00101100/0040e022/00880140
-#https://dicom.innolitics.com/ciods/dermoscopic-photography-image/patient/00101100/0040e022/00880140
 #################################### 3006 Group ###################################
 #
 #
@@ -740,9 +620,6 @@
   element: 0x0010
   op: "keep"
 #https://dicom.innolitics.com/ciods/computed-radiography-image/image-pixel/7fe00010
-#https://dicom.innolitics.com/ciods/ct-image/general-image/00880200/7fe00010
 #https://dicom.innolitics.com/ciods/ultrasound-image/general-image/00880200/7fe00010
-#https://dicom.innolitics.com/ciods/nuclear-medicine-image/image-pixel/7fe00010
-#https://dicom.innolitics.com/ciods/secondary-capture-image/image-pixel/7fe00010
 #https://dicom.innolitics.com/ciods/rt-image/image-pixel/7fe00010
 #NOTE List of searched term continutes
