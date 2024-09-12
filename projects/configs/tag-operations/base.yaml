@@ -406,42 +406,52 @@
   group: 0x0020
   element: 0x0011
   op: "keep"
+#RT Image
 - name: "Acquisition Number"
   group: 0x0020
   element: 0x0012
   op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
 - name: "Instance Number"
   group: 0x0020
   element: 0x0013
   op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
 - name: "Patient Orientation"
   group: 0x0020
   element: 0x0020
   op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
 - name: "Image Position (Patient)"
   group: 0x0020
   element: 0x0032
   op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
 - name: "Image Orientation (Patient)"
   group: 0x0020
   element: 0x0037
   op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
 - name: "Image Laterality"
   group: 0x0020
   element: 0x0062
   op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
 - name: "Frame of Reference UID"
   group: 0x0020
   element: 0x0052
   op: "replace_UID"
+#CT, MR, PET, US, X-Ray, and RT Images
 - name: "Synchronization Frame of Reference UID"
   group: 0x0020
   element: 0x0200
   op: "replace_UID"
+#CT, MR, PET, US, X-Ray, and RT Images
 - name: "Position Reference Indicator"
   group: 0x0020
   element: 0x1040
   op: "replace"
+#CT, MR, PET, US, X-Ray, and RT Images
 #################################### 0028 Group ###################################
 #
 #
