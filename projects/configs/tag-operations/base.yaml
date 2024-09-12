@@ -351,46 +351,138 @@
   group: 0x0018
   element: 0x1164
   op: "keep"
+#https://dicom.innolitics.com/ciods/computed-radiography-image/cr-image/00181164
+#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/dx-detector/00181164
+#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/x-ray-acquisition/00181164
+#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/x-ray-acquisition/00181164
+#https://dicom.innolitics.com/ciods/digital-x-ray-image/dx-detector/00181164
+#https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/dx-detector/00181164
+#https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/dx-detector/00181164
+#https://dicom.innolitics.com/ciods/vl-endoscopic-image/vl-image/00181164
+#https://dicom.innolitics.com/ciods/video-endoscopic-image/vl-image/00181164
+#https://dicom.innolitics.com/ciods/vl-slide-coordinates-microscopic-image/vl-image/00181164
+#https://dicom.innolitics.com/ciods/vl-microscopic-image/vl-image/00181164
+#https://dicom.innolitics.com/ciods/vl-photographic-image/vl-image/00181164
+#https://dicom.innolitics.com/ciods/real-time-video-endoscopic-image/vl-image/00181164
+#https://dicom.innolitics.com/ciods/video-photographic-image/vl-image/00181164
+#https://dicom.innolitics.com/ciods/video-microscopic-image/vl-image/00181164
+#https://dicom.innolitics.com/ciods/real-time-video-photographic-image/vl-image/00181164
+#https://dicom.innolitics.com/ciods/dermoscopic-photography-image/vl-image/00181164
+#https://dicom.innolitics.com/ciods/enhanced-xrf-image/enhanced-xrf-image-multi-frame-functional-groups/52009229/00289443/00181164
+#https://dicom.innolitics.com/ciods/enhanced-xa-image/enhanced-xa-image-multi-frame-functional-groups/52009229/00289443/00181164
+#https://dicom.innolitics.com/ciods/x-ray-3d-craniofacial-image/x-ray-3d-craniofacial-image-contributing-sources/00189506/00181164
+#https://dicom.innolitics.com/ciods/breast-projection-x-ray-image/breast-projection-x-ray-image-multi-frame-functional-groups/52009229/00289443/00181164
 - name: "Grid"
   group: 0x0018
   element: 0x1166
   op: "keep"
+#https://dicom.innolitics.com/ciods/enhanced-xrf-image/x-ray-grid/00181166
+#https://dicom.innolitics.com/ciods/enhanced-xa-image/x-ray-grid/00181166
+#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/x-ray-acquisition/00181166
+#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/x-ray-acquisition/00181166
+#https://dicom.innolitics.com/ciods/digital-x-ray-image/x-ray-grid/00181166
+#https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/x-ray-grid/00181166
+#https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/x-ray-grid/00181166
+#https://dicom.innolitics.com/ciods/breast-tomosynthesis-image/breast-tomosynthesis-acquisition/00189507/00181166
+#https://dicom.innolitics.com/ciods/x-ray-3d-craniofacial-image/x-ray-3d-craniofacial-acquisition/00189507/00181166
+#https://dicom.innolitics.com/ciods/x-ray-3d-angiographic-image/x-ray-3d-angiographic-acquisition/00189507/00181166
+#https://dicom.innolitics.com/ciods/breast-projection-x-ray-image/breast-projection-x-ray-image-multi-frame-functional-groups/52009229/00189555/00181166
 - name: "Focal Spot"
   group: 0x0018
   element: 0x1190
   op: "keep"
+#https://dicom.innolitics.com/ciods/ct-image/ct-image/00181190
+#https://dicom.innolitics.com/ciods/computed-radiography-image/cr-series/00181190
+#https://dicom.innolitics.com/ciods/ct-image/ct-image/00189360/00181190
+#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/x-ray-acquisition/00181190
+#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/x-ray-acquisition/00181190
+#https://dicom.innolitics.com/ciods/digital-x-ray-image/x-ray-generation/00181190
+#https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/x-ray-generation/00181190
+#https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/x-ray-generation/00181190
+#https://dicom.innolitics.com/ciods/enhanced-xrf-image/xa-xrf-acquisition/00181190
+#https://dicom.innolitics.com/ciods/breast-tomosynthesis-image/breast-tomosynthesis-acquisition/00189507/00181190
+#https://dicom.innolitics.com/ciods/enhanced-xa-image/xa-xrf-acquisition/00181190
+#https://dicom.innolitics.com/ciods/breast-projection-x-ray-image/enhanced-mammography-image/00181190
+#https://dicom.innolitics.com/ciods/enhanced-ct-image/enhanced-ct-image-multi-frame-functional-groups/52009229/00189325/00181190
+#https://dicom.innolitics.com/ciods/x-ray-3d-angiographic-image/x-ray-3d-angiographic-acquisition/00189507/00181190
 - name: "Receive Coil Name"
   group: 0x0018
   element: 0x1250
   op: "keep"
+#https://dicom.innolitics.com/ciods/mr-image/mr-image/00181250
+#https://dicom.innolitics.com/ciods/mr-spectroscopy/mr-spectroscopy-multi-frame-functional-groups/52009229/00189042/00181250
+#https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image-multi-frame-functional-groups/52009230/00189042/00181250
+#https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-color-image-multi-frame-functional-groups/52009229/00189042/00181250
 - name: "Transmit Coil Name"
   group: 0x0018
   element: 0x1251
   op: "keep"
+#https://dicom.innolitics.com/ciods/mr-image/mr-image/00181251
+#https://dicom.innolitics.com/ciods/mr-spectroscopy/mr-spectroscopy-multi-frame-functional-groups/52009229/00189049/00181251
+#https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image-multi-frame-functional-groups/52009230/00189049/00181251
+#https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-color-image-multi-frame-functional-groups/52009229/00189049/00181251
 - name: "Flip Angle"
   group: 0x0018
   element: 0x1314
   op: "keep"
-- name: "SAR"
-  group: 0x0018
-  element: 0x1316
-  op: "keep"
+#https://dicom.innolitics.com/ciods/mr-image/mr-image/00181314
+#https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image-multi-frame-functional-groups/52009230/00189112/00181314
+#https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-color-image-multi-frame-functional-groups/52009229/00189112/00181314
 - name: "Acquisition Device Processing Description"
   group: 0x0018
   element: 0x1400
   op: "keep"
+#https://dicom.innolitics.com/ciods/computed-radiography-image/cr-image/00181400
+#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/x-ray-image/00181400
+#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/x-ray-image/00181400
+#https://dicom.innolitics.com/ciods/digital-x-ray-image/dx-image/00181400
+#https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/dx-image/00181400
+#https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/dx-image/00181400
+#https://dicom.innolitics.com/ciods/vl-whole-slide-microscopy-image/whole-slide-microscopy-image/00181400
+#https://dicom.innolitics.com/ciods/enhanced-xrf-image/enhanced-xrf-image-multi-frame-functional-groups/52009229/00189412/00181400
+#https://dicom.innolitics.com/ciods/enhanced-xa-image/enhanced-xa-image-multi-frame-functional-groups/52009229/00189412/00181400
+#https://dicom.innolitics.com/ciods/x-ray-3d-craniofacial-image/x-ray-3d-craniofacial-image-contributing-sources/00189506/00181400
+#https://dicom.innolitics.com/ciods/x-ray-3d-angiographic-image/x-ray-3d-angiographic-image-contributing-sources/00189506/00181400
+#https://dicom.innolitics.com/ciods/breast-projection-x-ray-image/breast-projection-x-ray-image-multi-frame-functional-groups/52009229/00189412/00181400
 - name: "Patient Position"
   group: 0x0018
   element: 0x5100
   op: "replace"
+#https://dicom.innolitics.com/ciods/ultrasound-image/general-series/00185100
+#https://dicom.innolitics.com/ciods/mr-image/general-series/00185100
+#https://dicom.innolitics.com/ciods/nuclear-medicine-image/general-series/00185100
+#https://dicom.innolitics.com/ciods/ct-image/general-series/00185100
+#https://dicom.innolitics.com/ciods/computed-radiography-image/general-series/00185100
+#https://dicom.innolitics.com/ciods/secondary-capture-image/general-series/00185100
+#https://dicom.innolitics.com/ciods/video-endoscopic-image/general-series/00185100
+#https://dicom.innolitics.com/ciods/vl-microscopic-image/general-series/00185100
+#https://dicom.innolitics.com/ciods/vl-photographic-image/general-series/00185100
+#https://dicom.innolitics.com/ciods/vl-endoscopic-image/general-series/00185100
+#https://dicom.innolitics.com/ciods/video-microscopic-image/general-series/00185100
+#https://dicom.innolitics.com/ciods/video-photographic-image/general-series/00185100
+#https://dicom.innolitics.com/ciods/dermoscopic-photography-image/general-series/00185100
+#https://dicom.innolitics.com/ciods/enhanced-mr-image/general-series/00185100
+#https://dicom.innolitics.com/ciods/enhanced-ct-image/general-series/00185100
+#https://dicom.innolitics.com/ciods/enhanced-xa-image/general-series/00185100
+#https://dicom.innolitics.com/ciods/enhanced-xrf-image/general-series/00185100
+#https://dicom.innolitics.com/ciods/enhanced-pet-image/general-series/00185100
+#https://dicom.innolitics.com/ciods/breast-tomosynthesis-image/general-series/00185100
+#https://dicom.innolitics.com/ciods/ophthalmic-tomography-image/general-series/00185100
+#https://dicom.innolitics.com/ciods/enhanced-rt-image/general-series/00185100
+#https://dicom.innolitics.com/ciods/confocal-microscopy-image/general-series/00185100
+#NOTE: Seach term: "00185100 Image General Series"
 - name: "MR Acquisition Frequency Encoding Steps"
   group: 0x0018
   element: 0x9058
   op: "keep"
+#https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image-multi-frame-functional-groups/52009230/00189125/00189058
+#https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-color-image-multi-frame-functional-groups/52009229/00189125/00189058
 - name: "MR Acquisition Phase Encoding Steps in-plane"
   group: 0x0018
   element: 0x9231
   op: "keep"
+#https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image-multi-frame-functional-groups/52009230/00189125/00189231
+#https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-color-image-multi-frame-functional-groups/52009230/00189125/00189231
 #################################### 0020 Group ###################################
 #
 #
