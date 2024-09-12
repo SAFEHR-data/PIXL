@@ -396,18 +396,30 @@ class ImagingStudy:
         }
 
     @property
-    def orthanc_dict_with_project_name(self) -> dict:
+    def query_project_name(self) -> dict:
         """Dictionary to query a study, returning the PIXL_PROJECT tags for each study."""
         return {
-            **self.orthanc_query_dict,
             "RequestedTags": [DICOM_TAG_PROJECT_NAME.tag_nickname],
             "Expand": True,
         }
 
     async def query_local(self, node: Orthanc, *, project_tag: bool = False) -> Any:
         """Does this study exist in an Orthanc instance/node, optionally query for project tag."""
-        query_dict = self.orthanc_query_dict
+        uid_query = self.orthanc_uid_query_dict
         if project_tag:
-            query_dict = self.orthanc_dict_with_project_name
+            uid_query = uid_query | self.query_project_name
 
-        return await node.query_local(query_dict)
+        query_response = await node.query_local(uid_query)
+        if query_response:
+            return query_response
+
+        logger.trace(
+            "No study found locally with UID, trying MRN and accession number. {}",
+            self.orthanc_query_dict,
+        )
+
+        mrn_accession_query = self.orthanc_query_dict
+        if project_tag:
+            mrn_accession_query = mrn_accession_query | self.query_project_name
+
+        return await node.query_local(mrn_accession_query)
