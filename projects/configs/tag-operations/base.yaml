@@ -467,99 +467,122 @@
 #https://dicom.innolitics.com/ciods/ultrasound-image/us-image/00280002
 #https://dicom.innolitics.com/ciods/rt-image/image-pixel/00280002
 #https://dicom.innolitics.com/ciods/rt-image/rt-image/00280002
-#NOTE List of searched term continutes
+#CT, MR, PET, US, X-Ray, and RT Images
 - name: "Photometric Interpretation"
   group: 0x0028
   element: 0x0004
   op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
 - name: "Planar Configuration"
   group: 0x0028
   element: 0x0006
   op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
 - name: "Rows"
   group: 0x0028
   element: 0x0010
   op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
 - name: "Columns"
   group: 0x0028
   element: 0x0011
   op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
 - name: "Pixel Spacing"
   group: 0x0028
   element: 0x0030
   op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
 - name: "Bits Allocated"
   group: 0x0028
   element: 0x0100
   op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
 - name: "Bits Stored"
   group: 0x0028
   element: 0x0101
   op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
 - name: "High Bit"
   group: 0x0028
   element: 0x0102
   op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
 - name: "Pixel Representation"
   group: 0x0028
   element: 0x0103
   op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
 - name: "Burned In Annotation"
   group: 0x0028
   element: 0x0301
   op: "keep"
-- name: "LUTDescriptor"
+#CT, MR, PET, US, X-Ray, and RT Images
+- name: "Recognizable Visual Features"
   group: 0x0028
   element: 0x0302
   op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
 - name: "Pixel Spacing Calibration Type"
   group: 0x0028
   element: 0x0a02
   op: "keep"
+#X-Ray
 - name: "Pixel Spacing Calibration Description"
   group: 0x0028
   element: 0x0a04
   op: "keep"
+#X-Ray
 - name: "Pixel Intensity Relationship"
   group: 0x0028
   element: 0x1040
   op: "keep"
+#X-Ray
 - name: "Pixel Intensity Relationship Sign"
   group: 0x0028
   element: 0x1041
   op: "keep"
+#RT, X-Ray
 - name: "Window Center"
   group: 0x0028
   element: 0x1050
   op: "keep"
+#CT, MR, US, RT, PET, X-ray
 - name: "Window Width"
   group: 0x0028
   element: 0x1051
   op: "keep"
+#CT, MR, US, RT, PET, X-ray
 - name: "Rescale Intercept"
   group: 0x0028
   element: 0x1052
   op: "keep"
+#CT, MR, US, RT, PET, X-ray
 - name: "Rescale Slope"
   group: 0x0028
   element: 0x1053
   op: "keep"
+#CT, MR, US, RT, PET, X-ray
 - name: "Rescale Type"
   group: 0x0028
   element: 0x1054
   op: "keep"
+#CT, MR, US, RT, X-ray
 - name: "Window Center And Width Explanation"
   group: 0x0028
   element: 0x1055
   op: "keep"
+#CT, MR, US, RT, PET, X-ray
 - name: "Lossy Image Compression"
   group: 0x0028
   element: 0x2110
   op: "keep"
+#CT, MR, US, RT, PET, X-ray
 - name: "VOI LUT Sequence"
   group: 0x0028
   element: 0x3010
   op: "keep"
+#CT, MR, US, RT, PET, X-ray
 #################################### 0040 Group ###################################
 #
 #
