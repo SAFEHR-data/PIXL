@@ -600,10 +600,12 @@
   group: 0x0040
   element: 0x9924
   op: "replace_UID"
+#NOTE cannot find any imaging for this one
 - name: "Real World Value Slope"
   group: 0x0040
   element: 0x9925
   op: "replace_UID"
+#NOTE cannot find any imaging for this one
 #################################### 0054 Group ###################################
 #
 #
@@ -614,7 +616,6 @@
 #https://dicom.innolitics.com/ciods/ct-image/ct-image/00540220
 #https://dicom.innolitics.com/ciods/mr-image/mr-image/00540220
 #https://dicom.innolitics.com/ciods/ultrasound-image/us-image/00540220
-#https://dicom.innolitics.com/ciods/ultrasound-multi-frame-image/us-image/00540220
 #NOTE List of searched term continutes
 #################################### 0088 Group ###################################
 #
@@ -640,11 +641,12 @@
   element: 0x0024
   op: "replace_UID"
 #https://dicom.innolitics.com/ciods/rt-structure-set/structure-set/30060020/30060024
-# NOTE: dont' see image modalities
+#NOTE cannot find any imaging for this one
 - name: "Related Frame of Reference UID"
   group: 0x3006
   element: 0x00C2
   op: "replace_UID"
+#NOTE cannot find any imaging for this one
 #################################### 7FE0 Group ###################################
 #
 #
