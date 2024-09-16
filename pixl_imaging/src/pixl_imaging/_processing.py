@@ -178,7 +178,9 @@ async def _add_project_to_study(
     )
 
 
-async def _find_study_in_archives_or_raise(orthanc_raw: Orthanc, study: ImagingStudy) -> tuple[str, str]:
+async def _find_study_in_archives_or_raise(
+    orthanc_raw: Orthanc, study: ImagingStudy
+) -> tuple[str, str]:
     """
     Query primary and secondary archives for a study.
 
@@ -296,8 +298,10 @@ async def _retrieve_missing_instances(
     resource: dict, orthanc_raw: Orthanc, study: ImagingStudy, timeout: int
 ) -> None:
     """Retrieve missing instances for a study from the VNA / PACS."""
-    modality, missing_instance_uids = await _get_missing_instances(orthanc_raw, study, resource, timeout)
-    if missing_instance_uids is None:
+    modality, missing_instance_uids = await _get_missing_instances(
+        orthanc_raw, study, resource, timeout
+    )
+    if not missing_instance_uids:
         return
     logger.debug(
         "Retrieving {} missing instances for study {}",
@@ -313,12 +317,11 @@ async def _get_missing_instances(
     study: ImagingStudy,
     resource: dict,
     timeout: int,
-) -> Optional[tuple[str, list[str]]]:
+) -> tuple[str, list[str]]:
     """
     Check if any study instances are missing from Orthanc Raw.
 
-    Return None if not studies are missing.
-    Return a tuple of the modality and a list of SOPInstanceUids that can be used to retrieve missing instances.
+    Return a tuple of the modality and a list missing instance UIDs (empty if none missing)
     """
     # First get all SOPInstanceUIDs for the study that are in Orthanc Raw
     orthanc_raw_sop_instance_uids = []
@@ -336,13 +339,14 @@ async def _get_missing_instances(
     )
     instances_query_answers = await orthanc_raw.get_remote_query_answers(instances_query_id)
 
+    missing_instances: list[str] = []
+
     if len(instances_query_answers) == len(orthanc_raw_sop_instance_uids):
-        return None
+        return modality, missing_instances
 
     # If the SOPInstanceUID is not in the list of instances in Orthanc Raw
     # retrieve the instance from the VNA / PACS
     sop_instance_uid_tag = "0008,0018"
-    missing_instances: list[str] = []
     for instance_query_answer in instances_query_answers:
         instance_query_answer_content = await orthanc_raw.get_remote_query_answer_content(
             query_id=instances_query_id,
