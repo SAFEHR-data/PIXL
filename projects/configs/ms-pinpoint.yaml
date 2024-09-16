@@ -20,6 +20,7 @@ tag_operation_files:
     base:
         - "base.yaml"
         - "mri.yaml"
+        - "xray.yaml"
         - "ms-pinpoint.yaml"
     manufacturer_overrides: ["mri.yaml"]
 

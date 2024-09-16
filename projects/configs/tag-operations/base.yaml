@@ -194,39 +194,6 @@
 #https://dicom.innolitics.com/ciods/breast-projection-x-ray-image/general-equipment/00181020
 #https://dicom.innolitics.com/ciods/enhanced-continuous-rt-image/general-equipment/00181020
 #NOTE The search of "00181020" found 579 results
-- name: "Field Of View Dimension"
-  group: 0x0018
-  element: 0x1149
-  op: "keep"
-#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/dx-detector/00181149
-#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/dx-detector/00181149
-#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/x-ray-acquisition/00181149
-#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/x-ray-acquisition/00181149
-#https://dicom.innolitics.com/ciods/digital-x-ray-image/dx-detector/00181149
-#https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/dx-detector/00181149
-#https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/dx-detector/00181149
-- name: "Imager Pixel Spacing"
-  group: 0x0018
-  element: 0x1164
-  op: "keep"
-#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/dx-detector/00181164
-#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/x-ray-acquisition/00181164
-#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/x-ray-acquisition/00181164
-#https://dicom.innolitics.com/ciods/digital-x-ray-image/dx-detector/00181164
-#https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/dx-detector/00181164
-#https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/dx-detector/00181164
-- name: "Grid"
-  group: 0x0018
-  element: 0x1166
-  op: "keep"
-#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/x-ray-acquisition/00181166
-#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/x-ray-acquisition/00181166
-#https://dicom.innolitics.com/ciods/digital-x-ray-image/x-ray-grid/00181166
-#https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/x-ray-grid/00181166
-#https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/x-ray-grid/00181166
-#https://dicom.innolitics.com/ciods/x-ray-3d-craniofacial-image/x-ray-3d-craniofacial-acquisition/00189507/00181166
-#https://dicom.innolitics.com/ciods/x-ray-3d-angiographic-image/x-ray-3d-angiographic-acquisition/00189507/00181166
-#https://dicom.innolitics.com/ciods/breast-projection-x-ray-image/breast-projection-x-ray-image-multi-frame-functional-groups/52009229/00189555/00181166
 - name: "Focal Spot"
   group: 0x0018
   element: 0x1190
@@ -248,18 +215,6 @@
 #https://dicom.innolitics.com/ciods/mr-spectroscopy/mr-spectroscopy-multi-frame-functional-groups/52009229/00189042/00181250
 #https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image-multi-frame-functional-groups/52009230/00189042/00181250
 #https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-color-image-multi-frame-functional-groups/52009229/00189042/00181250
-- name: "Acquisition Device Processing Description"
-  group: 0x0018
-  element: 0x1400
-  op: "keep"
-#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/x-ray-image/00181400
-#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/x-ray-image/00181400
-#https://dicom.innolitics.com/ciods/digital-x-ray-image/dx-image/00181400
-#https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/dx-image/00181400
-#https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/dx-image/00181400
-#https://dicom.innolitics.com/ciods/x-ray-3d-craniofacial-image/x-ray-3d-craniofacial-image-contributing-sources/00189506/00181400
-#https://dicom.innolitics.com/ciods/x-ray-3d-angiographic-image/x-ray-3d-angiographic-image-contributing-sources/00189506/00181400
-#https://dicom.innolitics.com/ciods/breast-projection-x-ray-image/breast-projection-x-ray-image-multi-frame-functional-groups/52009229/00189412/00181400
 - name: "Patient Position"
   group: 0x0018
   element: 0x5100
@@ -446,21 +401,6 @@
 - name: "Pixel Spacing Calibration Type"
   group: 0x0028
   element: 0x0a02
-  op: "keep"
-#X-Ray
-- name: "Pixel Spacing Calibration Description"
-  group: 0x0028
-  element: 0x0a04
-  op: "keep"
-#X-Ray
-- name: "Pixel Intensity Relationship"
-  group: 0x0028
-  element: 0x1040
-  op: "keep"
-#X-Ray
-- name: "Pixel Intensity Relationship Sign"
-  group: 0x0028
-  element: 0x1041
   op: "keep"
 #RT, X-Ray
 - name: "Window Center"
