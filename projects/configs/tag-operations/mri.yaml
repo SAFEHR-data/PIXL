@@ -133,6 +133,9 @@
   group: 0x0018
   element: 0x0023
   op: "keep"
+#https://dicom.innolitics.com/ciods/mr-image/mr-image/00180023
+#https://dicom.innolitics.com/ciods/enhanced-mr-image/mr-pulse-sequence/00180023
+#https://dicom.innolitics.com/ciods/enhanced-mr-color-image/mr-pulse-sequence/00180023
 - name: "Sequence Name"
   group: 0x0018
   element: 0x0024
@@ -145,6 +148,8 @@
   group: 0x0018
   element: 0x0080
   op: "keep"
+#https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image-multi-frame-functional-groups/52009229/00189112/00180080
+#https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-color-image-multi-frame-functional-groups/52009229/00189112/00180080
 - name: "Echo Time"
   group: 0x0018
   element: 0x0081
@@ -157,22 +162,42 @@
   group: 0x0018
   element: 0x0083
   op: "keep"
+#https://dicom.innolitics.com/ciods/mr-image/mr-image/00180083
+#https://dicom.innolitics.com/ciods/mr-spectroscopy/mr-spectroscopy-multi-frame-functional-groups/52009229/00189119/00180083
+#https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image-multi-frame-functional-groups/52009230/00189119/00180083
+#https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-color-image-multi-frame-functional-groups/52009229/00189119/00180083
 - name: "Magnetic Field Strength"
   group: 0x0018
   element: 0x0087
   op: "keep"
+#https://dicom.innolitics.com/ciods/mr-image/mr-image/00180087
+#https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image/00180087
+#https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-image/00180087
+#https://dicom.innolitics.com/ciods/legacy-converted-enhanced-mr-image/enhanced-mr-image/00180087
 - name: "Spacing Between Slices"
   group: 0x0018
   element: 0x0088
   op: "keep"
+#https://dicom.innolitics.com/ciods/ct-image/image-plane/00180088
+#https://dicom.innolitics.com/ciods/mr-image/image-plane/00180088
+#https://dicom.innolitics.com/ciods/x-ray-3d-angiographic-image/x-ray-3d-angiographic-image-multi-frame-functional-groups/52009229/00289110/00180088
+#https://dicom.innolitics.com/ciods/x-ray-3d-craniofacial-image/x-ray-3d-craniofacial-image-multi-frame-functional-groups/52009229/00289110/00180088
 - name: "Echo train length"
   group: 0x0018
   element: 0x0091
   op: "keep"
+#https://dicom.innolitics.com/ciods/mr-image/mr-image/00180091
+#https://dicom.innolitics.com/ciods/mr-spectroscopy/mr-spectroscopy-multi-frame-functional-groups/52009229/00189112/00180091
+#https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image-multi-frame-functional-groups/52009229/00189112/00180091
+#https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-color-image-multi-frame-functional-groups/52009229/00189112/00180091
 - name: "Percent Phase Field of View"
   group: 0x0018
   element: 0x0094
   op: "keep"
+#https://dicom.innolitics.com/ciods/mr-image/mr-image/00180094
+#https://dicom.innolitics.com/ciods/mr-spectroscopy/mr-spectroscopy-multi-frame-functional-groups/52009229/00189103/00180094
+#https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image-multi-frame-functional-groups/52009229/00189125/00180094
+#https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-color-image-multi-frame-functional-groups/52009229/00189125/00180094
 - name: "Software Version"
   group: 0x0018
   element: 0x1020
@@ -201,10 +226,17 @@
   group: 0x0018
   element: 0x1251
   op: "keep"
+#https://dicom.innolitics.com/ciods/mr-image/mr-image/00181251
+#https://dicom.innolitics.com/ciods/mr-spectroscopy/mr-spectroscopy-multi-frame-functional-groups/52009229/00189049/00181251
+#https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image-multi-frame-functional-groups/52009230/00189049/00181251
+#https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-color-image-multi-frame-functional-groups/52009229/00189049/00181251
 - name: "Flip Angle"
   group: 0x0018
   element: 0x1314
   op: "keep"
+#https://dicom.innolitics.com/ciods/mr-image/mr-image/00181314
+#https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image-multi-frame-functional-groups/52009230/00189112/00181314
+#https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-color-image-multi-frame-functional-groups/52009229/00189112/00181314
 - name: "SAR"
   group: 0x0018
   element: 0x1316
@@ -217,10 +249,22 @@
   group: 0x0018
   element: 0x5100
   op: "replace"
+#https://dicom.innolitics.com/ciods/ultrasound-image/general-series/00185100
+#https://dicom.innolitics.com/ciods/mr-image/general-series/00185100
+#https://dicom.innolitics.com/ciods/ct-image/general-series/00185100
+#NOTE: Seach term: "00185100 Image General Series"
 - name: "MR Acquisition Frequency Encoding Steps"
   group: 0x0018
   element: 0x9058
   op: "keep"
+#https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image-multi-frame-functional-groups/52009230/00189125/00189058
+#https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-color-image-multi-frame-functional-groups/52009229/00189125/00189058
+- name: "MR Acquisition Phase Encoding Steps in-plane"
+  group: 0x0018
+  element: 0x9231
+  op: "keep"
+#https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image-multi-frame-functional-groups/52009230/00189125/00189231
+#https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-color-image-multi-frame-functional-groups/52009230/00189125/00189231
 - name: "MR Acquisition Phase Encoding Steps in-plane"
   group: 0x0018
   element: 0x9231
