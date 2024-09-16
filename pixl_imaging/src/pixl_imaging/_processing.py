@@ -308,7 +308,9 @@ async def _retrieve_missing_instances(
         len(missing_instance_uids),
         study.message.identifier,
     )
-    job_id = await orthanc_raw.retrieve_instances_from_remote(modality, missing_instance_uids)
+    job_id = await orthanc_raw.retrieve_instances_from_remote(
+        modality, missing_instance_uids, timeout + 60
+    )  # Temporarily increasing timeout for job
     await orthanc_raw.wait_for_job_success_or_raise(job_id, "c-move for missing instances", timeout)
 
 
@@ -317,7 +319,7 @@ async def _get_missing_instances(
     study: ImagingStudy,
     resource: dict,
     timeout: int,
-) -> tuple[str, list[str]]:
+) -> tuple[str, list[dict[str, str]]]:
     """
     Check if any study instances are missing from Orthanc Raw.
 
@@ -339,20 +341,24 @@ async def _get_missing_instances(
     )
     instances_query_answers = await orthanc_raw.get_remote_query_answers(instances_query_id)
 
-    missing_instances: list[str] = []
+    missing_instances: list[dict[str, str]] = []
 
     if len(instances_query_answers) == len(orthanc_raw_sop_instance_uids):
         return modality, missing_instances
 
     # If the SOPInstanceUID is not in the list of instances in Orthanc Raw
     # retrieve the instance from the VNA / PACS
-    sop_instance_uid_tag = "0008,0018"
+    query_tags = ["0020,000d", "0020,000e", "0008,0018"]
     for instance_query_answer in instances_query_answers:
         instance_query_answer_content = await orthanc_raw.get_remote_query_answer_content(
             query_id=instances_query_id,
             answer_id=instance_query_answer,
         )
-        sop_instance_uid = instance_query_answer_content[sop_instance_uid_tag]["Value"]
+        uids_for_query = {
+            instance_query_answer_content[x]["Name"]: instance_query_answer_content[x]["Value"]
+            for x in query_tags
+        }
+        sop_instance_uid = uids_for_query["SOPInstanceUID"]
         if sop_instance_uid in orthanc_raw_sop_instance_uids:
             continue
 
@@ -361,7 +367,7 @@ async def _get_missing_instances(
             sop_instance_uid,
             study.message.study_uid,
         )
-        missing_instances.append(sop_instance_uid)
+        missing_instances.append(uids_for_query)
 
     return modality, missing_instances
 

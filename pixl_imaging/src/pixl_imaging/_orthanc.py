@@ -134,14 +134,18 @@ class Orthanc(ABC):
         )
         return str(response["ID"])
 
-    async def retrieve_instances_from_remote(self, modality: str, instances_uid: list[str]) -> str:
+    async def retrieve_instances_from_remote(
+        self, modality: str, missing_instances: list[dict[str, str]], timeout: int
+    ) -> str:
+        """Retieve missing instances from remote modality in a single c-move query."""
         response = await self._post(
             f"/modalities/{modality}/move",
             data={
                 "Level": "Instance",
                 "TargetAet": self.aet,
                 "Synchronous": False,
-                "Resources": [{"StudyInstanceUid": instance} for instance in instances_uid],
+                "Resources": missing_instances,
+                "Timeout": timeout,
             },
         )
         return str(response["ID"])
