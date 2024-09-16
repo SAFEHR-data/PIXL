@@ -35,8 +35,30 @@
     "ResourceModification": 20  // for /anonymize, /modify
   },
 
+  // Whether to save the jobs into the Orthanc database. If this
+  // option is set to "true", the pending/running/completed jobs are
+  // automatically reloaded from the database if Orthanc is stopped
+  // then restarted (except if the "--no-jobs" command-line argument
+  // is specified). This option should be set to "false" if multiple
+  // Orthanc servers are using the same database (e.g. if PostgreSQL
+  // or MariaDB/MySQL is used).
+  "SaveJobs" : false,
 
-  "DicomScpTimeout" : 600,
+  "DicomScpTimeout" : 120,
+
+  // Main Dicom tags that are already stored.
+  // see https://orthanc.uclouvain.be/book/faq/main-dicom-tags.html 
+  // (new in Orthanc 1.11.0)
+  // Sequences tags are not supported.
+"ExtraMainDicomTags" : {
+    "Instance" : [
+      "SOPClassUID",
+      "000d,1001"
+    ],
+    "Series" : [],
+    "Study": [],
+    "Patient": []
+  },
 
 // To enable plugins:
   "Plugins" : [ "/usr/share/orthanc/plugins" ],
