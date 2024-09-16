@@ -137,9 +137,12 @@ class Orthanc(ABC):
     async def retrieve_instances_from_remote(self, modality: str, instances_uid: list[str]) -> str:
         response = await self._post(
             f"/modalities/{modality}/move",
-            data={"Level": "Instance", "TargetAet": self.aet, "Synchronous":  False,
-                "Resources": [{"StudyInstanceUid": instance for instance in instances_uid}]
-          },
+            data={
+                "Level": "Instance",
+                "TargetAet": self.aet,
+                "Synchronous": False,
+                "Resources": [{"StudyInstanceUid": instance} for instance in instances_uid],
+            },
         )
         return str(response["ID"])
 
@@ -173,7 +176,11 @@ class Orthanc(ABC):
     async def _get(self, path: str) -> Any:
         async with (
             aiohttp.ClientSession() as session,
-            session.get(f"{self._url}{path}", auth=self._auth, timeout=config("PIXL_QUERY_TIMEOUT", default=10, cast=float)) as response,
+            session.get(
+                f"{self._url}{path}",
+                auth=self._auth,
+                timeout=config("PIXL_QUERY_TIMEOUT", default=10, cast=float),
+            ) as response,
         ):
             return await _deserialise(response)
 
