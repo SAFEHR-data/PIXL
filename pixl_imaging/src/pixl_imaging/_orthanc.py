@@ -134,10 +134,12 @@ class Orthanc(ABC):
         )
         return str(response["ID"])
 
-    async def retrieve_instance_from_remote(self, query_id: str, answer_id: str) -> str:
+    async def retrieve_instances_from_remote(self, modality: str, instances_uid: list[str]) -> str:
         response = await self._post(
-            f"/queries/{query_id}/answers/{answer_id}/retrieve",
-            data={"TargetAet": self.aet, "Synchronous": False},
+            f"/modalities/{modality}/move",
+            data={"Level": "Instance", "TargetAet": self.aet, "Synchronous":  False,
+                "Resources": [{"StudyInstanceUid": instance for instance in instances_uid}]
+          },
         )
         return str(response["ID"])
 

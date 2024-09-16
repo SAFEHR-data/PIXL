@@ -178,7 +178,7 @@ async def _add_project_to_study(
     )
 
 
-async def _find_study_in_archives_or_raise(orthanc_raw: Orthanc, study: ImagingStudy) -> str:
+async def _find_study_in_archives_or_raise(orthanc_raw: Orthanc, study: ImagingStudy) -> tuple[str, str]:
     """
     Query primary and secondary archives for a study.
 
@@ -187,7 +187,7 @@ async def _find_study_in_archives_or_raise(orthanc_raw: Orthanc, study: ImagingS
 
     1. Query the primary archive for the study using its UID. If UID is not available, query on
       MRN and accession number
-        i) Return the query id if the study is found.
+        i) Return the primary archive aet modality and query id if the study is found.
         ii) If not found in the primary archive, and the secondary archive is the same as the
             primary,
       raise a PixlDiscardError.
@@ -196,16 +196,17 @@ async def _find_study_in_archives_or_raise(orthanc_raw: Orthanc, study: ImagingS
     2. Query the secondary archive using the study UID. If UID is not available, query on
       MRN + accession number.
         a) If not found, raise a PixlDiscardError.
-        a) If found in the secondary archive, return the query id.
+        a) If found in the secondary archive, return the modality and query id.
     """
+    primary_modality = config("PRIMARY_DICOM_SOURCE_MODALITY")
     query_id = await _find_study_in_archive(
         orthanc_raw=orthanc_raw,
         study=study,
-        modality=config("PRIMARY_DICOM_SOURCE_MODALITY"),
+        modality=primary_modality,
     )
 
     if query_id is not None:
-        return str(query_id)
+        return primary_modality, query_id
 
     if config("SECONDARY_DICOM_SOURCE_AE_TITLE") == config("PRIMARY_DICOM_SOURCE_AE_TITLE"):
         msg = (
@@ -225,17 +226,18 @@ async def _find_study_in_archives_or_raise(orthanc_raw: Orthanc, study: ImagingS
         "Failed to find study {} in primary archive, trying secondary archive",
         study.message.identifier,
     )
+    secondary_modality = config("SECONDARY_DICOM_SOURCE_MODALITY")
     query_id = await _find_study_in_archive(
         study=study,
         orthanc_raw=orthanc_raw,
-        modality=config("SECONDARY_DICOM_SOURCE_MODALITY"),
+        modality=secondary_modality,
     )
 
     if query_id is None:
         msg = f"Failed to find study {study.message.identifier} in primary or secondary archive."
         raise PixlDiscardError(msg)
 
-    return query_id
+    return secondary_modality, query_id
 
 
 async def _find_study_in_archive(
@@ -285,7 +287,7 @@ def _is_weekend() -> bool:
 
 async def _retrieve_study(orthanc_raw: Orthanc, study: ImagingStudy, timeout: int) -> None:
     """Retrieve all instances for a study from the VNA / PACS."""
-    query_id = await _find_study_in_archives_or_raise(orthanc_raw, study)
+    _, query_id = await _find_study_in_archives_or_raise(orthanc_raw, study)
     job_id = await orthanc_raw.retrieve_from_remote(query_id=query_id)  # C-Move
     await orthanc_raw.wait_for_job_success_or_raise(job_id, "c-move", timeout)
 
@@ -294,19 +296,16 @@ async def _retrieve_missing_instances(
     resource: dict, orthanc_raw: Orthanc, study: ImagingStudy, timeout: int
 ) -> None:
     """Retrieve missing instances for a study from the VNA / PACS."""
-    missing_instances = await _get_missing_instances(orthanc_raw, study, resource, timeout)
-    if missing_instances is None:
+    modality, missing_instance_uids = await _get_missing_instances(orthanc_raw, study, resource, timeout)
+    if missing_instance_uids is None:
         return
     logger.debug(
         "Retrieving {} missing instances for study {}",
-        len(missing_instances),
-        study.message.study_uid,
+        len(missing_instance_uids),
+        study.message.identifier,
     )
-    for instances_query_id, instance_query_answer in missing_instances:
-        job_id = await orthanc_raw.retrieve_instance_from_remote(
-            query_id=instances_query_id, answer_id=instance_query_answer
-        )
-        await orthanc_raw.wait_for_job_success_or_raise(job_id, "c-move", timeout)
+    job_id = await orthanc_raw.retrieve_instances_from_remote(modality, missing_instance_uids)
+    await orthanc_raw.wait_for_job_success_or_raise(job_id, "c-move for missing instances", timeout)
 
 
 async def _get_missing_instances(
@@ -314,12 +313,12 @@ async def _get_missing_instances(
     study: ImagingStudy,
     resource: dict,
     timeout: int,
-) -> Optional[list[tuple[str, str]]]:
+) -> Optional[tuple[str, list[str]]]:
     """
     Check if any study instances are missing from Orthanc Raw.
 
     Return None if not studies are missing.
-    Return a list of (query_id, answer_id) tuples that can be used to retrieve missing instances.
+    Return a tuple of the modality and a list of SOPInstanceUids that can be used to retrieve missing instances.
     """
     # First get all SOPInstanceUIDs for the study that are in Orthanc Raw
     orthanc_raw_sop_instance_uids = []
@@ -330,7 +329,7 @@ async def _get_missing_instances(
             orthanc_raw_sop_instance_uids.append(instance["MainDicomTags"]["SOPInstanceUID"])
 
     # Now query the VNA / PACS for the study instances
-    study_query_id = await _find_study_in_archives_or_raise(orthanc_raw, study)
+    modality, study_query_id = await _find_study_in_archives_or_raise(orthanc_raw, study)
     study_query_answers = await orthanc_raw.get_remote_query_answers(study_query_id)
     instances_query_id = await orthanc_raw.get_remote_query_answer_instances(
         query_id=study_query_id, answer_id=study_query_answers[0], timeout=timeout
@@ -343,7 +342,7 @@ async def _get_missing_instances(
     # If the SOPInstanceUID is not in the list of instances in Orthanc Raw
     # retrieve the instance from the VNA / PACS
     sop_instance_uid_tag = "0008,0018"
-    missing_instances: list[tuple[str, str]] = []
+    missing_instances: list[str] = []
     for instance_query_answer in instances_query_answers:
         instance_query_answer_content = await orthanc_raw.get_remote_query_answer_content(
             query_id=instances_query_id,
@@ -353,14 +352,14 @@ async def _get_missing_instances(
         if sop_instance_uid in orthanc_raw_sop_instance_uids:
             continue
 
-        logger.debug(
+        logger.trace(
             "Instance {} is missing from study {}",
             sop_instance_uid,
             study.message.study_uid,
         )
-        missing_instances.append((instances_query_id, instance_query_answer))
+        missing_instances.append(sop_instance_uid)
 
-    return missing_instances
+    return modality, missing_instances
 
 
 @dataclass
