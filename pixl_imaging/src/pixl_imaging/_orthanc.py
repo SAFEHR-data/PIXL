@@ -171,7 +171,7 @@ class Orthanc(ABC):
     async def _get(self, path: str) -> Any:
         async with (
             aiohttp.ClientSession() as session,
-            session.get(f"{self._url}{path}", auth=self._auth, timeout=10) as response,
+            session.get(f"{self._url}{path}", auth=self._auth, timeout=config("PIXL_QUERY_TIMEOUT", default=10, cast=float)) as response,
         ):
             return await _deserialise(response)
 
