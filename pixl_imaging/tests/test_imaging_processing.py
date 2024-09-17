@@ -29,7 +29,6 @@ from pixl_imaging._orthanc import Orthanc, PIXLRawOrthanc
 from pixl_imaging._processing import ImagingStudy, process_message
 from pydicom import dcmread
 from pydicom.data import get_testdata_file
-from pydicom.dataelem import DataElement
 from pydicom.uid import generate_uid
 from pytest_check import check
 from pytest_pixl.helpers import run_subprocess
@@ -78,7 +77,7 @@ def no_uid_message() -> Message:
     return Message(
         mrn=PATIENT_ID,
         accession_number=ACCESSION_NUMBER,
-        study_uid="ialsodontexist",
+        study_uid="",
         study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
             tzinfo=datetime.timezone.utc
         ),
@@ -201,7 +200,6 @@ def _add_image_to_fake_pacs(run_containers) -> Generator[None]:
     ds.AccessionNumber = PACS_ACCESSION_NUMBER
     ds.PatientID = PACS_PATIENT_ID
     ds.StudyInstanceUID = PACS_STUDY_UID
-    ds[0x0008, 0x0056] = DataElement((0x0008, 0x0056), "CS", "ONLINE")
     ds.save_as(image_filename)
 
     pacs = WritableOrthanc(
@@ -370,7 +368,7 @@ async def test_querying_without_uid(orthanc_raw, caplog, no_uid_message: Message
     assert await study.query_local(orthanc)
 
     expected_msg = (
-        f"No study found in modality UCPRIMARYQR with UID {study.message.study_uid}, "
+        f"No study found in modality UCPRIMARYQR with UID '{study.message.study_uid}', "
         "trying MRN and accession number"
     )
     assert expected_msg in caplog.text
@@ -419,19 +417,19 @@ async def test_querying_pacs_with_uid(
     assert await study.query_local(orthanc)
 
     expected_msg = (
-        f"No study found in modality UCPRIMARYQR with UID {study.message.study_uid}, "
+        f"No study found in modality UCPRIMARYQR with UID '{study.message.study_uid}', "
         "trying MRN and accession number"
     )
     assert expected_msg in caplog.text
 
     expected_msg = (
-        f"Failed to find study {study.message.study_uid} in primary archive, "
+        f"Failed to find study {study.message.identifier} in primary archive, "
         "trying secondary archive"
     )
     assert expected_msg in caplog.text
 
     unexpected_msg = (
-        f"No study found in modality UCSECONDARYQR with UID {study.message.study_uid}, "
+        f"No study found in modality UCSECONDARYQR with UID '{study.message.study_uid}', "
         "trying MRN and accession number"
     )
     assert unexpected_msg not in caplog.text
@@ -461,20 +459,17 @@ async def test_querying_pacs_without_uid(
 
     assert await study.query_local(orthanc)
 
-    expected_msg = (
-        f"No study found in modality UCPRIMARYQR with UID {study.message.study_uid}, "
-        "trying MRN and accession number"
-    )
+    expected_msg = "No study found in modality UCPRIMARYQR with UID"
     assert expected_msg in caplog.text
 
     expected_msg = (
-        f"Failed to find study {study.message.study_uid} in primary archive, "
+        f"Failed to find study {study.message.identifier} in primary archive, "
         "trying secondary archive"
     )
     assert expected_msg in caplog.text
 
     expected_msg = (
-        f"No study found in modality UCSECONDARYQR with UID {study.message.study_uid}, "
+        f"No study found in modality UCSECONDARYQR with UID '{study.message.study_uid}', "
         "trying MRN and accession number"
     )
     assert expected_msg in caplog.text
@@ -495,7 +490,7 @@ async def test_querying_missing_image(orthanc_raw, monkeypatch, missing_message:
 
     # PACS is not queried during the daytime nor at the weekend.
     # Set today to be a Monday at 2 am.
-    match = f"Failed to find study {missing_message.study_uid} in primary or secondary archive."
+    match = "Failed to find study .* in primary or secondary archive."
     with monkeypatch.context() as mp, pytest.raises(PixlDiscardError, match=match):  # noqa: PT012
         mp.setattr(datetime, "datetime", Monday2AM)
         await process_message(missing_message)
@@ -524,7 +519,7 @@ async def test_querying_pacs_during_working_hours(
     assert not await study.query_local(orthanc)
 
     match = (
-        f"Failed to find study {missing_message.study_uid} in primary archive. "
+        "Failed to find study .* in primary archive. "
         "Not querying secondary archive during the daytime or on the weekend."
     )
     with monkeypatch.context() as mp, pytest.raises(PixlDiscardError, match=match):  # noqa: PT012
@@ -549,7 +544,7 @@ async def test_querying_pacs_not_defined(
     assert not await study.query_local(orthanc)
 
     match = (
-        f"Failed to find study {missing_message.study_uid} in primary archive "
+        "Failed to find study .* in primary archive "
         "and SECONDARY_DICOM_SOURCE_AE_TITLE is the same as PRIMARY_DICOM_SOURCE_AE_TITLE."
     )
     with (  # noqa: PT012

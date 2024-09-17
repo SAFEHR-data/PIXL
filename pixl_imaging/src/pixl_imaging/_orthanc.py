@@ -85,10 +85,13 @@ class Orthanc(ABC):
         """Get the content of a query answer"""
         return await self._get(f"/queries/{query_id}/answers/{answer_id}/content")
 
-    async def get_remote_query_answer_instances(self, query_id: str, answer_id: str) -> Any:
+    async def get_remote_query_answer_instances(
+        self, query_id: str, answer_id: str, timeout: int
+    ) -> Any:
         """Get the instances of a query answer"""
         response = await self._post(
-            f"/queries/{query_id}/answers/{answer_id}/query-instances", data={"Query": {}}
+            f"/queries/{query_id}/answers/{answer_id}/query-instances",
+            data={"Query": {}, "Timeout": timeout},
         )
         return response["ID"]
 
@@ -98,7 +101,7 @@ class Orthanc(ABC):
         study_id: str,
         private_creator: str,
         tag_replacement: dict,
-        timeout: float,
+        timeout: int,
     ) -> None:
         # According to the docs, you can't modify tags for an instance using the instance API
         # (the best you can do is download a modified version), so do it via the studies API.
@@ -131,16 +134,23 @@ class Orthanc(ABC):
         )
         return str(response["ID"])
 
-    async def retrieve_instance_from_remote(self, query_id: str, answer_id: str) -> str:
+    async def retrieve_instances_from_remote(
+        self, modality: str, missing_instances: list[dict[str, str]], timeout: int
+    ) -> str:
+        """Retieve missing instances from remote modality in a single c-move query."""
         response = await self._post(
-            f"/queries/{query_id}/answers/{answer_id}/retrieve",
-            data={"TargetAet": self.aet, "Synchronous": False},
+            f"/modalities/{modality}/move",
+            data={
+                "Level": "Instance",
+                "TargetAet": self.aet,
+                "Synchronous": False,
+                "Resources": missing_instances,
+                "Timeout": timeout,
+            },
         )
         return str(response["ID"])
 
-    async def wait_for_job_success_or_raise(
-        self, job_id: str, job_type: str, timeout: float
-    ) -> None:
+    async def wait_for_job_success_or_raise(self, job_id: str, job_type: str, timeout: int) -> None:
         """Wait for job to complete successfully, or raise exception if fails or exceeds timeout."""
         job_info = {"State": "Pending"}
         start_time = time()
@@ -170,7 +180,11 @@ class Orthanc(ABC):
     async def _get(self, path: str) -> Any:
         async with (
             aiohttp.ClientSession() as session,
-            session.get(f"{self._url}{path}", auth=self._auth, timeout=10) as response,
+            session.get(
+                f"{self._url}{path}",
+                auth=self._auth,
+                timeout=config("PIXL_QUERY_TIMEOUT", default=10, cast=int),
+            ) as response,
         ):
             return await _deserialise(response)
 

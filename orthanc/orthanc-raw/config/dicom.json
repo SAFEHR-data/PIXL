@@ -16,7 +16,7 @@
       "AllowStorageCommitment" : false,
       "AllowTranscoding" : true,
       "UseDicomTls" : false,
-      "Timeout" : 60
+      "Timeout" : 120
     },
     "UCSECONDARYQR" : {
       "AET" : "${SECONDARY_DICOM_SOURCE_AE_TITLE}",
@@ -32,7 +32,7 @@
       "AllowStorageCommitment" : false,
       "AllowTranscoding" : true,
       "UseDicomTls" : false,
-      "Timeout" : 60
+      "Timeout" : 120
     },
     "PIXL-Anon" : {
       "AET" : "${ORTHANC_ANON_AE_TITLE}",
@@ -48,7 +48,7 @@
       "AllowStorageCommitment" : false,
       "AllowTranscoding" : true,
       "UseDicomTls" : false,
-      "Timeout" : 60
+      "Timeout" : 120
     }
   },
 

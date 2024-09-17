@@ -77,6 +77,14 @@ def should_record_headers() -> bool:
     return os.environ.get("ORTHANC_RAW_RECORD_HEADERS", "false").lower() == "true"
 
 
+def should_send_to_anon():
+    """
+    Checks whether ORTHANC_AUTOROUTE_RAW_TO_ANON environment variable is
+    set to true or false
+    """
+    return os.environ.get("ORTHANC_AUTOROUTE_RAW_TO_ANON", "false").lower() == "true"
+
+
 def modify_dicom_tags(receivedDicom: bytes, origin: str) -> Any:
     """
     A new incoming DICOM file needs to have the project name private tag added here, so
@@ -129,6 +137,14 @@ def log_and_return_http(
 def SendResourceToAnon(output, uri, **request):  # noqa: ARG001
     """Send an existing study to the anon modality"""
     orthanc.LogWarning(f"Received request to send study to anon modality: {request}")
+    if not should_send_to_anon():
+        log_and_return_http(
+            output,
+            200,
+            "Auto-routing is not enabled",
+            f"Auto-routing is not enabled, dropping request {request}",
+        )
+        return
     try:
         body = json.loads(request["body"])
         resource_id = body["ResourceId"]
