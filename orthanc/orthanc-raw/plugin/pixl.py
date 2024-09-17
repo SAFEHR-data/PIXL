@@ -77,7 +77,7 @@ def should_record_headers() -> bool:
     return os.environ.get("ORTHANC_RAW_RECORD_HEADERS", "false").lower() == "true"
 
 
-def should_auto_route():
+def should_send_to_anon():
     """
     Checks whether ORTHANC_AUTOROUTE_RAW_TO_ANON environment variable is
     set to true or false
@@ -137,7 +137,7 @@ def log_and_return_http(
 def SendResourceToAnon(output, uri, **request):  # noqa: ARG001
     """Send an existing study to the anon modality"""
     orthanc.LogWarning(f"Received request to send study to anon modality: {request}")
-    if not should_auto_route():
+    if not should_send_to_anon():
         log_and_return_http(
             output,
             200,
