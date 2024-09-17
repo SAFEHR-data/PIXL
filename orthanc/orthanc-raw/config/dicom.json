@@ -16,7 +16,7 @@
       "AllowStorageCommitment" : false,
       "AllowTranscoding" : true,
       "UseDicomTls" : false,
-      "Timeout" : 600
+      "Timeout" : 120
     },
     "UCSECONDARYQR" : {
       "AET" : "${SECONDARY_DICOM_SOURCE_AE_TITLE}",

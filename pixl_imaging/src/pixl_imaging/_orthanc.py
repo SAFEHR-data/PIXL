@@ -183,7 +183,7 @@ class Orthanc(ABC):
             session.get(
                 f"{self._url}{path}",
                 auth=self._auth,
-                timeout=config("PIXL_QUERY_TIMEOUT", default=10, cast=float),
+                timeout=config("PIXL_QUERY_TIMEOUT", default=10, cast=int),
             ) as response,
         ):
             return await _deserialise(response)
