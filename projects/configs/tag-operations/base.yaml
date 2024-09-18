@@ -191,14 +191,6 @@
 #https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/x-ray-generation/00181190
 #https://dicom.innolitics.com/ciods/breast-projection-x-ray-image/enhanced-mammography-image/00181190
 #https://dicom.innolitics.com/ciods/x-ray-3d-angiographic-image/x-ray-3d-angiographic-acquisition/00189507/00181190
-- name: "Receive Coil Name"
-  group: 0x0018
-  element: 0x1250
-  op: "keep"
-#https://dicom.innolitics.com/ciods/mr-image/mr-image/00181250
-#https://dicom.innolitics.com/ciods/mr-spectroscopy/mr-spectroscopy-multi-frame-functional-groups/52009229/00189042/00181250
-#https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image-multi-frame-functional-groups/52009230/00189042/00181250
-#https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-color-image-multi-frame-functional-groups/52009229/00189042/00181250
 - name: "Patient Position"
   group: 0x0018
   element: 0x5100
