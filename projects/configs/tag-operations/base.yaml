@@ -444,12 +444,12 @@
   group: 0x0040
   element: 0x9924
   op: "replace_UID"
-#NOTE cannot find any imaging for this one
+#CT, MR, US, RT, PET, X-ray
 - name: "Real World Value Slope"
   group: 0x0040
-  element: 0x9925
+  element: 0x9225
   op: "replace_UID"
-#NOTE cannot find any imaging for this one
+#CT, MR, US, RT, PET, X-ray
 #################################### 0054 Group ###################################
 #
 #
