@@ -217,14 +217,6 @@
 #https://dicom.innolitics.com/ciods/mr-image/mr-image/00181314
 #https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image-multi-frame-functional-groups/52009230/00189112/00181314
 #https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-color-image-multi-frame-functional-groups/52009229/00189112/00181314
-- name: "SAR"
-  group: 0x0018
-  element: 0x1316
-  op: "keep"
-- name: "Acquisition Device Processing Description"
-  group: 0x0018
-  element: 0x1400
-  op: "keep"
 - name: "Patient Position"
   group: 0x0018
   element: 0x5100
