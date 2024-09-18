@@ -198,10 +198,6 @@
 #https://dicom.innolitics.com/ciods/mr-spectroscopy/mr-spectroscopy-multi-frame-functional-groups/52009229/00189103/00180094
 #https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image-multi-frame-functional-groups/52009229/00189125/00180094
 #https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-color-image-multi-frame-functional-groups/52009229/00189125/00180094
-- name: "Software Version"
-  group: 0x0018
-  element: 0x1020
-  op: "keep"
 - name: "Field Of View Dimension"
   group: 0x0018
   element: 0x1149
@@ -309,10 +305,6 @@
   group: 0x0020
   element: 0x0052
   op: "replace_UID"
-- name: "Image Laterality"
-  group: 0x0020
-  element: 0x0062
-  op: "keep"
 - name: "Position Reference Indicator"
   group: 0x0020
   element: 0x1040
