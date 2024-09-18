@@ -17,6 +17,10 @@
 # https://dicom.innolitics.com/ciods/mr-image
 # https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_A.4.3.html#table_A.4-1
 
+- name: "Private Creator Data Element"
+  group: 0x000d
+  element: 0x0010
+  op: "keep"
 - name: "UCLH Project Name"
   group: 0x000d
   element: 0x1001
