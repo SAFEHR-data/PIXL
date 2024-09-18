@@ -15,6 +15,15 @@
 # Default configuration for base with commented links to their respective image modalities
 
 
+
+- name: "Volumetric Properties"
+  group: 0x0008
+  element: 0x9206
+  op: "keep"
+- name: "Volume Based Calculation Technique"
+  group: 0x0008
+  element: 0x9207
+  op: "keep"
 - name: "Field Of View Dimension"
   group: 0x0018
   element: 0x1149

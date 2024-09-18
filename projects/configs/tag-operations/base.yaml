@@ -124,22 +124,6 @@
   group: 0x0008
   element: 0x9205
   op: "keep"
-- name: "Volumetric Properties"
-  group: 0x0008
-  element: 0x9206
-  op: "keep"
-- name: "Volume Based Calculation Technique Attribute"
-  group: 0x0008
-  element: 0x9207
-  op: "keep"
-- name: "Complex Image Component"
-  group: 0x0008
-  element: 0x9208
-  op: "keep"
-- name: "Acquisition Contrast"
-  group: 0x0008
-  element: 0x9209
-  op: "keep"
 #################################### 0010 Group ###################################
 #
 #
