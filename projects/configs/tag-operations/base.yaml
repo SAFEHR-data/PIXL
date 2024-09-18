@@ -442,7 +442,7 @@
 #NOTE List of searched term continutes
 - name: "Real World Value Intercept"
   group: 0x0040
-  element: 0x9924
+  element: 0x9224
   op: "replace_UID"
 #CT, MR, US, RT, PET, X-ray
 - name: "Real World Value Slope"
