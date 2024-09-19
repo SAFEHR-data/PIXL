@@ -39,7 +39,18 @@ def test_merge_base_only_tags(base_only_tag_scheme):
     THEN the result should be the same as the base file
     """
     tags = merge_tag_schemes(base_only_tag_scheme)
-    expected = base_only_tag_scheme.base[0]
+    expected = [*base_only_tag_scheme.base[0], *base_only_tag_scheme.base[1]]
+    count_tags = dict()
+    for tag in expected:
+        key = f"{tag['group']:04x},{tag['element']:04x}"
+        if key in count_tags:
+            count_tags[key] += 1
+        else:
+            count_tags[key] = 1
+
+    for key, values in count_tags.items(): 
+        if values > 1:
+            print(f"{key} is replicated please check config files to remove it")
     assert tags == expected
 
 

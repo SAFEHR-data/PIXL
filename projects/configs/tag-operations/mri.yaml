@@ -20,49 +20,13 @@
 #################################### 000d Group ###################################
 #
 #
-- name: "Private Creator Data Element"
-  group: 0x000d
-  element: 0x0010
-  op: "keep"
+#- name: "Private Creator Data Element"
+#  group: 0x000d
+#  element: 0x0010
+#  op: "keep"
 #################################### 0008 Group ###################################
 #
 #
-- name: "Image Type"
-  group: 0x0008
-  element: 0x0008
-  op: "keep"
-- name: "SOP Class UID"
-  group: 0x0008
-  element: 0x0016
-  op: "keep"
-- name: "SOP Instance UID"
-  group: 0x0008
-  element: 0x0018
-  op: "replace_UID"
-- name: "Accession Number"
-  group: 0x0008
-  element: 0x0050
-  op: "replace"
-- name: "Study Date"
-  group: 0x0008
-  element: 0x0020
-  op: "replace"
-- name: "General Study"
-  group: 0x0008
-  element: 0x0030
-  op: "replace"
-- name: "Modality"
-  group: 0x0008
-  element: 0x0060
-  op: "keep"
-- name: "Manufacturer"
-  group: 0x0008
-  element: 0x0070
-  op: "keep"
-- name: "Referring Physician's Name"
-  group: 0x0008
-  element: 0x0090
-  op: "replace"
 - name: "Volumetric Properties"
   group: 0x0008
   element: 0x9206
@@ -79,17 +43,6 @@
   group: 0x0008
   element: 0x9209
   op: "keep"
-#################################### 0010 Group ###################################
-#
-#
-- name: "Patient ID"
-  group: 0x0010
-  element: 0x0020
-  op: "secure-hash"
-- name: "Patient's Birth Date"
-  group: 0x0010
-  element: 0x0030
-  op: "replace"
 #################################### 0018 Group ###################################
 #
 #
@@ -101,10 +54,6 @@
   group: 0x0018
   element: 0x0021
   op: "keep"
-- name: "MR Image"
-  group: 0x0018
-  element: 0x0022
-  op: "replace"
 - name: "MR Acquisition Type"
   group: 0x0018
   element: 0x0023
@@ -209,14 +158,6 @@
 #https://dicom.innolitics.com/ciods/mr-image/mr-image/00181314
 #https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image-multi-frame-functional-groups/52009230/00189112/00181314
 #https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-color-image-multi-frame-functional-groups/52009229/00189112/00181314
-- name: "Patient Position"
-  group: 0x0018
-  element: 0x5100
-  op: "replace"
-#https://dicom.innolitics.com/ciods/ultrasound-image/general-series/00185100
-#https://dicom.innolitics.com/ciods/mr-image/general-series/00185100
-#https://dicom.innolitics.com/ciods/ct-image/general-series/00185100
-#NOTE: Seach term: "00185100 Image General Series"
 - name: "MR Acquisition Frequency Encoding Steps"
   group: 0x0018
   element: 0x9058
@@ -226,149 +167,4 @@
 - name: "MR Acquisition Phase Encoding Steps in-plane"
   group: 0x0018
   element: 0x9231
-  op: "keep"
-#https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image-multi-frame-functional-groups/52009230/00189125/00189231
-#https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-color-image-multi-frame-functional-groups/52009230/00189125/00189231
-- name: "MR Acquisition Phase Encoding Steps in-plane"
-  group: 0x0018
-  element: 0x9231
-  op: "keep"
-#################################### 0020 Group ###################################
-#
-#
-- name: "Study Instance UID"
-  group: 0x0020
-  element: 0x000d
-  op: "replace_UID"
-- name: "Series Instance UID"
-  group: 0x0020
-  element: 0x000e
-  op: "replace_UID"
-- name: "Study ID"
-  group: 0x0020
-  element: 0x0010
-  op: "replace"
-- name: "Series Number"
-  group: 0x0020
-  element: 0x0011
-  op: "keep"
-- name: "Acquisition Number"
-  group: 0x0020
-  element: 0x0012
-  op: "keep"
-- name: "Instance Number"
-  group: 0x0020
-  element: 0x0013
-  op: "keep"
-- name: "Patient Orientation"
-  group: 0x0020
-  element: 0x0020
-  op: "keep"
-- name: "Image Position (Patient)"
-  group: 0x0020
-  element: 0x0032
-  op: "keep"
-- name: "Image Orientation (Patient)"
-  group: 0x0020
-  element: 0x0037
-  op: "keep"
-- name: "Frame of Reference UID"
-  group: 0x0020
-  element: 0x0052
-  op: "replace_UID"
-- name: "Position Reference Indicator"
-  group: 0x0020
-  element: 0x1040
-  op: "replace"
-- name: "Synchronization Frame of Reference UID"
-  group: 0x0020
-  element: 0x0200
-  op: "replace_UID"
-#################################### 0028 Group ###################################
-#
-#
-- name: "Samples Per Pixel"
-  group: 0x0028
-  element: 0x0002
-  op: "keep"
-- name: "Photometric Interpretation"
-  group: 0x0028
-  element: 0x0004
-  op: "keep"
-- name: "Planar Configuration"
-  group: 0x0028
-  element: 0x0006
-  op: "keep"
-- name: "Rows"
-  group: 0x0028
-  element: 0x0010
-  op: "keep"
-- name: "Columns"
-  group: 0x0028
-  element: 0x0011
-  op: "keep"
-- name: "Pixel Spacing"
-  group: 0x0028
-  element: 0x0030
-  op: "keep"
-- name: "Bits Allocated"
-  group: 0x0028
-  element: 0x0100
-  op: "keep"
-- name: "Bits Stored"
-  group: 0x0028
-  element: 0x0101
-  op: "keep"
-- name: "High Bit"
-  group: 0x0028
-  element: 0x0102
-  op: "keep"
-- name: "Pixel Representation"
-  group: 0x0028
-  element: 0x0103
-  op: "keep"
-- name: "Burned In Annotation"
-  group: 0x0028
-  element: 0x0301
-  op: "keep"
-- name: "LUTDescriptor"
-  group: 0x0028
-  element: 0x0302
-  op: "keep"
-- name: "Window Center"
-  group: 0x0028
-  element: 0x1050
-  op: "keep"
-- name: "Window Width"
-  group: 0x0028
-  element: 0x1051
-  op: "keep"
-- name: "Lossy Image Compression"
-  group: 0x0028
-  element: 0x2110
-  op: "keep"
-- name: "VOI LUT Sequence"
-  group: 0x0028
-  element: 0x3010
-  op: "keep"
-#################################### 0040 Group ###################################
-#
-#
-- name: "UID Attribute"
-  group: 0x0040
-  element: 0xA124
-  op: "replace_UID"
-#################################### 0054 Group ###################################
-#
-#
-- name: "View Code Sequence"
-  group: 0x0054
-  element: 0x0220
-  op: "keep"
-#################################### 7fe0 Group ###################################
-#
-#
-- name: "Pixel Data"
-  group: 0x7fe0
-  element: 0x0010
   op: "keep"

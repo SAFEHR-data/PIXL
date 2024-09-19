@@ -128,7 +128,6 @@ def test_anonymisation(vanilla_single_dicom_image_DX: pydicom.Dataset) -> None:
     assert vanilla_single_dicom_image_DX.PatientName != orig_patient_name
     assert vanilla_single_dicom_image_DX.StudyDate != orig_study_date
 
-
 def test_anonymise_unimplemented_tag(
     vanilla_single_dicom_image_DX: pydicom.Dataset,
 ) -> None:

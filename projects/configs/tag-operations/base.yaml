@@ -430,12 +430,12 @@
 - name: "Real World Value Intercept"
   group: 0x0040
   element: 0x9224
-  op: "replace_UID"
+  op: "keep"
 #CT, MR, US, RT, PET, X-ray
 - name: "Real World Value Slope"
   group: 0x0040
   element: 0x9225
-  op: "replace_UID"
+  op: "keep"
 #CT, MR, US, RT, PET, X-ray
 #################################### 0054 Group ###################################
 #

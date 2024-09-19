@@ -20,7 +20,7 @@ project:
 tag_operation_files:
     base:
         - "base.yaml"
-        - "test-extract-uclh-omop-cdm.yaml"
+        - "mri.yaml"
     manufacturer_overrides: ["mri.yaml", "mri-diffusion.yaml"]
 
 series_filters:

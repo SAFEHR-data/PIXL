@@ -19,8 +19,8 @@ project:
 
 tag_operation_files:
     base:
-        #- "base.yaml" #2 tests failed #pixl_dcmd/tests/test_main.py::test_can_nifti_convert_post_anonymisation pixl_dcmd/tests/test_tag_schemes.py::test_merge_base_only_tags
-        - "test-extract-uclh-omop-cdm.yaml"
+        - "base.yaml"
+        - "mri.yaml"
     manufacturer_overrides: ["mri-diffusion.yaml"]
 
 series_filters:
