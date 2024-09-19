@@ -374,11 +374,6 @@
   element: 0x0302
   op: "keep"
 #CT, MR, PET, US, X-Ray, and RT Images
-- name: "Pixel Spacing Calibration Type"
-  group: 0x0028
-  element: 0x0a02
-  op: "keep"
-#RT, X-Ray
 - name: "Window Center"
   group: 0x0028
   element: 0x1050

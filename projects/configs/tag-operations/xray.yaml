@@ -69,6 +69,11 @@
 #https://dicom.innolitics.com/ciods/x-ray-3d-craniofacial-image/x-ray-3d-craniofacial-image-contributing-sources/00189506/00181400
 #https://dicom.innolitics.com/ciods/x-ray-3d-angiographic-image/x-ray-3d-angiographic-image-contributing-sources/00189506/00181400
 #https://dicom.innolitics.com/ciods/breast-projection-x-ray-image/breast-projection-x-ray-image-multi-frame-functional-groups/52009229/00189412/00181400
+- name: "Pixel Spacing Calibration Type"
+  group: 0x0028
+  element: 0x0a02
+  op: "keep"
+#RT, X-Ray
 - name: "Pixel Spacing Calibration Description"
   group: 0x0028
   element: 0x0a04
