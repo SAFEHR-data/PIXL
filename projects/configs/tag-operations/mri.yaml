@@ -82,10 +82,6 @@
 #################################### 0010 Group ###################################
 #
 #
-- name: "Patients Name"
-  group: 0x0010
-  element: 0x0010
-  op: "replace"
 - name: "Patient ID"
   group: 0x0010
   element: 0x0020
@@ -94,10 +90,6 @@
   group: 0x0010
   element: 0x0030
   op: "replace"
-- name: "Patient's Sex"
-  group: 0x0010
-  element: 0x0040
-  op: "keep"
 #################################### 0018 Group ###################################
 #
 #
