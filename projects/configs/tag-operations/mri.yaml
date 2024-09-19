@@ -17,14 +17,7 @@
 # https://dicom.innolitics.com/ciods/mr-image
 # https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_A.4.3.html#table_A.4-1
 
-#################################### 000d Group ###################################
-#
-#
-#- name: "Private Creator Data Element"
-#  group: 0x000d
-#  element: 0x0010
-#  op: "keep"
-#################################### 0008 Group ###################################
+################################### 0008 Group ###################################
 #
 #
 - name: "Volumetric Properties"

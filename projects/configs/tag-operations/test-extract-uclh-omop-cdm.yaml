@@ -1,4 +1,4 @@
-#  Copyright (c) 2022 University College London Hospitals NHS Foundation Trust
+#  Copyright (c) University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -12,24 +12,15 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-project:
-    name: "test-extract-uclh-omop-cdm"
-    azure_kv_alias: "test"
-    modalities: ["DX", "CR"]
-
-tag_operation_files:
-    base:
-        - "base.yaml"
-        - "mri.yaml"
-        - "test-extract-uclh-omop-cdm.yaml"
-    manufacturer_overrides: ["mri-diffusion.yaml"]
-
-series_filters:
-    - "localizer"
-    - "localiser"
-    - "scout"
-    - "positioning"
-
-destination:
-    dicom: "ftps"
-    parquet: "ftps"
+- name: "Private Creator Data Element"
+  group: 0x000d
+  element: 0x0010
+  op: "keep"
+- name: "VR OB Creator"
+  group: 0x0013
+  element: 0x0010
+  op: "keep"
+- name: "VR OB sequence"
+  group: 0x0013
+  element: 0x1010
+  op: "replace"
