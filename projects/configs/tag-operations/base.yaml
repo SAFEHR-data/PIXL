@@ -150,6 +150,15 @@
   group: 0x0010
   element: 0x0040
   op: "keep"
+#################################### 0013 Group ###################################
+- name: "VR OB Creator"
+  group: 0x0013
+  element: 0x0010
+  op: "keep"
+- name: "VR OB sequence"
+  group: 0x0013
+  element: 0x1010
+  op: "replace"
 #################################### 0018 Group ###################################
 #
 #
