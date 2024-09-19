@@ -32,46 +32,27 @@
   group: 0x0008
   element: 0x0005
   op: "keep"
-#https://dicom.innolitics.com/ciods/ct-image/sop-common/00080005
-#https://dicom.innolitics.com/ciods/mr-image/sop-common/00080005
-#https://dicom.innolitics.com/ciods/ultrasound-image/sop-common/00080005
-#https://dicom.innolitics.com/ciods/rt-image/sop-common/00080005
+#CT, MR, US, RT
 - name: "Image Type"
   group: 0x0008
   element: 0x0008
   op: "keep"
-#https://dicom.innolitics.com/ciods/ct-image/general-image/00080008
-#https://dicom.innolitics.com/ciods/mr-image/general-image/00080008
-#https://dicom.innolitics.com/ciods/ultrasound-image/general-image/00080008
-#https://dicom.innolitics.com/ciods/rt-image/general-image/00080008
+#CT, MR, US, RT
 - name: "Instance Creator UID"
   group: 0x0008
   element: 0x0014
   op: "replace_UID"
-#https://dicom.innolitics.com/ciods/ct-image/sop-common/00080014
-#https://dicom.innolitics.com/ciods/mr-image/sop-common/00080014
-#https://dicom.innolitics.com/ciods/ultrasound-image/sop-common/00080014
-#https://dicom.innolitics.com/ciods/rt-image/sop-common/00080014
-#NOTE List of searched term continutes
+#CT, MR, US, RT
 - name: "SOP Class UID"
   group: 0x0008
   element: 0x0016
   op: "keep"
-#https://dicom.innolitics.com/ciods/mr-image/sop-common/00080016
-#https://dicom.innolitics.com/ciods/ct-image/sop-common/00080016
-#https://dicom.innolitics.com/ciods/ultrasound-image/sop-common/00080016
-#https://dicom.innolitics.com/ciods/rt-image/sop-common/00080016
-#https://dicom.innolitics.com/ciods/mr-spectroscopy/sop-common/00080016
-#NOTE List of searched term continutes
+#CT, MR, US, RT
 - name: "SOP Instance UID"
   group: 0x0008
   element: 0x0018
   op: "replace_UID"
-#https://dicom.innolitics.com/ciods/mr-image/sop-common/00080018
-#https://dicom.innolitics.com/ciods/ct-image/sop-common/00080018
-#https://dicom.innolitics.com/ciods/rt-image/sop-common/00080018
-#https://dicom.innolitics.com/ciods/mr-spectroscopy/sop-common/00080018
-#NOTE List of searched term continutes
+#CT, MR, US, RT
 - name: "Accession Number"
   group: 0x0008
   element: 0x0050
@@ -131,13 +112,7 @@
   group: 0x0010
   element: 0x0010
   op: "replace"
-#https://dicom.innolitics.com/ciods/ultrasound-image/patient/00100010
-#https://dicom.innolitics.com/ciods/ct-image/patient/00100010
-#https://dicom.innolitics.com/ciods/ultrasound-multi-frame-image/patient/00100010
-#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/patient/00100010
-#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/patient/00100010
-#https://dicom.innolitics.com/ciods/rt-image/patient/00100010
-#https://dicom.innolitics.com/ciods/digital-x-ray-image/patient/00100010
+#CT, MR, PET, US, X-Ray, and RT Images
 - name: "Patient ID"
   group: 0x0010
   element: 0x0020
@@ -166,48 +141,22 @@
   group: 0x0018
   element: 0x0022
   op: "replace"
-#https://dicom.innolitics.com/ciods/ct-image/ct-image/00180022
-#https://dicom.innolitics.com/ciods/mr-image/mr-image/00180022
-#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/x-ray-image/00180022
-#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/x-ray-image/00180022
+#CT, MR, X-Ray
 - name: "Software Version"
   group: 0x0018
   element: 0x1020
   op: "keep"
-#https://dicom.innolitics.com/ciods/ct-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/mr-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/ultrasound-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/rt-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/mr-spectroscopy/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/digital-x-ray-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/x-ray-3d-angiographic-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/x-ray-3d-craniofacial-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/breast-projection-x-ray-image/general-equipment/00181020
-#https://dicom.innolitics.com/ciods/enhanced-continuous-rt-image/general-equipment/00181020
-#NOTE The search of "00181020" found 579 results
+#CT, MR, PET, US, X-Ray, and RT Images
 - name: "Focal Spot"
   group: 0x0018
   element: 0x1190
   op: "keep"
-#https://dicom.innolitics.com/ciods/ct-image/ct-image/00181190
-#https://dicom.innolitics.com/ciods/ct-image/ct-image/00189360/00181190
-#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/x-ray-acquisition/00181190
-#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/x-ray-acquisition/00181190
-#https://dicom.innolitics.com/ciods/digital-x-ray-image/x-ray-generation/00181190
-#https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/x-ray-generation/00181190
-#https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/x-ray-generation/00181190
-#https://dicom.innolitics.com/ciods/breast-projection-x-ray-image/enhanced-mammography-image/00181190
-#https://dicom.innolitics.com/ciods/x-ray-3d-angiographic-image/x-ray-3d-angiographic-acquisition/00189507/00181190
+#CT, MR, PET, US, X-Ray, and RT Images
 - name: "Patient Position"
   group: 0x0018
   element: 0x5100
   op: "replace"
-#https://dicom.innolitics.com/ciods/ultrasound-image/general-series/00185100
-#https://dicom.innolitics.com/ciods/mr-image/general-series/00185100
-#https://dicom.innolitics.com/ciods/ct-image/general-series/00185100
-#NOTE: Seach term: "00185100 Image General Series"
+#CT, MR, PET, US, X-Ray, and RT Images
 #################################### 0020 Group ###################################
 #
 #
@@ -215,53 +164,17 @@
   group: 0x0020
   element: 0x000d
   op: "replace_UID"
-#https://dicom.innolitics.com/ciods/ultrasound-image/general-study/0020000d
-#https://dicom.innolitics.com/ciods/mr-image/general-study/0020000d
-#https://dicom.innolitics.com/ciods/ct-image/general-study/0020000d
-#https://dicom.innolitics.com/ciods/rt-image/general-study/0020000d
-#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/general-study/0020000d
-#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/general-study/0020000d
-#https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/general-study/0020000d
-#https://dicom.innolitics.com/ciods/digital-x-ray-image/general-study/0020000d
-#https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/general-study/0020000d
-#https://dicom.innolitics.com/ciods/vl-slide-coordinates-microscopic-image/general-study/0020000d
-#https://dicom.innolitics.com/ciods/x-ray-3d-craniofacial-image/general-study/0020000d
-#https://dicom.innolitics.com/ciods/x-ray-3d-angiographic-image/general-study/0020000d
-#https://dicom.innolitics.com/ciods/breast-projection-x-ray-image/general-study/0020000d
-#https://dicom.innolitics.com/ciods/legacy-converted-enhanced-pet-image/general-study/0020000d
-#https://dicom.innolitics.com/ciods/enhanced-rt-image/general-study/0020000d
-#https://dicom.innolitics.com/ciods/enhanced-continuous-rt-image/general-study/0020000d
-#NOTE Search term "0020000d Image General Study"
+#CT, MR, PET, US, X-Ray, and RT Images
 - name: "Series Instance UID"
   group: 0x0020
   element: 0x000e
   op: "replace_UID"
-#https://dicom.innolitics.com/ciods/ultrasound-image/general-series/0020000e
-#https://dicom.innolitics.com/ciods/mr-image/general-series/0020000e
-#https://dicom.innolitics.com/ciods/ct-image/general-series/0020000e
-#https://dicom.innolitics.com/ciods/rt-image/rt-series/0020000e
-#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/general-series/0020000e
-#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/general-series/0020000e
-#https://dicom.innolitics.com/ciods/digital-x-ray-image/general-series/0020000e
-#https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/general-series/0020000e
-#https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/general-series/0020000e
-#https://dicom.innolitics.com/ciods/x-ray-3d-craniofacial-image/general-series/0020000e
-#https://dicom.innolitics.com/ciods/x-ray-3d-angiographic-image/general-series/0020000e
-#https://dicom.innolitics.com/ciods/legacy-converted-enhanced-ct-image/general-series/0020000e
-#https://dicom.innolitics.com/ciods/legacy-converted-enhanced-mr-image/general-series/0020000e
-#https://dicom.innolitics.com/ciods/breast-projection-x-ray-image/general-series/0020000e
-#https://dicom.innolitics.com/ciods/legacy-converted-enhanced-pet-image/general-series/0020000e
-#https://dicom.innolitics.com/ciods/enhanced-rt-image/general-series/0020000e
-#https://dicom.innolitics.com/ciods/enhanced-continuous-rt-image/general-series/0020000e
-#NOTE Search term "0020000e Image General Series"
+#CT, MR, PET, US, X-Ray, and RT Images
 - name: "Study ID"
   group: 0x0020
   element: 0x0010
   op: "replace"
-#https://dicom.innolitics.com/ciods/ultrasound-image/general-study/00200010
-#https://dicom.innolitics.com/ciods/mr-image/general-study/00200010
-#https://dicom.innolitics.com/ciods/ct-image/general-study/00200010
-#https://dicom.innolitics.com/ciods/rt-image/general-study/00200010
+#CT, MR, US, and RT Images
 - name: "Series Number"
   group: 0x0020
   element: 0x0011
@@ -319,14 +232,6 @@
   group: 0x0028
   element: 0x0002
   op: "keep"
-#https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280002
-#https://dicom.innolitics.com/ciods/ct-image/ct-image/00280002
-#https://dicom.innolitics.com/ciods/mr-image/image-pixel/00280002
-#https://dicom.innolitics.com/ciods/mr-image/mr-image/00280002
-#https://dicom.innolitics.com/ciods/ultrasound-image/image-pixel/00280002
-#https://dicom.innolitics.com/ciods/ultrasound-image/us-image/00280002
-#https://dicom.innolitics.com/ciods/rt-image/image-pixel/00280002
-#https://dicom.innolitics.com/ciods/rt-image/rt-image/00280002
 #CT, MR, PET, US, X-Ray, and RT Images
 - name: "Photometric Interpretation"
   group: 0x0028
@@ -430,12 +335,7 @@
   group: 0x0040
   element: 0xA124
   op: "replace_UID"
-#https://dicom.innolitics.com/ciods/ct-image/specimen/00400560/00400620/0040a124
-#https://dicom.innolitics.com/ciods/mr-image/specimen/00400560/00400620/0040a124
-#https://dicom.innolitics.com/ciods/ultrasound-image/specimen/00400560/00400620/0040a124
-#https://dicom.innolitics.com/ciods/photoacoustic-image/specimen/00400560/00400620/0040a124
-#https://dicom.innolitics.com/ciods/ct-image/general-image/00409096/00409220/0040a124
-#NOTE List of searched term continutes
+#CT, MR, PET, US, X-Ray, and RT Images
 - name: "Real World Value Intercept"
   group: 0x0040
   element: 0x9224
@@ -453,10 +353,7 @@
   group: 0x0054
   element: 0x0220
   op: "keep"
-#https://dicom.innolitics.com/ciods/ct-image/ct-image/00540220
-#https://dicom.innolitics.com/ciods/mr-image/mr-image/00540220
-#https://dicom.innolitics.com/ciods/ultrasound-image/us-image/00540220
-#NOTE List of searched term continutes
+#CT, MR, PET, US, X-Ray, and RT Images
 #################################### 0088 Group ###################################
 #
 #
@@ -464,15 +361,7 @@
   group: 0x0088
   element: 0x0140
   op: "replace_UID"
-#https://dicom.innolitics.com/ciods/ultrasound-image/patient/00101100/0040e022/00880140
-#https://dicom.innolitics.com/ciods/mr-image/patient/00101100/0040e022/00880140
-#https://dicom.innolitics.com/ciods/ct-image/patient/00101100/0040e022/00880140
-#https://dicom.innolitics.com/ciods/ultrasound-multi-frame-image/patient/00101100/0040e022/00880140
-#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/patient/00101100/0040e022/00880140
-#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/patient/00101100/0040e022/00880140
-#https://dicom.innolitics.com/ciods/rt-image/patient/00101100/0040e022/00880140
-#https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/patient/00101100/0040e022/00880140
-#https://dicom.innolitics.com/ciods/digital-x-ray-image/patient/00101100/0040e022/00880140
+#CT, MR, PET, US, X-Ray, and RT Images
 #################################### 3006 Group ###################################
 #
 #
@@ -480,8 +369,7 @@
   group: 0x3006
   element: 0x0024
   op: "replace_UID"
-#https://dicom.innolitics.com/ciods/rt-structure-set/structure-set/30060020/30060024
-#NOTE cannot find any imaging for this one
+#RT
 - name: "Related Frame of Reference UID"
   group: 0x3006
   element: 0x00C2
@@ -494,7 +382,4 @@
   group: 0x7fe0
   element: 0x0010
   op: "keep"
-#https://dicom.innolitics.com/ciods/computed-radiography-image/image-pixel/7fe00010
-#https://dicom.innolitics.com/ciods/ultrasound-image/general-image/00880200/7fe00010
-#https://dicom.innolitics.com/ciods/rt-image/image-pixel/7fe00010
-#NOTE List of searched term continutes
+#CT, US, and RT Images
