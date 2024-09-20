@@ -11,15 +11,26 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+import os
 from pathlib import Path
 
 import pytest
+from conftest import TEST_DIR
+from pytest_pixl.dicom import _create_default_json
 
 
 @pytest.mark.pytester_example_path(
-    str(Path(__file__).parent) + "/samples_for_fixture_tests/test_ftpserver_fixture"
+    str(TEST_DIR) + "/samples_for_fixture_tests/test_ftpserver_fixture"
 )
 def test_ftpserver_connection(pytester):
     """Test whether we can connect to the FTP server fixture"""
     pytester.copy_example("test_ftpserver_login.py")
     pytester.runpytest("-k", "test_ftpserver_login")
+
+
+def test_create_default_json_file():
+    """Test whether we can create a default JSON file"""
+    filename_to_create = "test_json_file.json"
+    _create_default_json(filename_to_create)
+    assert Path(filename_to_create).exists()
+    os.remove(filename_to_create)  # noqa: PTH107
