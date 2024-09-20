@@ -49,8 +49,10 @@ def test_merge_base_only_tags(base_only_tag_scheme):
             count_tags[key] = 1
 
     for key, values in count_tags.items():
-        if values > 1:
-            print(f"{key} is replicated please check config files to remove it")
+        assert (
+            values == 1
+        ), f"{key} is replicated please check config files to remove it"
+
     assert tags == expected
 
 
