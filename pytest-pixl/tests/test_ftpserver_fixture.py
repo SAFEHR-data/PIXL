@@ -17,6 +17,7 @@ from pathlib import Path
 import pytest
 from conftest import TEST_DIR
 from pytest_pixl.dicom import _create_default_json
+from pytest_pixl.plugin import FtpHostAddress
 
 
 @pytest.mark.pytester_example_path(
@@ -34,3 +35,8 @@ def test_create_default_json_file():
     _create_default_json(filename_to_create)
     assert Path(filename_to_create).exists()
     os.remove(filename_to_create)  # noqa: PTH107
+
+
+def test_ftp_host_address():
+    """Run FTP on localhost - docker containers do not need to access it"""
+    assert FtpHostAddress.DOCKERHOST == FtpHostAddress.DOCKERHOST
