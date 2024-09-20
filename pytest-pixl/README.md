@@ -8,6 +8,11 @@ Installable `pytest` plugin module providing common test fixtures used throughou
 python -m pip install -e ../pixl_core -e ".[test]"
 ```
 
+## pytest-cov’s engine
+```
+COV_CORE_SOURCE=src COV_CORE_CONFIG=.coveragerc COV_CORE_DATAFILE=.coverage.eager pytest --cov=src --cov-append
+```
+
 ## Available fixtures
 
 ### `ftps_server`
