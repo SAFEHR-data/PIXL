@@ -19,6 +19,7 @@ project:
 
 tag_operation_files:
     base:
+        - "base.yaml" #Expected base config file for any project
         - "uclh-nasogastric-tube-project-ngt-only-full-dataset.yaml"
     manufacturer_overrides: null
 destination:

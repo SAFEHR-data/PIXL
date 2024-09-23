@@ -18,6 +18,7 @@ project:
 
 tag_operation_files:
     base:
+        - "base.yaml" #Expected base config file for any project
         - "test-external-user.yaml"
         - "diffusion-weighted-mri.yaml"
     manufacturer_overrides: ["mri-diffusion.yaml"]
