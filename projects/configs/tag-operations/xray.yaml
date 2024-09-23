@@ -14,8 +14,6 @@
 
 # Default configuration to extend base for x-rays
 
-
-
 - name: "Volumetric Properties"
   group: 0x0008
   element: 0x9206

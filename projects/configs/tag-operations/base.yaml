@@ -12,7 +12,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-# Default configuration for base with commented links to their respective image modalities
+# Default `base.yaml` configuration file with commented links to their respective image modalities
+# `base.yaml` configuration file is expected to be part of all projects configuration files
 
 #################################### 000d Group ###################################
 #

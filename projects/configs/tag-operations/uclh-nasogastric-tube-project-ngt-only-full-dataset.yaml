@@ -11,6 +11,9 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+
+# Configuration for extracting data from UCLH Nasogastric Tube Project DICOM files
+
 - name: "Private Creator Data Element"
   group: 0x000d
   element: 0x0010
