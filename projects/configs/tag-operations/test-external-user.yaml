@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-# Default configuration for Standard MR Image
+# Configuration of Standard MR Image for external user
 
 - name: "Private Creator Data Element"
   group: 0x000d
