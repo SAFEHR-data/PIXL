@@ -352,7 +352,7 @@ services:
               source: postgres-data
               target: /var/lib/postgresql/data
         ports:
-            - "${POSTGRES_PORT}:5432"
+            - "9202:5432"
         healthcheck:
             test: ["CMD", "pg_isready", "-U", "${PIXL_DB_USER}", "--dbname", "${PIXL_DB_NAME}"]
             interval: 10s
