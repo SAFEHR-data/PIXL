@@ -71,7 +71,7 @@ jobs:
 
             - name: Run tests and generate coverage report
               working-directory: ${{ matrix.package_dir }}
-              run: pytest --cov=src --cov-append --cov-report=xml
+              run: pytest --cov=src --cov-append --cov-report=xml --cov-report=term-missing
               env:
                   ENV: test
                   AZURE_KEY_VAULT_NAME: test
