@@ -20,9 +20,7 @@ from pytest_pixl.dicom import _create_default_json
 from pytest_pixl.plugin import FtpHostAddress
 
 
-@pytest.mark.pytester_example_path(
-    str(TEST_DIR) + "/samples_for_fixture_tests/test_ftpserver_fixture"
-)
+@pytest.mark.pytester_example_path(f"{TEST_DIR}/samples_for_fixture_tests/test_ftpserver_fixture")
 def test_ftpserver_connection(pytester):
     """Test whether we can connect to the FTP server fixture"""
     pytester.copy_example("test_ftpserver_login.py")
