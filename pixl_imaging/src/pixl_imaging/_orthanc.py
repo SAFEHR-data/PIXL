@@ -25,7 +25,9 @@ from loguru import logger
 
 
 class Orthanc(ABC):
-    def __init__(self, url: str, username: str, password: str) -> None:
+    def __init__(
+        self, url: str, username: str, password: str, http_timeout: int, dicom_timeout: int
+    ) -> None:
         if not url:
             msg = "URL for orthanc is required"
             raise ValueError(msg)
@@ -34,6 +36,8 @@ class Orthanc(ABC):
         self._password = password
 
         self._auth = aiohttp.BasicAuth(login=username, password=password)
+        self.http_timeout = http_timeout
+        self.dicom_timeout = dicom_timeout
 
     @property
     @abstractmethod
@@ -51,7 +55,7 @@ class Orthanc(ABC):
 
     async def query_local(self, data: dict) -> Any:
         """Query local Orthanc instance for resourceId."""
-        return await self._post("/tools/find", data=data)
+        return await self._post("/tools/find", data=data, timeout=self.http_timeout)
 
     async def query_local_series(self, series_id: str) -> Any:
         """Query local Orthanc instance for series."""
@@ -68,7 +72,7 @@ class Orthanc(ABC):
         response = await self._post(
             f"/modalities/{modality}/query",
             data=data,
-            timeout=config("PIXL_QUERY_TIMEOUT", default=10, cast=float),
+            timeout=self.http_timeout,
         )
         logger.debug("Query response: {}", response)
         query_answers = await self.get_remote_query_answers(response["ID"])
@@ -85,13 +89,12 @@ class Orthanc(ABC):
         """Get the content of a query answer"""
         return await self._get(f"/queries/{query_id}/answers/{answer_id}/content")
 
-    async def get_remote_query_answer_instances(
-        self, query_id: str, answer_id: str, timeout: int
-    ) -> Any:
+    async def get_remote_query_answer_instances(self, query_id: str, answer_id: str) -> Any:
         """Get the instances of a query answer"""
         response = await self._post(
             f"/queries/{query_id}/answers/{answer_id}/query-instances",
-            data={"Query": {}, "Timeout": timeout},
+            data={"Query": {}},
+            timeout=self.http_timeout,
         )
         return response["ID"]
 
@@ -101,7 +104,6 @@ class Orthanc(ABC):
         study_id: str,
         private_creator: str,
         tag_replacement: dict,
-        timeout: int,
     ) -> None:
         # According to the docs, you can't modify tags for an instance using the instance API
         # (the best you can do is download a modified version), so do it via the studies API.
@@ -117,11 +119,12 @@ class Orthanc(ABC):
                 "Force": True,
                 "Keep": ["StudyInstanceUID", "SeriesInstanceUID", "SOPInstanceUID"],
             },
+            timeout=self.http_timeout,
         )
         logger.debug("Modify studies Job: {}", response)
         job_id = str(response["ID"])
         try:
-            await self.wait_for_job_success_or_raise(job_id, "modify", timeout=timeout)
+            await self.wait_for_job_success_or_raise(job_id, "modify", timeout=self.http_timeout)
         except PixlDiscardError:
             logger.warning(f"Deleting study {study_id} as modify job failed")
             await self.delete(f"/studies/{study_id}")
@@ -131,11 +134,12 @@ class Orthanc(ABC):
         response = await self._post(
             f"/queries/{query_id}/retrieve",
             data={"TargetAet": self.aet, "Synchronous": False},
+            timeout=self.dicom_timeout,
         )
         return str(response["ID"])
 
     async def retrieve_instances_from_remote(
-        self, modality: str, missing_instances: list[dict[str, str]], timeout: int
+        self, modality: str, missing_instances: list[dict[str, str]]
     ) -> str:
         """Retieve missing instances from remote modality in a single c-move query."""
         response = await self._post(
@@ -145,8 +149,8 @@ class Orthanc(ABC):
                 "TargetAet": self.aet,
                 "Synchronous": False,
                 "Resources": missing_instances,
-                "Timeout": timeout,
             },
+            timeout=self.dicom_timeout,
         )
         return str(response["ID"])
 
@@ -183,12 +187,12 @@ class Orthanc(ABC):
             session.get(
                 f"{self._url}{path}",
                 auth=self._auth,
-                timeout=config("PIXL_QUERY_TIMEOUT", default=10, cast=int),
+                timeout=self.http_timeout,
             ) as response,
         ):
             return await _deserialise(response)
 
-    async def _post(self, path: str, data: dict, timeout: Optional[float] = None) -> Any:
+    async def _post(self, path: str, data: dict, timeout: int) -> Any:
         async with (
             aiohttp.ClientSession() as session,
             session.post(
@@ -197,10 +201,12 @@ class Orthanc(ABC):
         ):
             return await _deserialise(response)
 
-    async def delete(self, path: str, timeout: Optional[float] = 10) -> None:
+    async def delete(self, path: str) -> None:
         async with (
             aiohttp.ClientSession() as session,
-            session.delete(f"{self._url}{path}", auth=self._auth, timeout=timeout) as response,
+            session.delete(
+                f"{self._url}{path}", auth=self._auth, timeout=self.http_timeout
+            ) as response,
         ):
             await _deserialise(response)
 
@@ -219,6 +225,8 @@ class PIXLRawOrthanc(Orthanc):
             url=config("ORTHANC_RAW_URL"),
             username=config("ORTHANC_RAW_USERNAME"),
             password=config("ORTHANC_RAW_PASSWORD"),
+            http_timeout=config("PIXL_QUERY_TIMEOUT", default=10, cast=int),
+            dicom_timeout=config("PIXL_DICOM_TRANSFER_TIMEOUT", default=240, cast=int),
         )
 
     async def raise_if_pending_jobs(self) -> None:
@@ -250,4 +258,6 @@ class PIXLRawOrthanc(Orthanc):
 
     async def send_study_to_anon(self, resource_id: str) -> Any:
         """Send study to orthanc anon."""
-        return await self._post("/send-to-anon", data={"ResourceId": resource_id})
+        return await self._post(
+            "/send-to-anon", data={"ResourceId": resource_id}, timeout=self.dicom_timeout
+        )

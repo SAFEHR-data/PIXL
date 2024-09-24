@@ -62,7 +62,6 @@ async def _process_message(study: ImagingStudy, orthanc_raw: PIXLRawOrthanc) -> 
     await orthanc_raw.raise_if_pending_jobs()
     logger.info("Processing: {}", study.message.identifier)
 
-    timeout: int = config("PIXL_DICOM_TRANSFER_TIMEOUT", cast=int)
     existing_resource = await _get_existing_study(
         orthanc_raw=orthanc_raw,
         study=study,
@@ -72,14 +71,12 @@ async def _process_message(study: ImagingStudy, orthanc_raw: PIXLRawOrthanc) -> 
         await _retrieve_study(
             orthanc_raw=orthanc_raw,
             study=study,
-            timeout=timeout,
         )
     else:
         await _retrieve_missing_instances(
             resource=existing_resource,
             orthanc_raw=orthanc_raw,
             study=study,
-            timeout=timeout,
         )
 
     # Now that study has arrived in orthanc raw, we can set its project name tag via the API
@@ -95,7 +92,6 @@ async def _process_message(study: ImagingStudy, orthanc_raw: PIXLRawOrthanc) -> 
             project_name=study.message.project_name,
             orthanc_raw=orthanc_raw,
             study=resource["ID"],
-            timeout=timeout,
         )
 
     logger.debug("Local instances for study: {}", resource)
@@ -164,7 +160,6 @@ async def _add_project_to_study(
     project_name: str,
     orthanc_raw: PIXLRawOrthanc,
     study: str,
-    timeout: int,
 ) -> None:
     logger.debug("Adding private tag to study ID {}", study)
     await orthanc_raw.modify_private_tags_by_study(
@@ -174,7 +169,6 @@ async def _add_project_to_study(
             # The tag here needs to be defined in orthanc's dictionary
             DICOM_TAG_PROJECT_NAME.tag_nickname: project_name,
         },
-        timeout=timeout,
     )
 
 
@@ -287,20 +281,20 @@ def _is_weekend() -> bool:
     return datetime.datetime.now(tz=timezone).weekday() in (saturday, sunday)
 
 
-async def _retrieve_study(orthanc_raw: Orthanc, study: ImagingStudy, timeout: int) -> None:
+async def _retrieve_study(orthanc_raw: Orthanc, study: ImagingStudy) -> None:
     """Retrieve all instances for a study from the VNA / PACS."""
     _, query_id = await _find_study_in_archives_or_raise(orthanc_raw, study)
     job_id = await orthanc_raw.retrieve_from_remote(query_id=query_id)  # C-Move
-    await orthanc_raw.wait_for_job_success_or_raise(job_id, "c-move", timeout)
+    await orthanc_raw.wait_for_job_success_or_raise(
+        job_id, "c-move", timeout=orthanc_raw.dicom_timeout
+    )
 
 
 async def _retrieve_missing_instances(
-    resource: dict, orthanc_raw: Orthanc, study: ImagingStudy, timeout: int
+    resource: dict, orthanc_raw: Orthanc, study: ImagingStudy
 ) -> None:
     """Retrieve missing instances for a study from the VNA / PACS."""
-    modality, missing_instance_uids = await _get_missing_instances(
-        orthanc_raw, study, resource, timeout
-    )
+    modality, missing_instance_uids = await _get_missing_instances(orthanc_raw, study, resource)
     if not missing_instance_uids:
         return
     logger.debug(
@@ -308,17 +302,16 @@ async def _retrieve_missing_instances(
         len(missing_instance_uids),
         study.message.identifier,
     )
-    job_id = await orthanc_raw.retrieve_instances_from_remote(
-        modality, missing_instance_uids, timeout + 60
-    )  # Temporarily increasing timeout for job
-    await orthanc_raw.wait_for_job_success_or_raise(job_id, "c-move for missing instances", timeout)
+    job_id = await orthanc_raw.retrieve_instances_from_remote(modality, missing_instance_uids)
+    await orthanc_raw.wait_for_job_success_or_raise(
+        job_id, "c-move for missing instances", timeout=orthanc_raw.dicom_timeout
+    )
 
 
 async def _get_missing_instances(
     orthanc_raw: Orthanc,
     study: ImagingStudy,
     resource: dict,
-    timeout: int,
 ) -> tuple[str, list[dict[str, str]]]:
     """
     Check if any study instances are missing from Orthanc Raw.
@@ -337,7 +330,7 @@ async def _get_missing_instances(
     modality, study_query_id = await _find_study_in_archives_or_raise(orthanc_raw, study)
     study_query_answers = await orthanc_raw.get_remote_query_answers(study_query_id)
     instances_query_id = await orthanc_raw.get_remote_query_answer_instances(
-        query_id=study_query_id, answer_id=study_query_answers[0], timeout=timeout
+        query_id=study_query_id, answer_id=study_query_answers[0]
     )
     instances_query_answers = await orthanc_raw.get_remote_query_answers(instances_query_id)
 
