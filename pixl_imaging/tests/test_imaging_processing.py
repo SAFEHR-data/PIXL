@@ -137,7 +137,13 @@ def missing_message() -> Message:
 
 class WritableOrthanc(Orthanc):
     def __init__(self, url: str, username: str, password: str, aet: str) -> None:
-        super().__init__(url=url, username=username, password=password)
+        super().__init__(
+            url=url,
+            username=username,
+            password=password,
+            http_timeout=config("PIXL_QUERY_TIMEOUT", cast=int),
+            dicom_timeout=config("PIXL_DICOM_TRANSFER_TIMEOUT", cast=int),
+        )
         self._aet = aet
 
     @property
