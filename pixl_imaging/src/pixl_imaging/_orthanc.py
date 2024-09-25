@@ -118,13 +118,14 @@ class Orthanc(ABC):
                 "Asynchronous": True,
                 "Force": True,
                 "Keep": ["StudyInstanceUID", "SeriesInstanceUID", "SOPInstanceUID"],
+                "Timeout": self.dicom_timeout,
             },
             timeout=self.http_timeout,
         )
         logger.debug("Modify studies Job: {}", response)
         job_id = str(response["ID"])
         try:
-            await self.wait_for_job_success_or_raise(job_id, "modify", timeout=self.http_timeout)
+            await self.wait_for_job_success_or_raise(job_id, "modify", timeout=self.dicom_timeout)
         except PixlDiscardError:
             logger.warning(f"Deleting study {study_id} as modify job failed")
             await self.delete(f"/studies/{study_id}")
@@ -133,8 +134,8 @@ class Orthanc(ABC):
     async def retrieve_from_remote(self, query_id: str) -> str:
         response = await self._post(
             f"/queries/{query_id}/retrieve",
-            data={"TargetAet": self.aet, "Synchronous": False},
-            timeout=self.dicom_timeout,
+            data={"TargetAet": self.aet, "Synchronous": False, "Timeout": self.dicom_timeout},
+            timeout=self.http_timeout,
         )
         return str(response["ID"])
 
@@ -149,8 +150,9 @@ class Orthanc(ABC):
                 "TargetAet": self.aet,
                 "Synchronous": False,
                 "Resources": missing_instances,
+                "Timeout": self.dicom_timeout,
             },
-            timeout=self.dicom_timeout,
+            timeout=self.http_timeout,
         )
         return str(response["ID"])
 
@@ -256,10 +258,11 @@ class PIXLRawOrthanc(Orthanc):
     def aet(self) -> str:
         return str(config("ORTHANC_RAW_AE_TITLE"))
 
-    async def send_study_to_anon(self, resource_id: str) -> Any:
+    async def send_study_to_anon(self, resource_id: str) -> str:
         """Send study to orthanc anon."""
-        return await self._post(
+        reponse = await self._post(
             "/send-to-anon",
-            data={"ResourceId": resource_id, "Synchronous": False},
-            timeout=self.dicom_timeout,
+            data={"ResourceId": resource_id, "Synchronous": False, "Timeout": self.dicom_timeout},
+            timeout=self.http_timeout,
         )
+        return str(reponse["ID"])

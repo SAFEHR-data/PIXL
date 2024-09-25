@@ -95,7 +95,10 @@ async def _process_message(study: ImagingStudy, orthanc_raw: PIXLRawOrthanc) -> 
         )
 
     logger.debug("Local instances for study: {}", resource)
-    await orthanc_raw.send_study_to_anon(resource_id=resource["ID"])
+    job_id = await orthanc_raw.send_study_to_anon(resource_id=resource["ID"])
+    await orthanc_raw.wait_for_job_success_or_raise(
+        job_id, "c-store", timeout=orthanc_raw.dicom_timeout
+    )
 
 
 async def _get_existing_study(
