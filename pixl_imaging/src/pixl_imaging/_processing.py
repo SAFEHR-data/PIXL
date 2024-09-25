@@ -80,6 +80,7 @@ async def _process_message(study: ImagingStudy, orthanc_raw: PIXLRawOrthanc) -> 
         )
 
     # Now that study has arrived in orthanc raw, we can set its project name tag via the API
+    logger.debug("Get existing study before setting project name")
     resource = await _get_existing_study(
         orthanc_raw=orthanc_raw,
         study=study,
@@ -109,6 +110,13 @@ async def _get_existing_study(
     Otherwise if multiple studies exist, keep the most recently updated one.
     """
     existing_resources = await study.query_local(orthanc_raw, project_tag=True)
+
+    logger.debug(
+        'Found {} existing resources for study "{}"',
+        existing_resources,
+        study,
+    )
+
     if len(existing_resources) == 0:
         return {}
 
@@ -116,12 +124,14 @@ async def _get_existing_study(
     return await _delete_old_studies(
         resources=existing_resources,
         orthanc_raw=orthanc_raw,
+        study=study,
     )
 
 
 async def _delete_old_studies(
     resources: list[dict],
     orthanc_raw: PIXLRawOrthanc,
+    study: ImagingStudy,
 ) -> dict:
     """Delete old studies from Orthanc Raw."""
     sorted_resources = sorted(
@@ -129,12 +139,17 @@ async def _delete_old_studies(
         key=lambda resource: datetime.datetime.fromisoformat(resource["LastUpdate"]),
     )
     logger.debug(
-        "Found {} resources for study, only keeping the last updated resource: {}",
-        len(sorted_resources),
-        sorted_resources,
+        "Only keeping the last updated resource: {} for study: {}",
+        sorted_resources[-1],
+        study,
     )
     most_recent_resource = sorted_resources.pop(-1)
     for delete_resource in sorted_resources:
+        logger.debug(
+            "Deleting resource {} for study {}",
+            delete_resource,
+            study.message.identifier,
+        )
         await orthanc_raw.delete(f"/studies/{delete_resource['ID']}")
 
     return most_recent_resource

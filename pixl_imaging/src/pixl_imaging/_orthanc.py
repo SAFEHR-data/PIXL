@@ -55,6 +55,7 @@ class Orthanc(ABC):
 
     async def query_local(self, data: dict) -> Any:
         """Query local Orthanc instance for resourceId."""
+        logger.debug("Running query on local Orthanc with {}", data)
         return await self._post("/tools/find", data=data)
 
     async def query_local_series(self, series_id: str) -> Any:
