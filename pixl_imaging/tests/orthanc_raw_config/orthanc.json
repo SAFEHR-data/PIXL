@@ -28,7 +28,7 @@
   // jobs (for the jobs that can be parallelized).
   // A value of "0" indicates to use all the available CPU logical cores
   "JobsEngineThreadsCount" : {
-    "ResourceModification": 0  // for /anonymize, /modify
+    "ResourceModification": 5  // for /anonymize, /modify
   }
 
 }
