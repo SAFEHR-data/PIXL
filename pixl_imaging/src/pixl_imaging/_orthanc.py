@@ -251,4 +251,12 @@ class PIXLRawOrthanc(Orthanc):
 
     async def send_study_to_anon(self, resource_id: str) -> Any:
         """Send study to orthanc anon."""
-        return await self._post("/send-to-anon", data={"ResourceId": resource_id})
+        response = await self._post(
+            "/send-to-anon",
+            data={
+                "Resources": [resource_id],
+                "Asynchronous": True,
+                "Timeout": self.dicom_timeout,
+            },
+        )
+        return str(response["Message"]["ID"])
