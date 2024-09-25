@@ -425,18 +425,24 @@ class ImagingStudy:
 
     async def query_local(self, node: Orthanc, *, project_tag: bool = False) -> Any:
         """Does this study exist in an Orthanc instance/node, optionally query for project tag."""
-        uid_query = self.orthanc_uid_query_dict
-        if project_tag:
-            uid_query = uid_query | self.query_project_name
+        if self.message.study_uid:
+            uid_query = self.orthanc_uid_query_dict
+            if project_tag:
+                uid_query = uid_query | self.query_project_name
 
-        query_response = await node.query_local(uid_query)
-        if query_response:
-            return query_response
+            query_response = await node.query_local(uid_query)
+            if query_response:
+                return query_response
 
-        logger.trace(
-            "No study found locally with UID, trying MRN and accession number. {}",
-            self.orthanc_query_dict,
-        )
+            logger.trace(
+                "No study found locally with UID, trying MRN and accession number. {}",
+                self.orthanc_query_dict,
+            )
+        else:
+            logger.trace(
+                "study_uid is empty, trying MRN and accession number. {}",
+                self.orthanc_query_dict,
+            )
 
         mrn_accession_query = self.orthanc_query_dict
         if project_tag:
