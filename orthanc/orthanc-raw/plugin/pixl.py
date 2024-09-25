@@ -49,6 +49,37 @@ logger.add(sys.stdout, level=logging_level)
 logger.warning("Running logging at level {}", logging_level)
 
 
+def OnChange(changeType, level, resourceId):  # noqa: ARG001
+    """
+    # Taken from:
+    # https://book.orthanc-server.com/plugins/python.html#auto-routing-studies
+    This routes any stable study to a modality named PIXL-Anon if
+    should_send_to_anon returns true
+    """
+    if changeType != orthanc.ChangeType.STABLE_STUDY:
+        return
+
+    # imaging-api didn't get to updating pixl project name, could be incomplete so don't send
+    if _get_project_name_from_study_id(resourceId) == DICOM_TAG_PROJECT_NAME.PLACEHOLDER_VALUE:
+        logger.warning(
+            "Study {} has not been set with a pixl project name, not sending", resourceId
+        )
+        return
+
+    if should_send_to_anon():
+        logger.debug("Sending study: {}", resourceId)
+        # Although this can throw, since we have nowhere to report errors
+        # back to (e.g. an HTTP client), don't try to handle anything here.
+        # The client will have to detect that it hasn't happened and retry.
+        orthanc_anon_store_study(resourceId)
+
+
+def _get_project_name_from_study_id(study_id: str) -> str:
+    response_study = orthanc.RestApiGet(f"/studies/{study_id}/shared-tags?simplify=true")
+    json_response = json.loads(response_study)
+    return json_response["UCLHPIXLProjectName"]
+
+
 def orthanc_anon_store_study(resource_id):
     """Call the API to send the specified resource (study) to the orthanc anon server."""
     # RestApiPost raises an orthanc.OrthancException if it fails
@@ -169,6 +200,7 @@ def SendResourceToAnon(output, uri, **request):  # noqa: ARG001
         log_and_return_http(output, 200, "OK")
 
 
+orthanc.RegisterOnChangeCallback(OnChange)
 orthanc.RegisterReceivedInstanceCallback(ReceivedInstanceCallback)
 orthanc.RegisterRestCallback("/heart-beat", OnHeartBeat)
 orthanc.RegisterRestCallback("/send-to-anon", SendResourceToAnon)

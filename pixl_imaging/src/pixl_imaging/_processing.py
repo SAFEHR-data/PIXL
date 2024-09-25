@@ -73,7 +73,7 @@ async def _process_message(study: ImagingStudy, orthanc_raw: PIXLRawOrthanc) -> 
             study=study,
         )
     else:
-        await _retrieve_missing_instances(
+        instances_added = await _retrieve_missing_instances(
             resource=existing_resource,
             orthanc_raw=orthanc_raw,
             study=study,
@@ -84,6 +84,8 @@ async def _process_message(study: ImagingStudy, orthanc_raw: PIXLRawOrthanc) -> 
         orthanc_raw=orthanc_raw,
         study=study,
     )
+    logger.debug("Local instances for study: {}", resource)
+
     if not await _project_name_is_correct(
         project_name=study.message.project_name,
         resource=resource,
@@ -93,12 +95,9 @@ async def _process_message(study: ImagingStudy, orthanc_raw: PIXLRawOrthanc) -> 
             orthanc_raw=orthanc_raw,
             study=resource["ID"],
         )
-
-    logger.debug("Local instances for study: {}", resource)
-    job_id = await orthanc_raw.send_study_to_anon(resource_id=resource["ID"])
-    await orthanc_raw.wait_for_job_success_or_raise(
-        job_id, "c-store", timeout=orthanc_raw.dicom_timeout
-    )
+    elif not instances_added:
+        # send existing study with correct name to Anon
+        await orthanc_raw.send_study_to_anon(resource["ID"])
 
 
 async def _get_existing_study(
@@ -295,11 +294,11 @@ async def _retrieve_study(orthanc_raw: Orthanc, study: ImagingStudy) -> None:
 
 async def _retrieve_missing_instances(
     resource: dict, orthanc_raw: Orthanc, study: ImagingStudy
-) -> None:
+) -> list:
     """Retrieve missing instances for a study from the VNA / PACS."""
     modality, missing_instance_uids = await _get_missing_instances(orthanc_raw, study, resource)
     if not missing_instance_uids:
-        return
+        return missing_instance_uids
     logger.debug(
         "Retrieving {} missing instances for study {}",
         len(missing_instance_uids),
@@ -309,6 +308,7 @@ async def _retrieve_missing_instances(
     await orthanc_raw.wait_for_job_success_or_raise(
         job_id, "c-move for missing instances", timeout=orthanc_raw.dicom_timeout
     )
+    return missing_instance_uids
 
 
 async def _get_missing_instances(

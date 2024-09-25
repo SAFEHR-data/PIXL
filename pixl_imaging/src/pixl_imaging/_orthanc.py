@@ -55,7 +55,7 @@ class Orthanc(ABC):
 
     async def query_local(self, data: dict) -> Any:
         """Query local Orthanc instance for resourceId."""
-        return await self._post("/tools/find", data=data, timeout=self.http_timeout)
+        return await self._post("/tools/find", data=data)
 
     async def query_local_series(self, series_id: str) -> Any:
         """Query local Orthanc instance for series."""
@@ -72,7 +72,6 @@ class Orthanc(ABC):
         response = await self._post(
             f"/modalities/{modality}/query",
             data=data,
-            timeout=self.http_timeout,
         )
         logger.debug("Query response: {}", response)
         query_answers = await self.get_remote_query_answers(response["ID"])
@@ -94,7 +93,6 @@ class Orthanc(ABC):
         response = await self._post(
             f"/queries/{query_id}/answers/{answer_id}/query-instances",
             data={"Query": {}},
-            timeout=self.http_timeout,
         )
         return response["ID"]
 
@@ -120,7 +118,6 @@ class Orthanc(ABC):
                 "Keep": ["StudyInstanceUID", "SeriesInstanceUID", "SOPInstanceUID"],
                 "Timeout": self.dicom_timeout,
             },
-            timeout=self.http_timeout,
         )
         logger.debug("Modify studies Job: {}", response)
         job_id = str(response["ID"])
@@ -130,7 +127,6 @@ class Orthanc(ABC):
         response = await self._post(
             f"/queries/{query_id}/retrieve",
             data={"TargetAet": self.aet, "Synchronous": False, "Timeout": self.dicom_timeout},
-            timeout=self.http_timeout,
         )
         return str(response["ID"])
 
@@ -147,7 +143,6 @@ class Orthanc(ABC):
                 "Resources": missing_instances,
                 "Timeout": self.dicom_timeout,
             },
-            timeout=self.http_timeout,
         )
         return str(response["ID"])
 
@@ -189,11 +184,11 @@ class Orthanc(ABC):
         ):
             return await _deserialise(response)
 
-    async def _post(self, path: str, data: dict, timeout: int) -> Any:
+    async def _post(self, path: str, data: dict) -> Any:
         async with (
             aiohttp.ClientSession() as session,
             session.post(
-                f"{self._url}{path}", json=data, auth=self._auth, timeout=timeout
+                f"{self._url}{path}", json=data, auth=self._auth, timeout=self.http_timeout
             ) as response,
         ):
             return await _deserialise(response)
@@ -253,11 +248,6 @@ class PIXLRawOrthanc(Orthanc):
     def aet(self) -> str:
         return str(config("ORTHANC_RAW_AE_TITLE"))
 
-    async def send_study_to_anon(self, resource_id: str) -> str:
+    async def send_study_to_anon(self, resource_id: str) -> Any:
         """Send study to orthanc anon."""
-        reponse = await self._post(
-            "/send-to-anon",
-            data={"ResourceId": resource_id, "Synchronous": False, "Timeout": self.dicom_timeout},
-            timeout=self.http_timeout,
-        )
-        return str(reponse["ID"])
+        return await self._post("/send-to-anon", data={"ResourceId": resource_id})
