@@ -53,6 +53,7 @@ def orthanc_anon_store_study(body):
     """Call the API to send the specified resource (study) to the orthanc anon server."""
     # RestApiPost raises an orthanc.OrthancException if it fails
     body["Asynchronous"] = True
+    body["StorageCommitment"] = True
     response = orthanc.RestApiPost(
         "/modalities/PIXL-Anon/store",
         json.dumps(body),
