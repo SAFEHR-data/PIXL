@@ -16,12 +16,9 @@
 import os
 import shlex
 import subprocess
-from collections.abc import Generator
 from pathlib import Path
 
 import pytest
-from _pytest.monkeypatch import MonkeyPatch
-from loguru import logger
 from pytest_pixl.helpers import run_subprocess
 
 os.environ["TEST"] = "true"
@@ -34,6 +31,7 @@ os.environ["ORTHANC_RAW_URL"] = "http://localhost:8044"
 os.environ["ORTHANC_RAW_USERNAME"] = "orthanc"
 os.environ["ORTHANC_RAW_PASSWORD"] = "orthanc"
 os.environ["ORTHANC_RAW_AE_TITLE"] = "PIXLRAW"
+os.environ["ORTHANC_AUTOROUTE_RAW_TO_ANON"] = "False"
 os.environ["ORTHANC_VNA_URL"] = "http://localhost:8043"
 os.environ["ORTHANC_VNA_USERNAME"] = "orthanc"
 os.environ["ORTHANC_VNA_PASSWORD"] = "orthanc"
@@ -49,17 +47,6 @@ os.environ["PIXL_DICOM_TRANSFER_TIMEOUT"] = "30"
 os.environ["SKIP_ALEMBIC"] = "true"
 os.environ["PIXL_MAX_MESSAGES_IN_FLIGHT"] = "20"
 os.environ["TZ"] = "Europe/London"
-
-
-@pytest.fixture(autouse=True)
-def _patch_send_study_to_anon(monkeypatch: Generator[MonkeyPatch, None, None]) -> None:
-    """Patch send_study_to_anon in Orthanc as orthanc raw doesn't use the pixl plugin."""
-
-    async def patched_send(self, resource_id: str) -> None:
-        """Replaces send_study_to_anon."""
-        logger.info("Intercepted request to send '{}' to anon", resource_id)
-
-    monkeypatch.setattr("pixl_imaging._orthanc.PIXLRawOrthanc.send_study_to_anon", patched_send)
 
 
 TEST_DIR = Path(__file__).parent
