@@ -252,11 +252,15 @@ class PIXLRawOrthanc(Orthanc):
     async def send_study_to_anon(self, resource_id: str) -> Any:
         """Send study to orthanc anon."""
         response = await self._post(
-            "/send-to-anon",
+            "/modalities/PIXL-Anon/store",
             data={
                 "Resources": [resource_id],
                 "Asynchronous": True,
+                "StorageCommitment": True,
                 "Timeout": self.dicom_timeout,
             },
         )
-        return str(response["Message"]["ID"])
+
+        logger.debug("Successfully triggered c-store of study to anon modality: {}", resource_id)
+
+        return str(response["ID"])

@@ -20,12 +20,10 @@ This module provides:
 
 from __future__ import annotations
 
-import json
 import os
 import sys
-import traceback
 from io import BytesIO
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME, add_private_tag
 from decouple import config
@@ -47,21 +45,6 @@ if not logging_level:
 logger.add(sys.stdout, level=logging_level)
 
 logger.warning("Running logging at level {}", logging_level)
-
-
-def orthanc_anon_store_study(body):
-    """Call the API to send the specified resource (study) to the orthanc anon server."""
-    # RestApiPost raises an orthanc.OrthancException if it fails
-    body["Asynchronous"] = True
-    body["StorageCommitment"] = True
-    response = orthanc.RestApiPost(
-        "/modalities/PIXL-Anon/store",
-        json.dumps(body),
-    )
-    orthanc.LogInfo(
-        f"Successfully triggered c-store of study to anon modality: {body['Resources']}"
-    )
-    return response
 
 
 def OnHeartBeat(output, uri, **request):  # noqa: ARG001
@@ -110,57 +93,5 @@ def modify_dicom_tags(receivedDicom: bytes, origin: str) -> Any:
     return orthanc.ReceivedInstanceAction.MODIFY, write_dataset_to_bytes(dataset)
 
 
-def log_and_return_http(
-    output, http_code: int, http_message: str, log_message: Optional[str] = None
-):
-    """
-    Log and make an HTTP response in case of success or failure. For failure, log
-    a stack/exception trace as well.
-
-    :param output: the orthanc output object as given to the callback function
-    :param http_code: HTTP code to return
-    :param http_message: message to return in HTTP body
-    :param log_message: message to log, if different to http_message.
-                        If None, do not log at all if success
-    """
-    http_json_str = json.dumps({"Message": http_message})
-    if http_code == 200:  # noqa: PLR2004
-        if log_message:
-            orthanc.LogInfo(log_message)
-        output.AnswerBuffer(http_json_str, "application/json")
-    else:
-        orthanc.LogWarning(f"{log_message or http_message}:\n{traceback.format_exc()}")
-        # length needed in bytes not chars
-        output.SendHttpStatus(http_code, http_json_str, len(http_json_str.encode()))
-
-
-def SendResourceToAnon(output, uri, **request):  # noqa: ARG001
-    """Send an existing study to the anon modality"""
-    orthanc.LogWarning(f"Received request to send study to anon modality: {request}")
-    try:
-        body = json.loads(request["body"])
-        body["Resources"]
-    except (json.decoder.JSONDecodeError, KeyError):
-        err_str = "Body needs to be JSON with key Resources"
-        log_and_return_http(output, 400, err_str)
-    except:
-        err_str = "Other error decoding request"
-        log_and_return_http(output, 500, err_str)
-        raise
-
-    try:
-        response = orthanc_anon_store_study(body)
-    except orthanc.OrthancException:
-        err_str = "Failed contacting downstream server"
-        log_and_return_http(output, 502, err_str)
-    except:
-        err_str = "Misc error sending study to anon"
-        log_and_return_http(output, 500, err_str)
-        raise
-    else:
-        log_and_return_http(output, 200, json.loads(response))
-
-
 orthanc.RegisterReceivedInstanceCallback(ReceivedInstanceCallback)
 orthanc.RegisterRestCallback("/heart-beat", OnHeartBeat)
-orthanc.RegisterRestCallback("/send-to-anon", SendResourceToAnon)
