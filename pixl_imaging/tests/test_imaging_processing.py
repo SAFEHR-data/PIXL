@@ -22,11 +22,11 @@ import shlex
 from typing import TYPE_CHECKING
 
 import pytest
-from core.exceptions import PixlDiscardError
+from core.exceptions import PixlDiscardError, PixlOutOfHoursError, PixlStudyNotInPrimaryArchiveError
 from core.patient_queue.message import Message
 from decouple import config
 from pixl_imaging._orthanc import Orthanc, PIXLRawOrthanc
-from pixl_imaging._processing import ImagingStudy, process_message
+from pixl_imaging._processing import DicomModality, ImagingStudy, process_message
 from pydicom import dcmread
 from pydicom.data import get_testdata_file
 from pydicom.uid import generate_uid
@@ -245,7 +245,7 @@ async def test_image_saved(orthanc_raw, message: Message) -> None:
     orthanc = await orthanc_raw
 
     assert not await study.query_local(orthanc)
-    await process_message(message, archive="primary")
+    await process_message(message, archive=DicomModality.primary)
 
     studies = await study.query_local(orthanc)
     assert len(studies) == 1
@@ -283,7 +283,7 @@ async def test_partial_retrieve(orthanc_raw, message: Message, caplog) -> None:
     orthanc = await orthanc_raw
 
     assert not await study.query_local(orthanc)
-    await process_message(message)
+    await process_message(message, archive=DicomModality.primary)
     assert await study.query_local(orthanc)
 
     all_instances = await orthanc._get("/instances")
@@ -299,7 +299,7 @@ async def test_partial_retrieve(orthanc_raw, message: Message, caplog) -> None:
 
     await orthanc.delete(f"/instances/{instance_info['ID']}")
 
-    await process_message(message)
+    await process_message(message, archive=DicomModality.primary)
     all_instances = await orthanc._get("/instances")
     assert len(all_instances) == 2
 
@@ -322,14 +322,14 @@ async def test_existing_message_sent_twice(orthanc_raw, message: Message) -> Non
     study = ImagingStudy.from_message(message)
     orthanc = await orthanc_raw
 
-    await process_message(message, archive="primary")
+    await process_message(message, archive=DicomModality.primary)
     assert await study.query_local(orthanc)
 
     query_for_update_time = {**study.orthanc_query_dict, "Expand": True}
     first_processing_resource = await orthanc.query_local(query_for_update_time)
     assert len(first_processing_resource) == 1
 
-    await process_message(message, archive="primary")
+    await process_message(message, archive=DicomModality.primary)
     second_processing_resource = await orthanc.query_local(query_for_update_time)
     assert len(second_processing_resource) == 1
 
@@ -370,7 +370,7 @@ async def test_querying_without_uid(orthanc_raw, caplog, no_uid_message: Message
     orthanc = await orthanc_raw
 
     assert not await study.query_local(orthanc)
-    await process_message(no_uid_message, archive="primary")
+    await process_message(no_uid_message, archive=DicomModality.primary)
     assert await study.query_local(orthanc)
 
     expected_msg = (
@@ -418,19 +418,16 @@ async def test_querying_pacs_with_uid(
     # Set today to be a Monday at 2 am.
     with monkeypatch.context() as mp:
         mp.setattr(datetime, "datetime", Monday2AM)
-        await process_message(pacs_message, archive="primary")
+        match = "sending message to secondary imaging queue."
+        with pytest.raises(PixlStudyNotInPrimaryArchiveError, match=match):
+            await process_message(pacs_message, archive=DicomModality.primary)
+        await process_message(pacs_message, archive=DicomModality.secondary)
 
     assert await study.query_local(orthanc)
 
     expected_msg = (
         f"No study found in modality UCPRIMARYQR with UID '{study.message.study_uid}', "
         "trying MRN and accession number"
-    )
-    assert expected_msg in caplog.text
-
-    expected_msg = (
-        f"Failed to find study {study.message.identifier} in primary archive, "
-        "trying secondary archive"
     )
     assert expected_msg in caplog.text
 
@@ -461,17 +458,14 @@ async def test_querying_pacs_without_uid(
     # Set today to be a Monday at 2 am.
     with monkeypatch.context() as mp:
         mp.setattr(datetime, "datetime", Monday2AM)
-        await process_message(pacs_no_uid_message, archive="primary")
+        match = "sending message to secondary imaging queue."
+        with pytest.raises(PixlStudyNotInPrimaryArchiveError, match=match):
+            await process_message(pacs_no_uid_message, archive=DicomModality.primary)
+        await process_message(pacs_no_uid_message, archive=DicomModality.secondary)
 
     assert await study.query_local(orthanc)
 
     expected_msg = "No study found in modality UCPRIMARYQR with UID"
-    assert expected_msg in caplog.text
-
-    expected_msg = (
-        f"Failed to find study {study.message.identifier} in primary archive, "
-        "trying secondary archive"
-    )
     assert expected_msg in caplog.text
 
     expected_msg = (
@@ -496,10 +490,16 @@ async def test_querying_missing_image(orthanc_raw, monkeypatch, missing_message:
 
     # PACS is not queried during the daytime nor at the weekend.
     # Set today to be a Monday at 2 am.
-    match = "Failed to find study .* in primary or secondary archive."
-    with monkeypatch.context() as mp, pytest.raises(PixlDiscardError, match=match):  # noqa: PT012
+    primary_match = "sending message to secondary imaging queue."
+    secondary_match = "Failed to find study .* in primary or secondary archive."
+    with (  # noqa: PT012
+        monkeypatch.context() as mp,
+        pytest.raises(PixlStudyNotInPrimaryArchiveError, match=primary_match),
+        pytest.raises(PixlDiscardError, match=secondary_match),
+    ):
         mp.setattr(datetime, "datetime", Monday2AM)
-        await process_message(missing_message, archive="primary")
+        await process_message(missing_message, archive=DicomModality.primary)
+        await process_message(missing_message, archive=DicomModality.secondary)
 
 
 @pytest.mark.processing()
@@ -524,13 +524,10 @@ async def test_querying_pacs_during_working_hours(
 
     assert not await study.query_local(orthanc)
 
-    match = (
-        "Failed to find study .* in primary archive. "
-        "Not querying secondary archive during the daytime or on the weekend."
-    )
-    with monkeypatch.context() as mp, pytest.raises(PixlDiscardError, match=match):  # noqa: PT012
+    match = "Not querying secondary archive during the daytime or on the weekend."
+    with monkeypatch.context() as mp, pytest.raises(PixlOutOfHoursError, match=match):  # noqa: PT012
         mp.setattr(datetime, "datetime", query_date)
-        await process_message(missing_message, archive="primary")
+        await process_message(missing_message, archive=DicomModality.secondary)
 
 
 @pytest.mark.processing()
@@ -558,4 +555,4 @@ async def test_querying_pacs_not_defined(
         pytest.raises(PixlDiscardError, match=match),
     ):
         mp.setenv("SECONDARY_DICOM_SOURCE_AE_TITLE", os.environ["PRIMARY_DICOM_SOURCE_AE_TITLE"])
-        await process_message(missing_message, archive="primary")
+        await process_message(missing_message, archive=DicomModality.primary)

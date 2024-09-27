@@ -26,7 +26,7 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from loguru import logger
 
-from ._processing import process_message
+from ._processing import DicomModality, process_message
 
 QUEUE_NAME = "imaging"
 SECONDARY_QUEUE_NAME = "_imaging_secondary"
@@ -63,13 +63,13 @@ async def startup_event() -> None:
             QUEUE_NAME,
             token_bucket=state.token_bucket,
             token_bucket_key="primary",  # noqa: S106
-            callback=lambda message: process_message(message, archive="primary"),
+            callback=lambda message: process_message(message, archive=DicomModality.primary),
         ) as primary_consumer,
         PixlConsumer(
             SECONDARY_QUEUE_NAME,
             token_bucket=state.token_bucket,
             token_bucket_key="secondary",  # noqa: S106
-            callback=lambda message: process_message(message, archive="secondary"),
+            callback=lambda message: process_message(message, archive=DicomModality.secondary),
         ) as secondary_consumer,
     ):
         task = asyncio.create_task(primary_consumer.run())

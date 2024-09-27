@@ -22,9 +22,15 @@ from typing import TYPE_CHECKING, Any
 import aio_pika
 from decouple import config
 
-from core.exceptions import PixlDiscardError, PixlOutOfHoursError, PixlRequeueMessageError
+from core.exceptions import (
+    PixlDiscardError,
+    PixlOutOfHoursError,
+    PixlRequeueMessageError,
+    PixlStudyNotInPrimaryArchiveError,
+)
 from core.patient_queue._base import PixlQueueInterface
 from core.patient_queue.message import deserialise
+from core.patient_queue.producer import PixlProducer
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -90,6 +96,23 @@ class PixlConsumer(PixlQueueInterface):
             logger.trace("Requeue message: {} from {}", pixl_message.identifier, requeue)
             await asyncio.sleep(1)
             await message.reject(requeue=True)
+        except PixlStudyNotInPrimaryArchiveError as discard:
+            logger.trace(
+                "Discard message: {} from {}. Sending to secondary imaging queue with priority {}.",
+                pixl_message.identifier,
+                discard,
+                message.priority,
+            )
+            await asyncio.sleep(1)
+            await message.reject(requeue=False)
+            with PixlProducer(
+                queue_name="_imaging_secondary",
+                host=config("RABBITMQ_HOST"),
+                port=config("RABBITMQ_PORT", cast=int),
+                username=config("RABBITMQ_USERNAME"),
+                password=config("RABBITMQ_PASSWORD"),
+            ) as producer:
+                producer.publish([pixl_message], priority=message.priority)
         except PixlOutOfHoursError as nack_requeue:
             logger.trace(
                 "Nack and requeue message: {} from {}", pixl_message.identifier, nack_requeue

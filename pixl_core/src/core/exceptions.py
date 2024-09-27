@@ -28,5 +28,9 @@ class PixlRequeueMessageError(RuntimeError):
     """Requeue PIXL message."""
 
 
-class PixlOutOfHoursError(RuntimeError):
+class PixlOutOfHoursError(Exception):
     """Nack and requeue PIXL message."""
+
+
+class PixlStudyNotInPrimaryArchiveError(Exception):
+    """Study not in primary archive."""
