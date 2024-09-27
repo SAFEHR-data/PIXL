@@ -45,6 +45,7 @@ class PixlConsumer(PixlQueueInterface):
         self,
         queue_name: str,
         token_bucket: TokenBucket,
+        token_bucket_key: str,
         callback: Callable[[Message], Awaitable[None]],
     ) -> None:
         """
@@ -53,6 +54,7 @@ class PixlConsumer(PixlQueueInterface):
         """
         super().__init__(queue_name=queue_name)
         self.token_bucket = token_bucket
+        self.token_bucket_key = token_bucket_key
         self._callback = callback
 
     @property
@@ -75,7 +77,7 @@ class PixlConsumer(PixlQueueInterface):
         return self
 
     async def _process_message(self, message: AbstractIncomingMessage) -> None:
-        if not self.token_bucket.has_token:
+        if not self.token_bucket.has_token(key=self.token_bucket_key):
             await asyncio.sleep(1)
             await message.reject(requeue=True)
             return

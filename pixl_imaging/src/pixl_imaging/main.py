@@ -29,6 +29,7 @@ from loguru import logger
 from ._processing import process_message
 
 QUEUE_NAME = "imaging"
+SECONDARY_QUEUE_NAME = "_imaging_secondary"
 
 app = FastAPI(
     title="imaging-api",
@@ -57,10 +58,14 @@ async def startup_event() -> None:
     the task is consumer.run and the callback is _processing.process_message
     """
     background_tasks = set()
-    async with PixlConsumer(
-        QUEUE_NAME, token_bucket=state.token_bucket, callback=process_message
-    ) as consumer:
+    async with (
+        PixlConsumer(
+            QUEUE_NAME,
+            token_bucket=state.token_bucket,
+            token_bucket_key="primary",  # noqa: S106
+            callback=lambda message: process_message(message, archive="primary"),
+        ) as consumer,
+    ):
         task = asyncio.create_task(consumer.run())
-
         background_tasks.add(task)
         task.add_done_callback(background_tasks.discard)

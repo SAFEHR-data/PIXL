@@ -40,7 +40,10 @@ async def test_create(mock_message) -> None:
 
     consume = AsyncMock()
     async with PixlConsumer(
-        queue_name=TEST_QUEUE, token_bucket=TokenBucket(), callback=consume
+        queue_name=TEST_QUEUE,
+        token_bucket=TokenBucket(),
+        token_bucket_key="primary",  # noqa: S106
+        callback=consume,
     ) as consumer:
         # Create a Task to run pc.run in the background
         task = asyncio.create_task(consumer.run())

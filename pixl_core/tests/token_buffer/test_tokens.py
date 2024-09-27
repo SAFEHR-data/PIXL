@@ -21,20 +21,21 @@ from core.token_buffer import TokenBucket
 def test_retrieve_token() -> None:
     """Checks whether token can be retrieved from created token bucket."""
     bucket = TokenBucket()
-    assert bucket.has_token
+    assert bucket.has_token(key="primary")
+    assert bucket.has_token(key="secondary")
 
 
 def test_refill_tokens() -> None:
     """Checks whether the refill happens after one second for a bucket size of 1."""
     bucket = TokenBucket(rate=1, capacity=1)
 
-    assert bucket.has_token
+    assert bucket.has_token(key="primary")
     # Interrogating the bucket within 1 second we find that it's empty
-    assert bucket.has_token is False
+    assert bucket.has_token(key="primary") is False
 
     # but will be refilled after 1 second
     time.sleep(1)
-    assert bucket.has_token
+    assert bucket.has_token(key="primary")
 
 
 def test_zero_rate() -> None:

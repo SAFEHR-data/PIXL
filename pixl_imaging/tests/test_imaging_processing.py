@@ -245,7 +245,7 @@ async def test_image_saved(orthanc_raw, message: Message) -> None:
     orthanc = await orthanc_raw
 
     assert not await study.query_local(orthanc)
-    await process_message(message)
+    await process_message(message, archive="primary")
 
     studies = await study.query_local(orthanc)
     assert len(studies) == 1
@@ -322,14 +322,14 @@ async def test_existing_message_sent_twice(orthanc_raw, message: Message) -> Non
     study = ImagingStudy.from_message(message)
     orthanc = await orthanc_raw
 
-    await process_message(message)
+    await process_message(message, archive="primary")
     assert await study.query_local(orthanc)
 
     query_for_update_time = {**study.orthanc_query_dict, "Expand": True}
     first_processing_resource = await orthanc.query_local(query_for_update_time)
     assert len(first_processing_resource) == 1
 
-    await process_message(message)
+    await process_message(message, archive="primary")
     second_processing_resource = await orthanc.query_local(query_for_update_time)
     assert len(second_processing_resource) == 1
 
@@ -370,7 +370,7 @@ async def test_querying_without_uid(orthanc_raw, caplog, no_uid_message: Message
     orthanc = await orthanc_raw
 
     assert not await study.query_local(orthanc)
-    await process_message(no_uid_message)
+    await process_message(no_uid_message, archive="primary")
     assert await study.query_local(orthanc)
 
     expected_msg = (
@@ -418,7 +418,7 @@ async def test_querying_pacs_with_uid(
     # Set today to be a Monday at 2 am.
     with monkeypatch.context() as mp:
         mp.setattr(datetime, "datetime", Monday2AM)
-        await process_message(pacs_message)
+        await process_message(pacs_message, archive="primary")
 
     assert await study.query_local(orthanc)
 
@@ -461,7 +461,7 @@ async def test_querying_pacs_without_uid(
     # Set today to be a Monday at 2 am.
     with monkeypatch.context() as mp:
         mp.setattr(datetime, "datetime", Monday2AM)
-        await process_message(pacs_no_uid_message)
+        await process_message(pacs_no_uid_message, archive="primary")
 
     assert await study.query_local(orthanc)
 
@@ -499,7 +499,7 @@ async def test_querying_missing_image(orthanc_raw, monkeypatch, missing_message:
     match = "Failed to find study .* in primary or secondary archive."
     with monkeypatch.context() as mp, pytest.raises(PixlDiscardError, match=match):  # noqa: PT012
         mp.setattr(datetime, "datetime", Monday2AM)
-        await process_message(missing_message)
+        await process_message(missing_message, archive="primary")
 
 
 @pytest.mark.processing()
@@ -530,7 +530,7 @@ async def test_querying_pacs_during_working_hours(
     )
     with monkeypatch.context() as mp, pytest.raises(PixlDiscardError, match=match):  # noqa: PT012
         mp.setattr(datetime, "datetime", query_date)
-        await process_message(missing_message)
+        await process_message(missing_message, archive="primary")
 
 
 @pytest.mark.processing()
@@ -558,4 +558,4 @@ async def test_querying_pacs_not_defined(
         pytest.raises(PixlDiscardError, match=match),
     ):
         mp.setenv("SECONDARY_DICOM_SOURCE_AE_TITLE", os.environ["PRIMARY_DICOM_SOURCE_AE_TITLE"])
-        await process_message(missing_message)
+        await process_message(missing_message, archive="primary")

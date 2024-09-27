@@ -30,13 +30,13 @@ if TYPE_CHECKING:
 from loguru import logger
 
 
-async def process_message(message: Message) -> None:
+async def process_message(message: Message, archive: str = "primary") -> None:
     """
     Process message from queue by retrieving a study with the given Patient and Accession Number.
     We may receive multiple messages with same Patient + Acc Num, either as retries or because
     they are needed for multiple projects.
     """
-    logger.trace("Processing: {}", message.identifier)
+    logger.trace("Processing: {}. Querying {} archive.", message.identifier, archive)
 
     study = ImagingStudy.from_message(message)
     orthanc_raw = PIXLRawOrthanc()

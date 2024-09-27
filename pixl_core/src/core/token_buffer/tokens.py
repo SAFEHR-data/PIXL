@@ -14,6 +14,8 @@
 #  limitations under the License.
 from __future__ import annotations
 
+import typing
+
 import token_bucket as tb
 
 
@@ -22,19 +24,20 @@ class TokenBucket(tb.Limiter):
     Rate limitation is governed by the existence of tokens in a bucket, whereby the
     bucket is refilled every second. As long as a token can be retrieved, an item can
     be downloaded. Should there be no more tokens inside the bucket, the request is
-    added back into the queue. Note that the Limiter object can operate the rate on
+    added back into the queue.
+
+    Note that the Limiter object can operate the rate on
     different "streams", which are specified by a string object, also called key. This
-    key has been hard coded here to "pixl" as we do not expect the token bucket to be
-    responsible for more than one stream at this point in time.
+    key has been hard coded here to accept one of two values: 'primary' or 'secondary',
+    representing two different streams.
     """
 
-    key = b"pixl"
+    _keys: typing.ClassVar = ["primary", "secondary"]
 
     def __init__(
         self,
         rate: float = 5,
         capacity: int = 5,
-        storage: tb.StorageBase = None,
     ) -> None:
         """
         Uses the token bucket implementation from `Falconry`
@@ -46,18 +49,19 @@ class TokenBucket(tb.Limiter):
         :param storage: Type of storage used to hold the tokens
         """
         self._zero_rate = False
-        storage = tb.MemoryStorage()
 
         if rate == 0:
             rate = 1  # tb.Limiter does not allow zero rates, so keep track...
             self._zero_rate = True
 
-        super().__init__(rate=rate, capacity=capacity, storage=storage)
+        super().__init__(rate=rate, capacity=capacity, storage=tb.MemoryStorage())
 
-    @property
-    def has_token(self) -> bool:
-        """Does this token bucket have a token?"""
-        return not self._zero_rate and bool(self.consume(self.key))
+    def has_token(self, key: str) -> bool:
+        """Does this token bucket have a token for the given key?"""
+        if key not in self._keys:
+            message = f"Key must be one of '{self._keys}', not '{key}'"
+            raise ValueError(message)
+        return not self._zero_rate and bool(self.consume(key))
 
     @property
     def rate(self) -> float:
