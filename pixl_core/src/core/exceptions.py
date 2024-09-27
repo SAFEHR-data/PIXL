@@ -26,3 +26,7 @@ class PixlDiscardError(RuntimeError):
 
 class PixlRequeueMessageError(RuntimeError):
     """Requeue PIXL message."""
+
+
+class PixlOutOfHoursError(RuntimeError):
+    """Nack and requeue PIXL message."""

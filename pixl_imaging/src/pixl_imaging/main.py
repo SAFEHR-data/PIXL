@@ -64,8 +64,18 @@ async def startup_event() -> None:
             token_bucket=state.token_bucket,
             token_bucket_key="primary",  # noqa: S106
             callback=lambda message: process_message(message, archive="primary"),
-        ) as consumer,
+        ) as primary_consumer,
+        PixlConsumer(
+            SECONDARY_QUEUE_NAME,
+            token_bucket=state.token_bucket,
+            token_bucket_key="secondary",  # noqa: S106
+            callback=lambda message: process_message(message, archive="secondary"),
+        ) as secondary_consumer,
     ):
-        task = asyncio.create_task(consumer.run())
+        task = asyncio.create_task(primary_consumer.run())
+        background_tasks.add(task)
+        task.add_done_callback(background_tasks.discard)
+
+        task = asyncio.create_task(secondary_consumer.run())
         background_tasks.add(task)
         task.add_done_callback(background_tasks.discard)

@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING, Any
 import aio_pika
 from decouple import config
 
-from core.exceptions import PixlDiscardError, PixlRequeueMessageError
+from core.exceptions import PixlDiscardError, PixlOutOfHoursError, PixlRequeueMessageError
 from core.patient_queue._base import PixlQueueInterface
 from core.patient_queue.message import deserialise
 
@@ -90,6 +90,12 @@ class PixlConsumer(PixlQueueInterface):
             logger.trace("Requeue message: {} from {}", pixl_message.identifier, requeue)
             await asyncio.sleep(1)
             await message.reject(requeue=True)
+        except PixlOutOfHoursError as nack_requeue:
+            logger.trace(
+                "Nack and requeue message: {} from {}", pixl_message.identifier, nack_requeue
+            )
+            await asyncio.sleep(10)
+            await message.nack(requeue=True)
         except PixlDiscardError as exception:
             logger.warning("Failed message {}: {}", pixl_message.identifier, exception)
             await (
