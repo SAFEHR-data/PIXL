@@ -28,8 +28,6 @@ available shortly when the service is started).
     the job should always exist for being able to query its status
   - `ORTHANC_CONCURRENT_JOBS` has been increased to allow for more concurrent transfers from
     the VNA to orthanc raw.
-  - `PIXL_DICOM_TRANSFER_TIMEOUT` is added to `ORTHANC_RAW_EXTRA_STABLE_SECONDS` to ensure that a
-    study which hangs during processing isn't made stable until after the job would have timed out
 - All configuration is driven through customised JSON config files stored in the [config](./config/)
 directory.
 - The files are populated with values from environment variables and injected into the container as
