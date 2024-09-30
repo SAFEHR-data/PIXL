@@ -45,7 +45,7 @@
       "AllowGet"  : false,
       "AllowMove" : true,
       "AllowStore" : false,
-      "AllowStorageCommitment" : false,
+      "AllowStorageCommitment" : true,
       "AllowTranscoding" : true,
       "UseDicomTls" : false,
       "Timeout" : 120
