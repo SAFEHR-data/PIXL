@@ -259,7 +259,6 @@ class PIXLRawOrthanc(Orthanc):
             data={
                 "Resources": [resource_id],
                 "Asynchronous": True,
-                "StorageCommitment": True,
                 "Timeout": self.dicom_timeout,
             },
         )
