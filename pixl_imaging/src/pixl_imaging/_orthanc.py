@@ -90,10 +90,11 @@ class Orthanc(ABC):
         return await self._get(f"/queries/{query_id}/answers/{answer_id}/content")
 
     async def get_remote_query_answer_instances(self, query_id: str, answer_id: str) -> Any:
-        """Get the instances of a query answer"""
+        """Get the instances of a query answer, using DICOM timeout as can take a while"""
         response = await self._post(
             f"/queries/{query_id}/answers/{answer_id}/query-instances",
             data={"Query": {}},
+            timeout=self.dicom_timeout,
         )
         return response["ID"]
 
@@ -185,11 +186,13 @@ class Orthanc(ABC):
         ):
             return await _deserialise(response)
 
-    async def _post(self, path: str, data: dict) -> Any:
+    async def _post(self, path: str, data: dict, timeout: int | None = None) -> Any:
+        # Optionally override default http timeout
+        http_timeout = timeout or self.http_timeout
         async with (
             aiohttp.ClientSession() as session,
             session.post(
-                f"{self._url}{path}", json=data, auth=self._auth, timeout=self.http_timeout
+                f"{self._url}{path}", json=data, auth=self._auth, timeout=http_timeout
             ) as response,
         ):
             return await _deserialise(response)
