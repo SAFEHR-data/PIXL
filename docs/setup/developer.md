@@ -2,6 +2,27 @@
 
 ## Setting up `Python` Virtual Environment (VE)
 
+We recommend using [`uv`](https://docs.astral.sh/uv/getting-started/installation/) to manage virtual environments and install the PIXL Python packages.
+
+First, install the required Python version:
+
+```shell
+uv python install 3.11
+```
+
+```shell
+uv venv --python 3.11
+```
+
+```shell
+source .venv/bin/activate
+```
+
+```shell
+
+```
+
+
 ### Using conda
 ```
 conda create -n "pixlVE" python=3.11  pip -c conda-forge --yes
@@ -29,6 +50,15 @@ Most modules require `docker` and `docker-compose` to be installed to run tests.
 * [Docker Compose](https://docs.docker.com/compose/install/#installation-scenarios) with version `>=v2.28.1-desktop.1`
 
 ## Installation of `PIXL` modules
+
+
+We recommend using [`uv`](https://docs.astral.sh/uv/getting-started/installation/) to install the various PIXL packages.
+
+You can install all PIXL Python modules by running the following command from the `PIXL/` directory:
+
+```shell
+uv run
+```
 
 You can install all PIXL Python modules by running the following commands from the `PIXL/` directory:
 

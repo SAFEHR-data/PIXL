@@ -19,16 +19,6 @@ dependencies = [
     "types-requests~=2.28",
 ]
 
-[project.optional-dependencies]
-test = [
-    "core[test]==0.2.0rc0",
-    "dcm2niix==1.0.20220715",
-    "nibabel==5.2.1",
-]
-dev = [
-    "core[dev]==0.2.0rc0",
-]
-
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"

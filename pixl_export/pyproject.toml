@@ -12,14 +12,6 @@ dependencies = [
     "azure-storage-blob==12.21.0",
 ]
 
-[project.optional-dependencies]
-test = [
-    "core[test]==0.2.0rc0",
-]
-dev = [
-    "core[dev]==0.2.0rc0",
-]
-
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
