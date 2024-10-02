@@ -106,7 +106,7 @@ class PixlConsumer(PixlQueueInterface):
             await asyncio.sleep(1)
             await message.reject(requeue=False)
             with PixlProducer(
-                queue_name="_imaging_secondary",
+                queue_name="imaging-secondary",
                 host=config("RABBITMQ_HOST"),
                 port=config("RABBITMQ_PORT", cast=int),
                 username=config("RABBITMQ_USERNAME"),

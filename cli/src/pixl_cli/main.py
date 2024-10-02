@@ -95,7 +95,7 @@ def check_env(*, error: bool, sample_env_file: Path) -> None:
 )
 @click.option(
     "--queues",
-    default="imaging",
+    default="imaging-primary",
     show_default=True,
     help="Comma seperated list of queues to populate with messages generated from the "
     "input file(s)",
@@ -212,7 +212,7 @@ def export_patient_data(parquet_dir: Path, timeout: int) -> None:
 @cli.command()
 @click.option(
     "--queues",
-    default="imaging",
+    default="imaging-primary",
     show_default=True,
     help="Comma seperated list of queues to start consuming from",
 )
@@ -234,7 +234,7 @@ def start(queues: str, rate: Optional[float]) -> None:
 @cli.command()
 @click.option(
     "--queues",
-    default="imaging",
+    default="imaging-primary",
     show_default=True,
     help="Comma seperated list of queues to update the consume rate of",
 )
@@ -287,7 +287,7 @@ def _update_extract_rate(queue_name: str, rate: Optional[float]) -> None:
 @cli.command()
 @click.option(
     "--queues",
-    default="imaging",
+    default="imaging-primary",
     show_default=True,
     help="Comma seperated list of queues to consume messages from",
 )
@@ -323,7 +323,7 @@ def kill() -> None:
 @cli.command()
 @click.option(
     "--queues",
-    default="imaging",
+    default="imaging-primary",
     show_default=True,
     help="Comma seperated list of queues to consume messages from",
 )
@@ -337,7 +337,7 @@ def _get_extract_rate(queue_name: str) -> str:
     """
     Get the extraction rate in items per second from a queue
 
-    :param queue_name: Name of the queue to get the extract rate for (e.g. imaging)
+    :param queue_name: Name of the queue to get the extract rate for (e.g. imaging-primary)
     :return: The extract rate in items per seconds
 
     Throws a RuntimeError if the status code is not 200.

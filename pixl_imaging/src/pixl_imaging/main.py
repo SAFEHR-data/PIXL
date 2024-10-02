@@ -29,7 +29,7 @@ from loguru import logger
 from ._processing import DicomModality, process_message
 
 QUEUE_NAME = "imaging"
-SECONDARY_QUEUE_NAME = "_imaging_secondary"
+SECONDARY_QUEUE_NAME = "imaging-secondary"
 
 app = FastAPI(
     title="imaging-api",
