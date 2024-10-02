@@ -1,7 +1,7 @@
 # PIXL Driver + Command line interface
 
 The PIXL CLI driver provides functionality to populate a queue with messages containing information
-required to run electronic health queries against the EMAP star database and the VNA image system.
+required to run electronic health queries against the VNA image system.
 Once a set of queues are populated the consumers can be started, updated and the system extractions
 stopped cleanly.
 
@@ -108,6 +108,19 @@ Stop Imaging extraction
 ```bash
 pixl stop
 ```
+
+### High-priority messages
+
+By default, messages will be sent to the queue with the lowest priority (1).
+
+To send to the queue with a different priority, you can use the `--priority` argument to
+`populate`:
+
+```bash
+pixl populate --priority 5 <path/to/file.csv>
+```
+
+`priority` must be an integer between 1 and 5, with 5 being the highest priority.
 
 ## Development
 ### Help commands

@@ -16,6 +16,7 @@ from __future__ import annotations
 import pathlib
 import re
 from pathlib import Path
+import logging
 
 import nibabel
 import numpy as np
@@ -42,6 +43,7 @@ from pixl_dcmd.main import (
 )
 from pytest_pixl.dicom import generate_dicom_dataset
 from pytest_pixl.helpers import run_subprocess
+from conftest import ids_for_parameterised_test
 
 PROJECT_CONFIGS_DIR = Path(config("PROJECT_CONFIGS_DIR"))
 TEST_PROJECT_SLUG = "test-extract-uclh-omop-cdm"
@@ -111,25 +113,25 @@ def test_enforce_allowlist_removes_overlay_plane() -> None:
     assert (0x6000, 0x3000) not in ds
 
 
-def test_anonymisation(vanilla_dicom_image: pydicom.Dataset) -> None:
+def test_anonymisation(vanilla_single_dicom_image_DX: pydicom.Dataset) -> None:
     """
     Test whether anonymisation works as expected on a vanilla DICOM dataset
     """
 
-    orig_patient_id = vanilla_dicom_image.PatientID
-    orig_patient_name = vanilla_dicom_image.PatientName
+    orig_patient_id = vanilla_single_dicom_image_DX.PatientID
+    orig_patient_name = vanilla_single_dicom_image_DX.PatientName
+    orig_study_date = vanilla_single_dicom_image_DX.StudyDate
 
-    # Sanity check: study date should be present before anonymisation
-    assert "StudyDate" in vanilla_dicom_image
+    anonymise_dicom(vanilla_single_dicom_image_DX)
 
-    anonymise_dicom(vanilla_dicom_image)
-
-    assert vanilla_dicom_image.PatientID != orig_patient_id
-    assert vanilla_dicom_image.PatientName != orig_patient_name
-    assert "StudyDate" not in vanilla_dicom_image
+    assert vanilla_single_dicom_image_DX.PatientID != orig_patient_id
+    assert vanilla_single_dicom_image_DX.PatientName != orig_patient_name
+    assert vanilla_single_dicom_image_DX.StudyDate != orig_study_date
 
 
-def test_anonymise_unimplemented_tag(vanilla_dicom_image: pydicom.Dataset) -> None:
+def test_anonymise_unimplemented_tag(
+    vanilla_single_dicom_image_DX: pydicom.Dataset,
+) -> None:
     """
     GIVEN DICOM data with an OB data type tag within a sequence
     WHEN anonymise_dicom is run that has "replace" tag operation on the sequence, but not the OB element
@@ -143,14 +145,16 @@ def test_anonymise_unimplemented_tag(vanilla_dicom_image: pydicom.Dataset) -> No
     nested_block.add_new(0x0011, "OB", b"")
 
     # create private sequence tag with the nested dataset
-    block = vanilla_dicom_image.private_block(0x0013, "VR OB CREATOR", create=True)
+    block = vanilla_single_dicom_image_DX.private_block(
+        0x0013, "VR OB CREATOR", create=True
+    )
     block.add_new(0x0010, "SQ", [nested_ds])
 
-    anonymise_dicom(vanilla_dicom_image)
+    anonymise_dicom(vanilla_single_dicom_image_DX)
 
-    assert (0x0013, 0x0010) in vanilla_dicom_image
-    assert (0x0013, 0x1010) in vanilla_dicom_image
-    sequence = vanilla_dicom_image[(0x0013, 0x1010)]
+    assert (0x0013, 0x0010) in vanilla_single_dicom_image_DX
+    assert (0x0013, 0x1010) in vanilla_single_dicom_image_DX
+    sequence = vanilla_single_dicom_image_DX[(0x0013, 0x1010)]
     assert (0x0013, 0x1011) not in sequence[0]
 
 
@@ -178,12 +182,33 @@ def test_anonymise_and_validate_as_external_user() -> None:
     assert dataset != pydicom.dcmread(dataset_path)
 
 
-# TODO: test that anonymise_and_validate_dicom() works as expected
-# https://github.com/UCLH-Foundry/PIXL/issues/418
+@pytest.mark.parametrize(
+    ("yaml_file"), PROJECT_CONFIGS_DIR.glob("*.yaml"), ids=ids_for_parameterised_test
+)
+def test_anonymise_and_validate_dicom(caplog, request, yaml_file) -> None:
+    """
+    Test whether anonymisation and validation works as expected on a vanilla DICOM dataset
+    GIVEN a project configuration with tag operations that creates a DICOM dataset
+    WHEN the anonymisation and validation process is run
+    THEN the dataset should be anonymised and validated without any warnings or errors
+    """
+    caplog.clear()
+    caplog.set_level(logging.WARNING)
+    config = load_project_config(yaml_file.stem)
+    modality = config.project.modalities[0]
+    dicom_image = request.getfixturevalue(f"vanilla_dicom_image_{modality}")
+    config_path = pathlib.Path(yaml_file)
+
+    validation_errors = anonymise_and_validate_dicom(
+        dicom_image, config_path=config_path, synchronise_pixl_db=True
+    )
+
+    assert "WARNING" not in [record.levelname for record in caplog.records]
+    assert not validation_errors
 
 
 def test_anonymisation_with_overrides(
-    mri_diffusion_dicom_image: pydicom.Dataset, row_for_mri_dicom_testing
+    mri_diffusion_dicom_image: pydicom.Dataset, row_for_single_dicom_testing
 ) -> None:
     """
     Test that the anonymisation process works with manufacturer overrides.
@@ -371,7 +396,7 @@ def test_should_exclude_series(dicom_series_to_exclude, dicom_series_to_keep):
 
 
 def test_can_nifti_convert_post_anonymisation(
-    row_for_mri_dicom_testing, tmp_path, directory_of_mri_dicoms, tag_scheme
+    row_for_single_dicom_testing, tmp_path, directory_of_mri_dicoms, tag_scheme
 ):
     """Can a DICOM image that has passed through our tag processing be converted to NIFTI"""
     # Create a directory to store anonymised DICOM files

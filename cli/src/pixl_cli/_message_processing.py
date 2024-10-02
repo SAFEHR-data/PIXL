@@ -58,7 +58,10 @@ def messages_from_df(
 
 
 def retry_until_export_count_is_unchanged(
-    messages_df: pd.DataFrame, num_retries: int, queues_to_populate: list[str]
+    messages_df: pd.DataFrame,
+    num_retries: int,
+    queues_to_populate: list[str],
+    messages_priority: int,
 ) -> None:
     """Retry populating messages until there is no change in the number of exported studies."""
     last_exported_count = 0
@@ -103,7 +106,7 @@ def retry_until_export_count_is_unchanged(
             num_retries,
         )
         last_exported_count = new_last_exported_count
-        populate_queue_and_db(queues_to_populate, messages_df)
+        populate_queue_and_db(queues_to_populate, messages_df, messages_priority=messages_priority)
 
 
 def _wait_for_queues_to_empty(queues_to_populate: list[str]) -> None:
@@ -124,7 +127,9 @@ def _message_count(queues_to_populate: list[str]) -> int:
     return messages_in_queues
 
 
-def populate_queue_and_db(queues: list[str], messages_df: pd.DataFrame) -> list[Message]:
+def populate_queue_and_db(
+    queues: list[str], messages_df: pd.DataFrame, messages_priority: int
+) -> list[Message]:
     """
     Populate queues with messages,
     for imaging queue update the database and filter out exported studies.
@@ -138,7 +143,7 @@ def populate_queue_and_db(queues: list[str], messages_df: pd.DataFrame) -> list[
 
         messages = messages_from_df(messages_df)
         with PixlProducer(queue_name=queue, **SERVICE_SETTINGS["rabbitmq"]) as producer:
-            producer.publish(messages)
+            producer.publish(messages, priority=messages_priority)
         output_messages.extend(messages)
 
     return output_messages

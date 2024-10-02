@@ -16,8 +16,8 @@ The following assumptions are made:
 - There is a PostgreSQL database available (currently [defined in
 `pixl_core`](../../pixl_core/README.md)) to store the Index data within Orthanc (or it will become
 available shortly when the service is started).
-- The IP, port and AE Title for the VNA Q/R target have been provided, and the reciprocal details
-for this instance have been shared with the PACS team.
+- The IPs, ports and AE Titles for the primary (VNA) and secondary (PACS) Q/R targets have been provided,
+  and the reciprocal details for this instance have been shared with the PACS team.
 - There is sufficient local storage for the `orthanc-raw-data` volume.
 
 ### Configuration
@@ -28,8 +28,6 @@ for this instance have been shared with the PACS team.
     the job should always exist for being able to query its status
   - `ORTHANC_CONCURRENT_JOBS` has been increased to allow for more concurrent transfers from
     the VNA to orthanc raw.
-  - `PIXL_DICOM_TRANSFER_TIMEOUT` is added to `ORTHANC_RAW_EXTRA_STABLE_SECONDS` to ensure that a
-    study which hangs during processing isn't made stable until after the job would have timed out
 - All configuration is driven through customised JSON config files stored in the [config](./config/)
 directory.
 - The files are populated with values from environment variables and injected into the container as
@@ -43,7 +41,7 @@ secrets. Orthanc interprets all `.json` files in the `/run/secrets` mount as con
 
 ### Step 1
 
-Save credentials `.env` for the PACS/VNA Q/R target, postgreSQL and 'Orthanc anon'.
+Save credentials `.env` for the VNA (primary) and PACS (secondary) Q/R targets, postgreSQL and 'Orthanc anon'.
 ```
 # PIXL PostgreSQL instance
 PIXL_DB_HOST=
@@ -64,10 +62,15 @@ ORTHANC_RAW_AE_TITLE=
 # PIXL Orthanc anon instance
 ORTHANC_ANON_AE_TITLE=
 
-# UCVNAQR DICOM node information
-VNAQR_AE_TITLE=
-VNAQR_DICOM_PORT=
-VNAQR_IP_ADDR=
+# UCPRIMARYQR DICOM node information
+PRIMARY_DICOM_SOURCE_AE_TITLE=
+PRIMARY_DICOM_SOURCE_PORT=
+PRIMARY_DICOM_SOURCE_IP_ADDR=
+
+# UCSECONDARYQR DICOM node information
+SECONDARY_DICOM_SOURCE_AE_TITLE=
+SECONDARY_DICOM_SOURCE_PORT=
+SECONDARY_DICOM_SOURCE_IP_ADDR=
 ```
 
 ### Step 2

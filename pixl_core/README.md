@@ -10,7 +10,7 @@ Specifically, it defines:
 - The [RabbitMQ queue](#patient-queue) implementation shared by the Imaging API and any other APIs
 - The PIXL `postgres` internal database for storing exported images and extracts from the messages
   processed by the CLI driver
-- The [`ParquetExport`](./src/core/exports.py) class for exporting OMOP and EMAP extracts to
+- The [`ParquetExport`](./src/core/exports.py) class for exporting OMOP extracts to
   parquet files
 - Pydantic models for [project configuration](./src/core/project_config/pixl_config_model.py)
 - [Secrets management](./src/core/project_config/secrets.py) via an Azure Key Vault.

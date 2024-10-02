@@ -49,7 +49,10 @@ def test_no_retry_if_none_exported(example_messages_df, db_session, mock_publish
     os.environ["CLI_RETRY_SECONDS"] = "1"
 
     retry_until_export_count_is_unchanged(
-        example_messages_df, num_retries=5, queues_to_populate=["imaging"]
+        example_messages_df,
+        num_retries=5,
+        queues_to_populate=["imaging"],
+        messages_priority=1,
     )
 
     mock_publisher.assert_not_called()
@@ -70,6 +73,7 @@ def test_retry_with_image_exported_and_no_change(
         example_messages_df,
         num_retries=5,
         queues_to_populate=["imaging"],
+        messages_priority=1,
     )
 
     mock_publisher.assert_called_once()
@@ -90,6 +94,7 @@ def test_retry_with_image_exported_and_no_change_multiple_projects(
         example_messages_multiple_projects_df,
         num_retries=5,
         queues_to_populate=["imaging"],
+        messages_priority=1,
     )
 
     mock_publisher.assert_called_once()

@@ -93,7 +93,8 @@ def ids_for_parameterised_test(val):
 )
 def test_all_real_configs(yaml_file):
     """Test that all production configs are valid"""
-    load_project_config(yaml_file.stem)
+    config = load_project_config(yaml_file.stem)
+    assert config.project.name == yaml_file.stem
 
 
 def test_load_tag_operations():
