@@ -77,7 +77,7 @@ async def _process_message(
         - send the study to Orthanc Anon
     """
     await orthanc_raw.raise_if_pending_jobs()
-    logger.info("Processing: {}", study.message.identifier)
+    logger.info("Processing: {}. Querying {} archive.", study.message.identifier, archive.name)
 
     study_query_id = await _find_study_in_archive_or_raise(
         orthanc_raw=orthanc_raw,
