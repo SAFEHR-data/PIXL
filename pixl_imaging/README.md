@@ -1,19 +1,27 @@
 # PIXL Imaging API
 
-The PIXL imaging API processes messages from the imaging queue created by the [CLI](../cli/README.md)
+The PIXL imaging API processes messages created by the [CLI](../cli/README.md) and sent to imaging queues
 to query images from a dicom server and transfer them to the [`orthanc-raw` instance](../orthanc/orthanc-raw/README.md).
 
-The imaging API will:
+The imaging API has two queues:
 
-- query the [VNA](https://en.wikipedia.org/wiki/Vendor_Neutral_Archive) for existing images
-- if a study is not found in the VNA, query
-  [PACS](https://en.wikipedia.org/wiki/Picture_archiving_and_communication_system) for existing images.
+- `imaging-primary`, for querying the VNA
+- `imaging-secondary`, for querying PACS
 
+The imaging API uses RabbitMQ to expose a single HTTP endpoint that expects a JSON-formatted message structured as
+defined by the [`Message`](../pixl_core/src/core/patient_queue/message.py) class in `pixl_core/patient_queue`.
 
-The imaging API exposes a single HTTP endpoint that expects a JSON-formatted message structured as defined by the
-[`Message`](../pixl_core/src/core/patient_queue/message.py) class in `pixl_core/patient_queue`.
-On arrival of the input message it will issue a DICOMWeb request to `orthanc-raw`, which then queries the VNA
-for the requested imaging study, if it didn't already exist.
+Users should send messages to the `imaging-primary` queue only. On arrival of the input message, the imaging API
+will query the VNA for the requested study. If the study does not exist in the VNA, the input message will be sent
+to the `imaging-secondary` queue for processing. When the `imaging-secondary` queue processes a message, if the
+study does not exist in PACS an error is raised.
+
+If the study has be identified in VNA or PACS, a query to `orthanc-raw` is made to check if the study already
+exists locally. If it does exist locally, a check is made to ensure all instances exist locally and any missing
+instances are retrieved. If the study does not exist locally, the entire study is retrieved from the archive.
+
+Once the study and all its instances are in `orthanc-raw`, the study is sent to `orthanc-anon` via a C-STORE
+operation.
 
 ## Installation
 
