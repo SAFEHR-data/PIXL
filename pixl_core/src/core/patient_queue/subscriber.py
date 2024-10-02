@@ -97,7 +97,7 @@ class PixlConsumer(PixlQueueInterface):
             await asyncio.sleep(1)
             await message.reject(requeue=True)
         except PixlStudyNotInPrimaryArchiveError as discard:
-            logger.trace(
+            logger.info(
                 "Discard message: {} from {}. Sending to secondary imaging queue with priority {}.",
                 pixl_message.identifier,
                 discard,
