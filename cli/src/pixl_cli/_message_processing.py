@@ -122,9 +122,9 @@ def _wait_for_queues_to_empty(queues_to_populate: list[str]) -> None:
 def _message_count(queues_to_populate: list[str]) -> int:
     # We don't want to modify the queues we're populating, but if we're populating imaging-primary
     # we also need to wait for imaging-secondary to be empty
-    queues_to_count = queues_to_populate.copy()
-    if "imaging-primary" in queues_to_populate and "imaging-secondary" not in queues_to_populate:
-        queues_to_count.append("imaging-secondary")
+    queues_to_count = set(queues_to_populate)
+    if "imaging-primary" in queues_to_populate:
+        queues_to_count.add("imaging-secondary")
 
     messages_in_queues = 0
     for queue in queues_to_count:
