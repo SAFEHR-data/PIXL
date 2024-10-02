@@ -263,6 +263,8 @@ services:
             PROJECT_CONFIGS_DIR: /${PROJECT_CONFIGS_DIR:-/projects/configs}
             PIXL_MAX_MESSAGES_IN_FLIGHT: ${PIXL_MAX_MESSAGES_IN_FLIGHT}
             HTTP_TIMEOUT: ${PIXL_DICOM_TRANSFER_TIMEOUT}
+            XNAT_OVERWRITE: ${XNAT_OVERWRITE}
+            XNAT_DESTINATION: ${XNAT_DESTINATION}
         env_file:
             - ./docker/common.env
         depends_on:
