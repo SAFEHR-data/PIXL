@@ -59,7 +59,7 @@ class TokenBucket(tb.Limiter):
     def has_token(self, key: str) -> bool:
         """Does this token bucket have a token for the given key?"""
         if key not in self._keys:
-            message = f"Key must be one of '{self._keys}', not '{key}'"
+            message = f"Key must be one of {self._keys}, not '{key}'"
             raise ValueError(message)
         return not self._zero_rate and bool(self.consume(key))
 
