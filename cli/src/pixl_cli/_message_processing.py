@@ -144,7 +144,7 @@ def populate_queue_and_db(
     output_messages = []
     for queue in queues:
         # For imaging, we don't want to query again for images that have already been exported
-        if queue == "imaging" and len(messages_df):
+        if "imaging" in queue and len(messages_df):
             logger.info("Filtering out exported images and uploading new ones to the database")
             messages_df = filter_exported_or_add_to_db(messages_df)
 
