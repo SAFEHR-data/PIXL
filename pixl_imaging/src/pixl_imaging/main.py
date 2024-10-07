@@ -26,9 +26,10 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from loguru import logger
 
-from ._processing import process_message
+from ._processing import DicomModality, process_message
 
-QUEUE_NAME = "imaging"
+QUEUE_NAME = "imaging-primary"
+SECONDARY_QUEUE_NAME = "imaging-secondary"
 
 app = FastAPI(
     title="imaging-api",
@@ -57,10 +58,24 @@ async def startup_event() -> None:
     the task is consumer.run and the callback is _processing.process_message
     """
     background_tasks = set()
-    async with PixlConsumer(
-        QUEUE_NAME, token_bucket=state.token_bucket, callback=process_message
-    ) as consumer:
-        task = asyncio.create_task(consumer.run())
+    async with (
+        PixlConsumer(
+            QUEUE_NAME,
+            token_bucket=state.token_bucket,
+            token_bucket_key="primary",  # noqa: S106
+            callback=lambda message: process_message(message, archive=DicomModality.primary),
+        ) as primary_consumer,
+        PixlConsumer(
+            SECONDARY_QUEUE_NAME,
+            token_bucket=state.token_bucket,
+            token_bucket_key="secondary",  # noqa: S106
+            callback=lambda message: process_message(message, archive=DicomModality.secondary),
+        ) as secondary_consumer,
+    ):
+        task = asyncio.create_task(primary_consumer.run())
+        background_tasks.add(task)
+        task.add_done_callback(background_tasks.discard)
 
+        task = asyncio.create_task(secondary_consumer.run())
         background_tasks.add(task)
         task.add_done_callback(background_tasks.discard)

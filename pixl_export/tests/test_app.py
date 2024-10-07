@@ -29,4 +29,5 @@ def test_heartbeat_response_is_200() -> None:
 
 
 def test_initial_state_has_no_token() -> None:
-    assert not AppState().token_bucket.has_token
+    assert not AppState().token_bucket.has_token(key="primary")
+    assert not AppState().token_bucket.has_token(key="secondary")

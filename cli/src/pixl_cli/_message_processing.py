@@ -120,10 +120,17 @@ def _wait_for_queues_to_empty(queues_to_populate: list[str]) -> None:
 
 
 def _message_count(queues_to_populate: list[str]) -> int:
+    # We don't want to modify the queues we're populating, but if we're populating imaging-primary
+    # we also need to wait for imaging-secondary to be empty
+    queues_to_count = set(queues_to_populate)
+    if "imaging-primary" in queues_to_populate:
+        queues_to_count.add("imaging-secondary")
+
     messages_in_queues = 0
-    for queue in queues_to_populate:
+    for queue in queues_to_count:
         with PixlBlockingInterface(queue_name=queue, **SERVICE_SETTINGS["rabbitmq"]) as rabbitmq:
             messages_in_queues += rabbitmq.message_count
+
     return messages_in_queues
 
 
@@ -137,7 +144,7 @@ def populate_queue_and_db(
     output_messages = []
     for queue in queues:
         # For imaging, we don't want to query again for images that have already been exported
-        if queue == "imaging" and len(messages_df):
+        if "imaging" in queue and len(messages_df):
             logger.info("Filtering out exported images and uploading new ones to the database")
             messages_df = filter_exported_or_add_to_db(messages_df)
 

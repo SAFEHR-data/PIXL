@@ -15,11 +15,12 @@ from __future__ import annotations
 
 import datetime
 from dataclasses import dataclass
+from enum import StrEnum
 from typing import TYPE_CHECKING, Any, Optional
 from zoneinfo import ZoneInfo
 
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
-from core.exceptions import PixlDiscardError
+from core.exceptions import PixlDiscardError, PixlOutOfHoursError, PixlStudyNotInPrimaryArchiveError
 from decouple import config
 
 from pixl_imaging._orthanc import Orthanc, PIXLRawOrthanc
@@ -30,29 +31,45 @@ if TYPE_CHECKING:
 from loguru import logger
 
 
-async def process_message(message: Message) -> None:
+class DicomModality(StrEnum):
+    primary = config("PRIMARY_DICOM_SOURCE_MODALITY")
+    secondary = config("SECONDARY_DICOM_SOURCE_MODALITY")
+
+
+async def process_message(message: Message, archive: DicomModality) -> None:
     """
     Process message from queue by retrieving a study with the given Patient and Accession Number.
     We may receive multiple messages with same Patient + Acc Num, either as retries or because
     they are needed for multiple projects.
     """
-    logger.trace("Processing: {}", message.identifier)
+    logger.trace("Processing: {}. Querying {} archive.", message.identifier, archive.name)
 
     study = ImagingStudy.from_message(message)
     orthanc_raw = PIXLRawOrthanc()
-    await _process_message(study, orthanc_raw)
+    await _process_message(study, orthanc_raw, archive)
 
 
-async def _process_message(study: ImagingStudy, orthanc_raw: PIXLRawOrthanc) -> None:
+async def _process_message(
+    study: ImagingStudy, orthanc_raw: PIXLRawOrthanc, archive: DicomModality
+) -> None:
     """
     Retrieve a study from the archives and send it to Orthanc Anon.
 
-    If the study already exists in Orthanc Raw:
-        - query VNA / PASC to determine whether any instances are missing
-        - retrieve any missing instances
+    Querying the archives:
+    If 'archive' is 'secondary' and it's during working hours:
+        - raise a PixlOutOfHoursError to have the message requeued
+    If the study doesn't exist and 'archive' is primary:
+        - publish the message to the secondary imaging queue
+        - raise a PixlDiscardError
+    If the study doesn't exist and 'archive' is secondary:
+        - raise a PixlDiscardError
 
+    Querying Orthanc Raw:
+    If the study already exists in Orthanc Raw:
+        - query the archive to determine whether any instances are missing
+        - retrieve any missing instances
     If it doesn't already exist in Orthanc Raw:
-        - query the VNA / PACS for the study
+        - query the archive for the study
         - retrieve the study from the VNA / PACS
 
     Then:
@@ -60,23 +77,31 @@ async def _process_message(study: ImagingStudy, orthanc_raw: PIXLRawOrthanc) -> 
         - send the study to Orthanc Anon
     """
     await orthanc_raw.raise_if_pending_jobs()
-    logger.info("Processing: {}", study.message.identifier)
+    logger.info("Processing: {}. Querying {} archive.", study.message.identifier, archive.name)
 
-    existing_resource = await _get_existing_study(
+    study_query_id = await _find_study_in_archive_or_raise(
+        orthanc_raw=orthanc_raw,
+        study=study,
+        archive=archive,
+    )
+
+    existing_local_resource = await _get_existing_study(
         orthanc_raw=orthanc_raw,
         study=study,
     )
 
-    if not existing_resource:
+    if not existing_local_resource:
         await _retrieve_study(
             orthanc_raw=orthanc_raw,
-            study=study,
+            study_query_id=study_query_id,
         )
     else:
         await _retrieve_missing_instances(
-            resource=existing_resource,
+            resource=existing_local_resource,
             orthanc_raw=orthanc_raw,
             study=study,
+            study_query_id=study_query_id,
+            modality=archive.value,
         )
 
     # Now that study has arrived in orthanc raw, we can set its project name tag via the API
@@ -196,37 +221,43 @@ async def _add_project_to_study(
     )
 
 
-async def _find_study_in_archives_or_raise(
-    orthanc_raw: Orthanc, study: ImagingStudy
-) -> tuple[str, str]:
+async def _find_study_in_archive_or_raise(
+    orthanc_raw: Orthanc,
+    study: ImagingStudy,
+    archive: DicomModality,
+) -> str:
     """
-    Query primary and secondary archives for a study.
+    Query an archive for a study.
 
-    The following steps are taken until either a query ID is returned or a PixlDiscardError is
-    raised:
+    If 'archive' is 'secondary' and it's during working hours:
+        - raise a PixlOutOfHoursError to have the message requeued
+    If the study doesn't exist, and 'archive' is primary:
+        - raise a PixlStudyNotInPrimaryArchiveError if a secondary archive is defined
+        - raise a PixlDiscardError if a secondary archive is not defined
+    If the study doesn't exist and 'archive' is secondary:
+        - raise a PixlDiscardError
 
-    1. Query the primary archive for the study using its UID. If UID is not available, query on
-      MRN and accession number
-        i) Return the primary archive aet modality and query id if the study is found.
-        ii) If not found in the primary archive, and the secondary archive is the same as the
-            primary,
-      raise a PixlDiscardError.
-        iii) If not found in the primary archive and it is daytime or the weekend, raise a
-            PixlDiscardError.
-    2. Query the secondary archive using the study UID. If UID is not available, query on
-      MRN + accession number.
-        a) If not found, raise a PixlDiscardError.
-        a) If found in the secondary archive, return the modality and query id.
+    When querying an archive, the study is first queried using its UID it it's available.
+    If the UID is an empty string, or if the study is not found, the study is queried using
+    the MRN and accession number.
+
     """
-    primary_modality = config("PRIMARY_DICOM_SOURCE_MODALITY")
+    if archive.name == "secondary" and (_is_daytime() or _is_weekend()):
+        msg = "Not querying secondary archive during the daytime or on the weekend."
+        raise PixlOutOfHoursError(msg)
+
     query_id = await _find_study_in_archive(
         orthanc_raw=orthanc_raw,
         study=study,
-        modality=primary_modality,
+        modality=archive.value,
     )
 
     if query_id is not None:
-        return primary_modality, query_id
+        return query_id
+
+    if archive.name == "secondary":
+        msg = f"Failed to find study {study.message.identifier} in primary or secondary archive."
+        raise PixlDiscardError(msg)
 
     if config("SECONDARY_DICOM_SOURCE_AE_TITLE") == config("PRIMARY_DICOM_SOURCE_AE_TITLE"):
         msg = (
@@ -235,29 +266,11 @@ async def _find_study_in_archives_or_raise(
         )
         raise PixlDiscardError(msg)
 
-    if _is_daytime() or _is_weekend():
-        msg = (
-            f"Failed to find study {study.message.identifier} in primary archive. "
-            "Not querying secondary archive during the daytime or on the weekend."
-        )
-        raise PixlDiscardError(msg)
-
-    logger.debug(
-        "Failed to find study {} in primary archive, trying secondary archive",
-        study.message.identifier,
+    msg = (
+        f"Failed to find study {study.message.identifier} in primary archive, "
+        "sending message to secondary imaging queue."
     )
-    secondary_modality = config("SECONDARY_DICOM_SOURCE_MODALITY")
-    query_id = await _find_study_in_archive(
-        study=study,
-        orthanc_raw=orthanc_raw,
-        modality=secondary_modality,
-    )
-
-    if query_id is None:
-        msg = f"Failed to find study {study.message.identifier} in primary or secondary archive."
-        raise PixlDiscardError(msg)
-
-    return secondary_modality, query_id
+    raise PixlStudyNotInPrimaryArchiveError(msg)
 
 
 async def _find_study_in_archive(
@@ -305,20 +318,25 @@ def _is_weekend() -> bool:
     return datetime.datetime.now(tz=timezone).weekday() in (saturday, sunday)
 
 
-async def _retrieve_study(orthanc_raw: Orthanc, study: ImagingStudy) -> None:
+async def _retrieve_study(orthanc_raw: Orthanc, study_query_id: str) -> None:
     """Retrieve all instances for a study from the VNA / PACS."""
-    _, query_id = await _find_study_in_archives_or_raise(orthanc_raw, study)
-    job_id = await orthanc_raw.retrieve_from_remote(query_id=query_id)  # C-Move
+    job_id = await orthanc_raw.retrieve_from_remote(query_id=study_query_id)  # C-Move
     await orthanc_raw.wait_for_job_success_or_raise(
         job_id, "c-move", timeout=orthanc_raw.dicom_timeout
     )
 
 
 async def _retrieve_missing_instances(
-    resource: dict, orthanc_raw: Orthanc, study: ImagingStudy
+    resource: dict,
+    orthanc_raw: Orthanc,
+    study: ImagingStudy,
+    study_query_id: str,
+    modality: str,
 ) -> None:
     """Retrieve missing instances for a study from the VNA / PACS."""
-    modality, missing_instance_uids = await _get_missing_instances(orthanc_raw, study, resource)
+    missing_instance_uids = await _get_missing_instances(
+        orthanc_raw=orthanc_raw, study=study, resource=resource, study_query_id=study_query_id
+    )
     if not missing_instance_uids:
         return
     logger.debug(
@@ -333,14 +351,12 @@ async def _retrieve_missing_instances(
 
 
 async def _get_missing_instances(
-    orthanc_raw: Orthanc,
-    study: ImagingStudy,
-    resource: dict,
-) -> tuple[str, list[dict[str, str]]]:
+    orthanc_raw: Orthanc, study: ImagingStudy, resource: dict, study_query_id: str
+) -> list[dict[str, str]]:
     """
     Check if any study instances are missing from Orthanc Raw.
 
-    Return a tuple of the modality and a list missing instance UIDs (empty if none missing)
+    Return a list of missing instance UIDs (empty if none missing)
     """
     # First get all SOPInstanceUIDs for the study that are in Orthanc Raw
     orthanc_raw_sop_instance_uids = []
@@ -351,7 +367,6 @@ async def _get_missing_instances(
             orthanc_raw_sop_instance_uids.append(instance["MainDicomTags"]["SOPInstanceUID"])
 
     # Now query the VNA / PACS for the study instances
-    modality, study_query_id = await _find_study_in_archives_or_raise(orthanc_raw, study)
     study_query_answers = await orthanc_raw.get_remote_query_answers(study_query_id)
     instances_query_id = await orthanc_raw.get_remote_query_answer_instances(
         query_id=study_query_id, answer_id=study_query_answers[0]
@@ -361,7 +376,7 @@ async def _get_missing_instances(
     missing_instances: list[dict[str, str]] = []
 
     if len(instances_query_answers) == len(orthanc_raw_sop_instance_uids):
-        return modality, missing_instances
+        return missing_instances
 
     # If the SOPInstanceUID is not in the list of instances in Orthanc Raw
     # retrieve the instance from the VNA / PACS
@@ -386,7 +401,7 @@ async def _get_missing_instances(
         )
         missing_instances.append(uids_for_query)
 
-    return modality, missing_instances
+    return missing_instances
 
 
 @dataclass
