@@ -23,7 +23,7 @@ from core.dicom_tags import DICOM_TAG_PROJECT_NAME
 from core.exceptions import PixlDiscardError, PixlOutOfHoursError, PixlStudyNotInPrimaryArchiveError
 from decouple import config
 
-from pixl_imaging._orthanc import Orthanc, PIXLRawOrthanc
+from pixl_imaging._orthanc import Orthanc, PIXLAnonOrthanc, PIXLRawOrthanc
 
 if TYPE_CHECKING:
     from core.patient_queue.message import Message
@@ -46,11 +46,20 @@ async def process_message(message: Message, archive: DicomModality) -> None:
 
     study = ImagingStudy.from_message(message)
     orthanc_raw = PIXLRawOrthanc()
-    await _process_message(study, orthanc_raw, archive)
+    orthanc_anon = PIXLAnonOrthanc()
+    await _process_message(
+        study=study,
+        orthanc_raw=orthanc_raw,
+        archive=archive,
+        orthanc_anon=orthanc_anon,
+    )
 
 
 async def _process_message(
-    study: ImagingStudy, orthanc_raw: PIXLRawOrthanc, archive: DicomModality
+    study: ImagingStudy,
+    orthanc_raw: PIXLRawOrthanc,
+    archive: DicomModality,
+    orthanc_anon: PIXLAnonOrthanc,
 ) -> None:
     """
     Retrieve a study from the archives and send it to Orthanc Anon.
@@ -74,7 +83,9 @@ async def _process_message(
 
     Then:
         - set the project name tag for the study if it's not already set
-        - send the study to Orthanc Anon
+        - send the study to Orthanc Anon if ORTHANC_AUTOROUTE_RAW_TO_ANON is True
+        - if the C-STORE operation to Orthanc Anon is successful, and ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT
+          is True, send the study to the appropriate destination
     """
     await orthanc_raw.raise_if_pending_jobs()
     logger.info("Processing: {}. Querying {} archive.", study.message.identifier, archive.name)
@@ -110,6 +121,9 @@ async def _process_message(
         orthanc_raw=orthanc_raw,
         study=study,
     )
+    await orthanc_raw.wait_for_study_to_stabilise_or_raise(
+        study_id=resource["ID"],
+    )
 
     if not await _project_name_is_correct(
         project_name=study.message.project_name,
@@ -123,14 +137,33 @@ async def _process_message(
 
     logger.debug("Local instances for study: {}", resource)
 
-    if config("ORTHANC_AUTOROUTE_RAW_TO_ANON", default=False, cast=bool):
-        job_id = await orthanc_raw.send_study_to_anon(resource_id=resource["ID"])
-        await orthanc_raw.wait_for_job_success_or_raise(
-            job_id, "c-store", timeout=orthanc_raw.dicom_timeout
+    if not orthanc_raw.autoroute_to_anon:
+        logger.debug("Auto-routing to Orthanc Anon is not enabled. Not sending study {}", resource)
+        return
+
+    job_id = await orthanc_raw.send_study_to_anon(resource_id=resource["ID"])
+    job_info = await orthanc_raw.wait_for_job_success_or_raise(
+        job_id, "c-store", timeout=orthanc_raw.dicom_timeout
+    )
+
+    logger.info("Study send to orthanc anon, job info {}", job_info)
+    orthanc_anon_studies = await orthanc_anon._get("/studies")
+    logger.info("all studies in orthanc anon: {}", orthanc_anon_studies)
+    # orthanc_raw_study = await orthanc_raw._get(f"/studies/{resource['ID']}")
+    # orthanc_anon_study = await orthanc_anon._get(f"/studies/{job_info["Content"]["ParentResources"][0]}")
+    # logger.info("study in orthanc raw: {}\nstudy in orthanc anon: {}", orthanc_raw_study, orthanc_anon_study)
+    # await orthanc_anon.wait_for_study_to_stabilise_or_raise(study_id=job_info["Content"]["ParentResources"][0])
+
+    if not orthanc_anon.autoroute_to_endpoint:
+        logger.debug(
+            "Auto-routing from Orthanc Anon to endpoint is not enabled. Not exporting study {}",
+            resource,
         )
         return
 
-    logger.debug("Auto-routing to Orthanc Anon is not enabled. Not sending study {}", resource)
+    # anonymised_study_uid = job_info["Instances"][0]["ID"]
+    # orthanc_anon.send_study_to_endpoint(resource_id=resource["ID"])
+    # logger.info("Study {} exported to endpoint", resource["ID"])
 
 
 async def _get_existing_study(
@@ -320,7 +353,7 @@ def _is_weekend() -> bool:
 
 async def _retrieve_study(orthanc_raw: Orthanc, study_query_id: str) -> None:
     """Retrieve all instances for a study from the VNA / PACS."""
-    job_id = await orthanc_raw.retrieve_from_remote(query_id=study_query_id)  # C-Move
+    job_id = await orthanc_raw.retrieve_from_remote_with_query_id(query_id=study_query_id)  # C-Move
     await orthanc_raw.wait_for_job_success_or_raise(
         job_id, "c-move", timeout=orthanc_raw.dicom_timeout
     )

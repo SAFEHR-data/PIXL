@@ -175,7 +175,7 @@ def notify_export_api_of_readiness(study_id: str):
     response.raise_for_status()
 
 
-def should_auto_route() -> bool:
+def should_export() -> bool:
     """
     Checks whether ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT environment variable is
     set to true or false
@@ -191,12 +191,12 @@ def _azure_available() -> bool:
 
 def OnChange(changeType, level, resource):  # noqa: ARG001
     """
-    - If a study is stable and if should_auto_route returns true
-    then notify the export API that it should perform the upload of DICOM data.
-    - If orthanc has started then start a timer to refresh the Azure token every 30 seconds
-    - If orthanc has stopped then cancel the timer
+    - If `should_export` returns `false`, the do nothing
+    - Otherwise:
+        - If orthanc has started then start a timer to refresh the Azure token every 30 seconds
+        - If orthanc has stopped then cancel the timer
     """
-    if not should_auto_route():
+    if not should_export():
         return
 
     if changeType == orthanc.ChangeType.STABLE_STUDY:

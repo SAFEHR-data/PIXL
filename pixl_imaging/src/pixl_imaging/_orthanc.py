@@ -13,7 +13,7 @@
 #  limitations under the License.
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+from abc import ABC
 from asyncio import sleep
 from time import time
 from typing import Any, Optional
@@ -26,12 +26,19 @@ from loguru import logger
 
 class Orthanc(ABC):
     def __init__(
-        self, url: str, username: str, password: str, http_timeout: int, dicom_timeout: int
+        self,
+        url: str,
+        username: str,
+        password: str,
+        http_timeout: int,
+        dicom_timeout: int,
+        aet: str,
     ) -> None:
         if not url:
             msg = "URL for orthanc is required"
             raise ValueError(msg)
         self._url = url.rstrip("/")
+        self._aet = aet
         self._username = username
         self._password = password
 
@@ -40,23 +47,23 @@ class Orthanc(ABC):
         self.dicom_timeout = dicom_timeout
 
     @property
-    @abstractmethod
     def aet(self) -> str:
         """Application entity title (AET) of this Orthanc instance"""
+        return self._aet
 
     @property
     async def modalities(self) -> Any:
         """Accessible modalities from this Orthanc instance"""
         return await self._get("/modalities")
 
-    async def get_jobs(self) -> Any:
-        """Get expanded details for all jobs."""
-        return await self._get("/jobs?expand")
-
     async def query_local(self, data: dict) -> Any:
         """Query local Orthanc instance for resourceId."""
         logger.debug("Running query on local Orthanc with {}", data)
         return await self._post("/tools/find", data=data)
+
+    async def query_local_study(self, study_id: str) -> Any:
+        """Query local Orthanc instance for study."""
+        return await self._get(f"/studies/{study_id}")
 
     async def query_local_series(self, series_id: str) -> Any:
         """Query local Orthanc instance for series."""
@@ -125,10 +132,24 @@ class Orthanc(ABC):
         job_id = str(response["ID"])
         await self.wait_for_job_success_or_raise(job_id, "modify", timeout=self.dicom_timeout)
 
-    async def retrieve_from_remote(self, query_id: str) -> str:
+    async def retrieve_from_remote_with_query_id(self, query_id: str) -> str:
         response = await self._post(
             f"/queries/{query_id}/retrieve",
             data={"TargetAet": self.aet, "Synchronous": False, "Timeout": self.dicom_timeout},
+        )
+        return str(response["ID"])
+
+    async def retrieve_from_remote(self, modality: str, study_uid: str) -> str:
+        """Retrieve a study from a remote modality."""
+        response = await self._post(
+            f"/modalities/{modality}/move",
+            data={
+                "Level": "Study",
+                "TargetAet": self.aet,
+                "Synchronous": False,
+                "Resources": {"StudyInstanceUID": study_uid},
+                "Timeout": self.dicom_timeout,
+            },
         )
         return str(response["ID"])
 
@@ -147,6 +168,10 @@ class Orthanc(ABC):
             },
         )
         return str(response["ID"])
+
+    async def get_jobs(self) -> Any:
+        """Get expanded details for all jobs."""
+        return await self._get("/jobs?expand")
 
     async def wait_for_job_success_or_raise(self, job_id: str, job_type: str, timeout: int) -> None:
         """Wait for job to complete successfully, or raise exception if fails or exceeds timeout."""
@@ -170,10 +195,25 @@ class Orthanc(ABC):
             await sleep(10)
             job_info = await self.job_state(job_id=job_id)
 
+        return job_info
+
     async def job_state(self, job_id: str) -> Any:
         """Get job state from orthanc."""
         # See: https://book.orthanc-server.com/users/advanced-rest.html#jobs-monitoring
         return await self._get(f"/jobs/{job_id}")
+
+    async def wait_for_study_to_stabilise_or_raise(self, study_id: str) -> None:
+        """Wait for a study to become stable, or raise exception if exceeds timeout."""
+        study = await self.query_local_study(study_id)
+        is_stable = study["IsStable"]
+        start_time = time()
+        while not is_stable:
+            await sleep(10)
+            study = await self.query_local_study(study_id)
+            is_stable = study["IsStable"]
+            if not is_stable and ((time() - start_time) > self.dicom_timeout):
+                msg = f"Failed to stabilise study {study_id} in {self.dicom_timeout} seconds. Study info: {study}, {is_stable}, {type(is_stable)}"
+                raise PixlDiscardError(msg)
 
     async def _get(self, path: str) -> Any:
         async with (
@@ -223,7 +263,10 @@ class PIXLRawOrthanc(Orthanc):
             password=config("ORTHANC_RAW_PASSWORD"),
             http_timeout=config("PIXL_QUERY_TIMEOUT", default=10, cast=int),
             dicom_timeout=config("PIXL_DICOM_TRANSFER_TIMEOUT", default=240, cast=int),
+            aet=config("ORTHANC_RAW_AE_TITLE"),
         )
+
+        self.autoroute_to_anon = config("ORTHANC_AUTOROUTE_RAW_TO_ANON", default=False, cast=bool)
 
     async def raise_if_pending_jobs(self) -> None:
         """
@@ -248,10 +291,6 @@ class PIXLRawOrthanc(Orthanc):
                 msg = "Pending messages in orthanc raw"
                 raise PixlRequeueMessageError(msg)
 
-    @property
-    def aet(self) -> str:
-        return str(config("ORTHANC_RAW_AE_TITLE"))
-
     async def send_study_to_anon(self, resource_id: str) -> Any:
         """Send study to orthanc anon."""
         response = await self._post(
@@ -264,5 +303,25 @@ class PIXLRawOrthanc(Orthanc):
         )
 
         logger.debug("Successfully triggered c-store of study to anon modality: {}", resource_id)
-
         return str(response["ID"])
+
+
+class PIXLAnonOrthanc(Orthanc):
+    """Orthanc Anon connection."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            url=config("ORTHANC_ANON_URL"),
+            username=config("ORTHANC_ANON_USERNAME"),
+            password=config("ORTHANC_ANON_PASSWORD"),
+            http_timeout=config("PIXL_QUERY_TIMEOUT", default=10, cast=int),
+            dicom_timeout=config("PIXL_DICOM_TRANSFER_TIMEOUT", default=240, cast=int),
+            aet=config("ORTHANC_ANON_AE_TITLE"),
+        )
+
+        self.autoroute_to_endpoint = config(
+            "ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT", default=False, cast=bool
+        )
+
+        async def export_study(self, resource_id: str) -> Any:
+            """Notify the export API to upload the study to the relevant endpoint."""
