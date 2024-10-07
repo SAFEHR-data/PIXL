@@ -1,0 +1,89 @@
+#  Copyright (c) University College London Hospitals NHS Foundation Trust
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
+# Default configuration to extend base for x-rays
+
+- name: "Volumetric Properties"
+  group: 0x0008
+  element: 0x9206
+  op: "keep"
+- name: "Volume Based Calculation Technique"
+  group: 0x0008
+  element: 0x9207
+  op: "keep"
+- name: "Field Of View Dimension"
+  group: 0x0018
+  element: 0x1149
+  op: "keep"
+#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/dx-detector/00181149
+#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/dx-detector/00181149
+#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/x-ray-acquisition/00181149
+#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/x-ray-acquisition/00181149
+#https://dicom.innolitics.com/ciods/digital-x-ray-image/dx-detector/00181149
+#https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/dx-detector/00181149
+#https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/dx-detector/00181149
+- name: "Imager Pixel Spacing"
+  group: 0x0018
+  element: 0x1164
+  op: "keep"
+#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/dx-detector/00181164
+#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/x-ray-acquisition/00181164
+#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/x-ray-acquisition/00181164
+#https://dicom.innolitics.com/ciods/digital-x-ray-image/dx-detector/00181164
+#https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/dx-detector/00181164
+#https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/dx-detector/00181164
+- name: "Grid"
+  group: 0x0018
+  element: 0x1166
+  op: "keep"
+#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/x-ray-acquisition/00181166
+#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/x-ray-acquisition/00181166
+#https://dicom.innolitics.com/ciods/digital-x-ray-image/x-ray-grid/00181166
+#https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/x-ray-grid/00181166
+#https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/x-ray-grid/00181166
+#https://dicom.innolitics.com/ciods/x-ray-3d-craniofacial-image/x-ray-3d-craniofacial-acquisition/00189507/00181166
+#https://dicom.innolitics.com/ciods/x-ray-3d-angiographic-image/x-ray-3d-angiographic-acquisition/00189507/00181166
+#https://dicom.innolitics.com/ciods/breast-projection-x-ray-image/breast-projection-x-ray-image-multi-frame-functional-groups/52009229/00189555/00181166
+- name: "Acquisition Device Processing Description"
+  group: 0x0018
+  element: 0x1400
+  op: "keep"
+#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/x-ray-image/00181400
+#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/x-ray-image/00181400
+#https://dicom.innolitics.com/ciods/digital-x-ray-image/dx-image/00181400
+#https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/dx-image/00181400
+#https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/dx-image/00181400
+#https://dicom.innolitics.com/ciods/x-ray-3d-craniofacial-image/x-ray-3d-craniofacial-image-contributing-sources/00189506/00181400
+#https://dicom.innolitics.com/ciods/x-ray-3d-angiographic-image/x-ray-3d-angiographic-image-contributing-sources/00189506/00181400
+#https://dicom.innolitics.com/ciods/breast-projection-x-ray-image/breast-projection-x-ray-image-multi-frame-functional-groups/52009229/00189412/00181400
+- name: "Pixel Spacing Calibration Type"
+  group: 0x0028
+  element: 0x0a02
+  op: "keep"
+#RT, X-Ray
+- name: "Pixel Spacing Calibration Description"
+  group: 0x0028
+  element: 0x0a04
+  op: "keep"
+#X-Ray
+- name: "Pixel Intensity Relationship"
+  group: 0x0028
+  element: 0x1040
+  op: "keep"
+#X-Ray
+- name: "Pixel Intensity Relationship Sign"
+  group: 0x0028
+  element: 0x1041
+  op: "keep"
+#X-Ray

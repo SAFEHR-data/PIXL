@@ -1,0 +1,386 @@
+#  Copyright (c) University College London Hospitals NHS Foundation Trust
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
+# Default `base.yaml` configuration file with commented links to their respective image modalities
+# `base.yaml` configuration file is expected to be part of all projects configuration files
+
+#################################### 000d Group ###################################
+#
+#
+- name: "Private Creator Data Element"
+  group: 0x000d
+  element: 0x0010
+  op: "keep"
+- name: "UCLH Project Name"
+  group: 0x000d
+  element: 0x1001
+  op: "keep"
+#################################### 0008 Group ###################################
+#
+#
+- name: "Specific Character Set"
+  group: 0x0008
+  element: 0x0005
+  op: "keep"
+#CT, MR, US, RT
+- name: "Image Type"
+  group: 0x0008
+  element: 0x0008
+  op: "keep"
+#CT, MR, US, RT
+- name: "Instance Creator UID"
+  group: 0x0008
+  element: 0x0014
+  op: "replace_UID"
+#CT, MR, US, RT
+- name: "SOP Class UID"
+  group: 0x0008
+  element: 0x0016
+  op: "keep"
+#CT, MR, US, RT
+- name: "SOP Instance UID"
+  group: 0x0008
+  element: 0x0018
+  op: "replace_UID"
+#CT, MR, US, RT
+- name: "Accession Number"
+  group: 0x0008
+  element: 0x0050
+  op: "replace"
+- name: "Study Date"
+  group: 0x0008
+  element: 0x0020
+  op: "replace"
+- name: "General Study"
+  group: 0x0008
+  element: 0x0030
+  op: "replace"
+- name: "Modality"
+  group: 0x0008
+  element: 0x0060
+  op: "keep"
+- name: "Modalities In Study"
+  group: 0x0008
+  element: 0x0061
+  op: "keep"
+- name: "Manufacturer"
+  group: 0x0008
+  element: 0x0070
+  op: "keep"
+- name: "Referring Physician's Name"
+  group: 0x0008
+  element: 0x0090
+  op: "replace"
+- name: "Study Description"
+  group: 0x0008
+  element: 0x1030
+  op: "keep"
+- name: "Series Description"
+  group: 0x0008
+  element: 0x103e
+  op: "keep"
+- name: "Manufacturers Model Name"
+  group: 0x0008
+  element: 0x1090
+  op: "keep"
+- name: "Referenced Series Sequence"
+  group: 0x0008
+  element: 0x1155
+  op: "replace_UID"
+- name: "Referenced Frame Number"
+  group: 0x0008
+  element: 0x1160
+  op: "keep"
+- name: "Pixel Presentation"
+  group: 0x0008
+  element: 0x9205
+  op: "keep"
+#################################### 0010 Group ###################################
+#
+#
+- name: "Patients Name"
+  group: 0x0010
+  element: 0x0010
+  op: "replace"
+#CT, MR, PET, US, X-Ray, and RT Images
+- name: "Patient ID"
+  group: 0x0010
+  element: 0x0020
+  op: "secure-hash"
+- name: "Patient's Birth Date"
+  group: 0x0010
+  element: 0x0030
+  op: "replace"
+- name: "Patient's Sex"
+  group: 0x0010
+  element: 0x0040
+  op: "keep"
+#################################### 0013 Group ###################################
+- name: "VR OB Creator"
+  group: 0x0013
+  element: 0x0010
+  op: "keep"
+- name: "VR OB sequence"
+  group: 0x0013
+  element: 0x1010
+  op: "replace"
+#################################### 0018 Group ###################################
+#
+#
+- name: "Scan Options Attribute"
+  group: 0x0018
+  element: 0x0022
+  op: "replace"
+#CT, MR, X-Ray
+- name: "Software Version"
+  group: 0x0018
+  element: 0x1020
+  op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
+- name: "Focal Spot"
+  group: 0x0018
+  element: 0x1190
+  op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
+- name: "Patient Position"
+  group: 0x0018
+  element: 0x5100
+  op: "replace"
+#CT, MR, PET, US, X-Ray, and RT Images
+#################################### 0020 Group ###################################
+#
+#
+- name: "Study Instance UID"
+  group: 0x0020
+  element: 0x000d
+  op: "replace_UID"
+#CT, MR, PET, US, X-Ray, and RT Images
+- name: "Series Instance UID"
+  group: 0x0020
+  element: 0x000e
+  op: "replace_UID"
+#CT, MR, PET, US, X-Ray, and RT Images
+- name: "Study ID"
+  group: 0x0020
+  element: 0x0010
+  op: "replace"
+#CT, MR, US, and RT Images
+- name: "Series Number"
+  group: 0x0020
+  element: 0x0011
+  op: "keep"
+#RT Image
+- name: "Acquisition Number"
+  group: 0x0020
+  element: 0x0012
+  op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
+- name: "Instance Number"
+  group: 0x0020
+  element: 0x0013
+  op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
+- name: "Patient Orientation"
+  group: 0x0020
+  element: 0x0020
+  op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
+- name: "Image Position (Patient)"
+  group: 0x0020
+  element: 0x0032
+  op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
+- name: "Image Orientation (Patient)"
+  group: 0x0020
+  element: 0x0037
+  op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
+- name: "Image Laterality"
+  group: 0x0020
+  element: 0x0062
+  op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
+- name: "Frame of Reference UID"
+  group: 0x0020
+  element: 0x0052
+  op: "replace_UID"
+#CT, MR, PET, US, X-Ray, and RT Images
+- name: "Synchronization Frame of Reference UID"
+  group: 0x0020
+  element: 0x0200
+  op: "replace_UID"
+#CT, MR, PET, US, X-Ray, and RT Images
+- name: "Position Reference Indicator"
+  group: 0x0020
+  element: 0x1040
+  op: "replace"
+#CT, MR, PET, US, X-Ray, and RT Images
+#################################### 0028 Group ###################################
+#
+#
+- name: "Samples Per Pixel"
+  group: 0x0028
+  element: 0x0002
+  op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
+- name: "Photometric Interpretation"
+  group: 0x0028
+  element: 0x0004
+  op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
+- name: "Planar Configuration"
+  group: 0x0028
+  element: 0x0006
+  op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
+- name: "Rows"
+  group: 0x0028
+  element: 0x0010
+  op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
+- name: "Columns"
+  group: 0x0028
+  element: 0x0011
+  op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
+- name: "Pixel Spacing"
+  group: 0x0028
+  element: 0x0030
+  op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
+- name: "Bits Allocated"
+  group: 0x0028
+  element: 0x0100
+  op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
+- name: "Bits Stored"
+  group: 0x0028
+  element: 0x0101
+  op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
+- name: "High Bit"
+  group: 0x0028
+  element: 0x0102
+  op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
+- name: "Pixel Representation"
+  group: 0x0028
+  element: 0x0103
+  op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
+- name: "Burned In Annotation"
+  group: 0x0028
+  element: 0x0301
+  op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
+- name: "Recognizable Visual Features"
+  group: 0x0028
+  element: 0x0302
+  op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
+- name: "Window Center"
+  group: 0x0028
+  element: 0x1050
+  op: "keep"
+#CT, MR, US, RT, PET, X-ray
+- name: "Window Width"
+  group: 0x0028
+  element: 0x1051
+  op: "keep"
+#CT, MR, US, RT, PET, X-ray
+- name: "Rescale Intercept"
+  group: 0x0028
+  element: 0x1052
+  op: "keep"
+#CT, MR, US, RT, PET, X-ray
+- name: "Rescale Slope"
+  group: 0x0028
+  element: 0x1053
+  op: "keep"
+#CT, MR, US, RT, PET, X-ray
+- name: "Rescale Type"
+  group: 0x0028
+  element: 0x1054
+  op: "keep"
+#CT, MR, US, RT, X-ray
+- name: "Window Center And Width Explanation"
+  group: 0x0028
+  element: 0x1055
+  op: "keep"
+#CT, MR, US, RT, PET, X-ray
+- name: "Lossy Image Compression"
+  group: 0x0028
+  element: 0x2110
+  op: "keep"
+#CT, MR, US, RT, PET, X-ray
+- name: "VOI LUT Sequence"
+  group: 0x0028
+  element: 0x3010
+  op: "keep"
+#CT, MR, US, RT, PET, X-ray
+#################################### 0040 Group ###################################
+#
+#
+- name: "UID Attribute"
+  group: 0x0040
+  element: 0xA124
+  op: "replace_UID"
+#CT, MR, PET, US, X-Ray, and RT Images
+- name: "Real World Value Intercept"
+  group: 0x0040
+  element: 0x9224
+  op: "keep"
+#CT, MR, US, RT, PET, X-ray
+- name: "Real World Value Slope"
+  group: 0x0040
+  element: 0x9225
+  op: "keep"
+#CT, MR, US, RT, PET, X-ray
+#################################### 0054 Group ###################################
+#
+#
+- name: "View Code Sequence"
+  group: 0x0054
+  element: 0x0220
+  op: "keep"
+#CT, MR, PET, US, X-Ray, and RT Images
+#################################### 0088 Group ###################################
+#
+#
+- name: "Storage Media File-set UID"
+  group: 0x0088
+  element: 0x0140
+  op: "replace_UID"
+#CT, MR, PET, US, X-Ray, and RT Images
+#################################### 3006 Group ###################################
+#
+#
+- name: "Referenced Frame of Reference UID"
+  group: 0x3006
+  element: 0x0024
+  op: "replace_UID"
+#RT
+- name: "Related Frame of Reference UID"
+  group: 0x3006
+  element: 0x00C2
+  op: "replace_UID"
+#NOTE cannot find any imaging for this one
+#################################### 7FE0 Group ###################################
+#
+#
+- name: "Pixel Data"
+  group: 0x7fe0
+  element: 0x0010
+  op: "keep"
+#CT, US, and RT Images

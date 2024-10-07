@@ -21,6 +21,7 @@ from enum import StrEnum, auto
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import numpy as np
 import pandas as pd
 from core.exports import ParquetExport
 from loguru import logger
@@ -64,8 +65,10 @@ def read_patient_info(resources_path: Path) -> pd.DataFrame:
     else:
         messages_df = _load_parquet(resources_path)
 
-    messages_df = messages_df.sort_values(by=["study_date"])
-    messages_df = messages_df.drop_duplicates(subset=["mrn", "accession_number", "study_date"])
+    messages_df = messages_df.sort_values(by=["project_name", "study_date"])
+    messages_df = messages_df.drop_duplicates(
+        subset=["project_name", "mrn", "accession_number", "study_date"]
+    )
 
     if len(messages_df) == 0:
         msg = f"Failed to find any messages in {resources_path}"
@@ -85,6 +88,7 @@ def _load_csv(filepath: Path) -> pd.DataFrame:
     messages_df = pd.read_csv(filepath, header=0, dtype=str)
     messages_df = _map_columns(messages_df, MAP_CSV_TO_MESSAGE_KEYS)
     _raise_if_column_names_not_found(messages_df, [col.name for col in DF_COLUMNS])
+    messages_df["pseudo_patient_id"] = messages_df["pseudo_patient_id"].replace(np.nan, None)
 
     # Parse non string columns
     messages_df["procedure_occurrence_id"] = messages_df["procedure_occurrence_id"].astype(int)
@@ -119,6 +123,7 @@ def _load_parquet(
     project_name, extract_generated_timestamp = copy_parquet_return_logfile_fields(dir_path)
     messages_df["project_name"] = project_name
     messages_df["extract_generated_timestamp"] = extract_generated_timestamp
+    messages_df["pseudo_patient_id"] = None
 
     return messages_df
 
@@ -139,7 +144,12 @@ def _check_and_parse_parquet(private_dir: Path, public_dir: Path) -> pd.DataFram
     # joining data together
     people_procedures = people.merge(procedure, on="person_id")
     people_procedures_accessions = people_procedures.merge(accessions, on="procedure_occurrence_id")
-    return people_procedures_accessions[~people_procedures_accessions["AccessionNumber"].isna()]
+
+    # Filter out any rows where accession number is NA or an empty string
+    return people_procedures_accessions[
+        ~people_procedures_accessions["AccessionNumber"].isna()
+        & (people_procedures_accessions["AccessionNumber"] != "")
+    ]
 
 
 class DF_COLUMNS(StrEnum):  # noqa: N801
@@ -149,10 +159,13 @@ class DF_COLUMNS(StrEnum):  # noqa: N801
     project_name = auto()
     extract_generated_timestamp = auto()
     study_date = auto()
+    study_uid = auto()
+    pseudo_patient_id = auto()
 
 
 MAP_CSV_TO_MESSAGE_KEYS = {
     "procedure_id": "procedure_occurrence_id",
+    "participant_id": "pseudo_patient_id",
 }
 
 
@@ -160,6 +173,7 @@ MAP_PARQUET_TO_MESSAGE_KEYS = {
     "PrimaryMrn": "mrn",
     "AccessionNumber": "accession_number",
     "procedure_date": "study_date",
+    "StudyUid_X": "study_uid",
 }
 
 

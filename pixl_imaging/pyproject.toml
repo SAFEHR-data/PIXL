@@ -1,22 +1,26 @@
 [project]
 name = "pixl_imaging"
-version = "0.0.2"
+version = "0.2.0rc0"
 authors = [{ name = "PIXL authors" }]
 description = "PIXL image extractor"
 readme = "README.md"
 requires-python = ">=3.10"
 classifiers = ["Programming Language :: Python :: 3"]
 dependencies = [
-    "aiohttp==3.9.5",
-    "alembic==1.13.1",
+    "core==0.2.0rc0",
+    "aiohttp==3.10.1",
+    "alembic==1.13.2",
     "pydicom==2.4.4",
-    "python-decouple==3.6",
-    "uvicorn==0.23.2",
+    "uvicorn==0.30.4",
 ]
 
 [project.optional-dependencies]
-test = ["pytest==7.4.2", "pytest-asyncio==0.21.1"]
-dev = ["mypy", "pre-commit", "ruff"]
+test = [
+    "core[test]==0.2.0rc0",
+]
+dev = [
+    "core[dev]==0.2.0rc0",
+]
 
 [build-system]
 requires = ["setuptools>=61.0"]

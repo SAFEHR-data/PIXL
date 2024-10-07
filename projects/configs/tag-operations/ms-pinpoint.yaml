@@ -13,6 +13,7 @@
 #  limitations under the License.
 
 # Specific tag operations for ms-pinpoint project
+
 - name: "Acquisition Date"
   group: 0x0008
   element: 0x0022

@@ -15,13 +15,12 @@
 
 # ruff: noqa: C408 dict() makes test data easier to read and write
 import os
-from functools import partial, update_wrapper
+from collections.abc import Generator
 from pathlib import Path
 from typing import Any
 
-from core.db.models import Image
-from core.db.queries import engine
-from sqlalchemy import cast, not_
+from core.db.models import Base
+from sqlalchemy import URL, create_engine
 from sqlalchemy.orm import sessionmaker
 
 # Setting env variables before loading modules
@@ -35,8 +34,9 @@ import pytest
 import requests
 from pytest_pixl.dicom import generate_dicom_dataset
 from pytest_pixl.ftpserver import PixlFTPServer
-from pytest_pixl.helpers import run_subprocess, wait_for_condition
+from pytest_pixl.helpers import run_subprocess
 from pytest_pixl.plugin import FtpHostAddress
+from utils import wait_for_images_to_be_exported
 
 pytest_plugins = "pytest_pixl"
 
@@ -70,12 +70,6 @@ def _populate_vna(tmp_path_factory: pytest.TempPathFactory) -> None:
     # more detailed series testing is found in pixl_dcmd tests, but here
     # we just stick an instance to each study, one of which is expected to be propagated through
 
-    # studies are also defined by the StudyID, the StudyInstanceUID
-    def study_instance_uid(offset: int) -> dict[str, str]:
-        baseline = "1.3.46.670589.11.38023.5.0.14068.2023012517090166000"
-        offset_str = f"{offset:04d}"
-        return dict(StudyInstanceUID=baseline[: -len(offset_str)] + offset_str)
-
     def series_instance_uid(offset: int) -> dict[str, str]:
         baseline = "1.3.46.670589.11.38023.5.0.7404.2023012517551898153"
         offset_str = f"{offset:04d}"
@@ -90,13 +84,13 @@ def _populate_vna(tmp_path_factory: pytest.TempPathFactory) -> None:
         AccessionNumber="AA12345601",
         PatientID="987654321",
         StudyID="12340001",
-        **study_instance_uid(1),
+        StudyInstanceUID="1.3.6.1.4.1.14519.5.2.1.99.1071.12985477682660597455732044031486",
     )
     study_2 = dict(
         AccessionNumber="AA12345605",
         PatientID="987654321",
         StudyID="12340002",
-        **study_instance_uid(2),
+        StudyInstanceUID="1.2.276.0.7230010.3.1.2.929116473.1.1710754859.579485",
     )
 
     # Series are also defined by the SeriesInstanceUID and SeriesNumber.
@@ -146,46 +140,8 @@ def _upload_dicom_instance(dicom_dir: Path, **kwargs: Any) -> None:
     _upload_to_vna(test_dcm_file)
 
 
-def wait_for_images_to_be_exported(
-    seconds_max: int,
-    seconds_interval: int,
-    seconds_condition_stays_true_for: int,
-    min_studies: int = 3,
-) -> None:
-    """
-    Query pixl DB to ensure that images have been processed and exported.
-    If they haven't within the time limit, raise a TimeoutError
-    """
-    studies: list[Image] = []
-
-    def at_least_n_studies_exported(n_studies: int) -> bool:
-        nonlocal studies
-
-        PixlSession = sessionmaker(engine)
-        with PixlSession() as session:
-            studies = cast(
-                list[Image],
-                session.query(Image).filter(not_(Image.exported_at.is_(None))).all(),
-            )
-        return len(studies) >= n_studies
-
-    condition = partial(at_least_n_studies_exported, min_studies)
-    update_wrapper(condition, at_least_n_studies_exported)
-
-    def list_studies() -> str:
-        return f"Expecting at least {min_studies} studies.\nexported studies: {studies}"
-
-    wait_for_condition(
-        condition,
-        seconds_max=seconds_max,
-        seconds_interval=seconds_interval,
-        progress_string_fn=list_studies,
-        seconds_condition_stays_true_for=seconds_condition_stays_true_for,
-    )
-
-
 @pytest.fixture(scope="session")
-def _setup_pixl_cli(ftps_server: PixlFTPServer, _populate_vna: None) -> None:
+def _setup_pixl_cli(ftps_server: PixlFTPServer, _populate_vna: None) -> Generator:
     """Run pixl populate/start. Cleanup intermediate export dir on exit."""
     run_subprocess(
         ["pixl", "populate", "--num-retries", "0", str(RESOURCES_OMOP_DIR.absolute())],
@@ -193,11 +149,23 @@ def _setup_pixl_cli(ftps_server: PixlFTPServer, _populate_vna: None) -> None:
         timeout=600,
     )
     # poll here for two minutes to check for imaging to be processed, printing progress
-    wait_for_images_to_be_exported(181, 5, 15)
+    wait_for_images_to_be_exported(211, 5, 15)
+    yield
+    run_subprocess(
+        [
+            "docker",
+            "exec",
+            "system-test-export-api-1",
+            "rm",
+            "-r",
+            "/run/projects/exports/test-extract-uclh-omop-cdm/",
+        ],
+        TEST_DIR,
+    )
 
 
 @pytest.fixture(scope="session")
-def _setup_pixl_cli_dicomweb(_populate_vna: None) -> None:
+def _setup_pixl_cli_dicomweb(_populate_vna: None) -> Generator:
     """Run pixl populate/start. Cleanup intermediate export dir on exit."""
     run_subprocess(
         ["pixl", "populate", "--num-retries", "0", str(RESOURCES_OMOP_DICOMWEB_DIR.absolute())],
@@ -205,7 +173,19 @@ def _setup_pixl_cli_dicomweb(_populate_vna: None) -> None:
         timeout=600,
     )
     # poll here for two minutes to check for imaging to be processed, printing progress
-    wait_for_images_to_be_exported(181, 5, 15)
+    wait_for_images_to_be_exported(211, 5, 15)
+    yield
+    run_subprocess(
+        [
+            "docker",
+            "exec",
+            "system-test-export-api-1",
+            "rm",
+            "-r",
+            "/run/projects/exports/test-extract-uclh-omop-cdm-dicomweb/",
+        ],
+        TEST_DIR,
+    )
 
 
 @pytest.fixture(scope="session")
@@ -221,3 +201,28 @@ def _export_patient_data(_setup_pixl_cli) -> None:  # type: ignore [no-untyped-d
     is synchronous (whether that is itself wise is another matter).
     """
     run_subprocess(["pixl", "export-patient-data", str(RESOURCES_OMOP_DIR.absolute())], TEST_DIR)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _cleanup_database() -> Generator:
+    """
+    Remove the test data from the database so we can re-run the tests.
+
+    If the database is not cleaned, the data will not be exported when the
+    tests are re-run, which results in `wait_for_condition` timing out.
+    """
+    yield
+    url = URL.create(
+        drivername="postgresql+psycopg2",
+        username=os.environ["PIXL_DB_USER"],
+        password=os.environ["PIXL_DB_PASSWORD"],
+        host="localhost",
+        port=os.environ["PIXL_DB_PORT"],
+        database=os.environ["PIXL_DB_NAME"],
+    )
+    engine = create_engine(url)
+    PixlSession = sessionmaker(engine)
+    with PixlSession() as session:
+        for table in reversed(Base.metadata.sorted_tables):
+            session.execute(table.delete())
+        session.commit()

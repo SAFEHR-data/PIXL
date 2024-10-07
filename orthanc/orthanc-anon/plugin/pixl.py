@@ -40,7 +40,6 @@ import orthanc
 from pixl_dcmd._dicom_helpers import get_study_info
 from pixl_dcmd.main import (
     anonymise_and_validate_dicom,
-    should_exclude_series,
     write_dataset_to_bytes,
 )
 
@@ -241,16 +240,10 @@ def _process_dicom_instance(receivedDicom: bytes) -> tuple[orthanc.ReceivedInsta
     # Read the bytes as DICOM/
     dataset = dcmread(BytesIO(receivedDicom))
 
-    # Do before anonymisation in case someone decides to delete the
-    # Series Description tag as part of anonymisation.
-    if should_exclude_series(dataset):
-        orthanc.LogWarning("DICOM instance discarded due to its series description")
-        return orthanc.ReceivedInstanceAction.DISCARD, None
-
     # Attempt to anonymise and drop the study if any exceptions occur
     try:
         study_identifiers = get_study_info(dataset)
-        anonymise_and_validate_dicom(dataset)
+        anonymise_and_validate_dicom(dataset, config_path=None, synchronise_pixl_db=True)
         return orthanc.ReceivedInstanceAction.MODIFY, write_dataset_to_bytes(dataset)
     except PixlDiscardError as error:
         logger.warning("Skipping {}: {}", study_identifiers, error)

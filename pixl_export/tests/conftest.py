@@ -31,12 +31,6 @@ os.environ["PIXL_DB_PORT"] = "35432"
 os.environ["PIXL_DB_NAME"] = "pixl"
 os.environ["PIXL_DB_USER"] = "postgres"
 os.environ["PIXL_DB_PASSWORD"] = "postgres"
-os.environ["EMAP_UDS_HOST"] = "localhost"
-os.environ["EMAP_UDS_PORT"] = "35433"
-os.environ["EMAP_UDS_NAME"] = "emap"
-os.environ["EMAP_UDS_USER"] = "postgres"
-os.environ["EMAP_UDS_PASSWORD"] = "postgres"
-os.environ["EMAP_UDS_SCHEMA_NAME"] = "star"
 os.environ["PROJECT_CONFIGS_DIR"] = str(Path(__file__).parents[2] / "projects/configs")
 
 os.environ["ORTHANC_ANON_USERNAME"] = "orthanc_anon_username"

@@ -95,7 +95,7 @@ def check_env(*, error: bool, sample_env_file: Path) -> None:
 )
 @click.option(
     "--queues",
-    default="imaging",
+    default="imaging-primary",
     show_default=True,
     help="Comma seperated list of queues to populate with messages generated from the "
     "input file(s)",
@@ -121,13 +121,21 @@ def check_env(*, error: bool, sample_env_file: Path) -> None:
     default=5,
     help="Number of retries to attempt before giving up, 5 minute wait inbetween",
 )
-def populate(  # too many args
+@click.option(
+    "--priority",
+    "priority",
+    show_default=True,
+    default=1,
+    help="Priority of the messages, from 1 (lowest) to 5 (highest)",
+)
+def populate(  # noqa: PLR0913 - too many args
     parquet_path: Path,
     *,
     queues: str,
     rate: Optional[float],
     num_retries: int,
     start_processing: bool,
+    priority: int,
 ) -> None:
     """
     Populate a (set of) queue(s) from a parquet file directory
@@ -152,12 +160,11 @@ def populate(  # too many args
 
     logger.info("Populating queue(s) {} from {}", queues_to_populate, parquet_path)
     messages_df = read_patient_info(parquet_path)
-    project_name = messages_df["project_name"].iloc[0]
 
-    populate_queue_and_db(queues_to_populate, messages_df)
+    populate_queue_and_db(queues_to_populate, messages_df, messages_priority=priority)
     if num_retries != 0:
         retry_until_export_count_is_unchanged(
-            messages_df, num_retries, queues_to_populate, project_name
+            messages_df, num_retries, queues_to_populate, messages_priority=priority
         )
 
 
@@ -205,7 +212,7 @@ def export_patient_data(parquet_dir: Path, timeout: int) -> None:
 @cli.command()
 @click.option(
     "--queues",
-    default="imaging",
+    default="imaging-primary",
     show_default=True,
     help="Comma seperated list of queues to start consuming from",
 )
@@ -227,7 +234,7 @@ def start(queues: str, rate: Optional[float]) -> None:
 @cli.command()
 @click.option(
     "--queues",
-    default="imaging",
+    default="imaging-primary",
     show_default=True,
     help="Comma seperated list of queues to update the consume rate of",
 )
@@ -280,7 +287,7 @@ def _update_extract_rate(queue_name: str, rate: Optional[float]) -> None:
 @cli.command()
 @click.option(
     "--queues",
-    default="imaging",
+    default="imaging-primary",
     show_default=True,
     help="Comma seperated list of queues to consume messages from",
 )
@@ -316,7 +323,7 @@ def kill() -> None:
 @cli.command()
 @click.option(
     "--queues",
-    default="imaging",
+    default="imaging-primary",
     show_default=True,
     help="Comma seperated list of queues to consume messages from",
 )
@@ -330,7 +337,7 @@ def _get_extract_rate(queue_name: str) -> str:
     """
     Get the extraction rate in items per second from a queue
 
-    :param queue_name: Name of the queue to get the extract rate for (e.g. imaging)
+    :param queue_name: Name of the queue to get the extract rate for (e.g. imaging-primary)
     :return: The extract rate in items per seconds
 
     Throws a RuntimeError if the status code is not 200.

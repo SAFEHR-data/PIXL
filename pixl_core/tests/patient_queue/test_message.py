@@ -13,27 +13,14 @@
 #  limitations under the License.
 from __future__ import annotations
 
-import datetime
-
-from core.patient_queue.message import Message, deserialise
-
-msg = Message(
-    mrn="111",
-    accession_number="123",
-    study_date=datetime.date.fromisoformat("2022-11-22"),
-    procedure_occurrence_id="234",
-    project_name="test project",
-    extract_generated_timestamp=datetime.datetime.strptime(
-        "Dec 7 2023 2:08PM", "%b %d %Y %I:%M%p"
-    ).replace(tzinfo=datetime.timezone.utc),
-)
+from core.patient_queue.message import deserialise
 
 
-def test_serialise() -> None:
+def test_serialise(mock_message) -> None:
     """Checks that messages can be correctly serialised"""
-    msg_body = msg.serialise(deserialisable=False)
+    msg_body = mock_message.serialise(deserialisable=False)
     assert (
-        msg_body == b'{"mrn": "111", "accession_number": "123", '
+        msg_body == b'{"mrn": "111", "accession_number": "123", "study_uid": "1.2.3", '
         b'"study_date": "2022-11-22", '
         b'"procedure_occurrence_id": "234", '
         b'"project_name": "test project", '
@@ -41,7 +28,7 @@ def test_serialise() -> None:
     )
 
 
-def test_deserialise() -> None:
+def test_deserialise(mock_message) -> None:
     """Checks if deserialised messages are the same as the original"""
-    serialised_msg = msg.serialise()
-    assert deserialise(serialised_msg) == msg
+    serialised_msg = mock_message.serialise()
+    assert deserialise(serialised_msg) == mock_message

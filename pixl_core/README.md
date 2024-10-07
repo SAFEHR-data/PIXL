@@ -10,10 +10,14 @@ Specifically, it defines:
 - The [RabbitMQ queue](#patient-queue) implementation shared by the Imaging API and any other APIs
 - The PIXL `postgres` internal database for storing exported images and extracts from the messages
   processed by the CLI driver
-- The [`ParquetExport`](./src/core/exports.py) class for exporting OMOP and EMAP extracts to
+- The [`ParquetExport`](./src/core/exports.py) class for exporting OMOP extracts to
   parquet files
-- Handling of [uploads over FTPS](./src/core/upload.py), used to transfer images and parquet files
+- Pydantic models for [project configuration](./src/core/project_config/pixl_config_model.py)
+- [Secrets management](./src/core/project_config/secrets.py) via an Azure Key Vault.
+- Handling of [uploads over FTPS](./src/core/uploader/_ftps.py), used to transfer images and parquet files
   to the DSH (Data Safe Haven)
+- [Uploading DICOM files to a DICOMWeb server](./src/core/uploader/_dicomweb.py)
+- [Uploading DICOM files to XNAT](./src/core/uploader/_xnat.py)
 
 ## Installation
 
@@ -104,11 +108,11 @@ The `project_config` module provides the functionality to handle
 ## Uploading to an FTPS server
 
 The `core.uploader` module implements functionality to upload DICOM images and parquet files to
-several destinations. This requires the following environment variables to be set:
+several destinations.
 
 The `Uploader` abstract class provides a consistent interface for uploading files. Child classes
 such as the `FTPSUploader` implement the actual upload functionality. The credentials required for
-uploading are queried from an **Azure Keyvault** instance (implemented in `_secrets.py`), for which
+uploading are queried from an **Azure Keyvault** instance (implemented in `core.project_config.secrets`), for which
 the setup instructions are in the [top-level README](../README.md#project-secrets)
 
 When an extract is ready to be published to the DSH, the PIXL pipeline will upload the **Public**
@@ -161,3 +165,72 @@ so we can have different (or no) endpoints for different projects.
 For [testing](../test/README.md) we set up an additional Orthanc server that acts as a DICOMweb server,
 using the vanilla Orthanc Docker image with the DICOMWeb plugin enabled.
 
+## Uploading to an XNAT instance
+
+PIXL also supports sending DICOM images to an [XNAT](https://www.xnat.org/) instance.
+
+The `XNATUploader` class in `core.uploader._xnat` handles downloading anonymised images from Orthanc and
+sending to XNAT. [XNATPy](https://xnat.readthedocs.io/en/latest/) is used to upload the
+data to XNAT using the
+[`DICOM-zip` Import Handler](https://wiki.xnat.org/xnat-api/image-session-import-service-api#ImageSessionImportServiceAPI-SelectAnImportHandler).
+
+To use XNAT as an endpoint, first:
+
+- a user will need to be created on the XNAT instance to perform the upload with PIXL
+- a project will need to be created on the XNAT instance. It is assumed the user created for uploading
+  data does not have admin permissions to create new projects
+
+### XNAT endpoint Configuration
+
+Configuration for XNAT as an endpoint is done by storing the following secrets in an Azure Key Vault:
+
+```bash
+"${az_prefix}--xnat--host"  # hostname for the XNAT instance
+"${az_prefix}--xnat--username"  # username of user to perform upload
+"${az_prefix}--xnat--password"  # password of user to perform upload
+"${az_prefix}--xnat--port"  # port for connecting to the XNAT instance
+```
+
+where `az_prefix` is either the project slug or is defined in the [project configuration file](../template_config.yaml)
+as `azure_kv_alias`.
+
+> Note
+>
+> The project name defined in the configuration file **must** match the
+> [XNAT Project ID](https://wiki.xnat.org/documentation/creating-and-managing-projects). If the project name does
+> not match the XNAT Project ID, the upload will fail.
+
+The following environment variables must also be set to determine the XNAT destination and how to handle conflicts
+with existing session and series data:
+
+`"XNAT_DESTINATION"`:
+
+- if `"/archive"`, will send data straight to the archive
+- if `"/prearchive"`, will send data to the [prearchive](https://wiki.xnat.org/documentation/using-the-prearchive)
+  for manual review before archiving
+
+`"XNAT_OVERWRITE"`:
+
+- if `"none"`, will error if the session already exists. Upon error, data will be sent to the prearchive,
+  even if `XNAT_DESTINATION` is `/archive`
+- if `"append"`, will append the data to an existing session or create a new one if it doesn't exist.
+        If there is a conflict with existing series, an error will be raised.
+- if `"delete"`, will append the data to an existing session or create a new one if it doesn't exist.
+        If there is a conflict with existing series, the existing series will be overwritten.
+
+### XNAT testing setup
+
+For unit testing, we use [`xnat4tests`](https://github.com/Australian-Imaging-Service/xnat4tests) to spin up an XNAT
+instance in a Docker container.
+
+Secrets are not used for these unit testing. Instead, the following environment variables are used to configure XNAT for testing:
+
+- `"XNAT_HOST"`
+- `"XNAT_USER_NAME"`
+- `"XNAT_PASSWORD"`
+- `"XNAT_PORT"`
+
+Note, it can take several minutes for the server to start up.
+
+Once the server has started, you can log in by visiting `http://localhost:8080` with the username and password set
+in the `XNAT_USER_NAME` and `XNAT_PASSWORD` environment variables.

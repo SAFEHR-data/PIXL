@@ -11,6 +11,17 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+
+# Configuration for extracting data from UCLH Nasogastric Tube Project DICOM files
+
+- name: "Private Creator Data Element"
+  group: 0x000d
+  element: 0x0010
+  op: "keep"
+- name: "UCLH Project Name"
+  group: 0x000d
+  element: 0x1001
+  op: "keep"
 - name: "Specific Character Set"
   group: 0x0008
   element: 0x0005
@@ -30,39 +41,15 @@
 - name: "Study Date"
   group: 0x0008
   element: 0x0020
-  op: "delete"
-- name: "Series Date"
+  op: "replace"
+- name: "Instance Creator UID"
   group: 0x0008
-  element: 0x0021
-  op: "delete"
-- name: "Acquisition Date"
-  group: 0x0008
-  element: 0x0022
-  op: "delete"
-- name: "Image Date"
-  group: 0x0008
-  element: 0x0023
-  op: "delete"
-- name: "Acquisition Date Time"
-  group: 0x0008
-  element: 0x002a
-  op: "delete"
+  element: 0x0014
+  op: "replace_UID"
 - name: "Study Time"
   group: 0x0008
   element: 0x0030
-  op: "delete"
-- name: "Series Time"
-  group: 0x0008
-  element: 0x0031
-  op: "delete"
-- name: "Acquisition Time"
-  group: 0x0008
-  element: 0x0032
-  op: "delete"
-- name: "Image Time"
-  group: 0x0008
-  element: 0x0033
-  op: "delete"
+  op: "replace"
 - name: "Accession Number"
   group: 0x0008
   element: 0x0050
@@ -75,30 +62,14 @@
   group: 0x0008
   element: 0x0061
   op: "keep"
-- name: "Presentation Intent Type"
-  group: 0x0008
-  element: 0x0068
-  op: "delete"
 - name: "Manufacturer"
   group: 0x0008
   element: 0x0070
   op: "keep"
-- name: "Institution Name"
-  group: 0x0008
-  element: 0x0080
-  op: "delete"
-- name: "Institution Address"
-  group: 0x0008
-  element: 0x0081
-  op: "delete"
 - name: "Referring Physicians Name"
   group: 0x0008
   element: 0x0090
-  op: "delete"
-- name: "Station Name"
-  group: 0x0008
-  element: 0x1010
-  op: "delete"
+  op: "replace"
 - name: "Study Description"
   group: 0x0008
   element: 0x1030
@@ -107,42 +78,14 @@
   group: 0x0008
   element: 0x103e
   op: "keep"
-- name: "Institutional Department Name"
-  group: 0x0008
-  element: 0x1040
-  op: "delete"
-- name: "Performing Physicians Name"
-  group: 0x0008
-  element: 0x1050
-  op: "delete"
-- name: "Operators Name"
-  group: 0x0008
-  element: 0x1070
-  op: "delete"
 - name: "Manufacturers Model Name"
   group: 0x0008
   element: 0x1090
   op: "keep"
-- name: "Referenced Study Sequence"
+- name: "Referenced SOP Instance UID"
   group: 0x0008
-  element: 0x1110
-  op: "delete"
-- name: "Referenced Patient Sequence"
-  group: 0x0008
-  element: 0x1120
-  op: "delete"
-- name: "Source Image Sequence"
-  group: 0x0008
-  element: 0x2112
-  op: "delete"
-- name: "Anatomic Region Sequence"
-  group: 0x0008
-  element: 0x2218
-  op: "delete"
-- name: "Irradiation Event UID"
-  group: 0x0008
-  element: 0x3010
-  op: "delete"
+  element: 0x1155
+  op: "replace_UID"
 - name: "Patients Name"
   group: 0x0010
   element: 0x0010
@@ -151,34 +94,14 @@
   group: 0x0010
   element: 0x0020
   op: "secure-hash"
-- name: "Issuer Of Patient ID"
-  group: 0x0010
-  element: 0x0021
-  op: "delete"
 - name: "Patients Birth Date"
   group: 0x0010
   element: 0x0030
-  op: "delete"
-- name: "Patients Birth Time"
-  group: 0x0010
-  element: 0x0032
-  op: "delete"
+  op: "replace"
 - name: "Patients Sex"
   group: 0x0010
   element: 0x0040
-  op: "delete"
-- name: "Other Patient IDs"
-  group: 0x0010
-  element: 0x1000
-  op: "delete"
-- name: "Other Patient Names"
-  group: 0x0010
-  element: 0x1001
-  op: "delete"
-- name: "Patients Age"
-  group: 0x0010
-  element: 0x1010
-  op: "delete"
+  op: "keep"
 - name: "Patients Size"
   group: 0x0010
   element: 0x1020
@@ -187,42 +110,46 @@
   group: 0x0010
   element: 0x1030
   op: "keep"
-- name: "Patients Address"
-  group: 0x0010
-  element: 0x1040
-  op: "delete"
-- name: "Medical Alerts"
-  group: 0x0010
-  element: 0x2000
-  op: "delete"
-- name: "Contrast Allergies"
-  group: 0x0010
-  element: 0x2110
-  op: "delete"
-- name: "Patient Comments"
-  group: 0x0010
-  element: 0x4000
-  op: "delete"
-- name: "Private Creator Data Element"
-  group: 0x0011
-  element: 0x0010
-  op: "delete"
 - name: "Body Part Examined"
   group: 0x0018
   element: 0x0015
+  op: "keep"
+- name: "Scanning Sequence"
+  group: 0x0018
+  element: 0x0020
+  op: "keep"
+- name: "Scanning Variant"
+  group: 0x0018
+  element: 0x0021
+  op: "keep"
+- name: "Scan Options"
+  group: 0x0018
+  element: 0x0022
+  op: "keep"
+- name: "MR Acquisition Type"
+  group: 0x0018
+  element: 0x0023
+  op: "keep"
+- name: "Slice Thickness"
+  group: 0x0018
+  element: 0x0050
   op: "keep"
 - name: "kVp"
   group: 0x0018
   element: 0x0060
   op: "keep"
+- name: "Echo Time"
+  group: 0x0018
+  element: 0x0081
+  op: "keep"
+- name: "Echo Train Length"
+  group: 0x0018
+  element: 0x0091
+  op: "keep"
 - name: "Software Version"
   group: 0x0018
   element: 0x1020
   op: "keep"
-- name: "Protocol Name"
-  group: 0x0018
-  element: 0x1030
-  op: "delete"
 - name: "Field Of View Dimension"
   group: 0x0018
   element: 0x1149
@@ -286,6 +213,10 @@
 - name: "Vertices Of The Polygonal Collimator"
   group: 0x0018
   element: 0x1720
+  op: "keep"
+- name: "Patient Position"
+  group: 0x0018
+  element: 0x5100
   op: "keep"
 - name: "View Position"
   group: 0x0018
@@ -375,14 +306,26 @@
   group: 0x0020
   element: 0x0020
   op: "keep"
+- name: "Image Position (Patient)"
+  group: 0x0020
+  element: 0x0032
+  op: "keep"
+- name: "Image Orientation (Patient)"
+  group: 0x0020
+  element: 0x0037
+  op: "keep"
+- name: "Position Reference Indicator"
+  group: 0x0020
+  element: 0x1040
+  op: "keep"
+- name: "Patient Orientation Code Sequence"
+  group: 0x0054
+  element: 0x0410
+  op: "keep"
 - name: "Image Laterality"
   group: 0x0020
   element: 0x0062
   op: "keep"
-- name: "Number Of Study Related Images"
-  group: 0x0020
-  element: 0x1208
-  op: "delete"
 - name: "Samples Per Pixel"
   group: 0x0028
   element: 0x0002
@@ -475,66 +418,10 @@
   group: 0x0028
   element: 0x3010
   op: "keep"
-- name: "Current Patient Location"
-  group: 0x0038
-  element: 0x0300
-  op: "delete"
-- name: "Patient State"
-  group: 0x0038
-  element: 0x0500
-  op: "delete"
-- name: "Performed Procedure Start Date"
-  group: 0x0040
-  element: 0x0244
-  op: "delete"
-- name: "Performed Procedure Start Time"
-  group: 0x0040
-  element: 0x0245
-  op: "delete"
-- name: "Performed Procedure Step ID"
-  group: 0x0040
-  element: 0x0253
-  op: "delete"
-- name: "Performed Procedure Step Description"
-  group: 0x0040
-  element: 0x0254
-  op: "delete"
-- name: "Performed Action Item Sequence"
-  group: 0x0040
-  element: 0x0260
-  op: "delete"
-- name: "Request Attributes Sequence"
-  group: 0x0040
-  element: 0x0275
-  op: "delete"
-- name: "Acquisition Context Sequence"
-  group: 0x0040
-  element: 0x0555
-  op: "delete"
-- name: "Confidentiality Code"
-  group: 0x0040
-  element: 0x1008
-  op: "delete"
-- name: "Private Creator Data Element"
-  group: 0x0045
-  element: 0x0010
-  op: "delete"
 - name: "View Code Sequence"
   group: 0x0054
   element: 0x0220
   op: "keep"
-- name: "Image Comments"
-  group: 0x0020
-  element: 0x4000
-  op: "delete"
-- name: "Instance Creator UID"
-  group: 0x0008
-  element: 0x0014
-  op: "replace_UID"
-- name: "Referenced SOP Instance UID"
-  group: 0x0008
-  element: 0x1155
-  op: "replace_UID"
 - name: "Frame of Reference UID"
   group: 0x0020
   element: 0x0052
@@ -547,6 +434,10 @@
   group: 0x0088
   element: 0x0140
   op: "replace_UID"
+- name: "UID"
+  group: 0x0040
+  element: 0xA124
+  op: "replace_UID"
 - name: "Referenced Frame of Reference UID"
   group: 0x3006
   element: 0x0024
@@ -555,47 +446,7 @@
   group: 0x3006
   element: 0x00C2
   op: "replace_UID"
-- name: "UID"
-  group: 0x0040
-  element: 0xA124
-  op: "replace_UID"
-- name: "Study Comments [Retired]"
-  group: 0x0032
-  element: 0x4000
-  op: "delete"
-- name: "Ethnic Group"
-  group: 0x0010
-  element: 0x2160
-  op: "delete"
-- name: "Physicians Of Record"
-  group: 0x0008
-  element: 0x1048
-  op: "delete"
-- name: "Name Of Physicians Reading Study"
-  group: 0x0008
-  element: 0x1060
-  op: "delete"
-- name: "Device Serial Number"
-  group: 0x0018
-  element: 0x1000
-  op: "delete"
-- name: "Additional Patient History"
-  group: 0x0010
-  element: 0x21b0
-  op: "delete"
-- name: "Pregnancy Status"
-  group: 0x0010
-  element: 0x21c0
-  op: "delete"
 - name: "Pixel Data"
   group: 0x7fe0
   element: 0x0010
-  op: "keep"
-- name: "Private Creator Data Element"
-  group: 0x000d
-  element: 0x0010
-  op: "keep"
-- name: "UCLH Project Name"
-  group: 0x000d
-  element: 0x1001
   op: "keep"

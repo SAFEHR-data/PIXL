@@ -46,6 +46,7 @@ def messages_from_df(
         message = Message(
             mrn=row["mrn"],
             accession_number=row["accession_number"],
+            study_uid=row["study_uid"],
             study_date=row["study_date"],
             procedure_occurrence_id=row["procedure_occurrence_id"],
             project_name=row["project_name"],
@@ -57,7 +58,10 @@ def messages_from_df(
 
 
 def retry_until_export_count_is_unchanged(
-    messages_df: pd.DataFrame, num_retries: int, queues_to_populate: list[str], project_name: str
+    messages_df: pd.DataFrame,
+    num_retries: int,
+    queues_to_populate: list[str],
+    messages_priority: int,
 ) -> None:
     """Retry populating messages until there is no change in the number of exported studies."""
     last_exported_count = 0
@@ -80,8 +84,15 @@ def retry_until_export_count_is_unchanged(
         ):
             sleep(1)
 
-        images = exported_images_for_project(project_name)
-        new_last_exported_count = len(images)
+        images = (
+            [
+                exported_images_for_project(project_name)
+                for project_name in messages_df["project_name"].unique()
+            ]
+            if messages_df["project_name"].size
+            else [[]]
+        )
+        new_last_exported_count = sum([len(project_images) for project_images in images])
         if new_last_exported_count == last_exported_count:
             logger.info(
                 "{} studies exported, didn't change between retries",
@@ -95,7 +106,7 @@ def retry_until_export_count_is_unchanged(
             num_retries,
         )
         last_exported_count = new_last_exported_count
-        populate_queue_and_db(queues_to_populate, messages_df)
+        populate_queue_and_db(queues_to_populate, messages_df, messages_priority=messages_priority)
 
 
 def _wait_for_queues_to_empty(queues_to_populate: list[str]) -> None:
@@ -109,14 +120,23 @@ def _wait_for_queues_to_empty(queues_to_populate: list[str]) -> None:
 
 
 def _message_count(queues_to_populate: list[str]) -> int:
+    # We don't want to modify the queues we're populating, but if we're populating imaging-primary
+    # we also need to wait for imaging-secondary to be empty
+    queues_to_count = set(queues_to_populate)
+    if "imaging-primary" in queues_to_populate:
+        queues_to_count.add("imaging-secondary")
+
     messages_in_queues = 0
-    for queue in queues_to_populate:
+    for queue in queues_to_count:
         with PixlBlockingInterface(queue_name=queue, **SERVICE_SETTINGS["rabbitmq"]) as rabbitmq:
             messages_in_queues += rabbitmq.message_count
+
     return messages_in_queues
 
 
-def populate_queue_and_db(queues: list[str], messages_df: pd.DataFrame) -> list[Message]:
+def populate_queue_and_db(
+    queues: list[str], messages_df: pd.DataFrame, messages_priority: int
+) -> list[Message]:
     """
     Populate queues with messages,
     for imaging queue update the database and filter out exported studies.
@@ -124,15 +144,13 @@ def populate_queue_and_db(queues: list[str], messages_df: pd.DataFrame) -> list[
     output_messages = []
     for queue in queues:
         # For imaging, we don't want to query again for images that have already been exported
-        if queue == "imaging" and len(messages_df):
+        if "imaging" in queue and len(messages_df):
             logger.info("Filtering out exported images and uploading new ones to the database")
-            messages_df = filter_exported_or_add_to_db(
-                messages_df, messages_df.iloc[0].project_name
-            )
+            messages_df = filter_exported_or_add_to_db(messages_df)
 
         messages = messages_from_df(messages_df)
         with PixlProducer(queue_name=queue, **SERVICE_SETTINGS["rabbitmq"]) as producer:
-            producer.publish(messages)
+            producer.publish(messages, priority=messages_priority)
         output_messages.extend(messages)
 
     return output_messages

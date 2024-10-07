@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-# Extra common public tags for diffusion weighted MRI
+# Common public tags for diffusion weighted MRI
 
 - name: "DiffusionGradientOrientation"
   group: 0x0018

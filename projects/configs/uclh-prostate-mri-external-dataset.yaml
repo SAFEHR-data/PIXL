@@ -13,14 +13,15 @@
 #  limitations under the License.
 
 project:
-    name: "uclh-prostate-mri-validation-dataset"
+    name: "uclh-prostate-mri-external-dataset"
     modalities: ["MR"]
 
 tag_operation_files:
     base:
+        - "base.yaml" #Expected base config file for any project
         - "mri.yaml"
         - "diffusion-weighted-mri.yaml"
     manufacturer_overrides: ["mri.yaml", "mri-diffusion.yaml"]
 destination:
-    dicom: "none"
-    parquet: "none"
+    dicom: "ftps"
+    parquet: "ftps"

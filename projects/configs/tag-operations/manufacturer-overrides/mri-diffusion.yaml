@@ -48,6 +48,10 @@
 # Example tags obtained from https://github.com/rordenlab/dcm2niix/blob/master/Siemens/README.md#siemens-x-series
 - manufacturer: ^siemens
   tags:
+    - name: "SIEMENS MR HEADER private creator Group"
+      group: 0x0019
+      element: 0x0010
+      op: "keep"
     - name: "SiemensDiffusionBValue"
       group: 0x0019
       element: 0x100c
@@ -55,6 +59,14 @@
     - name: "SiemensDiffusionGradientOrientation"
       group: 0x0019
       element: 0x100e
+      op: "keep"
+    - name: "SIEMENS CSA HEADER private creator"
+      group: 0x0029
+      element: 0x0010
+      op: "keep"
+    - name: "SIEMENS MEDCOM HEADER2  private creator"
+      group: 0x0029
+      element: 0x0011
       op: "keep"
     - name: "CSA Image Header Info"
       group: 0x0029

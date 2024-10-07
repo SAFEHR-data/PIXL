@@ -35,20 +35,13 @@ x-build-args-common: &build-args-common
 x-pixl-common-env: &pixl-common-env
     DEBUG: ${DEBUG}
     LOG_LEVEL: ${LOG_LEVEL}
+    TZ: ${TZ:-Europe/London}
 
 x-pixl-rabbit-mq: &pixl-rabbit-mq
     RABBITMQ_HOST: "queue" # Name of the queue service
     RABBITMQ_PORT: "5672"
     RABBITMQ_USERNAME: ${RABBITMQ_USERNAME}
     RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
-
-x-emap-db: &emap-db
-    EMAP_UDS_HOST: ${EMAP_UDS_HOST}
-    EMAP_UDS_PORT: ${EMAP_UDS_PORT}
-    EMAP_UDS_NAME: ${EMAP_UDS_NAME}
-    EMAP_UDS_USER: ${EMAP_UDS_USER}
-    EMAP_UDS_PASSWORD: ${EMAP_UDS_PASSWORD}
-    EMAP_UDS_SCHEMA_NAME: ${EMAP_UDS_SCHEMA_NAME}
 
 x-pixl-db: &pixl-db
     PIXL_DB_HOST: ${PIXL_DB_HOST}
@@ -121,6 +114,7 @@ services:
                 ORTHANC_CONCURRENT_JOBS: ${ORTHANC_CONCURRENT_JOBS}
         platform: linux/amd64
         command: /run/secrets
+        restart: always
         environment:
             <<: [*pixl-db, *proxy-common, *pixl-common-env, *azure-keyvault]
             ORTHANC_NAME: "PIXL: Anon"
@@ -175,7 +169,6 @@ services:
             retries: 2
             interval: 3s
             timeout: 2s
-        restart: "no"
 
     orthanc-raw:
         build:
@@ -188,7 +181,6 @@ services:
                 ORTHANC_RAW_JOB_HISTORY_SIZE: ${ORTHANC_RAW_JOB_HISTORY_SIZE}
                 ORTHANC_CONCURRENT_JOBS: ${ORTHANC_CONCURRENT_JOBS}
                 PIXL_DICOM_TRANSFER_TIMEOUT: ${PIXL_DICOM_TRANSFER_TIMEOUT}
-                ORTHANC_RAW_EXTRA_STABLE_SECONDS: ${ORTHANC_RAW_EXTRA_STABLE_SECONDS}
         platform: linux/amd64
         command: /run/secrets
         environment:
@@ -197,12 +189,14 @@ services:
             ORTHANC_USERNAME: ${ORTHANC_RAW_USERNAME}
             ORTHANC_PASSWORD: ${ORTHANC_RAW_PASSWORD}
             ORTHANC_RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
-            ORTHANC_AUTOROUTE_RAW_TO_ANON: ${ORTHANC_AUTOROUTE_RAW_TO_ANON}
             ORTHANC_RAW_RECORD_HEADERS: ${ORTHANC_RAW_RECORD_HEADERS}
             ORTHANC_RAW_HEADER_LOG_PATH: ${ORTHANC_RAW_HEADER_LOG_PATH}
-            VNAQR_AE_TITLE: ${VNAQR_AE_TITLE}
-            VNAQR_DICOM_PORT: ${VNAQR_DICOM_PORT}
-            VNAQR_IP_ADDR: ${VNAQR_IP_ADDR}
+            PRIMARY_DICOM_SOURCE_AE_TITLE: ${PRIMARY_DICOM_SOURCE_AE_TITLE}
+            PRIMARY_DICOM_SOURCE_PORT: ${PRIMARY_DICOM_SOURCE_PORT}
+            PRIMARY_DICOM_SOURCE_IP_ADDR: ${PRIMARY_DICOM_SOURCE_IP_ADDR}
+            SECONDARY_DICOM_SOURCE_AE_TITLE: ${SECONDARY_DICOM_SOURCE_AE_TITLE:-$PRIMARY_DICOM_SOURCE_AE_TITLE}
+            SECONDARY_DICOM_SOURCE_PORT: ${SECONDARY_DICOM_SOURCE_PORT:-$PRIMARY_DICOM_SOURCE_PORT}
+            SECONDARY_DICOM_SOURCE_IP_ADDR: ${SECONDARY_DICOM_SOURCE_IP_ADDR:-$PRIMARY_DICOM_SOURCE_IP_ADDR}
             ORTHANC_ANON_AE_TITLE: ${ORTHANC_ANON_AE_TITLE}
             ORTHANC_ANON_DICOM_PORT: "4242"
             ORTHANC_ANON_HOSTNAME: "orthanc-anon"
@@ -232,15 +226,16 @@ services:
             retries: 10
             interval: 3s
             timeout: 2s
-        restart: "no"
+        restart: "always"
 
     queue:
-        image: rabbitmq:3.12.9-management
+        image: rabbitmq:3.13.6-management@sha256:54f115b7c9c619e59b703e326ebfc7fc762f8c7321eee34f6fc0646457fffe20
         hostname: queue-host
         environment:
             RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
             RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
             RABBITMQ_NODENAME: "rabbit@queue-host"
+            TZ: ${TZ:-Europe/London}
         healthcheck:
             test: rabbitmq-diagnostics -q check_running
             interval: 30s
@@ -266,7 +261,6 @@ services:
             <<:
                 [
                     *pixl-db,
-                    *emap-db,
                     *proxy-common,
                     *pixl-common-env,
                     *pixl-rabbit-mq,
@@ -328,11 +322,15 @@ services:
             ORTHANC_RAW_USERNAME: ${ORTHANC_RAW_USERNAME}
             ORTHANC_RAW_PASSWORD: ${ORTHANC_RAW_PASSWORD}
             ORTHANC_RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
-            VNAQR_MODALITY: ${VNAQR_MODALITY}
+            ORTHANC_AUTOROUTE_RAW_TO_ANON: ${ORTHANC_AUTOROUTE_RAW_TO_ANON}
+            PRIMARY_DICOM_SOURCE_MODALITY: ${PRIMARY_DICOM_SOURCE_MODALITY}
+            SECONDARY_DICOM_SOURCE_MODALITY: ${SECONDARY_DICOM_SOURCE_MODALITY}
             SKIP_ALEMBIC: ${SKIP_ALEMBIC}
             PIXL_DICOM_TRANSFER_TIMEOUT: ${PIXL_DICOM_TRANSFER_TIMEOUT}
             PIXL_QUERY_TIMEOUT: ${PIXL_QUERY_TIMEOUT}
             PIXL_MAX_MESSAGES_IN_FLIGHT: ${PIXL_MAX_MESSAGES_IN_FLIGHT}
+            PRIMARY_DICOM_SOURCE_AE_TITLE: ${PRIMARY_DICOM_SOURCE_AE_TITLE}
+            SECONDARY_DICOM_SOURCE_AE_TITLE: ${SECONDARY_DICOM_SOURCE_AE_TITLE:-$PRIMARY_DICOM_SOURCE_AE_TITLE}
         ports:
             - "127.0.0.1:${PIXL_IMAGING_API_PORT}:8000"
 
@@ -348,7 +346,7 @@ services:
             POSTGRES_USER: ${PIXL_DB_USER}
             POSTGRES_PASSWORD: ${PIXL_DB_PASSWORD}
             POSTGRES_DB: ${PIXL_DB_NAME}
-            PGTZ: Europe/London
+            PGTZ: ${TZ:-Europe/London}
         env_file:
             - ./docker/common.env
         command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
@@ -359,7 +357,7 @@ services:
         ports:
             - "${POSTGRES_PORT}:5432"
         healthcheck:
-            test: ["CMD", "pg_isready", "-U", "${PIXL_DB_USER}"]
+            test: ["CMD", "pg_isready", "-U", "${PIXL_DB_USER}", "--dbname", "${PIXL_DB_NAME}"]
             interval: 10s
             timeout: 30s
             retries: 5

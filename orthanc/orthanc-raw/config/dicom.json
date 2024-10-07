@@ -2,10 +2,10 @@
   "DicomAet" : "${ORTHANC_RAW_AE_TITLE}",
 
   "DicomModalities" : {
-    "UCVNAQR" : {
-      "AET" : "${VNAQR_AE_TITLE}",
-      "Port" : "${VNAQR_DICOM_PORT}",
-      "Host" : "${VNAQR_IP_ADDR}",
+    "UCPRIMARYQR" : {
+      "AET" : "${PRIMARY_DICOM_SOURCE_AE_TITLE}",
+      "Port" : "${PRIMARY_DICOM_SOURCE_PORT}",
+      "Host" : "${PRIMARY_DICOM_SOURCE_IP_ADDR}",
       "Manufacturer" : "Generic",
       "AllowEcho" : true,
       "AllowFind" : false,
@@ -16,7 +16,23 @@
       "AllowStorageCommitment" : false,
       "AllowTranscoding" : true,
       "UseDicomTls" : false,
-      "Timeout" : 60
+      "Timeout" : 120
+    },
+    "UCSECONDARYQR" : {
+      "AET" : "${SECONDARY_DICOM_SOURCE_AE_TITLE}",
+      "Port" : "${SECONDARY_DICOM_SOURCE_PORT}",
+      "Host" : "${SECONDARY_DICOM_SOURCE_IP_ADDR}",
+      "Manufacturer" : "Generic",
+      "AllowEcho" : true,
+      "AllowFind" : false,
+      "AllowFindWorklist" : false,
+      "AllowGet"  : false,
+      "AllowMove" : false,
+      "AllowStore" : true,
+      "AllowStorageCommitment" : false,
+      "AllowTranscoding" : true,
+      "UseDicomTls" : false,
+      "Timeout" : 120
     },
     "PIXL-Anon" : {
       "AET" : "${ORTHANC_ANON_AE_TITLE}",
@@ -32,7 +48,7 @@
       "AllowStorageCommitment" : false,
       "AllowTranscoding" : true,
       "UseDicomTls" : false,
-      "Timeout" : 60
+      "Timeout" : 120
     }
   },
 
@@ -86,6 +102,11 @@
   // modality initiating a DICOM connection (as listed in the
   // "DicomModalities" option above). If this option is set to
   // "false", Orthanc only checks the AET of the remote modality.
-  "DicomCheckModalityHost" : false
+  "DicomCheckModalityHost" : false,
+
+  // Overwrite instances with the same UID
+  // This allows us to set the project name tag in-place without modifying the
+  //StudyInstanceUID, SeriesInstanceUID, and SOPInstanceUID
+  "OverwriteInstance": true
 
 }

@@ -1,32 +1,23 @@
 [project]
 name = "pixl_export"
-version = "0.0.2"
+version = "0.2.0rc0"
 authors = [{ name = "PIXL authors" }]
 description = "PIXL electronic health record extractor"
 readme = "README.md"
 requires-python = ">=3.10"
 classifiers = ["Programming Language :: Python :: 3"]
 dependencies = [
-    "core",
-    "uvicorn==0.23.2",
-    "python-decouple==3.6",
-    "psycopg2-binary==2.9.9",
-    "azure-identity==1.12.0",
-    "azure-storage-blob==12.14.1",
-    "pyarrow==14.0.1",
+    "core==0.2.0rc0",
+    "uvicorn==0.30.4",
+    "azure-storage-blob==12.21.0",
 ]
 
 [project.optional-dependencies]
 test = [
-    "pytest==7.4.2",
-    "pytest-asyncio==0.21.1",
-    "pytest-pixl",
-    "httpx==0.24.*",
+    "core[test]==0.2.0rc0",
 ]
 dev = [
-    "mypy",
-    "pre-commit",
-    "ruff",
+    "core[dev]==0.2.0rc0",
 ]
 
 [build-system]

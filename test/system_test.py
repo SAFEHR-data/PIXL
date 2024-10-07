@@ -22,6 +22,7 @@ import requests
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
 from loguru import logger
 from pydicom.uid import UID
+from pytest_check import check
 from pytest_pixl.ftpserver import PixlFTPServer
 from pytest_pixl.helpers import run_subprocess, wait_for_condition
 
@@ -129,7 +130,7 @@ class TestFtpsUpload:
 
         wait_for_condition(
             two_zip_files_present,
-            seconds_max=121,
+            seconds_max=151,
             seconds_interval=5,
             seconds_condition_stays_true_for=15,
             progress_string_fn=zip_file_list,
@@ -142,6 +143,7 @@ class TestFtpsUpload:
         for z in zip_files:
             unzip_dir = tmp_path_factory.mktemp("unzip_dir", numbered=True)
             procedure = radiology_linker_data.loc[z.stem]["procedure_occurrence_id"]
+            logger.info("Checking tags in zip file {} for procedure {}", z, procedure)
             self._check_dcm_tags_from_zip(z, unzip_dir, expected_studies[procedure])
 
     def _check_dcm_tags_from_zip(
@@ -173,7 +175,7 @@ class TestFtpsUpload:
             assert private_tag is not None
             if isinstance(private_tag.value, bytes):
                 # Allow this for the time being, until it has been investigated
-                # See https://github.com/UCLH-Foundry/PIXL/issues/363
+                # See https://github.com/SAFEHR-data/PIXL/issues/363
                 logger.error(
                     "TEMPORARILY IGNORE: tag value {} should be of type str, but is of type bytes",
                     private_tag.value,
@@ -182,7 +184,8 @@ class TestFtpsUpload:
             else:
                 assert private_tag.value == TestFtpsUpload.project_slug
         # check the basic info about the instances exactly matches
-        assert actual_instances == expected_study["instances"]
+        with check:
+            assert actual_instances == expected_study["instances"]
 
 
 @pytest.mark.usefixtures("_setup_pixl_cli_dicomweb")
@@ -208,7 +211,7 @@ def test_dicomweb_upload() -> None:
 
     wait_for_condition(
         two_studies_present_on_dicomweb,
-        seconds_max=121,
+        seconds_max=151,
         seconds_interval=10,
         progress_string_fn=dicomweb_studies_list,
     )

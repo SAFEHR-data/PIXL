@@ -13,28 +13,39 @@
 #  limitations under the License.
 from __future__ import annotations
 
+import re
 import time
 
+import pytest
 from core.token_buffer import TokenBucket
 
 
 def test_retrieve_token() -> None:
     """Checks whether token can be retrieved from created token bucket."""
     bucket = TokenBucket()
-    assert bucket.has_token
+    assert bucket.has_token(key="primary")
+    assert bucket.has_token(key="secondary")
+
+
+def test_invalid_token_key() -> None:
+    """Checks whether invalid key raises an exception."""
+    bucket = TokenBucket()
+    match = re.escape("Key must be one of ['primary', 'secondary'], not 'invalid'")
+    with pytest.raises(ValueError, match=match):
+        bucket.has_token(key="invalid")
 
 
 def test_refill_tokens() -> None:
     """Checks whether the refill happens after one second for a bucket size of 1."""
     bucket = TokenBucket(rate=1, capacity=1)
 
-    assert bucket.has_token
+    assert bucket.has_token(key="primary")
     # Interrogating the bucket within 1 second we find that it's empty
-    assert bucket.has_token is False
+    assert bucket.has_token(key="primary") is False
 
     # but will be refilled after 1 second
     time.sleep(1)
-    assert bucket.has_token
+    assert bucket.has_token(key="primary")
 
 
 def test_zero_rate() -> None:

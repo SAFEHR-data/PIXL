@@ -28,10 +28,11 @@ from loguru import logger
 
 @dataclass
 class Message:
-    """Class to represent a message containing the relevant information for a study."""
+    """Representation of a RabbitMQ message containing the information to identify a DICOM study."""
 
     mrn: str
     accession_number: str
+    study_uid: str
     study_date: date
     procedure_occurrence_id: int
     project_name: str
@@ -40,7 +41,9 @@ class Message:
     @property
     def identifier(self) -> str:
         """Identifier for message"""
-        return f"Message({self.mrn=} {self.accession_number=})".replace("self.", "")
+        return f"Message({self.mrn=} {self.accession_number=} {self.study_uid=})".replace(
+            "self.", ""
+        )
 
     def serialise(self, *, deserialisable: bool = True) -> bytes:
         """

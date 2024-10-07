@@ -14,18 +14,9 @@
 from __future__ import annotations
 
 import pytest
-from core.patient_queue.message import Message
 from core.patient_queue.producer import PixlProducer
 
 TEST_QUEUE = "test_publish"
-TEST_MESSAGE = Message(
-    mrn="111",
-    accession_number="123",
-    study_date="2022-11-22T13:33:00+00:00",
-    procedure_occurrence_id="234",
-    project_name="test project",
-    extract_generated_timestamp="2023-12-07T14:08:00+00:00",
-)
 
 
 @pytest.mark.usefixtures("run_containers")
@@ -36,14 +27,14 @@ def test_create_pixl_producer() -> None:
 
 
 @pytest.mark.usefixtures("run_containers")
-def test_publish() -> None:
+def test_publish(mock_message) -> None:
     """
     Checks that after publishing, there is one message in the queue.
     Will only work if nothing has been added to queue before.
     """
     with PixlProducer(queue_name=TEST_QUEUE) as pp:
         pp.clear_queue()
-        pp.publish(messages=[TEST_MESSAGE])
+        pp.publish(messages=[mock_message], priority=1)
 
     with PixlProducer(queue_name=TEST_QUEUE) as pp:
         assert pp.message_count == 1

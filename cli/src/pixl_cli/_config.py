@@ -68,7 +68,11 @@ API_CONFIGS = {
 
 def api_config_for_queue(queue_name: str) -> APIConfig:
     """Configuration for an API associated with a queue"""
-    api_name = f"{queue_name}_api"
+    api_name = {
+        "export": "export_api",
+        "imaging-primary": "imaging_api",
+        "imaging-secondary": "imaging_api",
+    }[queue_name]
 
     if api_name not in API_CONFIGS:
         msg = (

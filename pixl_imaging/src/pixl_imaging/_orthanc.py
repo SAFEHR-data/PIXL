@@ -25,7 +25,9 @@ from loguru import logger
 
 
 class Orthanc(ABC):
-    def __init__(self, url: str, username: str, password: str) -> None:
+    def __init__(
+        self, url: str, username: str, password: str, http_timeout: int, dicom_timeout: int
+    ) -> None:
         if not url:
             msg = "URL for orthanc is required"
             raise ValueError(msg)
@@ -34,6 +36,8 @@ class Orthanc(ABC):
         self._password = password
 
         self._auth = aiohttp.BasicAuth(login=username, password=password)
+        self.http_timeout = http_timeout
+        self.dicom_timeout = dicom_timeout
 
     @property
     @abstractmethod
@@ -51,7 +55,16 @@ class Orthanc(ABC):
 
     async def query_local(self, data: dict) -> Any:
         """Query local Orthanc instance for resourceId."""
+        logger.debug("Running query on local Orthanc with {}", data)
         return await self._post("/tools/find", data=data)
+
+    async def query_local_series(self, series_id: str) -> Any:
+        """Query local Orthanc instance for series."""
+        return await self._get(f"/series/{series_id}")
+
+    async def query_local_instance(self, instance_id: str) -> Any:
+        """Query local Orthanc instance for instance."""
+        return await self._get(f"/instances/{instance_id}")
 
     async def query_remote(self, data: dict, modality: str) -> Optional[str]:
         """Query a particular modality, available from this node"""
@@ -60,14 +73,30 @@ class Orthanc(ABC):
         response = await self._post(
             f"/modalities/{modality}/query",
             data=data,
-            timeout=config("PIXL_QUERY_TIMEOUT", default=10, cast=float),
         )
         logger.debug("Query response: {}", response)
-        query_answers = await self._get(f"/queries/{response['ID']}/answers")
+        query_answers = await self.get_remote_query_answers(response["ID"])
         if len(query_answers) > 0:
             return str(response["ID"])
 
         return None
+
+    async def get_remote_query_answers(self, query_id: str) -> Any:
+        """Get the answers to a query"""
+        return await self._get(f"/queries/{query_id}/answers")
+
+    async def get_remote_query_answer_content(self, query_id: str, answer_id: str) -> Any:
+        """Get the content of a query answer"""
+        return await self._get(f"/queries/{query_id}/answers/{answer_id}/content")
+
+    async def get_remote_query_answer_instances(self, query_id: str, answer_id: str) -> Any:
+        """Get the instances of a query answer, using DICOM timeout as can take a while"""
+        response = await self._post(
+            f"/queries/{query_id}/answers/{answer_id}/query-instances",
+            data={"Query": {}},
+            timeout=self.dicom_timeout,
+        )
+        return response["ID"]
 
     async def modify_private_tags_by_study(
         self,
@@ -75,7 +104,6 @@ class Orthanc(ABC):
         study_id: str,
         private_creator: str,
         tag_replacement: dict,
-        timeout: float,
     ) -> None:
         # According to the docs, you can't modify tags for an instance using the instance API
         # (the best you can do is download a modified version), so do it via the studies API.
@@ -86,30 +114,41 @@ class Orthanc(ABC):
             {
                 "PrivateCreator": private_creator,
                 "Permissive": False,
-                "KeepSource": False,
                 "Replace": tag_replacement,
                 "Asynchronous": True,
+                "Force": True,
+                "Keep": ["StudyInstanceUID", "SeriesInstanceUID", "SOPInstanceUID"],
+                "Timeout": self.dicom_timeout,
             },
         )
         logger.debug("Modify studies Job: {}", response)
         job_id = str(response["ID"])
-        try:
-            await self.wait_for_job_success_or_raise(job_id, "modify", timeout=timeout)
-        except PixlDiscardError:
-            logger.warning(f"Deleting study {study_id} as modify job failed")
-            await self.delete(f"/studies/{study_id}")
-            raise
+        await self.wait_for_job_success_or_raise(job_id, "modify", timeout=self.dicom_timeout)
 
     async def retrieve_from_remote(self, query_id: str) -> str:
         response = await self._post(
             f"/queries/{query_id}/retrieve",
-            data={"TargetAet": self.aet, "Synchronous": False},
+            data={"TargetAet": self.aet, "Synchronous": False, "Timeout": self.dicom_timeout},
         )
         return str(response["ID"])
 
-    async def wait_for_job_success_or_raise(
-        self, job_id: str, job_type: str, timeout: float
-    ) -> None:
+    async def retrieve_instances_from_remote(
+        self, modality: str, missing_instances: list[dict[str, str]]
+    ) -> str:
+        """Retieve missing instances from remote modality in a single c-move query."""
+        response = await self._post(
+            f"/modalities/{modality}/move",
+            data={
+                "Level": "Instance",
+                "TargetAet": self.aet,
+                "Synchronous": False,
+                "Resources": missing_instances,
+                "Timeout": self.dicom_timeout,
+            },
+        )
+        return str(response["ID"])
+
+    async def wait_for_job_success_or_raise(self, job_id: str, job_type: str, timeout: int) -> None:
         """Wait for job to complete successfully, or raise exception if fails or exceeds timeout."""
         job_info = {"State": "Pending"}
         start_time = time()
@@ -139,23 +178,31 @@ class Orthanc(ABC):
     async def _get(self, path: str) -> Any:
         async with (
             aiohttp.ClientSession() as session,
-            session.get(f"{self._url}{path}", auth=self._auth, timeout=10) as response,
-        ):
-            return await _deserialise(response)
-
-    async def _post(self, path: str, data: dict, timeout: Optional[float] = None) -> Any:
-        async with (
-            aiohttp.ClientSession() as session,
-            session.post(
-                f"{self._url}{path}", json=data, auth=self._auth, timeout=timeout
+            session.get(
+                f"{self._url}{path}",
+                auth=self._auth,
+                timeout=self.http_timeout,
             ) as response,
         ):
             return await _deserialise(response)
 
-    async def delete(self, path: str, timeout: Optional[float] = 10) -> None:
+    async def _post(self, path: str, data: dict, timeout: int | None = None) -> Any:
+        # Optionally override default http timeout
+        http_timeout = timeout or self.http_timeout
         async with (
             aiohttp.ClientSession() as session,
-            session.delete(f"{self._url}{path}", auth=self._auth, timeout=timeout) as response,
+            session.post(
+                f"{self._url}{path}", json=data, auth=self._auth, timeout=http_timeout
+            ) as response,
+        ):
+            return await _deserialise(response)
+
+    async def delete(self, path: str) -> None:
+        async with (
+            aiohttp.ClientSession() as session,
+            session.delete(
+                f"{self._url}{path}", auth=self._auth, timeout=self.http_timeout
+            ) as response,
         ):
             await _deserialise(response)
 
@@ -174,6 +221,8 @@ class PIXLRawOrthanc(Orthanc):
             url=config("ORTHANC_RAW_URL"),
             username=config("ORTHANC_RAW_USERNAME"),
             password=config("ORTHANC_RAW_PASSWORD"),
+            http_timeout=config("PIXL_QUERY_TIMEOUT", default=10, cast=int),
+            dicom_timeout=config("PIXL_DICOM_TRANSFER_TIMEOUT", default=240, cast=int),
         )
 
     async def raise_if_pending_jobs(self) -> None:
@@ -203,6 +252,17 @@ class PIXLRawOrthanc(Orthanc):
     def aet(self) -> str:
         return str(config("ORTHANC_RAW_AE_TITLE"))
 
-    async def send_existing_study_to_anon(self, resource_id: str) -> Any:
+    async def send_study_to_anon(self, resource_id: str) -> Any:
         """Send study to orthanc anon."""
-        return await self._post("/send-to-anon", data={"ResourceId": resource_id})
+        response = await self._post(
+            "/modalities/PIXL-Anon/store",
+            data={
+                "Resources": [resource_id],
+                "Asynchronous": True,
+                "Timeout": self.dicom_timeout,
+            },
+        )
+
+        logger.debug("Successfully triggered c-store of study to anon modality: {}", resource_id)
+
+        return str(response["ID"])

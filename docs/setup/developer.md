@@ -4,7 +4,7 @@
 
 ### Using conda
 ```
-conda create -n "pixlVE" python=3.11  pip -c conda-forge
+conda create -n "pixlVE" python=3.11  pip -c conda-forge --yes
 conda activate pixlVE
 conda list -n pixlVE #to check installed packages
 conda deactivate #to deactivate VE 
@@ -65,6 +65,22 @@ pytest #to test all tests `testpaths` pytest.ini
 The `pytest.ini` file in the root of the repo contains the configuration for running most of the module-level tests at once.
 However, `pixl_dcmd` and `hasher` have `conftests.py` files that clash, so only `pixl_dcmd` is included as a `testpath` in the
 top-level `pytest.ini`. You will therefore need to run tests for `hasher` from the `hasher` directory.
+
+
+#### Enabling default Docker socket for testing `pixl_core`
+
+We have tests in `pixl_core` for uploading DICOM to XNAT as an endpoint. These tests use
+[`xnat4tests`](https://github.com/Australian-Imaging-Service/xnat4tests) to spin up a docker container running XNAT.
+
+`xnat4tests` requires you to allow the Docker daemon to listen for Docker Engine API requests via the default
+socket. This is because `xnat4tests` set up the XNAT Container Service for launching other containers that run
+analysis pipelines.
+
+If you are using Docker Desktop, you will need to enable Docker to listen on the default socket by going to
+`Settings > Advanced` and checking the box `Allow the default Docker socket to be used`.
+
+If your are running Docker Engine on Linux, listening on this socket should be
+[enabled by default](https://docs.docker.com/reference/cli/dockerd/#daemon-socket-option).
 
 
 ### Integration tests

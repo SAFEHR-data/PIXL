@@ -19,6 +19,7 @@ import datetime
 import os
 from pathlib import Path
 from typing import TYPE_CHECKING
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 import pytest
@@ -63,6 +64,8 @@ os.environ["AZ_DICOM_ENDPOINT_CLIENT_ID"] = "dicom endpoint client id"
 os.environ["AZ_DICOM_ENDPOINT_CLIENT_SECRET"] = "dicom endpoint client secret"
 os.environ["AZ_DICOM_ENDPOINT_TENANT_ID"] = "dicom endpoint tenant id"
 
+os.environ["TZ"] = "Europe/London"
+
 
 @pytest.fixture(autouse=True)
 def export_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
@@ -106,7 +109,7 @@ def db_engine(monkeymodule) -> Engine:
 
 
 @pytest.fixture()
-def db_session(db_engine) -> Session:
+def db_session(db_engine) -> Generator[Session]:
     """
     Creates a session for interacting with an in memory database.
 
@@ -127,31 +130,87 @@ def db_session(db_engine) -> Session:
 STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
 
 
-def _make_message(project_name: str, accession_number: str, mrn: str) -> Message:
+def _make_message(
+    project_name: str,
+    accession_number: str,
+    mrn: str,
+    study_uid: str,
+) -> Message:
     return Message(
         project_name=project_name,
         accession_number=accession_number,
         mrn=mrn,
+        study_uid=study_uid,
         study_date=STUDY_DATE,
         procedure_occurrence_id=1,
-        extract_generated_timestamp=datetime.datetime.now(tz=datetime.UTC),
+        extract_generated_timestamp=datetime.datetime.now(tz=ZoneInfo(os.environ["TZ"])),
     )
 
 
 @pytest.fixture()
-def example_messages():
+def example_messages() -> list[Message]:
     """Test input data."""
     return [
-        _make_message(project_name="i-am-a-project", accession_number="123", mrn="mrn"),
-        _make_message(project_name="i-am-a-project", accession_number="234", mrn="mrn"),
-        _make_message(project_name="i-am-a-project", accession_number="345", mrn="mrn"),
+        _make_message(
+            project_name="i-am-a-project", accession_number="123", mrn="mrn", study_uid="1.2.3"
+        ),
+        _make_message(
+            project_name="i-am-a-project", accession_number="234", mrn="mrn", study_uid="2.3.4"
+        ),
+        _make_message(
+            project_name="i-am-a-project", accession_number="345", mrn="mrn", study_uid="3.4.5"
+        ),
     ]
 
 
 @pytest.fixture()
 def example_messages_df(example_messages):
     """Test input data in a DataFrame."""
-    return pd.DataFrame.from_records([vars(im) for im in example_messages])
+    messages_df = pd.DataFrame.from_records([vars(im) for im in example_messages])
+    messages_df["pseudo_patient_id"] = None
+    return messages_df
+
+
+@pytest.fixture()
+def example_messages_multiple_projects() -> list[Message]:
+    """Test input data."""
+    return [
+        _make_message(
+            project_name="i-am-a-project", accession_number="123", mrn="mrn", study_uid="1.2.3"
+        ),
+        _make_message(
+            project_name="i-am-a-project", accession_number="234", mrn="mrn", study_uid="2.3.4"
+        ),
+        _make_message(
+            project_name="i-am-a-project", accession_number="345", mrn="mrn", study_uid="3.4.5"
+        ),
+        _make_message(
+            project_name="i-am-another-project",
+            accession_number="123",
+            mrn="mrn",
+            study_uid="1.2.3",
+        ),
+        _make_message(
+            project_name="i-am-another-project",
+            accession_number="234",
+            mrn="mrn",
+            study_uid="2.3.4",
+        ),
+        _make_message(
+            project_name="i-am-another-project",
+            accession_number="345",
+            mrn="mrn",
+            study_uid="3.4.5",
+        ),
+    ]
+
+
+@pytest.fixture()
+def example_messages_multiple_projects_df(example_messages_multiple_projects) -> pd.DataFrame:
+    """Test input data."""
+    messages_df = pd.DataFrame.from_records([vars(im) for im in example_messages_multiple_projects])
+    messages_df["pseudo_patient_id"] = None
+    return messages_df
 
 
 @pytest.fixture()
@@ -163,14 +222,16 @@ def rows_in_session(db_session) -> Session:
         accession_number="123",
         study_date=STUDY_DATE,
         mrn="mrn",
+        study_uid="1.2.3",
         extract=extract,
         extract_id=extract.extract_id,
-        exported_at=datetime.datetime.now(tz=datetime.UTC),
+        exported_at=datetime.datetime.now(ZoneInfo(os.environ["TZ"])),
     )
     image_not_exported = Image(
         accession_number="234",
         study_date=STUDY_DATE,
         mrn="mrn",
+        study_uid="2.3.4",
         extract=extract,
         extract_id=extract.extract_id,
     )
