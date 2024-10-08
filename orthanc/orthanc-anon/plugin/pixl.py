@@ -268,13 +268,21 @@ def ImportStudyFromRaw(output, uri, **request):
     study_uid = payload["StudyInstanceUID"]
 
     orthanc.LogInfo("Importing study from raw: {payload}")
-    try:
-        response = orthanc.RestApiGet("/modalities/PIXL-Raw/studies", json.dumps(payload))
-    except orthanc.OrthancException as e:
-        orthanc.LogInfo(f"Failed to import study from raw modality {study_uid} . Error: {e}")
+    data = {
+        "Level": "Study",
+        "Query": {
+            "StudyInstanceUID": study_uid,
+        },
+    }
+    query_response = orthanc.RestApiPost("/modalities/PIXL-Raw/query", data)
+    query_id = query_response["ID"]
+    query_answers = orthanc.RestApiPost(f"/queries/{query_id}/answers")
+    if not query_answers:
+        orthanc.LogWarning(f"No study from in modality with StudyInstanceUID: {study_uid}")
+    elif len(query_answers) > 1:
+        orthanc.LogWarning(f"{len(query_answers)} studies foundin Orthanc Raw with StudyInstanceUID: {study_uid}")
 
     orthanc.LogInfo(f"Successfully imported study from raw modality: {study_uid}")
-    orthanc.LogInfo(f"Study info: {response.json()}")
 
 orthanc.RegisterOnChangeCallback(OnChange)
 orthanc.RegisterRestCallback("/heart-beat", OnHeartBeat)
