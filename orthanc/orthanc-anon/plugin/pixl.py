@@ -255,6 +255,19 @@ def _process_dicom_instance(receivedDicom: bytes) -> tuple[orthanc.ReceivedInsta
         return orthanc.ReceivedInstanceAction.DISCARD, None
 
 
+def ImportStudyFromRaw(output, uri, **request):
+    """
+    Import a study from Orthanc Raw.
+
+    - Pull a study from Orthanc Raw based on its resource ID. Wait for the study to be stable.
+    - Iterate over instances and anonymise them
+    - Re-upload the study via the dicom-web api. Wait for the study to be stable.
+    - Notify the PIXL export-api to send the study the to relevant endpoint
+    """
+    body = json.loads(request["body"])
+    study_uid = body["StudyUID"]
+
+
 orthanc.RegisterOnChangeCallback(OnChange)
-orthanc.RegisterReceivedInstanceCallback(ReceivedInstanceCallback)
 orthanc.RegisterRestCallback("/heart-beat", OnHeartBeat)
+orthanc.RegisterRestCallback("/import-from-raw", ImportStudyFromRaw)

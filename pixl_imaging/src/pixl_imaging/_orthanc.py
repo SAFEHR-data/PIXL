@@ -323,5 +323,6 @@ class PIXLAnonOrthanc(Orthanc):
             "ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT", default=False, cast=bool
         )
 
-        async def export_study(self, resource_id: str) -> Any:
-            """Notify the export API to upload the study to the relevant endpoint."""
+    async def import_study_from_raw(self, study_uid: str) -> Any:
+        """Notify Orthanc Anon to pull a study from Orthanc Raw"""
+        return await self._post("/import-from-raw", data={"StudyUID": study_uid})
