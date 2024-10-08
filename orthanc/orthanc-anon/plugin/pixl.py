@@ -282,7 +282,11 @@ def ImportStudyFromRaw(output, uri, **request):
     elif len(query_answers) > 1:
         orthanc.LogWarning(f"{len(query_answers)} studies foundin Orthanc Raw with StudyInstanceUID: {study_uid}")
 
+    response = orthanc.RestApiPost(f"/queries/{query_id}/retrieve")
     orthanc.LogInfo(f"Successfully imported study from raw modality: {study_uid}")
+
+    instances_bytes = [orthanc.RestApiGet(f"/instances/{instance["ID"]}") for instance in response["Instances"]]
+    # TODO: anonymise the instances, delete the existing ones, upload again, then notify the export api
 
 orthanc.RegisterOnChangeCallback(OnChange)
 orthanc.RegisterRestCallback("/heart-beat", OnHeartBeat)
