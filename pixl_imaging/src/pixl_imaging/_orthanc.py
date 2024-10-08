@@ -132,14 +132,14 @@ class Orthanc(ABC):
         job_id = str(response["ID"])
         await self.wait_for_job_success_or_raise(job_id, "modify", timeout=self.dicom_timeout)
 
-    async def retrieve_from_remote_with_query_id(self, query_id: str) -> str:
+    async def retrieve_study_from_remote_with_query_id(self, query_id: str) -> str:
         response = await self._post(
             f"/queries/{query_id}/retrieve",
             data={"TargetAet": self.aet, "Synchronous": False, "Timeout": self.dicom_timeout},
         )
         return str(response["ID"])
 
-    async def retrieve_from_remote(self, modality: str, study_uid: str) -> str:
+    async def retrieve_study_from_remote(self, modality: str, study_uid: str) -> str:
         """Retrieve a study from a remote modality."""
         response = await self._post(
             f"/modalities/{modality}/move",
@@ -323,6 +323,9 @@ class PIXLAnonOrthanc(Orthanc):
             "ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT", default=False, cast=bool
         )
 
-    async def import_study_from_raw(self, study_uid: str) -> Any:
+    async def import_study_from_raw(self, orthanc_raw: PIXLRawOrthanc, resource_id: str) -> Any:
         """Notify Orthanc Anon to pull a study from Orthanc Raw"""
-        return await self._post("/import-from-raw", data={"StudyUID": study_uid})
+
+        orthanc_raw_study_info = await orthanc_raw._get(f"/studies/{resource_id}")
+        study_uid = orthanc_raw_study_info["MainDicomTags"]["StudyInstanceUID"]
+        return await self._post("/import-from-raw", data={"StudyInstanceUID": study_uid})

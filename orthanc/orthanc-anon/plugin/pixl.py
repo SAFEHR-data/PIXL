@@ -264,9 +264,17 @@ def ImportStudyFromRaw(output, uri, **request):
     - Re-upload the study via the dicom-web api. Wait for the study to be stable.
     - Notify the PIXL export-api to send the study the to relevant endpoint
     """
-    body = json.loads(request["body"])
-    study_uid = body["StudyUID"]
+    payload = json.loads(request["body"])
+    study_uid = payload["StudyInstanceUID"]
 
+    orthanc.LogInfo("Importing study from raw: {payload}")
+    try:
+        response = orthanc.RestApiGet("/modalities/PIXL-Raw/studies", json.dumps(payload))
+    except orthanc.OrthancException as e:
+        orthanc.LogInfo(f"Failed to import study from raw modality {study_uid} . Error: {e}")
+
+    orthanc.LogInfo(f"Successfully imported study from raw modality: {study_uid}")
+    orthanc.LogInfo(f"Study info: {response.json()}")
 
 orthanc.RegisterOnChangeCallback(OnChange)
 orthanc.RegisterRestCallback("/heart-beat", OnHeartBeat)

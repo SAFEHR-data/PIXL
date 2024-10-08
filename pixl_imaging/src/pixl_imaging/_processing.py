@@ -141,25 +141,26 @@ async def _process_message(
         logger.debug("Auto-routing to Orthanc Anon is not enabled. Not sending study {}", resource)
         return
 
-    job_id = await orthanc_raw.send_study_to_anon(resource_id=resource["ID"])
-    job_info = await orthanc_raw.wait_for_job_success_or_raise(
-        job_id, "c-store", timeout=orthanc_raw.dicom_timeout
-    )
+    await orthanc_anon.import_study_from_raw(orthanc_raw=orthanc_raw, resource_id=resource["ID"])
+    #job_id = await orthanc_raw.send_study_to_anon(resource_id=resource["ID"])
+    #job_info = await orthanc_raw.wait_for_job_success_or_raise(
+    #    job_id, "c-store", timeout=orthanc_raw.dicom_timeout
+    #)
 
-    logger.info("Study send to orthanc anon, job info {}", job_info)
-    orthanc_anon_studies = await orthanc_anon._get("/studies")
-    logger.info("all studies in orthanc anon: {}", orthanc_anon_studies)
+    #logger.info("Study send to orthanc anon, job info {}", job_info)
+    #orthanc_anon_studies = await orthanc_anon._get("/studies")
+    #logger.info("all studies in orthanc anon: {}", orthanc_anon_studies)
     # orthanc_raw_study = await orthanc_raw._get(f"/studies/{resource['ID']}")
     # orthanc_anon_study = await orthanc_anon._get(f"/studies/{job_info["Content"]["ParentResources"][0]}")
     # logger.info("study in orthanc raw: {}\nstudy in orthanc anon: {}", orthanc_raw_study, orthanc_anon_study)
     # await orthanc_anon.wait_for_study_to_stabilise_or_raise(study_id=job_info["Content"]["ParentResources"][0])
 
-    if not orthanc_anon.autoroute_to_endpoint:
-        logger.debug(
-            "Auto-routing from Orthanc Anon to endpoint is not enabled. Not exporting study {}",
-            resource,
-        )
-        return
+    #if not orthanc_anon.autoroute_to_endpoint:
+    #    logger.debug(
+    #        "Auto-routing from Orthanc Anon to endpoint is not enabled. Not exporting study {}",
+    #        resource,
+    #    )
+    #    return
 
     # anonymised_study_uid = job_info["Instances"][0]["ID"]
     # orthanc_anon.send_study_to_endpoint(resource_id=resource["ID"])
@@ -353,7 +354,7 @@ def _is_weekend() -> bool:
 
 async def _retrieve_study(orthanc_raw: Orthanc, study_query_id: str) -> None:
     """Retrieve all instances for a study from the VNA / PACS."""
-    job_id = await orthanc_raw.retrieve_from_remote_with_query_id(query_id=study_query_id)  # C-Move
+    job_id = await orthanc_raw.retrieve_study_from_remote_with_query_id(query_id=study_query_id)  # C-Move
     await orthanc_raw.wait_for_job_success_or_raise(
         job_id, "c-move", timeout=orthanc_raw.dicom_timeout
     )
