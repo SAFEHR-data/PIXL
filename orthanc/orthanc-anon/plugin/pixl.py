@@ -280,13 +280,23 @@ def ImportStudyFromRaw(output, uri, **request):
     if not query_answers:
         orthanc.LogWarning(f"No study from in modality with StudyInstanceUID: {study_uid}")
     elif len(query_answers) > 1:
-        orthanc.LogWarning(f"{len(query_answers)} studies foundin Orthanc Raw with StudyInstanceUID: {study_uid}")
+        orthanc.LogWarning(
+            f"{len(query_answers)} studies foundin Orthanc Raw with StudyInstanceUID: {study_uid}"
+        )
 
-    response = orthanc.RestApiPost(f"/queries/{query_id}/retrieve")
-    orthanc.LogInfo(f"Successfully imported study from raw modality: {study_uid}")
+    retrieve_response = orthanc.RestApiPost(f"/queries/{query_id}/retrieve")
+    if retrieve_response == 200:
+        orthanc.LogInfo(f"Successfully imported study from raw modality: {study_uid}")
+    else:
+        orthanc.LogWarning(f"Failed to import study from raw modality: {study_uid}")
+        return
 
-    instances_bytes = [orthanc.RestApiGet(f"/instances/{instance["ID"]}") for instance in response["Instances"]]
+    local_study_id = orthanc.RestApiPost("/tools/find", data)
+    # all_local_series = [orthanc.RestApiGet(f"/series/{series_id}") for series_id in local_study["Series"]]
+    all_local_instances = [orthanc.RestApiGet(f"/studies/{local_study_id}/instances")]
+    instances_bytes = [orthanc.RestApiGet(f"/instances/{instance["ID"]}") for instance in instances]
     # TODO: anonymise the instances, delete the existing ones, upload again, then notify the export api
+
 
 orthanc.RegisterOnChangeCallback(OnChange)
 orthanc.RegisterRestCallback("/heart-beat", OnHeartBeat)
