@@ -19,6 +19,8 @@ from time import time
 from typing import Any, Optional
 
 import aiohttp
+import json
+import requests
 from core.exceptions import PixlDiscardError, PixlRequeueMessageError
 from decouple import config
 from loguru import logger
@@ -324,9 +326,16 @@ class PIXLAnonOrthanc(Orthanc):
         )
 
     async def import_study_from_raw(self, orthanc_raw: PIXLRawOrthanc, resource_id: str) -> Any:
-        """Notify Orthanc Anon to pull a study from Orthanc Raw"""
+        """Notify Orthanc Anon to pull a study from Orthanc Raw, anonymise the instances, and export the study."""
+
         orthanc_raw_study_info = await orthanc_raw._get(f"/studies/{resource_id}")
         study_uid = orthanc_raw_study_info["MainDicomTags"]["StudyInstanceUID"]
-        return await self._post(
-            "/import-from-raw", data={"StudyInstanceUID": study_uid, "StudyResourceID": resource_id}
+        logger.info("Importing study {} from raw to anon", study_uid)
+
+        # Don't wait for Ortanc Anon to finish processing the study
+        requests.post(
+            f"{self._url}/import-from-raw",
+            auth=(self._auth.login, self._auth.password),
+            json=json.dumps({"StudyInstanceUID": study_uid}),
+            timeout=self.http_timeout,
         )
