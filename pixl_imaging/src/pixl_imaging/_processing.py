@@ -88,6 +88,11 @@ async def _process_message(
           ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT is True, send the study to the appropriate destination
     """
     await orthanc_raw.raise_if_pending_jobs()
+
+    if archive.name == "secondary" and (_is_daytime() or _is_weekend()):
+        msg = "Not querying secondary archive during the daytime or on the weekend."
+        raise PixlOutOfHoursError(msg)
+
     logger.info("Processing: {}. Querying {} archive.", study.message.identifier, archive.name)
 
     study_query_id = await _find_study_in_archive_or_raise(
@@ -253,10 +258,6 @@ async def _find_study_in_archive_or_raise(
     the MRN and accession number.
 
     """
-    if archive.name == "secondary" and (_is_daytime() or _is_weekend()):
-        msg = "Not querying secondary archive during the daytime or on the weekend."
-        raise PixlOutOfHoursError(msg)
-
     query_id = await _find_study_in_archive(
         orthanc_raw=orthanc_raw,
         study=study,
