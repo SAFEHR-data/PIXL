@@ -331,7 +331,7 @@ def _is_weekend() -> bool:
 
 async def _retrieve_study(orthanc_raw: Orthanc, study_query_id: str) -> None:
     """Retrieve all instances for a study from the VNA / PACS."""
-    job_id = await orthanc_raw.retrieve_study_from_remote_with_query_id(query_id=study_query_id)  # C-Move
+    job_id = await orthanc_raw.retrieve_study_from_remote(query_id=study_query_id)  # C-Move
     await orthanc_raw.wait_for_job_success_or_raise(
         job_id, "c-move", timeout=orthanc_raw.dicom_timeout
     )

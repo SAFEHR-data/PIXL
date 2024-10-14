@@ -19,8 +19,6 @@ from time import time
 from typing import Any, Optional
 
 import aiohttp
-import json
-import requests
 from core.exceptions import PixlDiscardError, PixlRequeueMessageError
 from decouple import config
 from loguru import logger
@@ -134,24 +132,10 @@ class Orthanc(ABC):
         job_id = str(response["ID"])
         await self.wait_for_job_success_or_raise(job_id, "modify", timeout=self.dicom_timeout)
 
-    async def retrieve_study_from_remote_with_query_id(self, query_id: str) -> str:
+    async def retrieve_study_from_remote(self, query_id: str) -> str:
         response = await self._post(
             f"/queries/{query_id}/retrieve",
             data={"TargetAet": self.aet, "Synchronous": False, "Timeout": self.dicom_timeout},
-        )
-        return str(response["ID"])
-
-    async def retrieve_study_from_remote(self, modality: str, study_uid: str) -> str:
-        """Retrieve a study from a remote modality."""
-        response = await self._post(
-            f"/modalities/{modality}/move",
-            data={
-                "Level": "Study",
-                "TargetAet": self.aet,
-                "Synchronous": False,
-                "Resources": {"StudyInstanceUID": study_uid},
-                "Timeout": self.dicom_timeout,
-            },
         )
         return str(response["ID"])
 
@@ -326,16 +310,36 @@ class PIXLAnonOrthanc(Orthanc):
         )
 
     async def import_study_from_raw(self, orthanc_raw: PIXLRawOrthanc, resource_id: str) -> Any:
-        """Notify Orthanc Anon to pull a study from Orthanc Raw, anonymise the instances, and export the study."""
+        """
+        Notify Orthanc Anon of a study to pull from Raw
 
+        - Query Orthanc Raw for the study
+        - Send the StudyInstanceUID and the query ID to Orthanc Anon
+        """
         orthanc_raw_study_info = await orthanc_raw._get(f"/studies/{resource_id}")
         study_uid = orthanc_raw_study_info["MainDicomTags"]["StudyInstanceUID"]
+
+        data = {
+            "Level": "Study",
+            "Query": {
+                "StudyInstanceUID": study_uid,
+            },
+        }
+        query_id = await self.query_remote(modality="PIXL-Raw", data=data)
+        query_answers = await self.get_remote_query_answers(query_id=query_id)
+        if query_answers is None:
+            logger.info(f"No study found in Orthanc Raw with StudyInstanceUID: {study_uid}.")
+            return
+        elif len(query_answers) > 1:
+            logger.info("", len(query_answers))
+            return
+
         logger.info("Importing study {} from raw to anon", study_uid)
 
-        # Don't wait for Ortanc Anon to finish processing the study
-        requests.post(
-            f"{self._url}/import-from-raw",
-            auth=(self._auth.login, self._auth.password),
-            json=json.dumps({"StudyInstanceUID": study_uid}),
-            timeout=self.http_timeout,
-        )
+        # Don't wait for Orthanc Anon to finish processing the study
+        try:
+            await self._post(
+                "/import-from-raw", data={"StudyInstanceUID": study_uid, "QueryID": query_id}
+            )
+        except TimeoutError:
+            pass

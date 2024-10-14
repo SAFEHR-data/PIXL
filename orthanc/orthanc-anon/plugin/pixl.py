@@ -27,16 +27,16 @@ import sys
 import threading
 import traceback
 from io import BytesIO
-from zipfile import ZipFile
 from time import sleep
-from typing import TYPE_CHECKING, cast, Optional
+from typing import TYPE_CHECKING, Optional, cast
+from zipfile import ZipFile
 
+import pydicom
 import requests
 from core.exceptions import PixlDiscardError
 from decouple import config
 from loguru import logger
 from pydicom import dcmread
-import pydicom
 
 import orthanc
 from pixl_dcmd._dicom_helpers import get_study_info
@@ -217,7 +217,8 @@ def OnHeartBeat(output, uri, **request) -> Any:  # noqa: ARG001
 
 
 def _anonymise_dicom_instance(dataset: pydicom.Dataset) -> bytes:
-    """Anonymise a DICOM instance.
+    """
+    Anonymise a DICOM instance.
 
     Discard the study if a PIXLDiscardError is raised.
     """
@@ -228,7 +229,7 @@ def _anonymise_dicom_instance(dataset: pydicom.Dataset) -> bytes:
     except PixlDiscardError as error:
         logger.warning("Skipping instance for study {}: {}", study_identifiers, error)
         raise error
-    
+
 
 def ImportStudyFromRaw(output, uri, **request):
     """
@@ -241,125 +242,116 @@ def ImportStudyFromRaw(output, uri, **request):
     """
     payload = json.loads(request["body"])
     study_uid = payload["StudyInstanceUID"]
-    data = json.dumps({
-        "Level": "Study",
-        "Query": {
-            "StudyInstanceUID": study_uid,
-        },
-    })
+    query_id = payload["QueryID"]
+    retrieve_response = json.loads(
+        orthanc.RestApiPost(f"/queries/{query_id}/retrieve", json.dumps({}))
+    )
+    logger.debug(
+        "Response from retrieving study {} from Orthan Raw: {}", study_uid, retrieve_response
+    )
 
-    orthanc.LogInfo(f"Importing study from raw: {payload}")
-    logger.info("Importing study from raw: {}", payload)
-
-    # TODO: do this query in the imaging api and pass in the query id so we can retrieve it here
-    orthanc.LogInfo(f"Querying remote modality with query: {data}")
-    query_response = json.loads(orthanc.RestApiPost("/modalities/PIXL-Raw/query", json.dumps(data)))
-    logger.info("Query response {}", query_response)
-    query_id = query_response["ID"]
-    query_answers = json.loads(orthanc.RestApiGet(f"/queries/{query_id}/answers"))
-    logger.info(f"query answers {query_answers}, {type(query_answers)}")
-    if not query_answers:
-        orthanc.LogWarning(f"No study from in modality with StudyInstanceUID: {study_uid}.")
-    elif len(query_answers) > 1:
-        orthanc.LogWarning(
-            f"{len(query_answers)} studies foundin Orthanc Raw with StudyInstanceUID: {study_uid}. {query_answers}"
-        )
-
-    retrieve_response = json.loads(orthanc.RestApiPost(f"/queries/{query_id}/retrieve", json.dumps({})))
-    orthanc.LogInfo(f"Response from retrieving study {study_uid} from Orthan Raw: {retrieve_response}")
-
-    # Download the zipped study
+    # Download the zipped study from Orthanc Anon
     study_resource_id = _get_existing_study(study_uid=study_uid)
     if study_resource_id is None:
         return
-    zipped_study = BytesIO(orthanc.RestApiGet(f"/studies/{study_resource_id}/archive"))
-    logger.info("Study data response {}", zipped_study)
+    zipped_study_bytes = BytesIO(orthanc.RestApiGet(f"/studies/{study_resource_id}/archive"))
+    logger.trace("Study data response {}", zipped_study_bytes)
 
-    # Anonymise the instances and delete the non-anonymised study. Return early if anonymisation fails.
-    # It's important that as much code in this handler as possible is inside this "try" block.
-    # This ensures we discard the image if anything goes wrong in the anonymisation process.
-    # If the handler raises an exception the pre-anon image will be kept.
-    try:
-        anonymised_instances_bytes = _anonymise_study_instances(zipped_study)
-    except Exception as e:
-        return
-    finally:
-        orthanc.LogInfo(f"Deleteing non-anonymised study with UID {study_uid} and resource ID {study_resource_id} from Orthanc Anon")
-        orthanc.RestApiDelete(f"/studies/{study_resource_id}")
+    # Delete the oringal study now in case anything goes wrong with the anonymisation. We don't want to leave
+    # the original (non-anonymised) study on Orthanc Anon
+    logger.info(
+        "Deleteing non-anonymised study with UID {} and resource ID {} from Orthanc Anon",
+        study_uid,
+        study_resource_id,
+    )
+    orthanc.RestApiDelete(f"/studies/{study_resource_id}")
 
-    orthanc.LogInfo(f"Sending anonymised study to Orthanc Anon for study with original UID {study_uid}")
+    # Anonymise the study, re-upload to Orthanc Anon, and notify the export API to export the study
+    with ZipFile(zipped_study_bytes) as zipped_study:
+        anonymised_instances_bytes, anonymised_study_uid = _anonymise_study_instances(
+            zipped_study=zipped_study
+        )
     _upload_instances(anonymised_instances_bytes)
-
-    # TODO: get anonymised StudyInstanceUID, use this to get the anonymised study resource ID, then send the study for export
-    # Send(anonymised_resource_id)
+    anonymised_study_resource_id = _get_existing_study(study_uid=anonymised_study_uid)
+    logger.info("\noriginal uid: {}\n anon uid: {}", study_uid, anonymised_study_uid)
+    Send(study_id=anonymised_study_resource_id)
 
 
 def _get_existing_study(study_uid: str) -> Optional[str]:
-    """Get the resource ID for an existing study based on its StudyInstanceUID.
-
-    Returns the resource ID if there is a single resource with the given StudyInstanceUID.
-    Otherwise logs a warning and returns `None`.
     """
-    data = json.dumps({
-        "Level": "Study",
-        "Query": {
-            "StudyInstanceUID": study_uid,
-        },
-    })
+    Get the resource ID for an existing study based on its StudyInstanceUID.
+
+    Returns None if there are no resources with the given StudyInstanceUID.
+    Returns the resource ID if there is a single resource with the given StudyInstanceUID.
+    Returns None if there are multiple resources with the given StudyInstanceUID and deletes
+    the studies.
+    """
+    data = json.dumps(
+        {
+            "Level": "Study",
+            "Query": {
+                "StudyInstanceUID": study_uid,
+            },
+        }
+    )
     study_resource_ids = json.loads(orthanc.RestApiPost("/tools/find", data))
     if not study_resource_ids:
-        orthanc.LogWarning(f"No study found with StudyInstanceUID {study_uid}")
-        return
-    elif len(study_resource_ids) > 1:
-        orthanc.LogWarning(f"{len(study_resource_ids)} found with StudyInstanceUID {study_uid}")
-        return
+        logger.info(f"No study found with StudyInstanceUID {study_uid}")
+        return None
+    elif len(study_resource_ids) == 1:
+        return study_resource_ids[0]
 
-    return study_resource_ids[0]
+    logger.info(
+        f"{len(study_resource_ids)} found with StudyInstanceUID {study_uid}. Deleting studies."
+    )
+    for resource_id in study_resource_ids:
+        orthanc.RestApiDelete(f"/studies/{resource_id}")
 
 
-def _anonymise_study_instances(zipped_study: BytesIO) -> list[bytes]:
-    """Iterate over all instances and anonymise them"""
+def _anonymise_study_instances(zipped_study: ZipFile) -> tuple[list[bytes], str]:
+    """
+    Iterate over all instances and anonymise them.
 
+    Return a list of the bytes of anonymised instances, and the anonymised StudyInstanceUID.
+    """
     anonymised_instances_bytes = []
-    with ZipFile(zipped_study) as z:
-        logger.info("Info list: {}", z.infolist())
-        for file_info in z.infolist():
-            with z.open(file_info) as file:
-                logger.info("Reading file {}", file)
-                try:
-                    dataset = dcmread(file)
-                except pydicom.errors.InvalidDicomError as e:
-                    logger.error("Failed to read file {}. Error: {}", file, str(e))
-                    raise e
+    for file_info in zipped_study.infolist():
+        with zipped_study.open(file_info) as file:
+            logger.debug("Reading file {}", file)
+            try:
+                dataset = dcmread(file)
+            except pydicom.errors.InvalidDicomError:
+                logger.warning("Failed to read file {}.", file)
+                raise
 
-                try:
-                    logger.info("Anonymising file: {}", file)
-                    anonymised_instance_bytes = _anonymise_dicom_instance(dataset=dataset)
-                except PixlDiscardError:
-                    pass
-                except Exception:
-                    orthanc.LogError(f"Failed to anonymize file {file} due to\n" + traceback.format_exc())
-                    raise e
-                else:
-                    anonymised_instances_bytes.append(anonymised_instance_bytes)
+            try:
+                logger.info("Anonymising file: {}", file)
+                anonymised_instances_bytes.append(_anonymise_dicom_instance(dataset))
+            except PixlDiscardError:
+                pass
+            except Exception:
+                logger.warning("Failed to anonymize file: {}", file)
+                raise
+            else:
+                anonymised_study_uid = dataset[0x0020, 0x000D].value
 
-    return anonymised_instances_bytes
+    return anonymised_instances_bytes, anonymised_study_uid
 
 
 def _upload_instances(instances_bytes):
     """Upload instances to Orthanc"""
     files = []
     for index, dicom_bytes in enumerate(instances_bytes):
-        files.append(('file', (f"instance{index}.dcm", dicom_bytes, 'application/dicom')))
+        files.append(("file", (f"instance{index}.dcm", dicom_bytes, "application/dicom")))
 
     # Using requests as doing:
     # `upload_response = orthanc.RestApiPost(f"/instances", anonymised_files)`
     # gives an error BadArgumentType error (orthanc.RestApiPost seems to only accept json)
     upload_response = requests.post(
-            f"{ORTHANC_URL}/instances",
-            auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD),
-            files=files,
-        )
+        f"{ORTHANC_URL}/instances",
+        auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD),
+        files=files,
+    )
     upload_response.raise_for_status()
 
 
