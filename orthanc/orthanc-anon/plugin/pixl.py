@@ -220,7 +220,7 @@ def _anonymise_dicom_instance(dataset: pydicom.Dataset) -> bytes:
     """
     Anonymise a DICOM instance.
 
-    Discard the study if a PIXLDiscardError is raised.
+    Skip the instance for a study if a PIXLDiscardError is raised.
     """
     try:
         study_identifiers = get_study_info(dataset)
@@ -305,8 +305,6 @@ def _get_existing_study(study_uid: str) -> Optional[str]:
     logger.info(
         f"{len(study_resource_ids)} found with StudyInstanceUID {study_uid}. Deleting studies."
     )
-    for resource_id in study_resource_ids:
-        orthanc.RestApiDelete(f"/studies/{resource_id}")
 
     return None
 
