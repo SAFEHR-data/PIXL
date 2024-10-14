@@ -228,10 +228,10 @@ def _anonymise_dicom_instance(dataset: pydicom.Dataset) -> bytes:
         return write_dataset_to_bytes(dataset)
     except PixlDiscardError as error:
         logger.warning("Skipping instance for study {}: {}", study_identifiers, error)
-        raise error
+        raise
 
 
-def ImportStudyFromRaw(output, uri, **request):
+def ImportStudyFromRaw(output, uri, **request):  # noqa: ARG001
     """
     Import a study from Orthanc Raw.
 
@@ -257,8 +257,8 @@ def ImportStudyFromRaw(output, uri, **request):
     zipped_study_bytes = BytesIO(orthanc.RestApiGet(f"/studies/{study_resource_id}/archive"))
     logger.trace("Study data response {}", zipped_study_bytes)
 
-    # Delete the oringal study now in case anything goes wrong with the anonymisation. We don't want to leave
-    # the original (non-anonymised) study on Orthanc Anon
+    # Delete the oringal study now in case anything goes wrong with the anonymisation.
+    # We don't want to leave the original (non-anonymised) study on Orthanc Anon
     logger.info(
         "Deleteing non-anonymised study with UID {} and resource ID {} from Orthanc Anon",
         study_uid,
@@ -269,11 +269,11 @@ def ImportStudyFromRaw(output, uri, **request):
     # Anonymise the study, re-upload to Orthanc Anon, and notify the export API to export the study
     with ZipFile(zipped_study_bytes) as zipped_study:
         anonymised_instances_bytes, anonymised_study_uid = _anonymise_study_instances(
-            zipped_study=zipped_study
+            zipped_study=zipped_study,
+            study_uid=study_uid,
         )
     _upload_instances(anonymised_instances_bytes)
     anonymised_study_resource_id = _get_existing_study(study_uid=anonymised_study_uid)
-    logger.info("\noriginal uid: {}\n anon uid: {}", study_uid, anonymised_study_uid)
     Send(study_id=anonymised_study_resource_id)
 
 
@@ -298,7 +298,8 @@ def _get_existing_study(study_uid: str) -> Optional[str]:
     if not study_resource_ids:
         logger.info(f"No study found with StudyInstanceUID {study_uid}")
         return None
-    elif len(study_resource_ids) == 1:
+
+    if len(study_resource_ids) == 1:
         return study_resource_ids[0]
 
     logger.info(
@@ -307,8 +308,10 @@ def _get_existing_study(study_uid: str) -> Optional[str]:
     for resource_id in study_resource_ids:
         orthanc.RestApiDelete(f"/studies/{resource_id}")
 
+    return None
 
-def _anonymise_study_instances(zipped_study: ZipFile) -> tuple[list[bytes], str]:
+
+def _anonymise_study_instances(zipped_study: ZipFile, study_uid: str) -> tuple[list[bytes], str]:
     """
     Iterate over all instances and anonymise them.
 
@@ -325,7 +328,7 @@ def _anonymise_study_instances(zipped_study: ZipFile) -> tuple[list[bytes], str]
                 raise
 
             try:
-                logger.info("Anonymising file: {}", file)
+                logger.debug("Anonymising file: {}", file)
                 anonymised_instances_bytes.append(_anonymise_dicom_instance(dataset))
             except PixlDiscardError:
                 pass
@@ -335,10 +338,14 @@ def _anonymise_study_instances(zipped_study: ZipFile) -> tuple[list[bytes], str]
             else:
                 anonymised_study_uid = dataset[0x0020, 0x000D].value
 
+    if not anonymised_instances_bytes:
+        message = "All instances have been discarded for study {}", study_uid
+        raise ValueError(message)
+
     return anonymised_instances_bytes, anonymised_study_uid
 
 
-def _upload_instances(instances_bytes):
+def _upload_instances(instances_bytes: list[bytes]) -> None:
     """Upload instances to Orthanc"""
     files = []
     for index, dicom_bytes in enumerate(instances_bytes):
@@ -348,9 +355,10 @@ def _upload_instances(instances_bytes):
     # `upload_response = orthanc.RestApiPost(f"/instances", anonymised_files)`
     # gives an error BadArgumentType error (orthanc.RestApiPost seems to only accept json)
     upload_response = requests.post(
-        f"{ORTHANC_URL}/instances",
+        url=f"{ORTHANC_URL}/instances",
         auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD),
         files=files,
+        timeout=config("PIXL_DICOM_TRANSFER_TIMEOUT", default=180, cast=float),
     )
     upload_response.raise_for_status()
 

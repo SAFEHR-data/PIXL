@@ -84,8 +84,8 @@ async def _process_message(
     Then:
         - set the project name tag for the study if it's not already set
         - send the study to Orthanc Anon if ORTHANC_AUTOROUTE_RAW_TO_ANON is True
-        - if the C-STORE operation to Orthanc Anon is successful, and ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT
-          is True, send the study to the appropriate destination
+        - if the C-STORE operation to Orthanc Anon is successful, and
+          ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT is True, send the study to the appropriate destination
     """
     await orthanc_raw.raise_if_pending_jobs()
     logger.info("Processing: {}. Querying {} archive.", study.message.identifier, archive.name)

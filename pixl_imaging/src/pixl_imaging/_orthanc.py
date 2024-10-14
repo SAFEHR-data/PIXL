@@ -13,7 +13,7 @@
 #  limitations under the License.
 from __future__ import annotations
 
-from abc import ABC
+import contextlib
 from asyncio import sleep
 from time import time
 from typing import Any, Optional
@@ -24,8 +24,8 @@ from decouple import config
 from loguru import logger
 
 
-class Orthanc(ABC):
-    def __init__(
+class Orthanc:
+    def __init__(  # noqa: PLR0913
         self,
         url: str,
         username: str,
@@ -181,8 +181,6 @@ class Orthanc(ABC):
             await sleep(10)
             job_info = await self.job_state(job_id=job_id)
 
-        return job_info
-
     async def job_state(self, job_id: str) -> Any:
         """Get job state from orthanc."""
         # See: https://book.orthanc-server.com/users/advanced-rest.html#jobs-monitoring
@@ -198,7 +196,10 @@ class Orthanc(ABC):
             study = await self.query_local_study(study_id)
             is_stable = study["IsStable"]
             if not is_stable and ((time() - start_time) > self.dicom_timeout):
-                msg = f"Failed to stabilise study {study_id} in {self.dicom_timeout} seconds. Study info: {study}, {is_stable}, {type(is_stable)}"
+                msg = (
+                    f"Failed to stabilise study {study_id} in {self.dicom_timeout} seconds. "
+                    f"Study info: {study}, {is_stable}, {type(is_stable)}"
+                )
                 raise PixlDiscardError(msg)
 
     async def _get(self, path: str) -> Any:
@@ -316,7 +317,7 @@ class PIXLAnonOrthanc(Orthanc):
         - Query Orthanc Raw for the study
         - Send the StudyInstanceUID and the query ID to Orthanc Anon
         """
-        orthanc_raw_study_info = await orthanc_raw._get(f"/studies/{resource_id}")
+        orthanc_raw_study_info = await orthanc_raw.query_local_study(study_id=resource_id)
         study_uid = orthanc_raw_study_info["MainDicomTags"]["StudyInstanceUID"]
 
         data = {
@@ -326,20 +327,14 @@ class PIXLAnonOrthanc(Orthanc):
             },
         }
         query_id = await self.query_remote(modality="PIXL-Raw", data=data)
-        query_answers = await self.get_remote_query_answers(query_id=query_id)
-        if query_answers is None:
-            logger.info(f"No study found in Orthanc Raw with StudyInstanceUID: {study_uid}.")
-            return
-        elif len(query_answers) > 1:
-            logger.info("", len(query_answers))
+        if query_id is None:
+            logger.info(f"No unique study found in Orthanc Raw with StudyInstanceUID: {study_uid}.")
             return
 
         logger.info("Importing study {} from raw to anon", study_uid)
 
         # Don't wait for Orthanc Anon to finish processing the study
-        try:
+        with contextlib.suppress(TimeoutError):
             await self._post(
                 "/import-from-raw", data={"StudyInstanceUID": study_uid, "QueryID": query_id}
             )
-        except TimeoutError:
-            pass
