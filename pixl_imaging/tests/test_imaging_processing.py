@@ -143,12 +143,8 @@ class WritableOrthanc(Orthanc):
             password=password,
             http_timeout=config("PIXL_QUERY_TIMEOUT", cast=int),
             dicom_timeout=config("PIXL_DICOM_TRANSFER_TIMEOUT", cast=int),
+            aet=aet,
         )
-        self._aet = aet
-
-    @property
-    def aet(self) -> str:
-        return self._aet
 
     def upload(self, filename: str) -> None:
         run_subprocess(
