@@ -11,7 +11,8 @@ Please see the [rolling-skeleton]([https://github.com/SAFEHR-data/the-rolling-sk
 PIXL is intended run on one of the [GAE](https://github.com/SAFEHR-data/Book-of-FlowEHR/blob/main/glossary.md#gaes)s and comprises
 several services orchestrated by [Docker Compose](https://docs.docker.com/compose/).
 
-To get access to the GAE, [see the documentation on Slab](https://uclh.slab.com/posts/gae-access-7hkddxap)
+To get access to the GAE, [see the documentation on Slab](https://uclh.slab.com/posts/gae-access-7hkddxap). 
+Please request access to the link and add further details in a [new blank issue](https://github.com/SAFEHR-data/PIXL/issues/new).
 
 ## Installation
 
