@@ -28,7 +28,7 @@ import threading
 import traceback
 from io import BytesIO
 from time import sleep
-from typing import TYPE_CHECKING, Optional, cast
+from typing import TYPE_CHECKING, cast
 from zipfile import ZipFile
 
 import pydicom
@@ -255,12 +255,10 @@ def ImportStudyFromRaw(output, uri, **request):  # noqa: ARG001
 
     # Download the zipped study from Orthanc Anon
     study_resource_id = _get_study_resource_id(study_uid=study_uid)
-    if study_resource_id is None:
-        return
     zipped_study_bytes = BytesIO(orthanc.RestApiGet(f"/studies/{study_resource_id}/archive"))
     logger.trace("Study data response {}", zipped_study_bytes)
 
-    # Delete the oringal study now in case anything goes wrong with the anonymisation.
+    # Delete the original study now in case anything goes wrong with the anonymisation.
     # We don't want to leave the original (non-anonymised) study on Orthanc Anon
     logger.info(
         "Deleteing non-anonymised study with UID {} and resource ID {} from Orthanc Anon",
@@ -280,7 +278,7 @@ def ImportStudyFromRaw(output, uri, **request):  # noqa: ARG001
     Send(study_id=anonymised_study_resource_id)
 
 
-def _get_study_resource_id(study_uid: str) -> Optional[str]:
+def _get_study_resource_id(study_uid: str) -> str:
     """
     Get the resource ID for an existing study based on its StudyInstanceUID.
 
@@ -299,17 +297,13 @@ def _get_study_resource_id(study_uid: str) -> Optional[str]:
     )
     study_resource_ids = json.loads(orthanc.RestApiPost("/tools/find", data))
     if not study_resource_ids:
-        logger.info(f"No study found with StudyInstanceUID {study_uid}")
-        return None
+        message = f"No study found with StudyInstanceUID {study_uid}"
+        raise ValueError(message)
+    if len(study_resource_ids) > 1:
+        message = f"Multiple studies found with StudyInstanceUID {study_uid}"
+        raise ValueError(message)
 
-    if len(study_resource_ids) == 1:
-        return study_resource_ids[0]
-
-    logger.info(
-        f"{len(study_resource_ids)} found with StudyInstanceUID {study_uid}. Deleting studies."
-    )
-
-    return None
+    return study_resource_ids[0]
 
 
 def _anonymise_study_instances(zipped_study: ZipFile, study_uid: str) -> tuple[list[bytes], str]:
@@ -319,6 +313,7 @@ def _anonymise_study_instances(zipped_study: ZipFile, study_uid: str) -> tuple[l
     Return a list of the bytes of anonymised instances, and the anonymised StudyInstanceUID.
     """
     anonymised_instances_bytes = []
+    logger.debug("Zipped study infolist: {}", zipped_study.infolist())
     for file_info in zipped_study.infolist():
         with zipped_study.open(file_info) as file:
             logger.debug("Reading file {}", file)
