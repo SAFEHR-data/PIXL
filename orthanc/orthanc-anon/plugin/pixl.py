@@ -359,7 +359,7 @@ def _upload_instances(instances_bytes: list[bytes]) -> None:
         url=f"{ORTHANC_URL}/instances",
         auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD),
         files=files,
-        timeout=config("PIXL_DICOM_TRANSFER_TIMEOUT", default=180, cast=float),
+        timeout=config("PIXL_DICOM_TRANSFER_TIMEOUT", default=180, cast=int),
     )
     upload_response.raise_for_status()
 
