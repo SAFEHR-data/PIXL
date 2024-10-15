@@ -101,7 +101,7 @@ async def _process_message(
         archive=archive,
     )
 
-    existing_local_resource = await _get_existing_study(
+    existing_local_resource = await _get_study_resource_id(
         orthanc_raw=orthanc_raw,
         study=study,
     )
@@ -122,7 +122,7 @@ async def _process_message(
 
     # Now that study has arrived in orthanc raw, we can set its project name tag via the API
     logger.debug("Get existing study before setting project name")
-    resource = await _get_existing_study(
+    resource = await _get_study_resource_id(
         orthanc_raw=orthanc_raw,
         study=study,
     )
@@ -149,7 +149,7 @@ async def _process_message(
     await orthanc_anon.import_study_from_raw(orthanc_raw=orthanc_raw, resource_id=resource["ID"])
 
 
-async def _get_existing_study(
+async def _get_study_resource_id(
     orthanc_raw: PIXLRawOrthanc,
     study: ImagingStudy,
 ) -> dict:

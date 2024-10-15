@@ -254,7 +254,7 @@ def ImportStudyFromRaw(output, uri, **request):  # noqa: ARG001
     )
 
     # Download the zipped study from Orthanc Anon
-    study_resource_id = _get_existing_study(study_uid=study_uid)
+    study_resource_id = _get_study_resource_id(study_uid=study_uid)
     if study_resource_id is None:
         return
     zipped_study_bytes = BytesIO(orthanc.RestApiGet(f"/studies/{study_resource_id}/archive"))
@@ -276,7 +276,7 @@ def ImportStudyFromRaw(output, uri, **request):  # noqa: ARG001
             study_uid=study_uid,
         )
     _upload_instances(anonymised_instances_bytes)
-    anonymised_study_resource_id = _get_existing_study(study_uid=anonymised_study_uid)
+    anonymised_study_resource_id = _get_study_resource_id(study_uid=anonymised_study_uid)
     Send(study_id=anonymised_study_resource_id)
 
 
