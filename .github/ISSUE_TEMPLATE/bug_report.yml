@@ -34,7 +34,6 @@ body:
     attributes:
       label: Relevant log output (optional)
       description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
-      render: shell
     validations:
       required: false 
   - type: textarea
@@ -42,6 +41,5 @@ body:
     attributes:
       label: What did you expect? (optional)
       description: A clear and concise description of what you expected to happen.
-      placeholder:
     validations:
       required: false
