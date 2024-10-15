@@ -64,7 +64,10 @@ logger.add(sys.stdout, level=logging_level)
 logger.warning("Running logging at level {}", logging_level)
 
 # Force the spec to be downloaded on startup
+start_time = time()
 DicomValidator(edition="current")
+end_time = time()
+logger.debug("Time taken to download DICOM validator spec on startup: {}", end_time - start_time)
 
 
 def AzureAccessToken() -> str:
@@ -296,7 +299,7 @@ def _get_study_resource_id(study_uid: str) -> str:
 def wait_for_study_to_stabilise_or_raise(study_id: str) -> None:
     """Wait for a study to become stable, or raise exception if exceeds timeout."""
     timeout = config("PIXL_DICOM_TRANSFER_TIMEOUT", default=180, cast=int)
-    study_path = json.dumps(f"/studies/{study_id}")
+    study_path = f"/studies/{study_id}"
     study = json.loads(orthanc.RestApiGet(study_path))
     is_stable = study["IsStable"]
     start_time = time()
@@ -308,6 +311,8 @@ def wait_for_study_to_stabilise_or_raise(study_id: str) -> None:
         if not is_stable and ((time() - start_time) > timeout):
             msg = f"Failed to stabilise study {study_id} in {timeout} seconds."
             raise PixlDiscardError(msg)
+
+    logger.debug("Study {} is stable after {} seconds", study_id, time() - start_time)
 
 
 def _anonymise_study_instances(zipped_study: ZipFile, study_uid: str) -> tuple[list[bytes], str]:

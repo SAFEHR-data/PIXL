@@ -199,6 +199,8 @@ class Orthanc:
                 msg = f"Failed to stabilise study {study_id} in {self.dicom_timeout} seconds."
                 raise PixlDiscardError(msg)
 
+        logger.debug("Study {} is stable after {} seconds", study_id, time() - start_time)
+
     async def _get(self, path: str) -> Any:
         async with (
             aiohttp.ClientSession() as session,
