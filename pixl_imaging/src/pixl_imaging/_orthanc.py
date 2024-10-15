@@ -196,10 +196,7 @@ class Orthanc:
             study = await self.query_local_study(study_id)
             is_stable = study["IsStable"]
             if not is_stable and ((time() - start_time) > self.dicom_timeout):
-                msg = (
-                    f"Failed to stabilise study {study_id} in {self.dicom_timeout} seconds. "
-                    f"Study info: {study}, {is_stable}, {type(is_stable)}"
-                )
+                msg = f"Failed to stabilise study {study_id} in {self.dicom_timeout} seconds."
                 raise PixlDiscardError(msg)
 
     async def _get(self, path: str) -> Any:

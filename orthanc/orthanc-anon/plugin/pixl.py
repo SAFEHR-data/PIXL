@@ -27,7 +27,7 @@ import sys
 import threading
 import traceback
 from io import BytesIO
-from time import sleep
+from time import sleep, time
 from typing import TYPE_CHECKING, cast
 from zipfile import ZipFile
 
@@ -219,21 +219,6 @@ def OnHeartBeat(output, uri, **request) -> Any:  # noqa: ARG001
     output.AnswerBuffer("OK\n", "text/plain")
 
 
-def _anonymise_dicom_instance(dataset: pydicom.Dataset) -> bytes:
-    """
-    Anonymise a DICOM instance.
-
-    Skip the instance for a study if a PIXLDiscardError is raised.
-    """
-    try:
-        study_identifiers = get_study_info(dataset)
-        anonymise_and_validate_dicom(dataset, config_path=None, synchronise_pixl_db=True)
-        return write_dataset_to_bytes(dataset)
-    except PixlDiscardError as error:
-        logger.warning("Skipping instance for study {}: {}", study_identifiers, error)
-        raise
-
-
 def ImportStudyFromRaw(output, uri, **request):  # noqa: ARG001
     """
     Import a study from Orthanc Raw.
@@ -255,6 +240,7 @@ def ImportStudyFromRaw(output, uri, **request):  # noqa: ARG001
 
     # Download the zipped study from Orthanc Anon
     study_resource_id = _get_study_resource_id(study_uid=study_uid)
+    wait_for_study_to_stabilise_or_raise(study_id=study_resource_id)
     zipped_study_bytes = BytesIO(orthanc.RestApiGet(f"/studies/{study_resource_id}/archive"))
     logger.trace("Study data response {}", zipped_study_bytes)
 
@@ -275,6 +261,7 @@ def ImportStudyFromRaw(output, uri, **request):  # noqa: ARG001
         )
     _upload_instances(anonymised_instances_bytes)
     anonymised_study_resource_id = _get_study_resource_id(study_uid=anonymised_study_uid)
+    wait_for_study_to_stabilise_or_raise(study_id=anonymised_study_resource_id)
     Send(study_id=anonymised_study_resource_id)
 
 
@@ -304,6 +291,23 @@ def _get_study_resource_id(study_uid: str) -> str:
         raise ValueError(message)
 
     return study_resource_ids[0]
+
+
+def wait_for_study_to_stabilise_or_raise(study_id: str) -> None:
+    """Wait for a study to become stable, or raise exception if exceeds timeout."""
+    timeout = config("PIXL_DICOM_TRANSFER_TIMEOUT", default=180, cast=int)
+    study_path = json.dumps(f"/studies/{study_id}")
+    study = json.loads(orthanc.RestApiGet(study_path))
+    is_stable = study["IsStable"]
+    start_time = time()
+
+    while not is_stable:
+        sleep(10)
+        study = json.loads(orthanc.RestApiGet(study_path))
+        is_stable = study["IsStable"]
+        if not is_stable and ((time() - start_time) > timeout):
+            msg = f"Failed to stabilise study {study_id} in {timeout} seconds."
+            raise PixlDiscardError(msg)
 
 
 def _anonymise_study_instances(zipped_study: ZipFile, study_uid: str) -> tuple[list[bytes], str]:
@@ -339,6 +343,21 @@ def _anonymise_study_instances(zipped_study: ZipFile, study_uid: str) -> tuple[l
         raise ValueError(message)
 
     return anonymised_instances_bytes, anonymised_study_uid
+
+
+def _anonymise_dicom_instance(dataset: pydicom.Dataset) -> bytes:
+    """
+    Anonymise a DICOM instance.
+
+    Skip the instance for a study if a PIXLDiscardError is raised.
+    """
+    try:
+        study_identifiers = get_study_info(dataset)
+        anonymise_and_validate_dicom(dataset, config_path=None, synchronise_pixl_db=True)
+        return write_dataset_to_bytes(dataset)
+    except PixlDiscardError as error:
+        logger.warning("Skipping instance for study {}: {}", study_identifiers, error)
+        raise
 
 
 def _upload_instances(instances_bytes: list[bytes]) -> None:
