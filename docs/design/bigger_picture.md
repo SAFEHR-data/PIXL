@@ -4,4 +4,4 @@ The [System design for linkage and export of imaging and EHR data](https://githu
 document in `the-rolling-skeleton` repository provides an overview of the overall system
 architecture and the components that make up the system that PIXL is part of.
 
-Please request access to the link and add further details in a [new blank issue](https://github.com/SAFEHR-data/PIXL/issues/new).
+Please request access to the `the-rolling-skeleton` repository and add further details in a [new blank issue](https://github.com/SAFEHR-data/PIXL/issues/new).

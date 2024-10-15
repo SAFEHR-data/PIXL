@@ -12,7 +12,7 @@ PIXL is intended run on one of the [GAE](https://github.com/SAFEHR-data/Book-of-
 several services orchestrated by [Docker Compose](https://docs.docker.com/compose/).
 
 To get access to the GAE, [see the documentation on Slab](https://uclh.slab.com/posts/gae-access-7hkddxap). 
-Please request access to the link and add further details in a [new blank issue](https://github.com/SAFEHR-data/PIXL/issues/new).
+Please request access to Slab and add further details in a [new blank issue](https://github.com/SAFEHR-data/PIXL/issues/new).
 
 ## Installation
 
