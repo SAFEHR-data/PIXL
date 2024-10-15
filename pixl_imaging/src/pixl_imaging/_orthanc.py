@@ -13,7 +13,7 @@
 #  limitations under the License.
 from __future__ import annotations
 
-import contextlib
+import asyncio
 from asyncio import sleep
 from time import time
 from typing import Any, Optional
@@ -334,7 +334,9 @@ class PIXLAnonOrthanc(Orthanc):
         logger.info("Importing study {} from raw to anon", study_uid)
 
         # Don't wait for Orthanc Anon to finish processing the study
-        with contextlib.suppress(TimeoutError):
-            await self._post(
-                "/import-from-raw", data={"StudyInstanceUID": study_uid, "QueryID": query_id}
+        asyncio.create_task(  # noqa: RUF006
+            self._post(
+                path="/import-from-raw",
+                data={"StudyInstanceUID": study_uid, "QueryID": query_id},
             )
+        )
