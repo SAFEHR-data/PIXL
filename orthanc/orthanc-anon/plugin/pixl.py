@@ -280,7 +280,7 @@ def ImportStudyFromRaw(output, uri, **request):  # noqa: ARG001
     Send(study_id=anonymised_study_resource_id)
 
 
-def _get_existing_study(study_uid: str) -> Optional[str]:
+def _get_study_resource_id(study_uid: str) -> Optional[str]:
     """
     Get the resource ID for an existing study based on its StudyInstanceUID.
 
