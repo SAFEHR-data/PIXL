@@ -220,10 +220,10 @@ See the [hasher documentation](./hasher/README.md) for more information.
 
 ## Run `PIXL` in GAE
 
-### Start
-
 <details>
   <summary>Click here to view detailed steps</summary>
+
+### Start
 
 From the _PIXL_ directory:
 
