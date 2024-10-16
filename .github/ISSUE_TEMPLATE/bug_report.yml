@@ -13,8 +13,6 @@
 #  limitations under the License.
 name: Bug Report
 description: Have you got a bug? Please report it here!
-title: "[Bug]: "
-labels: ["bug", "triage"]
 projects: [ "SAFEHR-data/13" ]
 body:
   - type: markdown
