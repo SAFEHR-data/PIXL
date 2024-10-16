@@ -24,7 +24,7 @@ body:
   - type: textarea
     id: actual_behaviour
     attributes:
-      label: What did you get?
+      label: What happened?
       description: A clear and concise description of what actually happens.
       placeholder: "If you have a code sample, error messages, stack traces, please provide it here as well"
     validations:
