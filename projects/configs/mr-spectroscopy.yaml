@@ -31,5 +31,5 @@ series_filters:
     - "positioning"
 
 destination:
-    dicom: "dicomweb"
+    dicom: "none"
     parquet: "none"
