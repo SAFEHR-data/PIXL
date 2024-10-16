@@ -58,7 +58,8 @@ Otherwise, you have the option to rebase your `{ISSUE_NUMBER-FEATURE_BRANCH_NAME
 git checkout main
 git pull origin main
 git checkout ISSUE_NUMBER-FEATURE_BRANCH #(e.g. git checkout 422-my-feature-branch)
-git rebase main
+git fetch
+git merge main
 git push --force origin FEATURE_BRANCH
 ```
 5. Run `pre-commit run -a` to tidy up code and documentation (this is also tested in [CI](https://github.com/SAFEHR-data/PIXL/blob/main/.github/workflows/main.yml)).
