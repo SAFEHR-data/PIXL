@@ -126,9 +126,6 @@ async def _process_message(
         orthanc_raw=orthanc_raw,
         study=study,
     )
-    await orthanc_raw.wait_for_study_to_stabilise_or_raise(
-        study_id=resource["ID"],
-    )
 
     if not await _project_name_is_correct(
         project_name=study.message.project_name,
