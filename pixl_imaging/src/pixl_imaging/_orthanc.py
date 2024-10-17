@@ -166,8 +166,9 @@ class Orthanc(ABC):
                 msg = f"Failed to finish {job_type} job {job_id} in {timeout} seconds"
                 await sleep(10)
                 raise PixlDiscardError(msg)
-
             await sleep(10)
+            if job_info["State"] == "Pending":
+                start_time = time()
             job_info = await self.job_state(job_id=job_id)
 
     async def job_state(self, job_id: str) -> Any:
