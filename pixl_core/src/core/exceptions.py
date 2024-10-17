@@ -24,6 +24,10 @@ class PixlDiscardError(RuntimeError):
     """
 
 
+class PixlSkipInstanceError(RuntimeError):
+    """Study instance should be ignored."""
+
+
 class PixlRequeueMessageError(RuntimeError):
     """Requeue PIXL message."""
 

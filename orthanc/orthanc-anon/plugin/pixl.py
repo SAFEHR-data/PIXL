@@ -33,13 +33,13 @@ from zipfile import ZipFile
 
 import pydicom
 import requests
-from core.exceptions import PixlDiscardError
+from core.exceptions import PixlDiscardError, PixlSkipInstanceError
 from decouple import config
 from loguru import logger
 from pydicom import dcmread
 
 import orthanc
-from pixl_dcmd._dicom_helpers import DicomValidator, get_study_info
+from pixl_dcmd._dicom_helpers import DicomValidator
 from pixl_dcmd.main import (
     anonymise_and_validate_dicom,
     write_dataset_to_bytes,
@@ -319,6 +319,8 @@ def _anonymise_study_instances(zipped_study: ZipFile, study_uid: str) -> tuple[l
     """
     Iterate over all instances and anonymise them.
 
+    Skip an instance if a PixlSkipInstanceError is raised during anonymisation.
+
     Return a list of the bytes of anonymised instances, and the anonymised StudyInstanceUID.
     """
     anonymised_instances_bytes = []
@@ -329,16 +331,21 @@ def _anonymise_study_instances(zipped_study: ZipFile, study_uid: str) -> tuple[l
             try:
                 dataset = dcmread(file)
             except pydicom.errors.InvalidDicomError:
-                logger.warning("Failed to read file {}.", file)
+                logger.error("Failed to read file {} for study: {}.", file, study_uid)
                 raise
 
             try:
-                logger.debug("Anonymising file: {}", file)
+                logger.debug("Anonymising file: {} for study: {}", file, study_uid)
                 anonymised_instances_bytes.append(_anonymise_dicom_instance(dataset))
-            except PixlDiscardError:
-                pass
+            except PixlSkipInstanceError as e:
+                logger.warning(
+                    "Skipping instance {} for study {}: {}",
+                    dataset[0x0008, 0x0018].value,
+                    study_uid,
+                    e,
+                )
             except Exception:
-                logger.warning("Failed to anonymize file: {}", file)
+                logger.error("Failed to anonymize file: {} for study: {} ", file, study_uid)
                 raise
             else:
                 anonymised_study_uid = dataset[0x0020, 0x000D].value
@@ -351,18 +358,9 @@ def _anonymise_study_instances(zipped_study: ZipFile, study_uid: str) -> tuple[l
 
 
 def _anonymise_dicom_instance(dataset: pydicom.Dataset) -> bytes:
-    """
-    Anonymise a DICOM instance.
-
-    Skip the instance for a study if a PIXLDiscardError is raised.
-    """
-    try:
-        study_identifiers = get_study_info(dataset)
-        anonymise_and_validate_dicom(dataset, config_path=None, synchronise_pixl_db=True)
-        return write_dataset_to_bytes(dataset)
-    except PixlDiscardError as error:
-        logger.warning("Skipping instance for study {}: {}", study_identifiers, error)
-        raise
+    """Anonymise a DICOM instance."""
+    anonymise_and_validate_dicom(dataset, config_path=None, synchronise_pixl_db=True)
+    return write_dataset_to_bytes(dataset)
 
 
 def _upload_instances(instances_bytes: list[bytes]) -> None:
