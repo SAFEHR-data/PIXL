@@ -11,30 +11,15 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+"""Download the DICOM spec with dicom-validator."""
 
-"""Custom exceptions for PIXL."""
+from pathlib import Path
 
+from dicom_validator.spec_reader.edition_reader import EditionReader
 
-class PixlDiscardError(RuntimeError):
-    """
-    Expected application error.
-
-    Exception that will be caught and whose message will be displayed
-    (without a stack trace).
-    """
-
-
-class PixlSkipInstanceError(RuntimeError):
-    """Study instance should be ignored."""
-
-
-class PixlRequeueMessageError(RuntimeError):
-    """Requeue PIXL message."""
-
-
-class PixlOutOfHoursError(Exception):
-    """Nack and requeue PIXL message."""
-
-
-class PixlStudyNotInPrimaryArchiveError(Exception):
-    """Study not in primary archive."""
+edition = "current"
+download_path = str(Path.home() / "dicom-validator")
+edition_reader = EditionReader(download_path)
+destination = edition_reader.get_revision(edition, recreate_json=False)
+json_path = Path(destination, "json")
+EditionReader.load_dicom_info(json_path)

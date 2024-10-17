@@ -17,7 +17,7 @@ import typing
 from io import BytesIO
 
 import requests
-from core.exceptions import PixlDiscardError
+from core.exceptions import PixlSkipInstanceError
 from core.project_config import load_project_config, load_tag_operations
 from decouple import config
 from dicomanonymizer.simpledicomanonymizer import (
@@ -142,10 +142,10 @@ def anonymise_dicom(
     # Series Description tag as part of anonymisation.
     if _should_exclude_series(dataset, project_config):
         msg = "DICOM instance discarded due to its series description"
-        raise PixlDiscardError(msg)
+        raise PixlSkipInstanceError(msg)
     if dataset.Modality not in project_config.project.modalities:
         msg = f"Dropping DICOM Modality: {dataset.Modality}"
-        raise PixlDiscardError(msg)
+        raise PixlSkipInstanceError(msg)
 
     logger.info("Anonymising received instance: {}", study_info)
 
@@ -241,7 +241,7 @@ def _secure_hash(
         else:
             # This is because we currently only hash patient id specifically.
             # Other types can be added easily if needed.
-            raise PixlDiscardError(f"Tag {tag} is not an LO VR type, cannot hash.")
+            raise PixlSkipInstanceError(f"Tag {tag} is not an LO VR type, cannot hash.")
 
         dataset[grp, el].value = hashed_value
 
