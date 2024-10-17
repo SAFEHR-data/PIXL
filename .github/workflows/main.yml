@@ -133,47 +133,47 @@ jobs:
                   echo FINISHED SYSTEM TEST SCRIPT
 
             - name: Dump queue docker logs for debugging
-              if: success() || failure()
+              if: ${{ failure() }}
               run: |
                   docker logs -t system-test-queue-1 2>&1
 
             - name: Dump postgres docker logs for debugging
-              if: success() || failure()
+              if: ${{ failure() }}
               run: |
                   docker logs -t system-test-postgres-1 2>&1
 
             - name: Dump imaging-api docker logs for debugging
-              if: success() || failure()
+              if: ${{ failure() }}
               run: |
                   docker logs -t system-test-imaging-api-1 2>&1
 
             - name: Dump orthanc-raw docker logs for debugging
-              if: success() || failure()
+              if: ${{ failure() }}
               run: |
                   docker logs -t system-test-orthanc-raw-1 2>&1
 
             - name: Dump orthanc-anon docker logs for debugging
-              if: success() || failure()
+              if: ${{ failure() }}
               run: |
                   docker logs -t system-test-orthanc-anon-1 2>&1
 
             - name: Dump hasher-api docker logs for debugging
-              if: success() || failure()
+              if: ${{ failure() }}
               run: |
                   docker logs -t system-test-hasher-api-1 2>&1
 
             - name: Dump export-api docker logs for debugging
-              if: success() || failure()
+              if: ${{ failure() }}
               run: |
                   docker logs -t system-test-export-api-1 2>&1
 
             - name: Dump VNA docker logs for debugging
-              if: success() || failure()
+              if: ${{ failure() }}
               run: |
                   docker logs -t system-test-vna-qr-1 2>&1
 
             - name: Dump DICOMWeb docker logs for debugging
-              if: success() || failure()
+              if: ${{ failure() }}
               run: |
                   docker logs -t system-test-dicomweb-server-1 2>&1
 
