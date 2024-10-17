@@ -20,6 +20,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
     apt-get install --yes --no-install-recommends python3-venv tzdata
 RUN python3 -m venv /.venv
+ENV PYTHONPATH=/.venv/lib64/python3.11/site-packages/
 
 # Install curl, used in system tests
 RUN apt-get --assume-yes install curl
@@ -31,6 +32,10 @@ COPY ./pixl_dcmd/pyproject.toml /pixl_dcmd/pyproject.toml
 RUN --mount=type=cache,target=/root/.cache \
     /.venv/bin/pip install pixl_core/ \
     && /.venv/bin/pip install pixl_dcmd/
+
+COPY ./orthanc/orthanc-anon/plugin/download_dicom_spec.py /etc/orthanc/download_dicom_spec.py
+RUN --mount=type=cache,target=/root/.cache \
+    python3 /etc/orthanc/download_dicom_spec.py
 
 COPY ./orthanc/orthanc-anon/plugin/pixl.py /etc/orthanc/pixl.py
 
@@ -46,7 +51,3 @@ ARG ORTHANC_CONCURRENT_JOBS
 COPY ./orthanc/orthanc-anon/config /run/secrets
 
 RUN sed -i "s/\${ORTHANC_CONCURRENT_JOBS}/${ORTHANC_CONCURRENT_JOBS:-5}/g" /run/secrets/orthanc.json
-
-
-ENV PYTHONPATH=/.venv/lib64/python3.11/site-packages/
-

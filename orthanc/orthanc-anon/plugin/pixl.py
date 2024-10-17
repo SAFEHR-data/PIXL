@@ -39,7 +39,6 @@ from loguru import logger
 from pydicom import dcmread
 
 import orthanc
-from pixl_dcmd._dicom_helpers import DicomValidator
 from pixl_dcmd.main import (
     anonymise_and_validate_dicom,
     write_dataset_to_bytes,
@@ -62,12 +61,6 @@ if not logging_level:
 logger.add(sys.stdout, level=logging_level)
 
 logger.warning("Running logging at level {}", logging_level)
-
-# Force the spec to be downloaded on startup
-start_time = time()
-DicomValidator(edition="current")
-end_time = time()
-logger.debug("Time taken to download DICOM validator spec on startup: {}", end_time - start_time)
 
 
 def AzureAccessToken() -> str:

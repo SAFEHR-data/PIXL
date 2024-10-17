@@ -159,8 +159,7 @@ services:
                     "CMD-SHELL",
                     "/probes/test-aliveness.py --user=$ORTHANC_USERNAME --pwd=$ORTHANC_PASSWORD",
                 ]
-            start_period: 140s
-            start_interval: 70s
+            start_period: 10s
             retries: 2
             interval: 3s
             timeout: 2s
