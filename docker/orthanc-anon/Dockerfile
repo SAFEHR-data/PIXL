@@ -20,7 +20,6 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
     apt-get install --yes --no-install-recommends python3-venv tzdata
 RUN python3 -m venv /.venv
-ENV PYTHONPATH=/.venv/lib64/python3.11/site-packages/
 
 # Install curl, used in system tests
 RUN apt-get --assume-yes install curl
@@ -33,6 +32,7 @@ RUN --mount=type=cache,target=/root/.cache \
     /.venv/bin/pip install pixl_core/ \
     && /.venv/bin/pip install pixl_dcmd/
 
+ENV PYTHONPATH=/.venv/lib64/python3.11/site-packages/
 COPY ./orthanc/orthanc-anon/plugin/download_dicom_spec.py /etc/orthanc/download_dicom_spec.py
 RUN --mount=type=cache,target=/root/.cache \
     python3 /etc/orthanc/download_dicom_spec.py
