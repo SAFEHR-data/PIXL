@@ -236,6 +236,7 @@ def ImportStudyFromRaw(output, uri, **request):  # noqa: ARG001
 
     # Download the zipped study from Orthanc Anon
     study_resource_id = _get_study_resource_id(study_uid=study_uid)
+    wait_for_study_to_stabilise_or_raise(study_resource_id)
     zipped_study_bytes = BytesIO(orthanc.RestApiGet(f"/studies/{study_resource_id}/archive"))
     logger.trace("Study data response {}", zipped_study_bytes)
 
@@ -256,6 +257,7 @@ def ImportStudyFromRaw(output, uri, **request):  # noqa: ARG001
         )
     _upload_instances(anonymised_instances_bytes)
     anonymised_study_resource_id = _get_study_resource_id(study_uid=anonymised_study_uid)
+    wait_for_study_to_stabilise_or_raise(anonymised_study_resource_id)
     Send(study_id=anonymised_study_resource_id)
 
 
