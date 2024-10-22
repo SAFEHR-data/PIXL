@@ -126,7 +126,6 @@ class Orthanc:
                 "Asynchronous": True,
                 "Force": True,
                 "Keep": ["StudyInstanceUID", "SeriesInstanceUID", "SOPInstanceUID"],
-                "Timeout": self.dicom_timeout,
             },
         )
         logger.debug("Modify studies Job: {}", response)
@@ -136,7 +135,7 @@ class Orthanc:
     async def retrieve_study_from_remote(self, query_id: str) -> str:
         response = await self._post(
             f"/queries/{query_id}/retrieve",
-            data={"TargetAet": self.aet, "Synchronous": False, "Timeout": self.dicom_timeout},
+            data={"TargetAet": self.aet, "Synchronous": False},
         )
         return str(response["ID"])
 
@@ -151,7 +150,6 @@ class Orthanc:
                 "TargetAet": self.aet,
                 "Synchronous": False,
                 "Resources": missing_instances,
-                "Timeout": self.dicom_timeout,
             },
         )
         return str(response["ID"])
@@ -271,7 +269,6 @@ class PIXLRawOrthanc(Orthanc):
             data={
                 "Resources": [resource_id],
                 "Asynchronous": True,
-                "Timeout": self.dicom_timeout,
             },
         )
 
