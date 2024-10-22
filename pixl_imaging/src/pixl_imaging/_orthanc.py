@@ -188,21 +188,6 @@ class Orthanc:
         # See: https://book.orthanc-server.com/users/advanced-rest.html#jobs-monitoring
         return await self._get(f"/jobs/{job_id}")
 
-    async def wait_for_study_to_stabilise_or_raise(self, study_id: str) -> None:
-        """Wait for a study to become stable, or raise exception if exceeds timeout."""
-        study = await self.query_local_study(study_id)
-        is_stable = study["IsStable"]
-        start_time = time()
-        while not is_stable:
-            await sleep(10)
-            study = await self.query_local_study(study_id)
-            is_stable = study["IsStable"]
-            if not is_stable and ((time() - start_time) > self.dicom_timeout):
-                msg = f"Failed to stabilise study {study_id} in {self.dicom_timeout} seconds."
-                raise PixlDiscardError(msg)
-
-        logger.debug("Study {} is stable after {} seconds", study_id, time() - start_time)
-
     async def _get(self, path: str) -> Any:
         async with (
             aiohttp.ClientSession() as session,
