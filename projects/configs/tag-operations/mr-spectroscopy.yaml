@@ -181,3 +181,95 @@
   element: 0x9112
   op: "keep"
 #https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image-multi-frame-functional-groups/52009230/00189112
+
+#################################### Default Tags in DICOM/csi_slaser_40_20_MR/1.dcm ###################################
+#
+# Let me add tags that are present in the default DICOM file
+#
+# (0009, 0010) Private Creator
+# (0009, 108c) Private tag data
+# (0010, 0010) Patient's Name
+# (0010, 0020) Patient ID
+# (0010, 0021) Issuer of Patient ID
+# (0010, 0030) Patient's Birth Date
+# (0010, 0040) Patient's Sex
+# (0010, 1010) Patient's Age
+# (0010, 1020) Patient's Size
+# (0010, 1030) Patient's Weight
+# (0010, 2000) Medical Alerts
+# (0010, 2110) Allergies
+# (0018, 0015) Body Part Examined
+# (0018, 0087) Magnetic Field Strength
+# (0018, 1000) Device Serial Number
+# (0018, 1020) Software Versions
+# (0018, 1030) Protocol Name
+# (0018, 1050) Spatial Resolution
+# (0018, 1200) Date of Last Calibration
+# (0018, 1201) Time of Last Calibration
+# (0018, 1320) B1rms
+# (0018, 5100) Patient Position
+# (0018, 9004) Content Qualification
+# (0018, 9005) Pulse Sequence Name
+# (0018, 9008) Echo Pulse Sequence
+# (0018, 9011) Multiple Spin Echo
+# (0018, 9012) Multi-planar Excitation
+# (0018, 9017) Steady State Pulse Sequence
+# (0018, 9018) Echo Planar Pulse Sequence
+# (0018, 9025) Spectrally Selected Suppression
+# (0018, 9032) Geometry of k-Space Traversal
+# (0018, 9033) Segmented k-Space Traversal
+# (0018, 9034) Rectilinear Phase Encode Reordering
+# (0018, 9052) Spectral Width
+# (0018, 9053) Chemical Shift Reference
+# (0018, 9054) Volume Localization Technique
+# (0018, 9059) De-coupling
+# (0018, 9064) k-space Filtering
+# (0018, 9065) Time Domain Filtering
+# (0018, 9066) Number of Zero Fills
+# (0018, 9067) Baseline Correction
+# (0018, 9073) Acquisition Duration
+# (0018, 9093) Number of k-Space Trajectories
+# (0018, 9098) Transmitter Frequency
+# (0018, 9100) Resonant Nucleus
+# (0018, 9101) Frequency Correction
+# (0018, 9126)  Volume Localization Sequence  3 item(s) ----
+#    (0018, 9104) Slab Thickness
+#    (0018, 9105) Slab Orientation
+#    (0018, 9106) Mid Slab Position
+#    (0018, 9104) Slab Thickness
+#    (0018, 9105) Slab Orientation
+#    (0018, 9106) Mid Slab Position
+#    (0018, 9104) Slab Thickness
+#    (0018, 9105) Slab Orientation
+#    (0018, 9106) Mid Slab Position
+# (0018, 9174) Applicable Safety Standard Agency
+# (0018, 9198) First Order Phase Correction
+# (0018, 9199) Water Referenced Phase Correction
+# (0018, 9200) MR Spectroscopy Acquisition Type
+#
+#
+# (0020, 000d) Study Instance UID
+# (0020, 000e) Series Instance UID
+# (0020, 0010) Study ID
+# (0020, 0011) Series Number
+# (0020, 0012) Acquisition Number
+# (0020, 0013) Instance Number
+# (0020, 0052) Frame of Reference UID
+# (0020, 1040) Position Reference Indicator
+# (0020, 4000) Image Comments
+# (0020, 9221)  Dimension Organization Sequence  1 item(s) ----
+#    (0020, 9164) Dimension Organization UID
+# (0020, 9222)  Dimension Index Sequence
+#    (0020, 9164) Dimension Organization UID
+#    (0020, 9165) Dimension Index Pointer
+#    (0020, 9167) Functional Group Pointer
+#    (0020, 9164) Dimension Organization UID
+#    (0020, 9165) Dimension Index Pointer
+#    (0020, 9167) Functional Group Pointer
+#    (0020, 9164) Dimension Organization UID
+#    (0020, 9165) Dimension Index Pointer
+#    (0020, 9167) Functional Group Pointer
+#
+# ...
+# The list continues to to line 625 in the original file
+#
