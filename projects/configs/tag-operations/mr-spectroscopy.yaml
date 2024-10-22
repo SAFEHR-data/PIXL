@@ -14,6 +14,160 @@
 
 # Specific tag operations for spectroscopy data projects
 
+#################################### 0002 Group ###################################
+#
+#
+- name: "File Meta Information Group Length"
+  group: 0x0002
+  element: 0x0000
+  op: "keep"
+- name: "File Meta Information Version"
+  group: 0x0002
+  element: 0x0001
+  op: "keep"
+- name: "Media Storage SOP Class UID"
+  group: 0x0002
+  element: 0x0002
+  op: "keep"
+- name: "Media Storage SOP Instance UID"
+  group: 0x0002
+  element: 0x0003
+  op: "keep"
+- name: "Transfer Syntax UID"
+  group: 0x0002
+  element: 0x0010
+  op: "keep"
+- name: "Implementation Class UID"
+  group: 0x0002
+  element: 0x0012
+  op: "keep"
+- name: "Implementation Version Name"
+  group: 0x0002
+  element: 0x0013
+  op: "keep"
+#################################### 0008 Group ###################################
+#
+#
+- name: "Specific Character Set"
+  group: 0x0008
+  element: 0x0005
+  op: "keep"
+- name: "Image Type"
+  group: 0x0008
+  element: 0x0008
+  op: "keep"
+- name: "SOP Class UID"
+  group: 0x0008
+  element: 0x0016
+  op: "keep"
+- name: "SOP Instance UID"
+  group: 0x0008
+  element: 0x0018
+  op: "keep"
+- name: "Study Date"
+  group: 0x0008
+  element: 0x0020
+  op: "keep"
+- name: "Series Date"
+  group: 0x0008
+  element: 0x0021
+  op: "keep"
+- name: "Content Date"
+  group: 0x0008
+  element: 0x0023
+  op: "keep"
+- name: "Acquisition DateTime"
+  group: 0x0008
+  element: 0x002a
+  op: "keep"
+- name: "Study Time"
+  group: 0x0008
+  element: 0x0030
+  op: "keep"
+- name: "Series Time"
+  group: 0x0008
+  element: 0x0031
+  op: "keep"
+- name: "Content Time"
+  group: 0x0008
+  element: 0x0033
+  op: "keep"
+- name: "Accession Number"
+  group: 0x0008
+  element: 0x0050
+  op: "keep"
+- name: "Modality"
+  group: 0x0008
+  element: 0x0060
+  op: "keep"
+- name: "Manufacturer"
+  group: 0x0008
+  element: 0x0070
+  op: "keep"
+- name: "Institution Name"
+  group: 0x0008
+  element: 0x0080
+  op: "keep"
+- name: "Institution Address"
+  group: 0x0008
+  element: 0x0081
+  op: "keep"
+- name: "Referring Physician's Name"
+  group: 0x0008
+  element: 0x0090
+  op: "keep"
+- name: "Station Name"
+  group: 0x0008
+  element: 0x1010
+  op: "keep"
+- name: "Study Description"
+  group: 0x0008
+  element: 0x1030
+  op: "keep"
+- name: "Series Description"
+  group: 0x0008
+  element: 0x103e
+  op: "keep"
+- name: "Operators' Name"
+  group: 0x0008
+  element: 0x1070
+  op: "keep"
+- name: "Admitting Diagnoses Description"
+  group: 0x0008
+  element: 0x1080
+  op: "keep"
+- name: "Manufacturer's Model Name"
+  group: 0x0008
+  element: 0x1090
+  op: "keep"
+- name: "Referenced Performed Procedure Step Sequence"
+  group: 0x0008
+  element: 0x1111
+  op: "keep"
+- name: "Referenced SOP Class UID"
+  group: 0x0008
+  element: 0x1150
+  op: "keep"
+- name: "Referenced SOP Instance UID"
+  group: 0x0008
+  element: 0x1155
+  op: "keep"
+- name: "Volumetric Properties"
+  group: 0x0008
+  element: 0x9206
+  op: "keep"
+- name: "Volume Based Calculation Technique"
+  group: 0x0008
+  element: 0x9207
+  op: "keep"
+- name: "Complex Image Component"
+  group: 0x0008
+  element: 0x9208
+  op: "keep"
+- name: "Acquisition Contrast"
+  group: 0x0008
+  element: 0x9209
+  op: "keep"
 #################################### 0018 Group ###################################
 #
 #
