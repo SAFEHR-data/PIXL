@@ -66,7 +66,9 @@ def retry_until_export_count_is_unchanged(
     """Retry populating messages until there is no change in the number of exported studies."""
     last_exported_count = 0
 
-    total_wait_seconds = config("CLI_RETRY_SECONDS", default=300, cast=int)
+    # wait PIXL_DICOM_TRANSFER_TIMEOUT seconds if CLI_RETRY_SECONDS is not defined
+    total_wait_seconds = config("PIXL_DICOM_TRANSFER_TIMEOUT", default=300, cast=int)
+    total_wait_seconds = config("CLI_RETRY_SECONDS", default=total_wait_seconds, cast=int)
     wait_to_display = f"{total_wait_seconds //60} minutes"
     if total_wait_seconds % 60:
         wait_to_display = f"{total_wait_seconds //60} minutes & {total_wait_seconds % 60} seconds"

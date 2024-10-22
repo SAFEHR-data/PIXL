@@ -263,6 +263,8 @@ services:
             PROJECT_CONFIGS_DIR: /${PROJECT_CONFIGS_DIR:-/projects/configs}
             PIXL_MAX_MESSAGES_IN_FLIGHT: ${PIXL_MAX_MESSAGES_IN_FLIGHT}
             HTTP_TIMEOUT: ${PIXL_DICOM_TRANSFER_TIMEOUT}
+            XNAT_OVERWRITE: ${XNAT_OVERWRITE}
+            XNAT_DESTINATION: ${XNAT_DESTINATION}
         env_file:
             - ./docker/common.env
         depends_on:
@@ -299,6 +301,8 @@ services:
                 condition: service_healthy
             orthanc-raw:
                 condition: service_healthy
+            orthanc-anon:
+                condition: service_healthy
         healthcheck:
             test: curl -f http://0.0.0.0:8000/heart-beat
             interval: 10s
@@ -314,7 +318,14 @@ services:
             ORTHANC_RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
             ORTHANC_AUTOROUTE_RAW_TO_ANON: ${ORTHANC_AUTOROUTE_RAW_TO_ANON}
             PRIMARY_DICOM_SOURCE_MODALITY: ${PRIMARY_DICOM_SOURCE_MODALITY}
+            PRIMARY_DICOM_SOURCE_AE_TITLE: ${PRIMARY_DICOM_SOURCE_AE_TITLE}
             SECONDARY_DICOM_SOURCE_MODALITY: ${SECONDARY_DICOM_SOURCE_MODALITY}
+            SECONDARY_DICOM_SOURCE_AE_TITLE: ${SECONDARY_DICOM_SOURCE_AE_TITLE:-$PRIMARY_DICOM_SOURCE_AE_TITLE}
+            ORTHANC_ANON_URL: ${ORTHANC_ANON_URL}
+            ORTHANC_ANON_USERNAME: ${ORTHANC_ANON_USERNAME}
+            ORTHANC_ANON_PASSWORD: ${ORTHANC_ANON_PASSWORD}
+            ORTHANC_ANON_AE_TITLE: ${ORTHANC_ANON_AE_TITLE}
+            ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT: ${ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT}
             SKIP_ALEMBIC: ${SKIP_ALEMBIC}
             PIXL_DB_HOST: ${PIXL_DB_HOST}
             PIXL_DB_PORT: ${PIXL_DB_PORT}
@@ -324,8 +335,6 @@ services:
             PIXL_DICOM_TRANSFER_TIMEOUT: ${PIXL_DICOM_TRANSFER_TIMEOUT}
             PIXL_QUERY_TIMEOUT: ${PIXL_QUERY_TIMEOUT}
             PIXL_MAX_MESSAGES_IN_FLIGHT: ${PIXL_MAX_MESSAGES_IN_FLIGHT}
-            PRIMARY_DICOM_SOURCE_AE_TITLE: ${PRIMARY_DICOM_SOURCE_AE_TITLE}
-            SECONDARY_DICOM_SOURCE_AE_TITLE: ${SECONDARY_DICOM_SOURCE_AE_TITLE:-$PRIMARY_DICOM_SOURCE_AE_TITLE}
         ports:
             - "127.0.0.1:${PIXL_IMAGING_API_PORT}:8000"
 

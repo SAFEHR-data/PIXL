@@ -10,9 +10,10 @@ For external users, the `pixl_dcmd` package provides the following functionality
    and deletes any tags not mentioned in the tag scheme. The dataset is updated in place.
      - There is also an option to synchronise to the PIXL database, external users can avoid this
    to just run the allow-list and applying the tag scheme.
-     - Will throw a PixlDiscardError for any series based on the project config file. 
-       - Series description matches `series_filters` (usually to remove localiser series) 
-       - Modality of the DICOM is not in `modalities`
+     - Will throw a `PixlSkipInstanceError` for any series based on the project config file. Specifically, an error
+       will be thrown if:
+       - the series description matches any series in `series_filters` (usually to remove localiser series)
+       - the modality of the DICOM is not in `modalities`
 - `anonymise_and_validate_dicom()`: Compares DICOM validation issues before and after calling `anonymise_dicom`
   and returns a dictionary of the new issues. Can also avoid synchronising with PIXL database
 

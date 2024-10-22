@@ -143,12 +143,8 @@ class WritableOrthanc(Orthanc):
             password=password,
             http_timeout=config("PIXL_QUERY_TIMEOUT", cast=int),
             dicom_timeout=config("PIXL_DICOM_TRANSFER_TIMEOUT", cast=int),
+            aet=aet,
         )
-        self._aet = aet
-
-    @property
-    def aet(self) -> str:
-        return self._aet
 
     def upload(self, filename: str) -> None:
         run_subprocess(
@@ -481,7 +477,7 @@ async def test_querying_missing_image(orthanc_raw, monkeypatch, missing_message:
     """
     Given a message for a study that is missing in both the VNA and PACS,
     When we query the archives within the window of Monday-Friday 8pm to 8am,
-    Then the querying tries both the VNA and PACS and raises a PIXLDiscardError
+    Then the querying tries both the VNA and PACS and raises a PixlDiscardError
     """
     study = ImagingStudy.from_message(missing_message)
     orthanc = await orthanc_raw

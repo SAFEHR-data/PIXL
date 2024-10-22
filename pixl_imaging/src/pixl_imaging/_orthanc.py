@@ -13,7 +13,8 @@
 #  limitations under the License.
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+import asyncio
+import contextlib
 from asyncio import sleep
 from time import time
 from typing import Any, Optional
@@ -24,14 +25,21 @@ from decouple import config
 from loguru import logger
 
 
-class Orthanc(ABC):
-    def __init__(
-        self, url: str, username: str, password: str, http_timeout: int, dicom_timeout: int
+class Orthanc:
+    def __init__(  # noqa: PLR0913
+        self,
+        url: str,
+        username: str,
+        password: str,
+        http_timeout: int,
+        dicom_timeout: int,
+        aet: str,
     ) -> None:
         if not url:
             msg = "URL for orthanc is required"
             raise ValueError(msg)
         self._url = url.rstrip("/")
+        self._aet = aet
         self._username = username
         self._password = password
 
@@ -40,23 +48,23 @@ class Orthanc(ABC):
         self.dicom_timeout = dicom_timeout
 
     @property
-    @abstractmethod
     def aet(self) -> str:
         """Application entity title (AET) of this Orthanc instance"""
+        return self._aet
 
     @property
     async def modalities(self) -> Any:
         """Accessible modalities from this Orthanc instance"""
         return await self._get("/modalities")
 
-    async def get_jobs(self) -> Any:
-        """Get expanded details for all jobs."""
-        return await self._get("/jobs?expand")
-
     async def query_local(self, data: dict) -> Any:
         """Query local Orthanc instance for resourceId."""
         logger.debug("Running query on local Orthanc with {}", data)
         return await self._post("/tools/find", data=data)
+
+    async def query_local_study(self, study_id: str) -> Any:
+        """Query local Orthanc instance for study."""
+        return await self._get(f"/studies/{study_id}")
 
     async def query_local_series(self, series_id: str) -> Any:
         """Query local Orthanc instance for series."""
@@ -118,17 +126,16 @@ class Orthanc(ABC):
                 "Asynchronous": True,
                 "Force": True,
                 "Keep": ["StudyInstanceUID", "SeriesInstanceUID", "SOPInstanceUID"],
-                "Timeout": self.dicom_timeout,
             },
         )
         logger.debug("Modify studies Job: {}", response)
         job_id = str(response["ID"])
         await self.wait_for_job_success_or_raise(job_id, "modify", timeout=self.dicom_timeout)
 
-    async def retrieve_from_remote(self, query_id: str) -> str:
+    async def retrieve_study_from_remote(self, query_id: str) -> str:
         response = await self._post(
             f"/queries/{query_id}/retrieve",
-            data={"TargetAet": self.aet, "Synchronous": False, "Timeout": self.dicom_timeout},
+            data={"TargetAet": self.aet, "Synchronous": False},
         )
         return str(response["ID"])
 
@@ -143,10 +150,13 @@ class Orthanc(ABC):
                 "TargetAet": self.aet,
                 "Synchronous": False,
                 "Resources": missing_instances,
-                "Timeout": self.dicom_timeout,
             },
         )
         return str(response["ID"])
+
+    async def get_jobs(self) -> Any:
+        """Get expanded details for all jobs."""
+        return await self._get("/jobs?expand")
 
     async def wait_for_job_success_or_raise(self, job_id: str, job_type: str, timeout: int) -> None:
         """Wait for job to complete successfully, or raise exception if fails or exceeds timeout."""
@@ -224,7 +234,10 @@ class PIXLRawOrthanc(Orthanc):
             password=config("ORTHANC_RAW_PASSWORD"),
             http_timeout=config("PIXL_QUERY_TIMEOUT", default=10, cast=int),
             dicom_timeout=config("PIXL_DICOM_TRANSFER_TIMEOUT", default=240, cast=int),
+            aet=config("ORTHANC_RAW_AE_TITLE"),
         )
+
+        self.autoroute_to_anon = config("ORTHANC_AUTOROUTE_RAW_TO_ANON", default=False, cast=bool)
 
     async def raise_if_pending_jobs(self) -> None:
         """
@@ -249,10 +262,6 @@ class PIXLRawOrthanc(Orthanc):
                 msg = "Pending messages in orthanc raw"
                 raise PixlRequeueMessageError(msg)
 
-    @property
-    def aet(self) -> str:
-        return str(config("ORTHANC_RAW_AE_TITLE"))
-
     async def send_study_to_anon(self, resource_id: str) -> Any:
         """Send study to orthanc anon."""
         response = await self._post(
@@ -260,10 +269,60 @@ class PIXLRawOrthanc(Orthanc):
             data={
                 "Resources": [resource_id],
                 "Asynchronous": True,
-                "Timeout": self.dicom_timeout,
             },
         )
 
         logger.debug("Successfully triggered c-store of study to anon modality: {}", resource_id)
-
         return str(response["ID"])
+
+
+class PIXLAnonOrthanc(Orthanc):
+    """Orthanc Anon connection."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            url=config("ORTHANC_ANON_URL"),
+            username=config("ORTHANC_ANON_USERNAME"),
+            password=config("ORTHANC_ANON_PASSWORD"),
+            http_timeout=config("PIXL_QUERY_TIMEOUT", default=10, cast=int),
+            dicom_timeout=config("PIXL_DICOM_TRANSFER_TIMEOUT", default=240, cast=int),
+            aet=config("ORTHANC_ANON_AE_TITLE"),
+        )
+
+        self.autoroute_to_endpoint = config(
+            "ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT", default=False, cast=bool
+        )
+
+    async def notify_anon_to_retrieve_study(
+        self, orthanc_raw: PIXLRawOrthanc, resource_id: str
+    ) -> Any:
+        """
+        Notify Orthanc Anon of a study to retrieve from Orthanc Raw
+
+        - Query Orthanc Raw for the study
+        - Send the StudyInstanceUID and the query ID to Orthanc Anon
+        """
+        orthanc_raw_study_info = await orthanc_raw.query_local_study(study_id=resource_id)
+        study_uid = orthanc_raw_study_info["MainDicomTags"]["StudyInstanceUID"]
+
+        data = {
+            "Level": "Study",
+            "Query": {
+                "StudyInstanceUID": study_uid,
+            },
+        }
+        query_id = await self.query_remote(modality="PIXL-Raw", data=data)
+        if query_id is None:
+            logger.info(f"No unique study found in Orthanc Raw with StudyInstanceUID: {study_uid}.")
+            return
+
+        logger.info("Importing study {} from raw to anon", study_uid)
+
+        # Don't wait for Orthanc Anon to finish processing the study.
+        # We still need to await the function otherwise the task is not added to the event loop.
+        # We could create the task with asyncio.create_task but a timeout error is still raised.
+        with contextlib.suppress(asyncio.TimeoutError):
+            await self._post(
+                path="/import-from-raw",
+                data={"StudyInstanceUID": study_uid, "QueryID": query_id},
+            )
