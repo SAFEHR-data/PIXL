@@ -333,7 +333,9 @@ class PIXLAnonOrthanc(Orthanc):
 
         logger.info("Importing study {} from raw to anon", study_uid)
 
-        # Don't wait for Orthanc Anon to finish processing the study
+        # Don't wait for Orthanc Anon to finish processing the study.
+        # We still need to await the function otherwise the task is not added to the event loop.
+        # We could create the task with asyncio.create_task but a timeout error is still raised.
         with contextlib.suppress(asyncio.TimeoutError):
             await self._post(
                 path="/import-from-raw",
