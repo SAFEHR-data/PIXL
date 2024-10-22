@@ -310,9 +310,11 @@ class PIXLAnonOrthanc(Orthanc):
             "ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT", default=False, cast=bool
         )
 
-    async def import_study_from_raw(self, orthanc_raw: PIXLRawOrthanc, resource_id: str) -> Any:
+    async def notify_anon_to_retrieve_study(
+        self, orthanc_raw: PIXLRawOrthanc, resource_id: str
+    ) -> Any:
         """
-        Notify Orthanc Anon of a study to pull from Raw
+        Notify Orthanc Anon of a study to retrieve from Orthanc Raw
 
         - Query Orthanc Raw for the study
         - Send the StudyInstanceUID and the query ID to Orthanc Anon

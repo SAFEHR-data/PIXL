@@ -143,7 +143,9 @@ async def _process_message(
         logger.debug("Auto-routing to Orthanc Anon is not enabled. Not sending study {}", resource)
         return
 
-    await orthanc_anon.import_study_from_raw(orthanc_raw=orthanc_raw, resource_id=resource["ID"])
+    await orthanc_anon.notify_anon_to_retrieve_study(
+        orthanc_raw=orthanc_raw, resource_id=resource["ID"]
+    )
 
 
 async def _get_study_resource_id(
