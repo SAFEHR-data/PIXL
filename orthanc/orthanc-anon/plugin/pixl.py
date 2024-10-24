@@ -27,17 +27,18 @@ import sys
 import threading
 import traceback
 from io import BytesIO
-from time import sleep
+from time import sleep, time
 from typing import TYPE_CHECKING, cast
+from zipfile import ZipFile
 
+import pydicom
 import requests
-from core.exceptions import PixlDiscardError
+from core.exceptions import PixlDiscardError, PixlSkipInstanceError
 from decouple import config
 from loguru import logger
 from pydicom import dcmread
 
 import orthanc
-from pixl_dcmd._dicom_helpers import get_study_info
 from pixl_dcmd.main import (
     anonymise_and_validate_dicom,
     write_dataset_to_bytes,
@@ -175,7 +176,7 @@ def notify_export_api_of_readiness(study_id: str):
     response.raise_for_status()
 
 
-def should_auto_route() -> bool:
+def should_export() -> bool:
     """
     Checks whether ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT environment variable is
     set to true or false
@@ -191,18 +192,13 @@ def _azure_available() -> bool:
 
 def OnChange(changeType, level, resource):  # noqa: ARG001
     """
-    - If a study is stable and if should_auto_route returns true
-    then notify the export API that it should perform the upload of DICOM data.
-    - If orthanc has started then start a timer to refresh the Azure token every 30 seconds
-    - If orthanc has stopped then cancel the timer
+    - If `should_export` returns `false`, the do nothing
+    - Otherwise:
+        - If orthanc has started then start a timer to refresh the Azure token every 30 seconds
+        - If orthanc has stopped then cancel the timer
     """
-    if not should_auto_route():
+    if not should_export():
         return
-
-    if changeType == orthanc.ChangeType.STABLE_STUDY:
-        msg = f"Stable study: {resource}"
-        logger.info(msg)
-        Send(resource)
 
     if changeType == orthanc.ChangeType.ORTHANC_STARTED and _azure_available():
         orthanc.LogWarning("Starting the scheduler")
@@ -219,42 +215,165 @@ def OnHeartBeat(output, uri, **request) -> Any:  # noqa: ARG001
     output.AnswerBuffer("OK\n", "text/plain")
 
 
-def ReceivedInstanceCallback(receivedDicom: bytes, origin: str) -> Any:
-    """Modifies a DICOM instance received by Orthanc and applies anonymisation."""
-    if origin == orthanc.InstanceOrigin.REST_API:
-        orthanc.LogWarning("DICOM instance received from the REST API")
-    elif origin == orthanc.InstanceOrigin.DICOM_PROTOCOL:
-        orthanc.LogWarning("DICOM instance received from the DICOM protocol")
+def ImportStudyFromRaw(output, uri, **request):  # noqa: ARG001
+    """
+    Import a study from Orthanc Raw.
 
-    # It's important that as much code in this handler as possible is inside this "try" block.
-    # This ensures we discard the image if anything goes wrong in the anonymisation process.
-    # If the handler raises an exception the pre-anon image will be kept.
-    try:
-        return _process_dicom_instance(receivedDicom)
-    except Exception:  # noqa: BLE001
-        orthanc.LogError("Failed to anonymize instance due to\n" + traceback.format_exc())
-        return orthanc.ReceivedInstanceAction.DISCARD, None
+    - Pull a study from Orthanc Raw based on its resource ID. Wait for the study to be stable.
+    - Iterate over instances and anonymise them
+    - Re-upload the study via the dicom-web api. Wait for the study to be stable.
+    - Notify the PIXL export-api to send the study the to relevant endpoint
+    """
+    payload = json.loads(request["body"])
+    study_uid = payload["StudyInstanceUID"]
+    query_id = payload["QueryID"]
+    retrieve_response = json.loads(
+        orthanc.RestApiPost(f"/queries/{query_id}/retrieve", json.dumps({}))
+    )
+    logger.debug(
+        "Response from retrieving study {} from Orthan Raw: {}", study_uid, retrieve_response
+    )
+
+    # Download the zipped study from Orthanc Anon
+    study_resource_id = _get_study_resource_id(study_uid=study_uid)
+    wait_for_study_to_stabilise_or_raise(study_resource_id)
+    zipped_study_bytes = BytesIO(orthanc.RestApiGet(f"/studies/{study_resource_id}/archive"))
+    logger.trace("Study data response {}", zipped_study_bytes)
+
+    # Delete the original study now in case anything goes wrong with the anonymisation.
+    # We don't want to leave the original (non-anonymised) study on Orthanc Anon
+    logger.info(
+        "Deleteing non-anonymised study with UID {} and resource ID {} from Orthanc Anon",
+        study_uid,
+        study_resource_id,
+    )
+    orthanc.RestApiDelete(f"/studies/{study_resource_id}")
+
+    # Anonymise the study, re-upload to Orthanc Anon, and notify the export API to export the study
+    with ZipFile(zipped_study_bytes) as zipped_study:
+        anonymised_instances_bytes, anonymised_study_uid = _anonymise_study_instances(
+            zipped_study=zipped_study,
+            study_uid=study_uid,
+        )
+    _upload_instances(anonymised_instances_bytes)
+    anonymised_study_resource_id = _get_study_resource_id(study_uid=anonymised_study_uid)
+    wait_for_study_to_stabilise_or_raise(anonymised_study_resource_id)
+    Send(study_id=anonymised_study_resource_id)
 
 
-def _process_dicom_instance(receivedDicom: bytes) -> tuple[orthanc.ReceivedInstanceAction, None]:
-    # Read the bytes as DICOM/
-    dataset = dcmread(BytesIO(receivedDicom))
+def _get_study_resource_id(study_uid: str) -> str:
+    """
+    Get the resource ID for an existing study based on its StudyInstanceUID.
 
-    # Attempt to anonymise and drop the study if any exceptions occur
-    try:
-        study_identifiers = get_study_info(dataset)
-        anonymise_and_validate_dicom(dataset, config_path=None, synchronise_pixl_db=True)
-        return orthanc.ReceivedInstanceAction.MODIFY, write_dataset_to_bytes(dataset)
-    except PixlDiscardError as error:
-        logger.warning("Skipping {}: {}", study_identifiers, error)
-        return orthanc.ReceivedInstanceAction.DISCARD, None
-    except:  # noqa: E722 Allow bare except
-        # Called from a callback in orthanc so will never take down the service
-        # we want to do dicard anything on failure so we don't leak identifiable information
-        logger.exception("{} failed", study_identifiers)
-        return orthanc.ReceivedInstanceAction.DISCARD, None
+    Returns None if there are no resources with the given StudyInstanceUID.
+    Returns the resource ID if there is a single resource with the given StudyInstanceUID.
+    Returns None if there are multiple resources with the given StudyInstanceUID and deletes
+    the studies.
+    """
+    data = json.dumps(
+        {
+            "Level": "Study",
+            "Query": {
+                "StudyInstanceUID": study_uid,
+            },
+        }
+    )
+    study_resource_ids = json.loads(orthanc.RestApiPost("/tools/find", data))
+    if not study_resource_ids:
+        message = f"No study found with StudyInstanceUID {study_uid}"
+        raise ValueError(message)
+    if len(study_resource_ids) > 1:
+        message = f"Multiple studies found with StudyInstanceUID {study_uid}"
+        raise ValueError(message)
+
+    return study_resource_ids[0]
+
+
+def wait_for_study_to_stabilise_or_raise(study_id: str) -> None:
+    """Wait for a study to become stable, or raise exception if exceeds timeout."""
+    timeout = config("PIXL_DICOM_TRANSFER_TIMEOUT", default=180, cast=int)
+    study_path = f"/studies/{study_id}"
+    study = json.loads(orthanc.RestApiGet(study_path))
+    is_stable = study["IsStable"]
+    start_time = time()
+
+    while not is_stable:
+        sleep(10)
+        study = json.loads(orthanc.RestApiGet(study_path))
+        is_stable = study["IsStable"]
+        if not is_stable and ((time() - start_time) > timeout):
+            msg = f"Failed to stabilise study {study_id} in {timeout} seconds."
+            raise PixlDiscardError(msg)
+
+    logger.debug("Study {} is stable after {} seconds", study_id, time() - start_time)
+
+
+def _anonymise_study_instances(zipped_study: ZipFile, study_uid: str) -> tuple[list[bytes], str]:
+    """
+    Iterate over all instances and anonymise them.
+
+    Skip an instance if a PixlSkipInstanceError is raised during anonymisation.
+
+    Return a list of the bytes of anonymised instances, and the anonymised StudyInstanceUID.
+    """
+    anonymised_instances_bytes = []
+    logger.debug("Zipped study infolist: {}", zipped_study.infolist())
+    for file_info in zipped_study.infolist():
+        with zipped_study.open(file_info) as file:
+            logger.debug("Reading file {}", file)
+            try:
+                dataset = dcmread(file)
+            except pydicom.errors.InvalidDicomError:
+                logger.error("Failed to read file {} for study: {}.", file, study_uid)
+                raise
+
+            try:
+                logger.debug("Anonymising file: {} for study: {}", file, study_uid)
+                anonymised_instances_bytes.append(_anonymise_dicom_instance(dataset))
+            except PixlSkipInstanceError as e:
+                logger.warning(
+                    "Skipping instance {} for study {}: {}",
+                    dataset[0x0008, 0x0018].value,
+                    study_uid,
+                    e,
+                )
+            except Exception:
+                logger.error("Failed to anonymize file: {} for study: {} ", file, study_uid)
+                raise
+            else:
+                anonymised_study_uid = dataset[0x0020, 0x000D].value
+
+    if not anonymised_instances_bytes:
+        message = "All instances have been discarded for study {}", study_uid
+        raise ValueError(message)
+
+    return anonymised_instances_bytes, anonymised_study_uid
+
+
+def _anonymise_dicom_instance(dataset: pydicom.Dataset) -> bytes:
+    """Anonymise a DICOM instance."""
+    anonymise_and_validate_dicom(dataset, config_path=None, synchronise_pixl_db=True)
+    return write_dataset_to_bytes(dataset)
+
+
+def _upload_instances(instances_bytes: list[bytes]) -> None:
+    """Upload instances to Orthanc"""
+    files = []
+    for index, dicom_bytes in enumerate(instances_bytes):
+        files.append(("file", (f"instance{index}.dcm", dicom_bytes, "application/dicom")))
+
+    # Using requests as doing:
+    # `upload_response = orthanc.RestApiPost(f"/instances", anonymised_files)`
+    # gives an error BadArgumentType error (orthanc.RestApiPost seems to only accept json)
+    upload_response = requests.post(
+        url=f"{ORTHANC_URL}/instances",
+        auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD),
+        files=files,
+        timeout=config("PIXL_DICOM_TRANSFER_TIMEOUT", default=180, cast=int),
+    )
+    upload_response.raise_for_status()
 
 
 orthanc.RegisterOnChangeCallback(OnChange)
-orthanc.RegisterReceivedInstanceCallback(ReceivedInstanceCallback)
 orthanc.RegisterRestCallback("/heart-beat", OnHeartBeat)
+orthanc.RegisterRestCallback("/import-from-raw", ImportStudyFromRaw)
