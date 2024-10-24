@@ -13,7 +13,7 @@
 #  limitations under the License.
 
 project:
-    name: "mr-spectroscopy"
+    name: "test-mr-spectroscopy"
     modalities: ["MR"]
 
 tag_operation_files:
