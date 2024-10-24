@@ -12,264 +12,195 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-# Specific tag operations for spectroscopy data projects
-
-#################################### 0002 Group ###################################
-#
-#
-- name: "File Meta Information Group Length"
-  group: 0x0002
-  element: 0x0000
-  op: "keep"
-- name: "File Meta Information Version"
-  group: 0x0002
-  element: 0x0001
-  op: "keep"
-- name: "Media Storage SOP Class UID"
-  group: 0x0002
-  element: 0x0002
-  op: "keep"
-- name: "Media Storage SOP Instance UID"
-  group: 0x0002
-  element: 0x0003
-  op: "keep"
-- name: "Transfer Syntax UID"
-  group: 0x0002
-  element: 0x0010
-  op: "keep"
-- name: "Implementation Class UID"
-  group: 0x0002
-  element: 0x0012
-  op: "keep"
-- name: "Implementation Version Name"
-  group: 0x0002
-  element: 0x0013
-  op: "keep"
-#################################### 0008 Group ###################################
-#
-#
-- name: "Specific Character Set"
-  group: 0x0008
-  element: 0x0005
-  op: "keep"
-- name: "Image Type"
-  group: 0x0008
-  element: 0x0008
-  op: "keep"
-- name: "SOP Class UID"
-  group: 0x0008
-  element: 0x0016
-  op: "keep"
-- name: "SOP Instance UID"
-  group: 0x0008
-  element: 0x0018
-  op: "keep"
-- name: "Study Date"
-  group: 0x0008
+- name: Patient ID  # remove this before merging - useful for testing anonymisation as an 'external user', but 'op' should be 'secure-hash' as in base.yaml instead of 'replace'
+  group: 0x0010
   element: 0x0020
-  op: "keep"
-- name: "Series Date"
+  op: replace
+- name: Acquisition DateTime
   group: 0x0008
-  element: 0x0021
-  op: "keep"
-- name: "Content Date"
+  element: 0x002A
+  op: keep
+- name: Content Date
   group: 0x0008
   element: 0x0023
-  op: "keep"
-- name: "Acquisition DateTime"
-  group: 0x0008
-  element: 0x002a
-  op: "keep"
-- name: "Study Time"
-  group: 0x0008
-  element: 0x0030
-  op: "keep"
-- name: "Series Time"
-  group: 0x0008
-  element: 0x0031
-  op: "keep"
-- name: "Content Time"
+  op: keep
+- name: Content Time
   group: 0x0008
   element: 0x0033
-  op: "keep"
-- name: "Accession Number"
-  group: 0x0008
-  element: 0x0050
-  op: "keep"
-- name: "Modality"
-  group: 0x0008
-  element: 0x0060
-  op: "keep"
-- name: "Manufacturer"
-  group: 0x0008
-  element: 0x0070
-  op: "keep"
-- name: "Institution Name"
-  group: 0x0008
-  element: 0x0080
-  op: "keep"
-- name: "Institution Address"
-  group: 0x0008
-  element: 0x0081
-  op: "keep"
-- name: "Referring Physician's Name"
-  group: 0x0008
-  element: 0x0090
-  op: "keep"
-- name: "Station Name"
-  group: 0x0008
-  element: 0x1010
-  op: "keep"
-- name: "Study Description"
-  group: 0x0008
-  element: 0x1030
-  op: "keep"
-- name: "Series Description"
-  group: 0x0008
-  element: 0x103e
-  op: "keep"
-- name: "Operators' Name"
-  group: 0x0008
-  element: 0x1070
-  op: "keep"
-- name: "Admitting Diagnoses Description"
-  group: 0x0008
-  element: 0x1080
-  op: "keep"
-- name: "Manufacturer's Model Name"
-  group: 0x0008
-  element: 0x1090
-  op: "keep"
-- name: "Referenced Performed Procedure Step Sequence"
-  group: 0x0008
-  element: 0x1111
-  op: "keep"
-- name: "Referenced SOP Class UID"
-  group: 0x0008
-  element: 0x1150
-  op: "keep"
-- name: "Referenced SOP Instance UID"
-  group: 0x0008
-  element: 0x1155
-  op: "keep"
-- name: "Volumetric Properties"
-  group: 0x0008
-  element: 0x9206
-  op: "keep"
-- name: "Volume Based Calculation Technique"
-  group: 0x0008
-  element: 0x9207
-  op: "keep"
-- name: "Complex Image Component"
-  group: 0x0008
-  element: 0x9208
-  op: "keep"
-- name: "Acquisition Contrast"
-  group: 0x0008
-  element: 0x9209
-  op: "keep"
-#################################### 0018 Group ###################################
-#
-#
-- name: "RF Echo Train Length Attribute"
+  op: keep
+- name: Device Serial Number
   group: 0x0018
-  element: 0x9240
-  op: "keep"
-#https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image-multi-frame-functional-groups/52009230/00189112/00189240
-- name: "MR Timing and Related Parameters Sequence Attribute"
+  element: 0x1000
+  op: keep
+- name: Content Qualification
   group: 0x0018
-  element: 0x9112
-  op: "keep"
-#https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image-multi-frame-functional-groups/52009230/00189112
-
-#################################### Default Tags in DICOM/csi_slaser_40_20_MR/1.dcm ###################################
-#
-# Let me add tags that are present in the default DICOM file
-#
-# (0009, 0010) Private Creator
-# (0009, 108c) Private tag data
-# (0010, 0010) Patient's Name
-# (0010, 0020) Patient ID
-# (0010, 0021) Issuer of Patient ID
-# (0010, 0030) Patient's Birth Date
-# (0010, 0040) Patient's Sex
-# (0010, 1010) Patient's Age
-# (0010, 1020) Patient's Size
-# (0010, 1030) Patient's Weight
-# (0010, 2000) Medical Alerts
-# (0010, 2110) Allergies
-# (0018, 0015) Body Part Examined
-# (0018, 0087) Magnetic Field Strength
-# (0018, 1000) Device Serial Number
-# (0018, 1020) Software Versions
-# (0018, 1030) Protocol Name
-# (0018, 1050) Spatial Resolution
-# (0018, 1200) Date of Last Calibration
-# (0018, 1201) Time of Last Calibration
-# (0018, 1320) B1rms
-# (0018, 5100) Patient Position
-# (0018, 9004) Content Qualification
-# (0018, 9005) Pulse Sequence Name
-# (0018, 9008) Echo Pulse Sequence
-# (0018, 9011) Multiple Spin Echo
-# (0018, 9012) Multi-planar Excitation
-# (0018, 9017) Steady State Pulse Sequence
-# (0018, 9018) Echo Planar Pulse Sequence
-# (0018, 9025) Spectrally Selected Suppression
-# (0018, 9032) Geometry of k-Space Traversal
-# (0018, 9033) Segmented k-Space Traversal
-# (0018, 9034) Rectilinear Phase Encode Reordering
-# (0018, 9052) Spectral Width
-# (0018, 9053) Chemical Shift Reference
-# (0018, 9054) Volume Localization Technique
-# (0018, 9059) De-coupling
-# (0018, 9064) k-space Filtering
-# (0018, 9065) Time Domain Filtering
-# (0018, 9066) Number of Zero Fills
-# (0018, 9067) Baseline Correction
-# (0018, 9073) Acquisition Duration
-# (0018, 9093) Number of k-Space Trajectories
-# (0018, 9098) Transmitter Frequency
-# (0018, 9100) Resonant Nucleus
-# (0018, 9101) Frequency Correction
-# (0018, 9126)  Volume Localization Sequence  3 item(s) ----
-#    (0018, 9104) Slab Thickness
-#    (0018, 9105) Slab Orientation
-#    (0018, 9106) Mid Slab Position
-#    (0018, 9104) Slab Thickness
-#    (0018, 9105) Slab Orientation
-#    (0018, 9106) Mid Slab Position
-#    (0018, 9104) Slab Thickness
-#    (0018, 9105) Slab Orientation
-#    (0018, 9106) Mid Slab Position
-# (0018, 9174) Applicable Safety Standard Agency
-# (0018, 9198) First Order Phase Correction
-# (0018, 9199) Water Referenced Phase Correction
-# (0018, 9200) MR Spectroscopy Acquisition Type
-#
-#
-# (0020, 000d) Study Instance UID
-# (0020, 000e) Series Instance UID
-# (0020, 0010) Study ID
-# (0020, 0011) Series Number
-# (0020, 0012) Acquisition Number
-# (0020, 0013) Instance Number
-# (0020, 0052) Frame of Reference UID
-# (0020, 1040) Position Reference Indicator
-# (0020, 4000) Image Comments
-# (0020, 9221)  Dimension Organization Sequence  1 item(s) ----
-#    (0020, 9164) Dimension Organization UID
-# (0020, 9222)  Dimension Index Sequence
-#    (0020, 9164) Dimension Organization UID
-#    (0020, 9165) Dimension Index Pointer
-#    (0020, 9167) Functional Group Pointer
-#    (0020, 9164) Dimension Organization UID
-#    (0020, 9165) Dimension Index Pointer
-#    (0020, 9167) Functional Group Pointer
-#    (0020, 9164) Dimension Organization UID
-#    (0020, 9165) Dimension Index Pointer
-#    (0020, 9167) Functional Group Pointer
-#
-# ...
-# The list continues to to line 625 in the original file
-#
+  element: 0x9004
+  op: keep
+- name: Pulse Sequence Name
+  group: 0x0018
+  element: 0x9005
+  op: keep
+- name: Echo Pulse Sequence
+  group: 0x0018
+  element: 0x9008
+  op: keep
+- name: Multi-planar Excitation
+  group: 0x0018
+  element: 0x9012
+  op: keep
+- name: Steady State Pulse Sequence
+  group: 0x0018
+  element: 0x9017
+  op: keep
+- name: Echo Planar Pulse Sequence
+  group: 0x0018
+  element: 0x9018
+  op: keep
+- name: Spectrally Selected Suppression
+  group: 0x0018
+  element: 0x9025
+  op: keep
+- name: Geometry of k-Space Traversal
+  group: 0x0018
+  element: 0x9032
+  op: keep
+- name: Segmented k-Space Traversal
+  group: 0x0018
+  element: 0x9033
+  op: keep
+- name: Spectral Width
+  group: 0x0018
+  element: 0x9052
+  op: keep
+- name: Chemical Shift Reference
+  group: 0x0018
+  element: 0x9053
+  op: keep
+- name: Volume Localization Technique
+  group: 0x0018
+  element: 0x9054
+  op: keep
+- name: De-coupling
+  group: 0x0018
+  element: 0x9059
+  op: keep
+- name: k-space Filtering
+  group: 0x0018
+  element: 0x9064
+  op: keep
+- name: Time Domain Filtering
+  group: 0x0018
+  element: 0x9065
+  op: keep
+- name: Number of Zero Fills
+  group: 0x0018
+  element: 0x9066
+  op: keep
+- name: Baseline Correction
+  group: 0x0018
+  element: 0x9067
+  op: keep
+- name: Acquisition Duration
+  group: 0x0018
+  element: 0x9073
+  op: keep
+- name: Number of k-Space Trajectories
+  group: 0x0018
+  element: 0x9093
+  op: keep
+- name: Transmitter Frequency
+  group: 0x0018
+  element: 0x9098
+  op: keep
+- name: Resonant Nucleus
+  group: 0x0018
+  element: 0x9100
+  op: keep
+- name: Frequency Correction
+  group: 0x0018
+  element: 0x9101
+  op: keep
+- name: Slab Thickness
+  group: 0x0018
+  element: 0x9104
+  op: keep
+- name: Slab Orientation
+  group: 0x0018
+  element: 0x9105
+  op: keep
+- name: Mid Slab Position
+  group: 0x0018
+  element: 0x9106
+  op: keep
+- name: Multiple Spin Echo
+  group: 0x0018
+  element: 0x9011
+  op: keep
+- name: Volume Localization Sequence
+  group: 0x0018
+  element: 0x9126
+  op: keep
+- name: Applicable Safety Standard Agency
+  group: 0x0018
+  element: 0x9174
+  op: keep
+- name: First Order Phase Correction
+  group: 0x0018
+  element: 0x9198
+  op: keep
+- name: Water Referenced Phase Correction
+  group: 0x0018
+  element: 0x9199
+  op: keep
+- name: MR Spectroscopy Acquisition Type
+  group: 0x0018
+  element: 0x9200
+  op: keep
+- name: Dimension Organization UID
+  group: 0x0020
+  element: 0x9164
+  op: keep
+- name: Dimension Index Pointer
+  group: 0x0020
+  element: 0x9165
+  op: keep
+- name: Dimension Organization Sequence
+  group: 0x0020
+  element: 0x9221
+  op: keep
+- name: Dimension Index Sequence
+  group: 0x0020
+  element: 0x9222
+  op: keep
+- name: Number of Frames
+  group: 0x0028
+  element: 0x0008
+  op: keep
+- name: Data Point Rows
+  group: 0x0028
+  element: 0x9001
+  op: keep
+- name: Data Point Columns
+  group: 0x0028
+  element: 0x9002
+  op: keep
+- name: Signal Domain Columns
+  group: 0x0028
+  element: 0x9003
+  op: keep
+- name: Data Representation
+  group: 0x0028
+  element: 0x9108
+  op: keep
+- name: Acquisition Context Sequence
+  group: 0x0040
+  element: 0x0555
+  op: keep
+- name: Shared Functional Groups Sequence
+  group: 0x5200
+  element: 0x9229
+  op: keep
+- name: Spectroscopy Data
+  group: 0x5600
+  element: 0x0020
+  op: keep
