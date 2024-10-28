@@ -23,7 +23,6 @@ tag_operation_files:
         - "mr-spectroscopy.yaml"
     manufacturer_overrides:
         - "mri.yaml"
-        - "mr-spectroscopy.yaml"
 
 series_filters:
     - "localizer"
