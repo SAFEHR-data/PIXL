@@ -1,0 +1,70 @@
+#  Copyright (c) University College London Hospitals NHS Foundation Trust
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
+- name: Patient ID  # remove this before merging - useful for testing anonymisation as an 'external user', but 'op' should be 'secure-hash' as in base.yaml instead of 'replace'
+  group: 0x0010
+  element: 0x0020
+  op: replace
+- name: ROI Countour Sequence
+  group: 0x3006
+  element: 0x0039
+  op: keep
+- name: RT ROI Observations Sequence
+  group: 0x3006
+  element: 0x0080
+  op: keep
+- name: Structure Set Time
+  group: 0x3006
+  element: 0x0009
+  op: keep
+- name: Structure Set Date
+  group: 0x3006
+  element: 0x0008
+  op: keep
+- name: Structure Set Label
+  group: 0x3006
+  element: 0x0002
+  op: keep
+- name: Structure Set ROI Sequence
+  group: 0x3006
+  element: 0x0020
+  op: keep
+- name: Referenced ROI Number
+  group: 0x3006
+  element: 0x0084
+  op: keep
+- name: ROI Interpreter
+  group: 0x3006
+  element: 0x00A6
+  op: keep
+- name: RT ROI Interpreted Type
+  group: 0x3006
+  element: 0x00A4
+  op: keep
+- name: Observation Number
+  group: 0x3006
+  element: 0x0082
+  op: keep
+- name: ROI Name
+  group: 0x3006
+  element: 0x0026
+  op: keep
+- name: ROI Generation Algorithm
+  group: 0x3006
+  element: 0x0036
+  op: keep
+- name: ROI Number
+  group: 0x3006
+  element: 0x0022
+  op: keep

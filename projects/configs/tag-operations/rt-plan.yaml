@@ -1,0 +1,46 @@
+#  Copyright (c) University College London Hospitals NHS Foundation Trust
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
+- name: Patient ID  # remove this before merging - useful for testing anonymisation as an 'external user', but 'op' should be 'secure-hash' as in base.yaml instead of 'replace'
+  group: 0x0010
+  element: 0x0020
+  op: replace
+- name: RT Plan Label
+  group: 0x300A
+  element: 0x0002
+  op: keep
+- name: RT Plan Date
+  group: 0x300A
+  element: 0x0006
+  op: keep
+- name: RT Plan Time
+  group: 0x300A
+  element: 0x0007
+  op: keep
+- name: RT Plan Geometry
+  group: 0x300A
+  element: 0x000C
+  op: keep
+- name: Operator's name
+  group: 0x0008
+  element: 0x1070
+  op: keep
+- name: Referenced Structure Set Sequence
+  group: 0x300C
+  element: 0x0060
+  op: keep
+- name: Reference SOP Class UID
+  group: 0x0008
+  element: 0x1150
+  op: keep
