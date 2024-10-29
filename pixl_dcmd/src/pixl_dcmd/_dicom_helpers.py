@@ -15,7 +15,6 @@
 
 from __future__ import annotations
 
-import logging
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -54,10 +53,11 @@ class DicomValidator:
         self.dicom_info = EditionReader.load_dicom_info(json_path)
 
     def validate_original(self, dataset: Dataset) -> None:
-        # Temporarily disable logging to avoid spamming the console
-        logging.disable(logging.ERROR)
-        self.original_errors = IODValidator(dataset, self.dicom_info).validate()
-        logging.disable(logging.NOTSET)
+        self.original_errors = IODValidator(
+            dataset,
+            self.dicom_info,
+            log_level="ERROR",
+        ).validate()
 
     def validate_anonymised(self, dataset: Dataset) -> dict:
         # Check that the original dataset has been validated
@@ -66,11 +66,11 @@ class DicomValidator:
         except AttributeError:
             raise ValueError("Original dataset not yet validated")
 
-        # Temporarily disable logging to avoid spamming the console
-        logging.disable(logging.ERROR)
-        self.anon_errors = IODValidator(dataset, self.dicom_info).validate()
-        logging.disable(logging.NOTSET)
-
+        self.anon_errors = IODValidator(
+            dataset,
+            self.dicom_info,
+            log_level="ERROR",
+        ).validate()
         self.diff_errors: dict = {}
 
         for key in self.anon_errors.keys():
