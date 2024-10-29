@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import logging
 from pathlib import Path
 
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
@@ -56,7 +57,7 @@ class DicomValidator:
         self.original_errors = IODValidator(
             dataset,
             self.dicom_info,
-            log_level="ERROR",
+            log_level=logging.ERROR,
         ).validate()
 
     def validate_anonymised(self, dataset: Dataset) -> dict:
@@ -69,7 +70,7 @@ class DicomValidator:
         self.anon_errors = IODValidator(
             dataset,
             self.dicom_info,
-            log_level="ERROR",
+            log_level=logging.ERROR,
         ).validate()
         self.diff_errors: dict = {}
 
