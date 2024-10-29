@@ -258,8 +258,11 @@ def ImportStudyFromRaw(output, uri, **request):  # noqa: ARG001
     _upload_instances(anonymised_instances_bytes)
     anonymised_study_resource_id = _get_study_resource_id(study_uid=anonymised_study_uid)
     wait_for_study_to_stabilise_or_raise(anonymised_study_resource_id)
-    logger.info("Notify export API to retrieve study: {}", anonymised_study_uid)
-    Send(study_id=anonymised_study_resource_id)
+    if should_export():
+        logger.debug("Notify export API to retrieve study: {}", anonymised_study_uid)
+        Send(study_id=anonymised_study_resource_id)
+    else:
+        logger.debug("Not exporting study {} as auto-routing is disabled", anonymised_study_uid)
 
 
 def _get_study_resource_id(study_uid: str) -> str:
