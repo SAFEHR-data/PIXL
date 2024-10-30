@@ -258,7 +258,11 @@ def ImportStudyFromRaw(output, uri, **request):  # noqa: ARG001
     _upload_instances(anonymised_instances_bytes)
     anonymised_study_resource_id = _get_study_resource_id(study_uid=anonymised_study_uid)
     wait_for_study_to_stabilise_or_raise(anonymised_study_resource_id)
-    Send(study_id=anonymised_study_resource_id)
+    if should_export():
+        logger.debug("Notify export API to retrieve study: {}", anonymised_study_uid)
+        Send(study_id=anonymised_study_resource_id)
+    else:
+        logger.debug("Not exporting study {} as auto-routing is disabled", anonymised_study_uid)
 
 
 def _get_study_resource_id(study_uid: str) -> str:
@@ -327,8 +331,8 @@ def _anonymise_study_instances(zipped_study: ZipFile, study_uid: str) -> tuple[l
                 logger.error("Failed to read file {} for study: {}.", file, study_uid)
                 raise
 
+            logger.info("Anonymising file: {} for study: {}", file, study_uid)
             try:
-                logger.debug("Anonymising file: {} for study: {}", file, study_uid)
                 anonymised_instances_bytes.append(_anonymise_dicom_instance(dataset))
             except PixlSkipInstanceError as e:
                 logger.warning(
