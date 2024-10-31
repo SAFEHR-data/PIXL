@@ -292,40 +292,22 @@ class PIXLAnonOrthanc(Orthanc):
     async def notify_anon_to_retrieve_study_resources(
         self, orthanc_raw: PIXLRawOrthanc, resource_ids: list[str]
     ) -> Any:
-        """
-        Notify Orthanc Anon of a study to retrieve from Orthanc Raw
-
-        - Query Orthanc Raw for the study
-        - Send the StudyInstanceUID and the query ID to Orthanc Anon
-        """
-        studies_info = [
-            await orthanc_raw.get_local_study(study_id=resource_id) for resource_id in resource_ids
-        ]
-        study_uids = {study["MainDicomTags"]["StudyInstanceUID"] for study in studies_info}
-        logger.debug("Studies to retrieve: {}", study_uids)
-        for study_uid in study_uids:
-            await self._notify_anon_to_retrieve_study_resource(study_uid)
-
-    async def _notify_anon_to_retrieve_study_resource(self, study_uid: str) -> None:
-        """Notify Orthanc Anon of a study resource to retrieve from Orthanc Raw"""
-        data = {
-            "Level": "Study",
-            "Query": {
-                "StudyInstanceUID": study_uid,
-            },
-        }
-        query_id = await self.query_remote(modality="PIXL-Raw", data=data)
-        if query_id is None:
-            logger.info(f"No unique study found in Orthanc Raw with StudyInstanceUID: {study_uid}.")
-            return
-
-        logger.info("Importing study {} from raw to anon", study_uid)
-
-        # Don't wait for Orthanc Anon to finish processing the study.
-        # We still need to await the function otherwise the task is not added to the event loop.
-        # We could create the task with asyncio.create_task but a timeout error is still raised.
-        with contextlib.suppress(asyncio.TimeoutError):
-            await self._post(
-                path="/import-from-raw",
-                data={"StudyInstanceUID": study_uid, "QueryID": query_id},
+        """Notify Orthanc Anon of study resources to retrieve from Orthanc Raw."""
+        for resource_id in resource_ids:
+            study_info = await orthanc_raw.get_local_study(study_id=resource_id)
+            study_uid = study_info["MainDicomTags"]["StudyInstanceUID"]
+            logger.debug(
+                "Importing study from raw to anon for Message(mrn={} accession_number={} study_uid={})",  # noqa: E501
+                study_info["PatientMainDicomTags"]["PatientID"],
+                study_uid,
+                study_info["MainDicomTags"]["AccessionNumber"],
             )
+
+            # Don't wait for Orthanc Anon to finish processing the study.
+            # We still need to await the function otherwise the task is not added to the event loop.
+            # We could create the task with asyncio.create_task but a timeout error is still raised.
+            with contextlib.suppress(asyncio.TimeoutError):
+                await self._post(
+                    path="/import-from-raw",
+                    data={"ResourceID": resource_id, "StudyInstanceUID": study_uid},
+                )
