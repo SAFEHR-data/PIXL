@@ -62,17 +62,13 @@ class Orthanc:
         logger.debug("Running query on local Orthanc with {}", data)
         return await self._post("/tools/find", data=data)
 
-    async def query_local_study(self, study_id: str) -> Any:
+    async def get_local_study(self, study_id: str) -> Any:
         """Query local Orthanc instance for study."""
         return await self._get(f"/studies/{study_id}")
 
-    async def query_local_series(self, series_id: str) -> Any:
-        """Query local Orthanc instance for series."""
-        return await self._get(f"/series/{series_id}")
-
-    async def query_local_instance(self, instance_id: str) -> Any:
-        """Query local Orthanc instance for instance."""
-        return await self._get(f"/instances/{instance_id}")
+    async def get_local_study_instances(self, study_id: str) -> Any:
+        """Get the instances of a study."""
+        return await self._get(f"/studies/{study_id}/instances")
 
     async def query_remote(self, data: dict, modality: str) -> Optional[str]:
         """Query a particular modality, available from this node"""
@@ -293,8 +289,8 @@ class PIXLAnonOrthanc(Orthanc):
             "ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT", default=False, cast=bool
         )
 
-    async def notify_anon_to_retrieve_study(
-        self, orthanc_raw: PIXLRawOrthanc, resource_id: str
+    async def notify_anon_to_retrieve_study_resources(
+        self, orthanc_raw: PIXLRawOrthanc, resource_ids: list[str]
     ) -> Any:
         """
         Notify Orthanc Anon of a study to retrieve from Orthanc Raw
@@ -302,9 +298,16 @@ class PIXLAnonOrthanc(Orthanc):
         - Query Orthanc Raw for the study
         - Send the StudyInstanceUID and the query ID to Orthanc Anon
         """
-        orthanc_raw_study_info = await orthanc_raw.query_local_study(study_id=resource_id)
-        study_uid = orthanc_raw_study_info["MainDicomTags"]["StudyInstanceUID"]
+        studies_info = [
+            await orthanc_raw.get_local_study(study_id=resource_id) for resource_id in resource_ids
+        ]
+        study_uids = {study["MainDicomTags"]["StudyInstanceUID"] for study in studies_info}
+        logger.debug("Studies to retrieve: {}", study_uids)
+        for study_uid in study_uids:
+            await self._notify_anon_to_retrieve_study_resource(study_uid)
 
+    async def _notify_anon_to_retrieve_study_resource(self, study_uid: str) -> None:
+        """Notify Orthanc Anon of a study resource to retrieve from Orthanc Raw"""
         data = {
             "Level": "Study",
             "Query": {
