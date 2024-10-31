@@ -234,45 +234,50 @@ def ImportStudyFromRaw(output, uri, **request):  # noqa: ARG001
         "Response from retrieving study {} from Orthan Raw: {}", study_uid, retrieve_response
     )
 
-    # Download the zipped study from Orthanc Anon
-    study_resource_id = _get_study_resource_id(study_uid=study_uid)
-    wait_for_study_to_stabilise_or_raise(study_resource_id)
-    zipped_study_bytes = BytesIO(orthanc.RestApiGet(f"/studies/{study_resource_id}/archive"))
-    logger.trace("Study data response {}", zipped_study_bytes)
+    study_resource_ids = _get_study_resource_ids(study_uid=study_uid)
+    for study_resource_id in study_resource_ids:
+        wait_for_study_to_stabilise_or_raise(study_resource_id)
+        zipped_study_bytes = BytesIO(orthanc.RestApiGet(f"/studies/{study_resource_id}/archive"))
+        logger.trace("Study data response {}", zipped_study_bytes)
 
-    # Delete the original study now in case anything goes wrong with the anonymisation.
-    # We don't want to leave the original (non-anonymised) study on Orthanc Anon
-    logger.info(
-        "Deleteing non-anonymised study with UID {} and resource ID {} from Orthanc Anon",
-        study_uid,
-        study_resource_id,
-    )
-    orthanc.RestApiDelete(f"/studies/{study_resource_id}")
-
-    # Anonymise the study, re-upload to Orthanc Anon, and notify the export API to export the study
-    with ZipFile(zipped_study_bytes) as zipped_study:
-        anonymised_instances_bytes, anonymised_study_uid = _anonymise_study_instances(
-            zipped_study=zipped_study,
-            study_uid=study_uid,
+        # Delete the original study now in case anything goes wrong with the anonymisation.
+        # We don't want to leave the original (non-anonymised) study on Orthanc Anon
+        logger.info(
+            "Deleteing non-anonymised study with UID {} and resource ID {} from Orthanc Anon",
+            study_uid,
+            study_resource_id,
         )
-    _upload_instances(anonymised_instances_bytes)
-    anonymised_study_resource_id = _get_study_resource_id(study_uid=anonymised_study_uid)
-    wait_for_study_to_stabilise_or_raise(anonymised_study_resource_id)
-    if should_export():
-        logger.debug("Notify export API to retrieve study: {}", anonymised_study_uid)
-        Send(study_id=anonymised_study_resource_id)
-    else:
-        logger.debug("Not exporting study {} as auto-routing is disabled", anonymised_study_uid)
+        orthanc.RestApiDelete(f"/studies/{study_resource_id}")
+
+        with ZipFile(zipped_study_bytes) as zipped_study:
+            try:
+                anonymised_instances_bytes, anonymised_study_uid = _anonymise_study_instances(
+                    zipped_study=zipped_study,
+                    study_uid=study_uid,
+                )
+            except Exception:  # noqa: S112,BLE001
+                # we've already logged the error in _anonymise_study_instances and want to
+                # anonymise and export the remaining resources if possible
+                continue
+        _upload_instances(anonymised_instances_bytes)
+
+        if should_export():
+            anonymised_study_resource_id = _get_study_resource_ids(study_uid=anonymised_study_uid)[
+                0
+            ]
+            wait_for_study_to_stabilise_or_raise(anonymised_study_resource_id)
+            logger.debug("Notify export API to retrieve study: {}", anonymised_study_uid)
+            Send(study_id=anonymised_study_resource_id)
+        else:
+            logger.debug("Not exporting study {} as auto-routing is disabled", anonymised_study_uid)
 
 
-def _get_study_resource_id(study_uid: str) -> str:
+def _get_study_resource_ids(study_uid: str) -> list[str]:
     """
-    Get the resource ID for an existing study based on its StudyInstanceUID.
+    Get the resource IDs for an existing study based on its StudyInstanceUID.
 
     Returns None if there are no resources with the given StudyInstanceUID.
-    Returns the resource ID if there is a single resource with the given StudyInstanceUID.
-    Returns None if there are multiple resources with the given StudyInstanceUID and deletes
-    the studies.
+    Otherwise returns the resource IDs for the given StudyInstanceUID.
     """
     data = json.dumps(
         {
@@ -287,10 +292,11 @@ def _get_study_resource_id(study_uid: str) -> str:
         message = f"No study found with StudyInstanceUID {study_uid}"
         raise ValueError(message)
     if len(study_resource_ids) > 1:
-        message = f"Multiple studies found with StudyInstanceUID {study_uid}"
-        raise ValueError(message)
+        logger.debug(
+            "{} studies found with StudyInstanceUID {}", len(study_resource_ids), study_uid
+        )
 
-    return study_resource_ids[0]
+    return study_resource_ids
 
 
 def wait_for_study_to_stabilise_or_raise(study_id: str) -> None:
