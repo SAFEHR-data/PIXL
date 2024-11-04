@@ -293,21 +293,19 @@ class PIXLAnonOrthanc(Orthanc):
         self, orthanc_raw: PIXLRawOrthanc, resource_ids: list[str]
     ) -> Any:
         """Notify Orthanc Anon of study resources to retrieve from Orthanc Raw."""
-        for resource_id in resource_ids:
-            study_info = await orthanc_raw.get_local_study(study_id=resource_id)
-            study_uid = study_info["MainDicomTags"]["StudyInstanceUID"]
-            logger.debug(
-                "Importing study from raw to anon for Message(mrn={} accession_number={} study_uid={})",  # noqa: E501
-                study_info["PatientMainDicomTags"]["PatientID"],
-                study_uid,
-                study_info["MainDicomTags"]["AccessionNumber"],
-            )
+        resources_info = [
+            await orthanc_raw.get_local_study(study_id=resource_id) for resource_id in resource_ids
+        ]
+        study_uids = [
+            resource_info["MainDicomTags"]["StudyInstanceUID"] for resource_info in resources_info
+        ]
+        logger.debug("Importing resources {} from raw to anon", resource_ids)
 
-            # Don't wait for Orthanc Anon to finish processing the study.
-            # We still need to await the function otherwise the task is not added to the event loop.
-            # We could create the task with asyncio.create_task but a timeout error is still raised.
-            with contextlib.suppress(asyncio.TimeoutError):
-                await self._post(
-                    path="/import-from-raw",
-                    data={"ResourceID": resource_id, "StudyInstanceUID": study_uid},
-                )
+        # Don't wait for Orthanc Anon to finish processing the study.
+        # We still need to await the function otherwise the task is not added to the event loop.
+        # We could create the task with asyncio.create_task but a timeout error is still raised.
+        with contextlib.suppress(asyncio.TimeoutError):
+            await self._post(
+                path="/import-from-raw",
+                data={"ResourceIDs": resource_ids, "StudyInstanceUIDs": study_uids},
+            )

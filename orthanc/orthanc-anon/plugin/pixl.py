@@ -223,42 +223,51 @@ def ImportStudyFromRaw(output, uri, **request):  # noqa: ARG001
     """
     Import a study from Orthanc Raw.
 
-    - Pull a study from Orthanc Raw based on its resource ID. Wait for the study to be stable.
+    - Pull a study from Orthanc Raw based on its resource IDs. Wait for the study to be stable.
     - Iterate over instances and anonymise them
     - Re-upload the study via the dicom-web api. Wait for the study to be stable.
     - Notify the PIXL export-api to send the study the to relevant endpoint
     """
     payload = json.loads(request["body"])
-    study_resource_id = payload["ResourceID"]
-    study_uid = payload["StudyInstanceUID"]
+    study_resource_ids = payload["ResourceIDs"]
+    study_uids = payload["StudyInstanceUIDs"]
 
-    logger.debug(
-        "Downloading resource {} for study {} from Orthan Raw",
-        study_resource_id,
-        study_uid,
-    )
-    zipped_study_bytes = get_study_zip_archive_from_raw(resourceId=study_resource_id)
+    anonymised_study_uids = []
+    for study_resource_id, study_uid in zip(study_resource_ids, study_uids, strict=False):
+        logger.debug(
+            "Downloading resources {} for study {} from Orthan Raw",
+            study_resource_id,
+            study_uid,
+        )
+        zipped_study_bytes = get_study_zip_archive_from_raw(resourceId=study_resource_id)
 
-    with ZipFile(zipped_study_bytes) as zipped_study:
+        with ZipFile(zipped_study_bytes) as zipped_study:
+            try:
+                anonymised_instances_bytes, anonymised_study_uid = _anonymise_study_instances(
+                    zipped_study=zipped_study,
+                    study_uid=study_uid,
+                )
+            except Exception:  # noqa: BLE001
+                logger.exception("Failed to anonymize study: {} ", study_uid)
+                continue
+
         try:
-            anonymised_instances_bytes, anonymised_study_uid = _anonymise_study_instances(
-                zipped_study=zipped_study,
-                study_uid=study_uid,
-            )
-        except Exception:  # noqa: BLE001
-            logger.exception("Failed to anonymize study: {} ", study_uid)
-            return
+            _upload_instances(anonymised_instances_bytes)
+        except requests.exceptions.RequestException as e:
+            logger.exception(e)
+            continue
 
-    _upload_instances(anonymised_instances_bytes)
+        anonymised_study_uids.append(anonymised_study_uid)
 
     if not should_export():
         logger.debug("Not exporting study {} as auto-routing is disabled", anonymised_study_uid)
         return
 
-    anonymised_study_resource_id = _get_study_resource_id(anonymised_study_uid)
-    wait_for_study_to_stabilise_or_raise(anonymised_study_resource_id)
-    logger.debug("Notify export API to retrieve study: {}", anonymised_study_uid)
-    Send(study_id=anonymised_study_resource_id)
+    for anonymised_study_uid in anonymised_study_uids:
+        anonymised_study_resource_id = _get_study_resource_id(anonymised_study_uid)
+        wait_for_study_to_stabilise_or_raise(anonymised_study_resource_id)
+        logger.debug("Notify export API to retrieve study: {}", anonymised_study_uid)
+        Send(study_id=anonymised_study_resource_id)
 
 
 def get_study_zip_archive_from_raw(resourceId: str) -> BytesIO:
