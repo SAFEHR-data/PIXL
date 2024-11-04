@@ -246,8 +246,7 @@ def ImportStudyFromRaw(output, uri, **request):  # noqa: ARG001
                 study_uid=study_uid,
             )
         except Exception:  # noqa: BLE001
-            # we've already logged the error in _anonymise_study_instances and want to
-            # anonymise and export the remaining resources if possible
+            logger.exception("Failed to anonymize study: {} ", study_uid)
             return
 
     _upload_instances(anonymised_instances_bytes)
@@ -335,11 +334,7 @@ def _anonymise_study_instances(zipped_study: ZipFile, study_uid: str) -> tuple[l
     for file_info in zipped_study.infolist():
         with zipped_study.open(file_info) as file:
             logger.debug("Reading file {}", file)
-            try:
-                dataset = dcmread(file)
-            except pydicom.errors.InvalidDicomError:
-                logger.error("Failed to read file {} for study: {}.", file, study_uid)
-                raise
+            dataset = dcmread(file)
 
             logger.info("Anonymising file: {} for study: {}", file, study_uid)
             try:
@@ -351,15 +346,12 @@ def _anonymise_study_instances(zipped_study: ZipFile, study_uid: str) -> tuple[l
                     study_uid,
                     e,
                 )
-            except Exception:
-                logger.error("Failed to anonymize file: {} for study: {} ", file, study_uid)
-                raise
             else:
                 anonymised_study_uid = dataset[0x0020, 0x000D].value
 
     if not anonymised_instances_bytes:
-        message = "All instances have been discarded for study {}", study_uid
-        raise ValueError(message)
+        message = "All instances have been skipped for study {}", study_uid
+        raise PixlDiscardError(message)
 
     return anonymised_instances_bytes, anonymised_study_uid
 
