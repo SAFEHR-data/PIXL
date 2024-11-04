@@ -371,12 +371,13 @@ def _upload_instances(instances_bytes: list[bytes]) -> None:
     # Using requests as doing:
     # `upload_response = orthanc.RestApiPost(f"/instances", anonymised_files)`
     # gives an error BadArgumentType error (orthanc.RestApiPost seems to only accept json)
-    requests.post(
+    upload_response = requests.post(
         url=f"{ORTHANC_URL}/instances",
         auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD),
         files=files,
         timeout=config("PIXL_DICOM_TRANSFER_TIMEOUT", default=180, cast=int),
     )
+    upload_response.raise_for_status()
 
 
 orthanc.RegisterOnChangeCallback(OnChange)
