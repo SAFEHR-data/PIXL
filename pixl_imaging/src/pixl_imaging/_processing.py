@@ -138,8 +138,6 @@ async def _process_message(
                 study=resource["ID"],
             )
 
-    logger.debug("Local instances for study: {}", resources)
-
     if not orthanc_raw.autoroute_to_anon:
         logger.debug("Auto-routing to Orthanc Anon is not enabled. Not sending study {}", resources)
         return
