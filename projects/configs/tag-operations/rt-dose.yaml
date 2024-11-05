@@ -16,14 +16,6 @@
   group: 0x0010
   element: 0x0020
   op: replace
-- name: Referenced SOP Class UID
-  group: 0x0008
-  element: 0x1150
-  op: keep
-- name: Referenced SOP Instance UID
-  group: 0x0008
-  element: 0x1155
-  op: keep
 - name: Slice Thickness
   group: 0x0018
   element: 0x0050
@@ -43,8 +35,4 @@
 - name: Dose Grid Scaling
   group: 0x3004
   element: 0x000e
-  op: keep
-- name: Referenced RT Plan Sequence
-  group: 0x300c
-  element: 0x0002
   op: keep

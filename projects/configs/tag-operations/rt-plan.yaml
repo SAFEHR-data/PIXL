@@ -20,6 +20,14 @@
   group: 0x0008
   element: 0x1070
   op: keep
+- name: Referenced SOP Class UID
+  group: 0x0008
+  element: 0x1150
+  op: keep
+- name: Referenced SOP Instance UID
+  group: 0x0008
+  element: 0x1155
+  op: keep
 - name: RT Plan Label
   group: 0x300a
   element: 0x0002
@@ -35,4 +43,8 @@
 - name: RT Plan Geometry
   group: 0x300a
   element: 0x000c
+  op: keep
+- name: Referenced Structure Set Sequence
+  group: 0x300c
+  element: 0x0060
   op: keep
