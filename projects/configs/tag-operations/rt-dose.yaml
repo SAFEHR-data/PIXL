@@ -20,9 +20,9 @@
   group: 0x0018
   element: 0x0050
   op: keep
-- name: Dose Grid Scaling
+- name: Dose Units
   group: 0x3004
-  element: 0x000E
+  element: 0x0002
   op: keep
 - name: Dose Type
   group: 0x3004
@@ -30,29 +30,9 @@
   op: keep
 - name: Dose Summation Type
   group: 0x3004
-  element: 0x000A
+  element: 0x000a
   op: keep
-- name: Dose Units
+- name: Dose Grid Scaling
   group: 0x3004
-  element: 0x0002
-  op: keep
-- name: Referenced RT Plan Sequence
-  group: 0x300C
-  element: 0x0002
-  op: keep
-- name: Referenced Fraction Group Sequence
-  group: 0x300C
-  element: 0x0020
-  op: keep
-- name: Referenced Fraction Group Number
-  group: 0x300C
-  element: 0x0022
-  op: keep
-- name: Referenced Beam Sequence
-  group: 0x300C
-  element: 0x0004
-  op: keep
-- name: Referenced Beam Number
-  group: 0x300C
-  element: 0x0006
+  element: 0x000e
   op: keep
