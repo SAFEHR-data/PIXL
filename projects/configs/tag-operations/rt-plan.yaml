@@ -16,31 +16,23 @@
   group: 0x0010
   element: 0x0020
   op: replace
-- name: RT Plan Label
-  group: 0x300A
-  element: 0x0002
-  op: keep
-- name: RT Plan Date
-  group: 0x300A
-  element: 0x0006
-  op: keep
-- name: RT Plan Time
-  group: 0x300A
-  element: 0x0007
-  op: keep
-- name: RT Plan Geometry
-  group: 0x300A
-  element: 0x000C
-  op: keep
-- name: Operator's name
+- name: Operators Name
   group: 0x0008
   element: 0x1070
   op: keep
-- name: Referenced Structure Set Sequence
-  group: 0x300C
-  element: 0x0060
+- name: RT Plan Label
+  group: 0x300a
+  element: 0x0002
   op: keep
-- name: Reference SOP Class UID
-  group: 0x0008
-  element: 0x1150
+- name: RT Plan Date
+  group: 0x300a
+  element: 0x0006
+  op: keep
+- name: RT Plan Time
+  group: 0x300a
+  element: 0x0007
+  op: keep
+- name: RT Plan Geometry
+  group: 0x300a
+  element: 0x000c
   op: keep
