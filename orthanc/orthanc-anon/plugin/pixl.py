@@ -287,6 +287,8 @@ def _import_study_from_raw(study_resource_id: str, study_uid: str) -> None:
     _upload_instances(anonymised_instances_bytes)
     logger.info(
         "Successfully uploaded anonymised instances for study: {}, anonymised UID: {}",
+        study_uid,
+        anonymised_study_uid,
     )
 
     if not should_export():
