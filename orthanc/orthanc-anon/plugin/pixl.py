@@ -69,7 +69,9 @@ logger.warning("Running logging at level {}", logging_level)
 
 # Set up a thread pool executor for non-blocking calls to Orthanc
 max_workers = config("PIXL_MAX_MESSAGES_IN_FLIGHT", cast=int)
-executor = ThreadPoolExecutor(max_workers=5)
+executor = ThreadPoolExecutor(max_workers=max_workers)
+
+logger.info("Using {} threads for processing", max_workers)
 
 
 def AzureAccessToken() -> str:
@@ -255,12 +257,17 @@ def _import_study_from_raw(study_resource_id: str, study_uid: str) -> None:
     - Notify the PIXL export-api to send the study the to relevant endpoint
 
     """
-    logger.debug(
-        "Downloading resource {} for study {} from Orthan Raw",
+    logger.info(
+        "Downloading resource {} for study {} from Orthanc Raw",
         study_resource_id,
         study_uid,
     )
     zipped_study_bytes = get_study_zip_archive_from_raw(resourceId=study_resource_id)
+    logger.info(
+        "Successfully downloaded resource {} for study {} from Orthanc Raw",
+        study_resource_id,
+        study_uid,
+    )
 
     with ZipFile(zipped_study_bytes) as zipped_study:
         try:
@@ -272,7 +279,15 @@ def _import_study_from_raw(study_resource_id: str, study_uid: str) -> None:
             logger.exception("Failed to anonymize study: {} ", study_uid)
             return
 
+    logger.info(
+        "Upload anonymised instances for study: {}, anonymised UID: {}",
+        study_uid,
+        anonymised_study_uid,
+    )
     _upload_instances(anonymised_instances_bytes)
+    logger.info(
+        "Successfully uploaded anonymised instances for study: {}, anonymised UID: {}",
+    )
 
     if not should_export():
         logger.debug("Not exporting study {} as auto-routing is disabled", anonymised_study_uid)
