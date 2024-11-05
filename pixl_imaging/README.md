@@ -23,6 +23,12 @@ instances are retrieved. If the study does not exist locally, the entire study i
 Once the study and all its instances are in `orthanc-raw`, the study is sent to `orthanc-anon` via a C-STORE
 operation.
 
+>[!NOTE]  
+> When querying the archives, if we do not know the `StudyInstanceUID` we will query by MRN and Accession Number.
+> This may result in multiple studies being found in the archives. In this instance, all studies returned by the
+> query will be retrieved and sent to Orthanc Anon for anonymisation. In Orthanc Anon, the studies will be combined
+> into a single study as they share the same MRN and Accession Number.
+
 ## Installation
 
 ```bash
