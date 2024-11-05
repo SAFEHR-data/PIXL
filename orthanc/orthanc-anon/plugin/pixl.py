@@ -251,12 +251,7 @@ def ImportStudyFromRaw(output, uri, **request):  # noqa: ARG001
                 logger.exception("Failed to anonymize study: {} ", study_uid)
                 continue
 
-        try:
-            _upload_instances(anonymised_instances_bytes)
-        except requests.exceptions.RequestException as e:
-            logger.exception(e)
-            continue
-
+        _upload_instances(anonymised_instances_bytes)
         anonymised_study_uids.append(anonymised_study_uid)
 
     if not should_export():
