@@ -27,7 +27,7 @@ import sys
 import threading
 import traceback
 from io import BytesIO
-from time import sleep, time
+from time import sleep
 from typing import TYPE_CHECKING, cast
 from zipfile import ZipFile
 
@@ -260,7 +260,6 @@ def ImportStudyFromRaw(output, uri, **request):  # noqa: ARG001
 
     for anonymised_study_uid in anonymised_study_uids:
         anonymised_study_resource_id = _get_study_resource_id(anonymised_study_uid)
-        wait_for_study_to_stabilise_or_raise(anonymised_study_resource_id)
         logger.debug("Notify export API to retrieve study: {}", anonymised_study_uid)
         Send(study_id=anonymised_study_resource_id)
 
@@ -304,25 +303,6 @@ def _get_study_resource_id(study_uid: str) -> str:
         raise ValueError(message)
 
     return study_resource_ids[0]
-
-
-def wait_for_study_to_stabilise_or_raise(study_id: str) -> None:
-    """Wait for a study to become stable, or raise exception if exceeds timeout."""
-    timeout = config("PIXL_DICOM_TRANSFER_TIMEOUT", default=180, cast=int)
-    study_path = f"/studies/{study_id}"
-    study = json.loads(orthanc.RestApiGet(study_path))
-    is_stable = study["IsStable"]
-    start_time = time()
-
-    while not is_stable:
-        sleep(10)
-        study = json.loads(orthanc.RestApiGet(study_path))
-        is_stable = study["IsStable"]
-        if not is_stable and ((time() - start_time) > timeout):
-            msg = f"Failed to stabilise study {study_id} in {timeout} seconds."
-            raise PixlDiscardError(msg)
-
-    logger.debug("Study {} is stable after {} seconds", study_id, time() - start_time)
 
 
 def _anonymise_study_instances(zipped_study: ZipFile, study_uid: str) -> tuple[list[bytes], str]:
