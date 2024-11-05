@@ -26,6 +26,7 @@ import os
 import sys
 import threading
 import traceback
+from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO
 from time import sleep
 from typing import TYPE_CHECKING, cast
@@ -65,6 +66,10 @@ if not logging_level:
 logger.add(sys.stdout, level=logging_level)
 
 logger.warning("Running logging at level {}", logging_level)
+
+# Set up a thread pool executor for non-blocking calls to Orthanc
+max_workers = config("PIXL_MAX_MESSAGES_IN_FLIGHT", cast=int)
+executor = ThreadPoolExecutor(max_workers=5)
 
 
 def AzureAccessToken() -> str:
@@ -219,49 +224,63 @@ def OnHeartBeat(output, uri, **request) -> Any:  # noqa: ARG001
     output.AnswerBuffer("OK\n", "text/plain")
 
 
-def ImportStudyFromRaw(output, uri, **request):  # noqa: ARG001
+def ImportStudiesFromRaw(output, uri, **request):  # noqa: ARG001
     """
-    Import a study from Orthanc Raw.
+    Import studies from Orthanc Raw.
 
-    - Pull a study from Orthanc Raw based on its resource IDs. Wait for the study to be stable.
-    - Iterate over instances and anonymise them
-    - Re-upload the study via the dicom-web api. Wait for the study to be stable.
-    - Notify the PIXL export-api to send the study the to relevant endpoint
+    Offload to a thread pool executor to avoid blocking the Orthanc main thread.
     """
     payload = json.loads(request["body"])
     study_resource_ids = payload["ResourceIDs"]
     study_uids = payload["StudyInstanceUIDs"]
 
-    anonymised_study_uids = []
     for study_resource_id, study_uid in zip(study_resource_ids, study_uids, strict=False):
-        logger.debug(
-            "Downloading resources {} for study {} from Orthan Raw",
-            study_resource_id,
-            study_uid,
-        )
-        zipped_study_bytes = get_study_zip_archive_from_raw(resourceId=study_resource_id)
+        executor.submit(_import_study_from_raw, study_resource_id, study_uid)
 
-        with ZipFile(zipped_study_bytes) as zipped_study:
-            try:
-                anonymised_instances_bytes, anonymised_study_uid = _anonymise_study_instances(
-                    zipped_study=zipped_study,
-                    study_uid=study_uid,
-                )
-            except Exception:  # noqa: BLE001
-                logger.exception("Failed to anonymize study: {} ", study_uid)
-                continue
+    response = json.dumps({"Message": "Ok"})
+    output.AnswerBuffer(response, "application/json")
 
-        _upload_instances(anonymised_instances_bytes)
-        anonymised_study_uids.append(anonymised_study_uid)
+
+def _import_study_from_raw(study_resource_id: str, study_uid: str) -> None:
+    """
+    Import a study from Orthanc Raw.
+
+    Args:
+        study_resource_id: Resource ID of the study in Orthanc Raw
+        study_uid: Corresponding StudyInstanceUID
+
+    - Pull a study from Orthanc Raw based on its resource ID
+    - Iterate over instances and anonymise them
+    - Re-upload the study via the dicom-web api
+    - Notify the PIXL export-api to send the study the to relevant endpoint
+
+    """
+    logger.debug(
+        "Downloading resource {} for study {} from Orthan Raw",
+        study_resource_id,
+        study_uid,
+    )
+    zipped_study_bytes = get_study_zip_archive_from_raw(resourceId=study_resource_id)
+
+    with ZipFile(zipped_study_bytes) as zipped_study:
+        try:
+            anonymised_instances_bytes, anonymised_study_uid = _anonymise_study_instances(
+                zipped_study=zipped_study,
+                study_uid=study_uid,
+            )
+        except Exception:  # noqa: BLE001
+            logger.exception("Failed to anonymize study: {} ", study_uid)
+            return
+
+    _upload_instances(anonymised_instances_bytes)
 
     if not should_export():
         logger.debug("Not exporting study {} as auto-routing is disabled", anonymised_study_uid)
         return
 
-    for anonymised_study_uid in anonymised_study_uids:
-        anonymised_study_resource_id = _get_study_resource_id(anonymised_study_uid)
-        logger.debug("Notify export API to retrieve study: {}", anonymised_study_uid)
-        Send(study_id=anonymised_study_resource_id)
+    anonymised_study_resource_id = _get_study_resource_id(anonymised_study_uid)
+    logger.debug("Notify export API to retrieve study: {}", anonymised_study_uid)
+    Send(study_id=anonymised_study_resource_id)
 
 
 def get_study_zip_archive_from_raw(resourceId: str) -> BytesIO:
@@ -366,4 +385,4 @@ def _upload_instances(instances_bytes: list[bytes]) -> None:
 
 orthanc.RegisterOnChangeCallback(OnChange)
 orthanc.RegisterRestCallback("/heart-beat", OnHeartBeat)
-orthanc.RegisterRestCallback("/import-from-raw", ImportStudyFromRaw)
+orthanc.RegisterRestCallback("/import-from-raw", ImportStudiesFromRaw)

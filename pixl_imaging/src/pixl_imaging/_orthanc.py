@@ -13,8 +13,6 @@
 #  limitations under the License.
 from __future__ import annotations
 
-import asyncio
-import contextlib
 from asyncio import sleep
 from time import time
 from typing import Any, Optional
@@ -301,11 +299,7 @@ class PIXLAnonOrthanc(Orthanc):
         ]
         logger.debug("Importing resources {} from raw to anon", resource_ids)
 
-        # Don't wait for Orthanc Anon to finish processing the study.
-        # We still need to await the function otherwise the task is not added to the event loop.
-        # We could create the task with asyncio.create_task but a timeout error is still raised.
-        with contextlib.suppress(asyncio.TimeoutError):
-            await self._post(
-                path="/import-from-raw",
-                data={"ResourceIDs": resource_ids, "StudyInstanceUIDs": study_uids},
-            )
+        await self._post(
+            path="/import-from-raw",
+            data={"ResourceIDs": resource_ids, "StudyInstanceUIDs": study_uids},
+        )
