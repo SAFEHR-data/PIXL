@@ -16,55 +16,91 @@
   group: 0x0010
   element: 0x0020
   op: replace
-- name: ROI Countour Sequence
-  group: 0x3006
-  element: 0x0039
+- name: Referenced SOP Class UID
+  group: 0x0008
+  element: 0x1150
   op: keep
-- name: RT ROI Observations Sequence
-  group: 0x3006
-  element: 0x0080
-  op: keep
-- name: Structure Set Time
-  group: 0x3006
-  element: 0x0009
-  op: keep
-- name: Structure Set Date
-  group: 0x3006
-  element: 0x0008
+- name: Referenced SOP Instance UID
+  group: 0x0008
+  element: 0x1155
   op: keep
 - name: Structure Set Label
   group: 0x3006
   element: 0x0002
   op: keep
+- name: Structure Set Date
+  group: 0x3006
+  element: 0x0008
+  op: keep
+- name: Structure Set Time
+  group: 0x3006
+  element: 0x0009
+  op: keep
+- name: Contour Image Sequence
+  group: 0x3006
+  element: 0x0016
+  op: keep
 - name: Structure Set ROI Sequence
   group: 0x3006
   element: 0x0020
   op: keep
-- name: Referenced ROI Number
+- name: ROI Number
   group: 0x3006
-  element: 0x0084
+  element: 0x0022
   op: keep
-- name: ROI Interpreter
+- name: Referenced Frame of Reference UID
   group: 0x3006
-  element: 0x00A6
-  op: keep
-- name: RT ROI Interpreted Type
-  group: 0x3006
-  element: 0x00A4
-  op: keep
-- name: Observation Number
-  group: 0x3006
-  element: 0x0082
+  element: 0x0024
   op: keep
 - name: ROI Name
   group: 0x3006
   element: 0x0026
   op: keep
+- name: ROI Display Color
+  group: 0x3006
+  element: 0x002a
+  op: keep
 - name: ROI Generation Algorithm
   group: 0x3006
   element: 0x0036
   op: keep
-- name: ROI Number
+- name: ROI Contour Sequence
   group: 0x3006
-  element: 0x0022
+  element: 0x0039
+  op: keep
+- name: Contour Sequence
+  group: 0x3006
+  element: 0x0040
+  op: keep
+- name: Contour Geometric Type
+  group: 0x3006
+  element: 0x0042
+  op: keep
+- name: Number of Contour Points
+  group: 0x3006
+  element: 0x0046
+  op: keep
+- name: Contour Data
+  group: 0x3006
+  element: 0x0050
+  op: keep
+- name: RT ROI Observations Sequence
+  group: 0x3006
+  element: 0x0080
+  op: keep
+- name: Observation Number
+  group: 0x3006
+  element: 0x0082
+  op: keep
+- name: Referenced ROI Number
+  group: 0x3006
+  element: 0x0084
+  op: keep
+- name: RT ROI Interpreted Type
+  group: 0x3006
+  element: 0x00A4
+  op: keep
+- name: ROI Interpreter
+  group: 0x3006
+  element: 0x00A6
   op: keep
