@@ -297,11 +297,9 @@ class PIXLAnonOrthanc(Orthanc):
         study_uids = [
             resource_info["MainDicomTags"]["StudyInstanceUID"] for resource_info in resources_info
         ]
-        logger.info("Importing resources {} from raw to anon", resource_ids)
+        logger.debug("Notify Orthanc Anon to import resources {} from Orthanc Raw", resource_ids)
 
         await self._post(
             path="/import-from-raw",
             data={"ResourceIDs": resource_ids, "StudyInstanceUIDs": study_uids},
         )
-
-        logger.info("Returned from importing resources {} from raw to anon", resource_ids)

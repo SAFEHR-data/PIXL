@@ -257,17 +257,7 @@ def _import_study_from_raw(study_resource_id: str, study_uid: str) -> None:
     - Notify the PIXL export-api to send the study the to relevant endpoint
 
     """
-    logger.info(
-        "Downloading resource {} for study {} from Orthanc Raw",
-        study_resource_id,
-        study_uid,
-    )
     zipped_study_bytes = get_study_zip_archive_from_raw(resourceId=study_resource_id)
-    logger.info(
-        "Successfully downloaded resource {} for study {} from Orthanc Raw",
-        study_resource_id,
-        study_uid,
-    )
 
     with ZipFile(zipped_study_bytes) as zipped_study:
         try:
@@ -279,24 +269,18 @@ def _import_study_from_raw(study_resource_id: str, study_uid: str) -> None:
             logger.exception("Failed to anonymize study: {} ", study_uid)
             return
 
-    logger.info(
-        "Upload anonymised instances for study: {}, anonymised UID: {}",
-        study_uid,
-        anonymised_study_uid,
-    )
     _upload_instances(anonymised_instances_bytes)
-    logger.info(
-        "Successfully uploaded anonymised instances for study: {}, anonymised UID: {}",
-        study_uid,
-        anonymised_study_uid,
-    )
 
     if not should_export():
         logger.debug("Not exporting study {} as auto-routing is disabled", anonymised_study_uid)
         return
 
     anonymised_study_resource_id = _get_study_resource_id(anonymised_study_uid)
-    logger.debug("Notify export API to retrieve study: {}", anonymised_study_uid)
+    logger.debug(
+        "Notify export API to retrieve study resource. Original UID {} Anon UID: {}",
+        study_uid,
+        anonymised_study_uid,
+    )
     Send(study_id=anonymised_study_resource_id)
 
 
@@ -370,7 +354,7 @@ def _anonymise_study_instances(zipped_study: ZipFile, study_uid: str) -> tuple[l
                 anonymised_study_uid = dataset[0x0020, 0x000D].value
 
     if not anonymised_instances_bytes:
-        message = "All instances have been skipped for study {}", study_uid
+        message = f"All instances have been skipped for study {study_uid}"
         raise PixlDiscardError(message)
 
     return anonymised_instances_bytes, anonymised_study_uid
