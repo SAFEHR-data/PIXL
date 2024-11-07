@@ -23,7 +23,7 @@
 - name: Referenced SOP Instance UID
   group: 0x0008
   element: 0x1155
-  op: keep
+  op: replace_UID
 - name: Structure Set Label
   group: 0x3006
   element: 0x0002
@@ -48,10 +48,22 @@
   group: 0x3006
   element: 0x0022
   op: keep
+- name: Referenced Frame of Reference Sequence
+  group: 0x3006
+  element: 0x0010
+  op: keep
+- name: RT Referenced Study Sequence
+  group: 0x3006
+  element: 0x0012
+  op: keep
+- name: RT Referenced Series Sequence
+  group: 0x3006
+  element: 0x0014
+  op: keep
 - name: Referenced Frame of Reference UID
   group: 0x3006
   element: 0x0024
-  op: keep
+  op: replace_UID
 - name: ROI Name
   group: 0x3006
   element: 0x0026

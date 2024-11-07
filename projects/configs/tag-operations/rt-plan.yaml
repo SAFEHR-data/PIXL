@@ -27,7 +27,7 @@
 - name: Referenced SOP Instance UID
   group: 0x0008
   element: 0x1155
-  op: keep
+  op: replace_UID
 - name: RT Plan Label
   group: 0x300a
   element: 0x0002
