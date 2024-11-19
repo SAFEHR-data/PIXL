@@ -1,4 +1,4 @@
-## 'db' Directory Contents
+## 'PIXL/pixl_core/src/core/db' Directory Contents
 
 ### Files
 

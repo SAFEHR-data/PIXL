@@ -1,4 +1,4 @@
-## 'project_config' Directory Contents
+## 'PIXL/pixl_core/tests/project_config' Directory Contents
 
 ### Files
 

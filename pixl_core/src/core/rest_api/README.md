@@ -1,4 +1,4 @@
-## 'rest_api' Directory Contents
+## 'PIXL/pixl_core/src/core/rest_api' Directory Contents
 
 ### Files
 

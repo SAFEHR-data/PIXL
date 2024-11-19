@@ -1,4 +1,4 @@
-## 'core' Directory Contents
+## 'PIXL/pixl_core/src/core' Directory Contents
 
 ### Subdirectories
 

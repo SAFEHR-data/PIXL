@@ -1,4 +1,4 @@
-## 'patient_queue' Directory Contents
+## 'PIXL/pixl_core/src/core/patient_queue' Directory Contents
 
 ### Files
 
