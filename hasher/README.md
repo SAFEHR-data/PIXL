@@ -67,3 +67,18 @@ HASHER_API_AZ_CLIENT_PASSWORD=<generated-password>
 HASHER_API_AZ_TENANT_ID=<tenant-ID>
 HASHER_API_AZ_KEY_VAULT_NAME=<key-vault-name>
 ```
+
+## 'PIXL/hasher' Directory Contents
+
+### Subdirectories
+
+[src](./src/README.md)
+
+[tests](./tests/README.md)
+
+### Files
+
+pyproject.toml
+
+README.md
+

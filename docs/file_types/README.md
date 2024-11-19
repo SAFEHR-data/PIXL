@@ -1,4 +1,4 @@
-## 'file_types' Directory Contents
+## 'PIXL/docs/file_types' Directory Contents
 
 ### Files
 

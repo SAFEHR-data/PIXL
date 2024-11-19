@@ -1,4 +1,4 @@
-## 'joss-publication' Directory Contents
+## 'PIXL/docs/joss-publication' Directory Contents
 
 ### Subdirectories
 

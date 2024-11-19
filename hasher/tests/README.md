@@ -1,4 +1,4 @@
-## 'tests' Directory Contents
+## 'PIXL/hasher/tests' Directory Contents
 
 ### Files
 

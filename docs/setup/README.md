@@ -1,4 +1,4 @@
-## 'setup' Directory Contents
+## 'PIXL/docs/setup' Directory Contents
 
 ### Files
 

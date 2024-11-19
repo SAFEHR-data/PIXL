@@ -1,4 +1,4 @@
-## 'diagrams' Directory Contents
+## 'PIXL/docs/design/diagrams' Directory Contents
 
 ### Files
 

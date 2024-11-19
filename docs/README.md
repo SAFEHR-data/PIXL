@@ -1,4 +1,4 @@
-## 'docs' Directory Contents
+## 'PIXL/docs' Directory Contents
 
 ### Subdirectories
 

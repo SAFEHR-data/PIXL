@@ -9,3 +9,18 @@ PIXL defines 2 types of ORTHANC instances:
 
 For both instances we define a plugin in `orthanc-*/plugin/pixl.py` that implements the custom
 functionality .
+
+## 'PIXL/orthanc' Directory Contents
+
+### Subdirectories
+
+[assets](./assets/README.md)
+
+[orthanc-anon](./orthanc-anon/README.md)
+
+[orthanc-raw](./orthanc-raw/README.md)
+
+### Files
+
+README.md
+

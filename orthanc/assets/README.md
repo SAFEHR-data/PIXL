@@ -1,4 +1,4 @@
-## 'assets' Directory Contents
+## 'PIXL/orthanc/assets' Directory Contents
 
 ### Files
 
