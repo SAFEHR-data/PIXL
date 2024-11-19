@@ -1,4 +1,4 @@
-## 'pixl_cli' Directory Contents
+## 'PIXL/cli/src/pixl_cli' Directory Contents
 
 ### Files
 

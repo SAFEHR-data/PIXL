@@ -1,4 +1,4 @@
-## 'bin' Directory Contents
+## 'PIXL/bin' Directory Contents
 
 ### Subdirectories
 

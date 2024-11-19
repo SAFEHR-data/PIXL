@@ -1,4 +1,4 @@
-## 'linters' Directory Contents
+## 'PIXL/bin/linters' Directory Contents
 
 ### Files
 
