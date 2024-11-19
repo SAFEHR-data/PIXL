@@ -1,4 +1,4 @@
-## 'omop' Directory Contents
+## 'PIXL/test/resources/omop' Directory Contents
 
 ### Subdirectories
 

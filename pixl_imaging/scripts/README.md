@@ -1,4 +1,4 @@
-## 'scripts' Directory Contents
+## 'PIXL/pixl_imaging/scripts' Directory Contents
 
 ### Files
 

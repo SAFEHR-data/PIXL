@@ -1,4 +1,4 @@
-## 'resources' Directory Contents
+## 'PIXL/test/resources' Directory Contents
 
 ### Subdirectories
 

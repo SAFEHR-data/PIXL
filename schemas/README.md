@@ -1,4 +1,4 @@
-## 'schemas' Directory Contents
+## 'PIXL/schemas' Directory Contents
 
 ### Files
 

@@ -1,4 +1,4 @@
-## 'resources' Directory Contents
+## 'PIXL/pytest-pixl/src/resources' Directory Contents
 
 ### Subdirectories
 

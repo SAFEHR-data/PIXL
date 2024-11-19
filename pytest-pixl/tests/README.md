@@ -1,4 +1,4 @@
-## 'tests' Directory Contents
+## 'PIXL/pytest-pixl/tests' Directory Contents
 
 ### Subdirectories
 

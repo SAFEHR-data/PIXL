@@ -1,4 +1,4 @@
-## 'private' Directory Contents
+## 'PIXL/test/resources/omop/private' Directory Contents
 
 ### Files
 

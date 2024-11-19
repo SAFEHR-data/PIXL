@@ -1,4 +1,4 @@
-## 'tests' Directory Contents
+## 'PIXL/pixl_imaging/tests' Directory Contents
 
 ### Subdirectories
 

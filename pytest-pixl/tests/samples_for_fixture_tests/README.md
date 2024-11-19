@@ -1,4 +1,4 @@
-## 'samples_for_fixture_tests' Directory Contents
+## 'PIXL/pytest-pixl/tests/samples_for_fixture_tests' Directory Contents
 
 ### Subdirectories
 

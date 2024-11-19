@@ -1,4 +1,4 @@
-## 'configs' Directory Contents
+## 'PIXL/projects/configs' Directory Contents
 
 ### Subdirectories
 

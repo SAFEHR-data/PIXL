@@ -1,4 +1,4 @@
-## 'vna_config' Directory Contents
+## 'PIXL/test/vna_config' Directory Contents
 
 ### Files
 

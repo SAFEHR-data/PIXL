@@ -1,4 +1,4 @@
-## 'pytest_pixl' Directory Contents
+## 'PIXL/pytest-pixl/src/pytest_pixl' Directory Contents
 
 ### Subdirectories
 

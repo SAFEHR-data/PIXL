@@ -1,4 +1,4 @@
-## 'versions' Directory Contents
+## 'PIXL/pixl_imaging/alembic/versions' Directory Contents
 
 ### Files
 

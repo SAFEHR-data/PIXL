@@ -1,4 +1,4 @@
-## 'projects' Directory Contents
+## 'PIXL/projects' Directory Contents
 
 ### Subdirectories
 

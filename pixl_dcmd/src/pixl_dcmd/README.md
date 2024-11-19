@@ -1,4 +1,4 @@
-## 'pixl_dcmd' Directory Contents
+## 'PIXL/pixl_dcmd/src/pixl_dcmd' Directory Contents
 
 ### Subdirectories
 

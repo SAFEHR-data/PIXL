@@ -1,4 +1,4 @@
-## 'orthanc_raw_config' Directory Contents
+## 'PIXL/pixl_imaging/tests/orthanc_raw_config' Directory Contents
 
 ### Files
 

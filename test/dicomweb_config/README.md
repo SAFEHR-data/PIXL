@@ -1,4 +1,4 @@
-## 'dicomweb_config' Directory Contents
+## 'PIXL/test/dicomweb_config' Directory Contents
 
 ### Files
 

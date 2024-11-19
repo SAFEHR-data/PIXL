@@ -1,4 +1,4 @@
-## 'scripts' Directory Contents
+## 'PIXL/pytest-pixl/scripts' Directory Contents
 
 ### Files
 
