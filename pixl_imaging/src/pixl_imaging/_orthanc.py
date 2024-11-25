@@ -149,21 +149,6 @@ class Orthanc:
                 start_time = time()
             job_info = await self.job_state(job_id=job_id)
 
-    async def wait_for_study_to_stabilise_or_raise(self, resource: str, timeout: int) -> None:
-        """Wait for a study to become stabilise, or raise exception if exceeds timeout."""
-        start_time = time()
-        time_diff = time() - start_time
-        while time_diff < timeout:
-            await sleep(10)
-            time_diff = time() - start_time
-            is_stable = await self._get(f"/studies/{resource}/stability")
-            if is_stable:
-                break
-            logger.debug("Study {} not stable after {} seconds", resource)
-        if not is_stable:
-            msg = f"Failed to stabilise study {resource} in {timeout} seconds"
-            raise PixlDiscardError(msg)
-
     async def job_state(self, job_id: str) -> Any:
         """Get job state from orthanc."""
         # See: https://book.orthanc-server.com/users/advanced-rest.html#jobs-monitoring
