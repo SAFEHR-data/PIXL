@@ -100,32 +100,6 @@ class Orthanc:
         )
         return response["ID"]
 
-    async def modify_private_tags_by_study(
-        self,
-        *,
-        study_id: str,
-        private_creator: str,
-        tag_replacement: dict,
-    ) -> None:
-        # According to the docs, you can't modify tags for an instance using the instance API
-        # (the best you can do is download a modified version), so do it via the studies API.
-        # KeepSource=false needed to stop it making a copy
-        # https://orthanc.uclouvain.be/api/index.html#tag/Studies/paths/~1studies~1{id}~1modify/post
-        response = await self._post(
-            f"/studies/{study_id}/modify",
-            {
-                "PrivateCreator": private_creator,
-                "Permissive": False,
-                "Replace": tag_replacement,
-                "Asynchronous": True,
-                "Force": True,
-                "Keep": ["StudyInstanceUID", "SeriesInstanceUID", "SOPInstanceUID"],
-            },
-        )
-        logger.debug("Modify studies Job: {}", response)
-        job_id = str(response["ID"])
-        await self.wait_for_job_success_or_raise(job_id, "modify", timeout=self.dicom_timeout)
-
     async def retrieve_study_from_remote(self, query_id: str) -> str:
         response = await self._post(
             f"/queries/{query_id}/retrieve",
@@ -174,6 +148,21 @@ class Orthanc:
             if job_info["State"] == "Pending":
                 start_time = time()
             job_info = await self.job_state(job_id=job_id)
+
+    async def wait_for_study_to_stabilise_or_raise(self, resource: str, timeout: int) -> None:
+        """Wait for a study to become stabilise, or raise exception if exceeds timeout."""
+        start_time = time()
+        time_diff = time() - start_time
+        while time_diff < timeout:
+            await sleep(10)
+            time_diff = time() - start_time
+            is_stable = await self._get(f"/studies/{resource}/stability")
+            if is_stable:
+                break
+            logger.debug("Study {} not stable after {} seconds", resource)
+        if not is_stable:
+            msg = f"Failed to stabilise study {resource} in {timeout} seconds"
+            raise PixlDiscardError(msg)
 
     async def job_state(self, job_id: str) -> Any:
         """Get job state from orthanc."""
@@ -288,7 +277,10 @@ class PIXLAnonOrthanc(Orthanc):
         )
 
     async def notify_anon_to_retrieve_study_resources(
-        self, orthanc_raw: PIXLRawOrthanc, resource_ids: list[str]
+        self,
+        orthanc_raw: PIXLRawOrthanc,
+        resource_ids: list[str],
+        project_name: str,
     ) -> Any:
         """Notify Orthanc Anon of study resources to retrieve from Orthanc Raw."""
         resources_info = [
@@ -301,5 +293,9 @@ class PIXLAnonOrthanc(Orthanc):
 
         await self._post(
             path="/import-from-raw",
-            data={"ResourceIDs": resource_ids, "StudyInstanceUIDs": study_uids},
+            data={
+                "ResourceIDs": resource_ids,
+                "StudyInstanceUIDs": study_uids,
+                "ProjectName": project_name,
+            },
         )

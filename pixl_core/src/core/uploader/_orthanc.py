@@ -40,14 +40,13 @@ class StudyTags:
     """Tags for a study."""
 
     pseudo_anon_image_id: str
-    project_slug: str
     patient_id: str
 
 
 def get_tags_by_study(study_id: str) -> StudyTags:
     """
     Queries the Orthanc server at the study level, returning the
-    Study Instance UID, UCLHPIXLProjectName, and PatientID DICOM tags.
+    Study Instance UID and PatientID DICOM tags.
     BEWARE: post-anonymisation, the Study Instance UID is NOT
     the Study Instance UID, it's the pseudo-anonymised ID generated randomly.
     """
@@ -58,7 +57,6 @@ def get_tags_by_study(study_id: str) -> StudyTags:
     json_response = json.loads(response_study.content.decode())
     return StudyTags(
         pseudo_anon_image_id=json_response["StudyInstanceUID"],
-        project_slug=json_response["UCLHPIXLProjectName"],
         patient_id=json_response["PatientID"],
     )
 
