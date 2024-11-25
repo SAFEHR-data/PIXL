@@ -30,5 +30,5 @@ series_filters:
     - "positioning"
 
 destination:
-    dicom: "dicomweb"
-    parquet: "none"
+    dicom: "xnat"
+    parquet: "ftps"
