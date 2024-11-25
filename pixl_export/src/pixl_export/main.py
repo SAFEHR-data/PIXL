@@ -27,7 +27,7 @@ from core.exports import ParquetExport
 from core.rest_api.router import router
 from core.uploader import get_uploader
 from decouple import config  # type: ignore [import-untyped]
-from fastapi import FastAPI, HTTPException, Body
+from fastapi import Body, FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from loguru import logger
 from pydantic import BaseModel
