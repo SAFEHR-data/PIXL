@@ -321,11 +321,13 @@ FTPROOT/PROJECT_SLUG/EXTRACT_DATETIME/parquet/radiology/radiology.parquet
 
 ## 'PIXL' Directory Contents
 
-### Subdirectories
+<details>
+<summary>
 
-[.git](./.git/README.md)
+<h3> Subdirectories with links to the relevant README </h3>
 
-[.github](./.github/README.md)
+</summary>
+
 
 [bin](./bin/README.md)
 
@@ -358,7 +360,7 @@ FTPROOT/PROJECT_SLUG/EXTRACT_DATETIME/parquet/radiology/radiology.parquet
 [scripts](./scripts/README.md)
 
 [test](./test/README.md)
-
+</details>
 ### Files
 
 .env.sample
