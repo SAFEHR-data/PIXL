@@ -89,8 +89,8 @@ async def _process_message(
     """
     await orthanc_raw.raise_if_pending_jobs()
 
-    if archive.name == "secondary" and (_is_daytime() or _is_weekend()):
-        msg = "Not querying secondary archive during the daytime or on the weekend."
+    if archive.name == "secondary" and (_is_weekend()):
+        msg = "Not querying secondary archive on the weekend."
         raise PixlOutOfHoursError(msg)
 
     logger.info("Processing: {}. Querying {} archive.", study.message.identifier, archive.name)
