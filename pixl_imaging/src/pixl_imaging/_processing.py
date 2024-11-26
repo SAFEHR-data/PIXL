@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING, Any, Optional
 from zoneinfo import ZoneInfo
 
 from core.dicom_tags import DICOM_TAG_PROJECT_NAME
-from core.exceptions import PixlDiscardError, PixlOutOfHoursError, PixlStudyNotInPrimaryArchiveError
+from core.exceptions import PixlDiscardError, PixlStudyNotInPrimaryArchiveError
 from decouple import config
 
 from pixl_imaging._orthanc import Orthanc, PIXLAnonOrthanc, PIXLRawOrthanc
@@ -88,10 +88,6 @@ async def _process_message(
           ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT is True, send the study to the appropriate destination
     """
     await orthanc_raw.raise_if_pending_jobs()
-
-    if archive.name == "secondary" and (_is_weekend()):
-        msg = "Not querying secondary archive on the weekend."
-        raise PixlOutOfHoursError(msg)
 
     logger.info("Processing: {}. Querying {} archive.", study.message.identifier, archive.name)
 
