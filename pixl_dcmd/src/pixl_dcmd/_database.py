@@ -125,7 +125,7 @@ def get_unexported_image(
     """
     Get an existing, non-exported (for this project) image record from the database
     identified by the study UID. If no result is found, retry with querying on
-    MRN + accession number. If this fails as well, raise a PixlDiscardError.
+    MRN + accession number. If this fails as well, raise a NoResultFound.
     """
     try:
         existing_image: Image = (
