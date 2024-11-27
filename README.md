@@ -361,35 +361,21 @@ FTPROOT/PROJECT_SLUG/EXTRACT_DATETIME/parquet/radiology/radiology.parquet
 
 [test](./test/README.md)
 </details>
+<details>
+<summary>
+
 ### Files
 
-.env.sample
+</summary>
 
-.gitignore
+| Configuration | User docs | Housekeeping |
+| :--- | :--- | :--- |
+| .env.sample | CODE_OF_CONDUCT.md | .renovaterc.json5 |
+| .pre-commit-config.yaml | CONTRIBUTING.md | codecov.yml |
+| docker-compose.yml | LICENSE | |
+| mypy.ini | NOTICE | |
+| pytest.ini | README.md | |
+| ruff.toml | | |
+| template_config.yaml | | |
 
-.pre-commit-config.yaml
-
-.renovaterc.json5
-
-codecov.yml
-
-CODE_OF_CONDUCT.md
-
-CONTRIBUTING.md
-
-docker-compose.yml
-
-LICENSE
-
-mypy.ini
-
-NOTICE
-
-pytest.ini
-
-README.md
-
-ruff.toml
-
-template_config.yaml
-
+</details>
