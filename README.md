@@ -6,13 +6,19 @@
 PIXL Image eXtraction Laboratory
 
 `PIXL` is a system for extracting, linking and de-identifying DICOM imaging data, structured EHR data and free-text data from radiology reports at UCLH.
-Please see the [rolling-skeleton]([https://github.com/SAFEHR-data/the-rolling-skeleton=](https://github.com/SAFEHR-data/the-rolling-skeleton/blob/main/docs/design/100-day-design.md)) for more details.
 
-PIXL is intended run on one of the [GAE (General Application Environments)](https://github.com/SAFEHR-data/Book-of-FlowEHR/blob/main/glossary.md#gaes)s and comprises
-several services orchestrated by [Docker Compose](https://docs.docker.com/compose/).
+It comprises several services orchestrated by [Docker Compose](https://docs.docker.com/compose/).
+
+<details><summary>UCLH SPECIFIC</summary>
+
+PIXL is intended run on one of the [GAE (General Application Environments)](https://github.com/SAFEHR-data/Book-of-FlowEHR/blob/main/glossary.md#gaes)s.
 
 To get access to the GAE, [see the documentation on Slab](https://uclh.slab.com/posts/gae-access-7hkddxap). 
-Please request access to Slab and add further details in a [new blank issue](https://github.com/SAFEHR-data/PIXL/issues/new).
+    
+Please request access to Slab and add further details in a [new blank issue](https://github.com/SAFEHR-data/PIXL/issues/new). 
+
+</details>
+
 
 ## Installation
 
@@ -67,7 +73,7 @@ destination.
 
 Provides helper functions for de-identifying DICOM data
 
-### PostgreSQL
+### [PostgreSQL](.postgres/README.md)
 
 RDBMS which stores DICOM metadata, application data and anonymised patient record data.
 
@@ -79,7 +85,7 @@ HTTP API to export files (parquet and DICOM) from UCLH to endpoints.
 
 HTTP API to process messages from the `imaging` queue and populate the raw orthanc instance with images from PACS/VNA.
 
-## Setup `PIXL` in GAE
+## Setup `PIXL`
 
 <details>
   <summary>Click here to expand steps and configurations</summary>
@@ -202,7 +208,7 @@ These variables can be set in the `.env` file.
 For testing, they can be set in the `test/.secrets.env` file.
 For dev purposes find the `pixl-dev-secrets.env` note on LastPass for the necessary values.
 
-If an Azure Keyvault hasn't been set up yet, follow [these instructions](./docs/setup/azure-keyvault.md).
+At UCLH if an Azure Keyvault hasn't been set up yet, follow [these instructions](./docs/setup/azure-keyvault.md).
 
 A second Azure Keyvault is used to store hashing keys and salts for the `hasher` service.
 This kevyault is configured with the following environment variables:
@@ -218,7 +224,7 @@ See the [hasher documentation](./hasher/README.md) for more information.
 
 </details>
 
-## Run `PIXL` in GAE
+## Run `PIXL`
 
 <details>
   <summary>Click here to view detailed steps</summary>
@@ -278,6 +284,9 @@ test/resources/omop/public /*.parquet
 
 ### OMOP ES extract dir (input to PIXL)
 
+>[!NOTE]
+> OMOP ES is the tool used to extract Electronic Health Records that may be linked to images.
+
 EXTRACT_DIR is the directory passed to `pixl populate` as the input `PARQUET_PATH` argument.
 
 ```
@@ -288,8 +297,8 @@ EXTRACT_DIR/public /*.parquet
 
 ### PIXL Export dir (PIXL intermediate)
 
-The directory where PIXL will copy the public OMOP extract files (which now contain
-the radiology reports) to.
+The directory where PIXL will copy the public OMOP extract files and the radiology reports.
+ 
 These files will subsequently be uploaded to the `parquet` destination specified in the
 [project config](#3-configure-a-new-project).
 
@@ -310,10 +319,63 @@ FTPROOT/PROJECT_SLUG/EXTRACT_DATETIME/parquet/radiology/radiology.parquet
 ..............................................omop/public/*.parquet
 ```
 
-## :octocat: Cloning repository
-* Generate your SSH keys as suggested [here](https://docs.github.com/en/github/authenticating-to-github/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)
-* Clone the repository by typing (or copying) the following lines in a terminal
-```
-git clone git@github.com:SAFEHR-data/PIXL.git
-```
+## 'PIXL' Directory Contents
 
+<details>
+<summary>
+
+<h3> Subdirectories with links to the relevant README </h3>
+
+</summary>
+
+
+[bin](./bin/README.md)
+
+[cli](./cli/README.md)
+
+[docker](./docker/README.md)
+
+[docs](./docs/README.md)
+
+[hasher](./hasher/README.md)
+
+[orthanc](./orthanc/README.md)
+
+[pixl_core](./pixl_core/README.md)
+
+[pixl_dcmd](./pixl_dcmd/README.md)
+
+[pixl_export](./pixl_export/README.md)
+
+[pixl_imaging](./pixl_imaging/README.md)
+
+[postgres](./postgres/README.md)
+
+[projects](./projects/README.md)
+
+[pytest-pixl](./pytest-pixl/README.md)
+
+[schemas](./schemas/README.md)
+
+[scripts](./scripts/README.md)
+
+[test](./test/README.md)
+</details>
+<details>
+<summary>
+
+### Files
+
+</summary>
+
+| **Configuration** | **User docs** | **Housekeeping** |
+| :--- | :--- | :--- |
+| .env.sample | CODE_OF_CONDUCT.md | .renovaterc.json5 |
+| .pre-commit-config.yaml | CONTRIBUTING.md | codecov.yml |
+| docker-compose.yml | LICENSE | |
+| mypy.ini | NOTICE | |
+| pytest.ini | README.md | |
+| ruff.toml | | |
+| template_config.yaml | | |
+
+</details>
