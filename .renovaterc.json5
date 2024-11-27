@@ -29,7 +29,7 @@
   packageRules: [
     {
       matchDatasources: ["custom.dicomSpec"],
-      extractVersion: "medical\\\/dicom\\\/(?<version>.+)\\\/",
+      extractVersion: "/medical/dicom/(?<version>\\d{4}[a-z])/",
       versioning: "loose",
     }
   ]
