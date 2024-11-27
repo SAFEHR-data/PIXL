@@ -15,13 +15,6 @@
 # Default `base.yaml` configuration file with commented links to their respective image modalities
 # `base.yaml` configuration file is expected to be part of all projects configuration files
 
-#################################### 000d Group ###################################
-#
-#
-- name: "Private Creator Data Element"
-  group: 0x000d
-  element: 0x0010
-  op: "keep"
 #################################### 0008 Group ###################################
 #
 #
