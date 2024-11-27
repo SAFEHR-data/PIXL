@@ -4,4 +4,33 @@
     "github>UCL-ARC/.github//renovate/default-config.json",
     "schedule:monthly",
   ],
+  customDatasources: {
+    dicomSpec: {
+      defaultRegistryUrlTemplate: "https://dicom.nema.org/medical/dicom",
+      format: "html",
+    },
+  },
+  customManagers: [
+    {
+      customType: "regex",
+      description: "Update DICOM Spec edition used for validation",
+      fileMatch: [
+        "orthanc/orthanc-anon/plugin/download_dicom_spec.py",
+        "pixl_dcmd/src/pixl_dcmd/main.py",
+      ],
+      matchStrings: [
+        'edition\\s?=\\s?"(?<currentValue>.*?)"\n',
+        '.*\\(edition\\s?=\\s?"(?<currentValue>.*?)"\\)\n',
+      ],
+      depNameTemplate: "dicomSpec",
+      datasourceTemplate: "custom.dicomSpec",
+    },
+  ],
+  packageRules: [
+    {
+      matchDatasources: ["custom.dicomSpec"],
+      extractVersion: "medical\\\/dicom\\\/(?<version>.+)\\\/",
+      versioning: "loose",
+    }
+  ]
 }
