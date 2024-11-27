@@ -70,12 +70,12 @@ def anonymise_dicom_and_update_db(
     config: PixlConfig,
 ) -> dict:
     """Anonymise and validate a DICOM dataset and update the PIXL database."""
-    original_study_info = get_study_info(dataset)
+    identifiable_study_info = get_study_info(dataset)
     validation_errors = anonymise_and_validate_dicom(dataset, config=config)
     _generate_pseudo_uids_and_synchronise_pixl_db(
         dataset=dataset,
         project_name=config.project.name,
-        original_study_info=original_study_info,
+        identifiable_study_info=identifiable_study_info,
     )
     return validation_errors
 
@@ -276,7 +276,7 @@ def _parse_validation_results(results: dict) -> str:
 def _generate_pseudo_uids_and_synchronise_pixl_db(
     dataset: Dataset,
     project_name: str,
-    original_study_info: StudyInfo,
+    identifiable_study_info: StudyInfo,
 ) -> None:
     """
     Synchronise the anonymisation with the pixl database.
@@ -290,12 +290,12 @@ def _generate_pseudo_uids_and_synchronise_pixl_db(
     """
     dataset[0x0020, 0x000D].value = get_uniq_pseudo_study_uid_and_update_db(
         project_name,
-        original_study_info,
+        identifiable_study_info,
     )
 
     anonymised_study_info = get_study_info(dataset)
     dataset[0x0010, 0x0020].value = get_pseudo_patient_id_and_update_db(
         project_name,
-        original_study_info,
+        identifiable_study_info,
         anonymised_study_info.mrn,
     )
