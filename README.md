@@ -368,7 +368,7 @@ FTPROOT/PROJECT_SLUG/EXTRACT_DATETIME/parquet/radiology/radiology.parquet
 
 </summary>
 
-| Configuration | User docs | Housekeeping |
+| **Configuration** | **User docs** | **Housekeeping** |
 | :--- | :--- | :--- |
 | .env.sample | CODE_OF_CONDUCT.md | .renovaterc.json5 |
 | .pre-commit-config.yaml | CONTRIBUTING.md | codecov.yml |
