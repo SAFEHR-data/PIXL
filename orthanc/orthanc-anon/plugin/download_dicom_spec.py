@@ -17,7 +17,7 @@ from pathlib import Path
 
 from dicom_validator.spec_reader.edition_reader import EditionReader
 
-edition = "current"
+edition = "2024e"
 download_path = str(Path.home() / "dicom-validator")
 edition_reader = EditionReader(download_path)
 destination = edition_reader.get_revision(edition, recreate_json=False)

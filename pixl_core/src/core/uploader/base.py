@@ -68,7 +68,7 @@ class Uploader(ABC):
             "Starting {} upload of '{}' for {}",
             self.__class__.__name__.removesuffix("Uploader"),
             study_tags.pseudo_anon_image_id,
-            study_tags.project_slug,
+            self.project_slug,
         )
         self._upload_dicom_image(study_id, study_tags)
         logger.success(

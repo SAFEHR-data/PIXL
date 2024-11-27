@@ -19,7 +19,6 @@ from enum import StrEnum
 from typing import TYPE_CHECKING, Any, Optional
 from zoneinfo import ZoneInfo
 
-from core.dicom_tags import DICOM_TAG_PROJECT_NAME
 from core.exceptions import PixlDiscardError, PixlOutOfHoursError, PixlStudyNotInPrimaryArchiveError
 from decouple import config
 
@@ -82,7 +81,6 @@ async def _process_message(
         - retrieve the study from the VNA / PACS
 
     Then:
-        - set the project name tag for the study if it's not already set
         - send the study to Orthanc Anon if ORTHANC_AUTOROUTE_RAW_TO_ANON is True
         - if the C-STORE operation to Orthanc Anon is successful, and
           ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT is True, send the study to the appropriate destination
@@ -120,39 +118,28 @@ async def _process_message(
             modality=archive.value,
         )
 
-    # Now that study has arrived in orthanc raw, we can set its project name tag via the API
-    logger.debug("Get existing study before setting project name")
     resources = await _get_study_resources(
         orthanc_raw=orthanc_raw,
         study=study,
     )
-
-    for resource in resources:
-        if not await _project_name_is_correct(
-            project_name=study.message.project_name,
-            resource=resource,
-        ):
-            await _add_project_to_study(
-                project_name=study.message.project_name,
-                orthanc_raw=orthanc_raw,
-                study=resource["ID"],
-            )
 
     if not orthanc_raw.autoroute_to_anon:
         logger.debug("Auto-routing to Orthanc Anon is not enabled. Not sending study {}", resources)
         return
 
     await orthanc_anon.notify_anon_to_retrieve_study_resources(
-        orthanc_raw=orthanc_raw, resource_ids=[resource["ID"] for resource in resources]
+        orthanc_raw=orthanc_raw,
+        resource_ids=resources,
+        project_name=study.message.project_name,
     )
 
 
 async def _get_study_resources(
     orthanc_raw: PIXLRawOrthanc,
     study: ImagingStudy,
-) -> list[dict]:
+) -> list[str]:
     """Get a list of existing resources for a study in Orthanc Raw."""
-    existing_resources: list[dict] = await study.query_local(orthanc_raw, project_tag=True)
+    existing_resources: list[str] = await study.query_local(orthanc_raw)
 
     logger.debug(
         'Found {} existing resources for study "{}"',
@@ -161,40 +148,6 @@ async def _get_study_resources(
     )
 
     return existing_resources
-
-
-async def _project_name_is_correct(
-    project_name: str,
-    resource: dict,
-) -> bool:
-    """
-    Check if the project name is different from the project tags.
-
-    Returns True if the project name is in the project tags, False otherwise.
-    """
-    project_tags = (
-        resource["RequestedTags"].get(DICOM_TAG_PROJECT_NAME.tag_nickname),
-        resource["RequestedTags"].get(
-            "Unknown Tag & Data"
-        ),  # Fallback for testing where we're not using the entire plugin, remains undefined
-    )
-    return project_name in project_tags
-
-
-async def _add_project_to_study(
-    project_name: str,
-    orthanc_raw: PIXLRawOrthanc,
-    study: str,
-) -> None:
-    logger.debug("Adding private tag to study ID {}", study)
-    await orthanc_raw.modify_private_tags_by_study(
-        study_id=study,
-        private_creator=DICOM_TAG_PROJECT_NAME.creator_string,
-        tag_replacement={
-            # The tag here needs to be defined in orthanc's dictionary
-            DICOM_TAG_PROJECT_NAME.tag_nickname: project_name,
-        },
-    )
 
 
 async def _find_study_in_archive_or_raise(
@@ -299,7 +252,7 @@ async def _retrieve_study(orthanc_raw: Orthanc, study_query_id: str) -> None:
 
 
 async def _retrieve_missing_instances(
-    resources: list[dict],
+    resources: list[str],
     orthanc_raw: Orthanc,
     study: ImagingStudy,
     study_query_id: str,
@@ -323,7 +276,7 @@ async def _retrieve_missing_instances(
 
 
 async def _get_missing_instances(
-    orthanc_raw: Orthanc, study: ImagingStudy, resources: list[dict], study_query_id: str
+    orthanc_raw: Orthanc, study: ImagingStudy, resources: list[str], study_query_id: str
 ) -> list[dict[str, str]]:
     """
     Check if any study instances are missing from Orthanc Raw.
@@ -333,7 +286,7 @@ async def _get_missing_instances(
     # First get all SOPInstanceUIDs for the study that are in Orthanc Raw
     orthanc_raw_sop_instance_uids = []
     for resource in resources:
-        study_instances = await orthanc_raw.get_local_study_instances(study_id=resource["ID"])
+        study_instances = await orthanc_raw.get_local_study_instances(study_id=resource)
         orthanc_raw_sop_instance_uids.extend(
             [instance["MainDicomTags"]["SOPInstanceUID"] for instance in study_instances]
         )
@@ -414,20 +367,10 @@ class ImagingStudy:
             },
         }
 
-    @property
-    def query_project_name(self) -> dict:
-        """Dictionary to query a study, returning the PIXL_PROJECT tags for each study."""
-        return {
-            "RequestedTags": [DICOM_TAG_PROJECT_NAME.tag_nickname],
-            "Expand": True,
-        }
-
-    async def query_local(self, node: Orthanc, *, project_tag: bool = False) -> Any:
-        """Does this study exist in an Orthanc instance/node, optionally query for project tag."""
+    async def query_local(self, node: Orthanc) -> Any:
+        """Does this study exist in an Orthanc instance/node."""
         if self.message.study_uid:
             uid_query = self.orthanc_uid_query_dict
-            if project_tag:
-                uid_query = uid_query | self.query_project_name
 
             query_response = await node.query_local(uid_query)
             if query_response:
@@ -444,7 +387,5 @@ class ImagingStudy:
             )
 
         mrn_accession_query = self.orthanc_query_dict
-        if project_tag:
-            mrn_accession_query = mrn_accession_query | self.query_project_name
 
         return await node.query_local(mrn_accession_query)
