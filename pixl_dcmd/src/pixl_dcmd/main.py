@@ -94,7 +94,7 @@ def anonymise_and_validate_dicom(
     :return: dictionary of validation errors
     """
     # Set up Dicom validator and validate the original dataset
-    dicom_validator = DicomValidator(edition="current")
+    dicom_validator = DicomValidator(edition="2024e")
     dicom_validator.validate_original(dataset)
 
     anonymise_dicom(dataset, config=config)
