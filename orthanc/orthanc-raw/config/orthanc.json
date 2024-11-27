@@ -51,7 +51,7 @@
   // Sequences tags are not supported.
 "ExtraMainDicomTags" : {
     "Instance" : [
-      "SOPClassUID",
+      "SOPClassUID"
     ],
     "Series" : [],
     "Study": [],
