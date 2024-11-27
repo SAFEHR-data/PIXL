@@ -52,7 +52,6 @@
 "ExtraMainDicomTags" : {
     "Instance" : [
       "SOPClassUID",
-      "000d,1001"
     ],
     "Series" : [],
     "Study": [],

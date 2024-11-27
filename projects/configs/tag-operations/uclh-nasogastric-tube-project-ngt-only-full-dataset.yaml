@@ -18,10 +18,6 @@
   group: 0x000d
   element: 0x0010
   op: "keep"
-- name: "UCLH Project Name"
-  group: 0x000d
-  element: 0x1001
-  op: "keep"
 - name: "Specific Character Set"
   group: 0x0008
   element: 0x0005
