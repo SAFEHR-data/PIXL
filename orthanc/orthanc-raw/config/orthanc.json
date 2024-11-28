@@ -1,6 +1,5 @@
 {
   "Dictionary": {
-    "000d,1001": ["LO", "UCLHPIXLProjectName", 1, 1, "UCLH PIXL"]
   },
   "DefaultPrivateCreator" : "UCLH PIXL",
   "Name" : "${ORTHANC_NAME}",
@@ -52,8 +51,7 @@
   // Sequences tags are not supported.
 "ExtraMainDicomTags" : {
     "Instance" : [
-      "SOPClassUID",
-      "000d,1001"
+      "SOPClassUID"
     ],
     "Series" : [],
     "Study": [],
