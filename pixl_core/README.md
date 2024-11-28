@@ -234,3 +234,18 @@ Note, it can take several minutes for the server to start up.
 
 Once the server has started, you can log in by visiting `http://localhost:8080` with the username and password set
 in the `XNAT_USER_NAME` and `XNAT_PASSWORD` environment variables.
+
+## 'PIXL/pixl_core' Directory Contents
+
+### Subdirectories
+
+[src](./src/README.md)
+
+[tests](./tests/README.md)
+
+### Files
+
+pyproject.toml
+
+README.md
+
