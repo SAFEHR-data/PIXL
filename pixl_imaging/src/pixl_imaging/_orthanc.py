@@ -64,9 +64,16 @@ class Orthanc:
         """Query local Orthanc instance for study."""
         return await self._get(f"/studies/{study_id}")
 
+    async def get_local_study_statistics(self, study_id: str) -> Any:
+        """Query local Orthanc instance for study statistics."""
+        return await self._get(f"/studies/{study_id}/statistics")
+
     async def get_local_study_instances(self, study_id: str) -> Any:
         """Get the instances of a study."""
-        return await self._get(f"/studies/{study_id}/instances")
+        return await self._get(
+            f"/studies/{study_id}/instances?short=true",
+            timeout=self.dicom_timeout,  # this API call can sometimes take several minutes
+        )
 
     async def query_remote(self, data: dict, modality: str) -> Optional[str]:
         """Query a particular modality, available from this node"""
@@ -154,13 +161,15 @@ class Orthanc:
         # See: https://book.orthanc-server.com/users/advanced-rest.html#jobs-monitoring
         return await self._get(f"/jobs/{job_id}")
 
-    async def _get(self, path: str) -> Any:
+    async def _get(self, path: str, timeout: int | None = None) -> Any:
+        # Optionally override default http timeout
+        http_timeout = timeout or self.http_timeout
         async with (
             aiohttp.ClientSession() as session,
             session.get(
                 f"{self._url}{path}",
                 auth=self._auth,
-                timeout=self.http_timeout,
+                timeout=http_timeout,
             ) as response,
         ):
             return await _deserialise(response)
