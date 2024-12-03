@@ -300,7 +300,7 @@ async def _get_missing_instances(
 
     num_local_instances = 0
     for resource in resources:
-        study_statistics = orthanc_raw.get_local_study_statistics(study_id=resource)
+        study_statistics = await orthanc_raw.get_local_study_statistics(study_id=resource)
         num_local_instances += int(study_statistics["CountInstances"])
 
     if num_remote_instances == num_local_instances:

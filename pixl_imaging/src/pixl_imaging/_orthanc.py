@@ -64,6 +64,10 @@ class Orthanc:
         """Query local Orthanc instance for study."""
         return await self._get(f"/studies/{study_id}")
 
+    async def get_local_study_statistics(self, study_id: str) -> Any:
+        """Query local Orthanc instance for study statistics."""
+        return await self._get(f"/studies/{study_id}/statistics")
+
     async def get_local_study_instances(self, study_id: str) -> Any:
         """Get the instances of a study."""
         return await self._get(
