@@ -12,18 +12,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-- name: Acquisition DateTime
-  group: 0x0008
-  element: 0x002A
-  op: keep
-- name: Content Date
-  group: 0x0008
-  element: 0x0023
-  op: keep
-- name: Content Time
-  group: 0x0008
-  element: 0x0033
-  op: keep
 - name: Device Serial Number
   group: 0x0018
   element: 0x1000
