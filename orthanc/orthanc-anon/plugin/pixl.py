@@ -332,7 +332,7 @@ def _anonymise_study_instances(
             try:
                 anonymised_instances_bytes.append(_anonymise_dicom_instance(dataset, config))
             except PixlSkipInstanceError as e:
-                logger.warning(
+                logger.debug(
                     "Skipping instance {} for study {}: {}",
                     dataset[0x0008, 0x0018].value,
                     study_uid,
