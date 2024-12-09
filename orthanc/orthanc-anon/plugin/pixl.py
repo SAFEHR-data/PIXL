@@ -26,6 +26,7 @@ import os
 import sys
 import threading
 import traceback
+from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO
 from time import sleep
@@ -324,7 +325,7 @@ def _anonymise_study_instances(
     config = load_project_config(project_name)
     anonymised_instances_bytes = []
     logger.info("Processing project '{}', study: {}", project_name, study_uid)
-
+    skipped_instance_counts = defaultdict(int)
     for file_info in zipped_study.infolist():
         with zipped_study.open(file_info) as file:
             logger.debug("Reading file {}", file)
@@ -338,8 +339,11 @@ def _anonymise_study_instances(
                     study_uid,
                     e,
                 )
+                skipped_instance_counts[str(e)] += 1
             else:
                 anonymised_study_uid = dataset[0x0020, 0x000D].value
+
+    logger.info("Study {}, skipped instance counts: {}", study_uid, skipped_instance_counts)
 
     if not anonymised_instances_bytes:
         message = f"All instances have been skipped for study {study_uid}"
