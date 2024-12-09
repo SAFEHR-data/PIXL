@@ -59,7 +59,7 @@ def write_dataset_to_bytes(dataset: Dataset) -> bytes:
 def _should_exclude_series(dataset: Dataset, cfg: PixlConfig) -> bool:
     series_description = dataset.get("SeriesDescription")
     if cfg.is_series_excluded(series_description):
-        logger.info("FILTERING OUT series description: {}", series_description)
+        logger.debug("FILTERING OUT series description: {}", series_description)
         return True
     return False
 
