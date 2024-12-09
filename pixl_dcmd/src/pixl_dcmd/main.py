@@ -101,11 +101,6 @@ def anonymise_and_validate_dicom(
 
     # Validate the anonymised dataset
     validation_errors = dicom_validator.validate_anonymised(dataset)
-    if validation_errors:
-        logger.warning(
-            "The anonymisation introduced the following validation errors:\n{}",
-            _parse_validation_results(validation_errors),
-        )
     return validation_errors
 
 
@@ -265,7 +260,7 @@ def _allowlist_tag(dataset: Dataset, de: DataElement, tag_scheme: list[dict]) ->
     del dataset[de.tag]
 
 
-def _parse_validation_results(results: dict) -> str:
+def parse_validation_results(results: dict) -> str:
     """Parse the validation results into a human-readable string."""
     res_str = ""
     for key, value in results.items():

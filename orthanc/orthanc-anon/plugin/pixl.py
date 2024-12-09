@@ -44,6 +44,7 @@ from pydicom import dcmread
 import orthanc
 from pixl_dcmd.main import (
     anonymise_dicom_and_update_db,
+    parse_validation_results,
     write_dataset_to_bytes,
 )
 
@@ -326,12 +327,16 @@ def _anonymise_study_instances(
     anonymised_instances_bytes = []
     logger.info("Processing project '{}', study: {}", project_name, study_uid)
     skipped_instance_counts = defaultdict(int)
+    dicom_validation_errors = {}
+
     for file_info in zipped_study.infolist():
         with zipped_study.open(file_info) as file:
             logger.debug("Reading file {}", file)
             dataset = dcmread(file)
             try:
-                anonymised_instances_bytes.append(_anonymise_dicom_instance(dataset, config))
+                anonymised_instance, instance_validation_errors = _anonymise_dicom_instance(
+                    dataset, config
+                )
             except PixlSkipInstanceError as e:
                 logger.debug(
                     "Skipping instance {} for study {}: {}",
@@ -341,7 +346,9 @@ def _anonymise_study_instances(
                 )
                 skipped_instance_counts[str(e)] += 1
             else:
+                anonymised_instances_bytes.append(anonymised_instance)
                 anonymised_study_uid = dataset[0x0020, 0x000D].value
+                dicom_validation_errors |= instance_validation_errors
 
     logger.info("Study {}, skipped instance counts: {}", study_uid, skipped_instance_counts)
 
@@ -349,14 +356,20 @@ def _anonymise_study_instances(
         message = f"All instances have been skipped for study {study_uid}"
         raise PixlDiscardError(message)
 
+    if dicom_validation_errors:
+        logger.warning(
+            "The anonymisation introduced the following validation errors:\n{}",
+            parse_validation_results(dicom_validation_errors),
+        )
+
     logger.success("Finished anonymising file: {} for study: {}", file, study_uid)
     return anonymised_instances_bytes, anonymised_study_uid
 
 
-def _anonymise_dicom_instance(dataset: pydicom.Dataset, config: PixlConfig) -> bytes:
+def _anonymise_dicom_instance(dataset: pydicom.Dataset, config: PixlConfig) -> tuple[bytes, dict]:
     """Anonymise a DICOM instance."""
-    anonymise_dicom_and_update_db(dataset, config=config)
-    return write_dataset_to_bytes(dataset)
+    validation_errors = anonymise_dicom_and_update_db(dataset, config=config)
+    return write_dataset_to_bytes(dataset), validation_errors
 
 
 def _upload_instances(instances_bytes: list[bytes]) -> None:
