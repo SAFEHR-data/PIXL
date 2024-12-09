@@ -30,7 +30,7 @@ TEST_DIR = Path(__file__).parents[1]
 class MockXNATUploader(XNATUploader):
     """Mock XNATUploader for testing."""
 
-    def __init__(self) -> None:
+    def __init__(self, project_slug: str) -> None:
         """Initialise the mock uploader with hardcoded values for FTPS config."""
         self.host = os.environ["XNAT_HOST"]
         self.user = os.environ["XNAT_USER_NAME"]
@@ -39,12 +39,19 @@ class MockXNATUploader(XNATUploader):
         self.url = f"http://{self.host}:{self.port}"
         self.destination = os.environ["XNAT_DESTINATION"]
         self.overwrite = os.environ["XNAT_OVERWRITE"]
+        self.project_slug = project_slug
+
+
+@pytest.fixture(scope="session")
+def xnat_project_slug() -> str:
+    """Name of the XNAT project"""
+    return "some-project-slug"
 
 
 @pytest.fixture()
-def xnat_uploader() -> MockXNATUploader:
+def xnat_uploader(xnat_project_slug) -> MockXNATUploader:
     """Return a MockXNATUploader object."""
-    return MockXNATUploader()
+    return MockXNATUploader(project_slug=xnat_project_slug)
 
 
 @pytest.fixture()
@@ -74,13 +81,12 @@ def xnat_study_tags() -> StudyTags:
     """Return a StudyTags object for the study to be uploaded to XNAT."""
     return StudyTags(
         pseudo_anon_image_id="1.3.6.1.4.1.14519.5.2.1.99.1071.12985477682660597455732044031486",
-        project_slug="some-project-slug",
         patient_id="987654321",
     )
 
 
 @pytest.fixture(scope="session")
-def xnat_server(xnat_study_tags) -> Generator:
+def xnat_server(xnat_project_slug) -> Generator:
     """
     Start the XNAT server.
 
@@ -134,7 +140,7 @@ def xnat_server(xnat_study_tags) -> Generator:
             accepted_status=[200, 409],
         )
         session.put(
-            path=f"/data/projects/{xnat_study_tags.project_slug}/users/Owners/pixl",
+            path=f"/data/projects/{xnat_project_slug}/users/Owners/pixl",
             accepted_status=[200],
         )
 
@@ -154,7 +160,7 @@ def xnat_server(xnat_study_tags) -> Generator:
         user="admin",
         password="admin",  # noqa: S106
     ) as session:
-        project = session.projects[xnat_study_tags.project_slug]
+        project = session.projects[xnat_project_slug]
         for subject in project.subjects.values():
             session.delete(
                 path=f"/data/projects/{project.id}/subjects/{subject.label}",
@@ -175,8 +181,8 @@ def test_upload_to_xnat(zip_dicoms, xnat_uploader, xnat_study_tags) -> None:
         user=xnat_uploader.user,
         password=xnat_uploader.password,
     ) as session:
-        assert xnat_study_tags.project_slug in session.projects
-        project = session.projects[xnat_study_tags.project_slug]
+        assert xnat_uploader.project_slug in session.projects
+        project = session.projects[xnat_uploader.project_slug]
 
         assert xnat_study_tags.patient_id in project.subjects
         subject = project.subjects[xnat_study_tags.patient_id]

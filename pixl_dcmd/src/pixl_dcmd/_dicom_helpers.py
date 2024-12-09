@@ -15,31 +15,13 @@
 
 from __future__ import annotations
 
-import logging
 from dataclasses import dataclass
+import logging
 from pathlib import Path
 
-from core.dicom_tags import DICOM_TAG_PROJECT_NAME
 from dicom_validator.spec_reader.edition_reader import EditionReader
 from dicom_validator.validator.iod_validator import IODValidator
-from loguru import logger
 from pydicom import Dataset
-
-
-def get_project_name_as_string(dataset: Dataset) -> str:
-    raw_slug = dataset.get_private_item(
-        DICOM_TAG_PROJECT_NAME.group_id,
-        DICOM_TAG_PROJECT_NAME.offset_id,
-        DICOM_TAG_PROJECT_NAME.creator_string,
-    ).value
-    # Get both strings and bytes, which is fun
-    if isinstance(raw_slug, bytes):
-        logger.debug(f"Bytes slug {raw_slug!r}")
-        slug = raw_slug.decode("utf-8").strip()
-    else:
-        logger.debug(f"String slug '{raw_slug}'")
-        slug = raw_slug
-    return slug
 
 
 class DicomValidator:
@@ -54,10 +36,11 @@ class DicomValidator:
         self.dicom_info = EditionReader.load_dicom_info(json_path)
 
     def validate_original(self, dataset: Dataset) -> None:
-        # Temporarily disable logging to avoid spamming the console
-        logging.disable(logging.ERROR)
-        self.original_errors = IODValidator(dataset, self.dicom_info).validate()
-        logging.disable(logging.NOTSET)
+        self.original_errors = IODValidator(
+            dataset,
+            self.dicom_info,
+            log_level=logging.ERROR,
+        ).validate()
 
     def validate_anonymised(self, dataset: Dataset) -> dict:
         # Check that the original dataset has been validated
@@ -66,11 +49,11 @@ class DicomValidator:
         except AttributeError:
             raise ValueError("Original dataset not yet validated")
 
-        # Temporarily disable logging to avoid spamming the console
-        logging.disable(logging.ERROR)
-        self.anon_errors = IODValidator(dataset, self.dicom_info).validate()
-        logging.disable(logging.NOTSET)
-
+        self.anon_errors = IODValidator(
+            dataset,
+            self.dicom_info,
+            log_level=logging.ERROR,
+        ).validate()
         self.diff_errors: dict = {}
 
         for key in self.anon_errors.keys():

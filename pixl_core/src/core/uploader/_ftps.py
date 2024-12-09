@@ -87,7 +87,7 @@ class FTPSUploader(Uploader):
         self.send_via_ftps(
             zip_content,
             study_tags.pseudo_anon_image_id,
-            remote_directory=study_tags.project_slug,
+            remote_directory=self.project_slug,
         )
 
     def send_via_ftps(
