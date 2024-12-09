@@ -361,8 +361,7 @@ def _anonymise_study_instances(
             "The anonymisation introduced the following validation errors:\n{}",
             parse_validation_results(dicom_validation_errors),
         )
-
-    logger.success("Finished anonymising file: {} for study: {}", file, study_uid)
+    logger.success("Finished anonymising project '{}', study: {}", file, study_uid)
     return anonymised_instances_bytes, anonymised_study_uid
 
 
