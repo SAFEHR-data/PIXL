@@ -15,13 +15,34 @@
 
 from __future__ import annotations
 
+import sys
+from contextlib import contextmanager
 from dataclasses import dataclass
 import logging
+from io import StringIO
+from logging import Logger
 from pathlib import Path
+from typing import Generator
+
+from loguru import logger
 
 from dicom_validator.spec_reader.edition_reader import EditionReader
 from dicom_validator.validator.iod_validator import IODValidator
 from pydicom import Dataset
+
+
+@contextmanager
+def redirect_stdout_to_debug(_logger: Logger) -> Generator[None, None, None]:
+    """Within the context manager, redirect all print statements to debug statements."""
+    old_stdout = sys.stdout
+    sys.stdout = StringIO()
+    try:
+        yield
+        sys.stdout.seek(0)
+        for line in sys.stdout:
+            _logger.debug(line.strip())
+    finally:
+        sys.stdout = old_stdout
 
 
 class DicomValidator:
@@ -30,8 +51,9 @@ class DicomValidator:
 
         # Default from dicom_validator but defining here to be explicit
         standard_path = str(Path.home() / "dicom-validator")
-        edition_reader = EditionReader(standard_path)
-        destination = edition_reader.get_revision(self.edition, False)
+        with redirect_stdout_to_debug(logger):
+            edition_reader = EditionReader(standard_path)
+            destination = edition_reader.get_revision(self.edition, False)
         json_path = Path(destination, "json")
         self.dicom_info = EditionReader.load_dicom_info(json_path)
 

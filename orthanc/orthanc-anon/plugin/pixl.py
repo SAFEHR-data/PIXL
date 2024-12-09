@@ -323,13 +323,12 @@ def _anonymise_study_instances(
     """
     config = load_project_config(project_name)
     anonymised_instances_bytes = []
-    logger.debug("Zipped study infolist: {}", zipped_study.infolist())
+    logger.info("Processing project '{}', study: {}", project_name, study_uid)
+
     for file_info in zipped_study.infolist():
         with zipped_study.open(file_info) as file:
             logger.debug("Reading file {}", file)
             dataset = dcmread(file)
-
-            logger.info("Anonymising file: {} for study: {}", file, study_uid)
             try:
                 anonymised_instances_bytes.append(_anonymise_dicom_instance(dataset, config))
             except PixlSkipInstanceError as e:
