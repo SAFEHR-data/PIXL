@@ -10,7 +10,7 @@ classifiers = [
 ]
 dependencies = [
     "pydicom==2.4.4",
-    "pyftpdlib==1.5.10",
+    "pyftpdlib==2.0.1",
     "pyOpenSSL==24.3.0",
     "python-decouple==3.8",
     "pytest-loguru==0.4.0",
