@@ -8,7 +8,7 @@ requires-python = ">=3.10"
 classifiers = ["Programming Language :: Python :: 3"]
 dependencies = [
     "core==0.2.0rc0",
-    "uvicorn==0.30.4",
+    "uvicorn==0.32.1",
     "azure-storage-blob==12.21.0",
 ]
 
