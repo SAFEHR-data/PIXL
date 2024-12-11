@@ -20,7 +20,7 @@ dependencies = [
     "pydantic==2.8.2",
     "python-decouple==3.8",
     "python-slugify==8.0.4",
-    "PyYAML==6.0.1",
+    "PyYAML==6.0.2",
     "requests==2.32.2",
     "sqlalchemy==2.0.32",
     "token-bucket==0.3.0",
