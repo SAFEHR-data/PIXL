@@ -283,15 +283,9 @@ async def _get_missing_instances(
 
     Return a list of missing instance UIDs (empty if none missing)
     """
-    # First get all SOPInstanceUIDs for the study that are in Orthanc Raw
-    orthanc_raw_sop_instance_uids = []
-    for resource in resources:
-        study_instances = await orthanc_raw.get_local_study_instances(study_id=resource)
-        orthanc_raw_sop_instance_uids.extend(
-            [instance["MainDicomTags"]["SOPInstanceUID"] for instance in study_instances]
-        )
+    missing_instances: list[dict[str, str]] = []
 
-    # Now query the VNA / PACS for the study instances
+    # First query the VNA / PACS for the study instances
     study_query_answers = await orthanc_raw.get_remote_query_answers(study_query_id)
     instances_queries_and_answers = []
     for answer_id in study_query_answers:
@@ -302,12 +296,24 @@ async def _get_missing_instances(
         instances_queries_and_answers.extend(
             [(instances_query_id, answer) for answer in instances_query_answers]
         )
+    num_remote_instances = len(instances_queries_and_answers)
 
-    missing_instances: list[dict[str, str]] = []
+    num_local_instances = 0
+    for resource in resources:
+        study_statistics = await orthanc_raw.get_local_study_statistics(study_id=resource)
+        num_local_instances += int(study_statistics["CountInstances"])
 
-    if len(instances_queries_and_answers) == len(orthanc_raw_sop_instance_uids):
+    if num_remote_instances == num_local_instances:
         logger.debug("No missing instances for study {}", study.message.study_uid)
         return missing_instances
+
+    # Get all SOPInstanceUIDs for the study that are in Orthanc Raw
+    orthanc_raw_sop_instance_uids = []
+    for resource in resources:
+        study_instances = await orthanc_raw.get_local_study_instances(study_id=resource)
+        orthanc_raw_sop_instance_uids.extend(
+            [instance["MainDicomTags"]["0008,0018"] for instance in study_instances]
+        )
 
     # If the SOPInstanceUID is not in the list of instances in Orthanc Raw
     # retrieve the instance from the VNA / PACS
