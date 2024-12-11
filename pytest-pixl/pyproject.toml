@@ -14,7 +14,7 @@ dependencies = [
     "pyOpenSSL==24.2.1",
     "python-decouple==3.8",
     "pytest-loguru==0.4.0",
-    "requests==2.32.2",
+    "requests==2.32.3",
 ]
 
 [project.optional-dependencies]
