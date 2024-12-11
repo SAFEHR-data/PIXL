@@ -12,7 +12,7 @@ dependencies = [
     "azure-keyvault==4.2.0",
     "fastapi==0.112.0",
     "hypothesis==6.109.0",
-    "requests==2.32.2",
+    "requests==2.32.3",
     "uvicorn==0.30.4",
 ]
 
