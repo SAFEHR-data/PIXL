@@ -7,35 +7,35 @@ readme = "README.md"
 requires-python = ">=3.9"
 classifiers = ["Programming Language :: Python :: 3"]
 dependencies = [
-    "aio_pika==9.4.2",
-    "azure-identity==1.16.1",
+    "aio_pika==9.5.3",
+    "azure-identity==1.19.0",
     "azure-keyvault==4.2.0",
-    "fastapi==0.112.0",
-    "jsonpickle==3.4.2",
-    "loguru==0.7.2",
-    "pandas==2.2.2",
+    "fastapi==0.115.6",
+    "jsonpickle==4.0.0",
+    "loguru==0.7.3",
+    "pandas==2.2.3",
     "pika==1.3.2",
     "psycopg2-binary==2.9.10",
-    "pyarrow==17.0.0",
-    "pydantic==2.8.2",
+    "pyarrow==18.1.0",
+    "pydantic==2.10.3",
     "python-decouple==3.8",
     "python-slugify==8.0.4",
-    "PyYAML==6.0.1",
-    "requests==2.32.2",
-    "sqlalchemy==2.0.32",
+    "PyYAML==6.0.2",
+    "requests==2.32.3",
+    "sqlalchemy==2.0.36",
     "token-bucket==0.3.0",
     "xnat==0.6.2",
 ]
 
 [project.optional-dependencies]
 test = [
-    "httpx==0.27.*",
-    "pytest==8.3.2",
+    "httpx==0.28.*",
+    "pytest==8.3.4",
     "pytest-asyncio==0.24.0",
-    "pytest-check==2.3.1",
+    "pytest-check==2.4.1",
     "pytest-cov==6.0.0",
     "pytest-pixl==0.2.0rc0",
-    "xnat4tests==0.3.11",
+    "xnat4tests==0.3.12",
 ]
 dev = [
     "mypy",
