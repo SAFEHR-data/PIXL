@@ -12,29 +12,24 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-"""Custom exceptions for PIXL."""
+project:
+    name: "test-mr-spectroscopy"
+    modalities: ["MR"]
 
+tag_operation_files:
+    base:
+        - "base.yaml"
+        - "mri.yaml"
+        - "mr-spectroscopy.yaml"
+    manufacturer_overrides:
+        - "mri.yaml"
 
-class PixlDiscardError(RuntimeError):
-    """
-    Expected application error.
+series_filters:
+    - "localizer"
+    - "localiser"
+    - "scout"
+    - "positioning"
 
-    Exception that will be caught and whose message will be displayed
-    (without a stack trace).
-    """
-
-
-class PixlSkipInstanceError(RuntimeError):
-    """Study instance should be ignored."""
-
-
-class PixlRequeueMessageError(RuntimeError):
-    """Requeue PIXL message."""
-
-
-class PixlOutOfHoursError(Exception):
-    """Nack and requeue PIXL message."""
-
-
-class PixlStudyNotInPrimaryArchiveError(Exception):
-    """Study not in primary archive."""
+destination:
+    dicom: "none"
+    parquet: "none"

@@ -11,17 +11,15 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+"""Download the DICOM spec with dicom-validator."""
 
-project:
-    name: "uclh-prostate-mri-validation-dataset"
-    modalities: ["MR"]
+from pathlib import Path
 
-tag_operation_files:
-    base:
-        - "base.yaml" #Expected base config file for any project
-        - "mri.yaml"
-        - "diffusion-weighted-mri.yaml"
-    manufacturer_overrides: ["mri.yaml", "mri-diffusion.yaml"]
-destination:
-    dicom: "none"
-    parquet: "none"
+from dicom_validator.spec_reader.edition_reader import EditionReader
+
+edition = "2024e"
+download_path = str(Path.home() / "dicom-validator")
+edition_reader = EditionReader(download_path)
+destination = edition_reader.get_revision(edition, recreate_json=False)
+json_path = Path(destination, "json")
+EditionReader.load_dicom_info(json_path)

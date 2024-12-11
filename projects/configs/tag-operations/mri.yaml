@@ -20,6 +20,18 @@
 ################################### 0008 Group ###################################
 #
 #
+- name: Acquisition DateTime
+  group: 0x0008
+  element: 0x002A
+  op: replace
+- name: Content Date
+  group: 0x0008
+  element: 0x0023
+  op: replace
+- name: Content Time
+  group: 0x0008
+  element: 0x0033
+  op: replace
 - name: "Volumetric Properties"
   group: 0x0008
   element: 0x9206

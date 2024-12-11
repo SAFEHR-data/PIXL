@@ -19,6 +19,7 @@ import datetime
 import os
 import pathlib
 import tempfile
+import typing
 from collections.abc import Generator
 from typing import Optional
 
@@ -28,10 +29,6 @@ import pytest
 import pytest_pixl.dicom
 import requests
 from core.db.models import Base, Extract, Image
-from core.dicom_tags import (
-    DICOM_TAG_PROJECT_NAME,
-    add_private_tag,
-)
 from pydicom import Dataset, dcmread
 from pytest_pixl.dicom import generate_dicom_dataset
 from sqlalchemy import Engine, create_engine
@@ -46,6 +43,11 @@ os.environ["PROJECT_CONFIGS_DIR"] = str(
 )
 from pathlib import Path
 from decouple import config
+
+
+if typing.TYPE_CHECKING:
+    from core.project_config.pixl_config_model import PixlConfig
+
 
 PROJECT_CONFIGS_DIR = Path(config("PROJECT_CONFIGS_DIR"))
 
@@ -285,17 +287,7 @@ def vanilla_dicom_image_DX(row_for_dicom_testing) -> Dataset:
     The row_for_mri_dicom_testing dependency is to make sure the database is populated with the
     project slug, which is used to anonymise the DICOM image.
     """
-    ds = generate_dicom_dataset(Modality="DX")
-
-    # Make sure the project name tag is added for anonymisation to work
-    add_private_tag(ds, DICOM_TAG_PROJECT_NAME)
-    # Update the project name tag to a known value
-    block = ds.private_block(
-        DICOM_TAG_PROJECT_NAME.group_id, DICOM_TAG_PROJECT_NAME.creator_string
-    )
-    ds[block.get_tag(DICOM_TAG_PROJECT_NAME.offset_id)].value = TEST_PROJECT_SLUG
-
-    return ds
+    return generate_dicom_dataset(Modality="DX")
 
 
 @pytest.fixture()
@@ -307,17 +299,7 @@ def vanilla_single_dicom_image_DX(row_for_single_dicom_testing) -> Dataset:
     The row_for_single_dicom_testing dependency is to make sure the database is populated with the
     project slug, which is used to anonymise the DICOM image.
     """
-    ds = generate_dicom_dataset(Modality="DX")
-
-    # Make sure the project name tag is added for anonymisation to work
-    add_private_tag(ds, DICOM_TAG_PROJECT_NAME)
-    # Update the project name tag to a known value
-    block = ds.private_block(
-        DICOM_TAG_PROJECT_NAME.group_id, DICOM_TAG_PROJECT_NAME.creator_string
-    )
-    ds[block.get_tag(DICOM_TAG_PROJECT_NAME.offset_id)].value = TEST_PROJECT_SLUG
-
-    return ds
+    return generate_dicom_dataset(Modality="DX")
 
 
 @pytest.fixture()
@@ -329,14 +311,9 @@ def vanilla_dicom_image_MR(row_for_dicom_testing) -> Dataset:
     The row_for_mri_dicom_testing dependency is to make sure the database is populated with the
     project slug, which is used to anonymise the DICOM image.
     """
-    ds = generate_dicom_dataset(Modality="MR")
+    return generate_dicom_dataset(Modality="MR")
 
-    # Make sure the project name tag is added for anonymisation to work
-    add_private_tag(ds, DICOM_TAG_PROJECT_NAME)
-    # Update the project name tag to a known value
-    block = ds.private_block(
-        DICOM_TAG_PROJECT_NAME.group_id, DICOM_TAG_PROJECT_NAME.creator_string
-    )
-    ds[block.get_tag(DICOM_TAG_PROJECT_NAME.offset_id)].value = TEST_PROJECT_SLUG
 
-    return ds
+@pytest.fixture(scope="module")
+def test_project_config() -> PixlConfig:
+    return load_project_config(TEST_PROJECT_SLUG)

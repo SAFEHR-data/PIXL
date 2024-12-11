@@ -17,8 +17,8 @@ import typing
 from io import BytesIO
 
 import requests
-from core.exceptions import PixlDiscardError
-from core.project_config import load_project_config, load_tag_operations
+from core.exceptions import PixlSkipInstanceError
+from core.project_config import load_tag_operations
 from decouple import config
 from dicomanonymizer.simpledicomanonymizer import (
     actions_map_name_functions,
@@ -27,20 +27,20 @@ from dicomanonymizer.simpledicomanonymizer import (
 from loguru import logger
 from pydicom import DataElement, Dataset, dcmwrite
 
-from core.project_config.pixl_config_model import PixlConfig, load_config_and_validate
+from core.project_config.pixl_config_model import PixlConfig
 from pixl_dcmd._database import (
     get_uniq_pseudo_study_uid_and_update_db,
     get_pseudo_patient_id_and_update_db,
 )
 from pixl_dcmd._dicom_helpers import (
     DicomValidator,
-    get_project_name_as_string,
     get_study_info,
 )
 from pixl_dcmd._tag_schemes import _scheme_list_to_dict, merge_tag_schemes
 
+
 if typing.TYPE_CHECKING:
-    from pathlib import Path
+    from pixl_dcmd._dicom_helpers import StudyInfo
 
 
 def write_dataset_to_bytes(dataset: Dataset) -> bytes:
@@ -64,36 +64,40 @@ def _should_exclude_series(dataset: Dataset, cfg: PixlConfig) -> bool:
     return False
 
 
+def anonymise_dicom_and_update_db(
+    dataset: Dataset,
+    *,
+    config: PixlConfig,
+) -> dict:
+    """Anonymise and validate a DICOM dataset and update the PIXL database."""
+    identifiable_study_info = get_study_info(dataset)
+    validation_errors = anonymise_and_validate_dicom(dataset, config=config)
+    _generate_pseudo_uids_and_synchronise_pixl_db(
+        dataset=dataset,
+        project_name=config.project.name,
+        identifiable_study_info=identifiable_study_info,
+    )
+    return validation_errors
+
+
 def anonymise_and_validate_dicom(
     dataset: Dataset,
     *,
-    config_path: Path | None = None,
-    synchronise_pixl_db: bool = True,
+    config: PixlConfig,
 ) -> dict:
     """
     Anonymise dataset using allow list and compare DICOM validation errors before
     and after anonymising.
 
-    If synchronise_pixl_db is True, then synchronise with the pixl database.
-    If the pixl database has a value for set for the pseudo identifier, then update the
-    DICOM data with the value, otherwise save the anonymised data from the DICOM dataset
-    to the pixl database.
-    - pseudo_study_uid -> DICOM study uid tag
-    - pseudo_patient_id -> DICOM patient identifier tag
-
     :param dataset: DICOM dataset to be anonymised, updated in place
-    :param config_path: path to config, for external users.
-      if not set then this will be determined using the PIXL project tag in the DICOM
-    :param synchronise_pixl_db: synchronise the anonymisation with the pixl database
+    :param config: Project config to use for anonymisation
     :return: dictionary of validation errors
     """
     # Set up Dicom validator and validate the original dataset
-    dicom_validator = DicomValidator(edition="current")
+    dicom_validator = DicomValidator(edition="2024e")
     dicom_validator.validate_original(dataset)
 
-    anonymise_dicom(
-        dataset, config_path=config_path, synchronise_pixl_db=synchronise_pixl_db
-    )
+    anonymise_dicom(dataset, config=config)
 
     # Validate the anonymised dataset
     validation_errors = dicom_validator.validate_anonymised(dataset)
@@ -106,7 +110,8 @@ def anonymise_and_validate_dicom(
 
 
 def anonymise_dicom(
-    dataset: Dataset, config_path: Path | None = None, synchronise_pixl_db: bool = True
+    dataset: Dataset,
+    config: PixlConfig,
 ) -> None:
     """
     Anonymises a DICOM dataset as Received by Orthanc in place.
@@ -115,61 +120,37 @@ def anonymise_dicom(
     - recursively applying tag operations based on the config file
     - deleting any tags not in the tag scheme recursively
 
-    If synchronise_pixl_db is True, then synchronise with the pixl database.
-    If the pixl database has a value for set for the pseudo identifier, then update the
-    DICOM data with the value, otherwise save the anonymised data from the DICOM dataset
-    to the pixl database.
-    - pseudo_study_uid -> DICOM study uid tag
-    - pseudo_patient_id -> DICOM patient identifier tag
-
     :param dataset: DICOM dataset to be anonymised, updated in place
-    :param config_path: path to config, for external users.
-      if not set then this will be determined using the PIXL project tag in the DICOM
-    :param synchronise_pixl_db: synchronise the anonymisation with the pixl database
+    :param config: Project config to use for anonymisation
     """
 
     study_info = get_study_info(dataset)
-
-    if config_path:
-        project_config = load_config_and_validate(config_path)
-        project_name = project_config.project.name
-    else:
-        project_name = get_project_name_as_string(dataset)
-        project_config = load_project_config(project_name)
-    logger.debug(f"Processing instance for project {project_name}:  {study_info}")
+    logger.debug(
+        f"Processing instance for project {config.project.name}:  {study_info}"
+    )
 
     # Do before anonymisation in case someone decides to delete the
     # Series Description tag as part of anonymisation.
-    if _should_exclude_series(dataset, project_config):
+    if _should_exclude_series(dataset, config):
         msg = "DICOM instance discarded due to its series description"
-        raise PixlDiscardError(msg)
-    if dataset.Modality not in project_config.project.modalities:
+        raise PixlSkipInstanceError(msg)
+    if dataset.Modality not in config.project.modalities:
         msg = f"Dropping DICOM Modality: {dataset.Modality}"
-        raise PixlDiscardError(msg)
+        raise PixlSkipInstanceError(msg)
 
-    logger.info("Anonymising received instance: {}", study_info)
+    logger.debug("Anonymising instance for: {}", study_info)
 
     # Merge tag schemes
-    tag_operations = load_tag_operations(project_config)
+    tag_operations = load_tag_operations(config)
     tag_scheme = merge_tag_schemes(tag_operations, manufacturer=dataset.Manufacturer)
 
     logger.debug(
-        f"Applying DICOM tag anonymisation according to {project_config.tag_operation_files}"
+        f"Applying DICOM tag anonymisation according to {config.tag_operation_files}"
     )
     logger.trace(f"Tag scheme: {tag_scheme}")
 
     _enforce_allowlist(dataset, tag_scheme, recursive=True)
-    _anonymise_dicom_from_scheme(dataset, project_name, tag_scheme)
-
-    if synchronise_pixl_db:
-        # Update the dataset with the new pseudo study ID
-        dataset[0x0020, 0x000D].value = get_uniq_pseudo_study_uid_and_update_db(
-            project_name, study_info
-        )
-        anonymised_study_info = get_study_info(dataset)
-        dataset[0x0010, 0x0020].value = get_pseudo_patient_id_and_update_db(
-            project_name, study_info, anonymised_study_info.mrn
-        )  # type: ignore[func-returns-value]
+    _anonymise_dicom_from_scheme(dataset, config.project.name, tag_scheme)
 
 
 def _anonymise_dicom_from_scheme(
@@ -241,7 +222,7 @@ def _secure_hash(
         else:
             # This is because we currently only hash patient id specifically.
             # Other types can be added easily if needed.
-            raise PixlDiscardError(f"Tag {tag} is not an LO VR type, cannot hash.")
+            raise PixlSkipInstanceError(f"Tag {tag} is not an LO VR type, cannot hash.")
 
         dataset[grp, el].value = hashed_value
 
@@ -290,3 +271,31 @@ def _parse_validation_results(results: dict) -> str:
     for key, value in results.items():
         res_str += f"{key}: {value}\n"
     return res_str
+
+
+def _generate_pseudo_uids_and_synchronise_pixl_db(
+    dataset: Dataset,
+    project_name: str,
+    identifiable_study_info: StudyInfo,
+) -> None:
+    """
+    Synchronise the anonymisation with the pixl database.
+
+    If the pixl database has a value for set for the pseudo identifier, then update the
+    DICOM data with the value, otherwise save the anonymised data from the DICOM dataset
+    to the pixl database.
+
+    - pseudo_study_uid -> DICOM study uid tag
+    - pseudo_patient_id -> DICOM patient identifier tag
+    """
+    dataset[0x0020, 0x000D].value = get_uniq_pseudo_study_uid_and_update_db(
+        project_name,
+        identifiable_study_info,
+    )
+
+    anonymised_study_info = get_study_info(dataset)
+    dataset[0x0010, 0x0020].value = get_pseudo_patient_id_and_update_db(
+        project_name,
+        identifiable_study_info,
+        anonymised_study_info.mrn,
+    )
