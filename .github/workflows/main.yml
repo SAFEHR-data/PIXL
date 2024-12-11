@@ -28,7 +28,7 @@ concurrency:
 
 jobs:
     lint:
-        runs-on: ubuntu-22.04
+        runs-on: ubuntu-24.04
         timeout-minutes: 5
         steps:
             - name: Checkout
@@ -46,7 +46,7 @@ jobs:
                   docker compose config --quiet
 
     test:
-        runs-on: ubuntu-22.04
+        runs-on: ubuntu-24.04
         timeout-minutes: 30
         strategy:
             fail-fast: false # run all tests if even if one fails
@@ -86,7 +86,7 @@ jobs:
 
     system-test:
         if: ${{ ! github.event.pull_request.draft || contains(github.event.pull_request.title, '[force-system-test]') }}
-        runs-on: ubuntu-22.04
+        runs-on: ubuntu-24.04
         timeout-minutes: 30
         steps:
             - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
