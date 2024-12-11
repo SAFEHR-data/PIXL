@@ -14,10 +14,6 @@
 
 # Specific tag operations for ion-neuro-db project
 
-- name: "Study Date"
-  group: 0x0008
-  element: 0x0020
-  op: "keep"
 - name: "Acquisition Date"
   group: 0x0008
   element: 0x0022
