@@ -220,28 +220,59 @@ def ImportStudiesFromRaw(output, uri, **request):  # noqa: ARG001
     study_uids = payload["StudyInstanceUIDs"]
     project_name = payload["ProjectName"]
 
-    for study_resource_id, study_uid in zip(study_resource_ids, study_uids, strict=False):
-        executor.submit(_import_study_from_raw, study_resource_id, study_uid, project_name)
+    executor.submit(_import_studies_from_raw, study_resource_ids, study_uids, project_name)
 
     response = json.dumps({"Message": "Ok"})
     output.AnswerBuffer(response, "application/json")
 
 
-def _import_study_from_raw(study_resource_id: str, study_uid: str, project_name: str) -> None:
+def _import_studies_from_raw(
+    study_resource_ids: list[str], study_uids: list[str], project_name: str
+) -> None:
     """
-    Import a study from Orthanc Raw.
+    Import studies from Orthanc Raw.
 
     Args:
-        study_resource_id: Resource ID of the study in Orthanc Raw
-        study_uid: Corresponding StudyInstanceUID
+        study_resource_ids: Resource IDs of the study in Orthanc Raw
+        study_uids: Corresponding StudyInstanceUIDs
         project_name: Name of the project
 
-    - Pull a study from Orthanc Raw based on its resource ID
+    - Pull studies from Orthanc Raw based on its resource ID
     - Iterate over instances and anonymise them
-    - Re-upload the study via the dicom-web api
-    - Notify the PIXL export-api to send the study the to relevant endpoint for the project
+    - Upload the studies to orthanc-anon
+    - Notify the PIXL export-api to send the studies to the relevant endpoint for the project
 
     """
+    anonymised_study_uids = []
+
+    for study_resource_id, study_uid in zip(study_resource_ids, study_uids, strict=False):
+        anonymised_uid = _anonymise_study_and_upload(study_resource_id, study_uid, project_name)
+        if anonymised_uid:
+            anonymised_study_uids.append(anonymised_uid)
+
+    if not should_export():
+        logger.debug("Not exporting study {} as auto-routing is disabled", anonymised_study_uids)
+        return
+
+    # ensure we only have unique resource ids by using a set
+    resource_ids = {
+        _get_study_resource_id(anonymised_study_uid)
+        for anonymised_study_uid in anonymised_study_uids
+    }
+
+    logger.debug(
+        "Notify export API to retrieve study resources. Original UID {} Anon UID: {}",
+        study_resource_ids,
+        resource_ids,
+    )
+
+    for resource_id in resource_ids:
+        send_study(study_id=resource_id, project_name=project_name)
+
+
+def _anonymise_study_and_upload(
+    study_resource_id: str, study_uid: str, project_name: str
+) -> str | None:
     zipped_study_bytes = get_study_zip_archive_from_raw(resource_id=study_resource_id)
 
     with ZipFile(zipped_study_bytes) as zipped_study:
@@ -255,21 +286,10 @@ def _import_study_from_raw(study_resource_id: str, study_uid: str, project_name:
             logger.warning("Failed to anonymize study {}: {}", study_uid, discard)
         except Exception:  # noqa: BLE001
             logger.exception("Failed to anonymize study: {} ", study_uid)
-            return
+            return None
 
     _upload_instances(anonymised_instances_bytes)
-
-    if not should_export():
-        logger.debug("Not exporting study {} as auto-routing is disabled", anonymised_study_uid)
-        return
-
-    anonymised_study_resource_id = _get_study_resource_id(anonymised_study_uid)
-    logger.debug(
-        "Notify export API to retrieve study resource. Original UID {} Anon UID: {}",
-        study_uid,
-        anonymised_study_uid,
-    )
-    send_study(study_id=anonymised_study_resource_id, project_name=project_name)
+    return anonymised_study_uid
 
 
 def get_study_zip_archive_from_raw(resource_id: str) -> BytesIO:
