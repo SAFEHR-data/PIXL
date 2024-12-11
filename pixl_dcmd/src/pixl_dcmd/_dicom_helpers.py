@@ -38,8 +38,8 @@ def redirect_stdout_to_debug(_logger: Logger) -> Generator[None, None, None]:
     sys.stdout = StringIO()
     try:
         yield
-        sys.stdout.seek(0)
-        for line in sys.stdout:
+        output = sys.stdout.getvalue()
+        for line in output.splitlines():
             _logger.debug(line.strip())
     finally:
         sys.stdout = old_stdout

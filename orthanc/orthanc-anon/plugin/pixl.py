@@ -283,9 +283,14 @@ def _anonymise_study_and_upload(
                 project_name=project_name,
             )
         except PixlDiscardError as discard:
-            logger.warning("Failed to anonymize study {}: {}", study_uid, discard)
+            logger.warning(
+                "Failed to anonymize project: '{}', study: {}: {}", project_name, study_uid, discard
+            )
+            return None
         except Exception:  # noqa: BLE001
-            logger.exception("Failed to anonymize study: {} ", study_uid)
+            logger.exception(
+                "Failed to anonymize project: '{}', study: {}", project_name, study_uid
+            )
             return None
 
     _upload_instances(anonymised_instances_bytes)
@@ -370,10 +375,16 @@ def _anonymise_study_instances(
                 anonymised_study_uid = dataset[0x0020, 0x000D].value
                 dicom_validation_errors |= instance_validation_errors
 
-    logger.info("Study {}, skipped instance counts: {}", study_uid, skipped_instance_counts)
+    if skipped_instance_counts:
+        logger.info(
+            "Project '{}' Study {}, skipped instance counts: {}",
+            project_name,
+            study_uid,
+            dict(skipped_instance_counts),
+        )
 
     if not anonymised_instances_bytes:
-        message = f"All instances have been skipped for study {study_uid}"
+        message = "All instances have been skipped for study"
         raise PixlDiscardError(message)
 
     if dicom_validation_errors:
@@ -381,7 +392,7 @@ def _anonymise_study_instances(
             "The anonymisation introduced the following validation errors:\n{}",
             parse_validation_results(dicom_validation_errors),
         )
-    logger.success("Finished anonymising project '{}', study: {}", file, study_uid)
+    logger.success("Finished anonymising project: '{}', study: {}", project_name, study_uid)
     return anonymised_instances_bytes, anonymised_study_uid
 
 
