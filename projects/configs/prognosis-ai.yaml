@@ -13,7 +13,7 @@
 #  limitations under the License.
 
 project:
-    name: "ion-neuro-db"
+    name: "prognosis-ai"
     modalities: ["MR"]
 
 tag_operation_files:
@@ -30,5 +30,5 @@ series_filters:
     - "positioning"
 
 destination:
-    dicom: "xnat"
-    parquet: "ftps"
+    dicom: "none"
+    parquet: "none"
