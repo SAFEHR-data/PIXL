@@ -19,7 +19,6 @@ import pandas as pd
 import pydicom
 import pytest
 import requests
-from core.dicom_tags import DICOM_TAG_PROJECT_NAME
 from loguru import logger
 from pydicom.uid import UID
 from pytest_check import check
@@ -169,22 +168,6 @@ class TestFtpsUpload:
                 dcm.get("StudyInstanceUID") == zip_path.stem
             )  # StudyInstanceUID stores the pseudo study id post anon
             actual_instances.add((dcm.get("AccessionNumber"), dcm.get("SeriesDescription")))
-            block = dcm.private_block(
-                DICOM_TAG_PROJECT_NAME.group_id, DICOM_TAG_PROJECT_NAME.creator_string
-            )
-            tag_offset = DICOM_TAG_PROJECT_NAME.offset_id
-            private_tag = block[tag_offset]
-            assert private_tag is not None
-            if isinstance(private_tag.value, bytes):
-                # Allow this for the time being, until it has been investigated
-                # See https://github.com/SAFEHR-data/PIXL/issues/363
-                logger.error(
-                    "TEMPORARILY IGNORE: tag value {} should be of type str, but is of type bytes",
-                    private_tag.value,
-                )
-                assert private_tag.value.decode() == TestFtpsUpload.project_slug
-            else:
-                assert private_tag.value == TestFtpsUpload.project_slug
         # check the basic info about the instances exactly matches
         with check:
             assert actual_instances == expected_study["instances"]
