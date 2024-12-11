@@ -22,7 +22,7 @@ dependencies = [
     "python-slugify==8.0.4",
     "PyYAML==6.0.2",
     "requests==2.32.3",
-    "sqlalchemy==2.0.32",
+    "sqlalchemy==2.0.36",
     "token-bucket==0.3.0",
     "xnat==0.6.2",
 ]
