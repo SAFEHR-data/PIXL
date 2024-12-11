@@ -10,7 +10,7 @@ dependencies = [
     "aio_pika==9.5.3",
     "azure-identity==1.19.0",
     "azure-keyvault==4.2.0",
-    "fastapi==0.112.0",
+    "fastapi==0.115.6",
     "jsonpickle==3.2.2",
     "loguru==0.7.3",
     "pandas==2.2.3",
