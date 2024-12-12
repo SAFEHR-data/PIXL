@@ -21,7 +21,7 @@ from core.exceptions import PixlSkipInstanceError
 from core.project_config import load_tag_operations
 from decouple import config
 from dicomanonymizer.simpledicomanonymizer import (
-    actions_map_name_functions,
+    ActionsMapNameFunctions,
     anonymize_dataset,
 )
 from loguru import logger
@@ -197,7 +197,7 @@ def _convert_schema_to_actions(
                 _dataset, project_slug, _tag
             )
             continue
-        tag_actions[group_el] = actions_map_name_functions[tag["op"]]
+        tag_actions[group_el] = ActionsMapNameFunctions[tag["op"]].value.function
 
     return tag_actions
 
