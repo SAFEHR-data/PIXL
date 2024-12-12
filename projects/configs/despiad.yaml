@@ -21,9 +21,8 @@ project:
 tag_operation_files:
     base:
         - "base.yaml"
-        #- "ct.yaml"
+        - "ct.yaml"
         - "pet.yaml"
-        - "despiad.yaml"
     manufacturer_overrides: []
 
 series_filters: []
