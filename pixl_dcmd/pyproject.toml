@@ -15,7 +15,7 @@ dependencies = [
     "pydicom==2.4.4",
     "pydicom-data",
     "python-decouple==3.8",
-    "requests==2.32.2",
+    "requests==2.32.3",
     "types-requests~=2.28",
 ]
 
@@ -23,7 +23,7 @@ dependencies = [
 test = [
     "core[test]==0.2.0rc0",
     "dcm2niix==1.0.20220715",
-    "nibabel==5.2.1",
+    "nibabel==5.3.2",
 ]
 dev = [
     "core[dev]==0.2.0rc0",
