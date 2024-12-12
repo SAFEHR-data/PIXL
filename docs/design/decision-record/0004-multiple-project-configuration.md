@@ -8,7 +8,10 @@ Technical Story: [PIXL can take multiple projects](https://github.com/SAFEHR-dat
 
 ## Context and Problem Statement
 
-Each project should be able to define its own anonymisation profile and export destinations.
+Each project should be able to define its own anonymisation profile and export destinations. 
+How can we store the secrets.
+
+![pixl-multi-project-config.png](../diagrams/pixl-multi-project-config.png)
 
 ## Decision Drivers <!-- optional -->
 
