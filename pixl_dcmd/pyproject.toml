@@ -12,7 +12,7 @@ dependencies = [
     "dicom-anonymizer==1.0.13.post1",
     "dicom-validator==0.6.3",
     "logger==1.4",
-    "pydicom==2.4.4",
+    "pydicom==3.0.1",
     "pydicom-data",
     "python-decouple==3.8",
     "requests==2.32.3",

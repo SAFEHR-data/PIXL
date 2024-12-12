@@ -10,7 +10,7 @@ dependencies = [
     "core==0.2.0rc0",
     "aiohttp==3.10.11",
     "alembic==1.14.0",
-    "pydicom==2.4.4",
+    "pydicom==3.0.1",
     "uvicorn==0.32.1",
 ]
 
