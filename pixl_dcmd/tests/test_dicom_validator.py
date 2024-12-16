@@ -33,6 +33,7 @@ def test_validation_check_works(vanilla_single_dicom_image_DX: Dataset) -> None:
 
 def test_validation_after_anonymisation_works(
     vanilla_single_dicom_image_DX: Dataset,
+    test_project_config,
 ) -> None:
     """
     GIVEN a DICOM dataset
@@ -41,7 +42,7 @@ def test_validation_after_anonymisation_works(
     """
     validator = DicomValidator()
     validator.validate_original(vanilla_single_dicom_image_DX)
-    anonymise_dicom(vanilla_single_dicom_image_DX)
+    anonymise_dicom(vanilla_single_dicom_image_DX, config=test_project_config)
 
     assert not validator.validate_anonymised(vanilla_single_dicom_image_DX)
 

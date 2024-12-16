@@ -8,10 +8,11 @@ PIXL Image eXtraction Laboratory
 `PIXL` is a system for extracting, linking and de-identifying DICOM imaging data, structured EHR data and free-text data from radiology reports at UCLH.
 Please see the [rolling-skeleton]([https://github.com/SAFEHR-data/the-rolling-skeleton=](https://github.com/SAFEHR-data/the-rolling-skeleton/blob/main/docs/design/100-day-design.md)) for more details.
 
-PIXL is intended run on one of the [GAE](https://github.com/SAFEHR-data/Book-of-FlowEHR/blob/main/glossary.md#gaes)s and comprises
+PIXL is intended run on one of the [GAE (General Application Environments)](https://github.com/SAFEHR-data/Book-of-FlowEHR/blob/main/glossary.md#gaes)s and comprises
 several services orchestrated by [Docker Compose](https://docs.docker.com/compose/).
 
-To get access to the GAE, [see the documentation on Slab](https://uclh.slab.com/posts/gae-access-7hkddxap)
+To get access to the GAE, [see the documentation on Slab](https://uclh.slab.com/posts/gae-access-7hkddxap). 
+Please request access to Slab and add further details in a [new blank issue](https://github.com/SAFEHR-data/PIXL/issues/new).
 
 ## Installation
 
@@ -78,7 +79,10 @@ HTTP API to export files (parquet and DICOM) from UCLH to endpoints.
 
 HTTP API to process messages from the `imaging` queue and populate the raw orthanc instance with images from PACS/VNA.
 
-## Setup
+## Setup `PIXL` in GAE
+
+<details>
+  <summary>Click here to expand steps and configurations</summary>
 
 ### 0. [UCLH infrastructure setup](./docs/setup/uclh-infrastructure-setup.md)
 
@@ -212,7 +216,12 @@ See the [hasher documentation](./hasher/README.md) for more information.
 </p>
 </details> 
 
-## Run
+</details>
+
+## Run `PIXL` in GAE
+
+<details>
+  <summary>Click here to view detailed steps</summary>
 
 ### Start
 
@@ -231,6 +240,9 @@ From the _PIXL_ directory:
 ```shell
 pixl dc down  # --volumes to remove all data volumes
 ```
+
+</details>
+
 
 ## Analysis
 

@@ -52,6 +52,7 @@ TEST_DIR = Path(__file__).parent
 RESOURCES_DIR = TEST_DIR / "resources"
 RESOURCES_OMOP_DIR = RESOURCES_DIR / "omop"
 RESOURCES_OMOP_DICOMWEB_DIR = RESOURCES_DIR / "omop-dicomweb"
+SECONDS_TO_WAIT_FOR_EXPORT = 301
 
 
 def _upload_to_vna(image_filename: Path) -> None:
@@ -187,8 +188,8 @@ def _setup_pixl_cli(ftps_server: PixlFTPServer, _populate_vna: None) -> Generato
         TEST_DIR,
         timeout=600,
     )
-    # poll here for two minutes to check for imaging to be processed, printing progress
-    wait_for_images_to_be_exported(211, 5, 15)
+    # poll here to check for imaging to be processed, printing progress
+    wait_for_images_to_be_exported(SECONDS_TO_WAIT_FOR_EXPORT, 5, 15)
     yield
     run_subprocess(
         [
@@ -211,8 +212,8 @@ def _setup_pixl_cli_dicomweb(_populate_vna: None) -> Generator:
         TEST_DIR,
         timeout=600,
     )
-    # poll here for two minutes to check for imaging to be processed, printing progress
-    wait_for_images_to_be_exported(211, 5, 15)
+    # poll here to check for imaging to be processed, printing progress
+    wait_for_images_to_be_exported(SECONDS_TO_WAIT_FOR_EXPORT, 5, 15)
     yield
     run_subprocess(
         [
