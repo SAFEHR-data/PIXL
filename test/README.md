@@ -10,7 +10,7 @@ consumers started.
 
 **Then** the DICOM study exists in the "anon" PIXL Orthanc instance.
 
-After setting up your [.secrets.env](../README.md#project-secrets)), you can run the system test with:
+After setting up your [.secrets.env](../README.md#project-secrets), you can run the system test with:
 
 ```bash
 ./run-system-test.sh
@@ -69,3 +69,34 @@ but configured to upload to a [DICOMweb server](#dicomweb-config)
 ### DICOMWeb config
 
 `./dicomweb_config/` contains the Orthanc configuration files for the mock [DICOMweb server](../docs/services/dicomweb-server.md).
+
+## 'PIXL/test' Directory Contents
+
+### Subdirectories
+
+[dicomweb_config](./dicomweb_config/README.md)
+
+[resources](./resources/README.md)
+
+[vna_config](./vna_config/README.md)
+
+### Files
+
+.env
+
+.secrets.env.sample
+
+conftest.py
+
+docker-compose.yml
+
+README.md
+
+run-system-test.sh
+
+system_test.py
+
+test_parquet_exports.py
+
+utils.py
+
