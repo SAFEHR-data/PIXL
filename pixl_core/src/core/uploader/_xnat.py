@@ -17,14 +17,9 @@
 from __future__ import annotations
 
 import os
-from io import BytesIO
 from typing import TYPE_CHECKING, BinaryIO, Optional
-from zipfile import ZIP_DEFLATED, ZipFile
 
 import xnat
-import xnat.datatypes
-import xnat.type_hints
-from pydicom import dcmread
 
 from core.uploader.base import Uploader
 
@@ -82,28 +77,6 @@ class XNATUploader(Uploader):
         zip_content = get_study_zip_archive(study_id)
         self.upload_to_xnat(zip_content, study_tags)
 
-    def _split_zip_by_modality(self, zip_content: BinaryIO) -> dict[str, BinaryIO]:
-        """Split a zip file by modality."""
-        zip_content_by_modality = {}
-        with ZipFile(zip_content) as zipped_study:
-            for file_info in zipped_study.infolist():
-                with zipped_study.open(file_info) as file:
-                    dataset = dcmread(file)
-                    modality = dataset.Modality
-                    patient_id = dataset.PatientID
-                    label = f"{patient_id}_{modality}"
-                    if label not in zip_content_by_modality:
-                        zip_content_by_modality[label] = BytesIO()
-                    with ZipFile(
-                        zip_content_by_modality[label], "a", compression=ZIP_DEFLATED
-                    ) as zipped_modality:
-                        zipped_modality.writestr(file_info.filename, file.read())
-
-        for zipped_modality in zip_content_by_modality.values():
-            zipped_modality.seek(0)
-
-        return zip_content_by_modality
-
     def upload_to_xnat(
         self,
         zip_content: BinaryIO,
@@ -114,47 +87,16 @@ class XNATUploader(Uploader):
             user=self.user,
             password=self.password,
         ) as session:
-            experiment = self._get_experiment_label(
-                session=session,
-                patient_id=study_tags.patient_id,
-            )
-
             session.services.import_(
                 data=zip_content,
                 overwrite=self.overwrite,
                 destination=self.project_slug,
                 project=self.project_slug,
                 subject=study_tags.patient_id,
-                experiment=experiment,
+                experiment=study_tags.pseudo_anon_image_id,
                 content_type="application/zip",
                 import_handler="DICOM-zip",
             )
-
-    def _get_experiment_label(
-        self,
-        session: xnat.XNATSession,
-        patient_id: str,
-    ) -> str:
-        """
-        Create a unique experiment label based on the PatientID and number of existing DICOM studies
-        for the patient.
-        """
-        project: xnat.mixin.ProjectData = session.projects[self.project_slug]
-        try:
-            subject: xnat.mixin.SubjectData = project.subjects[patient_id]
-        except KeyError:
-            n_archive_experiments = 0
-        else:
-            n_archive_experiments = len(subject.experiments)
-
-        n_prearchive_experiments = len(
-            session.prearchive.find(
-                project=self.project_slug,
-                subject=patient_id,
-            )
-        )
-        n_experiments = n_archive_experiments + n_prearchive_experiments
-        return f"{patient_id}_{n_experiments + 1}"
 
     def upload_parquet_files(self, parquet_export: ParquetExport) -> None:  # noqa: ARG002
         msg = "XNATUploader does not support parquet files"
