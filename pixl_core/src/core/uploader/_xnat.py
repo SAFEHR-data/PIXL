@@ -90,7 +90,7 @@ class XNATUploader(Uploader):
             session.services.import_(
                 data=zip_content,
                 overwrite=self.overwrite,
-                destination=self.project_slug,
+                destination=self.destination,
                 project=self.project_slug,
                 subject=study_tags.patient_id,
                 experiment=study_tags.pseudo_anon_image_id,
