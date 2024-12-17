@@ -24,6 +24,7 @@ import numpy as np
 import pydicom
 import pytest
 import sqlalchemy
+from pytest_check import check
 from core.db.models import Image
 from core.dicom_tags import (
     PrivateDicomTag,
@@ -200,19 +201,18 @@ def test_anonymise_and_validate_dicom(caplog, request, yaml_file) -> None:
     WHEN the anonymisation and validation process is run
     THEN the dataset should be anonymised and validated without any warnings or errors
     """
-    caplog.clear()
     caplog.set_level(logging.WARNING)
     config = load_project_config(yaml_file.stem)
-    modality = config.project.modalities[0]
-    dicom_image = request.getfixturevalue(f"vanilla_dicom_image_{modality}")
-
-    validation_errors = anonymise_and_validate_dicom(
-        dicom_image,
-        config=config,
-    )
-
-    assert "WARNING" not in [record.levelname for record in caplog.records]
-    assert not validation_errors
+    for modality in config.project.modalities:
+        caplog.clear()
+        dicom_image = generate_dicom_dataset(Modality=modality)
+        validation_errors = anonymise_and_validate_dicom(
+            dicom_image,
+            config=config,
+        )
+        with check:
+            assert "WARNING" not in [record.levelname for record in caplog.records]
+            assert not validation_errors
 
 
 @pytest.mark.usefixtures("row_for_single_dicom_testing")
