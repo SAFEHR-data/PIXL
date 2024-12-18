@@ -40,33 +40,28 @@ COPY ./pixl_dcmd/ /pixl_dcmd
 RUN --mount=type=cache,target=/root/.cache \
     /.venv/bin/pip install --no-cache-dir --force-reinstall --no-deps ./pixl_dcmd
 
-FROM pixl_orthanc_base AS pixl_orthanc_raw
+ARG ORTHANC_DIR
+COPY ./orthanc/${ORTHANC_DIR}/plugin/pixl.py /etc/orthanc/pixl.py
+COPY ./orthanc/${ORTHANC_DIR}/config /run/secrets
 
-COPY ./orthanc/orthanc-raw/plugin/pixl.py /etc/orthanc/pixl.py
+ENV PYTHONPATH=/.venv/lib64/python3.11/site-packages/
 
 # Orthanc can't substitute environment veriables as integers so copy and replace before running
+ARG ORTHANC_CONCURRENT_JOBS
+RUN sed -i "s/\${ORTHANC_CONCURRENT_JOBS}/${ORTHANC_CONCURRENT_JOBS:-5}/g" /run/secrets/orthanc.json
+
+FROM pixl_orthanc_base AS pixl_orthanc_raw
+
 ARG ORTHANC_RAW_MAXIMUM_STORAGE_SIZE
 ARG ORTHANC_RAW_JOB_HISTORY_SIZE
-ARG ORTHANC_CONCURRENT_JOBS
 ARG PIXL_DICOM_TRANSFER_TIMEOUT
-COPY ./orthanc/orthanc-raw/config /run/secrets
 RUN sed -i "s/\${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE}/${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE:-0}/g" /run/secrets/orthanc.json
 RUN sed -i "s/\${ORTHANC_RAW_JOB_HISTORY_SIZE}/${ORTHANC_RAW_JOB_HISTORY_SIZE:-100}/g" /run/secrets/orthanc.json
-RUN sed -i "s/\${ORTHANC_CONCURRENT_JOBS}/${ORTHANC_CONCURRENT_JOBS:-5}/g" /run/secrets/orthanc.json
 RUN sed -i "s/\${ORTHANC_RAW_STABLE_SECONDS}/${PIXL_DICOM_TRANSFER_TIMEOUT:-600}/g" /run/secrets/orthanc.json
 
-ENV PYTHONPATH=/.venv/lib64/python3.11/site-packages/
-
 FROM pixl_orthanc_base AS pixl_orthanc_anon
-COPY ./orthanc/orthanc-anon/plugin/pixl.py /etc/orthanc/pixl.py
 
-ENV PYTHONPATH=/.venv/lib64/python3.11/site-packages/
 COPY ./orthanc/orthanc-anon/plugin/download_dicom_spec.py /etc/orthanc/download_dicom_spec.py
 RUN --mount=type=cache,target=/root/.cache \
     python3 /etc/orthanc/download_dicom_spec.py
-
-ARG ORTHANC_CONCURRENT_JOBS
-COPY ./orthanc/orthanc-anon/config /run/secrets
-
-RUN sed -i "s/\${ORTHANC_CONCURRENT_JOBS}/${ORTHANC_CONCURRENT_JOBS:-5}/g" /run/secrets/orthanc.json
 
