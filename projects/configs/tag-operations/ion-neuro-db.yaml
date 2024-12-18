@@ -11,16 +11,12 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-FROM postgres:16-bookworm@sha256:5620f242bbc0e17478556102327e7efcf60ab48de3607c9e0ea98800841785ec
 
-# OS setup
-RUN export DEBIAN_FRONTEND=noninteractive && \
-    apt-get update && \
-    apt-get install --yes --no-install-recommends procps ca-certificates locales python3 python3-pip python3.11-venv tzdata && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-RUN sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
+# Specific tag operations for ion-neuro-db project
 
-COPY --chmod=0755 ./postgres/postgres.conf /etc/postgresql/postgresql.conf
+- name: "Acquisition Date"
+  group: 0x0008
+  element: 0x0022
+  op: "keep"
 
-COPY --chmod=0777 ./postgres/pixl-db_init.sh /docker-entrypoint-initdb.d/pixl-db_init.sh
+
