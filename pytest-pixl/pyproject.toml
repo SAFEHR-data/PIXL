@@ -10,17 +10,17 @@ classifiers = [
 ]
 dependencies = [
     "pydicom==2.4.4",
-    "pyftpdlib==1.5.10",
-    "pyOpenSSL==24.2.1",
+    "pyftpdlib==2.0.1",
+    "pyOpenSSL==24.3.0",
     "python-decouple==3.8",
     "pytest-loguru==0.4.0",
-    "requests==2.32.2",
+    "requests==2.32.3",
 ]
 
 [project.optional-dependencies]
 test = [
     "core==0.2.0rc0",
-    "pytest==8.3.2",
+    "pytest==8.3.4",
 ]
 dev = [
     "core[dev]==0.2.0rc0",
