@@ -21,13 +21,13 @@ from datetime import (
     datetime,  # noqa: TCH003, always import datetime otherwise pydantic throws error
 )
 from pathlib import Path
+from typing import Annotated
 
 from core.exports import ParquetExport
 from core.rest_api.router import router
 from core.uploader import get_uploader
-from core.uploader._orthanc import get_tags_by_study
 from decouple import config  # type: ignore [import-untyped]
-from fastapi import FastAPI, HTTPException
+from fastapi import Body, FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from loguru import logger
 from pydantic import BaseModel
@@ -61,12 +61,6 @@ class ExportPatientData(BaseModel):
     output_dir: Path = EXPORT_API_EXPORT_ROOT_DIR
 
 
-class StudyData(BaseModel):
-    """Uniquely identify a study when talking to the API"""
-
-    study_id: str
-
-
 @app.post(
     "/export-patient-data",
     summary="Copy all matching radiology reports in the PIXL DB to a parquet file \
@@ -97,16 +91,16 @@ def export_patient_data(export_params: ExportPatientData) -> None:
     "/export-dicom-from-orthanc",
     summary="Download a zipped up study from orthanc anon and upload it via the appropriate route",
 )
-def export_dicom_from_orthanc(study_data: StudyData) -> None:
+def export_dicom_from_orthanc(
+    study_id: Annotated[str, Body()],
+    project_name: Annotated[str, Body()],
+) -> None:
     """
     Download zipped up study data from orthanc anon and route it appropriately.
     Intended only for orthanc-anon to call, as only it knows when its data is ready for download.
-    Because we're post-anonymisation, the "PatientID" tag returned is actually
-    the hashed image ID (MRN + Accession number).
+    Because we're post-anonymisation, the "StudyInstanceUID" tag returned is actually
+    the Pseudo Study UID (a randomly selected, but consistent UID).
     """
-    study_id = study_data.study_id
-    _, project_slug = get_tags_by_study(study_id)
-
-    uploader = get_uploader(project_slug)
+    uploader = get_uploader(project_name)
     logger.debug("Sending {} via '{}'", study_id, type(uploader).__name__)
     uploader.upload_dicom_and_update_database(study_id)

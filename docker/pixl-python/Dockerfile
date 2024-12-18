@@ -11,7 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-FROM python:3.11.7-slim-bullseye AS pixl_python_base
+FROM python:3.12.4-slim-bullseye@sha256:26ce493641ad3b1c8a6202117c31340c7bbb2dc126f1aeee8ea3972730a81dc6 AS pixl_python_base
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 
 ARG TEST="false"
@@ -25,7 +25,9 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
         libpq-dev \
         curl \
         gnupg \
-        locales
+        locales \
+        tzdata
+
 RUN sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 RUN  apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
 

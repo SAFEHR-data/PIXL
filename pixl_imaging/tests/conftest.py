@@ -16,12 +16,9 @@
 import os
 import shlex
 import subprocess
-from collections.abc import Generator
 from pathlib import Path
 
 import pytest
-from _pytest.monkeypatch import MonkeyPatch
-from loguru import logger
 from pytest_pixl.helpers import run_subprocess
 
 os.environ["TEST"] = "true"
@@ -30,32 +27,30 @@ os.environ["RABBITMQ_PASSWORD"] = "guest"
 os.environ["RABBITMQ_USERNAME"] = "guest"
 os.environ["RABBITMQ_HOST"] = "queue"
 os.environ["RABBITMQ_PORT"] = "5672"
+os.environ["ORTHANC_ANON_URL"] = "unused"
+os.environ["ORTHANC_ANON_USERNAME"] = "unused"
+os.environ["ORTHANC_ANON_PASSWORD"] = "unused"
+os.environ["ORTHANC_ANON_AE_TITLE"] = "PIXLRAW"
 os.environ["ORTHANC_RAW_URL"] = "http://localhost:8044"
 os.environ["ORTHANC_RAW_USERNAME"] = "orthanc"
 os.environ["ORTHANC_RAW_PASSWORD"] = "orthanc"
 os.environ["ORTHANC_RAW_AE_TITLE"] = "PIXLRAW"
+os.environ["ORTHANC_AUTOROUTE_RAW_TO_ANON"] = "False"
 os.environ["ORTHANC_VNA_URL"] = "http://localhost:8043"
 os.environ["ORTHANC_VNA_USERNAME"] = "orthanc"
 os.environ["ORTHANC_VNA_PASSWORD"] = "orthanc"
-os.environ["ORTHANC_VNA_AE_TITLE"] = "VNAQR"
-os.environ["VNAQR_MODALITY"] = "UCVNAQR"
+os.environ["ORTHANC_PACS_URL"] = "http://localhost:8045"
+os.environ["ORTHANC_PACS_USERNAME"] = "orthanc"
+os.environ["ORTHANC_PACS_PASSWORD"] = "orthanc"
+os.environ["PRIMARY_DICOM_SOURCE_MODALITY"] = "UCPRIMARYQR"
+os.environ["PRIMARY_DICOM_SOURCE_AE_TITLE"] = "PRIMARYQR"
+os.environ["SECONDARY_DICOM_SOURCE_MODALITY"] = "UCSECONDARYQR"
+os.environ["SECONDARY_DICOM_SOURCE_AE_TITLE"] = "SECONDARYQR"
+os.environ["PIXL_QUERY_TIMEOUT"] = "10"
 os.environ["PIXL_DICOM_TRANSFER_TIMEOUT"] = "30"
 os.environ["SKIP_ALEMBIC"] = "true"
 os.environ["PIXL_MAX_MESSAGES_IN_FLIGHT"] = "20"
-os.environ["ORTHANC_AUTOROUTE_RAW_TO_ANON"] = "false"
-
-
-@pytest.fixture(autouse=True)
-def _patch_send_existing_study_to_anon(monkeypatch: Generator[MonkeyPatch, None, None]) -> None:
-    """Patch send_existing_study_to_anon in Orthanc as orthanc raw doesn't use the pixl plugin."""
-
-    async def patched_send(self, resource_id: str) -> None:
-        """Replaces send_existing_study_to_anon."""
-        logger.info("Intercepted request to send '{}' to anon", resource_id)
-
-    monkeypatch.setattr(
-        "pixl_imaging._orthanc.PIXLRawOrthanc.send_existing_study_to_anon", patched_send
-    )
+os.environ["TZ"] = "Europe/London"
 
 
 TEST_DIR = Path(__file__).parent
@@ -67,7 +62,7 @@ def run_containers() -> subprocess.CompletedProcess[bytes]:
     yield run_subprocess(
         shlex.split("docker compose up --build --wait"),
         TEST_DIR,
-        timeout=180,
+        timeout=240,
     )
     run_subprocess(
         shlex.split("docker compose down --volumes"),

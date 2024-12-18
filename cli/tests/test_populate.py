@@ -13,11 +13,13 @@
 #  limitations under the License.
 """Patient queue tests"""
 
+# ruff: noqa: SLF001 allow accessing of private members for mocking
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import pixl_cli.main
+import pixl_cli._message_processing
 from click.testing import CliRunner
 from core.patient_queue.producer import PixlProducer
 from pixl_cli.main import populate
@@ -39,7 +41,7 @@ class MockProducer(PixlProducer):
         """Context exit point."""
         return
 
-    def publish(self, messages: list[Message]) -> None:  # noqa: ARG002 don't access messages
+    def publish(self, messages: list[Message], priority: int) -> None:  # noqa: ARG002 don't access messages or priority
         """Dummy method for publish."""
         return
 
@@ -51,9 +53,12 @@ def test_populate_queue_parquet(
     omop_parquet_dir = str(omop_resources / "omop")
     runner = CliRunner()
 
-    monkeypatch.setattr(pixl_cli.main, "PixlProducer", MockProducer)
+    monkeypatch.setattr(pixl_cli._message_processing, "PixlProducer", MockProducer)
 
-    result = runner.invoke(populate, args=[omop_parquet_dir, "--queues", queue_name, "--no-start"])
+    result = runner.invoke(
+        populate,
+        args=[omop_parquet_dir, "--queues", queue_name, "--no-start", "--num-retries", "0"],
+    )
     assert result.exit_code == 0
 
 
@@ -65,12 +70,17 @@ def test_populate_queue_and_start(
     runner = CliRunner()
 
     mocked_start = mocker.patch("pixl_cli.main._start_or_update_extract")
-    monkeypatch.setattr(pixl_cli.main, "PixlProducer", MockProducer)
+    monkeypatch.setattr(pixl_cli._message_processing, "PixlProducer", MockProducer)
 
-    result = runner.invoke(populate, args=[omop_parquet_dir, "--queues", queue_name, "--no-start"])
+    result = runner.invoke(
+        populate,
+        args=[omop_parquet_dir, "--queues", queue_name, "--no-start", "--num-retries", "0"],
+    )
     assert result.exit_code == 0
     mocked_start.assert_not_called()
 
-    result = runner.invoke(populate, args=[omop_parquet_dir, "--queues", queue_name])
+    result = runner.invoke(
+        populate, args=[omop_parquet_dir, "--queues", queue_name, "--num-retries", "0"]
+    )
     assert result.exit_code == 0
     mocked_start.assert_called_with(queues=queue_name.split(","), rate=None)

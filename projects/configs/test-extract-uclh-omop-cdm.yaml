@@ -19,8 +19,10 @@ project:
 
 tag_operation_files:
     base:
+        - "base.yaml" #Expected base config file for any project
+        - "mri.yaml"
         - "test-extract-uclh-omop-cdm.yaml"
-    manufacturer_overrides: "manufacturer-overrides/mri-diffusion.yaml"
+    manufacturer_overrides: ["mri-diffusion.yaml"]
 
 series_filters:
     - "localizer"

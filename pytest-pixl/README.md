@@ -2,6 +2,17 @@
 
 Installable `pytest` plugin module providing common test fixtures used throughout PIXL.
 
+## Installation
+
+```bash
+python -m pip install -e ../pixl_core -e ".[test]"
+```
+
+## pytest-cov’s engine
+```
+COV_CORE_SOURCE=src COV_CORE_CONFIG=.coveragerc COV_CORE_DATAFILE=.coverage.eager pytest --cov=src --cov-append --cov-report=xml --cov-report=term-missing
+```
+
 ## Available fixtures
 
 ### `ftps_server`

@@ -1,42 +1,38 @@
-[![pixl-ci](https://github.com/UCLH-Foundry/PIXL/actions/workflows/main.yml/badge.svg)](https://github.com/UCLH-Foundry/PIXL/actions/workflows/main.yml)
-[![codecov](https://codecov.io/gh/UCLH-Foundry/PIXL/graph/badge.svg?token=99CHF3ZCAW)](https://codecov.io/gh/UCLH-Foundry/PIXL)
+[![pixl-ci](https://github.com/SAFEHR-data/PIXL/actions/workflows/main.yml/badge.svg)](https://github.com/SAFEHR-data/PIXL/actions/workflows/main.yml)
+[![codecov](https://codecov.io/gh/SAFEHR-data/PIXL/graph/badge.svg?token=99CHF3ZCAW)](https://codecov.io/gh/SAFEHR-data/PIXL)
 
 # PIXL
 
 PIXL Image eXtraction Laboratory
 
 `PIXL` is a system for extracting, linking and de-identifying DICOM imaging data, structured EHR data and free-text data from radiology reports at UCLH.
-Please see the [rolling-skeleton]([https://github.com/UCLH-Foundry/the-rolling-skeleton=](https://github.com/UCLH-Foundry/the-rolling-skeleton/blob/main/docs/design/100-day-design.md)) for more details.
+Please see the [rolling-skeleton]([https://github.com/SAFEHR-data/the-rolling-skeleton=](https://github.com/SAFEHR-data/the-rolling-skeleton/blob/main/docs/design/100-day-design.md)) for more details.
 
-PIXL is intended run on one of the [GAE](https://github.com/UCLH-Foundry/Book-of-FlowEHR/blob/main/glossary.md#gaes)s and comprises
+PIXL is intended run on one of the [GAE (General Application Environments)](https://github.com/SAFEHR-data/Book-of-FlowEHR/blob/main/glossary.md#gaes)s and comprises
 several services orchestrated by [Docker Compose](https://docs.docker.com/compose/).
 
-To get access to the GAE, [see the documentation on Slab](https://uclh.slab.com/posts/gae-access-7hkddxap)
+To get access to the GAE, [see the documentation on Slab](https://uclh.slab.com/posts/gae-access-7hkddxap). 
+Please request access to Slab and add further details in a [new blank issue](https://github.com/SAFEHR-data/PIXL/issues/new).
+
+## Installation
+
+Install the PIXL Python modules by running the following commands from the top-level `PIXL/` directory:
+
+```shell
+python -m pip install -e pixl_core/
+python -m pip install -e cli/
+```
+
+Note, the CLI currently [needs to be installed in editable mode](https://github.com/SAFEHR-data/PIXL/issues/318).
 
 ## Development
 
 [Follow the developer setup instructions](./docs/setup/developer.md).
 
-Before raising a PR, make sure to **run the tests** for the PIXL module you have been working on .
-In addition, make sure to [have `pre-commit` installed](/docs/setup/developer.md#linting) to
-automatically check your code before committing.
+Before raising a PR, make sure to **run the tests** for every PIXL module, not just the one you
+have been working on. In addition, make sure to [have `pre-commit` installed](/docs/setup/developer.md#linting)
+to automatically check your code before committing.
 
-You can run all tests from the root of the repo with:
-
-```shell
-pytest
-```
-
-The `pytest.ini` file in the root of the repo contains the configuration for running all tests at once.
-
-We run [pre-commit](https://pre-commit.com/) as part of the GitHub Actions CI. To install and run it locally, do:
-
-```shell
-pip install pre-commit
-pre-commit install
-```
-
-The configuration can be found in [`.pre-commit-config.yml`](./.pre-commit-config.yaml)
 
 ## Design
 
@@ -83,7 +79,10 @@ HTTP API to export files (parquet and DICOM) from UCLH to endpoints.
 
 HTTP API to process messages from the `imaging` queue and populate the raw orthanc instance with images from PACS/VNA.
 
-## Setup
+## Setup `PIXL` in GAE
+
+<details>
+  <summary>Click here to expand steps and configurations</summary>
 
 ### 0. [UCLH infrastructure setup](./docs/setup/uclh-infrastructure-setup.md)
 
@@ -139,10 +138,12 @@ To configure a new project, follow these steps:
     >[!NOTE]
     > The project slug should match the [slugify](https://github.com/un33k/python-slugify)-ed project name in the `extract_summary.json` log file!
 
-2. [Open a PR in PIXL](https://github.com/UCLH-Foundry/PIXL/compare) to merge the new project config into `main`
+2. [Open a PR in PIXL](https://github.com/SAFEHR-data/PIXL/compare) to merge the new project config into `main`
 
 #### The config YAML file
 
+<details><summary>The config YAML file</summary>
+<p>
 The configuration file defines:
 
 - Project name: the `<project-slug>` name of the Project
@@ -174,12 +175,18 @@ The configuration file defines:
   [parquet files](./docs/file_types/parquet_files.md). We currently support the following endpoints:
     - `"none"`: no upload
     - `"ftps"`: a secure FTP server (for both _DICOM_ and _parquet_ files)
+    - `"dicomweb"`: a DICOMweb server (for _DICOM_ files only).
+      Requires the `DICOMWEB_*` environment variables to be set in `.env`
+    - `"xnat"`: an [XNAT](https://www.xnat.org/) instance (for _DICOM_ files only)
     <!-- - `"azure"`: a secure Azure Dicom web service (for both _DICOM_ and _parquet_ files) -->
     <!--   Requires the `AZURE_*` environment variables to be set in `.env` -->
-    <!-- - `"dicomweb"`: a DICOMweb server (for _DICOM_ files only) -->
-    <!--   Requires the `DICOMWEB_*` environment variables to be set in `.env` -->
+</p>
+</details> 
 
 #### Project secrets
+
+<details><summary>Project secrets</summary>
+<p>
 
 Any credentials required for uploading the project's results should be stored in an **Azure Key Vault**
 (set up instructions below).
@@ -206,15 +213,22 @@ This kevyault is configured with the following environment variables:
 - `HASHER_API_AZ_KEY_VAULT_NAME` the name of the key vault, used to connect to the correct key vault
 
 See the [hasher documentation](./hasher/README.md) for more information.
+</p>
+</details> 
 
-## Run
+</details>
+
+## Run `PIXL` in GAE
+
+<details>
+  <summary>Click here to view detailed steps</summary>
 
 ### Start
 
 From the _PIXL_ directory:
 
-```bash
-bin/pixldc pixl_dev up
+```shell
+pixl dc up
 ```
 
 Once the services are running, you can interact with the services using the [`pixl` CLI](./cli/README.md).
@@ -223,9 +237,12 @@ Once the services are running, you can interact with the services using the [`pi
 
 From the _PIXL_ directory:
 
-```bash
-bin/pixldc pixl_dev down
+```shell
+pixl dc down  # --volumes to remove all data volumes
 ```
+
+</details>
+
 
 ## Analysis
 
@@ -292,3 +309,11 @@ be uploaded to the FTP server at the following path:
 FTPROOT/PROJECT_SLUG/EXTRACT_DATETIME/parquet/radiology/radiology.parquet
 ..............................................omop/public/*.parquet
 ```
+
+## :octocat: Cloning repository
+* Generate your SSH keys as suggested [here](https://docs.github.com/en/github/authenticating-to-github/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)
+* Clone the repository by typing (or copying) the following lines in a terminal
+```
+git clone git@github.com:SAFEHR-data/PIXL.git
+```
+

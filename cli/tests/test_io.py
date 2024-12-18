@@ -19,17 +19,19 @@ from pathlib import Path
 
 import pytest
 from core.db.models import Extract, Image
-from pixl_cli._io import make_radiology_linker_table, messages_from_csv
+from pixl_cli._io import make_radiology_linker_table, read_patient_info
+from pydicom.uid import generate_uid
 
 
 def test_message_from_csv_raises_for_malformed_input(tmpdir):
     """Test that messages_from_csv raises for malformed input."""
     # Create a CSV file with the wrong column names
     csv_file = tmpdir.join("malformed.csv")
-    csv_file.write("procedure_id,mrn,accession_number,extract_generated_timestamp,study_date\n")
-    csv_file.write("1,123,1234,01/01/2021 00:00,01/01/2021\n")
+    with csv_file.open("w") as f:
+        f.write("procedure_id,mrn,accession_number,extract_generated_timestamp,study_date\n")
+        f.write("1,123,1234,01/01/2021 00:00,01/01/2021\n")
     with pytest.raises(ValueError, match=".*expected to have at least.*"):
-        messages_from_csv(csv_file)
+        read_patient_info(Path(csv_file))
 
 
 def test_make_radiology_linker_table(omop_resources: Path):
@@ -43,28 +45,28 @@ def test_make_radiology_linker_table(omop_resources: Path):
             accession_number="AA12345601",
             study_date=date(1, 1, 1),
             mrn="987654321",
-            hashed_identifier="test_hashed_id_1",
+            pseudo_study_uid=generate_uid(entropy_srcs=["test_pseudo_id_1"]),
             extract=extract,
         ),
         Image(
             accession_number="AA12345605",
             study_date=date(1, 1, 1),
             mrn="987654321",
-            hashed_identifier="test_hashed_id_2",
+            pseudo_study_uid=generate_uid(entropy_srcs=["test_pseudo_id_2"]),
             extract=extract,
         ),
         Image(
             accession_number="different_should_ignore",
             study_date=date(1, 1, 1),
             mrn="987654321",
-            hashed_identifier="should_never_see_1",
+            pseudo_study_uid=generate_uid(entropy_srcs=["should_never_see_1"]),
             extract=extract,
         ),
         Image(
             accession_number="AA12345605",
             study_date=date(1, 1, 1),
             mrn="different_should_ignore",
-            hashed_identifier="should_never_see_2",
+            pseudo_study_uid=generate_uid(entropy_srcs=["should_never_see_2"]),
             extract=extract,
         ),
     ]
@@ -73,8 +75,8 @@ def test_make_radiology_linker_table(omop_resources: Path):
     po_col = linker_df["procedure_occurrence_id"]
     row_po_4 = linker_df[po_col == 4].iloc[0]
     row_po_5 = linker_df[po_col == 5].iloc[0]
-    assert row_po_4.hashed_identifier == "test_hashed_id_1"
-    assert row_po_5.hashed_identifier == "test_hashed_id_2"
+    assert row_po_4.pseudo_study_uid == generate_uid(entropy_srcs=["test_pseudo_id_1"])
+    assert row_po_5.pseudo_study_uid == generate_uid(entropy_srcs=["test_pseudo_id_2"])
 
     assert linker_df.shape[0] == 2
-    assert set(linker_df.columns) == {"procedure_occurrence_id", "hashed_identifier"}
+    assert set(linker_df.columns) == {"procedure_occurrence_id", "pseudo_study_uid"}

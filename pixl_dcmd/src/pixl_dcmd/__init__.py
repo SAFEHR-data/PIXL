@@ -16,7 +16,11 @@ from __future__ import annotations
 from pixl_dcmd.main import (
     anonymise_dicom,
     write_dataset_to_bytes,
-    should_exclude_series,
+    anonymise_and_validate_dicom,
 )
 
-__all__ = ["anonymise_dicom", "write_dataset_to_bytes", "should_exclude_series"]
+__all__ = [
+    "anonymise_dicom",
+    "write_dataset_to_bytes",
+    "anonymise_and_validate_dicom",
+]

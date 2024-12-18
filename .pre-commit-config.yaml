@@ -14,7 +14,7 @@
 ---
 repos:
     - repo: https://github.com/astral-sh/ruff-pre-commit
-      rev: v0.3.3
+      rev: v0.5.5
       hooks:
           - id: ruff-format
           - id: ruff
@@ -22,7 +22,7 @@ repos:
                 - --fix
 
     - repo: https://github.com/pre-commit/mirrors-mypy
-      rev: v1.9.0
+      rev: v1.11.1
       hooks:
           - id: mypy
             entry: mypy .
@@ -30,12 +30,21 @@ repos:
             pass_filenames: false
             additional_dependencies:
                 [
-                    "mypy==1.9.0",
+                    "mypy==1.11.1",
                     "types-PyYAML",
                     "types-requests",
                     "types-python-slugify",
                     "types-psycopg2",
                 ]
+    - repo: https://github.com/python-jsonschema/check-jsonschema
+      rev: 0.28.6
+      hooks:
+        # Schemas taken from https://www.schemastore.org/json/
+        - id: check-jsonschema
+          name: "Validate GitHub issue templates"
+          files: ^\.github/ISSUE_TEMPLATE/.*\.yml$
+          exclude: ^\.github/ISSUE_TEMPLATE/config\.yml$
+          args: ["--verbose", "--schemafile", "schemas/github-issue-forms.json"]
 
     - repo: local
       hooks:

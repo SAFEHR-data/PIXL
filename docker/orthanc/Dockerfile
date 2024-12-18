@@ -11,15 +11,14 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-FROM orthancteam/orthanc:24.3.3 AS pixl_orthanc_base
+FROM orthancteam/orthanc:24.7.3@sha256:57a3d037729897331027ddc00c12695b50f1effbbf805f855396f3d0248d2d5f AS pixl_orthanc_base
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
-
 
 # Create a virtual environment, recommended since python 3.11 and Debian bookworm based images
 # where you get a warning when installing system-wide packages.
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
-    apt-get install --yes --no-install-recommends python3-venv
+    apt-get install --yes --no-install-recommends python3-venv tzdata
 RUN python3 -m venv /.venv
 
 # Install curl for now, but try to remove this dependency
@@ -48,11 +47,13 @@ COPY ./orthanc/orthanc-raw/plugin/pixl.py /etc/orthanc/pixl.py
 # Orthanc can't substitute environment veriables as integers so copy and replace before running
 ARG ORTHANC_RAW_MAXIMUM_STORAGE_SIZE
 ARG ORTHANC_RAW_JOB_HISTORY_SIZE
-ARG ORTHANC_RAW_CONCURRENT_JOBS
+ARG ORTHANC_CONCURRENT_JOBS
+ARG PIXL_DICOM_TRANSFER_TIMEOUT
 COPY ./orthanc/orthanc-raw/config /run/secrets
 RUN sed -i "s/\${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE}/${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE:-0}/g" /run/secrets/orthanc.json
 RUN sed -i "s/\${ORTHANC_RAW_JOB_HISTORY_SIZE}/${ORTHANC_RAW_JOB_HISTORY_SIZE:-100}/g" /run/secrets/orthanc.json
-RUN sed -i "s/\${ORTHANC_RAW_CONCURRENT_JOBS}/${ORTHANC_RAW_CONCURRENT_JOBS:-5}/g" /run/secrets/orthanc.json
+RUN sed -i "s/\${ORTHANC_CONCURRENT_JOBS}/${ORTHANC_CONCURRENT_JOBS:-5}/g" /run/secrets/orthanc.json
+RUN sed -i "s/\${ORTHANC_RAW_STABLE_SECONDS}/${PIXL_DICOM_TRANSFER_TIMEOUT:-600}/g" /run/secrets/orthanc.json
 
 ENV PYTHONPATH=/.venv/lib64/python3.11/site-packages/
 
@@ -60,3 +61,12 @@ FROM pixl_orthanc_base AS pixl_orthanc_anon
 COPY ./orthanc/orthanc-anon/plugin/pixl.py /etc/orthanc/pixl.py
 
 ENV PYTHONPATH=/.venv/lib64/python3.11/site-packages/
+COPY ./orthanc/orthanc-anon/plugin/download_dicom_spec.py /etc/orthanc/download_dicom_spec.py
+RUN --mount=type=cache,target=/root/.cache \
+    python3 /etc/orthanc/download_dicom_spec.py
+
+ARG ORTHANC_CONCURRENT_JOBS
+COPY ./orthanc/orthanc-anon/config /run/secrets
+
+RUN sed -i "s/\${ORTHANC_CONCURRENT_JOBS}/${ORTHANC_CONCURRENT_JOBS:-5}/g" /run/secrets/orthanc.json
+

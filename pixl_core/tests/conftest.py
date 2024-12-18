@@ -23,6 +23,8 @@ from typing import TYPE_CHECKING
 import pytest
 import requests
 from core.db.models import Base, Extract, Image
+from core.patient_queue.message import Message
+from pydicom.uid import generate_uid
 from pytest_pixl.helpers import run_subprocess
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
@@ -38,19 +40,26 @@ STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
 
 os.environ["PIXL_MAX_MESSAGES_IN_FLIGHT"] = "10"
 os.environ["RABBITMQ_USERNAME"] = "guest"
-os.environ["RABBITMQ_PASSWORD"] = "guest"  # noqa: S105 Hardcoding password
+os.environ["RABBITMQ_PASSWORD"] = "guest"
 os.environ["RABBITMQ_HOST"] = "localhost"
 os.environ["RABBITMQ_PORT"] = "25672"
 os.environ["PROJECT_CONFIGS_DIR"] = str(TEST_DIR.parents[1] / "projects/configs")
 
 os.environ["FTP_HOST"] = "localhost"
 os.environ["FTP_USER_NAME"] = "pixl"
-os.environ["FTP_PASSWORD"] = "longpassword"  # noqa: S105 Hardcoding password
+os.environ["FTP_PASSWORD"] = "longpassword"
 os.environ["FTP_PORT"] = "20021"
 
 os.environ["ORTHANC_ANON_URL"] = "http://localhost:8043"
 os.environ["ORTHANC_ANON_USERNAME"] = "orthanc"
-os.environ["ORTHANC_ANON_PASSWORD"] = "orthanc"  # noqa: S105, hardcoded password
+os.environ["ORTHANC_ANON_PASSWORD"] = "orthanc"
+
+os.environ["XNAT_HOST"] = "localhost"
+os.environ["XNAT_USER_NAME"] = "pixl"
+os.environ["XNAT_PASSWORD"] = "longpassword"
+os.environ["XNAT_PORT"] = "8080"
+os.environ["XNAT_DESTINATION"] = "/archive"
+os.environ["XNAT_OVERWRITE"] = "none"
 
 
 @pytest.fixture(scope="package")
@@ -152,16 +161,18 @@ def rows_in_session(db_session) -> Session:
         accession_number="123",
         study_date=STUDY_DATE,
         mrn="mrn",
+        study_uid="1.2.3",
         extract=extract,
         exported_at=datetime.datetime.now(tz=datetime.timezone.utc),
-        hashed_identifier="already_exported",
+        pseudo_study_uid=generate_uid(entropy_srcs=["already_exported"]),
     )
     image_not_exported = Image(
         accession_number="234",
         study_date=STUDY_DATE,
         mrn="mrn",
+        study_uid="2.3.4",
         extract=extract,
-        hashed_identifier="not_yet_exported",
+        pseudo_study_uid=generate_uid(entropy_srcs=["not_yet_exported"]),
     )
     with db_session:
         db_session.add_all([extract, image_exported, image_not_exported])
@@ -173,13 +184,21 @@ def rows_in_session(db_session) -> Session:
 @pytest.fixture()
 def not_yet_exported_dicom_image(rows_in_session) -> Image:
     """Return a DICOM image from the database."""
-    return rows_in_session.query(Image).filter(Image.hashed_identifier == "not_yet_exported").one()
+    return (
+        rows_in_session.query(Image)
+        .filter(Image.pseudo_study_uid == generate_uid(entropy_srcs=["not_yet_exported"]))
+        .one()
+    )
 
 
 @pytest.fixture()
 def already_exported_dicom_image(rows_in_session) -> Image:
     """Return a DICOM image from the database."""
-    return rows_in_session.query(Image).filter(Image.hashed_identifier == "already_exported").one()
+    return (
+        rows_in_session.query(Image)
+        .filter(Image.pseudo_study_uid == generate_uid(entropy_srcs=["already_exported"]))
+        .one()
+    )
 
 
 @pytest.fixture(autouse=True)
@@ -188,3 +207,19 @@ def export_dir(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
     export_dir = tmp_path_factory.mktemp("export_base") / "exports"
     export_dir.mkdir()
     return export_dir
+
+
+@pytest.fixture()
+def mock_message() -> Message:
+    """An example Message used for testing"""
+    return Message(
+        mrn="111",
+        accession_number="123",
+        study_uid="1.2.3",
+        study_date=datetime.date.fromisoformat("2022-11-22"),
+        procedure_occurrence_id="234",
+        project_name="test project",
+        extract_generated_timestamp=datetime.datetime.strptime(
+            "Dec 7 2023 2:08PM", "%b %d %Y %I:%M%p"
+        ).replace(tzinfo=datetime.timezone.utc),
+    )

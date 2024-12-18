@@ -39,7 +39,20 @@ def test_merge_base_only_tags(base_only_tag_scheme):
     THEN the result should be the same as the base file
     """
     tags = merge_tag_schemes(base_only_tag_scheme)
-    expected = base_only_tag_scheme.base[0]
+    expected = [*base_only_tag_scheme.base[0], *base_only_tag_scheme.base[1]]
+    count_tags = dict()
+    for tag in expected:
+        key = f"{tag['group']:04x},{tag['element']:04x}"
+        if key in count_tags:
+            count_tags[key] += 1
+        else:
+            count_tags[key] = 1
+
+    for key, values in count_tags.items():
+        assert (
+            values == 1
+        ), f"{key} is replicated please check config files to remove it"
+
     assert tags == expected
 
 
@@ -68,24 +81,34 @@ def tag_ops_with_manufacturer_overrides(tmp_path_factory):
         {"name": "tag3", "group": 0x003, "element": 0x1002, "op": "delete"},
     ]
     manufacturer_overrides_tags = [
-        {
-            "manufacturer": "manufacturer_1",
-            "tags": [
-                # Override tag1 for manufacturer 1
-                {"name": "tag1", "group": 0x001, "element": 0x1000, "op": "keep"},
-                {"name": "tag4", "group": 0x004, "element": 0x1011, "op": "delete"},
-                {"name": "tag5", "group": 0x005, "element": 0x1012, "op": "delete"},
-            ],
-        },
-        {
-            "manufacturer": "manufacturer_2",
-            "tags": [
-                {"name": "tag6", "group": 0x006, "element": 0x1100, "op": "keep"},
-                {"name": "tag7", "group": 0x007, "element": 0x1111, "op": "delete"},
-                # Override tag3 for manufacturer 2
-                {"name": "tag3", "group": 0x003, "element": 0x1002, "op": "keep"},
-            ],
-        },
+        [
+            {
+                "manufacturer": "manufacturer_1",
+                "tags": [
+                    # Override tag1 for manufacturer 1
+                    {"name": "tag1", "group": 0x001, "element": 0x1000, "op": "keep"},
+                    {"name": "tag4", "group": 0x004, "element": 0x1011, "op": "delete"},
+                ],
+            },
+            {
+                "manufacturer": "manufacturer_2",
+                "tags": [
+                    {"name": "tag6", "group": 0x006, "element": 0x1100, "op": "keep"},
+                    {"name": "tag7", "group": 0x007, "element": 0x1111, "op": "delete"},
+                    # Override tag3 for manufacturer 2
+                    {"name": "tag3", "group": 0x003, "element": 0x1002, "op": "keep"},
+                ],
+            },
+        ],
+        [
+            {
+                "manufacturer": "manufacturer_1",
+                "tags": [
+                    # Override tag1 for manufacturer 1
+                    {"name": "tag5", "group": 0x005, "element": 0x1012, "op": "delete"},
+                ],
+            },
+        ],
     ]
 
     return TagOperations(

@@ -42,7 +42,7 @@ def base_yaml_data():
         "project": {"name": "myproject", "modalities": ["DX", "CR"]},
         "tag_operation_files": {
             "base": ["test-extract-uclh-omop-cdm.yaml"],
-            "manufacturer_overrides": "manufacturer-overrides/mri-diffusion.yaml",
+            "manufacturer_overrides": ["mri-diffusion.yaml"],
         },
         "destination": {"dicom": "ftps", "parquet": "ftps"},
     }
@@ -93,7 +93,8 @@ def ids_for_parameterised_test(val):
 )
 def test_all_real_configs(yaml_file):
     """Test that all production configs are valid"""
-    load_project_config(yaml_file.stem)
+    config = load_project_config(yaml_file.stem)
+    assert config.project.name == yaml_file.stem
 
 
 def test_load_tag_operations():
@@ -121,7 +122,7 @@ def test_load_tag_operations_no_manufacturer_overrides(base_yaml_data):
     tag_operations = load_tag_operations(project_config)
 
     # Assert
-    assert tag_operations.manufacturer_overrides is None
+    assert tag_operations.manufacturer_overrides == []
 
 
 @pytest.fixture()

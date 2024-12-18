@@ -1,0 +1,51 @@
+#  Copyright (c) University College London Hospitals NHS Foundation Trust
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+name: Feature Request
+description: Submit a proposal/request for a new feature
+projects: [ "SAFEHR-data/13" ]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A clear and concise description of the feature proposal
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: Please outline the motivation for the proposal. 
+      placeholder: "Is your feature request related to a problem? e.g., I'm always frustrated when [...]. If this is related to another GitHub issue, please link here too"
+    validations:
+      required: true
+  - type: textarea
+    id: pitch
+    attributes:
+      label: Pitch
+      description: A clear and concise description of what you want to happen.
+    validations:
+      required: false
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: A clear and concise description of any alternative solutions or features you've considered, if any.
+      placeholder:
+    validations:
+      required: false
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional context
+      description: Add any other context or screenshots about the feature request here.
+    validations:
+      required: false

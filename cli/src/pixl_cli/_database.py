@@ -16,9 +16,9 @@
 
 from typing import cast
 
+import pandas as pd
 from core.db.models import Extract, Image
-from core.patient_queue.message import Message
-from sqlalchemy import URL, create_engine
+from sqlalchemy import URL, create_engine, not_, select
 from sqlalchemy.orm import Session, sessionmaker
 
 from pixl_cli._config import SERVICE_SETTINGS
@@ -37,88 +37,123 @@ url = URL.create(
 engine = create_engine(url)
 
 
-def filter_exported_or_add_to_db(messages: list[Message], project_slug: str) -> list[Message]:
+def filter_exported_or_add_to_db(messages_df: pd.DataFrame) -> pd.DataFrame:
     """
-    Filter exported images for this project, and adds missing extract or images to database.
+    Filter exported images for multiple projects, and adds missing extract and images to database.
 
     :param messages: Initial messages to filter if they already exist
-    :param project_slug: project slug to query on
-    :return messages that have not been exported
+    :return DataFrame of messages that have not been exported
     """
     PixlSession = sessionmaker(engine)
     with PixlSession() as pixl_session, pixl_session.begin():
-        extract, extract_created = _get_or_create_project(project_slug, pixl_session)
+        messages_dfs = [
+            _filter_exported_or_add_to_db_for_project(
+                pixl_session, project_messages_df, project_slug
+            )
+            for project_slug, project_messages_df in messages_df.groupby("project_name")
+        ]
+    return pd.concat(messages_dfs)
 
-        return _filter_exported_messages(
-            extract, messages, pixl_session, extract_created=extract_created
-        )
+
+def _filter_exported_or_add_to_db_for_project(
+    session: Session, messages_df: pd.DataFrame, project_slug: str
+) -> pd.DataFrame:
+    """
+    Filter exported images for this project, and adds missing extract and images to database.
+
+    :param session: SQLAlchemy session
+    :param messages: Initial messages to filter if they already exist
+    :param project_slug: project slug to query on
+    :return DataFrame of messages that have not been exported for this project
+    """
+    extract = session.query(Extract).filter(Extract.slug == project_slug).one_or_none()
+    if extract:
+        db_images_df = all_images_for_project(project_slug)
+        missing_images_df = _filter_existing_images(messages_df, db_images_df)
+        messages_df = _filter_exported_messages(messages_df, db_images_df)
+    else:
+        # We need to add the extract to the database and retrive it again so
+        # we can access extract.extract_id (needed by session.bulk_save_objects(images))
+        session.add(Extract(slug=project_slug))
+        extract = session.query(Extract).filter(Extract.slug == project_slug).one_or_none()
+        missing_images_df = messages_df
+
+    _add_images_to_session(extract, missing_images_df, session)
+
+    return messages_df
 
 
-def _get_or_create_project(project_slug: str, session: Session) -> tuple[Extract, bool]:
-    existing_extract = session.query(Extract).filter(Extract.slug == project_slug).one_or_none()
-    if existing_extract:
-        return existing_extract, False
-    new_extract = Extract(slug=project_slug)
-    session.add(new_extract)
-    return new_extract, True
+def _filter_existing_images(
+    messages_df: pd.DataFrame,
+    images_df: pd.DataFrame,
+) -> pd.DataFrame:
+    # DataFrame indices must batch when using df.isin (or df.index.isin)
+    # So we re-index the DataFrames to match on the columns we want to compare
+    messages_df_reindexed = messages_df.set_index(["accession_number", "mrn", "study_date"])
+    images_df_reindexed = images_df.set_index(["accession_number", "mrn", "study_date"])
+    keep_indices = ~messages_df_reindexed.index.isin(images_df_reindexed.index)
+    return messages_df[keep_indices]
 
 
 def _filter_exported_messages(
-    extract: Extract, messages: list[Message], session: Session, *, extract_created: bool
-) -> list[Message]:
-    output_messages = []
-    for message in messages:
-        _, image_exported = _get_image_and_check_exported(
-            extract, message, session, extract_created=extract_created
-        )
-        if not image_exported:
-            output_messages.append(message)
-    return output_messages
-
-
-def _get_image_and_check_exported(
-    extract: Extract, message: Message, session: Session, *, extract_created: bool
-) -> tuple[Image, bool]:
-    if extract_created:
-        new_image = _add_new_image_to_session(extract, message, session)
-        return new_image, False
-
-    existing_image = (
-        session.query(Image)
-        .filter(
-            Image.extract == extract,
-            Image.accession_number == message.accession_number,
-            Image.mrn == message.mrn,
-            Image.study_date == message.study_date,
-        )
-        .one_or_none()
+    messages_df: pd.DataFrame,
+    images_df: pd.DataFrame,
+) -> pd.DataFrame:
+    merged = messages_df.merge(
+        images_df,
+        on=["accession_number", "mrn", "study_date"],
+        how="left",
+        validate="one_to_one",
+        suffixes=(None, None),
     )
-
-    if existing_image:
-        if existing_image.exported_at is not None:
-            return existing_image, True
-        return existing_image, False
-
-    new_image = _add_new_image_to_session(extract, message, session)
-    return new_image, False
+    keep_indices = merged["exported_at"].isna().to_numpy()
+    return merged[keep_indices][messages_df.columns]
 
 
-def _add_new_image_to_session(extract: Extract, message: Message, session: Session) -> Image:
-    new_image = Image(
-        accession_number=message.accession_number,
-        study_date=message.study_date,
-        mrn=message.mrn,
-        extract=extract,
-    )
-    session.add(new_image)
-    return new_image
+def _add_images_to_session(extract: Extract, images_df: pd.DataFrame, session: Session) -> None:
+    images = []
+    for _, row in images_df.iterrows():
+        new_image = Image(
+            accession_number=row["accession_number"],
+            study_date=row["study_date"],
+            mrn=row["mrn"],
+            study_uid=row["study_uid"],
+            extract=extract,
+            extract_id=extract.extract_id,
+            pseudo_patient_id=row["pseudo_patient_id"],
+        )
+        images.append(new_image)
+    session.bulk_save_objects(images)
 
 
-def images_for_project(project_slug: str) -> list[Image]:
+def all_images_for_project(project_slug: str) -> pd.DataFrame:
     """Given a project, get all images in the DB for that project."""
+    PixlSession = sessionmaker(engine)
+
+    query = (
+        select(Image.accession_number, Image.study_date, Image.mrn, Image.exported_at)
+        .join(Extract)
+        .where(Extract.slug == project_slug)
+    )
+    with PixlSession() as session:
+        return pd.read_sql(
+            sql=query,
+            con=session.bind,
+        )
+
+
+def exported_images_for_project(project_slug: str) -> list[Image]:
+    """
+    Given a project, get all images in the DB for that project
+    that have not yet been exported.
+    """
     PixlSession = sessionmaker(engine)
     with PixlSession() as session:
         return cast(
             list[Image],
-            session.query(Image).join(Extract).filter(Extract.slug == project_slug).all(),
+            session.query(Image)
+            .join(Extract)
+            .filter(Extract.slug == project_slug)
+            .filter(not_(Image.exported_at.is_(None)))
+            .all(),
         )

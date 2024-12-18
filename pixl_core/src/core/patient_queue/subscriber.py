@@ -22,9 +22,15 @@ from typing import TYPE_CHECKING, Any
 import aio_pika
 from decouple import config
 
-from core.exceptions import PixlDiscardError, PixlRequeueMessageError
+from core.exceptions import (
+    PixlDiscardError,
+    PixlOutOfHoursError,
+    PixlRequeueMessageError,
+    PixlStudyNotInPrimaryArchiveError,
+)
 from core.patient_queue._base import PixlQueueInterface
 from core.patient_queue.message import deserialise
+from core.patient_queue.producer import PixlProducer
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -45,6 +51,7 @@ class PixlConsumer(PixlQueueInterface):
         self,
         queue_name: str,
         token_bucket: TokenBucket,
+        token_bucket_key: str,
         callback: Callable[[Message], Awaitable[None]],
     ) -> None:
         """
@@ -53,6 +60,7 @@ class PixlConsumer(PixlQueueInterface):
         """
         super().__init__(queue_name=queue_name)
         self.token_bucket = token_bucket
+        self.token_bucket_key = token_bucket_key
         self._callback = callback
 
     @property
@@ -67,23 +75,50 @@ class PixlConsumer(PixlQueueInterface):
         max_in_flight = config("PIXL_MAX_MESSAGES_IN_FLIGHT", cast=int)
         logger.info("Pika will consume up to {} messages concurrently", max_in_flight)
         await self._channel.set_qos(prefetch_count=max_in_flight)
-        self._queue = await self._channel.declare_queue(self.queue_name, durable=True)
+        self._queue = await self._channel.declare_queue(
+            self.queue_name,
+            durable=True,
+            arguments={"x-max-priority": 5},
+        )
         return self
 
     async def _process_message(self, message: AbstractIncomingMessage) -> None:
-        if not self.token_bucket.has_token:
+        if not self.token_bucket.has_token(key=self.token_bucket_key):
             await asyncio.sleep(1)
             await message.reject(requeue=True)
             return
 
         pixl_message: Message = deserialise(message.body)
-        logger.info("Starting message {}", pixl_message.identifier)
+        logger.debug("Picked up from queue: {}", pixl_message.identifier)
         try:
             await self._callback(pixl_message)
         except PixlRequeueMessageError as requeue:
             logger.trace("Requeue message: {} from {}", pixl_message.identifier, requeue)
             await asyncio.sleep(1)
             await message.reject(requeue=True)
+        except PixlStudyNotInPrimaryArchiveError as discard:
+            logger.info(
+                "Discard message: {} from {}. Sending to secondary imaging queue with priority {}.",
+                pixl_message.identifier,
+                discard,
+                message.priority,
+            )
+            await asyncio.sleep(1)
+            await message.reject(requeue=False)
+            with PixlProducer(
+                queue_name="imaging-secondary",
+                host=config("RABBITMQ_HOST"),
+                port=config("RABBITMQ_PORT", cast=int),
+                username=config("RABBITMQ_USERNAME"),
+                password=config("RABBITMQ_PASSWORD"),
+            ) as producer:
+                producer.publish([pixl_message], priority=message.priority)
+        except PixlOutOfHoursError as nack_requeue:
+            logger.trace(
+                "Nack and requeue message: {} from {}", pixl_message.identifier, nack_requeue
+            )
+            await asyncio.sleep(10)
+            await message.nack(requeue=True)
         except PixlDiscardError as exception:
             logger.warning("Failed message {}: {}", pixl_message.identifier, exception)
             await (

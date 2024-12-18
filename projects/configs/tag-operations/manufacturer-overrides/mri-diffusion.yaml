@@ -13,28 +13,45 @@
 #  limitations under the License.
 
 # Example tags obtained from https://github.com/rordenlab/dcm2niix/blob/master/Philips/README.md#diffusion-direction
+# https://www.documents.philips.com/doclib/enc/fetch/8554818/DICOM_Conformance_Statement_MR_Applications_on_IntelliSpace_Portal_V4.0.pdf
 - manufacturer: ^philips
   tags:
-    - group: 0x2001
+    - name: "Private Creator Group 2001"
+      group: 0x2001
+      element: 0x0010
+      op: "keep"
+    - name: "Private Creator Group 2001 (90)"
+      group: 0x2001
+      element: 0x0090
+      op: "keep"
+    - name: "Diffusion B-Factor"
+      group: 0x2001
       element: 0x1003
       op: "keep"
-    - name: "ScaleSlope" # may need to have this for all MRs rather than just DW?
+    - name: "Private Creator Group 2005"
       group: 0x2005
-      element: 0x100e
+      element: 0x0010
       op: "keep"
-    - group: 0x2005
+    - name: "Diffusion Direction RL"
+      group: 0x2005
       element: 0x10b0
       op: "keep"
-    - group: 0x2005
+    - name: "Diffusion Direction AP"
+      group: 0x2005
       element: 0x10b1
       op: "keep"
-    - group: 0x2005
+    - name: "Diffusion Direction FH"
+      group: 0x2005
       element: 0x10b2
       op: "keep"
 
 # Example tags obtained from https://github.com/rordenlab/dcm2niix/blob/master/Siemens/README.md#siemens-x-series
 - manufacturer: ^siemens
   tags:
+    - name: "SIEMENS MR HEADER private creator Group"
+      group: 0x0019
+      element: 0x0010
+      op: "keep"
     - name: "SiemensDiffusionBValue"
       group: 0x0019
       element: 0x100c
@@ -42,6 +59,14 @@
     - name: "SiemensDiffusionGradientOrientation"
       group: 0x0019
       element: 0x100e
+      op: "keep"
+    - name: "SIEMENS CSA HEADER private creator"
+      group: 0x0029
+      element: 0x0010
+      op: "keep"
+    - name: "SIEMENS MEDCOM HEADER2  private creator"
+      group: 0x0029
+      element: 0x0011
       op: "keep"
     - name: "CSA Image Header Info"
       group: 0x0029

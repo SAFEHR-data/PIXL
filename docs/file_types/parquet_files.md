@@ -3,7 +3,7 @@
 ## OMOP-ES files
 
 From
-[OMOP-ES](https://github.com/UCLH-Foundry/the-rolling-skeleton/blob/main/docs/design/100-day-design.md#data-flow-through-components)
+[OMOP-ES](https://github.com/SAFEHR-data/the-rolling-skeleton/blob/main/docs/design/100-day-design.md#data-flow-through-components)
 we receive parquet files defining the data we need to export. These input files appear as 2 groups:
 
 1. **Public** parquet files: have had identifiers removed and replaced with a sequential ID for the
@@ -22,7 +22,7 @@ parquet file.
 ## Radiology linker table
 
 An output parquet file named `IMAGE_LINKER.parquet` that defines the connection between the
-OMOP procedure_occurrence_id for the current extract and the hashed image/study ID.
+OMOP procedure_occurrence_id for the current extract and the pseudo image/study ID.
 The procedure_occurrence_id can get renumbered from extract to extract.
 
 See method `make_radiology_linker_table` for more.
@@ -42,10 +42,8 @@ implemented and documented in [`pixl_core`](../../pixl_core/README.md#uploading-
 
 Various _parquet_ files are provided throughout the repo to enable unit and system testing:
 
-- `cli/tests/resources/omop/` contains public and private parquet files together with an
-  `extract_summary.json` file to mimic the input received from OMOP-ES for the unit tests. (This directory is identical to that below and should be deleted at some point).
 - `test/resources/omop/` contains public and private parquet files together with an
-  `extract_summary.json` file to mimic the input received from OMOP-ES for the system tests
+  `extract_summary.json` file to mimic the input received from OMOP-ES for the system tests and cli unit tests
 
 During the system test, a `radiology.parquet` file is generated and temporarily stored in
 `projects/exports/test-extract-uclh-omop-cdm/latest/radiology/radiology.parquet` to check the successful

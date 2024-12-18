@@ -1,11 +1,31 @@
 {
-  "Dictionary": {
-    "000d,1001": ["LO", "UCLHPIXLProjectName", 1, 1, "UCLH PIXL"]
-  },
   "DefaultPrivateCreator" : "UCLH PIXL",
   "Name" : "${ORTHANC_NAME}",
   "RemoteAccessAllowed" : true,
   "RegisteredUsers": {
       "${ORTHANC_USERNAME}": "${ORTHANC_PASSWORD}"
-    }
+    },
+
+// Path to the directory that holds the heavyweight files (i.e. the
+  // raw DICOM instances). Backslashes must be either escaped by
+  // doubling them, or replaced by forward slashes "/".
+  "StorageDirectory" : "/var/lib/orthanc/db",
+
+  // Limit the maximum storage size
+  "MaximumPatientCount" : 0, // no limit
+  "MaximumStorageSize" : 100, // MB
+  "MaximumStorageMode" : "Recycle",
+  // Enable concurrency
+  "JobsHistorySize": 100,
+  "ConcurrentJobs" : 20,
+  // overwrite instances with the same UID if we get them for a second time
+  "OverwriteInstances" : true,
+    "StableAge" : 30,
+  // Defines the number of threads that are used to execute each type of
+  // jobs (for the jobs that can be parallelized).
+  // A value of "0" indicates to use all the available CPU logical cores
+  "JobsEngineThreadsCount" : {
+    "ResourceModification": 5  // for /anonymize, /modify
+  }
+
 }

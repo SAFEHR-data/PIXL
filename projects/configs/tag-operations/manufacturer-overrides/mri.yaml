@@ -1,0 +1,41 @@
+#  Copyright (c) University College London Hospitals NHS Foundation Trust
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
+# https://www.documents.philips.com/doclib/enc/fetch/8554818/DICOM_Conformance_Statement_MR_Applications_on_IntelliSpace_Portal_V4.0.pdf
+- manufacturer: ^philips
+  tags:
+    - name: "Private Creator Group 2001"
+      group: 0x2001
+      element: 0x0010
+      op: "keep"
+    - name: "Private Creator Group 2001 (90)"
+      group: 0x2001
+      element: 0x0090
+      op: "keep"
+    - name: "Flip angle" # public version can have rounding issues
+      group: 0x2001
+      element: 0x1023
+      op: "keep"
+    - name: "Private Creator Group 2005"
+      group: 0x2005
+      element: 0x0010
+      op: "keep"
+    - name: "Scale Slope"
+      group: 0x2005
+      element: 0x100e
+      op: "keep"
+    - name: "Repetition Time" # public version can have rounding issues
+      group: 0x2005
+      element: 0x1030
+      op: "keep"

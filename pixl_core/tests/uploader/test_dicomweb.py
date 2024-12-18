@@ -20,6 +20,7 @@ import time
 import pytest
 import requests
 from core.uploader._dicomweb import DicomWebUploader
+from core.uploader._orthanc import StudyTags
 from decouple import config  # type ignore [import-untyped]
 
 ORTHANC_ANON_URL = config("ORTHANC_ANON_URL")
@@ -27,7 +28,7 @@ ORTHANC_USERNAME = config("ORTHANC_ANON_USERNAME")
 ORTHANC_PASSWORD = config("ORTHANC_ANON_PASSWORD")
 
 DICOMWEB_USERNAME = "orthanc_dicomweb"
-DICOMWEB_PASSWORD = "orthanc_dicomweb"  # noqa: S105, hardcoded password
+DICOMWEB_PASSWORD = "orthanc_dicomweb"
 
 LOCAL_DICOMWEB_URL = "http://localhost:8044"
 
@@ -93,8 +94,13 @@ def test_upload_dicom_image(
     study_id, run_containers, dicomweb_uploader, not_yet_exported_dicom_image
 ) -> None:
     """Tests that DICOM image can be uploaded to a DICOMWeb server"""
+    study_tags = StudyTags(
+        pseudo_anon_image_id=not_yet_exported_dicom_image.pseudo_study_uid,
+        patient_id="patient",
+    )
     dicomweb_uploader._upload_dicom_image(  # noqa: SLF001
-        study_id, not_yet_exported_dicom_image.hashed_identifier, "project"
+        study_id,
+        study_tags,
     )
 
     # Check that the instance has arrived in the DICOMweb server
@@ -109,7 +115,7 @@ def test_dicomweb_upload_fails_with_wrong_credentials(
 ) -> None:
     """Tests that the DICOMWeb uploader fails when given wrong credentials."""
     dicomweb_uploader.endpoint_user = "wrong"
-    dicomweb_uploader.endpoint_password = "wrong"  # noqa: S105, hardcoded password
+    dicomweb_uploader.endpoint_password = "wrong"
 
     with pytest.raises(requests.exceptions.ConnectionError):
         dicomweb_uploader._setup_dicomweb_credentials()  # noqa: SLF001, private method

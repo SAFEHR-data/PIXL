@@ -1,4 +1,4 @@
-#  Copyright (c) 2022 University College London Hospitals NHS Foundation Trust
+#  Copyright (c) 2024 University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -13,14 +13,26 @@
 #  limitations under the License.
 
 project:
-    name: "uclh-prostate-mri-validation-dataset"
-    modalities: ["MR"]
+    name: "test-extract-uclh-omop-cdm-xnat"
+    azure_kv_alias: "test"
+    modalities: ["DX", "CR", "MR"]
 
 tag_operation_files:
     base:
+        - "base.yaml" #Expected base config file for any project
         - "mri.yaml"
-        - "diffusion-weighted-mri.yaml"
-    manufacturer_overrides: "manufacturer-overrides/mri-diffusion.yaml"
+    manufacturer_overrides: ["mri.yaml", "mri-diffusion.yaml"]
+
+series_filters:
+    - "localizer"
+    - "localiser"
+    - "scout"
+    - "positioning"
+
 destination:
-    dicom: "none"
+    dicom: "xnat"
     parquet: "none"
+
+xnat_destination_options:
+    overwrite: "none"
+    destination: "/archive"

@@ -1,4 +1,4 @@
-#  Copyright (c) University College London Hospitals NHS Foundation Trust
+#  Copyright (c) 2022 University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -11,22 +11,24 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-from __future__ import annotations
 
-from pathlib import Path
+project:
+    name: "ms-pinpoint"
+    modalities: ["MR"]
 
+tag_operation_files:
+    base:
+        - "base.yaml" #Expected base config file for any project
+        - "mri.yaml"
+        - "ms-pinpoint.yaml"
+    manufacturer_overrides: ["mri.yaml"]
 
-def clear_file(filepath: Path) -> None:
-    """Clear the contents of a file"""
-    filepath.open("w").close()
+series_filters:
+    - "localizer"
+    - "localiser"
+    - "scout"
+    - "positioning"
 
-
-def string_is_non_empty(string: str) -> bool:
-    """Does a string have more than just spaces and newlines?"""
-    return len(string.split()) > 0
-
-
-def remove_file_if_it_exists(filepath: Path) -> None:
-    """If a file exists remove it"""
-    if filepath.exists():
-        Path.unlink(filepath)
+destination:
+    dicom: "dicomweb"
+    parquet: "none"

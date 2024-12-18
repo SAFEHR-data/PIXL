@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
 from io import BytesIO
 
 import requests
@@ -34,20 +35,30 @@ def get_study_zip_archive(resourceId: str) -> BytesIO:
     return BytesIO(response_study.content)
 
 
-def get_tags_by_study(study_id: str) -> tuple[str, str]:
+@dataclass
+class StudyTags:
+    """Tags for a study."""
+
+    pseudo_anon_image_id: str
+    patient_id: str
+
+
+def get_tags_by_study(study_id: str) -> StudyTags:
     """
     Queries the Orthanc server at the study level, returning the
-    PatientID and UCLHPIXLProjectName DICOM tags.
-    BEWARE: post-anonymisation, the PatientID is NOT
-    the patient ID, it's the pseudo-anonymised ID generated
-    from the hash of the concatenated Patient ID (MRN) and Accession Number fields.
+    Study Instance UID and PatientID DICOM tags.
+    BEWARE: post-anonymisation, the Study Instance UID is NOT
+    the Study Instance UID, it's the pseudo-anonymised ID generated randomly.
     """
     query = f"{ORTHANC_ANON_URL}/studies/{study_id}/shared-tags?simplify=true"
     fail_msg = "Could not query study for resource '%s'"
 
     response_study = _query_orthanc_anon(study_id, query, fail_msg)
     json_response = json.loads(response_study.content.decode())
-    return json_response["PatientID"], json_response["UCLHPIXLProjectName"]
+    return StudyTags(
+        pseudo_anon_image_id=json_response["StudyInstanceUID"],
+        patient_id=json_response["PatientID"],
+    )
 
 
 def _query_orthanc_anon(resourceId: str, query: str, fail_msg: str) -> requests.Response:

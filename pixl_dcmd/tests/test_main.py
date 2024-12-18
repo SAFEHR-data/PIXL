@@ -16,6 +16,8 @@ from __future__ import annotations
 import pathlib
 import re
 from pathlib import Path
+import logging
+import typing
 
 import nibabel
 import numpy as np
@@ -24,49 +26,56 @@ import pytest
 import sqlalchemy
 from core.db.models import Image
 from core.dicom_tags import (
-    DICOM_TAG_PROJECT_NAME,
     PrivateDicomTag,
     add_private_tag,
     create_private_tag,
 )
 from core.project_config import load_project_config, load_tag_operations
+from core.project_config.pixl_config_model import load_config_and_validate
 from decouple import config
-from pydicom.data import get_testdata_file
 
-from pydicom.dataset import Dataset
-
+from pixl_dcmd._dicom_helpers import get_study_info
+from pixl_dcmd.main import (
+    anonymise_dicom_and_update_db,
+    _anonymise_dicom_from_scheme,
+    anonymise_and_validate_dicom,
+    anonymise_dicom,
+    _enforce_allowlist,
+    _should_exclude_series,
+)
 from pytest_pixl.dicom import generate_dicom_dataset
 from pytest_pixl.helpers import run_subprocess
+from conftest import ids_for_parameterised_test
 
-from pixl_dcmd.main import (
-    _anonymise_dicom_from_scheme,
-    enforce_whitelist,
-    anonymise_dicom,
-    should_exclude_series,
-)
+if typing.TYPE_CHECKING:
+    from core.project_config.pixl_config_model import PixlConfig
 
 PROJECT_CONFIGS_DIR = Path(config("PROJECT_CONFIGS_DIR"))
 TEST_PROJECT_SLUG = "test-extract-uclh-omop-cdm"
 
 
 @pytest.fixture(scope="module")
-def tag_scheme() -> list[dict]:
+def tag_scheme(test_project_config: PixlConfig) -> list[dict]:
     """Base tag scheme for testing."""
-    tag_ops = load_tag_operations(load_project_config(TEST_PROJECT_SLUG))
+    tag_ops = load_tag_operations(test_project_config)
     return tag_ops.base[0]
 
 
-def _mri_diffusion_tags(manufacturer: str = "Philips") -> list[PrivateDicomTag]:
+def _get_mri_diffusion_tags(
+    config: PixlConfig,
+    manufacturer: str,
+) -> list[PrivateDicomTag]:
     """
     Private DICOM tags for testing the anonymisation process.
     These tags from `/projects/configs/tag-operations/manufacturer-overrides/mri-diffusion.yaml`
     so we can test whether the manufacturer overrides work during anonymisation
     """
-    project_config = load_project_config(TEST_PROJECT_SLUG)
-    tag_ops = load_tag_operations(project_config)
+    tag_ops = load_tag_operations(config)
+    mri_diffusion_overrides = tag_ops.manufacturer_overrides[0]
+
     manufacturer_overrides = [
         override
-        for override in tag_ops.manufacturer_overrides
+        for override in mri_diffusion_overrides
         if re.search(override["manufacturer"], manufacturer, re.IGNORECASE)
     ][0]
 
@@ -77,27 +86,7 @@ def _mri_diffusion_tags(manufacturer: str = "Philips") -> list[PrivateDicomTag]:
 
 
 @pytest.fixture()
-def vanilla_dicom_image() -> Dataset:
-    """
-    A DICOM image with diffusion data to test the anonymisation process.
-    Private tags were added to match the tag operations defined in the project config, so we can
-    test whether the anonymisation process works as expected when defining overrides.
-    """
-    ds = generate_dicom_dataset(Modality="DX")
-
-    # Make sure the project name tag is added for anonymisation to work
-    add_private_tag(ds, DICOM_TAG_PROJECT_NAME)
-    # Update the project name tag to a known value
-    block = ds.private_block(
-        DICOM_TAG_PROJECT_NAME.group_id, DICOM_TAG_PROJECT_NAME.creator_string
-    )
-    ds[block.get_tag(DICOM_TAG_PROJECT_NAME.offset_id)].value = TEST_PROJECT_SLUG
-
-    return ds
-
-
-@pytest.fixture()
-def mri_diffusion_dicom_image() -> Dataset:
+def mri_diffusion_dicom_image(test_project_config: PixlConfig) -> pydicom.Dataset:
     """
     A DICOM image with diffusion data to test the anonymisation process.
     Private tags were added to match the tag operations defined in the project config, so we can
@@ -105,52 +94,131 @@ def mri_diffusion_dicom_image() -> Dataset:
     """
     manufacturer = "Philips"
     ds = generate_dicom_dataset(Manufacturer=manufacturer, Modality="DX")
-    tags = _mri_diffusion_tags(manufacturer)
+    tags = _get_mri_diffusion_tags(
+        config=test_project_config, manufacturer=manufacturer
+    )
     for tag in tags:
         add_private_tag(ds, tag)
-
-    # Make sure the project name tag is added for anonymisation to work
-    add_private_tag(ds, DICOM_TAG_PROJECT_NAME)
-    # Update the project name tag to a known value
-    block = ds.private_block(
-        DICOM_TAG_PROJECT_NAME.group_id, DICOM_TAG_PROJECT_NAME.creator_string
-    )
-    ds[block.get_tag(DICOM_TAG_PROJECT_NAME.offset_id)].value = TEST_PROJECT_SLUG
 
     return ds
 
 
-def test_enforce_whitelist_removes_overlay_plane() -> None:
+def test_enforce_allowlist_removes_overlay_plane() -> None:
     """Checks that overlay planes are removed."""
-    ds = get_testdata_file(
+    ds = pydicom.data.get_testdata_file(
         "MR-SIEMENS-DICOM-WithOverlays.dcm", read=True, download=True
     )
     assert (0x6000, 0x3000) in ds
 
-    enforce_whitelist(ds, {}, recursive=True)
+    _enforce_allowlist(ds, {}, recursive=True)
     assert (0x6000, 0x3000) not in ds
 
 
-def test_anonymisation(row_for_dicom_testing, vanilla_dicom_image: Dataset) -> None:
+def test_anonymisation(
+    vanilla_single_dicom_image_DX: pydicom.Dataset,
+    test_project_config: PixlConfig,
+) -> None:
     """
     Test whether anonymisation works as expected on a vanilla DICOM dataset
     """
 
-    orig_patient_id = vanilla_dicom_image.PatientID
-    orig_patient_name = vanilla_dicom_image.PatientName
+    orig_patient_id = vanilla_single_dicom_image_DX.PatientID
+    orig_patient_name = vanilla_single_dicom_image_DX.PatientName
+    orig_study_date = vanilla_single_dicom_image_DX.StudyDate
 
-    # Sanity check: study date should be present before anonymisation
-    assert "StudyDate" in vanilla_dicom_image
+    anonymise_dicom(vanilla_single_dicom_image_DX, config=test_project_config)
 
-    anonymise_dicom(vanilla_dicom_image)
-
-    assert vanilla_dicom_image.PatientID != orig_patient_id
-    assert vanilla_dicom_image.PatientName != orig_patient_name
-    assert "StudyDate" not in vanilla_dicom_image
+    assert vanilla_single_dicom_image_DX.PatientID != orig_patient_id
+    assert vanilla_single_dicom_image_DX.PatientName != orig_patient_name
+    assert vanilla_single_dicom_image_DX.StudyDate != orig_study_date
 
 
+def test_anonymise_unimplemented_tag(
+    vanilla_single_dicom_image_DX: pydicom.Dataset,
+    test_project_config: PixlConfig,
+) -> None:
+    """
+    GIVEN DICOM data with an OB data type tag within a sequence
+    WHEN anonymise_dicom is run that has "replace" tag operation on the sequence, but not the OB element
+    THEN the sequence should exist, but not the OB element
+
+    VR OB is not implemented by the dicom anonymisation library, so this
+    is testing that we can still successfully de-identify data with this data type
+    """
+    nested_ds = pydicom.Dataset()
+    nested_block = nested_ds.private_block(0x0013, "VR OB CREATOR", create=True)
+    nested_block.add_new(0x0011, "OB", b"")
+
+    # create private sequence tag with the nested dataset
+    block = vanilla_single_dicom_image_DX.private_block(
+        0x0013, "VR OB CREATOR", create=True
+    )
+    block.add_new(0x0010, "SQ", [nested_ds])
+
+    anonymise_dicom(vanilla_single_dicom_image_DX, config=test_project_config)
+
+    assert (0x0013, 0x0010) in vanilla_single_dicom_image_DX
+    assert (0x0013, 0x1010) in vanilla_single_dicom_image_DX
+    sequence = vanilla_single_dicom_image_DX[(0x0013, 0x1010)]
+    assert (0x0013, 0x1011) not in sequence[0]
+
+
+def test_anonymise_and_validate_as_external_user(
+    test_project_config: PixlConfig,
+) -> None:
+    """
+    GIVEN an example MR dataset and configuration to anonymise this
+    WHEN the anonymisation and validation is called not using PIXL infrastructure
+    THEN the dataset is anonymised inplace
+
+    Note: If we update this test, make sure to update the documentation stub.
+    Or if we end up building docs, then convert this test to a doctest
+    """
+    dataset_path = pydicom.data.get_testdata_file(
+        "MR-SIEMENS-DICOM-WithOverlays.dcm", download=True
+    )
+    dataset = pydicom.dcmread(dataset_path)
+
+    config_path = (
+        pathlib.Path(__file__).parents[2] / "projects/configs/test-external-user.yaml"
+    )
+    config = load_config_and_validate(config_path)
+
+    validation_issues = anonymise_and_validate_dicom(dataset, config=config)
+
+    assert validation_issues == {}
+    assert dataset != pydicom.dcmread(dataset_path)
+
+
+@pytest.mark.parametrize(
+    ("yaml_file"), PROJECT_CONFIGS_DIR.glob("*.yaml"), ids=ids_for_parameterised_test
+)
+def test_anonymise_and_validate_dicom(caplog, request, yaml_file) -> None:
+    """
+    Test whether anonymisation and validation works as expected on a vanilla DICOM dataset
+    GIVEN a project configuration with tag operations that creates a DICOM dataset
+    WHEN the anonymisation and validation process is run
+    THEN the dataset should be anonymised and validated without any warnings or errors
+    """
+    caplog.clear()
+    caplog.set_level(logging.WARNING)
+    config = load_project_config(yaml_file.stem)
+    modality = config.project.modalities[0]
+    dicom_image = request.getfixturevalue(f"vanilla_dicom_image_{modality}")
+
+    validation_errors = anonymise_and_validate_dicom(
+        dicom_image,
+        config=config,
+    )
+
+    assert "WARNING" not in [record.levelname for record in caplog.records]
+    assert not validation_errors
+
+
+@pytest.mark.usefixtures("row_for_single_dicom_testing")
 def test_anonymisation_with_overrides(
-    row_for_dicom_testing, mri_diffusion_dicom_image: Dataset
+    mri_diffusion_dicom_image: pydicom.Dataset,
+    test_project_config: PixlConfig,
 ) -> None:
     """
     Test that the anonymisation process works with manufacturer overrides.
@@ -160,12 +228,12 @@ def test_anonymisation_with_overrides(
     """
 
     # Sanity check
-    # (0x2001, 0x1003) is one of the tags whitelisted by the overrides for Philips manufacturer
+    # (0x2001, 0x1003) is one of the tags allow-listed by the overrides for Philips manufacturer
     assert (0x2001, 0x1003) in mri_diffusion_dicom_image
     original_patient_id = mri_diffusion_dicom_image.PatientID
     original_private_tag = mri_diffusion_dicom_image[(0x2001, 0x1003)]
 
-    anonymise_dicom(mri_diffusion_dicom_image)
+    anonymise_dicom(mri_diffusion_dicom_image, config=test_project_config)
 
     # Whitelisted tags should still be present
     assert (0x0010, 0x0020) in mri_diffusion_dicom_image
@@ -174,55 +242,146 @@ def test_anonymisation_with_overrides(
     assert mri_diffusion_dicom_image[(0x2001, 0x1003)] == original_private_tag
 
 
-def test_image_already_exported_throws(rows_in_session):
+@pytest.mark.usefixtures("rows_in_session")
+def test_image_already_exported_throws(test_project_config, exported_dicom_dataset):
     """
     GIVEN a dicom image which has no un-exported rows in the pipeline database
     WHEN the dicom tag scheme is applied
     THEN an exception will be thrown as
     """
-    exported_dicom = pathlib.Path(__file__).parents[2] / "test/resources/Dicom1.dcm"
-    input_dataset = pydicom.dcmread(exported_dicom)
-
-    # Make sure the project name tag is added for anonymisation to work
-    add_private_tag(input_dataset, DICOM_TAG_PROJECT_NAME)
-    # Update the project name tag to a known value
-    block = input_dataset.private_block(
-        DICOM_TAG_PROJECT_NAME.group_id, DICOM_TAG_PROJECT_NAME.creator_string
-    )
-    input_dataset[
-        block.get_tag(DICOM_TAG_PROJECT_NAME.offset_id)
-    ].value = TEST_PROJECT_SLUG
     with pytest.raises(sqlalchemy.exc.NoResultFound):
-        anonymise_dicom(input_dataset)
+        anonymise_dicom_and_update_db(
+            exported_dicom_dataset,
+            config=test_project_config,
+        )
 
 
-def test_pseudo_identifier_processing(rows_in_session):
+def test_pseudo_identifier_processing(
+    rows_in_session,
+    monkeypatch,
+    exported_dicom_dataset,
+    not_exported_dicom_dataset,
+    test_project_config,
+):
     """
     GIVEN a dicom image that hasn't been exported in the pipeline db
     WHEN the dicom tag scheme is applied
-    THEN the patient identifier tag should be the mrn and accession hashed
-      and the pipeline db row should now have the fake hash
+    THEN the patient identifier tag should be the mrn hashed
+        the study instance uid should be replaced with a new uid
+        and the db should have the pseudo study id
     """
-    exported_dicom = pathlib.Path(__file__).parents[2] / "test/resources/Dicom2.dcm"
-    dataset = pydicom.dcmread(exported_dicom)
+    exported_study_info = get_study_info(exported_dicom_dataset)
+    not_exported_study_info = get_study_info(not_exported_dicom_dataset)
 
-    accession_number = "AA12345605"
-    mrn = "987654321"
-    fake_hash = "-".join(list(f"{mrn}{accession_number}"))
+    class FakeUID:
+        i = 1
+
+        @classmethod
+        def fake_uid(cls):
+            uid = f"2.25.{cls.i}"
+            cls.i += 1
+            return pydicom.uid.UID(uid)
+
+    monkeypatch.setattr("pixl_dcmd._database.generate_uid", FakeUID.fake_uid)
+    other_image = (
+        rows_in_session.query(Image)
+        .filter(Image.accession_number == exported_study_info.accession_number)
+        .one()
+    )
+    other_image.pseudo_study_uid = "2.25.1"
+    rows_in_session.add(other_image)
+    rows_in_session.commit()
+
+    mrn = exported_study_info.mrn
+    fake_hash = "-".join(list(mrn))
     print("fake_hash = ", fake_hash)
-    anonymise_dicom(dataset)
+
+    anonymise_dicom_and_update_db(
+        not_exported_dicom_dataset, config=test_project_config
+    )
+
     image = (
         rows_in_session.query(Image)
-        .filter(Image.accession_number == "AA12345605")
+        .filter(Image.accession_number == not_exported_study_info.accession_number)
         .one()
     )
     print("after tags applied")
-    assert dataset[0x0010, 0x0020].value == fake_hash
-    assert image.hashed_identifier == fake_hash
+    assert not_exported_dicom_dataset[0x0010, 0x0020].value == fake_hash
+    assert image.pseudo_study_uid == not_exported_dicom_dataset[0x0020, 0x000D].value
+    assert image.pseudo_study_uid == "2.25.2"  # 2nd image in the db
+
+
+def test_pseudo_patient_id_processing(
+    row_for_testing_image_with_pseudo_patient_id,
+    not_exported_dicom_dataset,
+    test_project_config,
+):
+    """
+    GIVEN an `Image` entity in the database which has a `pseudo_patient_id` set
+    WHEN the matching DICOM data is anonymised
+    THEN the DICOM's patient ID tag should be the original `pseudo_study_id`
+    value from the database, the database's `pseudo_patient_id` shouldn't have changed
+    """
+    study_info = get_study_info(not_exported_dicom_dataset)
+    original_image: Image = (
+        row_for_testing_image_with_pseudo_patient_id.query(Image)
+        .filter(Image.accession_number == study_info.accession_number)
+        .one()
+    )
+    assert (
+        not_exported_dicom_dataset[0x0010, 0x0020].value
+        != original_image.pseudo_patient_id
+    )
+
+    anonymise_dicom_and_update_db(
+        not_exported_dicom_dataset, config=test_project_config
+    )
+
+    anonymised_image: Image = (
+        row_for_testing_image_with_pseudo_patient_id.query(Image)
+        .filter(Image.accession_number == study_info.accession_number)
+        .one()
+    )
+
+    assert original_image.pseudo_patient_id == anonymised_image.pseudo_patient_id
+    assert (
+        not_exported_dicom_dataset[0x0010, 0x0020].value
+        == original_image.pseudo_patient_id
+    )
+
+
+def test_no_pseudo_patient_id_processing(
+    rows_in_session,
+    not_exported_dicom_dataset,
+    test_project_config,
+):
+    """
+    GIVEN an `Image` entity in the database which doesn't have a `pseudo_patient_id` set
+    WHEN the matching DICOM data is anonymised
+    THEN database's `pseudo_patient_id` field should be set, and match the value from the
+    DICOM's patient identifier tag at the end of anonymisation
+    """
+    study_info = get_study_info(not_exported_dicom_dataset)
+
+    anonymise_dicom_and_update_db(
+        not_exported_dicom_dataset, config=test_project_config
+    )
+
+    anonymised_image: Image = (
+        rows_in_session.query(Image)
+        .filter(Image.accession_number == study_info.accession_number)
+        .one()
+    )
+
+    assert anonymised_image.pseudo_patient_id is not None
+    assert (
+        anonymised_image.pseudo_patient_id
+        == not_exported_dicom_dataset[0x0010, 0x0020].value
+    )
 
 
 @pytest.fixture()
-def dicom_series_to_keep() -> list[Dataset]:
+def dicom_series_to_keep() -> list[pydicom.Dataset]:
     series = [
         "",
         "whatever",
@@ -231,7 +390,7 @@ def dicom_series_to_keep() -> list[Dataset]:
 
 
 @pytest.fixture()
-def dicom_series_to_exclude() -> list[Dataset]:
+def dicom_series_to_exclude() -> list[pydicom.Dataset]:
     series = [
         "positioning",
         "foo_barpositioning",
@@ -245,21 +404,20 @@ def dicom_series_to_exclude() -> list[Dataset]:
     return [_make_dicom(s) for s in series]
 
 
-def _make_dicom(series_description) -> Dataset:
-    ds = generate_dicom_dataset(SeriesDescription=series_description)
-    add_private_tag(ds, DICOM_TAG_PROJECT_NAME, "test-extract-uclh-omop-cdm")
-    return ds
+def _make_dicom(series_description) -> pydicom.Dataset:
+    return generate_dicom_dataset(SeriesDescription=series_description)
 
 
 def test_should_exclude_series(dicom_series_to_exclude, dicom_series_to_keep):
+    config = load_project_config(TEST_PROJECT_SLUG)
     for s in dicom_series_to_keep:
-        assert not should_exclude_series(s)
+        assert not _should_exclude_series(s, config)
     for s in dicom_series_to_exclude:
-        assert should_exclude_series(s)
+        assert _should_exclude_series(s, config)
 
 
 def test_can_nifti_convert_post_anonymisation(
-    row_for_dicom_testing, tmp_path, directory_of_mri_dicoms, tag_scheme
+    row_for_single_dicom_testing, tmp_path, directory_of_mri_dicoms, tag_scheme
 ):
     """Can a DICOM image that has passed through our tag processing be converted to NIFTI"""
     # Create a directory to store anonymised DICOM files
@@ -285,7 +443,6 @@ def test_can_nifti_convert_post_anonymisation(
             "op": "keep",
         },
     ]
-
     # Get test DICOMs from the fixture, anonymise and save
     for dcm_path in directory_of_mri_dicoms.glob("*.dcm"):
         dcm = pydicom.dcmread(dcm_path)
@@ -323,7 +480,7 @@ def test_can_nifti_convert_post_anonymisation(
 
 
 @pytest.fixture
-def sequenced_dicom():
+def sequenced_dicom_mock_db(monkeypatch):
     """
     Create a DICOM dataset with
     a private sequence tag
@@ -332,12 +489,14 @@ def sequenced_dicom():
             (group=0x0011, offset=0x0011, creator="UCLH PIXL", VR="SH", value="nested_priv_tag) and
         a public child tag
             (group=0x0010, element=0x0020), VR="LO", value="987654321").
+
+    Also mock db functions
     """
     # Create a test DICOM with a sequence tag
     exported_dicom = pathlib.Path(__file__).parents[2] / "test/resources/Dicom1.dcm"
     dataset = pydicom.dcmread(exported_dicom)
     # create nested dataset to put into sequence
-    nested_ds = Dataset()
+    nested_ds = pydicom.Dataset()
     # nested public tag
     nested_ds.add_new((0x0010, 0x0020), "LO", "987654321")
     # nested private tag
@@ -348,10 +507,14 @@ def sequenced_dicom():
     block = dataset.private_block(0x0011, "UCLH PIXL", create=True)
     block.add_new(0x0010, "SQ", [nested_ds])
 
+    # Mock the database functions
+    monkeypatch.setattr(
+        "pixl_dcmd.main.get_uniq_pseudo_study_uid_and_update_db", lambda *args: None
+    )
     return dataset
 
 
-def test_del_tag_keep_sq(sequenced_dicom):
+def test_del_tag_keep_sq(sequenced_dicom_mock_db):
     """
     GIVEN a dicom image that has a private sequence tag marked to be kept with
     - a private child tag that is marked to be deleted
@@ -362,22 +525,22 @@ def test_del_tag_keep_sq(sequenced_dicom):
     - the child tags should be deleted/replaced
     """
     ## ARRANGE (or rather check arrangement is as expected)
-    assert (0x0011, 0x0010) in sequenced_dicom
-    assert (0x0011, 0x1010) in sequenced_dicom
-    assert (0x0011, 0x1011) in sequenced_dicom.get_private_item(
+    assert (0x0011, 0x0010) in sequenced_dicom_mock_db
+    assert (0x0011, 0x1010) in sequenced_dicom_mock_db
+    assert (0x0011, 0x1011) in sequenced_dicom_mock_db.get_private_item(
         0x0011, 0x0010, "UCLH PIXL"
     )[0]
     assert (
-        sequenced_dicom.get_private_item(0x0011, 0x0010, "UCLH PIXL")[0]
+        sequenced_dicom_mock_db.get_private_item(0x0011, 0x0010, "UCLH PIXL")[0]
         .get_private_item(0x0011, 0x0011, "UCLH PIXL")
         .value
         == "nested_priv_tag"
     )
-    assert (0x0010, 0x0020) in sequenced_dicom.get_private_item(
+    assert (0x0010, 0x0020) in sequenced_dicom_mock_db.get_private_item(
         0x0011, 0x0010, "UCLH PIXL"
     )[0]
     assert (
-        sequenced_dicom.get_private_item(0x0011, 0x0010, "UCLH PIXL")[0]
+        sequenced_dicom_mock_db.get_private_item(0x0011, 0x0010, "UCLH PIXL")[0]
         .get_item((0x0010, 0x0020))
         .value
         == "987654321"
@@ -408,26 +571,26 @@ def test_del_tag_keep_sq(sequenced_dicom):
     ]
 
     ## ACT
-    _anonymise_dicom_from_scheme(sequenced_dicom, TEST_PROJECT_SLUG, tag_scheme)
+    _anonymise_dicom_from_scheme(sequenced_dicom_mock_db, TEST_PROJECT_SLUG, tag_scheme)
 
     ## ASSERT
     # Check that the sequence tag has been kept
-    assert (0x0011, 0x0010) in sequenced_dicom
-    assert (0x0011, 0x1010) in sequenced_dicom
+    assert (0x0011, 0x0010) in sequenced_dicom_mock_db
+    assert (0x0011, 0x1010) in sequenced_dicom_mock_db
     # check private tag is deleted
-    assert (0x0011, 0x1011) not in sequenced_dicom.get_private_item(
+    assert (0x0011, 0x1011) not in sequenced_dicom_mock_db.get_private_item(
         0x0011, 0x0010, "UCLH PIXL"
     )[0]
     # check public tag is replaced
     assert (
-        sequenced_dicom.get_private_item(0x0011, 0x0010, "UCLH PIXL")[0]
+        sequenced_dicom_mock_db.get_private_item(0x0011, 0x0010, "UCLH PIXL")[0]
         .get_item((0x0010, 0x0020))
         .value
         != "987654321"
     )
 
 
-def test_keep_tag_del_sq(sequenced_dicom):
+def test_keep_tag_del_sq(sequenced_dicom_mock_db):
     """
     GIVEN a dicom image that has a private sequence tag marked to be deleted with
         a private child tag that is marked to be kept
@@ -435,8 +598,8 @@ def test_keep_tag_del_sq(sequenced_dicom):
     THEN the sequence tag should be deleted
     """
     ## ARRANGE (or rather check arrangement is as expected)
-    assert (0x0011, 0x0010) in sequenced_dicom
-    assert (0x0011, 0x1010) in sequenced_dicom
+    assert (0x0011, 0x0010) in sequenced_dicom_mock_db
+    assert (0x0011, 0x1010) in sequenced_dicom_mock_db
 
     # Create a tag scheme that deletes the sequence tag, but keeps the nested tags
     tag_scheme = [
@@ -456,18 +619,17 @@ def test_keep_tag_del_sq(sequenced_dicom):
             "op": "replace",
         },
     ]
-
     ## ACT
-    _anonymise_dicom_from_scheme(sequenced_dicom, TEST_PROJECT_SLUG, tag_scheme)
+    _anonymise_dicom_from_scheme(sequenced_dicom_mock_db, TEST_PROJECT_SLUG, tag_scheme)
 
     ## ASSERT
     # Check that the sequence tag has been deleted
-    assert (0x0011, 0x1010) not in sequenced_dicom
+    assert (0x0011, 0x1010) not in sequenced_dicom_mock_db
     with pytest.raises(KeyError):
-        sequenced_dicom.get_private_item(0x0011, 0x0010, "UCLH PIXL")
+        sequenced_dicom_mock_db.get_private_item(0x0011, 0x0010, "UCLH PIXL")
 
 
-def test_whitelist_child_elements_deleted(sequenced_dicom):
+def test_allowlist_child_elements_deleted(sequenced_dicom_mock_db):
     """
     GIVEN a dicom image that has a public and private sequence tags
     WHEN the dicom tag scheme is applied
@@ -475,13 +637,15 @@ def test_whitelist_child_elements_deleted(sequenced_dicom):
     """
     ## ARRANGE (or rather check arrangement is as expected)
     # check that the sequence tag is present
-    assert (0x0011, 0x0010) in sequenced_dicom
-    assert (0x0011, 0x1010) in sequenced_dicom
+    assert (0x0011, 0x0010) in sequenced_dicom_mock_db
+    assert (0x0011, 0x1010) in sequenced_dicom_mock_db
     # check that the children are present
-    assert (0x0011, 0x1011) in sequenced_dicom[(0x0011, 0x1010)][0]
-    sequenced_dicom[(0x0011, 0x1010)][0][(0x0011, 0x1011)].value == "nested_priv_tag"
-    assert (0x0010, 0x0020) in sequenced_dicom[(0x0011, 0x1010)][0]
-    sequenced_dicom[(0x0011, 0x1010)][0][(0x0010, 0x0020)].value == "987654321"
+    assert (0x0011, 0x1011) in sequenced_dicom_mock_db[(0x0011, 0x1010)][0]
+    sequenced_dicom_mock_db[(0x0011, 0x1010)][0][
+        (0x0011, 0x1011)
+    ].value == "nested_priv_tag"
+    assert (0x0010, 0x0020) in sequenced_dicom_mock_db[(0x0011, 0x1010)][0]
+    sequenced_dicom_mock_db[(0x0011, 0x1010)][0][(0x0010, 0x0020)].value == "987654321"
 
     # set tag scheme to keep sequence
     tag_scheme = [
@@ -497,17 +661,17 @@ def test_whitelist_child_elements_deleted(sequenced_dicom):
         },
     ]
     # Whitelist
-    enforce_whitelist(sequenced_dicom, tag_scheme, recursive=True)
+    _enforce_allowlist(sequenced_dicom_mock_db, tag_scheme, recursive=True)
 
     # Check that the sequence tag is kept
-    assert (0x0011, 0x0010) in sequenced_dicom
-    assert (0x0011, 0x1010) in sequenced_dicom
+    assert (0x0011, 0x0010) in sequenced_dicom_mock_db
+    assert (0x0011, 0x1010) in sequenced_dicom_mock_db
     # Check that children are deleted
-    assert (0x0011, 0x1011) not in sequenced_dicom[(0x0011, 0x1010)][0]
-    assert (0x0010, 0x0020) not in sequenced_dicom[(0x0011, 0x1010)][0]
+    assert (0x0011, 0x1011) not in sequenced_dicom_mock_db[(0x0011, 0x1010)][0]
+    assert (0x0010, 0x0020) not in sequenced_dicom_mock_db[(0x0011, 0x1010)][0]
     with pytest.raises(KeyError):
-        sequenced_dicom[(0x0011, 0x1010)][0].get_private_item(
+        sequenced_dicom_mock_db[(0x0011, 0x1010)][0].get_private_item(
             0x0011, 0x0011, "UCLH PIXL"
         )
     with pytest.raises(KeyError):
-        sequenced_dicom[(0x0011, 0x1010)][0][0x0010, 0x0020]
+        sequenced_dicom_mock_db[(0x0011, 0x1010)][0][0x0010, 0x0020]

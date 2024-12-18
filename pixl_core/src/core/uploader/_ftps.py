@@ -30,6 +30,7 @@ if TYPE_CHECKING:
     from socket import socket
 
     from core.exports import ParquetExport
+    from core.uploader._orthanc import StudyTags
 
 from loguru import logger
 
@@ -77,13 +78,17 @@ class FTPSUploader(Uploader):
         self.port = int(self.keyvault.fetch_secret(f"{az_prefix}--ftp--port"))
 
     def _upload_dicom_image(
-        self, study_id: str, pseudo_anon_image_id: str, project_slug: str
+        self,
+        study_id: str,
+        study_tags: StudyTags,
     ) -> None:
         """Upload a DICOM image to the FTPS server."""
-        logger.info("Starting FTPS upload of '{}'", pseudo_anon_image_id)
         zip_content = get_study_zip_archive(study_id)
-        self.send_via_ftps(zip_content, pseudo_anon_image_id, remote_directory=project_slug)
-        logger.info("Finished FTPS upload of '{}'", pseudo_anon_image_id)
+        self.send_via_ftps(
+            zip_content,
+            study_tags.pseudo_anon_image_id,
+            remote_directory=self.project_slug,
+        )
 
     def send_via_ftps(
         self, zip_content: BinaryIO, pseudo_anon_image_id: str, remote_directory: str

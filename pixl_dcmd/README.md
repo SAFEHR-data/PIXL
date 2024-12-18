@@ -3,20 +3,48 @@
 The `pixl_dcmd` package provides helper functions for de-identifying DICOM data. It is currently
 only used by the [`orthanc-anon` plugin](../orthanc/orthanc-anon/plugin/pixl.py).
 
-The reason for having this as a separate package instead of having the functionality in `pixl_core`
-is because `orthanc` requires Python 3.9, whereas the rest of PIXL is on 3.10 or higher.
+For external users, the `pixl_dcmd` package provides the following functionality:
 
-Specifically, the `pixl_dcmd` package provides the following functionality:
+- `anonymise_dicom()`: Applies the [anonymisation operations](#tag-scheme-anonymisation) 
+   for the appropriate tag scheme using [Kitware Dicom Anonymizer](https://github.com/KitwareMedical/dicom-anonymizer)
+   and deletes any tags not mentioned in the tag scheme. The dataset is updated in place.
+     - Will throw a `PixlSkipInstanceError` for any series based on the project config file. Specifically, an error
+       will be thrown if:
+       - the series description matches any series in `series_filters` (usually to remove localiser series)
+       - the modality of the DICOM is not in `modalities`
+- `anonymise_and_validate_dicom()`: Compares DICOM validation issues before and after calling `anonymise_dicom`
+  and returns a dictionary of the new issues
 
-- `anonymise_dicom()`: Applies the [anonymisation operations](#tag-scheme-anonymisation) for the appropriate tag scheme using [Kitware Dicom Anonymizer](https://github.com/KitwareMedical/dicom-anonymizer)) and deletes any tags not mentioned in the tag scheme.
-- `write_dataset_to_bytes()`: writes a DICOM dataset to a bytes object
+```python
+import os
+import pathlib
+import pydicom
+
+from core.project_config.pixl_config_model import load_config_and_validate
+from pixl_dcmd import anonymise_and_validate_dicom
+
+config_dir = pathlib.Path().cwd().parents[2] / "projects" / "configs"
+config_path = config_dir / "test-external-user.yaml"
+os.environ["PROJECT_CONFIGS_DIR"] = config_dir.as_posix()  # needed to validate config
+config = load_config_and_validate(config_path)
+
+dataset_path = pydicom.data.get_testdata_file(
+    "MR-SIEMENS-DICOM-WithOverlays.dcm", download=True,
+)
+dataset = pydicom.dcmread(dataset_path)
+
+# the dataset is updated inplace
+validation_issues = anonymise_and_validate_dicom(dataset, config=config)
+assert validation_issues == {}
+assert dataset != pydicom.dcmread(dataset_path)
+```
 
 ## Installation
 
-Install the Python dependencies with
+Install the Python dependencies from the `pixl_dcmd` directory:
 
 ```bash
-pip install -e ../pixl_core/ -e .[test,dev]
+python -m pip install -e ../pixl_core/ -e ".[test,dev]"
 ```
 
 ## Test

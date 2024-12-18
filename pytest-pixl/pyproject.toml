@@ -1,9 +1,7 @@
 [project]
 name = "pytest-pixl"
-version = "0.0.1"
-authors = [
-  { name="PIXL core functionality" },
-]
+version = "0.2.0rc0"
+authors = [{ name = "PIXL authors" }]
 description = "Pytest plugin for PIXL"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -12,26 +10,51 @@ classifiers = [
 ]
 dependencies = [
     "pydicom==2.4.4",
-    "pyftpdlib==1.5.9",
-    "python-decouple==3.6",
-    "pyOpenSSL==24.0.0",
-    "requests==2.31.0",
+    "pyftpdlib==2.0.1",
+    "pyOpenSSL==24.3.0",
+    "python-decouple==3.8",
+    "pytest-loguru==0.4.0",
+    "requests==2.32.3",
 ]
 
 [project.optional-dependencies]
 test = [
-    "core", # pixl_core
-    "pytest==7.4.2",
+    "core==0.2.0rc0",
+    "pytest==8.3.4",
 ]
 dev = [
-    "mypy",
-    "pre-commit",
-    "ruff",
+    "core[dev]==0.2.0rc0",
 ]
 
 [build-system]
 requires = ["setuptools>=61.0", "setuptools-scm>=8.0"]
 build-backend = "setuptools.build_meta"
+
+
+[tool.coverage.report]
+exclude_also = [
+    # Don't complain about missing debug-only code:
+    "def __repr__",
+    "if self.debug:",
+
+    # Don't complain if tests don't hit defensive assertion code:
+    "raise AssertionError",
+    "raise NotImplementedError",
+
+    # Don't complain if non-runnable code isn't run:
+    "if 0:",
+    "if __name__ == .__main__.:",
+
+    # Don't complain about abstract methods, they aren't run:
+    "@(abc\\.)?abstractmethod",
+
+    # Others
+    "if settings.DEBUG",
+    "except subprocess.CalledProcessError as exception:",
+    "if TYPE_CHECKING:",
+    "if typing.TYPE_CHECKING",
+    "class .*\\bProtocol\\):",
+]
 
 [tool.setuptools.package-data]
 pytest_pixl = ["*.key", "*.crt"]

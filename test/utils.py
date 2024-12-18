@@ -14,48 +14,49 @@
 
 """Utilities for the system test"""
 
-import json
-import shlex
-import subprocess
 from functools import partial, update_wrapper
+from typing import cast
 
+from core.db.models import Image
+from core.db.queries import engine
 from pytest_pixl.helpers import wait_for_condition
+from sqlalchemy import not_
+from sqlalchemy.orm import sessionmaker
 
 
-def wait_for_stable_orthanc_anon(
+def wait_for_images_to_be_exported(
     seconds_max: int,
     seconds_interval: int,
     seconds_condition_stays_true_for: int,
-    min_instances: int = 3,
+    min_studies: int = 2,
 ) -> None:
     """
-    Query the orthanc-anon REST API to check that the correct number of instances
-    have been received.
+    Query pixl DB to ensure that images have been processed and exported.
     If they haven't within the time limit, raise a TimeoutError
     """
-    instances = []
+    studies: list[Image] = []
 
-    def at_least_n_intances(n_intances: int) -> bool:
-        nonlocal instances
-        instances_cmd = shlex.split(
-            "docker exec system-test-orthanc-anon-1 "
-            'curl -u "orthanc_anon_username:orthanc_anon_password" '
-            "http://orthanc-anon:8042/instances"
-        )
-        instances_output = subprocess.run(instances_cmd, capture_output=True, check=True, text=True)  # noqa: S603
-        instances = json.loads(instances_output.stdout)
-        return len(instances) >= n_intances
+    def at_least_n_studies_exported(n_studies: int) -> bool:
+        nonlocal studies
 
-    condition = partial(at_least_n_intances, min_instances)
-    update_wrapper(condition, at_least_n_intances)
+        PixlSession = sessionmaker(engine)
+        with PixlSession() as session:
+            studies = cast(
+                list[Image],
+                session.query(Image).filter(not_(Image.exported_at.is_(None))).all(),
+            )
+        return len(studies) >= n_studies
 
-    def list_instances() -> str:
-        return f"Expecting at least {min_instances} instances.\northanc-anon instances: {instances}"
+    condition = partial(at_least_n_studies_exported, min_studies)
+    update_wrapper(condition, at_least_n_studies_exported)
+
+    def list_studies() -> str:
+        return f"Expecting at least {min_studies} studies.\nexported studies: {studies}"
 
     wait_for_condition(
         condition,
         seconds_max=seconds_max,
         seconds_interval=seconds_interval,
-        progress_string_fn=list_instances,
+        progress_string_fn=list_studies,
         seconds_condition_stays_true_for=seconds_condition_stays_true_for,
     )
