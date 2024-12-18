@@ -70,9 +70,6 @@ MODALITY_TO_CLASS_UID = {
     "MR": "1.2.840.10008.5.1.4.1.1.4",
     "PT": "1.2.840.10008.5.1.4.1.1.128",
 }
-MODALITY_TAGS = {
-    "DX": {"Presentation LUT Shape": "IDENTITY"},
-}
 
 
 def generate_dicom_dataset(tag_values: dict = TAGS_DICT, **kwargs: Any) -> Dataset:
