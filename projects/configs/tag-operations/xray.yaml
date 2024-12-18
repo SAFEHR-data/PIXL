@@ -14,39 +14,6 @@
 
 # Default configuration to extend base for x-rays
 
-- name: "Volumetric Properties"
-  group: 0x0008
-  element: 0x9206
-  op: "keep"
-- name: "Volume Based Calculation Technique"
-  group: 0x0008
-  element: 0x9207
-  op: "keep"
-- name: "Field Of View Dimension"
-  group: 0x0018
-  element: 0x1149
-  op: "keep"
-#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/dx-detector/00181149
-#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/dx-detector/00181149
-#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/x-ray-acquisition/00181149
-#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/x-ray-acquisition/00181149
-#https://dicom.innolitics.com/ciods/digital-x-ray-image/dx-detector/00181149
-#https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/dx-detector/00181149
-#https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/dx-detector/00181149
-- name: "Imager Pixel Spacing"
-  group: 0x0018
-  element: 0x1164
-  op: "keep"
-#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/dx-detector/00181164
-#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/x-ray-acquisition/00181164
-#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/x-ray-acquisition/00181164
-#https://dicom.innolitics.com/ciods/digital-x-ray-image/dx-detector/00181164
-#https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/dx-detector/00181164
-#https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/dx-detector/00181164
-- name: "Grid"
-  group: 0x0018
-  element: 0x1166
-  op: "keep"
 #https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/x-ray-acquisition/00181166
 #https://dicom.innolitics.com/ciods/x-ray-angiographic-image/x-ray-acquisition/00181166
 #https://dicom.innolitics.com/ciods/digital-x-ray-image/x-ray-grid/00181166
@@ -87,3 +54,7 @@
   element: 0x1041
   op: "keep"
 #X-Ray
+- name: "Presentation LUT Shape"
+  group: 0x2050
+  element: 0x0020
+  op: "keep"

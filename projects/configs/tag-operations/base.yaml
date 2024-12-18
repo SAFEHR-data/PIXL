@@ -95,6 +95,14 @@
   group: 0x0008
   element: 0x9205
   op: "keep"
+- name: "Volumetric Properties"
+  group: 0x0008
+  element: 0x9206
+  op: "keep"
+- name: "Volume Based Calculation Technique"
+  group: 0x0008
+  element: 0x9207
+  op: "keep"
 #################################### 0010 Group ###################################
 #
 #
@@ -136,7 +144,19 @@
   group: 0x0018
   element: 0x1020
   op: "keep"
+- name: "Field Of View Dimension"
+  group: 0x0018
+  element: 0x1149
+  op: "keep"
 #CT, MR, PET, US, X-Ray, and RT Images
+- name: "Imager Pixel Spacing"
+  group: 0x0018
+  element: 0x1164
+  op: "keep"
+- name: "Grid"
+  group: 0x0018
+  element: 0x1166
+  op: "keep"
 - name: "Focal Spot"
   group: 0x0018
   element: 0x1190

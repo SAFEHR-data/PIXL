@@ -14,11 +14,4 @@
 
 # Configuration for extracting data from UCLH OMOP CDM DICOM files
 
-- name: "VR OB Creator"
-  group: 0x0013
-  element: 0x0010
-  op: "keep"
-- name: "VR OB sequence"
-  group: 0x0013
-  element: 0x1010
-  op: "replace"
+[]
