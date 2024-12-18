@@ -22,7 +22,6 @@ tag_operation_files:
         - "base.yaml" #Expected base config file for any project
         - "mri.yaml"
         - "xray.yaml"
-        - "test-extract-uclh-omop-cdm.yaml"
     manufacturer_overrides: ["mri.yaml", "mri-diffusion.yaml"]
 
 series_filters:
