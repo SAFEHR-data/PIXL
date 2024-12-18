@@ -384,7 +384,7 @@ def _anonymise_study_instances(
         )
 
     if not anonymised_instances_bytes:
-        message = f"All instances have been skipped for study {study_uid}"
+        message = "All instances have been skipped for study"
         raise PixlDiscardError(message)
 
     if dicom_validation_errors:
