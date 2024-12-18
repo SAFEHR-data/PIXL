@@ -283,9 +283,14 @@ def _anonymise_study_and_upload(
                 project_name=project_name,
             )
         except PixlDiscardError as discard:
-            logger.warning("Failed to anonymize study {}: {}", study_uid, discard)
+            logger.warning(
+                "Failed to anonymize project: '{}', study: {}: {}", project_name, study_uid, discard
+            )
+            return None
         except Exception:  # noqa: BLE001
-            logger.exception("Failed to anonymize study: {} ", study_uid)
+            logger.exception(
+                "Failed to anonymize project: '{}', study: {}", project_name, study_uid
+            )
             return None
 
     _upload_instances(anonymised_instances_bytes)
@@ -381,7 +386,7 @@ def _anonymise_study_instances(
             "The anonymisation introduced the following validation errors:\n{}",
             parse_validation_results(dicom_validation_errors),
         )
-    logger.success("Finished anonymising project '{}', study: {}", file, study_uid)
+    logger.success("Finished anonymising project: '{}', study: {}", file, study_uid)
     return anonymised_instances_bytes, anonymised_study_uid
 
 
