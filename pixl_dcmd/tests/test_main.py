@@ -93,7 +93,7 @@ def mri_diffusion_dicom_image(test_project_config: PixlConfig) -> pydicom.Datase
     test whether the anonymisation process works as expected when defining overrides.
     """
     manufacturer = "Philips"
-    ds = generate_dicom_dataset(Manufacturer=manufacturer, Modality="MR")
+    ds = generate_dicom_dataset(Manufacturer=manufacturer, Modality="DX")
     tags = _get_mri_diffusion_tags(
         config=test_project_config, manufacturer=manufacturer
     )
