@@ -30,7 +30,7 @@ def test_config_from_file():
     project_config = load_project_config(TEST_CONFIG)
 
     assert project_config.project.name == "test-extract-uclh-omop-cdm"
-    assert project_config.project.modalities == ["DX", "CR", "MR"]
+    assert project_config.project.modalities == ["DX", "CR"]
     assert project_config.destination.dicom == "ftps"
     assert project_config.destination.parquet == "ftps"
 
