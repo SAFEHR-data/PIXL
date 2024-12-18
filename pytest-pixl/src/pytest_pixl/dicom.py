@@ -62,8 +62,7 @@ TAGS_DICT = {
     "pixel_data": None,
 }
 
-# From:
-# https://dicom.nema.org/medical/dicom/current/output/chtml/part04/sect_b.5.html
+# Mapping based on: https://dicom.nema.org/medical/dicom/current/output/chtml/part04/sect_b.5.html
 MODALITY_TO_CLASS_UID = {
     "CR": "1.2.840.10008.5.1.4.1.1.1",
     "CT": "1.2.840.10008.5.1.4.1.1.2",

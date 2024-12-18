@@ -430,6 +430,10 @@
   group: 0x0040
   element: 0xA124
   op: "replace_UID"
+- name: "Presentation LUT Shape"
+  group: 0x2050
+  element: 0x0020
+  op: "keep"
 - name: "Referenced Frame of Reference UID"
   group: 0x3006
   element: 0x0024
