@@ -16,11 +16,3 @@
   group: 0x0008
   element: 0x0064
   op: keep
-- name: Slice Thickness
-  group: 0x0018
-  element: 0x0050
-  op: keep
-- name: KVP
-  group: 0x0018
-  element: 0x0060
-  op: keep
