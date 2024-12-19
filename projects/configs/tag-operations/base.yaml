@@ -51,7 +51,7 @@
   group: 0x0008
   element: 0x0020
   op: "replace"
-- name: "General Study"
+- name: "Study Time"
   group: 0x0008
   element: 0x0030
   op: "replace"
@@ -83,7 +83,7 @@
   group: 0x0008
   element: 0x1090
   op: "keep"
-- name: "Referenced Series Sequence"
+- name: "Referenced SOP Instance UID"
   group: 0x0008
   element: 0x1155
   op: "replace_UID"
@@ -135,11 +135,15 @@
 #################################### 0018 Group ###################################
 #
 #
-- name: "Scan Options Attribute"
+- name: "Scan Options"
   group: 0x0018
   element: 0x0022
   op: "replace"
 #CT, MR, X-Ray
+- name: Slice Thickness
+  group: 0x0018
+  element: 0x0050
+  op: keep
 - name: "Software Version"
   group: 0x0018
   element: 0x1020
@@ -149,14 +153,10 @@
   element: 0x1149
   op: "keep"
 #CT, MR, PET, US, X-Ray, and RT Images
-- name: "Imager Pixel Spacing"
+- name: kVp
   group: 0x0018
-  element: 0x1164
-  op: "keep"
-- name: "Grid"
-  group: 0x0018
-  element: 0x1166
-  op: "keep"
+  element: 0x0060
+  op: keep
 - name: "Focal Spot"
   group: 0x0018
   element: 0x1190
@@ -372,6 +372,7 @@
   element: 0x0140
   op: "replace_UID"
 #CT, MR, PET, US, X-Ray, and RT Images
+
 #################################### 3006 Group ###################################
 #
 #
