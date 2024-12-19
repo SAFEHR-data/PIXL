@@ -16,11 +16,12 @@
 from __future__ import annotations
 
 import sys
+import threading
+import typing
 from contextlib import contextmanager
 from dataclasses import dataclass
 import logging
 from io import StringIO
-from logging import Logger
 from pathlib import Path
 from typing import Generator
 
@@ -30,20 +31,8 @@ from dicom_validator.spec_reader.edition_reader import EditionReader
 from dicom_validator.validator.iod_validator import IODValidator
 from pydicom import Dataset
 
-
-@contextmanager
-def redirect_stdout_to_debug(_logger: Logger) -> Generator[None, None, None]:
-    """Within the context manager, redirect all print statements to debug statements."""
-    old_stdout = sys.stdout
-    sys.stdout = StringIO()
-    yield
-    try:
-        sys.stdout.seek(0)
-        output = sys.stdout.readlines()
-        for line in output:
-            _logger.debug(line.strip())
-    finally:
-        sys.stdout = old_stdout
+if typing.TYPE_CHECKING:
+    from loguru import Logger
 
 
 class DicomValidator:
@@ -52,7 +41,7 @@ class DicomValidator:
 
         # Default from dicom_validator but defining here to be explicit
         standard_path = str(Path.home() / "dicom-validator")
-        with redirect_stdout_to_debug(logger):
+        with _redirect_stdout_to_debug(logger):
             edition_reader = EditionReader(standard_path)
             destination = edition_reader.get_revision(self.edition, False)
         json_path = Path(destination, "json")
@@ -90,6 +79,28 @@ class DicomValidator:
                 self.diff_errors[key] = self.anon_errors[key]
 
         return self.diff_errors
+
+
+thread_local = threading.local()
+
+
+@contextmanager
+def _redirect_stdout_to_debug(_logger: Logger) -> Generator[None, None, None]:
+    """Within the context manager, redirect all print statements to debug statements."""
+    old_stdout = sys.stdout
+    # sys.stdout is shared across all threads so use thread-local storage
+    if not hasattr(thread_local, "stdout"):
+        thread_local.stdout = StringIO()
+    sys.stdout = thread_local.stdout
+    _logger.trace("Redirecting stdout to {}", sys.stdout)
+    yield
+    try:
+        sys.stdout.seek(0)
+        output = sys.stdout.readlines()
+        for line in output:
+            _logger.debug(line.strip())
+    finally:
+        sys.stdout = old_stdout
 
 
 @dataclass
