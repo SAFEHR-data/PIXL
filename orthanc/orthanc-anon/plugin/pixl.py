@@ -375,17 +375,16 @@ def _anonymise_study_instances(
                 anonymised_study_uid = dataset[0x0020, 0x000D].value
                 dicom_validation_errors |= instance_validation_errors
 
-    if skipped_instance_counts:
-        logger.info(
-            "Project '{}' Study {}, skipped instance counts: {}",
-            project_name,
-            study_uid,
-            dict(skipped_instance_counts),
-        )
-
     if not anonymised_instances_bytes:
-        message = "All instances have been skipped for study"
+        message = f"All instances have been skipped for study: {dict(skipped_instance_counts)}"
         raise PixlDiscardError(message)
+
+    logger.debug(
+        "Project '{}' Study {}, skipped instances: {}",
+        project_name,
+        study_uid,
+        dict(skipped_instance_counts),
+    )
 
     if dicom_validation_errors:
         logger.warning(
