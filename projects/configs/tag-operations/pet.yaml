@@ -1,0 +1,150 @@
+#  Copyright (c) University College London Hospitals NHS Foundation Trust
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
+- name: Series Date
+  group: 0x0008
+  element: 0x0021
+  op: replace
+- name: Acquisition Date
+  group: 0x0008
+  element: 0x0022
+  op: replace
+- name: Series Time
+  group: 0x0008
+  element: 0x0031
+  op: replace
+- name: Acquisition Time
+  group: 0x0008
+  element: 0x0032
+  op: replace
+- name: Code Value
+  group: 0x0008
+  element: 0x0100
+  op: keep
+- name: Coding Scheme Designator
+  group: 0x0008
+  element: 0x0102
+  op: keep
+- name: Code Meaning
+  group: 0x0008
+  element: 0x0104
+  op: keep
+- name: Mapping Resource
+  group: 0x0008
+  element: 0x0105
+  op: keep
+- name: Context Group Version
+  group: 0x0008
+  element: 0x0106
+  op: keep
+- name: Context Identifier
+  group: 0x0008
+  element: 0x010f
+  op: keep
+- name: Radiopharmaceutical
+  group: 0x0018
+  element: 0x0031
+  op: keep
+- name: Slice Thickness
+  group: 0x0018
+  element: 0x0050
+  op: keep
+- name: Radiopharmaceutical Start Time
+  group: 0x0018
+  element: 0x1072
+  op: keep
+- name: Radionuclide Total Dose
+  group: 0x0018
+  element: 0x1074
+  op: keep
+- name: Radionuclide Half Life
+  group: 0x0018
+  element: 0x1075
+  op: keep
+- name: Radionuclide Positron Fraction
+  group: 0x0018
+  element: 0x1076
+  op: keep
+- name: Radiopharmaceutical Start DateTime
+  group: 0x0018
+  element: 0x1078
+  op: keep
+- name: Collimator Type
+  group: 0x0018
+  element: 0x1181
+  op: keep
+- name: Actual Frame Duration
+  group: 0x0018
+  element: 0x1242
+  op: keep
+- name: Corrected Image
+  group: 0x0028
+  element: 0x0051
+  op: keep
+- name: Radiopharmaceutical Information Sequence
+  group: 0x0054
+  element: 0x0016
+  op: keep
+- name: Number of Slices
+  group: 0x0054
+  element: 0x0081
+  op: keep
+- name: Radionuclide Code Sequence
+  group: 0x0054
+  element: 0x0300
+  op: keep
+- name: Radiopharmaceutical Code Sequence
+  group: 0x0054
+  element: 0x0304
+  op: keep
+- name: Patient Orientation Code Sequence
+  group: 0x0054
+  element: 0x0410
+  op: keep
+- name: Patient Orientation Modifier Code Sequence
+  group: 0x0054
+  element: 0x0412
+  op: keep
+- name: Patient Gantry Relationship Code Sequence
+  group: 0x0054
+  element: 0x0414
+  op: keep
+- name: Series Type
+  group: 0x0054
+  element: 0x1000
+  op: keep
+- name: Units
+  group: 0x0054
+  element: 0x1001
+  op: keep
+- name: Counts Source
+  group: 0x0054
+  element: 0x1002
+  op: keep
+- name: Decay Correction
+  group: 0x0054
+  element: 0x1102
+  op: keep
+- name: Frame Reference Time
+  group: 0x0054
+  element: 0x1300
+  op: keep
+- name: Decay Factor
+  group: 0x0054
+  element: 0x1321
+  op: keep
+- name: Image Index
+  group: 0x0054
+  element: 0x1330
+  op: keep
