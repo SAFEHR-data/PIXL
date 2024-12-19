@@ -36,10 +36,11 @@ def redirect_stdout_to_debug(_logger: Logger) -> Generator[None, None, None]:
     """Within the context manager, redirect all print statements to debug statements."""
     old_stdout = sys.stdout
     sys.stdout = StringIO()
+    yield
     try:
-        yield
-        output = sys.stdout.getvalue()
-        for line in output.splitlines():
+        sys.stdout.seek(0)
+        output = sys.stdout.readlines()
+        for line in output:
             _logger.debug(line.strip())
     finally:
         sys.stdout = old_stdout
@@ -52,7 +53,9 @@ class DicomValidator:
         # Default from dicom_validator but defining here to be explicit
         standard_path = str(Path.home() / "dicom-validator")
         with redirect_stdout_to_debug(logger):
+            print("test")
             edition_reader = EditionReader(standard_path)
+            print("second test")
             destination = edition_reader.get_revision(self.edition, False)
         json_path = Path(destination, "json")
         self.dicom_info = EditionReader.load_dicom_info(json_path)
