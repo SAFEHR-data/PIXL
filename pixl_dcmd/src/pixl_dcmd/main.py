@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import typing
+from functools import lru_cache
 from io import BytesIO
 
 import requests
@@ -37,7 +38,6 @@ from pixl_dcmd._dicom_helpers import (
     get_study_info,
 )
 from pixl_dcmd._tag_schemes import _scheme_list_to_dict, merge_tag_schemes
-
 
 if typing.TYPE_CHECKING:
     from pixl_dcmd._dicom_helpers import StudyInfo
@@ -222,6 +222,7 @@ def _secure_hash(
         dataset[grp, el].value = hashed_value
 
 
+@lru_cache(maxsize=1000)
 def _hash_values(pat_value: str, project_slug: str, hash_len: int = 0) -> str:
     """
     Utility function for hashing values using the hasher API.
