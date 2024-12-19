@@ -15,10 +15,9 @@
 
 from __future__ import annotations
 
-import sys
 import threading
 import typing
-from contextlib import contextmanager
+from contextlib import contextmanager, redirect_stdout
 from dataclasses import dataclass
 import logging
 from io import StringIO
@@ -87,20 +86,18 @@ thread_local = threading.local()
 @contextmanager
 def _redirect_stdout_to_debug(_logger: Logger) -> Generator[None, None, None]:
     """Within the context manager, redirect all print statements to debug statements."""
-    old_stdout = sys.stdout
+
     # sys.stdout is shared across all threads so use thread-local storage
     if not hasattr(thread_local, "stdout"):
         thread_local.stdout = StringIO()
-    sys.stdout = thread_local.stdout
-    _logger.trace("Redirecting stdout to {}", sys.stdout)
-    yield
-    try:
-        sys.stdout.seek(0)
-        output = sys.stdout.readlines()
-        for line in output:
-            _logger.debug(line.strip())
-    finally:
-        sys.stdout = old_stdout
+
+    with redirect_stdout(thread_local.stdout):
+        yield
+
+    thread_local.stdout.seek(0)
+    output = thread_local.stdout.readlines()
+    for line in output:
+        _logger.debug(line.strip())
 
 
 @dataclass
