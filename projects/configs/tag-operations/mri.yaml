@@ -32,14 +32,6 @@
   group: 0x0008
   element: 0x0033
   op: replace
-- name: "Volumetric Properties"
-  group: 0x0008
-  element: 0x9206
-  op: "keep"
-- name: "Volume Based Calculation Technique"
-  group: 0x0008
-  element: 0x9207
-  op: "keep"
 - name: "Complex Image Component"
   group: 0x0008
   element: 0x9208
@@ -69,10 +61,6 @@
 - name: "Sequence Name"
   group: 0x0018
   element: 0x0024
-  op: "keep"
-- name: "Slice Thickness"
-  group: 0x0018
-  element: 0x0050
   op: "keep"
 - name: "Repetition Time"
   group: 0x0018
@@ -123,22 +111,6 @@
 - name: "Percent Phase Field of View"
   group: 0x0018
   element: 0x0094
-  op: "keep"
-#https://dicom.innolitics.com/ciods/mr-image/mr-image/00180094
-#https://dicom.innolitics.com/ciods/mr-spectroscopy/mr-spectroscopy-multi-frame-functional-groups/52009229/00189103/00180094
-#https://dicom.innolitics.com/ciods/enhanced-mr-image/enhanced-mr-image-multi-frame-functional-groups/52009229/00189125/00180094
-#https://dicom.innolitics.com/ciods/enhanced-mr-color-image/enhanced-mr-color-image-multi-frame-functional-groups/52009229/00189125/00180094
-- name: "Field Of View Dimension"
-  group: 0x0018
-  element: 0x1149
-  op: "keep"
-- name: "Imager Pixel Spacing"
-  group: 0x0018
-  element: 0x1164
-  op: "keep"
-- name: "Grid"
-  group: 0x0018
-  element: 0x1166
   op: "keep"
 - name: "Receive Coil Name"
   group: 0x0018
