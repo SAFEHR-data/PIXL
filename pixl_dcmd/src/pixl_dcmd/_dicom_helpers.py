@@ -53,9 +53,7 @@ class DicomValidator:
         # Default from dicom_validator but defining here to be explicit
         standard_path = str(Path.home() / "dicom-validator")
         with redirect_stdout_to_debug(logger):
-            print("test")
             edition_reader = EditionReader(standard_path)
-            print("second test")
             destination = edition_reader.get_revision(self.edition, False)
         json_path = Path(destination, "json")
         self.dicom_info = EditionReader.load_dicom_info(json_path)
