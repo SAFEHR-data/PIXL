@@ -27,7 +27,7 @@ from pytest_pixl.helpers import run_subprocess, wait_for_condition
 
 pytest_plugins = "pytest_pixl"
 
-SECONDS_TO_WAIT_FOR_CONDITION = 501
+SECONDS_TO_WAIT_FOR_CONDITION = 251
 
 
 @pytest.fixture()
