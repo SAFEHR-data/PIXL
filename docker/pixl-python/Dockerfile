@@ -16,7 +16,8 @@ SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 
 ARG TEST="false"
 
-RUN export DEBIAN_FRONTEND=noninteractive && \
+RUN <<EOF
+    export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
     apt-get install --yes --no-install-recommends \
         procps \
@@ -26,10 +27,10 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
         curl \
         gnupg \
         locales \
-        tzdata
-
-RUN sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
-RUN  apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
+        tzdata && \
+    sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen && locale-gen && \
+    apt-get autoremove --yes && apt-get clean --yes && rm -rf /var/lib/apt/lists/*
+EOF
 
 HEALTHCHECK CMD /usr/bin/curl -f http://0.0.0.0:8000/heart-beat || exit 1
 
