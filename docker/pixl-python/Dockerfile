@@ -34,23 +34,37 @@ EOF
 
 HEALTHCHECK CMD /usr/bin/curl -f http://0.0.0.0:8000/heart-beat || exit 1
 
+# install uv
+COPY --from=ghcr.io/astral-sh/uv:0.5.10 /uv /uvx /bin/
+
 WORKDIR /app
 # specify what we're installing using build time arg
 ARG PIXL_PACKAGE_DIR
 
-# Install requirements before copying modules
-COPY ./pixl_core/pyproject.toml ./pixl_core/pyproject.toml
-COPY ./$PIXL_PACKAGE_DIR/pyproject.toml ./$PIXL_PACKAGE_DIR/pyproject.toml
-RUN pip3 install --no-cache-dir pixl_core/ \
-    && pip3 install --no-cache-dir $PIXL_PACKAGE_DIR/
+# Install our code:
 
-# Install our code
+# COPY doesn't support a wildcard copy which also preserves directory structure,
+# so we have to specify everything separately. We could have copied everything, but
+# then every change would trigger a rebuild of all containers.
+
+# The workspace project file
+COPY pyproject.toml .
+# All pyproject.toml files referenced by the root one must exist or uv will error
+COPY ./pixl_imaging/pyproject.toml pixl_imaging/pyproject.toml
+COPY ./pixl_export/pyproject.toml pixl_export/pyproject.toml
+COPY ./pixl_dcmd/pyproject.toml pixl_dcmd/pyproject.toml
+COPY ./cli/pyproject.toml cli/pyproject.toml
+COPY ./hasher/pyproject.toml hasher/pyproject.toml
+# prereqs for all projects
+COPY ./pytest-pixl/ pytest-pixl/
 COPY ./pixl_core/ pixl_core/
-COPY ./$PIXL_PACKAGE_DIR/ .
-RUN pip install --no-cache-dir --force-reinstall --no-deps pixl_core/ \
-    --no-cache-dir --force-reinstall --no-deps . && \
-    if [ "$TEST" = "true" ]; then pip install --no-cache-dir pixl_core/[test] .[test]; fi
+# the actual thing we are building
+COPY ./$PIXL_PACKAGE_DIR/ $PIXL_PACKAGE_DIR/
+RUN uv venv
+RUN uv sync --package "$PIXL_PACKAGE_DIR"
 
+# make uvicorn etc available
+ENV PATH="/app/.venv/bin:$PATH"
 
 # Each container should be run with a different entry point
 FROM pixl_python_base AS export_api
