@@ -17,7 +17,7 @@
 # Run migrations (unless SKIP_ALEMBIC is true) then run the app.
 
 set -eux -o pipefail
-cd /app/alembic
+cd /app/pixl_imaging/alembic
 if [ "${SKIP_ALEMBIC:-false}" = false ]; then
     echo "Running alembic migrations"
     alembic upgrade head
