@@ -18,27 +18,28 @@ SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 # where you get a warning when installing system-wide packages.
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
-    apt-get install --yes --no-install-recommends python3-venv tzdata
-RUN python3 -m venv /.venv
+    apt-get install --yes --no-install-recommends curl tzdata && \
+    apt-get autoremove --yes && apt-get clean --yes && rm -rf /var/lib/apt/lists/*
 
-# Install curl for now, but try to remove this dependency
-RUN apt-get --assume-yes install curl
+# install uv
+COPY --from=ghcr.io/astral-sh/uv:0.5.10 /uv /uvx /bin/
 
-# Install requirements before copying modules
-COPY ./pixl_core/pyproject.toml /pixl_core/pyproject.toml
-COPY ./pixl_dcmd/pyproject.toml /pixl_dcmd/pyproject.toml
-
-RUN --mount=type=cache,target=/root/.cache \
-    /.venv/bin/pip install pixl_core/ \
-    && /.venv/bin/pip install pixl_dcmd/
-
-COPY ./pixl_core/ /pixl_core
-RUN --mount=type=cache,target=/root/.cache \
-    /.venv/bin/pip install --no-cache-dir --force-reinstall --no-deps ./pixl_core
-
-COPY ./pixl_dcmd/ /pixl_dcmd
-RUN --mount=type=cache,target=/root/.cache \
-    /.venv/bin/pip install --no-cache-dir --force-reinstall --no-deps ./pixl_dcmd
+# Install our code
+# The workspace project file
+COPY pyproject.toml .
+# All pyproject.toml files referenced by the root one must exist or uv will error
+COPY ./pixl_imaging/pyproject.toml pixl_imaging/pyproject.toml
+COPY ./pixl_export/pyproject.toml pixl_export/pyproject.toml
+COPY ./cli/pyproject.toml cli/pyproject.toml
+COPY ./hasher/pyproject.toml hasher/pyproject.toml
+# prereqs for dcmd
+COPY ./pytest-pixl/ pytest-pixl/
+COPY ./pixl_core/ pixl_core/
+COPY ./pixl_dcmd/ pixl_dcmd
+RUN uv venv
+# Need --no-editable so that our packages are in
+# site-packages, so orthanc plugin manager can find them
+RUN uv sync --no-editable --package pixl-dcmd
 
 ARG ORTHANC_DIR
 COPY ./orthanc/${ORTHANC_DIR}/plugin/pixl.py /etc/orthanc/pixl.py
