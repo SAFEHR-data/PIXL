@@ -70,7 +70,9 @@ jobs:
 
             - name: Run tests and generate coverage report
               working-directory: ${{ matrix.package_dir }}
-              run: COV_CORE_SOURCE=src COV_CORE_CONFIG=.coveragerc COV_CORE_DATAFILE=.coverage.eager pytest --cov=src --cov-append --cov-report=xml --cov-report=term-missing
+              run: |
+                  source ../.venv/bin/activate
+                  COV_CORE_SOURCE=src COV_CORE_CONFIG=.coveragerc COV_CORE_DATAFILE=.coverage.eager pytest --cov=src --cov-append --cov-report=xml --cov-report=term-missing
               env:
                   ENV: test
                   AZURE_KEY_VAULT_NAME: test
@@ -128,7 +130,7 @@ jobs:
                   HASHER_API_AZ_TENANT_ID: ${{ secrets.EXPORT_AZ_TENANT_ID }}
                   HASHER_API_AZ_KEY_VAULT_NAME: ${{ secrets.EXPORT_AZ_KEY_VAULT_NAME }}
               run: |
-                  ./run-system-test.sh coverage
+                  uv run ./run-system-test.sh coverage
                   echo FINISHED SYSTEM TEST SCRIPT
 
             - name: Dump queue docker logs for debugging
