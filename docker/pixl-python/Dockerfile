@@ -74,4 +74,4 @@ FROM pixl_python_base AS hasher_api
 ENTRYPOINT ["uvicorn", "hasher.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
 FROM pixl_python_base AS imaging_api
-ENTRYPOINT ["/app/scripts/migrate_and_run.sh"]
+ENTRYPOINT ["/app/pixl_imaging/scripts/migrate_and_run.sh"]
