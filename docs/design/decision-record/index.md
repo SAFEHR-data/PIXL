@@ -14,26 +14,6 @@ You can install it via `npm install -g adr-log`, removing the template
 * [ADR-0003](0003-dicom-processing.md) - DICOM server and processing
 * [ADR-0004](0004-multiple-project-configuration.md) - Multiple-project configuration
 * [ADR-0005](0005-project-based-study-routing.md) - Project-based study routing
+* [ADR-0006](0006-data-export.md) - Export of parquet files and DICOM data
 
 <!-- adrlogstop -->
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
