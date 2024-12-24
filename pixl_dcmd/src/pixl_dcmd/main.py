@@ -147,7 +147,7 @@ def anonymise_dicom(
         msg = f"Dropping DICOM Modality: {dataset.Modality}"
         raise PixlSkipInstanceError(msg)
 
-    logger.info("Anonymising received instance: {}", study_info)
+    logger.debug("Anonymising instance for: {}", study_info)
 
     # Merge tag schemes
     tag_operations = load_tag_operations(project_config)

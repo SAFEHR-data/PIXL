@@ -265,6 +265,8 @@ def _import_study_from_raw(study_resource_id: str, study_uid: str) -> None:
                 zipped_study=zipped_study,
                 study_uid=study_uid,
             )
+        except PixlDiscardError as discard:
+            logger.warning("Failed to anonymize study {}: {}", study_uid, discard)
         except Exception:  # noqa: BLE001
             logger.exception("Failed to anonymize study: {} ", study_uid)
             return
@@ -357,6 +359,7 @@ def _anonymise_study_instances(zipped_study: ZipFile, study_uid: str) -> tuple[l
         message = f"All instances have been skipped for study {study_uid}"
         raise PixlDiscardError(message)
 
+    logger.success("Finished anonymising file: {} for study: {}", file, study_uid)
     return anonymised_instances_bytes, anonymised_study_uid
 
 
