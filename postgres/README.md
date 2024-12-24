@@ -5,3 +5,14 @@ container and the pixl_imaging api uses [alembic](https://alembic.sqlalchemy.org
 This allows a reproducible way to update (or rollback) alterations to the PIXL pipeline's database schema.
 
 See  [/pixl_imaging/alembic](../pixl_imaging/alembic) for how these are defined and how to create new migrations.
+
+## 'PIXL/postgres' Directory Contents
+
+### Files
+
+pixl-db_init.sh
+
+postgres.conf
+
+README.md
+
