@@ -164,7 +164,7 @@ services:
                     "/probes/test-aliveness.py --user=$ORTHANC_USERNAME --pwd=$ORTHANC_PASSWORD",
                 ]
             start_period: 10s
-            retries: 2
+            retries: 10
             interval: 3s
             timeout: 2s
 
@@ -226,7 +226,7 @@ services:
         restart: "always"
 
     queue:
-        image: rabbitmq:3.13.6-management@sha256:54f115b7c9c619e59b703e326ebfc7fc762f8c7321eee34f6fc0646457fffe20
+        image: rabbitmq:3.13.7-management@sha256:1c32767bb8f7afb93fe99b890c05a250936bc2836fa3fd0154058f3953207095
         hostname: queue-host
         environment:
             RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}

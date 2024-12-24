@@ -11,7 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-FROM postgres:16-bookworm@sha256:d0f363f8366fbc3f52d172c6e76bc27151c3d643b870e1062b4e8bfe65baf609
+FROM postgres:16-bookworm@sha256:5620f242bbc0e17478556102327e7efcf60ab48de3607c9e0ea98800841785ec
 
 # OS setup
 RUN export DEBIAN_FRONTEND=noninteractive && \

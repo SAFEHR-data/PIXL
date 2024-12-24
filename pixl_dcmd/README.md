@@ -8,32 +8,36 @@ For external users, the `pixl_dcmd` package provides the following functionality
 - `anonymise_dicom()`: Applies the [anonymisation operations](#tag-scheme-anonymisation) 
    for the appropriate tag scheme using [Kitware Dicom Anonymizer](https://github.com/KitwareMedical/dicom-anonymizer)
    and deletes any tags not mentioned in the tag scheme. The dataset is updated in place.
-     - There is also an option to synchronise to the PIXL database, external users can avoid this
-   to just run the allow-list and applying the tag scheme.
      - Will throw a `PixlSkipInstanceError` for any series based on the project config file. Specifically, an error
        will be thrown if:
        - the series description matches any series in `series_filters` (usually to remove localiser series)
        - the modality of the DICOM is not in `modalities`
 - `anonymise_and_validate_dicom()`: Compares DICOM validation issues before and after calling `anonymise_dicom`
-  and returns a dictionary of the new issues. Can also avoid synchronising with PIXL database
+  and returns a dictionary of the new issues
 
 ```python
+import os
 import pathlib
 import pydicom
 
+from core.project_config.pixl_config_model import load_config_and_validate
 from pixl_dcmd import anonymise_and_validate_dicom
 
+config_dir = pathlib.Path().cwd().parents[2] / "projects" / "configs"
+config_path = config_dir / "test-external-user.yaml"
+os.environ["PROJECT_CONFIGS_DIR"] = config_dir.as_posix()  # needed to validate config
+config = load_config_and_validate(config_path)
+
 dataset_path = pydicom.data.get_testdata_file(
-    "MR-SIEMENS-DICOM-WithOverlays.dcm", download=True
+    "MR-SIEMENS-DICOM-WithOverlays.dcm", download=True,
 )
-config_path = pathlib.Path(__file__).parents[2] / "projects/configs/test-extract-uclh-omop-cdm.yaml"
-# updated inplace
 dataset = pydicom.dcmread(dataset_path)
-validation_issues = anonymise_and_validate_dicom(dataset, config_path=config_path, synchronise_pixl_db=False)
+
+# the dataset is updated inplace
+validation_issues = anonymise_and_validate_dicom(dataset, config=config)
 assert validation_issues == {}
 assert dataset != pydicom.dcmread(dataset_path)
 ```
-
 
 ## Installation
 

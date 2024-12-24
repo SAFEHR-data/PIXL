@@ -16,6 +16,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+import pytest_check
 from core.project_config import load_project_config
 from core.project_config.tag_operations import TagOperations, load_tag_operations
 from decouple import config
@@ -39,7 +40,7 @@ def test_merge_base_only_tags(base_only_tag_scheme):
     THEN the result should be the same as the base file
     """
     tags = merge_tag_schemes(base_only_tag_scheme)
-    expected = [*base_only_tag_scheme.base[0], *base_only_tag_scheme.base[1]]
+    expected = [tag for base in base_only_tag_scheme.base for tag in base]
     count_tags = dict()
     for tag in expected:
         key = f"{tag['group']:04x},{tag['element']:04x}"
@@ -49,9 +50,9 @@ def test_merge_base_only_tags(base_only_tag_scheme):
             count_tags[key] = 1
 
     for key, values in count_tags.items():
-        assert (
-            values == 1
-        ), f"{key} is replicated please check config files to remove it"
+        pytest_check.equal(
+            values, 1, msg=f"{key} is replicated please check config files to remove it"
+        )
 
     assert tags == expected
 

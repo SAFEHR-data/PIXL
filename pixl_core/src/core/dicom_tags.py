@@ -16,7 +16,6 @@ For defining private DICOM tags.
 This information is currently duplicated in
  - pixl_imaging/tests/orthanc_raw_config/orthanc.json
  - orthanc/orthanc-raw/config/orthanc.json
- - projects/configs/tag-operations/test-extract-uclh-omop-cdm.yaml
 
 For now you will have to manually keep these in step.
 """
@@ -66,17 +65,6 @@ class PrivateDicomTag:
         if self.required_private_block is None:
             return True
         return self.required_private_block == actual_private_block
-
-
-DICOM_TAG_PROJECT_NAME = PrivateDicomTag(
-    group_id=0x000D,
-    required_private_block=0x10,
-    offset_id=0x01,
-    creator_string="UCLH PIXL",
-    tag_nickname="UCLHPIXLProjectName",
-    vr="LO",  # LO = Long string max 64
-    unknown_value="__pixl_unknown_value__",
-)
 
 
 def add_private_tag(
