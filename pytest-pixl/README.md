@@ -102,3 +102,19 @@ default DICOM tag values used to generate fake DICOM data in `generate_dicom_dat
 The JSON file was created by running [`scripts/create_default_dicom_tags_json.py`](./scripts/create_default_dicom_tags_json.py),
 with the details implemented in [`pytest_pixl.dicom._create_default_json`](./src/pytest_pixl/dicom.py).
 
+## 'PIXL/pytest-pixl' Directory Contents
+
+### Subdirectories
+
+[scripts](./scripts/README.md)
+
+[src](./src/README.md)
+
+[tests](./tests/README.md)
+
+### Files
+
+pyproject.toml
+
+README.md
+
