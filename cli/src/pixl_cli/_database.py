@@ -131,7 +131,7 @@ def all_images_for_project(project_slug: str) -> pd.DataFrame:
     PixlSession = sessionmaker(engine)
 
     query = (
-        select(Image.accession_number, Image.study_date, Image.mrn, Image.exported_at)
+        select(Image.accession_number, Image.study_uid, Image.mrn, Image.exported_at)
         .join(Extract)
         .where(Extract.slug == project_slug)
     )
