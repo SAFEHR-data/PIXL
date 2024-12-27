@@ -101,7 +101,7 @@ def _filter_exported_messages(
 ) -> pd.DataFrame:
     merged = messages_df.merge(
         images_df,
-        on=["accession_number", "mrn", "study_date"],
+        on=["accession_number", "mrn", "study_uid"],
         how="left",
         validate="one_to_one",
         suffixes=(None, None),
