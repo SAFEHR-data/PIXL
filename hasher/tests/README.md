@@ -1,12 +1,17 @@
 ## 'PIXL/hasher/tests' Directory Contents
 
-### Files
+<details>
+<summary>
+<h3> Files </h3> 
 
-conftest.py
+</summary>
 
-test_endpoints.py
+| **Code** | **User docs** |
+| :--- | :--- |
+| conftest.py | README.md |
+| test_endpoints.py | |
+| test_hashing.py | |
+| __init__.py | |
 
-test_hashing.py
-
-__init__.py
+</details>
 

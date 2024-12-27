@@ -1,6 +1,10 @@
 ## 'PIXL/docker' Directory Contents
 
-### Subdirectories
+<details>
+<summary>
+<h3> Subdirectories with links to the relevant README </h3> 
+
+</summary>
 
 [export-api](./export-api/README.md)
 
@@ -14,9 +18,17 @@
 
 [postgres](./postgres/README.md)
 
-### Files
+</details>
 
-.dockerignore
+<details>
+<summary>
+<h3> Files </h3> 
 
-common.env
+</summary>
+
+| **Configuration** | **User docs** | **Housekeeping** |
+| :--- | :--- | :--- |
+| common.env | README.md | .dockerignore |
+
+</details>
 

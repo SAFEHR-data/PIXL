@@ -1,6 +1,14 @@
 ## 'PIXL/docker/orthanc-anon' Directory Contents
 
-### Files
+<details>
+<summary>
+<h3> Files </h3> 
 
-Dockerfile
+</summary>
+
+| **Configuration** | **User docs** |
+| :--- | :--- |
+| Dockerfile | README.md |
+
+</details>
 

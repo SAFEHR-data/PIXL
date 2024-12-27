@@ -145,15 +145,29 @@ pytest -vs tests/test_docker_commands.py #e.g., for particular tests
 
 ## 'PIXL/cli' Directory Contents
 
-### Subdirectories
+<details>
+<summary>
+<h3> Subdirectories with links to the relevant README </h3> 
+
+</summary>
 
 [src](./src/README.md)
 
 [tests](./tests/README.md)
 
-### Files
+</details>
 
-pyproject.toml
+<details>
+<summary>
+<h3> Files </h3> 
 
-README.md
+</summary>
+
+| **Configuration** | **User docs** |
+| :--- | :--- |
+| pyproject.toml | README.md |
+
+</details>
+
+
 

@@ -61,6 +61,8 @@ See the [Azure Key vault setup](../docs/setup/azure-keyvault.md) documentation f
 
 Save the credentials in `.secrets.env` and a LastPass `Hasher API <environment> secrets` note.
 
+SK QUESTION: is the reference to Last Pass something that is specific to us or is it a dependency somebody else would need. actually I assume the whole Azure thing is rather how we have chosen to do that rather than a necessity for somebody i.e. they might use a different system for storing their hashes
+
 ```
 HASHER_API_AZ_CLIENT_ID=<generated-app-ID>
 HASHER_API_AZ_CLIENT_PASSWORD=<generated-password>
@@ -70,15 +72,29 @@ HASHER_API_AZ_KEY_VAULT_NAME=<key-vault-name>
 
 ## 'PIXL/hasher' Directory Contents
 
-### Subdirectories
+<details>
+<summary>
+<h3> Subdirectories with links to the relevant README </h3> 
+
+</summary>
 
 [src](./src/README.md)
 
 [tests](./tests/README.md)
 
-### Files
+</details>
 
-pyproject.toml
+<details>
+<summary>
+<h3> Files </h3> 
 
-README.md
+</summary>
+
+| **Configuration** | **User docs** |
+| :--- | :--- |
+| pyproject.toml | README.md |
+
+</details>
+
+
 

@@ -1,12 +1,17 @@
 ## 'PIXL/hasher/src/hasher' Directory Contents
 
-### Files
+<details>
+<summary>
+<h3> Files </h3> 
 
-endpoints.py
+</summary>
 
-hashing.py
+| **Code** | **User docs** |
+| :--- | :--- |
+| endpoints.py | README.md |
+| hashing.py | |
+| main.py | |
+| __init__.py | |
 
-main.py
-
-__init__.py
+</details>
 
