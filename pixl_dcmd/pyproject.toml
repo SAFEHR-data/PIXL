@@ -27,6 +27,7 @@ test = [
 ]
 dev = [
     "core[dev]==0.2.0rc0",
+    "setuptools>=61"
 ]
 
 [build-system]
