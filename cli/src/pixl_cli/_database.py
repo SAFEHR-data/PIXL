@@ -89,8 +89,8 @@ def _filter_existing_images(
 ) -> pd.DataFrame:
     # DataFrame indices must batch when using df.isin (or df.index.isin)
     # So we re-index the DataFrames to match on the columns we want to compare
-    messages_df_reindexed = messages_df.set_index(["accession_number", "mrn", "study_date"])
-    images_df_reindexed = images_df.set_index(["accession_number", "mrn", "study_date"])
+    messages_df_reindexed = messages_df.set_index(["accession_number", "mrn", "study_uid"])
+    images_df_reindexed = images_df.set_index(["accession_number", "mrn", "study_uid"])
     keep_indices = ~messages_df_reindexed.index.isin(images_df_reindexed.index)
     return messages_df[keep_indices]
 
