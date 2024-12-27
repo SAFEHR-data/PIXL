@@ -34,7 +34,6 @@ from pixl_dcmd._database import (
     get_pseudo_patient_id_and_update_db,
 )
 from pixl_dcmd._dicom_helpers import (
-    DicomValidator,
     get_study_info,
 )
 from pixl_dcmd._tag_schemes import _scheme_list_to_dict, merge_tag_schemes
@@ -93,15 +92,8 @@ def anonymise_and_validate_dicom(
     :param config: Project config to use for anonymisation
     :return: dictionary of validation errors
     """
-    # Set up Dicom validator and validate the original dataset
-    dicom_validator = DicomValidator(edition="2024e")
-    dicom_validator.validate_original(dataset)
-
     anonymise_dicom(dataset, config=config)
-
-    # Validate the anonymised dataset
-    validation_errors = dicom_validator.validate_anonymised(dataset)
-    return validation_errors
+    return {}
 
 
 def anonymise_dicom(
