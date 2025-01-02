@@ -33,13 +33,13 @@ from pixl_dcmd._database import (
     get_uniq_pseudo_study_uid_and_update_db,
     get_pseudo_patient_id_and_update_db,
 )
-from pixl_dcmd._dicom_helpers import (
+from pixl_dcmd.dicom_helpers import (
     get_study_info,
 )
 from pixl_dcmd._tag_schemes import _scheme_list_to_dict, merge_tag_schemes
 
 if typing.TYPE_CHECKING:
-    from pixl_dcmd._dicom_helpers import StudyInfo
+    from pixl_dcmd.dicom_helpers import StudyInfo
 
 
 def write_dataset_to_bytes(dataset: Dataset) -> bytes:
