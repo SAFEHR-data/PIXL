@@ -42,7 +42,7 @@ from loguru import logger
 from pydicom import dcmread
 
 import orthanc
-from pixl_dcmd._dicom_helpers import StudyInfo, get_study_info
+from pixl_dcmd.dicom_helpers import get_study_info
 from pixl_dcmd.main import (
     anonymise_dicom_and_update_db,
     parse_validation_results,
@@ -53,6 +53,8 @@ if TYPE_CHECKING:
     from typing import Any
 
     from core.project_config.pixl_config_model import PixlConfig
+
+    from pixl_dcmd.dicom_helpers import StudyInfo
 
 ORTHANC_USERNAME = config("ORTHANC_USERNAME")
 ORTHANC_PASSWORD = config("ORTHANC_PASSWORD")
