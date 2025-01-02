@@ -26,6 +26,8 @@ tag_operation_files:
     manufacturer_overrides: []
 
 series_filters: []
+series_number_filters: []
+allowed_manufacturers: ".*"
 
 destination:
     dicom: "none"

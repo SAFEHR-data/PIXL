@@ -57,11 +57,29 @@ def write_dataset_to_bytes(dataset: Dataset) -> bytes:
 
 
 def _should_exclude_series(dataset: Dataset, cfg: PixlConfig) -> bool:
+    """
+    Check whether the dataset series should be exlucded based on its description
+    and number.
+    """
     series_description = dataset.get("SeriesDescription")
-    if cfg.is_series_excluded(series_description):
+    if cfg.is_series_description_excluded(series_description):
         logger.info("FILTERING OUT series description: {}", series_description)
         return True
+
+    series_number = dataset.get("SeriesNumber")
+    if cfg.is_series_number_excluded(series_number):
+        logger.info("FILTERING OUT series number: {}", series_number)
+        return True
+
     return False
+
+
+def _should_exclude_manufacturer(dataset: Dataset, cfg: PixlConfig) -> bool:
+    manufacturer = dataset.get("Manufacturer")
+    should_exclude = not cfg.is_manufacturer_allowed(manufacturer=manufacturer)
+    if should_exclude:
+        logger.info("FILTERING out manufacturer: {}", manufacturer)
+    return should_exclude
 
 
 def anonymise_dicom_and_update_db(
@@ -130,9 +148,12 @@ def anonymise_dicom(
     )
 
     # Do before anonymisation in case someone decides to delete the
-    # Series Description tag as part of anonymisation.
+    # Series Description or Manufacturer tags as part of anonymisation.
     if _should_exclude_series(dataset, config):
         msg = "DICOM instance discarded due to its series description"
+        raise PixlSkipInstanceError(msg)
+    if _should_exclude_manufacturer(dataset, config):
+        msg = "DICOM instance discarded due to its manufacturer"
         raise PixlSkipInstanceError(msg)
     if dataset.Modality not in config.project.modalities:
         msg = f"Dropping DICOM Modality: {dataset.Modality}"

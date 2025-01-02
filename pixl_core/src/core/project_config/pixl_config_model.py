@@ -16,6 +16,7 @@
 
 from __future__ import annotations
 
+import re
 from enum import Enum
 from pathlib import Path
 from typing import Any, Optional
@@ -133,20 +134,48 @@ class PixlConfig(BaseModel):
     """Project-specific configuration for Pixl."""
 
     project: _Project
-    series_filters: Optional[list[str]] = None
+    series_filters: Optional[
+        list[str]
+    ] = []  # pydantic is clever and makes a deep copy of the empty default list
+    series_number_filters: Optional[list[str]] = []
+    allowed_manufacturers: Optional[str] = ".*"
     tag_operation_files: TagOperationFiles
     destination: _Destination
 
-    def is_series_excluded(self, series_description: str) -> bool:
+    def is_series_description_excluded(self, series_description: str | None) -> bool:
         """
-        Return whether this config excludes the series with the given description
+        Return whether this config excludes the series with the given description.
+
+        Do a simple case-insensitive substring check - this data is ultimately typed by a human, and
+        different image sources may have different conventions for case conversion.
+
         :param series_description: the series description to test
         :returns: True if it should be excluded, False if not
         """
-        if self.series_filters is None or series_description is None:
+        if not self.series_filters or series_description is None:
             return False
-        # Do a simple case-insensitive substring check - this data is ultimately typed by a human,
-        # and different image sources may have different conventions for case conversion.
+
         return any(
             series_description.upper().find(filt.upper()) != -1 for filt in self.series_filters
         )
+
+    def is_series_number_excluded(self, series_number: str | None) -> bool:
+        """
+        Return whether this config excludes the series with the given number
+
+        :param series_number: the series number to test
+        :returns: True if it should be excluded, False if not
+        """
+        if not self.series_number_filters or series_number is None:
+            return False
+
+        return any(series_number.find(filt) != -1 for filt in self.series_number_filters)
+
+    def is_manufacturer_allowed(self, manufacturer: str) -> bool:
+        """
+        Check whether the manufacturer is in the allow-list.
+
+        :param manufacturer: name of the manufacturer
+        :returns: True is the manufacturer is allowed, False if not
+        """
+        return bool(re.search(rf"{self.allowed_manufacturers}", manufacturer, flags=re.IGNORECASE))

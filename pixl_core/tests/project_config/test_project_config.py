@@ -181,4 +181,4 @@ def test_series_filtering(base_yaml_data, series_filters, test_series_desc, expe
     if series_filters is not None:
         base_yaml_data["series_filters"] = series_filters
     cfg = PixlConfig.model_validate(base_yaml_data)
-    assert cfg.is_series_excluded(test_series_desc) == expect_exclude
+    assert cfg.is_series_description_excluded(test_series_desc) == expect_exclude
