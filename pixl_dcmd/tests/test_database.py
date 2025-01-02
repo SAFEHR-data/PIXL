@@ -33,6 +33,8 @@ STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
 
 @dataclass
 class StudyData:
+    """Database setup of study data."""
+
     mrn: str
     accession_number: str
     study_uid: str | None
@@ -44,6 +46,8 @@ class StudyData:
 
 @dataclass
 class TestData:
+    """All test data, separated so that the input values can be overriden and different to db data."""
+
     db: StudyData
     input: StudyInfo
 
