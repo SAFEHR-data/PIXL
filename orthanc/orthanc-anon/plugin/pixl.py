@@ -42,6 +42,7 @@ from loguru import logger
 from pydicom import dcmread
 
 import orthanc
+from pixl_dcmd._dicom_helpers import StudyInfo, get_study_info
 from pixl_dcmd.main import (
     anonymise_dicom_and_update_db,
     parse_validation_results,
@@ -234,7 +235,6 @@ def _import_studies_from_raw(
 
     Args:
         study_resource_ids: Resource IDs of the study in Orthanc Raw
-        study_uids: Corresponding StudyInstanceUIDs
         project_name: Name of the project
 
     - Pull studies from Orthanc Raw based on its resource ID
@@ -246,7 +246,8 @@ def _import_studies_from_raw(
     anonymised_study_uids = []
 
     for study_resource_id, study_uid in zip(study_resource_ids, study_uids, strict=False):
-        anonymised_uid = _anonymise_study_and_upload(study_resource_id, study_uid, project_name)
+        logger.debug("Processing project '{}', study '{}' ", project_name, study_uid)
+        anonymised_uid = _anonymise_study_and_upload(study_resource_id, project_name)
         if anonymised_uid:
             anonymised_study_uids.append(anonymised_uid)
 
@@ -270,27 +271,26 @@ def _import_studies_from_raw(
         send_study(study_id=resource_id, project_name=project_name)
 
 
-def _anonymise_study_and_upload(
-    study_resource_id: str, study_uid: str, project_name: str
-) -> str | None:
+def _anonymise_study_and_upload(study_resource_id: str, project_name: str) -> str | None:
     zipped_study_bytes = get_study_zip_archive_from_raw(resource_id=study_resource_id)
+
+    study_info = _get_study_info_from_first_file(zipped_study_bytes)
+    logger.info("Processing project '{}', {}", project_name, study_info)
 
     with ZipFile(zipped_study_bytes) as zipped_study:
         try:
             anonymised_instances_bytes, anonymised_study_uid = _anonymise_study_instances(
                 zipped_study=zipped_study,
-                study_uid=study_uid,
+                study_info=study_info,
                 project_name=project_name,
             )
         except PixlDiscardError as discard:
             logger.warning(
-                "Failed to anonymize project: '{}', study: {}: {}", project_name, study_uid, discard
+                "Failed to anonymize project: '{}', {}: {}", project_name, study_info, discard
             )
             return None
         except Exception:  # noqa: BLE001
-            logger.exception(
-                "Failed to anonymize project: '{}', study: {}", project_name, study_uid
-            )
+            logger.exception("Failed to anonymize project: '{}', {}", project_name, study_info)
             return None
 
     _upload_instances(anonymised_instances_bytes)
@@ -308,6 +308,94 @@ def get_study_zip_archive_from_raw(resource_id: str) -> BytesIO:
     response.raise_for_status()
     logger.debug("Downloaded data for resource {} from Orthanc Raw", resource_id)
     return BytesIO(response.content)
+
+
+def _get_study_info_from_first_file(zipped_study_bytes) -> StudyInfo:
+    with ZipFile(zipped_study_bytes) as zipped_study:
+        file_info = zipped_study.infolist()[0]
+        with zipped_study.open(file_info) as file:
+            dataset = dcmread(file)
+            return get_study_info(dataset)
+
+
+def _anonymise_study_instances(
+    zipped_study: ZipFile, study_info: StudyInfo, project_name: str
+) -> tuple[list[bytes], str]:
+    """
+    Iterate over all instances and anonymise them.
+
+    Skip an instance if a PixlSkipInstanceError is raised during anonymisation.
+
+    Return a list of the bytes of anonymised instances, and the anonymised StudyInstanceUID.
+    """
+    config = load_project_config(project_name)
+    anonymised_instances_bytes = []
+    skipped_instance_counts = defaultdict(int)
+    dicom_validation_errors = {}
+
+    for file_info in zipped_study.infolist():
+        with zipped_study.open(file_info) as file:
+            logger.debug("Reading file {}", file)
+            dataset = dcmread(file)
+            try:
+                anonymised_instance, instance_validation_errors = _anonymise_dicom_instance(
+                    dataset, config
+                )
+            except PixlSkipInstanceError as e:
+                logger.debug(
+                    "Skipping instance {} for {}: {}",
+                    dataset[0x0008, 0x0018].value,
+                    study_info,
+                    e,
+                )
+                skipped_instance_counts[str(e)] += 1
+            else:
+                anonymised_instances_bytes.append(anonymised_instance)
+                anonymised_study_uid = dataset[0x0020, 0x000D].value
+                dicom_validation_errors |= instance_validation_errors
+
+    if not anonymised_instances_bytes:
+        message = f"All instances have been skipped for study: {dict(skipped_instance_counts)}"
+        raise PixlDiscardError(message)
+
+    logger.debug(
+        "Project '{}' {}, skipped instances: {}",
+        project_name,
+        study_info,
+        dict(skipped_instance_counts),
+    )
+
+    if dicom_validation_errors:
+        logger.warning(
+            "The anonymisation introduced the following validation errors:\n{}",
+            parse_validation_results(dicom_validation_errors),
+        )
+    logger.success("Finished anonymising project: '{}', {}", project_name, study_info)
+    return anonymised_instances_bytes, anonymised_study_uid
+
+
+def _anonymise_dicom_instance(dataset: pydicom.Dataset, config: PixlConfig) -> tuple[bytes, dict]:
+    """Anonymise a DICOM instance."""
+    validation_errors = anonymise_dicom_and_update_db(dataset, config=config)
+    return write_dataset_to_bytes(dataset), validation_errors
+
+
+def _upload_instances(instances_bytes: list[bytes]) -> None:
+    """Upload instances to Orthanc"""
+    files = []
+    for index, dicom_bytes in enumerate(instances_bytes):
+        files.append(("file", (f"instance{index}.dcm", dicom_bytes, "application/dicom")))
+
+    # Using requests as doing:
+    # `upload_response = orthanc.RestApiPost(f"/instances", anonymised_files)`
+    # gives an error BadArgumentType error (orthanc.RestApiPost seems to only accept json)
+    upload_response = requests.post(
+        url=f"{ORTHANC_URL}/instances",
+        auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD),
+        files=files,
+        timeout=config("PIXL_DICOM_TRANSFER_TIMEOUT", default=180, cast=int),
+    )
+    upload_response.raise_for_status()
 
 
 def _get_study_resource_id(study_uid: str) -> str:
@@ -336,87 +424,6 @@ def _get_study_resource_id(study_uid: str) -> str:
         raise ValueError(message)
 
     return study_resource_ids[0]
-
-
-def _anonymise_study_instances(
-    zipped_study: ZipFile, study_uid: str, project_name: str
-) -> tuple[list[bytes], str]:
-    """
-    Iterate over all instances and anonymise them.
-
-    Skip an instance if a PixlSkipInstanceError is raised during anonymisation.
-
-    Return a list of the bytes of anonymised instances, and the anonymised StudyInstanceUID.
-    """
-    config = load_project_config(project_name)
-    anonymised_instances_bytes = []
-    logger.info("Processing project '{}', study: {}", project_name, study_uid)
-    skipped_instance_counts = defaultdict(int)
-    dicom_validation_errors = {}
-
-    for file_info in zipped_study.infolist():
-        with zipped_study.open(file_info) as file:
-            logger.debug("Reading file {}", file)
-            dataset = dcmread(file)
-            try:
-                anonymised_instance, instance_validation_errors = _anonymise_dicom_instance(
-                    dataset, config
-                )
-            except PixlSkipInstanceError as e:
-                logger.debug(
-                    "Skipping instance {} for study {}: {}",
-                    dataset[0x0008, 0x0018].value,
-                    study_uid,
-                    e,
-                )
-                skipped_instance_counts[str(e)] += 1
-            else:
-                anonymised_instances_bytes.append(anonymised_instance)
-                anonymised_study_uid = dataset[0x0020, 0x000D].value
-                dicom_validation_errors |= instance_validation_errors
-
-    if not anonymised_instances_bytes:
-        message = f"All instances have been skipped for study: {dict(skipped_instance_counts)}"
-        raise PixlDiscardError(message)
-
-    logger.debug(
-        "Project '{}' Study {}, skipped instances: {}",
-        project_name,
-        study_uid,
-        dict(skipped_instance_counts),
-    )
-
-    if dicom_validation_errors:
-        logger.warning(
-            "The anonymisation introduced the following validation errors:\n{}",
-            parse_validation_results(dicom_validation_errors),
-        )
-    logger.success("Finished anonymising project: '{}', study: {}", project_name, study_uid)
-    return anonymised_instances_bytes, anonymised_study_uid
-
-
-def _anonymise_dicom_instance(dataset: pydicom.Dataset, config: PixlConfig) -> tuple[bytes, dict]:
-    """Anonymise a DICOM instance."""
-    validation_errors = anonymise_dicom_and_update_db(dataset, config=config)
-    return write_dataset_to_bytes(dataset), validation_errors
-
-
-def _upload_instances(instances_bytes: list[bytes]) -> None:
-    """Upload instances to Orthanc"""
-    files = []
-    for index, dicom_bytes in enumerate(instances_bytes):
-        files.append(("file", (f"instance{index}.dcm", dicom_bytes, "application/dicom")))
-
-    # Using requests as doing:
-    # `upload_response = orthanc.RestApiPost(f"/instances", anonymised_files)`
-    # gives an error BadArgumentType error (orthanc.RestApiPost seems to only accept json)
-    upload_response = requests.post(
-        url=f"{ORTHANC_URL}/instances",
-        auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD),
-        files=files,
-        timeout=config("PIXL_DICOM_TRANSFER_TIMEOUT", default=180, cast=int),
-    )
-    upload_response.raise_for_status()
 
 
 def send_study(study_id: str, project_name: str) -> None:
