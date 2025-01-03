@@ -1,10 +1,15 @@
 ## 'PIXL/pixl_export/tests' Directory Contents
 
-### Files
+<details>
+<summary>
+<h3> Files </h3> 
 
-conftest.py
+</summary>
 
-docker-compose.yml
+| **Configuration** | **Code** | **User docs** |
+| :--- | :--- | :--- |
+| docker-compose.yml | conftest.py | README.md |
+| | test_app.py | |  
 
-test_app.py
+</details>
 
