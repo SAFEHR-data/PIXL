@@ -1,10 +1,16 @@
 ## 'PIXL/pixl_core/src/core/db' Directory Contents
 
-### Files
+<details>
+<summary>
+<h3> Files </h3> 
 
-models.py
+</summary>
 
-queries.py
+| **Code** | **User docs** |
+| :--- | :--- |
+| models.py | README.md |
+| queries.py | |
+| __init__.py | |
 
-__init__.py
+</details>
 

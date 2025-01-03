@@ -1,10 +1,25 @@
 ## 'PIXL/orthanc/orthanc-anon/docs' Directory Contents
 
-### Subdirectories
+<details>
+<summary>
+<h3> Subdirectories with links to the relevant README </h3> 
+
+</summary>
 
 [assets](./assets/README.md)
 
-### Files
+</details>
 
-DicomServiceViaAAD.md
+<details>
+<summary>
+<h3> Files </h3> 
+
+</summary>
+
+| **User docs** |
+| :--- |
+| DicomServiceViaAAD.md |
+| README.md |
+
+</details>
 

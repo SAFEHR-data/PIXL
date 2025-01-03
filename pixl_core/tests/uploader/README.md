@@ -1,12 +1,17 @@
 ## 'PIXL/pixl_core/tests/uploader' Directory Contents
 
-### Files
+<details>
+<summary>
+<h3> Files </h3> 
 
-test_base.py
+</summary>
 
-test_dicomweb.py
+| **Code** | **User docs** |
+| :--- | :--- |
+| test_base.py | README.md |
+| test_dicomweb.py | |
+| test_ftps.py | |
+| test_xnat.py | |
 
-test_ftps.py
-
-test_xnat.py
+</details>
 

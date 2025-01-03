@@ -1,10 +1,16 @@
 ## 'PIXL/pixl_core/src/core/token_buffer' Directory Contents
 
-### Files
+<details>
+<summary>
+<h3> Files </h3> 
 
-models.py
+</summary>
 
-tokens.py
+| **Code** | **User docs** |
+| :--- | :--- |
+| models.py | README.md |
+| tokens.py | |
+| __init__.py | |
 
-__init__.py
+</details>
 

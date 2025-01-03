@@ -1,6 +1,10 @@
 ## 'PIXL/pixl_core/tests' Directory Contents
 
-### Subdirectories
+<details>
+<summary>
+<h3> Subdirectories with links to the relevant README </h3> 
+
+</summary>
 
 [data](./data/README.md)
 
@@ -12,11 +16,19 @@
 
 [uploader](./uploader/README.md)
 
-### Files
+</details>
 
-conftest.py
+<details>
+<summary>
+<h3> Files </h3> 
 
-docker-compose.yml
+</summary>
 
-test_exports.py
+| **Code** | **User docs** |
+| :--- | :--- |
+| conftest.py | README.md |
+| docker-compose.yml | |
+| test_exports.py | |
+
+</details>
 

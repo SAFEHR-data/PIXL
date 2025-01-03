@@ -1,6 +1,14 @@
 ## 'PIXL/orthanc/orthanc-anon/docs/assets' Directory Contents
 
-### Files
+<details>
+<summary>
+<h3> Files </h3> 
 
-DicomServiceAuthority.png
+</summary>
+
+| **Images** | **User docs** |
+| :--- | :--- |
+| DicomServiceAuthority.png | README.md |
+
+</details>
 

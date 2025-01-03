@@ -12,7 +12,11 @@ functionality .
 
 ## 'PIXL/orthanc' Directory Contents
 
-### Subdirectories
+<details>
+<summary>
+<h3> Subdirectories with links to the relevant README </h3> 
+
+</summary>
 
 [assets](./assets/README.md)
 
@@ -20,7 +24,18 @@ functionality .
 
 [orthanc-raw](./orthanc-raw/README.md)
 
-### Files
+</details>
 
-README.md
+<details>
+<summary>
+<h3> Files </h3> 
+
+</summary>
+
+| **User docs** |
+| :--- |
+| README.md |
+
+</details>
+
 

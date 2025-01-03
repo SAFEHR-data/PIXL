@@ -1,8 +1,15 @@
 ## 'PIXL/pixl_core/tests/project_config' Directory Contents
 
-### Files
+<details>
+<summary>
+<h3> Files </h3> 
 
-test_project_config.py
+</summary>
 
-test_secrets.py
+| **Code** | **User docs** |
+| :--- | :--- |
+| test_project_config.py | README.md |
+| test_secrets.py | |
+
+</details>
 

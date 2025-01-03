@@ -1,14 +1,18 @@
 ## 'PIXL/pixl_core/src/core/patient_queue' Directory Contents
 
-### Files
+<details>
+<summary>
+<h3> Files </h3> 
 
-message.py
+</summary>
 
-producer.py
+| **Code** | **User docs** |
+| :--- | :--- |
+| message.py | README.md |
+| producer.py | |
+| subscriber.py | |
+| _base.py | |
+| __init__.py | |
 
-subscriber.py
-
-_base.py
-
-__init__.py
+</details>
 

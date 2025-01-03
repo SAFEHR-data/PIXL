@@ -1,16 +1,19 @@
 ## 'PIXL/pixl_core/src/core/uploader' Directory Contents
 
-### Files
+<details>
+<summary>
+<h3> Files </h3> 
 
-base.py
+</summary>
 
-_dicomweb.py
+| **Code** | **User docs** |
+| :--- | :--- |
+| base.py | README.md |
+| _dicomweb.py | |
+| _ftps.py | |
+| _orthanc.py | |
+| _xnat.py | |
+| __init__.py | |
 
-_ftps.py
-
-_orthanc.py
-
-_xnat.py
-
-__init__.py
+</details>
 

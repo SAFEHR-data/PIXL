@@ -1,6 +1,14 @@
 ## 'PIXL/orthanc/orthanc-raw/plugin' Directory Contents
 
-### Files
+<details>
+<summary>
+<h3> Files </h3> 
 
-pixl.py
+</summary>
+
+| **Code** | **User docs** |
+| :--- | :--- |
+| pixl.py | README.md |
+
+</details>
 

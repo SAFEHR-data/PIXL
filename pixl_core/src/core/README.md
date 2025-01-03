@@ -1,6 +1,10 @@
 ## 'PIXL/pixl_core/src/core' Directory Contents
 
-### Subdirectories
+<details>
+<summary>
+<h3> Subdirectories with links to the relevant README </h3> 
+
+</summary>
 
 [db](./db/README.md)
 
@@ -14,13 +18,20 @@
 
 [uploader](./uploader/README.md)
 
-### Files
+</details>
 
-dicom_tags.py
+<details>
+<summary>
+<h3> Files </h3> 
 
-exceptions.py
+</summary>
 
-exports.py
+| **Code** | **User docs** |
+| :--- | :--- |
+| dicom_tags.py | README.md |
+| exceptions.py | |
+| exports.py | |
+| __init__.py | |
 
-__init__.py
+</details>
 

@@ -1,7 +1,7 @@
 # Orthanc Anon
 
 _The Orthanc instance responsible for anonymising DICOM data from PACS/VNA and forwarding the images
-to their final destination (currently the UCL Data Safe Haven)._
+to their final destination (at UCL/UCLH this is currently the UCL Data Safe Haven).
 
 ## Setup
 
@@ -24,8 +24,8 @@ The following assumptions are made:
 
 ### Configuration
 
-- The Docker image is based on `orthancteam/orthanc`.
-- Configuration is driven through customised JSON config. files stored in the [config](./config/)
+- The Docker image is based on `orthancteam/orthanc`. <--- This is unclear where is this?
+- Configuration is driven through customised JSON config. files stored in the [orthanc-anon/config](./config/)
 directory.
 - The files are populated with values from environment variables and injected into the container as
 secrets. Orthanc interprets all `.json` files in the `/run/secrets` mount as config. files.
@@ -74,7 +74,7 @@ Start the instance via Docker compose.
 
 ### Step 3
 
-If you have chosen to expose the portas, you should now be able to navigate the web interface at `http://localhost:<YYYY>`, supply the chosen credentials and will be presented with the Orthanc web interface:
+If you have chosen to expose the ports, you should now be able to navigate the web interface at `http://localhost:<YYYY>`, supply the chosen credentials and will be presented with the Orthanc web interface:
 ![Orthanc Raw Web interface](../assets/orthanc-anon-web.png)
 
 ### Step 4
@@ -104,19 +104,36 @@ start.
 
 ## References
 
-- [Cheat sheet of the REST API](https://book.orthanc-server.com/users/rest-cheatsheet.html)
+- [Cheat sheet for the REST API](https://book.orthanc-server.com/users/rest-cheatsheet.html)
 
-## 'orthanc' Directory Contents
 
-### Subdirectories
+## 'PIXL/orthanc/orthanc-anon' Directory Contents
 
-[assets](./assets/README.md)
+<details>
+<summary>
+<h3> Subdirectories with links to the relevant README </h3> 
 
-[orthanc-anon](./orthanc-anon/README.md)
+</summary>
 
-[orthanc-raw](./orthanc-raw/README.md)
+[config](./config/README.md)
 
-### Files
+[docs](./docs/README.md)
 
-README.md
+[plugin](./plugin/README.md)
+
+</details>
+
+<details>
+<summary>
+<h3> Files </h3> 
+
+</summary>
+
+| **User docs** |
+| :--- |
+| README.md |
+
+</details>
+
+
 

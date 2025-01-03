@@ -1,12 +1,17 @@
 ## 'PIXL/pixl_core/src/core/project_config' Directory Contents
 
-### Files
+<details>
+<summary>
+<h3> Files </h3> 
 
-pixl_config_model.py
+</summary>
 
-secrets.py
+| **Code** | **User docs** |
+| :--- | :--- |
+| pixl_config_model.py | README.md |
+| secrets.py | |
+| tag_operations.py | |
+| __init__.py | |
 
-tag_operations.py
-
-__init__.py
+</details>
 

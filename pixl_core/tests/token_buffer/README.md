@@ -1,6 +1,14 @@
 ## 'PIXL/pixl_core/tests/token_buffer' Directory Contents
 
-### Files
+<details>
+<summary>
+<h3> Files </h3> 
 
-test_tokens.py
+</summary>
+
+| **Code** | **User docs** |
+| :--- | :--- |
+| test_tokens.py | README.md |
+
+</details>
 

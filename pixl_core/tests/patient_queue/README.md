@@ -1,10 +1,16 @@
 ## 'PIXL/pixl_core/tests/patient_queue' Directory Contents
 
-### Files
+<details>
+<summary>
+<h3> Files </h3> 
 
-test_message.py
+</summary>
 
-test_producer.py
+| **Code** | **User docs** |
+| :--- | :--- |
+| test_message.py | README.md |
+| test_producer.py | |
+| test_subscriber.py | |
 
-test_subscriber.py
+</details>
 

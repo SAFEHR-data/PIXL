@@ -1,10 +1,17 @@
 ## 'PIXL/orthanc/orthanc-raw/config' Directory Contents
 
-### Files
+<details>
+<summary>
+<h3> Files </h3> 
 
-dicom.json
+</summary>
 
-orthanc.json
+| **Configuration** | **User docs** |
+| :--- | :--- |
+| dicom.json | README.md |
+| orthanc.json | |
+| postgres.json | |
 
-postgres.json
+
+</details>
 

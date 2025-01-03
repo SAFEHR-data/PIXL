@@ -22,7 +22,7 @@ available shortly when the service is started).
 
 ### Configuration
 
-- The Docker image is a deployment of `orthancteam/orthanc` with some extra configuration
+- The Docker image is a deployment of `orthancteam/orthanc` with some extra configuration <--- is orthancteam/orthanc supposed to point to somewhere in the tree
   - `ORTHANC_RAW_MAXIMUM_STORAGE_SIZE` to limit the storage size
   - `ORTHANC_RAW_JOB_HISTORY_SIZE` has been increased so that while there is concurrent processing,
     the job should always exist for being able to query its status
@@ -109,17 +109,31 @@ team.
 
 ## References
 
- - [Cheat sheet of the REST API](https://book.orthanc-server.com/users/rest-cheatsheet.html)
+ - [Cheat sheet for the REST API](https://book.orthanc-server.com/users/rest-cheatsheet.html)
 
 ## 'PIXL/orthanc/orthanc-raw' Directory Contents
 
-### Subdirectories
+<details>
+<summary>
+<h3> Subdirectories with links to the relevant README </h3> 
+
+</summary>
 
 [config](./config/README.md)
 
 [plugin](./plugin/README.md)
 
-### Files
+</details>
 
-README.md
+<details>
+<summary>
+<h3> Files </h3> 
+
+</summary>
+
+| **User docs** |
+| :--- |
+| README.md |
+
+</details>
 

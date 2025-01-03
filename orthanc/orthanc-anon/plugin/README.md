@@ -1,8 +1,15 @@
 ## 'PIXL/orthanc/orthanc-anon/plugin' Directory Contents
 
-### Files
+<details>
+<summary>
+<h3> Files </h3> 
 
-download_dicom_spec.py
+</summary>
 
-pixl.py
+| **Code** | **User docs** |
+| :--- | :--- |
+| download_dicom_spec.py | README.md |
+| pixl.py | |
+
+</details>
 

@@ -1,10 +1,16 @@
 ## 'PIXL/pixl_core/tests/data' Directory Contents
 
-### Files
+<details>
+<summary>
+<h3> Files </h3> 
 
-dicom_series.zip
+</summary>
 
-public.zip
+| **Data** | **User docs** |
+| :--- | :--- |
+| dicom_series.zip | README.md |
+| public.zip | |
+| xnat_project.xml | |
 
-xnat_project.xml
+</details>
 
