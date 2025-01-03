@@ -1,16 +1,19 @@
 ## 'PIXL/pixl_dcmd/tests' Directory Contents
 
-### Files
+<details>
+<summary>
+<h3> Files </h3> 
 
-conftest.py
+</summary>
 
-test_database.py
+| **Code** | **User docs** |
+| :--- | :--- |
+| conftest.py | README.md |
+| test_database.py | |
+| test_dicom_validator.py | |
+| test_main.py | |
+| test_tagrecording.py | |
+| test_tag_schemes.py | |
 
-test_dicom_validator.py
-
-test_main.py
-
-test_tagrecording.py
-
-test_tag_schemes.py
+</details>
 

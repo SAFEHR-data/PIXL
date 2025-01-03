@@ -1,6 +1,14 @@
 ## 'PIXL/pixl_dcmd/src/pixl_dcmd/resources' Directory Contents
 
-### Files
+<details>
+<summary>
+<h3> Files </h3> 
 
-recorded-headers.yml
+</summary>
+
+| **Configuration** | **User docs** |
+| :--- | :--- |
+| recorded-headers.yml | README.md |
+
+</details>
 
