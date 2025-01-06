@@ -12,10 +12,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-- name: Patient ID  # remove this before merging - useful for testing anonymisation as an 'external user', but 'op' should be 'secure-hash' as in base.yaml instead of 'replace'
-  group: 0x0010
-  element: 0x0020
-  op: replace
 - name: Referenced SOP Class UID
   group: 0x0008
   element: 0x1150
@@ -24,10 +20,6 @@
   group: 0x0008
   element: 0x1155
   op: replace_UID
-- name: Slice Thickness
-  group: 0x0018
-  element: 0x0050
-  op: keep
 - name: Number of Frames
   group: 0x0028
   element: 0x0008
