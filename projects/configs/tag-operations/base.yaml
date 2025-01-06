@@ -51,7 +51,7 @@
   group: 0x0008
   element: 0x0020
   op: "replace"
-- name: "General Study"
+- name: "Study Time"
   group: 0x0008
   element: 0x0030
   op: "replace"
@@ -83,7 +83,7 @@
   group: 0x0008
   element: 0x1090
   op: "keep"
-- name: "Referenced Series Sequence"
+- name: "Referenced SOP Instance UID"
   group: 0x0008
   element: 0x1155
   op: "replace_UID"
@@ -94,6 +94,14 @@
 - name: "Pixel Presentation"
   group: 0x0008
   element: 0x9205
+  op: "keep"
+- name: "Volumetric Properties"
+  group: 0x0008
+  element: 0x9206
+  op: "keep"
+- name: "Volume Based Calculation Technique"
+  group: 0x0008
+  element: 0x9207
   op: "keep"
 #################################### 0010 Group ###################################
 #
@@ -127,16 +135,28 @@
 #################################### 0018 Group ###################################
 #
 #
-- name: "Scan Options Attribute"
+- name: "Scan Options"
   group: 0x0018
   element: 0x0022
   op: "replace"
 #CT, MR, X-Ray
+- name: Slice Thickness
+  group: 0x0018
+  element: 0x0050
+  op: keep
 - name: "Software Version"
   group: 0x0018
   element: 0x1020
   op: "keep"
+- name: "Field Of View Dimension"
+  group: 0x0018
+  element: 0x1149
+  op: "keep"
 #CT, MR, PET, US, X-Ray, and RT Images
+- name: kVp
+  group: 0x0018
+  element: 0x0060
+  op: keep
 - name: "Focal Spot"
   group: 0x0018
   element: 0x1190
@@ -352,6 +372,7 @@
   element: 0x0140
   op: "replace_UID"
 #CT, MR, PET, US, X-Ray, and RT Images
+
 #################################### 3006 Group ###################################
 #
 #

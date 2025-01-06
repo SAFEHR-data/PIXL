@@ -16,7 +16,6 @@ For defining private DICOM tags.
 This information is currently duplicated in
  - pixl_imaging/tests/orthanc_raw_config/orthanc.json
  - orthanc/orthanc-raw/config/orthanc.json
- - projects/configs/tag-operations/test-extract-uclh-omop-cdm.yaml
 
 For now you will have to manually keep these in step.
 """

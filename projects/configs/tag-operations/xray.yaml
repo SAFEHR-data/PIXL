@@ -12,78 +12,167 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-# Default configuration to extend base for x-rays
-
-- name: "Volumetric Properties"
-  group: 0x0008
-  element: 0x9206
-  op: "keep"
-- name: "Volume Based Calculation Technique"
-  group: 0x0008
-  element: 0x9207
-  op: "keep"
-- name: "Field Of View Dimension"
+- name: Patients Size
+  group: 0x0010
+  element: 0x1020
+  op: keep
+- name: Patients Weight
+  group: 0x0010
+  element: 0x1030
+  op: keep
+- name: Body Part Examined
   group: 0x0018
-  element: 0x1149
-  op: "keep"
-#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/dx-detector/00181149
-#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/dx-detector/00181149
-#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/x-ray-acquisition/00181149
-#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/x-ray-acquisition/00181149
-#https://dicom.innolitics.com/ciods/digital-x-ray-image/dx-detector/00181149
-#https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/dx-detector/00181149
-#https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/dx-detector/00181149
-- name: "Imager Pixel Spacing"
+  element: 0x0015
+  op: keep
+- name: Exposure Time
+  group: 0x0018
+  element: 0x1150
+  op: keep
+- name: X Ray Tube Current
+  group: 0x0018
+  element: 0x1151
+  op: keep
+- name: Exposure
+  group: 0x0018
+  element: 0x1152
+  op: keep
+- name: Exposure In Uas
+  group: 0x0018
+  element: 0x1153
+  op: keep
+- name: Image Area Dose Product
+  group: 0x0018
+  element: 0x115e
+  op: keep
+- name: Imager Pixel Spacing
   group: 0x0018
   element: 0x1164
-  op: "keep"
-#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/dx-detector/00181164
-#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/x-ray-acquisition/00181164
-#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/x-ray-acquisition/00181164
-#https://dicom.innolitics.com/ciods/digital-x-ray-image/dx-detector/00181164
-#https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/dx-detector/00181164
-#https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/dx-detector/00181164
-- name: "Grid"
+  op: keep
+- name: Grid
   group: 0x0018
   element: 0x1166
-  op: "keep"
-#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/x-ray-acquisition/00181166
-#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/x-ray-acquisition/00181166
-#https://dicom.innolitics.com/ciods/digital-x-ray-image/x-ray-grid/00181166
-#https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/x-ray-grid/00181166
-#https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/x-ray-grid/00181166
-#https://dicom.innolitics.com/ciods/x-ray-3d-craniofacial-image/x-ray-3d-craniofacial-acquisition/00189507/00181166
-#https://dicom.innolitics.com/ciods/x-ray-3d-angiographic-image/x-ray-3d-angiographic-acquisition/00189507/00181166
-#https://dicom.innolitics.com/ciods/breast-projection-x-ray-image/breast-projection-x-ray-image-multi-frame-functional-groups/52009229/00189555/00181166
-- name: "Acquisition Device Processing Description"
+  op: keep
+- name: Acquisition Device Processing Description
   group: 0x0018
   element: 0x1400
-  op: "keep"
-#https://dicom.innolitics.com/ciods/x-ray-radiofluoroscopic-image/x-ray-image/00181400
-#https://dicom.innolitics.com/ciods/x-ray-angiographic-image/x-ray-image/00181400
-#https://dicom.innolitics.com/ciods/digital-x-ray-image/dx-image/00181400
-#https://dicom.innolitics.com/ciods/digital-mammography-x-ray-image/dx-image/00181400
-#https://dicom.innolitics.com/ciods/digital-intra-oral-x-ray-image/dx-image/00181400
-#https://dicom.innolitics.com/ciods/x-ray-3d-craniofacial-image/x-ray-3d-craniofacial-image-contributing-sources/00189506/00181400
-#https://dicom.innolitics.com/ciods/x-ray-3d-angiographic-image/x-ray-3d-angiographic-image-contributing-sources/00189506/00181400
-#https://dicom.innolitics.com/ciods/breast-projection-x-ray-image/breast-projection-x-ray-image-multi-frame-functional-groups/52009229/00189412/00181400
-- name: "Pixel Spacing Calibration Type"
+  op: keep
+- name: Exposure Index
+  group: 0x0018
+  element: 0x1411
+  op: keep
+- name: Target Exposure Index
+  group: 0x0018
+  element: 0x1412
+  op: keep
+- name: Deviation Index
+  group: 0x0018
+  element: 0x1413
+  op: keep
+- name: Positioner Type
+  group: 0x0018
+  element: 0x1508
+  op: keep
+- name: Collemator Shape
+  group: 0x0018
+  element: 0x1700
+  op: keep
+- name: Vertices Of The Polygonal Collimator
+  group: 0x0018
+  element: 0x1720
+  op: keep
+- name: View Position
+  group: 0x0018
+  element: 0x5101
+  op: keep
+- name: Sensitivity
+  group: 0x0018
+  element: 0x6000
+  op: keep
+- name: Detector Temperature
+  group: 0x0018
+  element: 0x7001
+  op: keep
+- name: Detector Type
+  group: 0x0018
+  element: 0x7004
+  op: keep
+- name: Detector Configuration
+  group: 0x0018
+  element: 0x7005
+  op: keep
+- name: Detector ID
+  group: 0x0018
+  element: 0x700a
+  op: keep
+- name: Detector Binning
+  group: 0x0018
+  element: 0x701a
+  op: keep
+- name: Detector Element Physical Size
+  group: 0x0018
+  element: 0x7020
+  op: keep
+- name: Detector Element Spacing
+  group: 0x0018
+  element: 0x7022
+  op: keep
+- name: Detector Active Shape
+  group: 0x0018
+  element: 0x7024
+  op: keep
+- name: Detector Active Dimensions
+  group: 0x0018
+  element: 0x7026
+  op: keep
+- name: Field Of View Origin
+  group: 0x0018
+  element: 0x7030
+  op: keep
+- name: Field Of View Rotation
+  group: 0x0018
+  element: 0x7032
+  op: keep
+- name: Field Of View Horizontal Flip
+  group: 0x0018
+  element: 0x7034
+  op: keep
+- name: Grid Focal Distance
+  group: 0x0018
+  element: 0x704c
+  op: keep
+- name: Exposure Control Mode
+  group: 0x0018
+  element: 0x7060
+  op: keep
+- name: Quality Control Image
+  group: 0x0028
+  element: 0x0300
+  op: keep
+- name: Pixel Spacing Calibration Type
   group: 0x0028
   element: 0x0a02
-  op: "keep"
-#RT, X-Ray
-- name: "Pixel Spacing Calibration Description"
+  op: keep
+- name: Pixel Spacing Calibration Description
   group: 0x0028
   element: 0x0a04
-  op: "keep"
-#X-Ray
-- name: "Pixel Intensity Relationship"
+  op: keep
+- name: Pixel Intensity Relationship
   group: 0x0028
   element: 0x1040
-  op: "keep"
-#X-Ray
-- name: "Pixel Intensity Relationship Sign"
+  op: keep
+- name: Pixel Intensity Relationship Sign
   group: 0x0028
   element: 0x1041
-  op: "keep"
-#X-Ray
+  op: keep
+- name: View Code Sequence
+  group: 0x0054
+  element: 0x1050
+  op: keep
+- name: Patient Orientation Code Sequence
+  group: 0x0054
+  element: 0x0410
+  op: keep
+- name: Presentation LUT Shape
+  group: 0x2050
+  element: 0x0020
+  op: keep

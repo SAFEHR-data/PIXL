@@ -41,7 +41,7 @@ def base_yaml_data():
     return {
         "project": {"name": "myproject", "modalities": ["DX", "CR"]},
         "tag_operation_files": {
-            "base": ["test-extract-uclh-omop-cdm.yaml"],
+            "base": ["base.yaml"],
             "manufacturer_overrides": ["mri-diffusion.yaml"],
         },
         "destination": {"dicom": "ftps", "parquet": "ftps"},
