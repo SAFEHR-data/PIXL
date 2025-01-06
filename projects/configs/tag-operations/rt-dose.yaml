@@ -28,6 +28,14 @@
   group: 0x0018
   element: 0x0050
   op: keep
+- name: Number of Frames
+  group: 0x0028
+  element: 0x0008
+  op: keep
+- name: Frame Increment Pointer
+  group: 0x0028
+  element: 0x0009
+  op: keep
 - name: Dose Units
   group: 0x3004
   element: 0x0002
@@ -39,6 +47,10 @@
 - name: Dose Summation Type
   group: 0x3004
   element: 0x000a
+  op: keep
+- name: Grid Frame Offset Vector
+  group: 0x3004
+  element: 0x000c
   op: keep
 - name: Dose Grid Scaling
   group: 0x3004
