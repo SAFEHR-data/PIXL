@@ -13,8 +13,6 @@
 #  limitations under the License.
 from __future__ import annotations
 
-import asyncio
-import contextlib
 from asyncio import sleep
 from time import time
 from typing import Any, Optional
@@ -62,17 +60,20 @@ class Orthanc:
         logger.debug("Running query on local Orthanc with {}", data)
         return await self._post("/tools/find", data=data)
 
-    async def query_local_study(self, study_id: str) -> Any:
+    async def get_local_study(self, study_id: str) -> Any:
         """Query local Orthanc instance for study."""
         return await self._get(f"/studies/{study_id}")
 
-    async def query_local_series(self, series_id: str) -> Any:
-        """Query local Orthanc instance for series."""
-        return await self._get(f"/series/{series_id}")
+    async def get_local_study_statistics(self, study_id: str) -> Any:
+        """Query local Orthanc instance for study statistics."""
+        return await self._get(f"/studies/{study_id}/statistics")
 
-    async def query_local_instance(self, instance_id: str) -> Any:
-        """Query local Orthanc instance for instance."""
-        return await self._get(f"/instances/{instance_id}")
+    async def get_local_study_instances(self, study_id: str) -> Any:
+        """Get the instances of a study."""
+        return await self._get(
+            f"/studies/{study_id}/instances?short=true",
+            timeout=self.dicom_timeout,  # this API call can sometimes take several minutes
+        )
 
     async def query_remote(self, data: dict, modality: str) -> Optional[str]:
         """Query a particular modality, available from this node"""
@@ -105,32 +106,6 @@ class Orthanc:
             timeout=self.dicom_timeout,
         )
         return response["ID"]
-
-    async def modify_private_tags_by_study(
-        self,
-        *,
-        study_id: str,
-        private_creator: str,
-        tag_replacement: dict,
-    ) -> None:
-        # According to the docs, you can't modify tags for an instance using the instance API
-        # (the best you can do is download a modified version), so do it via the studies API.
-        # KeepSource=false needed to stop it making a copy
-        # https://orthanc.uclouvain.be/api/index.html#tag/Studies/paths/~1studies~1{id}~1modify/post
-        response = await self._post(
-            f"/studies/{study_id}/modify",
-            {
-                "PrivateCreator": private_creator,
-                "Permissive": False,
-                "Replace": tag_replacement,
-                "Asynchronous": True,
-                "Force": True,
-                "Keep": ["StudyInstanceUID", "SeriesInstanceUID", "SOPInstanceUID"],
-            },
-        )
-        logger.debug("Modify studies Job: {}", response)
-        job_id = str(response["ID"])
-        await self.wait_for_job_success_or_raise(job_id, "modify", timeout=self.dicom_timeout)
 
     async def retrieve_study_from_remote(self, query_id: str) -> str:
         response = await self._post(
@@ -186,13 +161,15 @@ class Orthanc:
         # See: https://book.orthanc-server.com/users/advanced-rest.html#jobs-monitoring
         return await self._get(f"/jobs/{job_id}")
 
-    async def _get(self, path: str) -> Any:
+    async def _get(self, path: str, timeout: int | None = None) -> Any:
+        # Optionally override default http timeout
+        http_timeout = timeout or self.http_timeout
         async with (
             aiohttp.ClientSession() as session,
             session.get(
                 f"{self._url}{path}",
                 auth=self._auth,
-                timeout=self.http_timeout,
+                timeout=http_timeout,
             ) as response,
         ):
             return await _deserialise(response)
@@ -293,36 +270,26 @@ class PIXLAnonOrthanc(Orthanc):
             "ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT", default=False, cast=bool
         )
 
-    async def notify_anon_to_retrieve_study(
-        self, orthanc_raw: PIXLRawOrthanc, resource_id: str
+    async def notify_anon_to_retrieve_study_resources(
+        self,
+        orthanc_raw: PIXLRawOrthanc,
+        resource_ids: list[str],
+        project_name: str,
     ) -> Any:
-        """
-        Notify Orthanc Anon of a study to retrieve from Orthanc Raw
+        """Notify Orthanc Anon of study resources to retrieve from Orthanc Raw."""
+        resources_info = [
+            await orthanc_raw.get_local_study(study_id=resource_id) for resource_id in resource_ids
+        ]
+        study_uids = [
+            resource_info["MainDicomTags"]["StudyInstanceUID"] for resource_info in resources_info
+        ]
+        logger.debug("Notify Orthanc Anon to import resources {} from Orthanc Raw", resource_ids)
 
-        - Query Orthanc Raw for the study
-        - Send the StudyInstanceUID and the query ID to Orthanc Anon
-        """
-        orthanc_raw_study_info = await orthanc_raw.query_local_study(study_id=resource_id)
-        study_uid = orthanc_raw_study_info["MainDicomTags"]["StudyInstanceUID"]
-
-        data = {
-            "Level": "Study",
-            "Query": {
-                "StudyInstanceUID": study_uid,
+        await self._post(
+            path="/import-from-raw",
+            data={
+                "ResourceIDs": resource_ids,
+                "StudyInstanceUIDs": study_uids,
+                "ProjectName": project_name,
             },
-        }
-        query_id = await self.query_remote(modality="PIXL-Raw", data=data)
-        if query_id is None:
-            logger.info(f"No unique study found in Orthanc Raw with StudyInstanceUID: {study_uid}.")
-            return
-
-        logger.info("Importing study {} from raw to anon", study_uid)
-
-        # Don't wait for Orthanc Anon to finish processing the study.
-        # We still need to await the function otherwise the task is not added to the event loop.
-        # We could create the task with asyncio.create_task but a timeout error is still raised.
-        with contextlib.suppress(asyncio.TimeoutError):
-            await self._post(
-                path="/import-from-raw",
-                data={"StudyInstanceUID": study_uid, "QueryID": query_id},
-            )
+        )

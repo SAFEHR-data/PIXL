@@ -32,11 +32,12 @@ class DumbUploader(Uploader):
 
     def __init__(self, pseudo_study_uid) -> None:
         """Initialise the mock uploader with hardcoded values for FTPS config."""
+        self.project_slug = "project_slug"
         self.pseudo_study_uid = pseudo_study_uid
 
     def _get_tags_by_study(self, study_id: str) -> StudyTags:
         logger.info("Mocked getting tags for: {} to return {}", study_id, self.pseudo_study_uid)
-        return StudyTags(self.pseudo_study_uid, "project_slug", "patient-id")
+        return StudyTags(self.pseudo_study_uid, "patient-id")
 
     def _upload_dicom_image(
         self,
@@ -47,7 +48,7 @@ class DumbUploader(Uploader):
             "Mocked uploader with no upload functionality for {}, {}, {}",
             study_id,
             study_tags.pseudo_anon_image_id,
-            study_tags.project_slug,
+            self.project_slug,
             study_tags.patient_id,
         )
 

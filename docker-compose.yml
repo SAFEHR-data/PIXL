@@ -119,7 +119,11 @@ services:
             ORTHANC_RAW_AE_TITLE: ${ORTHANC_RAW_AE_TITLE}
             ORTHANC_RAW_DICOM_PORT: "4242"
             ORTHANC_RAW_HOSTNAME: "orthanc-raw"
+            ORTHANC_RAW_URL: ${ORTHANC_RAW_URL}
+            ORTHANC_RAW_USERNAME: ${ORTHANC_RAW_USERNAME}
+            ORTHANC_RAW_PASSWORD: ${ORTHANC_RAW_PASSWORD}
             PIXL_DICOM_TRANSFER_TIMEOUT: ${PIXL_DICOM_TRANSFER_TIMEOUT}
+            PIXL_MAX_MESSAGES_IN_FLIGHT: ${PIXL_MAX_MESSAGES_IN_FLIGHT}
             # For the export API
             ORTHANC_ANON_URL: "http://localhost:8042"
             ORTHANC_ANON_USERNAME: ${ORTHANC_ANON_USERNAME}
@@ -160,7 +164,7 @@ services:
                     "/probes/test-aliveness.py --user=$ORTHANC_USERNAME --pwd=$ORTHANC_PASSWORD",
                 ]
             start_period: 10s
-            retries: 2
+            retries: 10
             interval: 3s
             timeout: 2s
 
@@ -222,7 +226,7 @@ services:
         restart: "always"
 
     queue:
-        image: rabbitmq:3.13.6-management@sha256:54f115b7c9c619e59b703e326ebfc7fc762f8c7321eee34f6fc0646457fffe20
+        image: rabbitmq:3.13.7-management@sha256:1c32767bb8f7afb93fe99b890c05a250936bc2836fa3fd0154058f3953207095
         hostname: queue-host
         environment:
             RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}

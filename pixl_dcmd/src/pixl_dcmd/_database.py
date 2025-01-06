@@ -24,7 +24,7 @@ from core.db.models import Image, Extract
 from sqlalchemy import URL, create_engine, exists
 from sqlalchemy.orm import sessionmaker, exc
 
-from pixl_dcmd._dicom_helpers import StudyInfo
+from pixl_dcmd.dicom_helpers import StudyInfo
 
 url = URL.create(
     drivername="postgresql+psycopg2",
@@ -39,7 +39,7 @@ engine = create_engine(url)
 
 
 def get_uniq_pseudo_study_uid_and_update_db(
-    project_slug: str, study_info: StudyInfo
+    project_slug: str, original_study_info: StudyInfo
 ) -> UID:
     """
     Checks if record (by slug and study info) exists in the database,
@@ -50,7 +50,7 @@ def get_uniq_pseudo_study_uid_and_update_db(
     with PixlSession() as pixl_session, pixl_session.begin():
         existing_image = get_unexported_image(
             project_slug,
-            study_info,
+            original_study_info,
             pixl_session,
         )
         if existing_image.pseudo_study_uid is None:
@@ -64,8 +64,8 @@ def get_uniq_pseudo_study_uid_and_update_db(
 
 
 def get_pseudo_patient_id_and_update_db(
-    project_slug: str, study_info: StudyInfo, pseudo_patient_id: str
-) -> None:
+    project_slug: str, original_study_info: StudyInfo, pseudo_patient_id: str
+) -> str:
     """
     Checks if record (by slug and study info) exists in the database,
     gets the pseudo_paitent_id if it is not None otherwise use the
@@ -76,7 +76,7 @@ def get_pseudo_patient_id_and_update_db(
     with PixlSession() as pixl_session, pixl_session.begin():
         existing_image = get_unexported_image(
             project_slug,
-            study_info,
+            original_study_info,
             pixl_session,
         )
         if existing_image.pseudo_patient_id is None:
@@ -125,7 +125,7 @@ def get_unexported_image(
     """
     Get an existing, non-exported (for this project) image record from the database
     identified by the study UID. If no result is found, retry with querying on
-    MRN + accession number. If this fails as well, raise a PixlDiscardError.
+    MRN + accession number. If this fails as well, raise a NoResultFound.
     """
     try:
         existing_image: Image = (
