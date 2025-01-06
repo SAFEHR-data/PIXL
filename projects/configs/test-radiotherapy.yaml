@@ -23,7 +23,6 @@ project:
 tag_operation_files:
     base:
         - "base.yaml"
-        - "ct.yaml"
         - "rt-dose.yaml"
         - "rt-plan.yaml"
         - "rt-struct.yaml"
