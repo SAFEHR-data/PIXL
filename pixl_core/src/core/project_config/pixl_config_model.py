@@ -134,9 +134,8 @@ class PixlConfig(BaseModel):
     """Project-specific configuration for Pixl."""
 
     project: _Project
-    series_filters: Optional[
-        list[str]
-    ] = []  # pydantic is clever and makes a deep copy of the empty default list
+    min_instances_per_series: Optional[int] = 1
+    series_filters: Optional[list[str]] = []  # pydantic makes a deep copy of the empty default list
     series_number_filters: Optional[list[str]] = []
     allowed_manufacturers: Optional[str] = ".*"
     tag_operation_files: TagOperationFiles

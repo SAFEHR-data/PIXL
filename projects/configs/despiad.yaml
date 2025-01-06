@@ -25,6 +25,7 @@ tag_operation_files:
         - "pet.yaml"
     manufacturer_overrides: []
 
+min_instances_per_series: 1
 series_filters: []
 series_number_filters: []
 allowed_manufacturers: ".*"
