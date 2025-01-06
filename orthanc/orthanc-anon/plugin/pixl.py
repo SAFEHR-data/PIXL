@@ -234,9 +234,9 @@ def _import_study_from_raw(study_resource_id: str, study_uid: str, project_name:
         study_uid: Corresponding StudyInstanceUID
         project_name: Name of the project
 
-    - Pull a study from Orthanc Raw based on its resource ID
+    - Download a study from Orthanc Raw based on its resource ID
     - Iterate over instances and anonymise them
-    - Re-upload the study via the dicom-web api
+    - Upload the study to Orthanc Anon via the dicom-web api
     - Notify the PIXL export-api to send the study the to relevant endpoint for the project
 
     """
