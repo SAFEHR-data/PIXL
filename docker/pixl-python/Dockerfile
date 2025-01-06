@@ -61,7 +61,7 @@ COPY ./pixl_core/ pixl_core/
 # the actual thing we are building
 COPY ./$PIXL_PACKAGE_DIR/ $PIXL_PACKAGE_DIR/
 RUN uv venv
-RUN uv sync --package "$PIXL_PACKAGE_DIR"
+RUN --mount=type=cache,target=/root/.cache/uv,sharing=locked uv sync --package "$PIXL_PACKAGE_DIR"
 
 # make uvicorn etc available
 ENV PATH="/app/.venv/bin:$PATH"

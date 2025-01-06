@@ -34,7 +34,7 @@ FROM pixl_orthanc_uv AS pixl_orthanc_with_spec
 RUN uv venv
 RUN uv pip install dicom-validator
 COPY ./orthanc/orthanc-anon/plugin/download_dicom_spec.py /etc/orthanc/download_dicom_spec.py
-RUN --mount=type=cache,target=/root/.cache \
+RUN --mount=type=cache,target=/root/.cache,id=dlspec \
     python3 /etc/orthanc/download_dicom_spec.py
 
 
@@ -54,7 +54,7 @@ COPY ./pixl_dcmd/ pixl_dcmd
 RUN uv venv
 # Need --no-editable so that our packages are in
 # site-packages, so orthanc plugin manager can find them
-RUN uv sync --no-editable --package pixl-dcmd
+RUN --mount=type=cache,target=/root/.cache/uv,sharing=locked uv sync --no-editable --package pixl-dcmd
 
 ARG ORTHANC_DIR
 COPY ./orthanc/${ORTHANC_DIR}/plugin/pixl.py /etc/orthanc/pixl.py
