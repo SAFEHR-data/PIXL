@@ -22,7 +22,7 @@ from pixl_dcmd._database import (
     get_uniq_pseudo_study_uid_and_update_db,
     get_pseudo_patient_id_and_update_db,
 )
-from pixl_dcmd._dicom_helpers import StudyInfo
+from pixl_dcmd.dicom_helpers import StudyInfo
 from sqlalchemy.orm import Session
 
 STUDY_DATE = datetime.date.fromisoformat("2023-01-01")

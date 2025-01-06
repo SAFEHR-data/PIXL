@@ -24,7 +24,7 @@ from core.db.models import Image, Extract
 from sqlalchemy import URL, create_engine, exists
 from sqlalchemy.orm import sessionmaker, exc
 
-from pixl_dcmd._dicom_helpers import StudyInfo
+from pixl_dcmd.dicom_helpers import StudyInfo
 
 url = URL.create(
     drivername="postgresql+psycopg2",

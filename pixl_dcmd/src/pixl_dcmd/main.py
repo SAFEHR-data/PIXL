@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import typing
+from functools import lru_cache
 from io import BytesIO
 
 import requests
@@ -32,15 +33,14 @@ from pixl_dcmd._database import (
     get_uniq_pseudo_study_uid_and_update_db,
     get_pseudo_patient_id_and_update_db,
 )
-from pixl_dcmd._dicom_helpers import (
+from pixl_dcmd.dicom_helpers import (
     DicomValidator,
     get_study_info,
 )
 from pixl_dcmd._tag_schemes import _scheme_list_to_dict, merge_tag_schemes
 
-
 if typing.TYPE_CHECKING:
-    from pixl_dcmd._dicom_helpers import StudyInfo
+    from pixl_dcmd.dicom_helpers import StudyInfo
 
 
 def write_dataset_to_bytes(dataset: Dataset) -> bytes:
@@ -63,12 +63,12 @@ def _should_exclude_series(dataset: Dataset, cfg: PixlConfig) -> bool:
     """
     series_description = dataset.get("SeriesDescription")
     if cfg.is_series_description_excluded(series_description):
-        logger.info("FILTERING OUT series description: {}", series_description)
+        logger.debug("FILTERING OUT series description: {}", series_description)
         return True
 
     series_number = dataset.get("SeriesNumber")
     if cfg.is_series_number_excluded(series_number):
-        logger.info("FILTERING OUT series number: {}", series_number)
+        logger.debug("FILTERING OUT series number: {}", series_number)
         return True
 
     return False
@@ -78,7 +78,7 @@ def _should_exclude_manufacturer(dataset: Dataset, cfg: PixlConfig) -> bool:
     manufacturer = dataset.get("Manufacturer")
     should_exclude = not cfg.is_manufacturer_allowed(manufacturer=manufacturer)
     if should_exclude:
-        logger.info("FILTERING out manufacturer: {}", manufacturer)
+        logger.debug("FILTERING out manufacturer: {}", manufacturer)
     return should_exclude
 
 
@@ -119,11 +119,6 @@ def anonymise_and_validate_dicom(
 
     # Validate the anonymised dataset
     validation_errors = dicom_validator.validate_anonymised(dataset)
-    if validation_errors:
-        logger.warning(
-            "The anonymisation introduced the following validation errors:\n{}",
-            _parse_validation_results(validation_errors),
-        )
     return validation_errors
 
 
@@ -248,6 +243,7 @@ def _secure_hash(
         dataset[grp, el].value = hashed_value
 
 
+@lru_cache(maxsize=1000)
 def _hash_values(pat_value: str, project_slug: str, hash_len: int = 0) -> str:
     """
     Utility function for hashing values using the hasher API.
@@ -286,7 +282,7 @@ def _allowlist_tag(dataset: Dataset, de: DataElement, tag_scheme: list[dict]) ->
     del dataset[de.tag]
 
 
-def _parse_validation_results(results: dict) -> str:
+def parse_validation_results(results: dict) -> str:
     """Parse the validation results into a human-readable string."""
     res_str = ""
     for key, value in results.items():
