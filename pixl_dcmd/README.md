@@ -10,7 +10,7 @@ For external users, the `pixl_dcmd` package provides the following functionality
    and deletes any tags not mentioned in the tag scheme. The dataset is updated in place.
      - There is also an option to synchronise to the PIXL database, external users can avoid this
    to just run the allow-list and applying the tag scheme.
-     - Will throw a `PixlSkipInstanceError` for any series based on the project config file. Specifically, an error
+     - Will throw a `PixlSkipInstanceError` for any series based on the project config file. {SK: this sentence doesn't quite make sense to me} Specifically, an error
        will be thrown if:
        - the series description matches any series in `series_filters` (usually to remove localiser series)
        - the modality of the DICOM is not in `modalities`
@@ -58,18 +58,31 @@ and optionally a `manufacturer_overrides`.
 If a `manufacturer_overrides` is defined, it will be used to override the `base` tags, if the
 manufacturer of the DICOM file matches the manufacturer in the `manufacturer_overrides`. Any tags
 in the `manufacturer_overrides` that are not in the `base` will be added to the scheme as well.
+[SK: Between this and the previous read me I'm not sure this is totally clear, is it possible to have a full example of the yml file linked so that base and a manufacturer_overrides make a bit more sense ]
 
 ## 'PIXL/pixl_dcmd' Directory Contents
 
-### Subdirectories
+<details>
+<summary>
+<h3> Subdirectories with links to the relevant README </h3> 
+
+</summary>
 
 [src](./src/README.md)
 
 [tests](./tests/README.md)
 
-### Files
+</details>
 
-pyproject.toml
+<details>
+<summary>
+<h3> Files </h3> 
 
-README.md
+</summary>
+
+| **Configuration** | **User docs** |
+| :--- | :--- |
+| pyproject.toml | README.md | 
+
+</details>
 

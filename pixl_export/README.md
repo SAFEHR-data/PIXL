@@ -3,7 +3,7 @@
 The Export API provides HTTP endpoints to control the copying of EHR data from the OMOP extract
 to its destination (eg. FTPS). It also uploads DICOM data to its destination after it has been
 processed by the Imaging API and orthanc(s).
-It no longer accepts messages from rabbitmq.
+It no longer accepts messages from rabbitmq. <SK: Please explain>
 
 ## Installation
 
@@ -38,23 +38,36 @@ pytest
 
 ## Usage
 
-Usage should be from the CLI driver, which calls the HTTP endpoints.
+Usage should be from the [CLI driver](../cli/README.md), which calls the HTTP endpoints.
 
 ## Notes
 
-- The height/weight/GCS value is extracted only within a 24 h time window
+- The height/weight/GCS value is extracted only within a 24 h time window  <SK: I assume this refers to what can come out of OMOP   >
 
 ## 'PIXL/pixl_export' Directory Contents
 
-### Subdirectories
+<details>
+<summary>
+<h3> Subdirectories with links to the relevant README </h3> 
+
+</summary>
 
 [src](./src/README.md)
 
 [tests](./tests/README.md)
 
-### Files
+</details>
 
-pyproject.toml
+<details>
+<summary>
+<h3> Files </h3> 
 
-README.md
+</summary>
+
+| **Configuration** | **User docs** |
+| :--- | :--- |
+| pyproject.toml | README.md |
+
+</details>
+
 
