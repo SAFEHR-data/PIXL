@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import pytest
-from pixl_dcmd._dicom_helpers import DicomValidator
+from pixl_dcmd.dicom_helpers import DicomValidator
 from pixl_dcmd.main import anonymise_dicom
 from pydicom import Dataset
 

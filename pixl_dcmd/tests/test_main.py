@@ -35,7 +35,7 @@ from core.project_config import load_project_config, load_tag_operations
 from core.project_config.pixl_config_model import load_config_and_validate
 from decouple import config
 
-from pixl_dcmd._dicom_helpers import get_study_info
+from pixl_dcmd.dicom_helpers import get_study_info
 from pixl_dcmd.main import (
     anonymise_dicom_and_update_db,
     _anonymise_dicom_from_scheme,
