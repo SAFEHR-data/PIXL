@@ -27,11 +27,11 @@
 - name: Structure Set Date
   group: 0x3006
   element: 0x0008
-  op: keep
+  op: replace
 - name: Structure Set Time
   group: 0x3006
   element: 0x0009
-  op: keep
+  op: replace
 - name: Contour Image Sequence
   group: 0x3006
   element: 0x0016

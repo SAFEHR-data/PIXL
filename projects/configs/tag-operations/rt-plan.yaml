@@ -15,7 +15,7 @@
 - name: Operators Name
   group: 0x0008
   element: 0x1070
-  op: keep
+  op: replace
 - name: Referenced SOP Class UID
   group: 0x0008
   element: 0x1150
@@ -31,11 +31,11 @@
 - name: RT Plan Date
   group: 0x300a
   element: 0x0006
-  op: keep
+  op: replace
 - name: RT Plan Time
   group: 0x300a
   element: 0x0007
-  op: keep
+  op: replace
 - name: RT Plan Geometry
   group: 0x300a
   element: 0x000c
