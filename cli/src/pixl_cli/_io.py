@@ -64,19 +64,25 @@ def read_patient_info(resources_path: Path) -> pd.DataFrame:
         messages_df = _load_csv(resources_path)
     else:
         messages_df = _load_parquet(resources_path)
+    # Tidy up dataframe in case of whitespace or no way to identify images
+    unique_columns = ["project_name", "mrn", "accession_number", "study_uid"]
+    filtered_df = messages_df.dropna(subset=["accession_number", "study_uid"], how="all")
+    for column in unique_columns:
+        filtered_df[column] = filtered_df[column].str.strip()
+    filtered_df = filtered_df[
+        ~(filtered_df["accession_number"].eq("") & filtered_df["study_uid"].eq(""))
+    ]
 
-    messages_df = messages_df.sort_values(by=["project_name", "study_date"])
-    messages_df = messages_df.drop_duplicates(
-        subset=["project_name", "mrn", "accession_number", "study_date"]
-    )
+    filtered_df = filtered_df.sort_values(by=["project_name", "study_date"])
+    filtered_df = filtered_df.drop_duplicates(subset=unique_columns)
 
-    if len(messages_df) == 0:
+    if len(filtered_df) == 0:
         msg = f"Failed to find any messages in {resources_path}"
         raise ValueError(msg)
 
-    logger.info("Created {} messages from {}", len(messages_df), resources_path)
+    logger.info("Created {} messages from {}", len(filtered_df), resources_path)
 
-    return messages_df
+    return filtered_df
 
 
 def _load_csv(filepath: Path) -> pd.DataFrame:
@@ -167,7 +173,6 @@ MAP_CSV_TO_MESSAGE_KEYS = {
     "procedure_id": "procedure_occurrence_id",
     "participant_id": "pseudo_patient_id",
 }
-
 
 MAP_PARQUET_TO_MESSAGE_KEYS = {
     "PrimaryMrn": "mrn",
