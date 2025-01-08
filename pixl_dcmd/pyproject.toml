@@ -23,8 +23,6 @@ dependencies = [
 [project.optional-dependencies]
 test = [
     "core[test]==0.2.0rc0",
-    "dcm2niix==1.0.20220715",
-    "nibabel==5.3.2",
 ]
 dev = [
     "core[dev]==0.2.0rc0",
