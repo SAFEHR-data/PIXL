@@ -17,7 +17,7 @@ See detailed instructions [here](../docs/setup/developer.md#setting-up-python-vi
 ## Installation
 Activate your python virtual environment and install `PIXL` project in editable mode by running
 ```bash
-python -m pip install -e ../pixl_core -e .
+uv sync
 ```
 
 ## Usage
@@ -130,7 +130,7 @@ are currently available, you can use the `pixl --help` command:
 ### Local installation
 Activate your python environment and install project locally in editable mode with the development and testing dependencies by running
 ```bash
-python -m pip install -e ../pixl_core -e ../pytest-pixl -e ".[test]" -e ".[dev]"
+uv sync
 ```
 
 ### Running tests

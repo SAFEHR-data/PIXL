@@ -23,16 +23,15 @@ sudo apt install postgresql
 
 On Windows, follow [these instructions](https://www.postgresqltutorial.com/postgresql-getting-started/install-postgresql/).
 
-Then install the Python dependencies with
+Then install PIXL with:
 
 ```bash
-python -m pip install -e ../pixl_core/ -e .
+uv sync
 ```
 
 ## Test
 
 ```bash
-python -m pip install -e ../pixl_core/ -e ".[test]"
 pytest
 ```
 
