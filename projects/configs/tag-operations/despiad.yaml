@@ -1,4 +1,4 @@
-#  Copyright (c) 2024 University College London Hospitals NHS Foundation Trust
+#  Copyright (c) University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -12,25 +12,11 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-project:
-    name: "despiad"
-    modalities:
-      - "CT"
-      - "PT"
-
-tag_operation_files:
-    base:
-        - "base.yaml"
-        - "ct.yaml"
-        - "pet.yaml"
-        - "despiad.yaml"
-    manufacturer_overrides: []
-
-min_instances_per_series: 1
-series_filters: []
-series_number_filters: []
-allowed_manufacturers: ".*"
-
-destination:
-    dicom: "none"
-    parquet: "none"
+- name: Study Date
+  group: 0x0008
+  element: 0x0020
+  op: keep
+- name: Patient's Birth Date
+  group: 0x0010
+  element: 0x0030
+  op: keep
