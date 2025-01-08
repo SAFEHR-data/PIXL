@@ -62,6 +62,18 @@ TAGS_DICT = {
     "pixel_data": None,
 }
 
+# Mapping based on: https://dicom.nema.org/medical/dicom/current/output/chtml/part04/sect_b.5.html
+MODALITY_TO_CLASS_UID = {
+    "CR": "1.2.840.10008.5.1.4.1.1.1",
+    "CT": "1.2.840.10008.5.1.4.1.1.2",
+    "DX": "1.2.840.10008.5.1.4.1.1.1.1",
+    "MR": "1.2.840.10008.5.1.4.1.1.4",
+    "PT": "1.2.840.10008.5.1.4.1.1.128",
+    "RTDOSE": "1.2.840.10008.5.1.4.1.1.481.2",
+    "RTSTRUCT": "1.2.840.10008.5.1.4.1.1.481.3",
+    "RTPLAN": "1.2.840.10008.5.1.4.1.1.481.5",
+}
+
 
 def generate_dicom_dataset(tag_values: dict = TAGS_DICT, **kwargs: Any) -> Dataset:
     """
@@ -110,6 +122,9 @@ def generate_dicom_dataset(tag_values: dict = TAGS_DICT, **kwargs: Any) -> Datas
         else:
             msg = f"Tag {key} is not a valid DICOM tag"
             raise ValueError(msg)
+
+    if "Modality" in kwargs and "SOPClassUID" not in kwargs:
+        ds.SOPClassUID = MODALITY_TO_CLASS_UID[kwargs["Modality"]]
 
     return ds
 

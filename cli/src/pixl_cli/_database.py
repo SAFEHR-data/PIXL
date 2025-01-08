@@ -89,8 +89,8 @@ def _filter_existing_images(
 ) -> pd.DataFrame:
     # DataFrame indices must batch when using df.isin (or df.index.isin)
     # So we re-index the DataFrames to match on the columns we want to compare
-    messages_df_reindexed = messages_df.set_index(["accession_number", "mrn", "study_date"])
-    images_df_reindexed = images_df.set_index(["accession_number", "mrn", "study_date"])
+    messages_df_reindexed = messages_df.set_index(["accession_number", "mrn", "study_uid"])
+    images_df_reindexed = images_df.set_index(["accession_number", "mrn", "study_uid"])
     keep_indices = ~messages_df_reindexed.index.isin(images_df_reindexed.index)
     return messages_df[keep_indices]
 
@@ -101,7 +101,7 @@ def _filter_exported_messages(
 ) -> pd.DataFrame:
     merged = messages_df.merge(
         images_df,
-        on=["accession_number", "mrn", "study_date"],
+        on=["accession_number", "mrn", "study_uid"],
         how="left",
         validate="one_to_one",
         suffixes=(None, None),
@@ -131,7 +131,7 @@ def all_images_for_project(project_slug: str) -> pd.DataFrame:
     PixlSession = sessionmaker(engine)
 
     query = (
-        select(Image.accession_number, Image.study_date, Image.mrn, Image.exported_at)
+        select(Image.accession_number, Image.study_uid, Image.mrn, Image.exported_at)
         .join(Extract)
         .where(Extract.slug == project_slug)
     )

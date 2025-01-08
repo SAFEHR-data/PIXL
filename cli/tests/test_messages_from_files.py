@@ -55,6 +55,32 @@ def test_messages_from_csv(omop_resources: Path) -> None:
     assert messages == expected_messages
 
 
+def test_whitespace_and_na_processing(omop_resources: Path) -> None:
+    """
+    GIVEN a csv with leading and trailing whitespace, a duplicate entry
+      and ones with no image identifiers (empty and whitespaces).
+    WHEN the messages are generated from the directory
+    THEN one message should be generated, with no leading or trailing whitespace
+    """
+    # Arrange
+    test_csv = omop_resources / "test_whitespace_and_na_processing.csv"
+    messages_df = read_patient_info(test_csv)
+    # Act
+    messages = messages_from_df(messages_df)
+    # Assert
+    assert messages == [
+        Message(
+            procedure_occurrence_id=0,
+            mrn="patient_identifier",
+            accession_number="123456789",
+            study_uid="1.2.3.4.5.6.7.8",
+            project_name="ms-pinpoint-test",
+            extract_generated_timestamp=datetime.datetime.fromisoformat("2023-01-01T00:01:00Z"),
+            study_date=datetime.date.fromisoformat("2022-01-01"),
+        ),
+    ]
+
+
 def test_messages_from_csv_multiple_projects(
     omop_resources: Path, rows_in_session, mock_publisher
 ) -> None:
