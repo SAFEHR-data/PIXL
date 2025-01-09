@@ -13,7 +13,7 @@
 #  limitations under the License.
 
 project:
-    name: "prognosis-ai"
+    name: "prognosisai"
     modalities: ["MR"]
 
 tag_operation_files:
