@@ -36,14 +36,14 @@ members = [
 ]
 
 [tool.hatch.build.targets.wheel]
-dev-mode-dirs = [
-    "cli",
-    "pixl_core",
-    "pytest-pixl",
-    "hasher",
-    "pixl_dcmd",
-    "pixl_export",
-    "pixl_imaging",
+include = [
+    "cli/**",
+    "pixl_core/**",
+    "pytest-pixl/**",
+    "hasher/**",
+    "pixl_dcmd/**",
+    "pixl_export/**",
+    "pixl_imaging/**"
 ]
 
 [build-system]

@@ -49,6 +49,3 @@ extend = "../ruff.toml"
 [tool.ruff.lint.extend-per-file-ignores]
 "./tests/**" = ["D1"]
 
-[tool.setuptools.package-data]
-pixl_export = ["sql/*.sql", "report_deid/*.txt"]
-

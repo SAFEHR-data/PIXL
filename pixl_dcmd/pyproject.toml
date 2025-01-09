@@ -51,6 +51,3 @@ exclude_also = [
 
 [tool.ruff.lint.extend-per-file-ignores]
 "./tests/**" = ["D100"]
-
-[tool.setuptools.package-data]
-pixl_dcmd = ["resources/*.yml"]
