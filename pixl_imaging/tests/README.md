@@ -1,14 +1,25 @@
 ## 'PIXL/pixl_imaging/tests' Directory Contents
 
-### Subdirectories
+<details>
+<summary>
+<h3> Subdirectories with links to the relevant README </h3> 
+
+</summary>
 
 [orthanc_raw_config](./orthanc_raw_config/README.md)
 
-### Files
+</details>
 
-conftest.py
+<details>
+<summary>
+<h3> Files </h3> 
 
-docker-compose.yml
+</summary>
 
-test_imaging_processing.py
+| **Configuration** | **Code** | **User docs** |
+| :--- | :--- | :--- |
+| docker-compose.yml | conftest.py | README.md |
+| | test_imaging_processing.py | |
+
+</details>
 

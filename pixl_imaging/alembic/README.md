@@ -10,9 +10,9 @@ as the entry point is [migrate_and_run.sh](../scripts/migrate_and_run.sh).
 
 ## Creating a new migration after editing the database model
 
-For convenience, the [autogenerate-migration.sh](autogenerate-migration.sh) has been made.
+For convenience, the [autogenerate-migration.sh](autogenerate-migration.sh) script has been created.
 
-Which you can run giving a name for the migration like this:
+It can be run giving a name for the migration like this:
 
 ```shell
 cd alembic
@@ -22,7 +22,7 @@ cd alembic
 - This creates a postgres container
 - Runs the existing migrations
 - Checks for differences between the SQLAlchemy [models](../../pixl_core/src/core/db/models.py) 
-  and creates a new migration in [versions](versions)
+  and creates a new migration in the [versions](versions) directory
 - Takes down the postgres container
 
 There's a couple of manual steps:
@@ -32,21 +32,31 @@ There's a couple of manual steps:
 
 ## 'PIXL/pixl_imaging/alembic' Directory Contents
 
-### Subdirectories
+<details>
+<summary>
+<h3> Subdirectories with links to the relevant README </h3> 
+
+</summary>
 
 [versions](./versions/README.md)
 
-### Files
+</details>
 
-alembic.ini
+<details>
+<summary>
+<h3> Files </h3> 
 
-autogenerate-migration.sh
+</summary>
 
-env.py
+| **Configuration** | **User docs** |
+| :--- | :--- |
+| alembic.ini | README.md |
+| autogenerate-migration.sh | |
+| env.py | |
+| migrations.env | |
+| script.py.mako | |
 
-migrations.env
+</details>
 
-README.md
 
-script.py.mako
 

@@ -3,6 +3,8 @@
 The PIXL imaging API processes messages created by the [CLI](../cli/README.md) and sent to imaging queues
 to query images from a dicom server and transfer them to the [`orthanc-raw` instance](../orthanc/orthanc-raw/README.md).
 
+<details>
+<summary>## UCLH Specific</summary>
 The imaging API has two queues:
 
 - `imaging-primary`, for querying the VNA
@@ -20,7 +22,7 @@ If the study has be identified in VNA or PACS, a query to `orthanc-raw` is made 
 exists locally. If it does exist locally, a check is made to ensure all instances exist locally and any missing
 instances are retrieved. If the study does not exist locally, the entire study is retrieved from the archive.
 
-Once the study and all its instances are in `orthanc-raw`, the study is sent to `orthanc-anon` via a C-STORE
+Once the study and all its instances are in `orthanc-raw`, the study is sent to `orthanc-anon` via a C-STORE <SK: Please explain what C-STORE operation>
 operation.
 
 >[!NOTE]  
@@ -28,6 +30,8 @@ operation.
 > This may result in multiple studies being found in the archives. In this instance, all studies returned by the
 > query will be retrieved and sent to Orthanc Anon for anonymisation. In Orthanc Anon, the studies will be combined
 > into a single study as they share the same MRN and Accession Number.
+
+</details>
 
 ## Installation
 
@@ -63,7 +67,11 @@ The `SKIP_ALEMBIC` environmental variable is used to control whether migrations 
 
 ## 'PIXL/pixl_imaging' Directory Contents
 
-### Subdirectories
+<details>
+<summary>
+<h3> Subdirectories with links to the relevant README </h3> 
+
+</summary>
 
 [alembic](./alembic/README.md)
 
@@ -73,9 +81,19 @@ The `SKIP_ALEMBIC` environmental variable is used to control whether migrations 
 
 [tests](./tests/README.md)
 
-### Files
+</details>
 
-pyproject.toml
+<details>
+<summary>
+<h3> Files </h3> 
 
-README.md
+</summary>
+
+| **Configuration** | **User docs** |
+| :--- | :--- |
+| pyproject.toml | README.md |
+
+
+</details>
+
 

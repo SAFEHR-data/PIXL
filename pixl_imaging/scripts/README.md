@@ -1,6 +1,14 @@
 ## 'PIXL/pixl_imaging/scripts' Directory Contents
 
-### Files
+<details>
+<summary>
+<h3> Files </h3> 
 
-migrate_and_run.sh
+</summary>
+
+| **Code** | **User docs** |
+| :--- | :--- |
+| migrate_and_run.sh | README.md |
+
+</details>
 

@@ -1,12 +1,17 @@
 ## 'PIXL/pixl_imaging/src/pixl_imaging' Directory Contents
 
-### Files
+<details>
+<summary>
+<h3> Files </h3> 
 
-main.py
+</summary>
 
-_orthanc.py
+| **Code** | **User docs** |
+| :--- | :--- |
+| main.py | README.md |
+| _orthanc.py | |
+| _processing.py | |
+| __init__.py | |
 
-_processing.py
-
-__init__.py
+</details>
 
