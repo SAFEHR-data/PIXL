@@ -8,11 +8,17 @@ See  [/pixl_imaging/alembic](../pixl_imaging/alembic) for how these are defined 
 
 ## 'PIXL/postgres' Directory Contents
 
-### Files
+<details>
+<summary>
+<h3> Files </h3> 
 
-pixl-db_init.sh
+</summary>
 
-postgres.conf
+| **Configuration** | **Code** | **User docs** |
+| :--- | :--- | :--- |
+| postgres.conf | pixl-db_init.sh | README.md |
 
-README.md
+</details>
+
+
 
