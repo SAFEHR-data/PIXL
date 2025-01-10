@@ -15,31 +15,23 @@
 
 from __future__ import annotations
 
+import threading
+import typing
+from contextlib import contextmanager, redirect_stdout
 from dataclasses import dataclass
 import logging
+from io import StringIO
 from pathlib import Path
+from typing import Generator
 
-from core.dicom_tags import DICOM_TAG_PROJECT_NAME
+from loguru import logger
+
 from dicom_validator.spec_reader.edition_reader import EditionReader
 from dicom_validator.validator.iod_validator import IODValidator
-from loguru import logger
 from pydicom import Dataset
 
-
-def get_project_name_as_string(dataset: Dataset) -> str:
-    raw_slug = dataset.get_private_item(
-        DICOM_TAG_PROJECT_NAME.group_id,
-        DICOM_TAG_PROJECT_NAME.offset_id,
-        DICOM_TAG_PROJECT_NAME.creator_string,
-    ).value
-    # Get both strings and bytes, which is fun
-    if isinstance(raw_slug, bytes):
-        logger.debug(f"Bytes slug {raw_slug!r}")
-        slug = raw_slug.decode("utf-8").strip()
-    else:
-        logger.debug(f"String slug '{raw_slug}'")
-        slug = raw_slug
-    return slug
+if typing.TYPE_CHECKING:
+    from loguru import Logger
 
 
 class DicomValidator:
@@ -48,8 +40,9 @@ class DicomValidator:
 
         # Default from dicom_validator but defining here to be explicit
         standard_path = str(Path.home() / "dicom-validator")
-        edition_reader = EditionReader(standard_path)
-        destination = edition_reader.get_revision(self.edition, False)
+        with _redirect_stdout_to_debug(logger):
+            edition_reader = EditionReader(standard_path)
+            destination = edition_reader.get_revision(self.edition, False)
         json_path = Path(destination, "json")
         self.dicom_info = EditionReader.load_dicom_info(json_path)
 
@@ -85,6 +78,26 @@ class DicomValidator:
                 self.diff_errors[key] = self.anon_errors[key]
 
         return self.diff_errors
+
+
+thread_local = threading.local()
+
+
+@contextmanager
+def _redirect_stdout_to_debug(_logger: Logger) -> Generator[None, None, None]:
+    """Within the context manager, redirect all print statements to debug statements."""
+
+    # sys.stdout is shared across all threads so use thread-local storage
+    if not hasattr(thread_local, "stdout"):
+        thread_local.stdout = StringIO()
+
+    with redirect_stdout(thread_local.stdout):
+        yield
+
+    thread_local.stdout.seek(0)
+    output = thread_local.stdout.readlines()
+    for line in output:
+        _logger.debug(line.strip())
 
 
 @dataclass

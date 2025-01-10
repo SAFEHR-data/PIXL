@@ -74,8 +74,10 @@ services:
     hasher-api:
         build:
             context: .
-            dockerfile: ./docker/hasher-api/Dockerfile
+            dockerfile: ./docker/pixl-python/Dockerfile
+            target: hasher_api
             args:
+                PIXL_PACKAGE_DIR: hasher
                 <<: *build-args-common
         environment:
             <<: [*proxy-common, *pixl-common-env]
@@ -93,7 +95,6 @@ services:
         networks:
             - pixl-net
         healthcheck:
-            test: ["CMD", "curl", "-f", "http://hasher-api:8000/heart-beat"]
             interval: 10s
             timeout: 30s
             retries: 5
@@ -102,9 +103,11 @@ services:
     orthanc-anon:
         build:
             context: .
-            dockerfile: ./docker/orthanc-anon/Dockerfile
+            dockerfile: ./docker/orthanc/Dockerfile
+            target: pixl_orthanc_anon
             args:
                 <<: *build-args-common
+                ORTHANC_DIR: orthanc-anon
                 ORTHANC_CONCURRENT_JOBS: ${ORTHANC_CONCURRENT_JOBS}
         platform: linux/amd64
         command: /run/secrets
@@ -164,16 +167,18 @@ services:
                     "/probes/test-aliveness.py --user=$ORTHANC_USERNAME --pwd=$ORTHANC_PASSWORD",
                 ]
             start_period: 10s
-            retries: 2
+            retries: 10
             interval: 3s
             timeout: 2s
 
     orthanc-raw:
         build:
             context: .
-            dockerfile: ./docker/orthanc-raw/Dockerfile
+            dockerfile: ./docker/orthanc/Dockerfile
+            target: pixl_orthanc_raw
             args:
                 <<: *build-args-common
+                ORTHANC_DIR: orthanc-raw
                 ORTHANC_RAW_MAXIMUM_STORAGE_SIZE: ${ORTHANC_RAW_MAXIMUM_STORAGE_SIZE}
                 ORTHANC_RAW_JOB_HISTORY_SIZE: ${ORTHANC_RAW_JOB_HISTORY_SIZE}
                 ORTHANC_CONCURRENT_JOBS: ${ORTHANC_CONCURRENT_JOBS}
@@ -226,7 +231,7 @@ services:
         restart: "always"
 
     queue:
-        image: rabbitmq:3.13.6-management@sha256:54f115b7c9c619e59b703e326ebfc7fc762f8c7321eee34f6fc0646457fffe20
+        image: rabbitmq:3.13.7-management@sha256:1c32767bb8f7afb93fe99b890c05a250936bc2836fa3fd0154058f3953207095
         hostname: queue-host
         environment:
             RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
@@ -249,8 +254,10 @@ services:
     export-api:
         build:
             context: .
-            dockerfile: ./docker/export-api/Dockerfile
+            dockerfile: ./docker/pixl-python/Dockerfile
+            target: export_api
             args:
+                PIXL_PACKAGE_DIR: pixl_export
                 <<: *build-args-common
         environment:
             <<:
@@ -297,8 +304,10 @@ services:
     imaging-api:
         build:
             context: .
-            dockerfile: ./docker/imaging-api/Dockerfile
+            dockerfile: ./docker/pixl-python/Dockerfile
+            target: imaging_api
             args:
+                PIXL_PACKAGE_DIR: pixl_imaging
                 <<: *build-args-common
         depends_on:
             queue:
@@ -308,7 +317,6 @@ services:
             orthanc-anon:
                 condition: service_healthy
         healthcheck:
-            test: curl -f http://0.0.0.0:8000/heart-beat
             interval: 10s
             timeout: 30s
             retries: 5

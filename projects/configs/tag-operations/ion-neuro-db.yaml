@@ -1,4 +1,4 @@
-#  Copyright (c) 2022 University College London Hospitals NHS Foundation Trust
+#  Copyright (c) University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -11,15 +11,12 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-"""Download the DICOM spec with dicom-validator."""
 
-from pathlib import Path
+# Specific tag operations for ion-neuro-db project
 
-from dicom_validator.spec_reader.edition_reader import EditionReader
+- name: "Acquisition Date"
+  group: 0x0008
+  element: 0x0022
+  op: "keep"
 
-edition = "2024e"
-download_path = str(Path.home() / "dicom-validator")
-edition_reader = EditionReader(download_path)
-destination = edition_reader.get_revision(edition, recreate_json=False)
-json_path = Path(destination, "json")
-EditionReader.load_dicom_info(json_path)
+

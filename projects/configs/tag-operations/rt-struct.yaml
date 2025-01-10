@@ -1,0 +1,114 @@
+#  Copyright (c) University College London Hospitals NHS Foundation Trust
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
+- name: Referenced SOP Class UID
+  group: 0x0008
+  element: 0x1150
+  op: keep
+- name: Referenced SOP Instance UID
+  group: 0x0008
+  element: 0x1155
+  op: replace_UID
+- name: Structure Set Label
+  group: 0x3006
+  element: 0x0002
+  op: keep
+- name: Structure Set Date
+  group: 0x3006
+  element: 0x0008
+  op: replace
+- name: Structure Set Time
+  group: 0x3006
+  element: 0x0009
+  op: replace
+- name: Contour Image Sequence
+  group: 0x3006
+  element: 0x0016
+  op: keep
+- name: Structure Set ROI Sequence
+  group: 0x3006
+  element: 0x0020
+  op: keep
+- name: ROI Number
+  group: 0x3006
+  element: 0x0022
+  op: keep
+- name: Referenced Frame of Reference Sequence
+  group: 0x3006
+  element: 0x0010
+  op: keep
+- name: RT Referenced Study Sequence
+  group: 0x3006
+  element: 0x0012
+  op: keep
+- name: RT Referenced Series Sequence
+  group: 0x3006
+  element: 0x0014
+  op: keep
+- name: Referenced Frame of Reference UID
+  group: 0x3006
+  element: 0x0024
+  op: replace_UID
+- name: ROI Name
+  group: 0x3006
+  element: 0x0026
+  op: keep
+- name: ROI Display Color
+  group: 0x3006
+  element: 0x002a
+  op: keep
+- name: ROI Generation Algorithm
+  group: 0x3006
+  element: 0x0036
+  op: keep
+- name: ROI Contour Sequence
+  group: 0x3006
+  element: 0x0039
+  op: keep
+- name: Contour Sequence
+  group: 0x3006
+  element: 0x0040
+  op: keep
+- name: Contour Geometric Type
+  group: 0x3006
+  element: 0x0042
+  op: keep
+- name: Number of Contour Points
+  group: 0x3006
+  element: 0x0046
+  op: keep
+- name: Contour Data
+  group: 0x3006
+  element: 0x0050
+  op: keep
+- name: RT ROI Observations Sequence
+  group: 0x3006
+  element: 0x0080
+  op: keep
+- name: Observation Number
+  group: 0x3006
+  element: 0x0082
+  op: keep
+- name: Referenced ROI Number
+  group: 0x3006
+  element: 0x0084
+  op: keep
+- name: RT ROI Interpreted Type
+  group: 0x3006
+  element: 0x00A4
+  op: keep
+- name: ROI Interpreter
+  group: 0x3006
+  element: 0x00A6
+  op: keep

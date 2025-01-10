@@ -50,7 +50,6 @@ Save credentials `.env` for 'Orthanc anon' and the Azure DICOM Service.
 ORTHANC_ANON_USERNAME=
 ORTHANC_ANON_PASSWORD=
 ORTHANC_ANON_AE_TITLE=
-ORTHANC_ANON_HTTP_TIMEOUT=60
 ENABLE_DICOM_WEB=true
 
 # DICOMweb endpoint

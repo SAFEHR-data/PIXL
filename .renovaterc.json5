@@ -2,6 +2,36 @@
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
   extends: [
     "github>UCL-ARC/.github//renovate/default-config.json",
-    "schedule:monthly",
+    ":assignAndReview(team:arc-dev)",
+    "group:allNonMajor"
   ],
+  customDatasources: {
+    dicomSpec: {
+      defaultRegistryUrlTemplate: "https://dicom.nema.org/medical/dicom",
+      format: "html",
+    },
+  },
+  customManagers: [
+    {
+      customType: "regex",
+      description: "Update DICOM Spec edition used for validation",
+      fileMatch: [
+        "orthanc/orthanc-anon/plugin/download_dicom_spec.py",
+        "pixl_dcmd/src/pixl_dcmd/main.py",
+      ],
+      matchStrings: [
+        'edition\\s?=\\s?"(?<currentValue>.*?)"\n',
+        '.*\\(edition\\s?=\\s?"(?<currentValue>.*?)"\\)\n',
+      ],
+      depNameTemplate: "dicomSpec",
+      datasourceTemplate: "custom.dicomSpec",
+    },
+  ],
+  packageRules: [
+    {
+      matchDatasources: ["custom.dicomSpec"],
+      extractVersion: "/medical/dicom/(?<version>\\d{4}[a-z])/",
+      versioning: "loose",
+    }
+  ]
 }

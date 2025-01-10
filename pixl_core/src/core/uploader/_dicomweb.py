@@ -123,6 +123,7 @@ class DicomWebUploader(Uploader):
             "Username": self.endpoint_user,
             "Password": self.endpoint_password,
             "HasDelete": True,
+            "Timeout": self.http_timeout,
         }
 
         headers = {"content-type": "application/json"}

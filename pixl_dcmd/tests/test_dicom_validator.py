@@ -15,24 +15,25 @@
 from __future__ import annotations
 
 import pytest
-from pixl_dcmd._dicom_helpers import DicomValidator
+from pixl_dcmd.dicom_helpers import DicomValidator
 from pixl_dcmd.main import anonymise_dicom
 from pydicom import Dataset
 
 
-def test_validation_check_works(vanilla_single_dicom_image_DX: Dataset) -> None:
+def test_validation_check_works(vanilla_dicom_image_DX: Dataset) -> None:
     """
     GIVEN a DICOM dataset
     WHEN the dataset is validated against itself (withouth anonymisation)
     THEN no errors should be raised
     """
     validator = DicomValidator()
-    validator.validate_original(vanilla_single_dicom_image_DX)
-    assert not validator.validate_anonymised(vanilla_single_dicom_image_DX)
+    validator.validate_original(vanilla_dicom_image_DX)
+    assert not validator.validate_anonymised(vanilla_dicom_image_DX)
 
 
 def test_validation_after_anonymisation_works(
-    vanilla_single_dicom_image_DX: Dataset,
+    vanilla_dicom_image_DX: Dataset,
+    test_project_config,
 ) -> None:
     """
     GIVEN a DICOM dataset
@@ -40,17 +41,17 @@ def test_validation_after_anonymisation_works(
     THEN no errors should be raised
     """
     validator = DicomValidator()
-    validator.validate_original(vanilla_single_dicom_image_DX)
-    anonymise_dicom(vanilla_single_dicom_image_DX)
+    validator.validate_original(vanilla_dicom_image_DX)
+    anonymise_dicom(vanilla_dicom_image_DX, config=test_project_config)
 
-    assert not validator.validate_anonymised(vanilla_single_dicom_image_DX)
+    assert not validator.validate_anonymised(vanilla_dicom_image_DX)
 
 
 @pytest.fixture()
-def non_compliant_dicom_image(vanilla_single_dicom_image_DX: Dataset) -> Dataset:
+def non_compliant_dicom_image(vanilla_dicom_image_DX: Dataset) -> Dataset:
     """A DICOM dataset that is not compliant with the DICOM standard."""
-    del vanilla_single_dicom_image_DX.PatientName
-    return vanilla_single_dicom_image_DX
+    del vanilla_dicom_image_DX.PatientName
+    return vanilla_dicom_image_DX
 
 
 def test_validation_passes_for_non_compliant_dicom(non_compliant_dicom_image) -> None:
@@ -65,7 +66,7 @@ def test_validation_passes_for_non_compliant_dicom(non_compliant_dicom_image) ->
 
 
 def test_validation_fails_after_invalid_tag_modification(
-    vanilla_single_dicom_image_DX,
+    vanilla_dicom_image_DX,
 ) -> None:
     """
     GIVEN a DICOM dataset
@@ -73,9 +74,9 @@ def test_validation_fails_after_invalid_tag_modification(
     THEN validation should return a non-empty list of errors
     """
     validator = DicomValidator()
-    validator.validate_original(vanilla_single_dicom_image_DX)
-    del vanilla_single_dicom_image_DX.PatientName
-    validation_result = validator.validate_anonymised(vanilla_single_dicom_image_DX)
+    validator.validate_original(vanilla_dicom_image_DX)
+    del vanilla_dicom_image_DX.PatientName
+    validation_result = validator.validate_anonymised(vanilla_dicom_image_DX)
 
     assert len(validation_result) == 1
     assert "Patient" in validation_result.keys()
