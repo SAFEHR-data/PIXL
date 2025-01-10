@@ -1,24 +1,31 @@
 ## 'PIXL/projects/configs/tag-operations' Directory Contents
 
-### Subdirectories
+<details>
+<summary>
+<h3> Subdirectories with links to the relevant README </h3> 
+
+</summary>
 
 [manufacturer-overrides](./manufacturer-overrides/README.md)
 
-### Files
+</details>
 
-base.yaml
+<details>
+<summary>
+<h3> Files </h3> 
 
-diffusion-weighted-mri.yaml
+</summary>
 
-mri.yaml
+| **Configuration** | **User docs** |
+| :--- | :--- |
+| base.yaml | README.md |
+| diffusion-weighted-mri.yaml | |
+| mri.yaml | |
+| ms-pinpoint.yaml | |
+| test-external-user.yaml | |
+| test-extract-uclh-omop-cdm.yaml | |
+| uclh-nasogastric-tube-project-ngt-only-full-dataset.yaml | |
+| xray.yaml | |
 
-ms-pinpoint.yaml
-
-test-external-user.yaml
-
-test-extract-uclh-omop-cdm.yaml
-
-uclh-nasogastric-tube-project-ngt-only-full-dataset.yaml
-
-xray.yaml
+</details>
 

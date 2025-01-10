@@ -1,8 +1,17 @@
-## 'manufacturer-overrides' Directory Contents
+## 'PIXL/projects/configs/tag-operations/manufacturer-overrides' Directory Contents
 
-### Files
+<details>
+<summary>
+<h3> Files </h3> 
 
-mri-diffusion.yaml
+</summary>
 
-mri.yaml
+| **Configuration** | **User docs** |
+| :--- | :--- |
+| mri-diffusion.yaml | README.md |
+| mri.yaml | |
+
+</details>
+
+
 
