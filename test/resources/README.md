@@ -1,14 +1,27 @@
 ## 'PIXL/test/resources' Directory Contents
 
-### Subdirectories
+<details>
+<summary>
+<h3> Subdirectories with links to the relevant README </h3> 
+
+</summary>
 
 [omop](./omop/README.md)
 
 [omop-dicomweb](./omop-dicomweb/README.md)
 
-### Files
+</details>
 
-Dicom1.dcm
+<details>
+<summary>
+<h3> Files </h3> 
 
-Dicom2.dcm
+</summary>
+
+| **Dicom** | **User docs** |
+| :--- | :--- |
+| Dicom1.dcm | README.md |
+| Dicom2.dcm | |
+
+</details>
 

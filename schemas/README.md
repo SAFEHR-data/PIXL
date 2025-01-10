@@ -1,6 +1,14 @@
 ## 'PIXL/schemas' Directory Contents
 
-### Files
+<details>
+<summary>
+<h3> Files </h3> 
 
-github-issue-forms.json
+</summary>
+
+| **Configuration** | **User docs** |
+| :--- | :--- |
+| github-issue-forms.json | README.md |
+
+</details>
 

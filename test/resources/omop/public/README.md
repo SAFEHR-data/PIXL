@@ -1,6 +1,14 @@
 ## 'PIXL/test/resources/omop/public' Directory Contents
 
-### Files
+<details>
+<summary>
+<h3> Files </h3> 
 
-PROCEDURE_OCCURRENCE.parquet
+</summary>
+
+| **Data** | **User docs** |
+| :--- | :--- |
+| PROCEDURE_OCCURRENCE.parquet | README.md |
+
+</details>
 

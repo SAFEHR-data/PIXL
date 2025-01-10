@@ -1,10 +1,15 @@
 ## 'PIXL/test/dicomweb_config' Directory Contents
 
-### Files
+<details>
+<summary>
+<h3> Files </h3> 
 
-.env
+</summary>
 
-dicom.json
+| **Configuration** | **User docs** |
+| :--- | :--- |
+| dicom.json | README.md |
+| orthanc.json | |
 
-orthanc.json
+</details>
 

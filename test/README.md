@@ -39,9 +39,9 @@ For CI, there is also another subcommand to run pytest, reporting coverage
 
 ## The `pytest-pixl` plugin
 
-We provide a [`pytest` plugin](../pytest-pixl/README.md) with shared functionality for PIXL system
+We provide a [`pytest` plugin](../pytest-pixl/README.md) with shared functionality for the PIXL system
 and unit tests. This includes an `ftp_server` fixture to spin up a lightweight FTP server,
-to mock the FTP server used by the Data Safe Haven.
+to mock an FTP server being used to deposit the data.
 
 ## File organisation
 
@@ -51,7 +51,7 @@ to mock the FTP server used by the Data Safe Haven.
 
 ### Scripts
 
-`./scripts` contains bash and Python scripts to check the individual components of the system test.
+`../scripts` contains bash and Python scripts to check the individual components of the system test.
 
 ### Resources
 
@@ -72,7 +72,11 @@ but configured to upload to a [DICOMweb server](#dicomweb-config)
 
 ## 'PIXL/test' Directory Contents
 
-### Subdirectories
+<details>
+<summary>
+<h3> Subdirectories with links to the relevant README </h3> 
+
+</summary>
 
 [dicomweb_config](./dicomweb_config/README.md)
 
@@ -80,23 +84,21 @@ but configured to upload to a [DICOMweb server](#dicomweb-config)
 
 [vna_config](./vna_config/README.md)
 
-### Files
+</details>
 
-.env
+<details>
+<summary>
+<h3> Files </h3> 
 
-.secrets.env.sample
+</summary>
 
-conftest.py
+|**Configuration** | **Code** | **User docs** |
+| :--- | :--- | :--- |
+| .env | conftest.py | README.md |
+| .secrets.env.sample | run-system-test.sh | |
+| docker-compose.yml | system_test.py | |
+| | test_parquet_exports.py | |
+| | utils.py | |
 
-docker-compose.yml
-
-README.md
-
-run-system-test.sh
-
-system_test.py
-
-test_parquet_exports.py
-
-utils.py
+</details>
 

@@ -1,8 +1,16 @@
-## 'private' Directory Contents
+## 'PIXL/test/resources/omop-dicomweb/private' Directory Contents
 
-### Files
+<details>
+<summary>
+<h3> Files </h3> 
 
-PERSON_LINKS.parquet
+</summary>
 
-PROCEDURE_OCCURRENCE_LINKS.parquet
+| **Data** | **User docs** |
+| :--- | :--- |
+| PERSON_LINKS.parquet | README.md |
+| PROCEDURE_OCCURRENCE_LINKS.parquet | |
+
+</details>
+
 
