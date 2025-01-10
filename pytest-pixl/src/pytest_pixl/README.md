@@ -1,18 +1,28 @@
 ## 'PIXL/pytest-pixl/src/pytest_pixl' Directory Contents
 
-### Subdirectories
+<details>
+<summary>
+<h3> Subdirectories with links to the relevant README </h3> 
+
+</summary>
 
 [data](./data/README.md)
 
-### Files
+</details>
 
-dicom.py
+<details>
+<summary>
+<h3> Files </h3> 
 
-ftpserver.py
+</summary>
 
-helpers.py
+| **Code** | **User docs** |
+| :--- | :--- |
+| dicom.py | README.md |
+| ftpserver.py | |
+| helpers.py | |
+| plugin.py | |
+| __init__.py | |
 
-plugin.py
-
-__init__.py
+</details>
 

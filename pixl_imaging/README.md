@@ -3,8 +3,6 @@
 The PIXL imaging API processes messages created by the [CLI](../cli/README.md) and sent to imaging queues
 to query images from a dicom server and transfer them to the [`orthanc-raw` instance](../orthanc/orthanc-raw/README.md).
 
-<details>
-<summary>## UCLH Specific</summary>
 The imaging API has two queues:
 
 - `imaging-primary`, for querying the VNA
@@ -29,9 +27,7 @@ operation.
 > When querying the archives, if we do not know the `StudyInstanceUID` we will query by MRN and Accession Number.
 > This may result in multiple studies being found in the archives. In this instance, all studies returned by the
 > query will be retrieved and sent to Orthanc Anon for anonymisation. In Orthanc Anon, the studies will be combined
-> into a single study as they share the same MRN and Accession Number.
-
-</details>
+> into a single study as they share the same MRN and Accession Number.  
 
 ## Installation
 

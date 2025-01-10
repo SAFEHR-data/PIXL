@@ -1,18 +1,28 @@
-## 'omop-resources' Directory Contents
+## 'PIXL/pytest-pixl/src/pytest_pixl/data/omop-resources' Directory Contents
 
-### Subdirectories
+<details>
+<summary>
+<h3> Subdirectories with links to the relevant README </h3> 
+
+</summary>
 
 [omop](./omop/README.md)
 
-### Files
+</details>
 
-batch_input.csv
+<details>
+<summary>
+<h3> Files </h3> 
 
-duplicate_input.csv
+</summary>
 
-multiple_projects.csv
+| **Data** | **User docs** |
+| :--- | :--- |
+| batch_input.csv | README.md |
+| duplicate_input.csv | |
+| multiple_projects.csv | |
+| participant_id.csv | |
+| test.csv | |
 
-participant_id.csv
-
-test.csv
+</details>
 

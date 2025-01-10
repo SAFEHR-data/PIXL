@@ -1,6 +1,14 @@
 ## 'PIXL/pytest-pixl/scripts' Directory Contents
 
-### Files
+<details>
+<summary>
+<h3> Files </h3> 
 
-create_default_dicom_tags_json.py
+</summary>
+
+| **Code** | **User docs** |
+| :--- | :--- |
+| create_default_dicom_tags_json.py | README.md |
+
+</details>
 

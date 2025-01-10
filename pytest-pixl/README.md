@@ -27,6 +27,8 @@ the following environment variables:
 
 ## Available testing utilities
 
+Functions from 'PIXL/pytest-pixl/src/pytest_pixl':
+
 - `dicom.write_volume`: write a volume of MRI DICOMs for testing
 - `dicom.generate_dicom_dataset`: generate a DICOM dataset for testing
 
@@ -46,7 +48,7 @@ Currently we only handle the following dictionary keys
 - `window_width`
 - `pixel_data`
 
-This is useful for example when generating DICOM datasets for a volume of slices.
+This is useful when generating DICOM datasets for a volume of slices.
 See for example `dicom.write_volume()`.
 
 In addition to the tags dictionary, `generate_dicom_dataset()` has a `**kwargs` parameter that
@@ -64,7 +66,7 @@ and `private_tags` is a list of `tuple`s with the following format:
 [(tag_id, VR, value), ...]
 ```
 
-where `tag` can be a `str`, `int` or `Tuple[int, int]`, `VR` is a `str` and `value` is a `str`.
+where `tag_id` can be a `str`, `int` or `Tuple[int, int]`, `VR` is a `str` and `value` is a `str`.
 Note that this requires the [VR](https://dicom.nema.org/dicom/2013/output/chtml/part05/sect_6.2.html)
 of the tag to be known.
 
@@ -104,7 +106,11 @@ with the details implemented in [`pytest_pixl.dicom._create_default_json`](./src
 
 ## 'PIXL/pytest-pixl' Directory Contents
 
-### Subdirectories
+<details>
+<summary>
+<h3> Subdirectories with links to the relevant README </h3> 
+
+</summary>
 
 [scripts](./scripts/README.md)
 
@@ -112,9 +118,19 @@ with the details implemented in [`pytest_pixl.dicom._create_default_json`](./src
 
 [tests](./tests/README.md)
 
-### Files
+</details>
 
-pyproject.toml
+<details>
+<summary>
+<h3> Files </h3> 
 
-README.md
+</summary>
+
+| **Configuration** | **User docs** |
+| :--- | :--- |
+| pyproject.toml | README.md |
+
+</details>
+
+
 

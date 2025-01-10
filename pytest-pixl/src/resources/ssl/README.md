@@ -1,8 +1,15 @@
 ## 'PIXL/pytest-pixl/src/resources/ssl' Directory Contents
 
-### Files
+<details>
+<summary>
+<h3> Files </h3> 
 
-localhost.crt
+</summary>
 
-localhost.key
+| **Keys** | **User docs** |
+| :--- | :--- |
+| localhost.crt | README.md |
+| localhost.key | |
+
+</details>
 

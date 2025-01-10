@@ -1,12 +1,26 @@
-## 'omop' Directory Contents
+## 'PIXL/pytest-pixl/src/pytest_pixl/data/omop-resources/omop' Directory Contents
 
-### Subdirectories
+<details>
+<summary>
+<h3> Subdirectories with links to the relevant README </h3> 
+
+</summary>
 
 [private](./private/README.md)
 
 [public](./public/README.md)
 
-### Files
+</details>
 
-extract_summary.json
+<details>
+<summary>
+<h3> Files </h3> 
+
+</summary>
+
+| **Configuration** | **User docs** |
+| :--- | :--- |
+| extract_summary.json | README.md |
+
+</details>
 
