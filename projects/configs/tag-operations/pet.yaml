@@ -23,11 +23,11 @@
 - name: Series Time
   group: 0x0008
   element: 0x0031
-  op: replace
+  op: keep
 - name: Acquisition Time
   group: 0x0008
   element: 0x0032
-  op: replace
+  op: keep
 - name: Code Value
   group: 0x0008
   element: 0x0100
@@ -52,6 +52,14 @@
   group: 0x0008
   element: 0x010f
   op: keep
+- name: Patients Size
+  group: 0x0010
+  element: 0x1020
+  op: keep	
+- name: Patients Weight
+  group: 0x0010
+  element: 0x1030
+  op: keep
 - name: Radiopharmaceutical
   group: 0x0018
   element: 0x0031
@@ -64,6 +72,10 @@
   group: 0x0018
   element: 0x1072
   op: keep
+- name: Radiopharmaceutical Stop Time
+  group: 0x0018
+  element: 0x1073
+  op: keep
 - name: Radionuclide Total Dose
   group: 0x0018
   element: 0x1074
@@ -75,10 +87,6 @@
 - name: Radionuclide Positron Fraction
   group: 0x0018
   element: 0x1076
-  op: keep
-- name: Radiopharmaceutical Start DateTime
-  group: 0x0018
-  element: 0x1078
   op: keep
 - name: Collimator Type
   group: 0x0018
@@ -132,17 +140,73 @@
   group: 0x0054
   element: 0x1002
   op: keep
+- name: Randoms Correction Method
+  group: 0x0054
+  element: 0x1100
+  op: keep
+- name: Attenuation Correction Method
+  group: 0x0054
+  element: 0x1101
+  op: keep
 - name: Decay Correction
   group: 0x0054
   element: 0x1102
+  op: keep
+- name: Reconstruction Method
+  group: 0x0054
+  element: 0x1103
+  op: keep
+- name: Detector Lines of Response Used
+  group: 0x0054
+  element: 0x1104
+  op: keep
+- name: Scatter Correction Method
+  group: 0x0054
+  element: 0x1105
+  op: keep
+- name: Axial Mash
+  group: 0x0054
+  element: 0x1201
+  op: keep
+- name: Transverse Mash
+  group: 0x0054
+  element: 0x1202
+  op: keep
+- name: Coincidence Window Width
+  group: 0x0054
+  element: 0x1210
   op: keep
 - name: Frame Reference Time
   group: 0x0054
   element: 0x1300
   op: keep
+- name: Primary Prompts Counts Accumulated
+  group: 0x0054
+  element: 0x1310
+  op: keep
+- name: Secondary Counts Accumulated
+  group: 0x0054
+  element: 0x1311
+  op: keep
+- name: Slice Sensitivity Factor
+  group: 0x0054
+  element: 0x1320
+  op: keep
 - name: Decay Factor
   group: 0x0054
   element: 0x1321
+  op: keep
+- name: Dose Calibration Factor
+  group: 0x0054
+  element: 0x1322
+  op: keep
+- name: Scatter Fraction Factor
+  group: 0x0054
+  element: 0x1323
+  op: keep
+- name: Dead Time Factor
+  group: 0x0054
+  element: 0x1324
   op: keep
 - name: Image Index
   group: 0x0054
