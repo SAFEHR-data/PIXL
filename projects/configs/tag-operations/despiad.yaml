@@ -16,6 +16,26 @@
   group: 0x0008
   element: 0x0020
   op: keep
+- name: Series Date
+  group: 0x0008
+  element: 0x0021
+  op: keep
+- name: Acquisition Date
+  group: 0x0008
+  element: 0x0022
+  op: keep
+- name: Series Time
+  group: 0x0008
+  element: 0x0031
+  op: keep
+- name: Acquisition Time
+  group: 0x0008
+  element: 0x0032
+  op: keep
+- name: Station Name
+  group: 0x0008
+  element: 0x1010
+  op: keep
 - name: Patient's Birth Date
   group: 0x0010
   element: 0x0030
