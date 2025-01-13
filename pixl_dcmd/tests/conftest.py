@@ -23,7 +23,7 @@ import typing
 from collections.abc import Generator
 from typing import Optional
 
-from pixl_dcmd._dicom_helpers import get_study_info
+from pixl_dcmd.dicom_helpers import get_study_info
 from core.project_config import load_project_config
 import pytest
 import pytest_pixl.dicom
