@@ -24,6 +24,7 @@ from core.db.models import Image, Extract
 from sqlalchemy import ColumnElement, URL, create_engine, exists
 from sqlalchemy.orm import sessionmaker, exc
 
+from core.exceptions import PixlDiscardError
 from pixl_dcmd._dicom_helpers import StudyInfo
 
 url = URL.create(
@@ -126,6 +127,7 @@ def get_unexported_image(
     Get an existing, non-exported (for this project) image record from the database
     identified by the study UID. If no result is found, retry with querying on
     MRN + accession number. If this fails as well, raise a NoResultFound.
+    If study has already been exported, raise a PixlDiscardError.
     """
     try:
         existing_image = _query_and_raise_if_exported(
@@ -153,5 +155,5 @@ def _query_and_raise_if_exported(
     )
     if existing_image.exported_at is not None:
         msg = "Study already exported"
-        raise exc.NoResultFound(msg)
+        raise PixlDiscardError(msg)
     return existing_image

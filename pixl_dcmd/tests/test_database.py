@@ -20,6 +20,7 @@ import pytest
 import sqlalchemy
 
 from core.db.models import Extract, Image
+from core.exceptions import PixlDiscardError
 from pixl_dcmd._database import (
     get_unexported_image,
     get_uniq_pseudo_study_uid_and_update_db,
@@ -190,7 +191,7 @@ def test_exported_image_throws(rows_for_database_testing, db_session):
     WHEN we query for the image
     THEN a NoRowFound exception should be thrown
     """
-    with pytest.raises(sqlalchemy.exc.NoResultFound) as exception:
+    with pytest.raises(PixlDiscardError) as exception:
         get_unexported_image(TEST_PROJECT_SLUG, EXPORTED_STUDY.input, db_session)
     assert str(exception.value) == "Study already exported"
 
