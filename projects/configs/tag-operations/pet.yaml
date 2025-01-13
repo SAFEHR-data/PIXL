@@ -88,6 +88,10 @@
   group: 0x0018
   element: 0x1076
   op: keep
+- name: Radiopharmaceutical Start DateTime
+  group: 0x0018
+  element: 0x1078
+  op: replace
 - name: Collimator Type
   group: 0x0018
   element: 0x1181
