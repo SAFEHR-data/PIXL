@@ -16,107 +16,86 @@
   group: 0x0008
   element: 0x0064
   op: keep
-
 - name: Spacing Between Slices
   group: 0x0018
   element: 0x0088
   op: keep
-
 - name: Data Collection Diameter
   group: 0x0018
   element: 0x0090
   op: keep
-
 - name: Reconstruction Diameter
   group: 0x0018
   element: 0x1100
   op: keep
-
 - name: Distance Source to Detector
   group: 0x0018
   element: 0x1110
   op: keep
-
 - name: Distance Source to Patient
   group: 0x0018
   element: 0x1111
   op: keep
-
 - name: Gantry Detector Tilt
   group: 0x0018
   element: 0x1120
   op: keep
-
 - name: Table Height
   group: 0x0018
   element: 0x1130
   op: keep
-
 - name: Rotation Direction
   group: 0x0018
   element: 0x1140
   op: keep
-
 - name: Exposure Time
   group: 0x0018
   element: 0x1150
   op: keep
-
 - name: X-Ray Tube Current
   group: 0x0018
   element: 0x1151
   op: keep
-
 - name: Exposure
   group: 0x0018
   element: 0x1152
   op: keep
-
 - name: Filter Type
   group: 0x0018
   element: 0x1160
   op: keep
-
 - name: Generator Power
   group: 0x0018
   element: 0x1170
   op: keep
-
 - name: Convolution Kernel
   group: 0x0018
   element: 0x1210
   op: keep
-
 - name: Revolution Time
   group: 0x0018
   element: 0x9305
   op: keep
-
 - name: Single Collimation Width
   group: 0x0018
   element: 0x9306
   op: keep
-
 - name: Total Collimation Width
   group: 0x0018
   element: 0x9307
   op: keep
-
 - name: Table Speed
   group: 0x0018
   element: 0x9309
   op: keep
-
 - name: Table Feed per Rotation
   group: 0x0018
   element: 0x9310
   op: keep
-
 - name: Spiral Pitch Factor
   group: 0x0018
   element: 0x9311
   op: keep
-
 - name: Slice Location
   group: 0x0020
   element: 0x1041
