@@ -28,6 +28,10 @@ tag_operation_files:
         - "rt-struct.yaml"
     manufacturer_overrides: null
 
+allowed_manufacturers:
+  - regex: "^company"
+    exclude_series_numbers: []
+
 series_filters:
     - "localizer"
     - "localiser"

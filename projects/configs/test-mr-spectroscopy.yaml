@@ -24,6 +24,10 @@ tag_operation_files:
     manufacturer_overrides:
         - "mri.yaml"
 
+allowed_manufacturers:
+  - regex: "^company"
+    exclude_series_numbers: []
+
 series_filters:
     - "localizer"
     - "localiser"
