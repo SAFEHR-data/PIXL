@@ -26,10 +26,12 @@ tag_operation_files:
         - "despiad.yaml"
     manufacturer_overrides: []
 
+allowed_manufacturers:
+  - manufacturer: ""
+    exclude_series_numbers: []
+
 min_instances_per_series: 1
 series_filters: []
-series_number_filters: []
-allowed_manufacturers: ".*"
 
 destination:
     dicom: "none"

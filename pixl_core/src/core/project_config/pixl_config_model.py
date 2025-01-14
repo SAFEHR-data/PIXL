@@ -62,6 +62,16 @@ class _Project(BaseModel):
     modalities: list[str]
 
 
+class Manufacturer(BaseModel):
+    """
+    An allowed manufacturer for a project.
+    Also defines which series numbers to exclude for this manufacturer.
+    """
+
+    regex: str = "no manufacturers allowed ^"
+    exclude_series_numbers: list[str] = []
+
+
 class TagOperationFiles(BaseModel):
     """Tag operations files for a project. At least a base file is required."""
 
@@ -136,8 +146,7 @@ class PixlConfig(BaseModel):
     project: _Project
     min_instances_per_series: Optional[int] = 1
     series_filters: Optional[list[str]] = []  # pydantic makes a deep copy of the empty default list
-    series_number_filters: Optional[list[str]] = []
-    allowed_manufacturers: Optional[str] = ".*"
+    allowed_manufacturers: list[Manufacturer] = [Manufacturer()]
     tag_operation_files: TagOperationFiles
     destination: _Destination
 
@@ -158,17 +167,20 @@ class PixlConfig(BaseModel):
             series_description.upper().find(filt.upper()) != -1 for filt in self.series_filters
         )
 
-    def is_series_number_excluded(self, series_number: str | None) -> bool:
+    def is_series_number_excluded(self, manufacturer: str, series_number: str | None) -> bool:
         """
-        Return whether this config excludes the series with the given number
+        Return whether this config excludes the series with the given number for the given
+        manufacturer.
 
+        :param manufacturer: the manufacturer to test
         :param series_number: the series number to test
         :returns: True if it should be excluded, False if not
         """
-        if not self.series_number_filters or series_number is None:
+        if not self.is_manufacturer_allowed(manufacturer) or series_number is None:
             return False
 
-        return any(series_number.find(filt) != -1 for filt in self.series_number_filters)
+        exclude_series_numbers = self.get_manufacturer(manufacturer).exclude_series_numbers
+        return any(series_number.find(filt) != -1 for filt in exclude_series_numbers)
 
     def is_manufacturer_allowed(self, manufacturer: str) -> bool:
         """
@@ -177,4 +189,21 @@ class PixlConfig(BaseModel):
         :param manufacturer: name of the manufacturer
         :returns: True is the manufacturer is allowed, False if not
         """
-        return bool(re.search(rf"{self.allowed_manufacturers}", manufacturer, flags=re.IGNORECASE))
+        for manufacturer_config in self.allowed_manufacturers:
+            if re.search(rf"{manufacturer_config.regex}", manufacturer, flags=re.IGNORECASE):
+                return True
+        return False
+
+    def get_manufacturer(self, manufacturer: str) -> Manufacturer:
+        """
+        Get the manufacturer configuration for the given manufacturer.
+
+        :param manufacturer: name of the manufacturer
+        :returns: Manufacturer configuration
+        :raises: ValueError: if the manufacturer is not allowed
+        """
+        for manufacturer_config in self.allowed_manufacturers:
+            if re.search(rf"{manufacturer_config.regex}", manufacturer, flags=re.IGNORECASE):
+                return manufacturer_config
+        msg = f"Manufacturer {manufacturer} is not allowed by project {self.project.name}"
+        raise ValueError(msg)

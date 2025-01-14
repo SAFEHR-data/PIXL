@@ -66,9 +66,16 @@ def _should_exclude_series(dataset: Dataset, cfg: PixlConfig) -> bool:
         logger.debug("FILTERING OUT series description: {}", series_description)
         return True
 
+    manufacturer = dataset.get("Manufacturer")
     series_number = dataset.get("SeriesNumber")
-    if cfg.is_series_number_excluded(series_number):
-        logger.debug("FILTERING OUT series number: {}", series_number)
+    if cfg.is_series_number_excluded(
+        manufacturer=manufacturer, series_number=series_number
+    ):
+        logger.debug(
+            "FILTERING OUT series number: {} for manufacturer: {}",
+            series_number,
+            manufacturer,
+        )
         return True
 
     return False
