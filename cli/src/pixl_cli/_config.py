@@ -29,8 +29,8 @@ SERVICE_SETTINGS = {
         "password": config("RABBITMQ_PASSWORD"),
     },
     "postgres": {
-        "host": config("POSTGRES_HOST"),
-        "port": int(config("POSTGRES_PORT")),
+        "host": config("POSTGRES_PIXL_DB_HOST"),
+        "port": int(config("POSTGRES_PIXL_DB_PORT")),
         "username": config("PIXL_DB_USER"),
         "password": config("PIXL_DB_PASSWORD"),
         "database": config("PIXL_DB_NAME"),
