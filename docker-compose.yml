@@ -193,7 +193,7 @@ services:
         platform: linux/amd64
         command: /run/secrets
         environment:
-            <<: [*pixl-db, *proxy-common, *pixl-common-env]
+            <<: [*orthanc-raw-db, *proxy-common, *pixl-common-env]
             ORTHANC_NAME: "PIXL: Raw"
             ORTHANC_USERNAME: ${ORTHANC_RAW_USERNAME}
             ORTHANC_PASSWORD: ${ORTHANC_RAW_PASSWORD}
