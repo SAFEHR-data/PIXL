@@ -21,9 +21,10 @@ from pydicom.uid import generate_uid, UID
 from sqlalchemy.orm.session import Session
 
 from core.db.models import Image, Extract
-from sqlalchemy import URL, create_engine, exists
+from sqlalchemy import ColumnElement, URL, create_engine, exists
 from sqlalchemy.orm import sessionmaker, exc
 
+from core.exceptions import PixlDiscardError
 from pixl_dcmd.dicom_helpers import StudyInfo
 
 url = URL.create(
@@ -126,29 +127,33 @@ def get_unexported_image(
     Get an existing, non-exported (for this project) image record from the database
     identified by the study UID. If no result is found, retry with querying on
     MRN + accession number. If this fails as well, raise a NoResultFound.
+    If study has already been exported, raise a PixlDiscardError.
     """
     try:
-        existing_image: Image = (
-            pixl_session.query(Image)
-            .join(Extract)
-            .filter(
-                Extract.slug == project_slug,
-                Image.study_uid == study_info.study_uid,
-                Image.exported_at == None,  # noqa: E711
-            )
-            .one()
+        existing_image = _query_and_raise_if_exported(
+            pixl_session,
+            [Extract.slug == project_slug, Image.study_uid == study_info.study_uid],
         )
     # If no image is found by study UID, try MRN + accession number
     except exc.NoResultFound:
-        existing_image = (
-            pixl_session.query(Image)
-            .join(Extract)
-            .filter(
+        existing_image = _query_and_raise_if_exported(
+            pixl_session,
+            [
                 Extract.slug == project_slug,
                 Image.mrn == study_info.mrn,
                 Image.accession_number == study_info.accession_number,
-                Image.exported_at == None,  # noqa: E711
-            )
-            .one()
+            ],
         )
+    return existing_image
+
+
+def _query_and_raise_if_exported(
+    pixl_session: Session, clause_list: list[ColumnElement[bool]]
+) -> Image:
+    existing_image: Image = (
+        pixl_session.query(Image).join(Extract).filter(*clause_list).one()
+    )
+    if existing_image.exported_at is not None:
+        msg = "Study already exported"
+        raise PixlDiscardError(msg)
     return existing_image

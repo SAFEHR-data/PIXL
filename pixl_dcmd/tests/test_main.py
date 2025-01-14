@@ -23,7 +23,6 @@ import nibabel
 import numpy as np
 import pydicom
 import pytest
-import sqlalchemy
 from pytest_check import check
 from core.db.models import Image
 from core.dicom_tags import (
@@ -31,6 +30,7 @@ from core.dicom_tags import (
     add_private_tag,
     create_private_tag,
 )
+from core.exceptions import PixlDiscardError
 from core.project_config import load_project_config, load_tag_operations
 from core.project_config.pixl_config_model import load_config_and_validate
 from decouple import config
@@ -251,7 +251,7 @@ def test_image_already_exported_throws(test_project_config, exported_dicom_datas
     WHEN the dicom tag scheme is applied
     THEN an exception will be thrown as
     """
-    with pytest.raises(sqlalchemy.exc.NoResultFound):
+    with pytest.raises(PixlDiscardError):
         anonymise_dicom_and_update_db(
             exported_dicom_dataset,
             config=test_project_config,
