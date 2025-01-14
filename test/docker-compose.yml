@@ -13,6 +13,7 @@
 #  limitations under the License.
 volumes:
     vna-qr-data:
+    postgres-pixl-db-data:
 
 networks:
     pixl-net:
@@ -73,3 +74,29 @@ services:
             retries: 2
             interval: 3s
             timeout: 2s
+    postgres-pixl-db:
+        build:
+            context: ../
+            dockerfile: ./docker/postgres/Dockerfile
+        environment:
+            POSTGRES_USER: ${PIXL_DB_USER}
+            POSTGRES_PASSWORD: ${PIXL_DB_PASSWORD}
+            POSTGRES_DB: ${PIXL_DB_NAME}
+            PGTZ: ${TZ:-Europe/London}
+        env_file:
+            - ../docker/common.env
+        command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
+        volumes:
+            - type: volume
+              source: postgres-pixl-db-data
+              target: /var/lib/postgresql/data
+        ports:
+            - "${POSTGRES_PIXL_DB_PORT}:5432"
+        healthcheck:
+            test: ["CMD", "pg_isready", "-U", "${PIXL_DB_USER}", "--dbname", "${PIXL_DB_NAME}"]
+            interval: 10s
+            timeout: 30s
+            retries: 5
+        restart: always
+        networks:
+            - pixl-net
