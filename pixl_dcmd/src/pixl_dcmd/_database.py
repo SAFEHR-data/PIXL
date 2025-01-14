@@ -25,7 +25,7 @@ from sqlalchemy import ColumnElement, URL, create_engine, exists
 from sqlalchemy.orm import sessionmaker, exc
 
 from core.exceptions import PixlDiscardError
-from pixl_dcmd._dicom_helpers import StudyInfo
+from pixl_dcmd.dicom_helpers import StudyInfo
 
 url = URL.create(
     drivername="postgresql+psycopg2",
