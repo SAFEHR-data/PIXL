@@ -103,6 +103,15 @@ def mri_diffusion_dicom_image(test_project_config: PixlConfig) -> pydicom.Datase
     return ds
 
 
+@pytest.mark.usefixtures()
+def test_drop_unspecified_modalities(test_project_config: PixlConfig) -> None:
+    """
+    GIVEN a project configuration and DICOM files
+    WHEN the modality tag in the DICOM files does not match the specified modalities in the configuration
+    THEN drop those DICOM files
+    """
+
+
 def test_enforce_allowlist_removes_overlay_plane() -> None:
     """Checks that overlay planes are removed."""
     ds = pydicom.data.get_testdata_file(
