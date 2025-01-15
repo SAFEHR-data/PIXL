@@ -16,6 +16,7 @@ from __future__ import annotations
 import typing
 from functools import lru_cache
 from io import BytesIO
+from zipfile import ZipFile
 
 import requests
 from core.exceptions import PixlSkipInstanceError
@@ -26,7 +27,7 @@ from dicomanonymizer.simpledicomanonymizer import (
     anonymize_dataset,
 )
 from loguru import logger
-from pydicom import DataElement, Dataset, dcmwrite
+from pydicom import DataElement, Dataset, dcmread, dcmwrite
 
 from core.project_config.pixl_config_model import PixlConfig
 from pixl_dcmd._database import (
@@ -54,6 +55,35 @@ def write_dataset_to_bytes(dataset: Dataset) -> bytes:
         dcmwrite(buffer, dataset)
         buffer.seek(0)
         return buffer.read()
+
+
+def get_series_to_skip(zipped_study: ZipFile, min_instances: int) -> set[str]:
+    """
+    Determine which series to skip based on the number of instances in the series.
+
+    If a series has fewer instances than `min_instances`, add it to a set of series to skip.
+
+    Args:
+        zipped_study: ZipFile containing the study
+        min_instances: Minimum number of instances required to include a series
+
+    """
+    if min_instances <= 1:
+        return set()
+
+    series_instances = {}
+    for file_info in zipped_study.infolist():
+        with zipped_study.open(file_info) as file:
+            logger.debug("Reading file {}", file)
+            dataset = dcmread(file)
+            if dataset.SeriesInstanceUID not in series_instances:
+                series_instances[dataset.SeriesInstanceUID] = 1
+                continue
+            series_instances[dataset.SeriesInstanceUID] += 1
+
+    return {
+        series for series, count in series_instances.items() if count < min_instances
+    }
 
 
 def _should_exclude_series(dataset: Dataset, cfg: PixlConfig) -> bool:

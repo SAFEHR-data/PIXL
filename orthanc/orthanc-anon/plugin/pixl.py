@@ -45,6 +45,7 @@ import orthanc
 from pixl_dcmd.dicom_helpers import get_study_info
 from pixl_dcmd.main import (
     anonymise_dicom_and_update_db,
+    get_series_to_skip,
     parse_validation_results,
     write_dataset_to_bytes,
 )
@@ -386,33 +387,6 @@ def _anonymise_study_instances(
         )
     logger.success("Finished anonymising project: '{}', {}", project_name, study_info)
     return anonymised_instances_bytes, anonymised_study_uid
-
-
-def get_series_to_skip(zipped_study: ZipFile, min_instances: int) -> set[str]:
-    """
-    Determine which series to skip based on the number of instances in the series.
-
-    If a series has fewer instances than `min_instances`, add it to a set of series to skip.
-
-    Args:
-        zipped_study: ZipFile containing the study
-        min_instances: Minimum number of instances required to include a series
-
-    """
-    if min_instances <= 1:
-        return set()
-
-    series_instances = {}
-    for file_info in zipped_study.infolist():
-        with zipped_study.open(file_info) as file:
-            logger.debug("Reading file {}", file)
-            dataset = dcmread(file)
-            if dataset.SeriesInstanceUID not in series_instances:
-                series_instances[dataset.SeriesInstanceUID] = 1
-                continue
-            series_instances[dataset.SeriesInstanceUID] += 1
-
-    return {series for series, count in series_instances.items() if count < min_instances}
 
 
 def _anonymise_dicom_instance(dataset: pydicom.Dataset, config: PixlConfig) -> tuple[bytes, dict]:
