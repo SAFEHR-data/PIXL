@@ -25,7 +25,11 @@ tag_operation_files:
     manufacturer_overrides: ["mri.yaml", "mri-diffusion.yaml"]
 
 allowed_manufacturers:
+  - regex: "^carestream"
+    exclude_series_numbers: []
   - regex: "^company"
+    exclude_series_numbers: []
+  - regex: "^philips"
     exclude_series_numbers: []
 
 series_filters:
