@@ -342,11 +342,13 @@ def _anonymise_study_instances(
             dataset = dcmread(file)
 
             if dataset.SeriesInstanceUID in series_to_skip:
-                logger.warning(
+                logger.debug(
                     "Skipping series {} for study {} due to too few instances",
                     dataset.SeriesInstanceUID,
                     study_info,
                 )
+                key = "DICOM instance discarded as series has too few instances"
+                skipped_instance_counts[key] += 1
                 continue
 
             try:
