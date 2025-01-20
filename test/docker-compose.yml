@@ -83,8 +83,6 @@ services:
             POSTGRES_PASSWORD: ${PIXL_DB_PASSWORD}
             POSTGRES_DB: ${PIXL_DB_NAME}
             PGTZ: ${TZ:-Europe/London}
-        env_file:
-            - ../docker/common.env
         command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
         volumes:
             - type: volume
