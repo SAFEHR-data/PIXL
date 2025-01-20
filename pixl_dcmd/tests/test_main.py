@@ -123,6 +123,8 @@ def test_drop_unspecified_modalities(test_project_config: PixlConfig) -> None:
     with pytest.raises(PixlSkipInstanceError):
         anonymise_dicom(ds_mr, config=test_project_config)
 
+    assert ds_mr.Modality not in test_project_config.project.modalities
+
 
 def test_enforce_allowlist_removes_overlay_plane() -> None:
     """Checks that overlay planes are removed."""
