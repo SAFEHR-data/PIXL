@@ -2,7 +2,7 @@
 
 ## Setting up `Python` Virtual Environment (VE)
 
-### Using `uv` (strongly recommended)
+### Using `uv`
 Once you have installed `uv`, in the root of your source tree you can:
 
 Install the required Python version and create the venv (one-off task)
