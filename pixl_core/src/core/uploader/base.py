@@ -16,7 +16,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, Optional
 
 from loguru import logger
@@ -77,7 +77,7 @@ class Uploader(ABC):
             study_tags.pseudo_anon_image_id,
         )
 
-        update_exported_at(study_tags.pseudo_anon_image_id, datetime.now(tz=timezone.utc))
+        update_exported_at(study_tags.pseudo_anon_image_id, datetime.now(tz=UTC))
 
     @abstractmethod
     def _upload_dicom_image(

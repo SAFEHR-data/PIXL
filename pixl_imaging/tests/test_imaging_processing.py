@@ -63,7 +63,7 @@ def message() -> Message:
         accession_number=ACCESSION_NUMBER,
         study_uid=STUDY_UID,
         study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
-            tzinfo=datetime.timezone.utc
+            tzinfo=datetime.UTC
         ),
         procedure_occurrence_id=234,
         project_name="test project",
@@ -79,7 +79,7 @@ def no_uid_message() -> Message:
         accession_number=ACCESSION_NUMBER,
         study_uid="",
         study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
-            tzinfo=datetime.timezone.utc
+            tzinfo=datetime.UTC
         ),
         procedure_occurrence_id=234,
         project_name="test project",
@@ -95,7 +95,7 @@ def pacs_message() -> Message:
         accession_number=PACS_ACCESSION_NUMBER,
         study_uid=PACS_STUDY_UID,
         study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
-            tzinfo=datetime.timezone.utc
+            tzinfo=datetime.UTC
         ),
         procedure_occurrence_id=234,
         project_name="test project",
@@ -111,7 +111,7 @@ def pacs_no_uid_message() -> Message:
         accession_number=PACS_ACCESSION_NUMBER,
         study_uid="ialsodontexist",
         study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
-            tzinfo=datetime.timezone.utc
+            tzinfo=datetime.UTC
         ),
         procedure_occurrence_id=234,
         project_name="test project",
@@ -127,7 +127,7 @@ def missing_message() -> Message:
         accession_number=MISSING_ACCESSION_NUMBER,
         study_uid=MISSING_STUDY_UID,
         study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
-            tzinfo=datetime.timezone.utc
+            tzinfo=datetime.UTC
         ),
         procedure_occurrence_id=345,
         project_name="test project",

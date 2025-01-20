@@ -34,9 +34,9 @@ from core.patient_queue.producer import PixlProducer
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
+    from typing import Self
 
     from aio_pika.abc import AbstractIncomingMessage
-    from typing_extensions import Self
 
     from core.patient_queue.message import Message
     from core.token_buffer.tokens import TokenBucket
