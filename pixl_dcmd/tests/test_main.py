@@ -110,6 +110,14 @@ def test_drop_unspecified_modalities(test_project_config: PixlConfig) -> None:
     WHEN the modality tag in the DICOM files does not match the specified modalities in the configuration
     THEN drop those DICOM files
     """
+    ds_dx = generate_dicom_dataset(Modality="DX")
+    ds_cr = generate_dicom_dataset(Modality="CR")
+
+    anonymise_dicom(ds_dx, config=test_project_config)
+    anonymise_dicom(ds_cr, config=test_project_config)
+
+    assert ds_dx.Modality in test_project_config.project.modalities
+    assert ds_cr.Modality in test_project_config.project.modalities
 
 
 def test_enforce_allowlist_removes_overlay_plane() -> None:
