@@ -3,7 +3,7 @@ name = "pixl"
 version = "0.2.0rc0"
 description = "Top-level PIXL project"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 dependencies = [
     'core',
     'pixl_cli',

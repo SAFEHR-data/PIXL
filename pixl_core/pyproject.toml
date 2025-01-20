@@ -4,7 +4,7 @@ version = "0.2.0rc0"
 authors = [{ name = "PIXL core functionality" }]
 description = ""
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 classifiers = ["Programming Language :: Python :: 3"]
 dependencies = [
     "aio_pika==9.5.3",

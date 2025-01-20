@@ -4,7 +4,7 @@ version = "0.2.0rc0"
 authors = [{ name = "PIXL authors" }]
 description = "Service to securely hash identifiers"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 classifiers = ["Programming Language :: Python :: 3"]
 dependencies = [
     "core==0.2.0rc0",
