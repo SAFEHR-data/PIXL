@@ -4,7 +4,7 @@ version = "0.2.0rc0"
 authors = [{ name = "PIXL authors" }]
 description = "Pytest plugin for PIXL"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 classifiers = [
     "Programming Language :: Python :: 3"
 ]
@@ -20,15 +20,20 @@ dependencies = [
 [project.optional-dependencies]
 test = [
     "core==0.2.0rc0",
-    "pytest==8.3.4",
 ]
 dev = [
     "core[dev]==0.2.0rc0",
 ]
 
 [build-system]
-requires = ["setuptools>=61.0", "setuptools-scm>=8.0"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling>=1.0.0"]
+build-backend = "hatchling.build"
+
+
+[tool.hatch.build.targets.wheel]
+dev-mode-dirs = [
+    "src"
+]
 
 
 [tool.coverage.report]
@@ -55,9 +60,6 @@ exclude_also = [
     "if typing.TYPE_CHECKING",
     "class .*\\bProtocol\\):",
 ]
-
-[tool.setuptools.package-data]
-pytest_pixl = ["*.key", "*.crt"]
 
 [tool.ruff]
 extend = "../ruff.toml"
