@@ -15,27 +15,6 @@ Enter the venv (for the lifetime of the shell)
 source .venv/bin/activate
 ```
 
-### Using conda
-```
-conda create -n "pixlVE" python=3.11  pip -c conda-forge --yes
-conda activate pixlVE
-conda list -n pixlVE #to check installed packages
-conda deactivate #to deactivate VE 
-conda remove -n pixlVE --all #to remove pixlVE environment 
-```
-
-### Using python virtual environment `venv`
-You require `python3-venv` to setup your `venv`. See further details [here](https://docs.python.org/3/library/venv.html).
-```
-# Create path for venv
-cd $HOME
-mkdir pixlVE
-cd pixlVE
-# Create virtual environment
-python3 -m venv pixlVE
-source pixlVE/bin/activate
-```
-
 ## Docker requirements 
 Most modules require `docker` and `docker-compose` to be installed to run tests.
 * [Docker](https://docs.docker.com/get-docker/) with version `>=27.0.3`
