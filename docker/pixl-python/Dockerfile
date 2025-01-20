@@ -17,8 +17,8 @@ SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 ARG TEST="false"
 
 RUN <<EOF
-    export DEBIAN_FRONTEND=noninteractive && \
-    apt-get update && \
+    export DEBIAN_FRONTEND=noninteractive &&
+    apt-get update &&
     apt-get install --yes --no-install-recommends \
         procps \
         ca-certificates \
@@ -27,8 +27,8 @@ RUN <<EOF
         curl \
         gnupg \
         locales \
-        tzdata && \
-    sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen && locale-gen && \
+        tzdata &&
+    sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen && locale-gen &&
     apt-get autoremove --yes && apt-get clean --yes && rm -rf /var/lib/apt/lists/*
 EOF
 
