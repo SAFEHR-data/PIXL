@@ -113,6 +113,9 @@ def _should_exclude_series(dataset: Dataset, cfg: PixlConfig) -> bool:
 
 def _should_exclude_manufacturer(dataset: Dataset, cfg: PixlConfig) -> bool:
     manufacturer = dataset.get("Manufacturer")
+    if manufacturer is None:
+        logger.debug("FILTERING out as manufacturer tag is missing")
+
     should_exclude = not cfg.is_manufacturer_allowed(manufacturer=manufacturer)
     if should_exclude:
         logger.debug("FILTERING out manufacturer: {}", manufacturer)
