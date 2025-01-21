@@ -195,7 +195,7 @@ def ids_for_parameterised_test(val: pathlib.Path) -> str:
 
 @pytest.mark.parametrize(
     ("yaml_file"),
-    PROJECT_CONFIGS_DIR.glob("test-*.yaml"),
+    PROJECT_CONFIGS_DIR.glob("*.yaml"),
     ids=ids_for_parameterised_test,
 )
 def test_anonymise_and_validate_dicom(caplog, request, yaml_file) -> None:
