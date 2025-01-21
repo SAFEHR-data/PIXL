@@ -10,7 +10,14 @@ consumers started.
 
 **Then** the DICOM study exists in the "anon" PIXL Orthanc instance.
 
-After setting up your [.secrets.env](../README.md#project-secrets)), you can run the system test with:
+## Pre-requisites for running system tests
+
+Set up your [.secrets.env](/README.md#project-secrets)
+
+Make sure your [python virtual environment](/docs/setup/developer.md) has been set up, PIXL installed correctly,
+and the virtual environment activated.
+
+## Running system tests
 
 ```bash
 ./run-system-test.sh

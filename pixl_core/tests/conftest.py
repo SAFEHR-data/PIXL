@@ -163,7 +163,7 @@ def rows_in_session(db_session) -> Session:
         mrn="mrn",
         study_uid="1.2.3",
         extract=extract,
-        exported_at=datetime.datetime.now(tz=datetime.timezone.utc),
+        exported_at=datetime.datetime.now(tz=datetime.UTC),
         pseudo_study_uid=generate_uid(entropy_srcs=["already_exported"]),
     )
     image_not_exported = Image(
@@ -221,5 +221,5 @@ def mock_message() -> Message:
         project_name="test project",
         extract_generated_timestamp=datetime.datetime.strptime(
             "Dec 7 2023 2:08PM", "%b %d %Y %I:%M%p"
-        ).replace(tzinfo=datetime.timezone.utc),
+        ).replace(tzinfo=datetime.UTC),
     )
