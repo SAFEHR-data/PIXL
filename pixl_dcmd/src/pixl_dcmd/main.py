@@ -181,11 +181,11 @@ def anonymise_dicom(
 
     # Do before anonymisation in case someone decides to delete the
     # Series Description or Manufacturer tags as part of anonymisation.
-    if _should_exclude_series(dataset, config):
-        msg = "DICOM instance discarded due to its series description or number"
-        raise PixlSkipInstanceError(msg)
     if _should_exclude_manufacturer(dataset, config):
         msg = "DICOM instance discarded due to its manufacturer"
+        raise PixlSkipInstanceError(msg)
+    if _should_exclude_series(dataset, config):
+        msg = "DICOM instance discarded due to its series description or number"
         raise PixlSkipInstanceError(msg)
     if dataset.Modality not in config.project.modalities:
         msg = f"Dropping DICOM Modality: {dataset.Modality}"

@@ -179,7 +179,7 @@ class PixlConfig(BaseModel):
         if not self.is_manufacturer_allowed(manufacturer) or series_number is None:
             return False
 
-        exclude_series_numbers = self.get_manufacturer(manufacturer).exclude_series_numbers
+        exclude_series_numbers = self._get_manufacturer(manufacturer).exclude_series_numbers
         return any(series_number.find(filt) != -1 for filt in exclude_series_numbers)
 
     def is_manufacturer_allowed(self, manufacturer: str) -> bool:
@@ -194,7 +194,7 @@ class PixlConfig(BaseModel):
                 return True
         return False
 
-    def get_manufacturer(self, manufacturer: str) -> Manufacturer:
+    def _get_manufacturer(self, manufacturer: str) -> Manufacturer:
         """
         Get the manufacturer configuration for the given manufacturer.
 
