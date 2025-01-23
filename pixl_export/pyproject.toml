@@ -4,7 +4,7 @@ version = "0.2.0rc0"
 authors = [{ name = "PIXL authors" }]
 description = "PIXL electronic health record extractor"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 classifiers = ["Programming Language :: Python :: 3"]
 dependencies = [
     "core==0.2.0rc0",
@@ -21,8 +21,8 @@ dev = [
 ]
 
 [build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.coverage.report]
 exclude_also = [
@@ -48,7 +48,4 @@ extend = "../ruff.toml"
 
 [tool.ruff.lint.extend-per-file-ignores]
 "./tests/**" = ["D1"]
-
-[tool.setuptools.package-data]
-pixl_export = ["sql/*.sql", "report_deid/*.txt"]
 

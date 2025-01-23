@@ -9,15 +9,13 @@ stopped cleanly.
 * Python version 3.11 (matching python versions in [pixl-ci](../.github/workflows/main.yml) and [dev](../docs/setup/developer.md#installation-of-pixl-modules)).
 * [Docker](https://docs.docker.com/get-docker/) with version `>=27.0.3`
 * [Docker Compose](https://docs.docker.com/compose/install/#installation-scenarios) with version `>=v2.28.1-desktop.1`
-* We recommend installing PIXL project in specific virtual environment using a environment
-management tool such as [conda](https://docs.conda.io/en/latest/) or
-[virtualenv](https://virtualenv.pypa.io/en/latest/). 
+* [uv](https://docs.astral.sh/uv/) to install PIXL in a virtual environment
 See detailed instructions [here](../docs/setup/developer.md#setting-up-python-virtual-environment)
 
 ## Installation
 Activate your python virtual environment and install `PIXL` project in editable mode by running
 ```bash
-python -m pip install -e ../pixl_core -e .
+uv sync
 ```
 
 ## Usage
@@ -130,7 +128,7 @@ are currently available, you can use the `pixl --help` command:
 ### Local installation
 Activate your python environment and install project locally in editable mode with the development and testing dependencies by running
 ```bash
-python -m pip install -e ../pixl_core -e ../pytest-pixl -e ".[test]" -e ".[dev]"
+uv sync
 ```
 
 ### Running tests

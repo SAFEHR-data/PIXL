@@ -16,22 +16,21 @@ dependencies = [
     "pydicom-data",
     "python-decouple==3.8",
     "requests==2.32.3",
+    "setuptools", # pydicom needs this
     "types-requests~=2.28",
 ]
 
 [project.optional-dependencies]
 test = [
     "core[test]==0.2.0rc0",
-    "dcm2niix==1.0.20220715",
-    "nibabel==5.3.2",
 ]
 dev = [
     "core[dev]==0.2.0rc0",
 ]
 
 [build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.coverage.report]
 exclude_also = [
@@ -52,6 +51,3 @@ exclude_also = [
 
 [tool.ruff.lint.extend-per-file-ignores]
 "./tests/**" = ["D100"]
-
-[tool.setuptools.package-data]
-pixl_dcmd = ["resources/*.yml"]
