@@ -43,6 +43,7 @@ from pixl_dcmd.main import (
     anonymise_dicom,
     _enforce_allowlist,
     _should_exclude_series,
+    _should_exclude_manufacturer,
 )
 from pytest_pixl.dicom import generate_dicom_dataset
 from pytest_pixl.helpers import run_subprocess
@@ -407,7 +408,11 @@ def test_no_pseudo_patient_id_processing(
     )
 
 
-def _make_dicom(series_description, manufacturer, series_number) -> pydicom.Dataset:
+def _make_dicom(
+    series_description="mri_sequence",
+    manufacturer="Company",
+    series_number="901",
+) -> pydicom.Dataset:
     return generate_dicom_dataset(
         SeriesDescription=series_description,
         Manufacturer=manufacturer,
@@ -438,8 +443,24 @@ def test_should_exclude_series(
     config = load_project_config(TEST_PROJECT_SLUG)
     ds = _make_dicom(series_description, manufacturer, series_number)
     series_number = ds.get("SeriesNumber")
-    print(f"{series_number=}", type(series_number), str(series_number))
     assert _should_exclude_series(ds, config) == expect_exclude
+
+
+@pytest.mark.parametrize(
+    ("manufacturer", "expect_exclude"),
+    [
+        ("Company", False),
+        ("DifferentCompany", True),
+        (None, True),
+    ],
+)
+def test_should_exclude_manufacturer(manufacturer, expect_exclude):
+    config = load_project_config(TEST_PROJECT_SLUG)
+    ds = _make_dicom(manufacturer=manufacturer)
+    if manufacturer is None:
+        # the Manufacturer tag is sometimes missing in real data
+        delattr(ds, "Manufacturer")
+    assert _should_exclude_manufacturer(ds, config) == expect_exclude
 
 
 def test_can_nifti_convert_post_anonymisation(
