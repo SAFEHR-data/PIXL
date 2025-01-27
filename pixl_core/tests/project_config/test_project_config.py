@@ -182,3 +182,42 @@ def test_series_filtering(base_yaml_data, series_filters, test_series_desc, expe
         base_yaml_data["series_filters"] = series_filters
     cfg = PixlConfig.model_validate(base_yaml_data)
     assert cfg.is_series_description_excluded(test_series_desc) == expect_exclude
+
+
+@pytest.mark.parametrize(
+    ("regex", "manufacturer", "allowed"),
+    [
+        ("^allowed", "allowed", True),
+        ("allowed", "not-allowed", False),
+        (None, "allowed", False),
+    ],
+)
+def test_manufacturer_regex_filtering(base_yaml_data, regex, manufacturer, allowed):
+    """Check the allowed manufacturers regex works."""
+    if regex is not None:
+        base_yaml_data["allowed_manufacturers"] = [{"regex": "^allowed"}]
+    cfg = PixlConfig.model_validate(base_yaml_data)
+    assert cfg.is_manufacturer_allowed(manufacturer) == allowed
+
+
+@pytest.mark.parametrize(
+    ("manufacturer", "series_number", "expect_exclude"),
+    [
+        ("allowed", "2", True),
+        ("allowed", "4", False),
+        ("allowed", None, True),
+        ("not-allowed", "4", True),
+    ],
+)
+def test_manufacturer_series_number_filterings(
+    base_yaml_data, manufacturer, series_number, expect_exclude
+):
+    """Check the series number are correctly excluded."""
+    base_yaml_data["allowed_manufacturers"] = [
+        {"regex": "^allowed", "exclude_series_numbers": ["1", "2", "3"]}
+    ]
+    cfg = PixlConfig.model_validate(base_yaml_data)
+    assert (
+        cfg.is_series_number_excluded(manufacturer=manufacturer, series_number=series_number)
+        == expect_exclude
+    )

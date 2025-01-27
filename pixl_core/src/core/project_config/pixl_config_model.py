@@ -177,7 +177,7 @@ class PixlConfig(BaseModel):
         :returns: True if it should be excluded, False if not
         """
         if not self.is_manufacturer_allowed(manufacturer) or series_number is None:
-            return False
+            return True
 
         exclude_series_numbers = self._get_manufacturer(manufacturer).exclude_series_numbers
         return any(series_number.find(filt) != -1 for filt in exclude_series_numbers)
