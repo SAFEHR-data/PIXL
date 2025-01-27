@@ -20,18 +20,17 @@ Please request access to Slab and add further details in a [new blank issue](htt
 </details>
 
 
-## Installation
+## Installation in production
 
 Install the PIXL Python modules by running the following commands from the top-level `PIXL/` directory:
 
 ```shell
-python -m pip install -e pixl_core/
-python -m pip install -e cli/
+uv sync --package pixl-cli
 ```
 
 Note, the CLI currently [needs to be installed in editable mode](https://github.com/SAFEHR-data/PIXL/issues/318).
 
-## Development
+## Developer setup
 
 [Follow the developer setup instructions](./docs/setup/developer.md).
 

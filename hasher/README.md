@@ -21,13 +21,10 @@ a new salt interactively.
 
 ## Local development
 
-### Dependencies
-
-It is assumed you have a Python virtual environment configured using a tool like `conda` or `venv`.
-Install `hasher` locally with:
+### Installation
 
 ```shell
-python -m pip install -e .
+uv sync
 ```
 
 ### Setup

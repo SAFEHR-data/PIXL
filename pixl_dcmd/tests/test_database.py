@@ -14,9 +14,13 @@
 from __future__ import annotations
 
 import datetime
+from dataclasses import dataclass
 
 import pytest
+import sqlalchemy
+
 from core.db.models import Extract, Image
+from core.exceptions import PixlDiscardError
 from pixl_dcmd._database import (
     get_unexported_image,
     get_uniq_pseudo_study_uid_and_update_db,
@@ -26,13 +30,81 @@ from pixl_dcmd.dicom_helpers import StudyInfo
 from sqlalchemy.orm import Session
 
 STUDY_DATE = datetime.date.fromisoformat("2023-01-01")
+
+
+@dataclass
+class StudyData:
+    """Database setup of study data."""
+
+    mrn: str
+    accession_number: str
+    study_uid: str | None
+    study_date: datetime.date | sqlalchemy.Date = STUDY_DATE
+    pseudo_patient_id: str | None = None
+    pseudo_study_uid: str | None = None
+    exported_at: datetime.datetime | sqlalchemy.DateTime | None = None
+
+
+@dataclass
+class TestData:
+    """All test data, separated so that the input values can be overriden and different to db data."""
+
+    db: StudyData
+    input: StudyInfo
+
+
+def _create_test_data(study_data: StudyData) -> TestData:
+    return TestData(
+        study_data,
+        StudyInfo(
+            mrn=study_data.mrn,
+            accession_number=study_data.accession_number,
+            study_uid=study_data.study_uid,
+        ),
+    )
+
+
 TEST_PROJECT_SLUG = "test-extract-uclh-omop-cdm"
-TEST_STUDY_INFO = StudyInfo(
-    mrn="123456", accession_number="abcde", study_uid="1.2.3.4.5"
+UNPROCESSED_STUDY = _create_test_data(
+    StudyData(mrn="123456", accession_number="abcde", study_uid="1.2.3.4.5")
 )
-TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID = StudyInfo(
-    mrn="234567", accession_number="bcdef", study_uid="2.3.4.5.6"
+PSEUDO_IDS_STUDY = _create_test_data(
+    StudyData(
+        mrn="234567",
+        accession_number="bcdef",
+        study_uid="2.3.4.5.6",
+        pseudo_patient_id="garbled",
+        pseudo_study_uid="0.0.0.0.0.0",
+    )
 )
+
+EXPORTED_STUDY = _create_test_data(
+    StudyData(
+        mrn="exported_mrn",
+        accession_number="exported_accession",
+        study_uid="6.6.6",
+        pseudo_study_uid="1.1.1",
+        exported_at=datetime.datetime.fromisoformat("2024-01-01"),
+    )
+)
+
+# For duplicates, the database should have no UIDs
+DUPLICATE_ACCESSION_BUT_HAS_UID = _create_test_data(
+    StudyData(
+        mrn="duplicate_mrn",
+        accession_number="duplicate_accession",
+        study_uid="7.7.7",
+    )
+)
+
+DUPLICATE_ACCESSION_NO_UID = _create_test_data(
+    StudyData(
+        mrn="duplicate_mrn",
+        accession_number="duplicate_accession",
+        study_uid="8.8.8",
+    )
+)
+DUPLICATE_ACCESSION_NO_UID.db.study_uid = None
 
 
 @pytest.fixture()
@@ -42,34 +114,33 @@ def rows_for_database_testing(db_session) -> Session:
     pytest_pixl.dicom.generate_dicom_dataset.
     """
     extract = Extract(slug=TEST_PROJECT_SLUG)
-
-    existing_image = Image(
-        mrn=TEST_STUDY_INFO.mrn,
-        accession_number=TEST_STUDY_INFO.accession_number,
-        study_uid=TEST_STUDY_INFO.study_uid,
-        study_date=STUDY_DATE,
-        extract=extract,
-    )
-
-    existing_image_with_pseudo_study_uid = Image(
-        mrn=TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID.mrn,
-        accession_number=TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID.accession_number,
-        study_uid=TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID.study_uid,
-        study_date=STUDY_DATE,
-        extract=extract,
-        # This should be a valid VR UI value!
-        # https://dicom.nema.org/medical/dicom/current/output/html/part05.html#table_6.2-1
-        pseudo_study_uid="0.0.0.0.0.0",
-        pseudo_patient_id=TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID.mrn,
-    )
-
     with db_session:
         db_session.add_all(
-            [extract, existing_image, existing_image_with_pseudo_study_uid]
+            [
+                extract,
+                _image_from_study_data(UNPROCESSED_STUDY.db, extract),
+                _image_from_study_data(PSEUDO_IDS_STUDY.db, extract),
+                _image_from_study_data(EXPORTED_STUDY.db, extract),
+                _image_from_study_data(DUPLICATE_ACCESSION_BUT_HAS_UID.db, extract),
+                _image_from_study_data(DUPLICATE_ACCESSION_NO_UID.db, extract),
+            ]
         )
         db_session.commit()
 
     return db_session
+
+
+def _image_from_study_data(study_data: StudyData, extract: Extract) -> Image:
+    return Image(
+        mrn=study_data.mrn,
+        accession_number=study_data.accession_number,
+        study_uid=study_data.study_uid,
+        study_date=study_data.study_date,
+        pseudo_study_uid=study_data.pseudo_study_uid,
+        pseudo_patient_id=study_data.pseudo_patient_id,
+        exported_at=study_data.exported_at,
+        extract=extract,
+    )
 
 
 def test_get_uniq_pseudo_study_uid_and_update_db(rows_for_database_testing, db_session):
@@ -79,9 +150,9 @@ def test_get_uniq_pseudo_study_uid_and_update_db(rows_for_database_testing, db_s
     THEN the function should return the existing pseudo_study_uid.
     """
     pseudo_study_uid = get_uniq_pseudo_study_uid_and_update_db(
-        TEST_PROJECT_SLUG, TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID
+        TEST_PROJECT_SLUG, PSEUDO_IDS_STUDY.input
     )
-    assert pseudo_study_uid == "0.0.0.0.0.0"
+    assert pseudo_study_uid == PSEUDO_IDS_STUDY.db.pseudo_study_uid
 
 
 def test_get_pseudo_patient_id_and_update_db(rows_for_database_testing, db_session):
@@ -92,13 +163,11 @@ def test_get_pseudo_patient_id_and_update_db(rows_for_database_testing, db_sessi
     """
     get_pseudo_patient_id_and_update_db(
         TEST_PROJECT_SLUG,
-        TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID,
-        TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID.mrn,
+        PSEUDO_IDS_STUDY.input,
+        PSEUDO_IDS_STUDY.input.mrn,
     )
-    result = get_unexported_image(
-        TEST_PROJECT_SLUG, TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID, db_session
-    )
-    assert result.pseudo_patient_id == TEST_STUDY_INFO_WITH_PSEUDO_PATIENT_ID.mrn
+    result = get_unexported_image(TEST_PROJECT_SLUG, PSEUDO_IDS_STUDY.input, db_session)
+    assert result.pseudo_patient_id == PSEUDO_IDS_STUDY.db.pseudo_patient_id
 
 
 def test_get_unexported_image_fallback(rows_for_database_testing, db_session):
@@ -113,4 +182,27 @@ def test_get_unexported_image_fallback(rows_for_database_testing, db_session):
         study_uid="nope",
     )
     result = get_unexported_image(TEST_PROJECT_SLUG, wrong_uid_info, db_session)
-    assert result.study_uid == TEST_STUDY_INFO.study_uid
+    assert result.study_uid == UNPROCESSED_STUDY.input.study_uid
+
+
+def test_exported_image_throws(rows_for_database_testing, db_session):
+    """
+    GIVEN a database entry with the image exported
+    WHEN we query for the image
+    THEN a NoRowFound exception should be thrown
+    """
+    with pytest.raises(PixlDiscardError) as exception:
+        get_unexported_image(TEST_PROJECT_SLUG, EXPORTED_STUDY.input, db_session)
+    assert str(exception.value) == "Study already exported"
+
+
+def test_duplicate_image_throws(rows_for_database_testing, db_session):
+    """
+    GIVEN the database has two entries for the same accession number, one with a study uid
+    WHEN the input without the study uid is processed
+    THEN a MultipleResultsFound exception should be thrown
+    """
+    with pytest.raises(sqlalchemy.exc.MultipleResultsFound):
+        get_unexported_image(
+            TEST_PROJECT_SLUG, DUPLICATE_ACCESSION_NO_UID.input, db_session
+        )

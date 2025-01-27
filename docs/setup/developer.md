@@ -2,25 +2,17 @@
 
 ## Setting up `Python` Virtual Environment (VE)
 
-### Using conda
-```
-conda create -n "pixlVE" python=3.11  pip -c conda-forge --yes
-conda activate pixlVE
-conda list -n pixlVE #to check installed packages
-conda deactivate #to deactivate VE 
-conda remove -n pixlVE --all #to remove pixlVE environment 
-```
+### Using `uv`
+Once you have installed `uv`, in the root of your source tree you can:
 
-### Using python virtual environment `venv`
-You require `python3-venv` to setup your `venv`. See further details [here](https://docs.python.org/3/library/venv.html).
+Install the required Python version and create the venv (one-off task)
 ```
-# Create path for venv
-cd $HOME
-mkdir pixlVE
-cd pixlVE
-# Create virtual environment
-python3 -m venv pixlVE
-source pixlVE/bin/activate
+uv python install 3.11
+uv venv --python 3.11
+```
+Enter the venv (for the lifetime of the shell)
+```
+source .venv/bin/activate
 ```
 
 ## Docker requirements 
@@ -30,17 +22,10 @@ Most modules require `docker` and `docker-compose` to be installed to run tests.
 
 ## Installation of `PIXL` modules
 
-You can install all PIXL Python modules by running the following commands from the `PIXL/` directory:
+You can install all PIXL Python modules by running the following command from the `PIXL/` directory:
 
 ```shell
-python -m pip install -e "pixl_core/[dev]"
-python -m pip install -e "pytest-pixl/[dev,test]"
-python -m pip install -e "pixl_core/[test]"
-python -m pip install -e "cli/[dev,test]"
-python -m pip install -e "pixl_imaging/[dev,test]"
-python -m pip install -e "pixl_dcmd/[dev,test]"
-python -m pip install -e "pixl_export/[dev,test]"
-python -m pip install -e "hasher/[dev,test]"
+uv sync
 ```
 
 See each service's README for instructions for individual developing and testing instructions.
@@ -102,10 +87,15 @@ alongside [pytest](https://www.pytest.org/).
 There is support (sometimes through plugins) for these tools in most IDEs & editors.
 
 
-We run [pre-commit](https://pre-commit.com/) as part of the GitHub Actions CI. To install and run it locally, do:
+We run [pre-commit](https://pre-commit.com/) as part of the GitHub Actions CI.
 
+To run it locally as a one-off:
 ```shell
-python -m pip install pre-commit
+pre-commit run --all-files
+```
+
+To install the git pre-commit hook locally so it runs every time you make a commit:
+```shell
 pre-commit install
 ```
 

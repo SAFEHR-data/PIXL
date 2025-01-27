@@ -1,0 +1,69 @@
+[project]
+name = "pixl"
+version = "0.2.0rc0"
+description = "Top-level PIXL project"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    'core',
+    'pixl_cli',
+    'pytest-pixl',
+    "hasher",
+    "pixl_dcmd",
+    "pixl_export",
+    "pixl_imaging",
+]
+
+
+[tool.uv.sources]
+pixl_cli = { workspace = true }
+core = { workspace = true }
+pytest-pixl = { workspace = true }
+hasher = { workspace = true }
+pixl_dcmd = { workspace = true }
+pixl_export = { workspace = true }
+pixl_imaging = { workspace = true }
+
+[tool.uv.workspace]
+members = [
+    "cli",
+    "pixl_core",
+    "pytest-pixl",
+    "hasher",
+    "pixl_dcmd",
+    "pixl_export",
+    "pixl_imaging",
+]
+
+[tool.hatch.build.targets.wheel]
+include = [
+    "cli/**",
+    "pixl_core/**",
+    "pytest-pixl/**",
+    "hasher/**",
+    "pixl_dcmd/**",
+    "pixl_export/**",
+    "pixl_imaging/**"
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "mypy==1.13.0",
+    "pre-commit==4.0.1",
+    "pytest==8.3.4",
+    "ruff==0.8.3",
+    "pytest-mock==3.14.0",
+    "httpx==0.28.*",
+    "pytest-asyncio==0.24.0",
+    "pytest-check==2.4.1",
+    "pytest-cov==6.0.0",
+    "pytest-pixl==0.2.0rc0",
+    "xnat4tests==0.3.12",
+    "dcm2niix==1.0.20220715",
+    "nibabel==5.3.2",
+]
+
