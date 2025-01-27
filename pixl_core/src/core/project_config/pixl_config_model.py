@@ -180,7 +180,7 @@ class PixlConfig(BaseModel):
             return True
 
         exclude_series_numbers = self._get_manufacturer(manufacturer).exclude_series_numbers
-        return any(series_number.find(filt) != -1 for filt in exclude_series_numbers)
+        return any(str(series_number).find(filt) != -1 for filt in exclude_series_numbers)
 
     def is_manufacturer_allowed(self, manufacturer: str) -> bool:
         """

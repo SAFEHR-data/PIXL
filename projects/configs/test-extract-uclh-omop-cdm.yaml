@@ -28,7 +28,7 @@ allowed_manufacturers:
   - regex: "^carestream"
     exclude_series_numbers: []
   - regex: "^company"
-    exclude_series_numbers: []
+    exclude_series_numbers: ["1234567890"]
   - regex: "^philips"
     exclude_series_numbers: []
 

@@ -407,40 +407,39 @@ def test_no_pseudo_patient_id_processing(
     )
 
 
-@pytest.fixture()
-def dicom_series_to_keep() -> list[pydicom.Dataset]:
-    series = [
-        "",
-        "whatever",
-    ]
-    return [_make_dicom(s) for s in series]
+def _make_dicom(series_description, manufacturer, series_number) -> pydicom.Dataset:
+    return generate_dicom_dataset(
+        SeriesDescription=series_description,
+        Manufacturer=manufacturer,
+        SeriesNumber=series_number,
+    )
 
 
-@pytest.fixture()
-def dicom_series_to_exclude() -> list[pydicom.Dataset]:
-    series = [
-        "positioning",
-        "foo_barpositioning",
-        "positioningla",
-        "scout",
-        "localiser",
-        "localizer",
-        # Matching should be case insensitive
-        "lOcALIsER",
-    ]
-    return [_make_dicom(s) for s in series]
-
-
-def _make_dicom(series_description) -> pydicom.Dataset:
-    return generate_dicom_dataset(SeriesDescription=series_description)
-
-
-def test_should_exclude_series(dicom_series_to_exclude, dicom_series_to_keep):
+@pytest.mark.parametrize(
+    ("series_description", "manufacturer", "series_number", "expect_exclude"),
+    [
+        ("", "Company", "1", False),
+        ("whatever", "Company", "1", False),
+        ("whatever", "Company", None, True),
+        ("positioning", "Company", "1", True),
+        ("foo_barpositioning", "Company", "1", True),
+        ("positioningla", "Company", "1", True),
+        ("scout", "Company", "1", True),
+        ("localiser", "Company", "1", True),
+        ("localizer", "Company", "1", True),
+        ("lOcALIsER", "Company", "1", True),
+        ("", "DifferentCompany", "1", True),
+        ("", "Company", "1234567890", True),
+    ],
+)
+def test_should_exclude_series(
+    series_description, manufacturer, series_number, expect_exclude
+):
     config = load_project_config(TEST_PROJECT_SLUG)
-    for s in dicom_series_to_keep:
-        assert not _should_exclude_series(s, config)
-    for s in dicom_series_to_exclude:
-        assert _should_exclude_series(s, config)
+    ds = _make_dicom(series_description, manufacturer, series_number)
+    series_number = ds.get("SeriesNumber")
+    print(f"{series_number=}", type(series_number), str(series_number))
+    assert _should_exclude_series(ds, config) == expect_exclude
 
 
 def test_can_nifti_convert_post_anonymisation(
