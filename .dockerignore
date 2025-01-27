@@ -1,0 +1,7 @@
+**/build
+.git
+**/.mypy_cache
+.venv*
+**/.pytest_cache
+**/.ruff_cache
+**/__pycache__

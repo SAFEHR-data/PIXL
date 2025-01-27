@@ -30,7 +30,7 @@ from core.dicom_tags import (
     add_private_tag,
     create_private_tag,
 )
-from core.exceptions import PixlDiscardError
+from core.exceptions import PixlDiscardError, PixlSkipInstanceError
 from core.project_config import load_project_config, load_tag_operations
 from core.project_config.pixl_config_model import load_config_and_validate
 from decouple import config
@@ -242,6 +242,29 @@ def test_anonymisation_with_overrides(
     assert (0x2001, 0x1003) in mri_diffusion_dicom_image
     assert mri_diffusion_dicom_image.PatientID != original_patient_id
     assert mri_diffusion_dicom_image[(0x2001, 0x1003)] == original_private_tag
+
+
+@pytest.mark.usefixtures()
+def test_drop_unspecified_modalities(test_project_config: PixlConfig) -> None:
+    """
+    GIVEN a project configuration and DICOM files
+    WHEN the modality tag in the DICOM files does not match the specified modalities in the configuration
+    THEN drop those DICOM files
+    """
+    ds_dx = generate_dicom_dataset(Modality="DX")
+    ds_cr = generate_dicom_dataset(Modality="CR")
+    ds_mr = generate_dicom_dataset(Modality="MR")  # not in config
+
+    anonymise_dicom(ds_dx, config=test_project_config)
+    anonymise_dicom(ds_cr, config=test_project_config)
+
+    assert ds_dx.Modality in test_project_config.project.modalities
+    assert ds_cr.Modality in test_project_config.project.modalities
+
+    with pytest.raises(PixlSkipInstanceError):
+        anonymise_dicom(ds_mr, config=test_project_config)
+
+    assert ds_mr.Modality not in test_project_config.project.modalities
 
 
 @pytest.mark.usefixtures("rows_in_session")

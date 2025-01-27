@@ -16,7 +16,7 @@
 import filecmp
 import os
 from collections.abc import Generator
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pandas as pd
@@ -92,7 +92,7 @@ def test_send_via_ftps(
 def test_update_exported_and_save(rows_in_session) -> None:
     """Tests that the exported_at field is updated when a file is uploaded"""
     # ARRANGE
-    expected_export_time = datetime.now(tz=timezone.utc)
+    expected_export_time = datetime.now(tz=UTC)
 
     # ACT
     update_exported_at(generate_uid(entropy_srcs=["not_yet_exported"]), expected_export_time)
@@ -101,7 +101,7 @@ def test_update_exported_and_save(rows_in_session) -> None:
         .filter(Image.pseudo_study_uid == generate_uid(entropy_srcs=["not_yet_exported"]))
         .one()
     )
-    actual_export_time = new_row.exported_at.replace(tzinfo=timezone.utc)
+    actual_export_time = new_row.exported_at.replace(tzinfo=UTC)
 
     # ASSERT
     assert actual_export_time == expected_export_time
@@ -119,7 +119,7 @@ def parquet_export(export_dir) -> ParquetExport:
     """
     return ParquetExport(
         project_name_raw="i-am-a-project",
-        extract_datetime=datetime.now(tz=timezone.utc),
+        extract_datetime=datetime.now(tz=UTC),
         export_dir=export_dir,
     )
 
