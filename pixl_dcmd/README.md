@@ -62,18 +62,3 @@ and optionally a `manufacturer_overrides`.
 If a `manufacturer_overrides` is defined, it will be used to override the `base` tags, if the
 manufacturer of the DICOM file matches the manufacturer in the `manufacturer_overrides`. Any tags
 in the `manufacturer_overrides` that are not in the `base` will be added to the scheme as well.
-
-## 'PIXL/pixl_dcmd' Directory Contents
-
-### Subdirectories
-
-[src](./src/README.md)
-
-[tests](./tests/README.md)
-
-### Files
-
-pyproject.toml
-
-README.md
-

@@ -110,16 +110,3 @@ team.
 ## References
 
  - [Cheat sheet of the REST API](https://book.orthanc-server.com/users/rest-cheatsheet.html)
-
-## 'PIXL/orthanc/orthanc-raw' Directory Contents
-
-### Subdirectories
-
-[config](./config/README.md)
-
-[plugin](./plugin/README.md)
-
-### Files
-
-README.md
-

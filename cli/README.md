@@ -140,18 +140,3 @@ The CLI tests require a running instance of the `rabbitmq` service, for which we
 pytest -vs tests #for all tests
 pytest -vs tests/test_docker_commands.py #e.g., for particular tests
 ```
-
-## 'PIXL/cli' Directory Contents
-
-### Subdirectories
-
-[src](./src/README.md)
-
-[tests](./tests/README.md)
-
-### Files
-
-pyproject.toml
-
-README.md
-
