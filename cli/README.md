@@ -20,7 +20,7 @@ uv sync
 
 ## Usage
 
-**Note** The `rabbitmq`, `export-api` and `imaging-api` services must be started prior to using the CLI
+**Note:** The `rabbitmq`, `export-api` and `imaging-api` services must be started prior to using the CLI
 This is done by spinning up the necessary Docker containers through `docker compose`.
 For convenience, we provide the `pixl dc` command, which acts as a wrapper for `docker compose`,
 but takes care of some of the configuration for you.
@@ -33,7 +33,7 @@ pixl --help
 
 ### Configuration
 
-The `rabbitmq` and `postgres` services are configured by setting the following environment variables
+The `rabbitmq` and PIXL DB `postgres` services are configured by setting the following environment variables
 (default values shown):
 
 ```sh
