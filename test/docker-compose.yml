@@ -74,7 +74,7 @@ services:
             retries: 2
             interval: 3s
             timeout: 2s
-    external-postgres-pixl-db:
+    postgres-pixl-db:
         build:
             context: ../
             dockerfile: ./docker/postgres/Dockerfile
