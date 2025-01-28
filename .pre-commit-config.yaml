@@ -53,3 +53,9 @@ repos:
             language: script
             types_or: [python, shell, yaml, dockerfile]
             entry: bin/linters/check_headers_exist.sh
+
+    # avoid forgetting to update the lock file after pyproject.toml changes
+    - repo: https://github.com/astral-sh/uv-pre-commit
+      rev: 0.5.15
+      hooks:
+        - id: uv-lock

@@ -5,7 +5,7 @@ Installable `pytest` plugin module providing common test fixtures used throughou
 ## Installation
 
 ```bash
-python -m pip install -e ../pixl_core -e ".[test]"
+uv sync
 ```
 
 ## pytest-cov’s engine

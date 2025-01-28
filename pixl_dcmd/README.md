@@ -44,7 +44,7 @@ assert dataset != pydicom.dcmread(dataset_path)
 Install the Python dependencies from the `pixl_dcmd` directory:
 
 ```bash
-python -m pip install -e ../pixl_core/ -e ".[test,dev]"
+uv sync
 ```
 
 ## Test

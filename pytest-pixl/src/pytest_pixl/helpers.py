@@ -17,10 +17,10 @@ from __future__ import annotations
 
 import subprocess
 from time import sleep
-from typing import TYPE_CHECKING, Callable, Optional
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Callable, Sequence
     from pathlib import Path
 
 from loguru import logger

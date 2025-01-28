@@ -22,13 +22,12 @@ Specifically, it defines:
 ## Installation
 
 ```bash
-python -m pip install -e .
+uv sync
 ```
 
 ## Testing
 
 ```bash
-python -m pip install -e ../pytest-pixl -e ".[test]"
 pytest
 ```
 
