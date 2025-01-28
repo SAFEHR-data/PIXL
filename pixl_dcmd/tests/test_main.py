@@ -13,11 +13,13 @@
 #  limitations under the License.
 from __future__ import annotations
 
+from importlib import resources
 import pathlib
 import re
 from pathlib import Path
 import logging
 import typing
+import zipfile
 
 import nibabel
 import numpy as np
@@ -41,6 +43,7 @@ from pixl_dcmd.main import (
     _anonymise_dicom_from_scheme,
     anonymise_and_validate_dicom,
     anonymise_dicom,
+    get_series_to_skip,
     _enforce_allowlist,
     _should_exclude_series,
     _should_exclude_manufacturer,
@@ -53,6 +56,32 @@ if typing.TYPE_CHECKING:
 
 PROJECT_CONFIGS_DIR = Path(config("PROJECT_CONFIGS_DIR"))
 TEST_PROJECT_SLUG = "test-extract-uclh-omop-cdm"
+
+
+@pytest.fixture()
+def zipped_dicom_study() -> Path:
+    """Dummy DICOM study for tests."""
+    path = resources.files("pytest_pixl") / "data" / "dicom-study" / "study.zip"
+    return zipfile.ZipFile(path)
+
+
+@pytest.mark.parametrize(
+    ("min_instances", "expected_num_series_skipped"),
+    [
+        (1, 0),
+        (2, 4),
+    ],
+)
+def test_get_series_to_skip(
+    zipped_dicom_study: zipfile.ZipFile,
+    min_instances: int,
+    expected_num_series_skipped: int,
+):
+    """
+    Check series are skipped if containing too few instances.
+    """
+    series_to_skip = get_series_to_skip(zipped_dicom_study, min_instances)
+    assert len(series_to_skip) == expected_num_series_skipped
 
 
 @pytest.fixture(scope="module")
