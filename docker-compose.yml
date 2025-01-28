@@ -62,6 +62,7 @@ volumes:
     orthanc-anon-data:
     orthanc-raw-data:
     postgres-data:
+    external-pixl-db-data:
     exports:
     rabbitmq:
 
@@ -372,6 +373,35 @@ services:
               target: /var/lib/postgresql/data
         ports:
             - "${POSTGRES_PORT}:5432"
+        healthcheck:
+            test: ["CMD", "pg_isready", "-U", "${PIXL_DB_USER}", "--dbname", "${PIXL_DB_NAME}"]
+            interval: 10s
+            timeout: 30s
+            retries: 5
+        restart: always
+        networks:
+            - pixl-net
+    postgres-external:
+        profiles: [external-pixl-db]
+        build:
+            context: .
+            dockerfile: ./docker/postgres/Dockerfile
+            args:
+                <<: *build-args-common
+        environment:
+            POSTGRES_USER: ${PIXL_DB_USER}
+            POSTGRES_PASSWORD: ${PIXL_DB_PASSWORD}
+            POSTGRES_DB: ${PIXL_DB_NAME}
+            PGTZ: ${TZ:-Europe/London}
+        env_file:
+            - ./docker/common.env
+        command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
+        volumes:
+            - type: volume
+              source: external-pixl-db-data
+              target: /var/lib/postgresql/data
+        ports:
+            - "${POSTGRES_EXTERNAL_PORT}:5432"
         healthcheck:
             test: ["CMD", "pg_isready", "-U", "${PIXL_DB_USER}", "--dbname", "${PIXL_DB_NAME}"]
             interval: 10s
