@@ -37,6 +37,9 @@ SERVICE_SETTINGS = {
     },
 }  # type: dict
 
+if config("POSTGRES_EXTERNAL_PORT"):
+    SERVICE_SETTINGS["postgres"]["port"] = int(config("POSTGRES_EXTERNAL_PORT"))
+
 
 class APIConfig:
     """API Configuration"""
