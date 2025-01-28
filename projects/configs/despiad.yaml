@@ -30,7 +30,7 @@ allowed_manufacturers:
   - regex: ".*"
     exclude_series_numbers: []
 
-min_instances_per_series: 1
+min_instances_per_series: 2
 
 series_filters: []
 
