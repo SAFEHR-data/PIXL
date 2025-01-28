@@ -20,14 +20,14 @@ If the study has be identified in VNA or PACS, a query to `orthanc-raw` is made 
 exists locally. If it does exist locally, a check is made to ensure all instances exist locally and any missing
 instances are retrieved. If the study does not exist locally, the entire study is retrieved from the archive.
 
-Once the study and all its instances are in `orthanc-raw`, the study is sent to `orthanc-anon` via a C-STORE
+Once the study and all its instances are in `orthanc-raw`, the study is sent to `orthanc-anon` via a C-STORE <SK: Please explain what C-STORE operation>
 operation.
 
 >[!NOTE]  
 > When querying the archives, if we do not know the `StudyInstanceUID` we will query by MRN and Accession Number.
 > This may result in multiple studies being found in the archives. In this instance, all studies returned by the
 > query will be retrieved and sent to Orthanc Anon for anonymisation. In Orthanc Anon, the studies will be combined
-> into a single study as they share the same MRN and Accession Number.
+> into a single study as they share the same MRN and Accession Number.  
 
 ## Installation
 
@@ -56,3 +56,36 @@ The `SKIP_ALEMBIC` environmental variable is used to control whether migrations 
 - `SKIP_ALEMBIC` is set to true for tests that do not use the database (e.g. `SKIP_ALEMBIC=true`). Otherwise you probably want to run this.
 - If you wanted to test out new migrations from a test/dev deployment on the GAE with data in,
   then you can redeploy just the `imaging-api` container while keeping the `postgres` container up. 
+
+## 'PIXL/pixl_imaging' Directory Contents
+
+<details>
+<summary>
+<h3> Subdirectories with links to the relevant README </h3> 
+
+</summary>
+
+[alembic](./alembic/README.md)
+
+[scripts](./scripts/README.md)
+
+[src](./src/README.md)
+
+[tests](./tests/README.md)
+
+</details>
+
+<details>
+<summary>
+<h3> Files </h3> 
+
+</summary>
+
+| **Configuration** | **User docs** |
+| :--- | :--- |
+| pyproject.toml | README.md |
+
+
+</details>
+
+
