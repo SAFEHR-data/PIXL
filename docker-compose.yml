@@ -167,6 +167,10 @@ services:
         depends_on:
             postgres:
                 condition: service_healthy
+                required: false
+            postgres-exposed:
+                condition: service_healthy
+                required: false
         healthcheck:
             test:
                 [
@@ -223,6 +227,10 @@ services:
         depends_on:
             postgres:
                 condition: service_healthy
+                required: false
+            postgres-exposed:
+                condition: service_healthy
+                required: false
             orthanc-anon:
                 condition: service_started
         healthcheck:
