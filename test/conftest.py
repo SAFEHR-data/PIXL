@@ -25,7 +25,7 @@ from sqlalchemy.orm import sessionmaker
 
 # Setting env variables before loading modules
 os.environ["PIXL_DB_HOST"] = "localhost"
-os.environ["PIXL_DB_PORT"] = "7011"
+os.environ["PIXL_DB_PORT"] = "7001"
 os.environ["PIXL_DB_USER"] = "pixl_db_username"
 os.environ["PIXL_DB_PASSWORD"] = "pixl_db_password"
 os.environ["PIXL_DB_NAME"] = "pixl"
