@@ -34,11 +34,20 @@ def dc(args: tuple[str]) -> None:
     docker_args = list(args)
 
     if "up" in args:
-        docker_args = [*args, "--wait", "--build", "--remove-orphans"]
+        docker_args = _parse_up_args(args)
     if "down" in args:
         docker_args = _check_down_args(args)
 
     run_docker_compose(docker_args, working_dir=PIXL_ROOT)
+
+
+def _parse_up_args(args: tuple[str, ...]) -> list:
+    """Check up args and define default profile if not set"""
+    args_list = list(args)
+    if "--profile" not in args:
+        args_list.extend(["--profile", "postgres-exposed"])
+    args_list.extend(["--wait", "--build", "--remove-orphans"])
+    return args_list
 
 
 def _check_down_args(args: tuple[str, ...]) -> list:
