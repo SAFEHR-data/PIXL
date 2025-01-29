@@ -378,7 +378,7 @@ services:
               source: postgres-data
               target: /var/lib/postgresql/data
         ports:
-            - "${POSTGRES_ORTHANC_RAW_DB_PORT}:5432"
+            - "${CLI_PIXL_DB_PORT}:5432"
         healthcheck:
             test: ["CMD", "pg_isready", "-U", "${ORTHANC_RAW_DB_USER}", "--dbname", "${ORTHANC_RAW_DB_NAME}"]
             interval: 10s
