@@ -27,7 +27,7 @@ tag_operation_files:
     manufacturer_overrides: []
 
 allowed_manufacturers:
-  - regex: ".*"
+  - regex: "^ge medical systems"
     exclude_series_numbers: []
 
 min_instances_per_series: 2
