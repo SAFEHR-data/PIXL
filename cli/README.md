@@ -22,13 +22,34 @@ uv sync
 
 **Note:** The `rabbitmq`, `export-api` and `imaging-api` services must be started prior to using the CLI
 This is done by spinning up the necessary Docker containers through `docker compose`.
-For convenience, we provide the `pixl dc` command, which acts as a wrapper for `docker compose`,
-but takes care of some of the configuration for you.
 
-See the commands and subcommands with
+See general pixl commands and subcommands with:
 
 ```bash
 pixl --help
+```
+
+### Starting PIXL
+
+For convenience, we provide the `pixl dc` command, which acts as a wrapper for `docker compose`,
+but takes care of some of the configuration for you.
+
+**1) Default Start-up**
+```bash
+pixl dc up
+```
+By default, `pixl dc up` runs with the option: `--profile postgres-exposed`. This means PIXL DB and Orthanc Raw 
+will share the same postgres instance.
+
+**2) Start-up with External PIXL DB**
+Set the port number environment variable of your external PIXL DB:
+```bash
+CLI_PIXL_DB_PORT=7001
+```
+
+Start-up PIXL:
+```bash
+pixl dc up --profile postgres
 ```
 
 ### Configuration
@@ -42,8 +63,8 @@ RABBITMQ_PORT=7008
 RABBITMQ_USERNAME=rabbitmq_username
 RABBITMQ_PASSWORD=rabbitmq_password
 
-POSTGRES_PIXL_DB_HOST=localhost
-POSTGRES_PIXL_DB_PORT=7001
+CLI_PIXL_DB_HOST=localhost
+CLI_PIXL_DB_PORT=7001
 PIXL_DB_USER=pixl_db_username
 PIXL_DB_PASSWORD=pixl_db_password
 PIXL_DB_NAME=pixl
