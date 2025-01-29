@@ -112,6 +112,10 @@
   group: 0x0054
   element: 0x0081
   op: keep
+- name: Number of Time Slices
+  group: 0x0054
+  element: 0x0101
+  op: keep
 - name: Radionuclide Code Sequence
   group: 0x0054
   element: 0x0300
