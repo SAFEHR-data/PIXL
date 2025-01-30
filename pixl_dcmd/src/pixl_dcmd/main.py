@@ -28,6 +28,7 @@ from dicomanonymizer.simpledicomanonymizer import (
 )
 from loguru import logger
 from pydicom import DataElement, Dataset, dcmread, dcmwrite
+import pydicom
 
 from core.project_config.pixl_config_model import PixlConfig
 from pixl_dcmd._database import (
@@ -42,6 +43,10 @@ from pixl_dcmd._tag_schemes import _scheme_list_to_dict, merge_tag_schemes
 
 if typing.TYPE_CHECKING:
     from pixl_dcmd.dicom_helpers import StudyInfo
+
+
+# See: https://github.com/pydicom/pydicom/issues/2170
+pydicom.config.convert_wrong_length_to_UN = True
 
 
 def write_dataset_to_bytes(dataset: Dataset) -> bytes:
