@@ -29,12 +29,12 @@ tag_operation_files:
 allowed_manufacturers:
   - regex: "^ge medical systems"
     exclude_series_numbers:
-        - "1200"
-        - "1201"
-        - "1202"
-        - "1203"
-        - "1301"
-        - "1501"
+        - 1200
+        - 1201
+        - 1202
+        - 1203
+        - 1301
+        - 1501
 
 min_instances_per_series: 2
 

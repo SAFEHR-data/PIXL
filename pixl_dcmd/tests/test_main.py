@@ -452,18 +452,18 @@ def _make_dicom(
 @pytest.mark.parametrize(
     ("series_description", "manufacturer", "series_number", "expect_exclude"),
     [
-        ("", "Company", "1", False),
-        ("whatever", "Company", "1", False),
+        ("", "Company", 1, False),
+        ("whatever", "Company", 1, False),
         ("whatever", "Company", None, True),
-        ("positioning", "Company", "1", True),
-        ("foo_barpositioning", "Company", "1", True),
-        ("positioningla", "Company", "1", True),
-        ("scout", "Company", "1", True),
-        ("localiser", "Company", "1", True),
-        ("localizer", "Company", "1", True),
-        ("lOcALIsER", "Company", "1", True),
-        ("", "DifferentCompany", "1", True),
-        ("", "Company", "1234567890", True),
+        ("positioning", "Company", 1, True),
+        ("foo_barpositioning", "Company", 1, True),
+        ("positioningla", "Company", 1, True),
+        ("scout", "Company", 1, True),
+        ("localiser", "Company", 1, True),
+        ("localizer", "Company", 1, True),
+        ("lOcALIsER", "Company", 1, True),
+        ("", "DifferentCompany", 1, True),
+        ("", "Company", 123456789, True),
     ],
 )
 def test_should_exclude_series(
@@ -471,7 +471,6 @@ def test_should_exclude_series(
 ):
     config = load_project_config(TEST_PROJECT_SLUG)
     ds = _make_dicom(series_description, manufacturer, series_number)
-    series_number = ds.get("SeriesNumber")
     assert _should_exclude_series(ds, config) == expect_exclude
 
 
