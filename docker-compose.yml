@@ -298,6 +298,10 @@ services:
                 condition: service_healthy
             postgres:
                 condition: service_healthy
+                required: false
+            postgres-exposed:
+                condition: service_healthy
+                required: false
             hasher-api:
                 condition: service_healthy
         ports:
