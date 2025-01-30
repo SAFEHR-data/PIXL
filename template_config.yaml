@@ -39,14 +39,15 @@ allowed_manufacturers:
         - 1301
         - 1501
 
-min_instances_per_series: 1
+# Filter out any series with a single instance (e.g. PACS reports, screenshots)
+min_instances_per_series: 2
 
 series_filters:
     - "localizer"
     - "localiser"
     - "scout"
     - "positioning"
-    - "mip"
+    - "mip"  # for PET studies these series have PID
 
 destination:
     dicom: "ftps" # alternatives: "dicomweb", "xnat", "none"
