@@ -32,7 +32,11 @@ allowed_manufacturers:
 
 min_instances_per_series: 2
 
-series_filters: []
+series_filters:
+    - "localizer"
+    - "localiser"
+    - "scout"
+    - "positioning"
 
 destination:
     dicom: "xnat"
