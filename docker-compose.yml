@@ -165,9 +165,6 @@ services:
         extra_hosts:
             - "host.docker.internal:host-gateway"
         depends_on:
-            postgres:
-                condition: service_healthy
-                required: false
             postgres-exposed:
                 condition: service_healthy
                 required: false
