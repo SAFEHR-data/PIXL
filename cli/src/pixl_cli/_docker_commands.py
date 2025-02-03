@@ -45,8 +45,8 @@ def _parse_up_args(args: tuple[str, ...]) -> list:
     """Check up args and define default profile if not set"""
     args_list = list(args)
     if "--profile" not in args:
-        up_index = args.index('up')
-        args_list[up_index:up_index] = ['--profile', 'postgres-exposed']
+        up_index = args.index("up")
+        args_list[up_index:up_index] = ["--profile", "postgres-exposed"]
     args_list.extend(["--wait", "--build", "--remove-orphans"])
     return args_list
 
