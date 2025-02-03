@@ -38,8 +38,9 @@ but takes care of some of the configuration for you.
 ```bash
 pixl dc up
 ```
-By default, `pixl dc up` runs with the option: `--profile postgres-exposed`. This means PIXL DB and Orthanc Raw 
-will share the same postgres instance.
+By default, `pixl dc up` runs with the option: `--profile postgres-exposed`. You should use this option if PIXL DB and Orthanc Raw 
+will share the same postgres instance. The `ORTHANC_RAW_DB_*` and `PIXL_DB_*` variables should have the same values, as seen in the 
+[default .env.sample](../.env.sample).
 
 **2) Start-up with External PIXL DB**
 Set the port number environment variable of your external PIXL DB:
