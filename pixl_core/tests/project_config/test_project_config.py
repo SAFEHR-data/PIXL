@@ -203,10 +203,10 @@ def test_manufacturer_regex_filtering(base_yaml_data, regex, manufacturer, allow
 @pytest.mark.parametrize(
     ("manufacturer", "series_number", "expect_exclude"),
     [
-        ("allowed", "2", True),
-        ("allowed", "4", False),
+        ("allowed", 2, True),
+        ("allowed", 4, False),
         ("allowed", None, True),
-        ("not-allowed", "4", True),
+        ("not-allowed", 4, True),
     ],
 )
 def test_manufacturer_series_number_filterings(
@@ -214,7 +214,7 @@ def test_manufacturer_series_number_filterings(
 ):
     """Check the series number are correctly excluded."""
     base_yaml_data["allowed_manufacturers"] = [
-        {"regex": "^allowed", "exclude_series_numbers": ["1", "2", "3"]}
+        {"regex": "^allowed", "exclude_series_numbers": [1, 2, 3]}
     ]
     cfg = PixlConfig.model_validate(base_yaml_data)
     assert (
