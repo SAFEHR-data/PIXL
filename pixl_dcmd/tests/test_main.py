@@ -34,7 +34,7 @@ from core.dicom_tags import (
 )
 from core.exceptions import PixlDiscardError, PixlSkipInstanceError
 from core.project_config import load_project_config, load_tag_operations
-from core.project_config.pixl_config_model import load_config_and_validate
+from core.project_config.pixl_config_model import load_config_and_validate, Manufacturer
 from decouple import config
 
 from pixl_dcmd.dicom_helpers import get_study_info
@@ -218,6 +218,11 @@ def test_anonymise_and_validate_as_external_user(
     assert dataset != pydicom.dcmread(dataset_path)
 
 
+@pytest.fixture
+def dummy_manufacturer() -> Manufacturer:
+    return Manufacturer(regex="^company", exclude_series_numbers=[])
+
+
 def ids_for_parameterised_test(val: pathlib.Path) -> str:
     """Generate test ID for parameterised tests"""
     return str(val.stem)
@@ -228,7 +233,9 @@ def ids_for_parameterised_test(val: pathlib.Path) -> str:
     PROJECT_CONFIGS_DIR.glob("*.yaml"),
     ids=ids_for_parameterised_test,
 )
-def test_anonymise_and_validate_dicom(caplog, request, yaml_file) -> None:
+def test_anonymise_and_validate_dicom(
+    caplog, request, yaml_file, dummy_manufacturer
+) -> None:
     """
     Test whether anonymisation and validation works as expected on a vanilla DICOM dataset
     GIVEN a project configuration with tag operations that creates a DICOM dataset
@@ -237,6 +244,8 @@ def test_anonymise_and_validate_dicom(caplog, request, yaml_file) -> None:
     """
     caplog.set_level(logging.WARNING)
     config = load_project_config(yaml_file.stem)
+    if dummy_manufacturer not in config.allowed_manufacturers:
+        config.allowed_manufacturers.append(dummy_manufacturer)
     for modality in config.project.modalities:
         caplog.clear()
         dicom_image = generate_dicom_dataset(Modality=modality)
