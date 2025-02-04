@@ -147,7 +147,7 @@ The configuration file defines:
 
 - Project name: the `<project-slug>` name of the Project
 - The DICOM dataset modalities to retain (e.g. `["DX", "CR"]` for X-Ray studies)
-- The minimum number of instances required by a series (defaults to 1). May be set higher than 1 to filter out
+- The minimum number of instances required by a series (defaults to 2). Can be set higher than 1 to filter out
   series with a single screenshot containing patient identifiable data
 - A list of series description filters (e.g. `['loc', 'pos']`). Series with descriptions matching any of these
   filters will be skipped
