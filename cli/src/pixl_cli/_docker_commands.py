@@ -12,6 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -42,11 +43,17 @@ def dc(args: tuple[str]) -> None:
 
 
 def _parse_up_args(args: tuple[str, ...]) -> list:
-    """Check up args and define default profile if not set"""
+    """Check up args and set docker compose profile"""
     args_list = list(args)
-    if "--profile" not in args:
-        up_index = args.index("up")
-        args_list[up_index:up_index] = ["--profile", "postgres-exposed"]
+
+    up_index = args.index("up")
+    external_pixl_db_env = os.environ.get("EXTERNAL_PIXL_DB", "false").lower()
+    args_list[up_index:up_index] = (
+        ["--profile", "postgres"]
+        if external_pixl_db_env == "true"
+        else ["--profile", "postgres-exposed"]
+    )
+
     args_list.extend(["--wait", "--build", "--remove-orphans"])
     return args_list
 
