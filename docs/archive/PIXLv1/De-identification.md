@@ -13,7 +13,7 @@ After filtering on opt-out status, the primary patient identifier will be secure
 This lookup database will be for tracing and debugging purposes and will not be made available to researchers.
 
 ## DICOM Instances
-The [MVP](MVP.md) will be limited to the de-identification of DICOM elements and disclosure risk from pixel data will be managed via [policies & procedures](https://github.com/UCLH-DIF/Book-of-FlowEHR/tree/main/pollen/README) for the FlowEHR platform.  
+The [MVP](MVP.md) will be limited to the de-identification of DICOM elements and disclosure risk from pixel data will be managed via [policies](./Referenced_notes/disclosure-incidents.md) for the FlowEHR platform.  
 Extensive DICOM metadata is not required for the NGT-CXR project so a whitelisting strategy will be pursued for including elements.  
 
 A configuration file will be created to specify the list of DICOM elements to include in the output and the transformations to apply to each.  

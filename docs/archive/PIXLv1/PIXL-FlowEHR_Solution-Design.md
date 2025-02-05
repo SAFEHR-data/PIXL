@@ -1,6 +1,6 @@
 # Summary Overview
 UCLH intends to develop the capability to enable safe medical imaging research at scale by utilising cloud infrastructure.  
-The collaboration agreement between UCLH and Microsoft Research presents an opportunity to drive this capability building through the NGT-CXR "Radiology Co-pilot" project. See the [Research Programme Plan](https://github.com/UCLH-DIF/Pixflo/files/9431922/UCLH.MSR_Research.Programme.Plan_COPY_16_08_2022.67.docx) for further details about this project.
+  The collaboration agreement between UCLH and Microsoft Research presents an opportunity to drive this capability building through the NGT-CXR "Radiology Co-pilot" project. See the [Research Programme Plan](./Referenced_notes/UCLH_MSR_Research_Programme_Plan_COPY_12_09_2022.docx) for further details about this project.
 
 # Objective
 The primary objective is to deliver a technical system and associated governance policies and procedures, driven by the [Five Safes framework](https://ukdataservice.ac.uk/help/secure-lab/what-is-the-five-safes-framework/), which provides safe researcher access to _effectively anonymised_ UCLH medical imaging data.  
@@ -34,7 +34,7 @@ The primary technical risk is overburdening the PACS & VNA and causing an advers
 To mitigate this risk, queries will be managed with a task queue. The system will enforce rate limiting of any commands sent to the PACS & VNA with an adapted [token bucket](https://en.wikipedia.org/wiki/Token_bucket) algorithm which can be adjusted at runtime in response to system load. A [circuit breaker](https://en.wikipedia.org/wiki/Circuit_breaker_design_pattern) will wrap the retrieval processes and act as fail-safe. Individual request retries will be subject to an [exponential backoff](https://en.wikipedia.org/wiki/Exponential_backoff) strategy.
 
 # De-identification
-![De-identification Logical Data Flow Diagram](./diagrams/PIXL-FlowEHR-PIXL_De-identification_Data_Flow.drawio.png)
+![De-identification Logical Data Flow Diagram](./diagrams/PIXL-De-identification_Data_Flow.drawio.png)
 
 The technical elements of the de-identification process are purposefully limited for the alpha version.
 The strategy is to initially lean on the other 4 Safes rather than attempt to immediately produce a gold-plated automated anonymisation process for both pixel data or every possible private DICOM element. This approach allows standing up of the infrastructure scaffolding around which more complex de-identification strategies will be constructed for subsequent versions.

@@ -1,4 +1,4 @@
-The `PIXL` MVP forms part of [_The Tracer Bullet_](https://github.com/UCLH-DIF/Book-of-FlowEHR/blob/main/milestones/tracer-bullet/README.md) (TTB) MVP for [FlowEHR](https://github.com/UCLH-DIF/Book-of-FlowEHR), UCLH's cloud research & innovation infrastructure initiative.
+# The PIXL MVP
 
 ## Deliverables
 Delivering the `PIXL` MVP requires that
