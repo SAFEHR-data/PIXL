@@ -35,22 +35,27 @@ For convenience, we provide the `pixl dc` command, which acts as a wrapper for `
 but takes care of some of the configuration for you.
 
 **1) Default Start-up**
+
 ```bash
 pixl dc up
 ```
-By default, `pixl dc up` runs with the option: `--profile postgres-exposed`. You should use this option if PIXL DB and Orthanc Raw 
-will share the same postgres instance. The `ORTHANC_RAW_DB_*` and `PIXL_DB_*` variables should have the same values, as seen in the 
-[default .env.sample](../.env.sample).
 
 **2) Start-up with External PIXL DB**
-Set the port number environment variable of your external PIXL DB:
+
+PIXL can be set up so that the PIXL DB uses a separate postgres instance to Orthanc Raw, e.g. for production environment configurations. 
+Edit the .env file to enable this:
+
 ```bash
+EXTERNAL_PIXL_DB=true
+
 CLI_PIXL_DB_PORT=7001
+
+ORTHANC_RAW_DB_HOST=postgres
 ```
 
 Start-up PIXL:
 ```bash
-pixl dc up --profile postgres
+pixl dc up
 ```
 
 ### Configuration
