@@ -28,6 +28,8 @@ allowed_manufacturers:
   - regex: "^company"
     exclude_series_numbers: []
 
+min_instances_per_series: 1
+
 series_filters:
     - "localizer"
     - "localiser"
