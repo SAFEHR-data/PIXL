@@ -23,6 +23,14 @@ tag_operation_files:
         - "diffusion-weighted-mri.yaml"
     manufacturer_overrides: ["mri-diffusion.yaml"]
 
+allowed_manufacturers:
+  - regex: "^siemens"
+    exclude_series_numbers: []
+  - regex: "^company"
+    exclude_series_numbers: []
+
+min_instances_per_series: 1
+
 series_filters:
     - "localizer"
     - "localiser"

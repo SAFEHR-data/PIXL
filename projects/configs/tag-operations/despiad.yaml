@@ -1,4 +1,4 @@
-#  Copyright (c) 2022 University College London Hospitals NHS Foundation Trust
+#  Copyright (c) University College London Hospitals NHS Foundation Trust
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -12,23 +12,31 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-project:
-    name: "uclh-prostate-mri-external-dataset"
-    modalities: ["MR"]
-
-tag_operation_files:
-    base:
-        - "base.yaml" #Expected base config file for any project
-        - "mri.yaml"
-        - "diffusion-weighted-mri.yaml"
-    manufacturer_overrides: ["mri.yaml", "mri-diffusion.yaml"]
-
-allowed_manufacturers:
-  - regex: ".*"
-    exclude_series_numbers: []
-
-min_instances_per_series: 1
-
-destination:
-    dicom: "ftps"
-    parquet: "ftps"
+- name: Study Date
+  group: 0x0008
+  element: 0x0020
+  op: keep
+- name: Series Date
+  group: 0x0008
+  element: 0x0021
+  op: keep
+- name: Acquisition Date
+  group: 0x0008
+  element: 0x0022
+  op: keep
+- name: Series Time
+  group: 0x0008
+  element: 0x0031
+  op: keep
+- name: Acquisition Time
+  group: 0x0008
+  element: 0x0032
+  op: keep
+- name: Station Name
+  group: 0x0008
+  element: 0x1010
+  op: keep
+- name: Patient's Birth Date
+  group: 0x0010
+  element: 0x0030
+  op: keep

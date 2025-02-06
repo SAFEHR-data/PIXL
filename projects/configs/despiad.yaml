@@ -13,28 +13,38 @@
 #  limitations under the License.
 
 project:
-    name: "prognosis-ai"
-    modalities: ["MR"]
+    name: "despiad"
+    modalities:
+      - "CT"
+      - "PT"
 
 tag_operation_files:
     base:
-        - "base.yaml" #Expected base config file for any project
-        - "mri.yaml"
-        - "ion-neuro-db.yaml"
-    manufacturer_overrides: ["mri.yaml"]
+        - "base.yaml"
+        - "ct.yaml"
+        - "pet.yaml"
+        - "despiad.yaml"
+    manufacturer_overrides: []
 
 allowed_manufacturers:
-  - regex: ".*"
-    exclude_series_numbers: []
+  - regex: "^ge medical systems"
+    exclude_series_numbers:
+        - 1200
+        - 1201
+        - 1202
+        - 1203
+        - 1301
+        - 1501
 
-min_instances_per_series: 1
+min_instances_per_series: 2
 
 series_filters:
     - "localizer"
     - "localiser"
     - "scout"
     - "positioning"
+    - "mip"
 
 destination:
-    dicom: "none"
+    dicom: "xnat"
     parquet: "none"

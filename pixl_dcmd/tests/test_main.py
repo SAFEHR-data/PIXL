@@ -13,11 +13,13 @@
 #  limitations under the License.
 from __future__ import annotations
 
+from importlib import resources
 import pathlib
 import re
 from pathlib import Path
 import logging
 import typing
+import zipfile
 
 import nibabel
 import numpy as np
@@ -32,7 +34,7 @@ from core.dicom_tags import (
 )
 from core.exceptions import PixlDiscardError, PixlSkipInstanceError
 from core.project_config import load_project_config, load_tag_operations
-from core.project_config.pixl_config_model import load_config_and_validate
+from core.project_config.pixl_config_model import load_config_and_validate, Manufacturer
 from decouple import config
 
 from pixl_dcmd.dicom_helpers import get_study_info
@@ -41,8 +43,10 @@ from pixl_dcmd.main import (
     _anonymise_dicom_from_scheme,
     anonymise_and_validate_dicom,
     anonymise_dicom,
+    get_series_to_skip,
     _enforce_allowlist,
     _should_exclude_series,
+    _should_exclude_manufacturer,
 )
 from pytest_pixl.dicom import generate_dicom_dataset
 from pytest_pixl.helpers import run_subprocess
@@ -52,6 +56,32 @@ if typing.TYPE_CHECKING:
 
 PROJECT_CONFIGS_DIR = Path(config("PROJECT_CONFIGS_DIR"))
 TEST_PROJECT_SLUG = "test-extract-uclh-omop-cdm"
+
+
+@pytest.fixture()
+def zipped_dicom_study() -> Path:
+    """Dummy DICOM study for tests."""
+    path = resources.files("pytest_pixl") / "data" / "dicom-study" / "study.zip"
+    return zipfile.ZipFile(path)
+
+
+@pytest.mark.parametrize(
+    ("min_instances", "expected_num_series_skipped"),
+    [
+        (1, 0),
+        (2, 4),
+    ],
+)
+def test_get_series_to_skip(
+    zipped_dicom_study: zipfile.ZipFile,
+    min_instances: int,
+    expected_num_series_skipped: int,
+):
+    """
+    Check series are skipped if containing too few instances.
+    """
+    series_to_skip = get_series_to_skip(zipped_dicom_study, min_instances)
+    assert len(series_to_skip) == expected_num_series_skipped
 
 
 @pytest.fixture(scope="module")
@@ -188,15 +218,24 @@ def test_anonymise_and_validate_as_external_user(
     assert dataset != pydicom.dcmread(dataset_path)
 
 
+@pytest.fixture
+def dummy_manufacturer() -> Manufacturer:
+    return Manufacturer(regex="^company", exclude_series_numbers=[])
+
+
 def ids_for_parameterised_test(val: pathlib.Path) -> str:
     """Generate test ID for parameterised tests"""
     return str(val.stem)
 
 
 @pytest.mark.parametrize(
-    ("yaml_file"), PROJECT_CONFIGS_DIR.glob("*.yaml"), ids=ids_for_parameterised_test
+    ("yaml_file"),
+    PROJECT_CONFIGS_DIR.glob("*.yaml"),
+    ids=ids_for_parameterised_test,
 )
-def test_anonymise_and_validate_dicom(caplog, request, yaml_file) -> None:
+def test_anonymise_and_validate_dicom(
+    caplog, request, yaml_file, dummy_manufacturer
+) -> None:
     """
     Test whether anonymisation and validation works as expected on a vanilla DICOM dataset
     GIVEN a project configuration with tag operations that creates a DICOM dataset
@@ -205,6 +244,8 @@ def test_anonymise_and_validate_dicom(caplog, request, yaml_file) -> None:
     """
     caplog.set_level(logging.WARNING)
     config = load_project_config(yaml_file.stem)
+    if dummy_manufacturer not in config.allowed_manufacturers:
+        config.allowed_manufacturers.append(dummy_manufacturer)
     for modality in config.project.modalities:
         caplog.clear()
         dicom_image = generate_dicom_dataset(Modality=modality)
@@ -405,40 +446,58 @@ def test_no_pseudo_patient_id_processing(
     )
 
 
-@pytest.fixture()
-def dicom_series_to_keep() -> list[pydicom.Dataset]:
-    series = [
-        "",
-        "whatever",
-    ]
-    return [_make_dicom(s) for s in series]
+def _make_dicom(
+    series_description="mri_sequence",
+    manufacturer="Company",
+    series_number="901",
+) -> pydicom.Dataset:
+    return generate_dicom_dataset(
+        SeriesDescription=series_description,
+        Manufacturer=manufacturer,
+        SeriesNumber=series_number,
+    )
 
 
-@pytest.fixture()
-def dicom_series_to_exclude() -> list[pydicom.Dataset]:
-    series = [
-        "positioning",
-        "foo_barpositioning",
-        "positioningla",
-        "scout",
-        "localiser",
-        "localizer",
-        # Matching should be case insensitive
-        "lOcALIsER",
-    ]
-    return [_make_dicom(s) for s in series]
-
-
-def _make_dicom(series_description) -> pydicom.Dataset:
-    return generate_dicom_dataset(SeriesDescription=series_description)
-
-
-def test_should_exclude_series(dicom_series_to_exclude, dicom_series_to_keep):
+@pytest.mark.parametrize(
+    ("series_description", "manufacturer", "series_number", "expect_exclude"),
+    [
+        ("", "Company", 1, False),
+        ("whatever", "Company", 1, False),
+        ("whatever", "Company", None, True),
+        ("positioning", "Company", 1, True),
+        ("foo_barpositioning", "Company", 1, True),
+        ("positioningla", "Company", 1, True),
+        ("scout", "Company", 1, True),
+        ("localiser", "Company", 1, True),
+        ("localizer", "Company", 1, True),
+        ("lOcALIsER", "Company", 1, True),
+        ("", "DifferentCompany", 1, True),
+        ("", "Company", 123456789, True),
+    ],
+)
+def test_should_exclude_series(
+    series_description, manufacturer, series_number, expect_exclude
+):
     config = load_project_config(TEST_PROJECT_SLUG)
-    for s in dicom_series_to_keep:
-        assert not _should_exclude_series(s, config)
-    for s in dicom_series_to_exclude:
-        assert _should_exclude_series(s, config)
+    ds = _make_dicom(series_description, manufacturer, series_number)
+    assert _should_exclude_series(ds, config) == expect_exclude
+
+
+@pytest.mark.parametrize(
+    ("manufacturer", "expect_exclude"),
+    [
+        ("Company", False),
+        ("DifferentCompany", True),
+        (None, True),
+    ],
+)
+def test_should_exclude_manufacturer(manufacturer, expect_exclude):
+    config = load_project_config(TEST_PROJECT_SLUG)
+    ds = _make_dicom(manufacturer=manufacturer)
+    if manufacturer is None:
+        # the Manufacturer tag is sometimes missing in real data
+        delattr(ds, "Manufacturer")
+    assert _should_exclude_manufacturer(ds, config) == expect_exclude
 
 
 def test_can_nifti_convert_post_anonymisation(
