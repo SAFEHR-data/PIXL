@@ -35,7 +35,7 @@ SERVICE_SETTINGS = {
         "password": config("PIXL_DB_PASSWORD"),
         "database": config("PIXL_DB_NAME"),
     },
-}  # type: dict
+}
 
 
 class APIConfig:
