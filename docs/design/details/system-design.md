@@ -2,7 +2,7 @@
 
 ## Background
 
-Continuation of work in [100 day plan](../archive/100-day-design.md). 
+Continuation of work in [100 day plan](100-day-design.md). 
 This iteration will aim to bring in MRI and CT data, with a more coherent design using OMOP ES, Cogstack, an identifier hashing service and PIXL.
 
 This will use existing UCLH services:
