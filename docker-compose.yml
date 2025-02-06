@@ -46,6 +46,13 @@ x-pixl-db: &pixl-db
     PIXL_DB_PASSWORD: ${PIXL_DB_PASSWORD}
     PIXL_DB_NAME: ${PIXL_DB_NAME}
 
+x-orthanc-raw-db: &orthanc-raw-db
+    ORTHANC_RAW_DB_HOST: ${ORTHANC_RAW_DB_HOST}
+    ORTHANC_RAW_DB_PORT: ${ORTHANC_RAW_DB_PORT}
+    ORTHANC_RAW_DB_USER: ${ORTHANC_RAW_DB_USER}
+    ORTHANC_RAW_DB_PASSWORD: ${ORTHANC_RAW_DB_PASSWORD}
+    ORTHANC_RAW_DB_NAME: ${ORTHANC_RAW_DB_NAME}
+
 x-azure-keyvault: &azure-keyvault
     AZURE_CLIENT_ID: ${EXPORT_AZ_CLIENT_ID}
     AZURE_CLIENT_SECRET: ${EXPORT_AZ_CLIENT_PASSWORD}
@@ -158,8 +165,9 @@ services:
         extra_hosts:
             - "host.docker.internal:host-gateway"
         depends_on:
-            postgres:
+            postgres-exposed:
                 condition: service_healthy
+                required: false
         healthcheck:
             test:
                 [
@@ -186,7 +194,7 @@ services:
         platform: linux/amd64
         command: /run/secrets
         environment:
-            <<: [*pixl-db, *proxy-common, *pixl-common-env]
+            <<: [*orthanc-raw-db, *proxy-common, *pixl-common-env]
             ORTHANC_NAME: "PIXL: Raw"
             ORTHANC_USERNAME: ${ORTHANC_RAW_USERNAME}
             ORTHANC_PASSWORD: ${ORTHANC_RAW_PASSWORD}
@@ -216,6 +224,10 @@ services:
         depends_on:
             postgres:
                 condition: service_healthy
+                required: false
+            postgres-exposed:
+                condition: service_healthy
+                required: false
             orthanc-anon:
                 condition: service_started
         healthcheck:
@@ -283,6 +295,10 @@ services:
                 condition: service_healthy
             postgres:
                 condition: service_healthy
+                required: false
+            postgres-exposed:
+                condition: service_healthy
+                required: false
             hasher-api:
                 condition: service_healthy
         ports:
@@ -352,16 +368,17 @@ services:
 
     ################################################################################
     # Data Stores
-    postgres:
+    postgres-exposed:
+        profiles: [postgres-exposed]
         build:
             context: .
             dockerfile: ./docker/postgres/Dockerfile
             args:
                 <<: *build-args-common
         environment:
-            POSTGRES_USER: ${PIXL_DB_USER}
-            POSTGRES_PASSWORD: ${PIXL_DB_PASSWORD}
-            POSTGRES_DB: ${PIXL_DB_NAME}
+            POSTGRES_USER: ${ORTHANC_RAW_DB_USER}
+            POSTGRES_PASSWORD: ${ORTHANC_RAW_DB_PASSWORD}
+            POSTGRES_DB: ${ORTHANC_RAW_DB_NAME}
             PGTZ: ${TZ:-Europe/London}
         env_file:
             - ./docker/common.env
@@ -371,9 +388,36 @@ services:
               source: postgres-data
               target: /var/lib/postgresql/data
         ports:
-            - "${POSTGRES_PORT}:5432"
+            - "${CLI_PIXL_DB_PORT}:5432"
         healthcheck:
-            test: ["CMD", "pg_isready", "-U", "${PIXL_DB_USER}", "--dbname", "${PIXL_DB_NAME}"]
+            test: ["CMD", "pg_isready", "-U", "${ORTHANC_RAW_DB_USER}", "--dbname", "${ORTHANC_RAW_DB_NAME}"]
+            interval: 10s
+            timeout: 30s
+            retries: 5
+        restart: always
+        networks:
+            - pixl-net
+    postgres:
+        profiles: [postgres]
+        build:
+            context: .
+            dockerfile: ./docker/postgres/Dockerfile
+            args:
+                <<: *build-args-common
+        environment:
+            POSTGRES_USER: ${ORTHANC_RAW_DB_USER}
+            POSTGRES_PASSWORD: ${ORTHANC_RAW_DB_PASSWORD}
+            POSTGRES_DB: ${ORTHANC_RAW_DB_NAME}
+            PGTZ: ${TZ:-Europe/London}
+        env_file:
+            - ./docker/common.env
+        command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
+        volumes:
+            - type: volume
+              source: postgres-data
+              target: /var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD", "pg_isready", "-U", "${ORTHANC_RAW_DB_USER}", "--dbname", "${ORTHANC_RAW_DB_NAME}"]
             interval: 10s
             timeout: 30s
             retries: 5
