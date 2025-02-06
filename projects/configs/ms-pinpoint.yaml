@@ -23,6 +23,12 @@ tag_operation_files:
         - "ms-pinpoint.yaml"
     manufacturer_overrides: ["mri.yaml"]
 
+allowed_manufacturers:
+  - regex: ".*"
+    exclude_series_numbers: []
+
+min_instances_per_series: 1
+
 series_filters:
     - "localizer"
     - "localiser"

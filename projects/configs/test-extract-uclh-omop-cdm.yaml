@@ -24,6 +24,17 @@ tag_operation_files:
         - "xray.yaml"
     manufacturer_overrides: ["mri.yaml", "mri-diffusion.yaml"]
 
+allowed_manufacturers:
+  - regex: "^carestream"
+    exclude_series_numbers: []
+  - regex: "^company"
+    exclude_series_numbers:
+      - 123456789
+  - regex: "^philips"
+    exclude_series_numbers: []
+
+min_instances_per_series: 1
+
 series_filters:
     - "localizer"
     - "localiser"
