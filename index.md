@@ -6,19 +6,19 @@
 * [ADR-2](cli/tests/README.md) - 
 * [ADR-3](CODE_OF_CONDUCT.md) - Contributor Covenant Code of Conduct
 * [ADR-4](CONTRIBUTING.md) - Contributing to `PIXL`.
-* [ADR-5](docs/design/bigger_picture.md) - The bigger picture
+* [ADR-5](docs/design/details/bigger_picture.md) - The bigger picture
 * [ADR-0001](docs/design/decision-record/0001-multiservice-architecture.md) - Multi-service Architecture
 * [ADR-0002](docs/design/decision-record/0002-message-processing.md) - Message-based Processing of Images
 * [ADR-0003](docs/design/decision-record/0003-dicom-processing.md) - DICOM server and processing
 * [ADR-0004](docs/design/decision-record/0004-secrets-storage.md) - Secrets Storage
 * [ADR-6](docs/design/decision-record/index.md) - Architectural Decision Log
 * [ADR-7](docs/design/decision-record/template.md) - [short title of solved problem and solution]
-* [ADR-8](docs/file_types/parquet_files.md) - Parquet files you might encounter throughout PIXL
-* [ADR-9](docs/services/ftp-server.md) - FTPS server
-* [ADR-10](docs/services/pixl_database.md) - The PIXL database
-* [ADR-11](docs/setup/azure-keyvault.md) - Azure Keyvault setup
-* [ADR-12](docs/setup/developer.md) - Developer setup
-* [ADR-13](docs/setup/uclh-infrastructure-setup.md) - UCLH Infrastructure setup instructions
+* [ADR-8](docs/developer/parquet_files.md) - Parquet files you might encounter throughout PIXL
+* [ADR-9](docs/developer/ftp-server.md) - FTPS server
+* [ADR-10](docs/developer/pixl_database.md) - The PIXL database
+* [ADR-11](docs/developer/setup/azure-keyvault.md) - Azure Keyvault setup
+* [ADR-12](docs/developer/setup/pixl-setup.md) - Developer setup
+* [ADR-13](docs/developer/setup/uclh-infrastructure-setup.md) - UCLH Infrastructure setup instructions
 * [ADR-14](hasher/README.md) - Hasher API
 * [ADR-15](orthanc/orthanc-anon/docs/DicomServiceViaAAD.md) - Retrieving an access token for the DICOM service using and Azure AD application
 * [ADR-16](orthanc/orthanc-anon/README.md) - Orthanc Anon
@@ -36,7 +36,7 @@
 
 <!-- adrlogstop -->
 
-
+not sure what 26 is supposed to be about or pointing to
 
 
 
