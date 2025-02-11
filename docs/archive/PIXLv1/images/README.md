@@ -1,12 +1,12 @@
-## 'PIXL/docs/archive/PIXLv1/diagrams' Directory Contents
+## 'PIXL/docs/archive/PIXLv1/images' Directory Contents
 
 <details>
 <summary>
-<h3> Image files used in the documentation</h3> 
+<h3> Image files used in the documentation of PIXLv1 </h3> 
 
 </summary>
 
-| **Image files used in the documentation** |
+| **Image files** |
 | :--- | 
 | PIXL-Components.drawio.png |
 | PIXL-De-identification_Data_Flow.drawio.png |
