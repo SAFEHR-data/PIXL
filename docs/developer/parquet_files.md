@@ -3,7 +3,7 @@
 ## OMOP-ES files
 
 From
-[OMOP-ES](https://github.com/SAFEHR-data/the-rolling-skeleton/blob/main/docs/design/100-day-design.md#data-flow-through-components)
+[OMOP-ES](../design/details/100-day-design.md#data-flow-through-components)
 we receive parquet files defining the data we need to export. These input files appear as 2 groups:
 
 1. **Public** parquet files: have had identifiers removed and replaced with a sequential ID for the
@@ -25,7 +25,8 @@ An output parquet file named `IMAGE_LINKER.parquet` that defines the connection 
 OMOP procedure_occurrence_id for the current extract and the pseudo image/study ID.
 The procedure_occurrence_id can get renumbered from extract to extract.
 
-See method `make_radiology_linker_table` for more.
+<!-- I couldn't find this:
+See method `make_radiology_linker_table` for more.-->
 
 ## Exporting (copying from OMOP ES)
 

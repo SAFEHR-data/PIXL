@@ -22,6 +22,13 @@ tag_operation_files:
         - "base.yaml" #Expected base config file for any project
         - "xray.yaml"
     manufacturer_overrides: null
+
+allowed_manufacturers:
+  - regex: ".*"
+    exclude_series_numbers: []
+
+min_instances_per_series: 1
+
 destination:
     dicom: "ftps"
     parquet: "ftps"

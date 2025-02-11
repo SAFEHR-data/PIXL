@@ -153,6 +153,13 @@ The configuration file defines:
 
 - Project name: the `<project-slug>` name of the Project
 - The DICOM dataset modalities to retain (e.g. `["DX", "CR"]` for X-Ray studies)
+- The minimum number of instances required by a series (defaults to 2). Can be set higher than 1 to filter out
+  series with a single screenshot containing patient identifiable data
+- A list of series description filters (e.g. `['loc', 'pos']`). Series with descriptions matching any of these
+  filters will be skipped
+- A list of allowed manufacturers. By default, no manufacturers are allowed. For each manufacturer:
+  - A regex to identify the allowed manufacturer (e.g. `^philips`)
+  - A list of series numbers to exclude for the given manufacturer (e.g. `[3, 4]`)
 - The [anonymisation operations](/pixl_dcmd/README.md#tag-scheme-anonymisation) to be applied to the DICOM tags,
   by providing a file path to one or multiple YAML files.
   We currently allow two types of files:

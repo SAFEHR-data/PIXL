@@ -16,6 +16,7 @@ from __future__ import annotations
 import typing
 from functools import lru_cache
 from io import BytesIO
+from zipfile import ZipFile
 
 import requests
 from core.exceptions import PixlSkipInstanceError
@@ -26,7 +27,8 @@ from dicomanonymizer.simpledicomanonymizer import (
     anonymize_dataset,
 )
 from loguru import logger
-from pydicom import DataElement, Dataset, dcmwrite
+from pydicom import DataElement, Dataset, dcmread, dcmwrite
+import pydicom
 
 from core.project_config.pixl_config_model import PixlConfig
 from pixl_dcmd._database import (
@@ -43,6 +45,10 @@ if typing.TYPE_CHECKING:
     from pixl_dcmd.dicom_helpers import StudyInfo
 
 
+# See: https://github.com/pydicom/pydicom/issues/2170
+pydicom.config.convert_wrong_length_to_UN = True
+
+
 def write_dataset_to_bytes(dataset: Dataset) -> bytes:
     """
     Write pydicom DICOM dataset to byte array
@@ -56,12 +62,70 @@ def write_dataset_to_bytes(dataset: Dataset) -> bytes:
         return buffer.read()
 
 
+def get_series_to_skip(zipped_study: ZipFile, min_instances: int) -> set[str]:
+    """
+    Determine which series to skip based on the number of instances in the series.
+
+    If a series has fewer instances than `min_instances`, add it to a set of series to skip.
+
+    Args:
+        zipped_study: ZipFile containing the study
+        min_instances: Minimum number of instances required to include a series
+
+    """
+    if min_instances <= 1:
+        return set()
+
+    series_instances = {}
+    for file_info in zipped_study.infolist():
+        with zipped_study.open(file_info) as file:
+            logger.debug("Reading file {}", file)
+            dataset = dcmread(file)
+            if dataset.SeriesInstanceUID not in series_instances:
+                series_instances[dataset.SeriesInstanceUID] = 1
+                continue
+            series_instances[dataset.SeriesInstanceUID] += 1
+
+    return {
+        series for series, count in series_instances.items() if count < min_instances
+    }
+
+
 def _should_exclude_series(dataset: Dataset, cfg: PixlConfig) -> bool:
+    """
+    Check whether the dataset series should be exlucded based on its description
+    and number.
+    """
     series_description = dataset.get("SeriesDescription")
-    if cfg.is_series_excluded(series_description):
+    if cfg.is_series_description_excluded(series_description):
         logger.debug("FILTERING OUT series description: {}", series_description)
         return True
+
+    manufacturer = dataset.get("Manufacturer")
+    series_number = dataset.get("SeriesNumber")
+    if cfg.is_series_number_excluded(
+        manufacturer=manufacturer, series_number=series_number
+    ):
+        logger.debug(
+            "FILTERING OUT series number: {} for manufacturer: {}",
+            series_number,
+            manufacturer,
+        )
+        return True
+
     return False
+
+
+def _should_exclude_manufacturer(dataset: Dataset, cfg: PixlConfig) -> bool:
+    manufacturer = dataset.get("Manufacturer")
+    if manufacturer is None:
+        logger.debug("FILTERING out as manufacturer tag is missing")
+        return True
+
+    should_exclude = not cfg.is_manufacturer_allowed(manufacturer=manufacturer)
+    if should_exclude:
+        logger.debug("FILTERING out manufacturer: {}", manufacturer)
+    return should_exclude
 
 
 def anonymise_dicom_and_update_db(
@@ -125,9 +189,12 @@ def anonymise_dicom(
     )
 
     # Do before anonymisation in case someone decides to delete the
-    # Series Description tag as part of anonymisation.
+    # Series Description or Manufacturer tags as part of anonymisation.
+    if _should_exclude_manufacturer(dataset, config):
+        msg = "DICOM instance discarded due to its manufacturer"
+        raise PixlSkipInstanceError(msg)
     if _should_exclude_series(dataset, config):
-        msg = "DICOM instance discarded due to its series description"
+        msg = "DICOM instance discarded due to its series description or number"
         raise PixlSkipInstanceError(msg)
     if dataset.Modality not in config.project.modalities:
         msg = f"Dropping DICOM Modality: {dataset.Modality}"
