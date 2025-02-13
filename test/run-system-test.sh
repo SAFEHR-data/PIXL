@@ -28,14 +28,14 @@ setup() {
     # Warning: Requires to be run from the project root
     (
     	cd "${PACKAGE_DIR}"
-    	docker compose --env-file test/.env --env-file test/.secrets.env --profile postgres -p system-test up --wait -d --build
+    	docker compose --env-file test/.env --env-file test/.secrets.env -p system-test up --wait -d --build
     )
 }
 
 teardown() {
     (
     	cd "${PACKAGE_DIR}"
-    	docker compose -f docker-compose.yml -f test/docker-compose.yml --profile postgres -p system-test down --volumes
+    	docker compose -f docker-compose.yml -f test/docker-compose.yml -p system-test down --volumes
     )
 }
 

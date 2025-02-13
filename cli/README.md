@@ -29,34 +29,17 @@ See general pixl commands and subcommands with:
 pixl --help
 ```
 
-### Starting PIXL
-
 For convenience, we provide the `pixl dc` command, which acts as a wrapper for `docker compose`,
 but takes care of some of the configuration for you.
 
-**1) Default Start-up**
+For example,
 
 ```bash
 pixl dc up
 ```
 
-**2) Start-up with External PIXL DB**
-
-PIXL can be set up so that the PIXL DB uses a separate postgres instance to Orthanc Raw, e.g. for production environment configurations. 
-Edit the .env file to enable this:
-
-```bash
-EXTERNAL_PIXL_DB=true
-
-CLI_PIXL_DB_PORT=7001
-
-ORTHANC_RAW_DB_HOST=postgres
-```
-
-Start-up PIXL:
-```bash
-pixl dc up
-```
+will run `docker compose --project pixl_{pixl_env} up --wait --build --remove-orphans`, where `pixl_env`
+is determined by the `ENV` environment variable.
 
 ### Configuration
 

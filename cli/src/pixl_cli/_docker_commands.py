@@ -34,25 +34,11 @@ def dc(args: tuple[str]) -> None:
     docker_args = list(args)
 
     if "up" in args:
-        docker_args = _parse_up_args(args)
+        docker_args = [*args, "--wait", "--build", "--remove-orphans"]
     if "down" in args:
         docker_args = _check_down_args(args)
 
     run_docker_compose(docker_args, working_dir=PIXL_ROOT)
-
-
-def _parse_up_args(args: tuple[str, ...]) -> list:
-    """Check up args and set docker compose profile"""
-    args_list = list(args)
-
-    up_index = args.index("up")
-    external_pixl_db_env = config("EXTERNAL_PIXL_DB", cast=bool)
-    args_list[up_index:up_index] = (
-        ["--profile", "postgres"] if external_pixl_db_env else ["--profile", "postgres-exposed"]
-    )
-
-    args_list.extend(["--wait", "--build", "--remove-orphans"])
-    return args_list
 
 
 def _check_down_args(args: tuple[str, ...]) -> list:
