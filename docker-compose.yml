@@ -165,9 +165,8 @@ services:
         extra_hosts:
             - "host.docker.internal:host-gateway"
         depends_on:
-            postgres-exposed:
+            postgres:
                 condition: service_healthy
-                required: false
         healthcheck:
             test:
                 [
@@ -224,10 +223,6 @@ services:
         depends_on:
             postgres:
                 condition: service_healthy
-                required: false
-            postgres-exposed:
-                condition: service_healthy
-                required: false
             orthanc-anon:
                 condition: service_started
         healthcheck:
@@ -295,10 +290,6 @@ services:
                 condition: service_healthy
             postgres:
                 condition: service_healthy
-                required: false
-            postgres-exposed:
-                condition: service_healthy
-                required: false
             hasher-api:
                 condition: service_healthy
         ports:
@@ -368,8 +359,7 @@ services:
 
     ################################################################################
     # Data Stores
-    postgres-exposed:
-        profiles: [postgres-exposed]
+    postgres:
         build:
             context: .
             dockerfile: ./docker/postgres/Dockerfile
@@ -389,33 +379,6 @@ services:
               target: /var/lib/postgresql/data
         ports:
             - "${CLI_PIXL_DB_PORT}:5432"
-        healthcheck:
-            test: ["CMD", "pg_isready", "-U", "${ORTHANC_RAW_DB_USER}", "--dbname", "${ORTHANC_RAW_DB_NAME}"]
-            interval: 10s
-            timeout: 30s
-            retries: 5
-        restart: always
-        networks:
-            - pixl-net
-    postgres:
-        profiles: [postgres]
-        build:
-            context: .
-            dockerfile: ./docker/postgres/Dockerfile
-            args:
-                <<: *build-args-common
-        environment:
-            POSTGRES_USER: ${ORTHANC_RAW_DB_USER}
-            POSTGRES_PASSWORD: ${ORTHANC_RAW_DB_PASSWORD}
-            POSTGRES_DB: ${ORTHANC_RAW_DB_NAME}
-            PGTZ: ${TZ:-Europe/London}
-        env_file:
-            - ./docker/common.env
-        command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
-        volumes:
-            - type: volume
-              source: postgres-data
-              target: /var/lib/postgresql/data
         healthcheck:
             test: ["CMD", "pg_isready", "-U", "${ORTHANC_RAW_DB_USER}", "--dbname", "${ORTHANC_RAW_DB_NAME}"]
             interval: 10s
