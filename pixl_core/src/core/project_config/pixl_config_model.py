@@ -16,6 +16,7 @@
 
 from __future__ import annotations
 
+import re
 from enum import Enum
 from pathlib import Path
 from typing import Any, Optional
@@ -59,6 +60,16 @@ class _Project(BaseModel):
     name: str
     azure_kv_alias: Optional[str] = None
     modalities: list[str]
+
+
+class Manufacturer(BaseModel):
+    """
+    An allowed manufacturer for a project.
+    Also defines which series numbers to exclude for this manufacturer.
+    """
+
+    regex: str = "no manufacturers allowed ^"
+    exclude_series_numbers: list[int] = []
 
 
 class TagOperationFiles(BaseModel):
@@ -133,20 +144,66 @@ class PixlConfig(BaseModel):
     """Project-specific configuration for Pixl."""
 
     project: _Project
-    series_filters: Optional[list[str]] = None
+    min_instances_per_series: Optional[int] = 2
+    series_filters: Optional[list[str]] = []  # pydantic makes a deep copy of the empty default list
+    allowed_manufacturers: list[Manufacturer] = [Manufacturer()]
     tag_operation_files: TagOperationFiles
     destination: _Destination
 
-    def is_series_excluded(self, series_description: str) -> bool:
+    def is_series_description_excluded(self, series_description: str | None) -> bool:
         """
-        Return whether this config excludes the series with the given description
+        Return whether this config excludes the series with the given description.
+
+        Do a simple case-insensitive substring check - this data is ultimately typed by a human, and
+        different image sources may have different conventions for case conversion.
+
         :param series_description: the series description to test
         :returns: True if it should be excluded, False if not
         """
-        if self.series_filters is None or series_description is None:
+        if not self.series_filters or series_description is None:
             return False
-        # Do a simple case-insensitive substring check - this data is ultimately typed by a human,
-        # and different image sources may have different conventions for case conversion.
+
         return any(
             series_description.upper().find(filt.upper()) != -1 for filt in self.series_filters
         )
+
+    def is_series_number_excluded(self, manufacturer: str, series_number: str | None) -> bool:
+        """
+        Return whether this config excludes the series with the given number for the given
+        manufacturer.
+
+        :param manufacturer: the manufacturer to test
+        :param series_number: the series number to test
+        :returns: True if it should be excluded, False if not
+        """
+        if not self.is_manufacturer_allowed(manufacturer) or series_number is None:
+            return True
+
+        exclude_series_numbers = self._get_manufacturer(manufacturer).exclude_series_numbers
+        return series_number in exclude_series_numbers
+
+    def is_manufacturer_allowed(self, manufacturer: str) -> bool:
+        """
+        Check whether the manufacturer is in the allow-list.
+
+        :param manufacturer: name of the manufacturer
+        :returns: True is the manufacturer is allowed, False if not
+        """
+        for manufacturer_config in self.allowed_manufacturers:
+            if re.search(rf"{manufacturer_config.regex}", manufacturer, flags=re.IGNORECASE):
+                return True
+        return False
+
+    def _get_manufacturer(self, manufacturer: str) -> Manufacturer:
+        """
+        Get the manufacturer configuration for the given manufacturer.
+
+        :param manufacturer: name of the manufacturer
+        :returns: Manufacturer configuration
+        :raises: ValueError: if the manufacturer is not allowed
+        """
+        for manufacturer_config in self.allowed_manufacturers:
+            if re.search(rf"{manufacturer_config.regex}", manufacturer, flags=re.IGNORECASE):
+                return manufacturer_config
+        msg = f"Manufacturer {manufacturer} is not allowed by project {self.project.name}"
+        raise ValueError(msg)
