@@ -45,6 +45,7 @@ import orthanc
 from pixl_dcmd.dicom_helpers import get_study_info
 from pixl_dcmd.main import (
     anonymise_dicom_and_update_db,
+    get_series_to_skip,
     parse_validation_results,
     write_dataset_to_bytes,
 )
@@ -331,6 +332,7 @@ def _anonymise_study_instances(
     Return a list of the bytes of anonymised instances, and the anonymised StudyInstanceUID.
     """
     config = load_project_config(project_name)
+    series_to_skip = get_series_to_skip(zipped_study, config.min_instances_per_series)
     anonymised_instances_bytes = []
     skipped_instance_counts = defaultdict(int)
     dicom_validation_errors = {}
@@ -339,6 +341,17 @@ def _anonymise_study_instances(
         with zipped_study.open(file_info) as file:
             logger.debug("Reading file {}", file)
             dataset = dcmread(file)
+
+            if dataset.SeriesInstanceUID in series_to_skip:
+                logger.debug(
+                    "Skipping series {} for study {} due to too few instances",
+                    dataset.SeriesInstanceUID,
+                    study_info,
+                )
+                key = "DICOM instance discarded as series has too few instances"
+                skipped_instance_counts[key] += 1
+                continue
+
             try:
                 anonymised_instance, instance_validation_errors = _anonymise_dicom_instance(
                     dataset, config

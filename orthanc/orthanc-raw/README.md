@@ -41,14 +41,14 @@ secrets. Orthanc interprets all `.json` files in the `/run/secrets` mount as con
 
 ### Step 1
 
-Save credentials `.env` for the VNA (primary) and PACS (secondary) Q/R targets, postgreSQL and 'Orthanc anon'.
+Save credentials `.env` for the VNA (primary) and PACS (secondary) Q/R targets, postgreSQL and 'Orthanc Anon':
 ```
-# PIXL PostgreSQL instance
-PIXL_DB_HOST=
-PIXL_DB_PORT=
-PIXL_DB_NAME=
-PIXL_DB_USER=
-PIXL_DB_PASSWORD=
+# Orthanc Raw PostgreSQL instance
+ORTHANC_RAW_DB_HOST=
+ORTHANC_RAW_DB_PORT=
+ORTHANC_RAW_DB_NAME=
+ORTHANC_RAW_DB_USER=
+ORTHANC_RAW_DB_PASSWORD=
 
 # Exposed ports
 ORTHANC_RAW_DICOM_PORT=XXXX
