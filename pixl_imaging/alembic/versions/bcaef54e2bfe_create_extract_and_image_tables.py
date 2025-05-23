@@ -39,7 +39,7 @@ def upgrade() -> None:
         sa.Column("extract_id", sa.Integer(), nullable=False),
         sa.Column("slug", sa.String(), nullable=False),
         sa.PrimaryKeyConstraint("extract_id"),
-        schema="pipeline",
+        schema="pixl_pipeline",
     )
     op.create_table(
         "image",
@@ -52,13 +52,13 @@ def upgrade() -> None:
         sa.Column("extract_id", sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(
             ["extract_id"],
-            ["pipeline.extract.extract_id"],
+            ["pixl_pipeline.extract.extract_id"],
         ),
         sa.PrimaryKeyConstraint("image_id"),
-        schema="pipeline",
+        schema="pixl_pipeline",
     )
 
 
 def downgrade() -> None:
-    op.drop_table("image", schema="pipeline")
-    op.drop_table("extract", schema="pipeline")
+    op.drop_table("image", schema="pixl_pipeline")
+    op.drop_table("extract", schema="pixl_pipeline")

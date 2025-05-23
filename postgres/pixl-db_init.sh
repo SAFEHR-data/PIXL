@@ -16,4 +16,4 @@
 set -euxo pipefail
 
 # Create the pipeline schema for keeping track of images and extracts
-psql -U "${POSTGRES_USER}" --dbname "${POSTGRES_DB}" -c "CREATE SCHEMA pipeline AUTHORIZATION ${POSTGRES_USER}"
+psql -U "${POSTGRES_USER}" --dbname "${POSTGRES_DB}" -c "CREATE SCHEMA pixl_pipeline AUTHORIZATION ${POSTGRES_USER}"
