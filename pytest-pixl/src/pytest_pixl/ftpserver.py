@@ -90,7 +90,7 @@ class PixlFTPServer:
         self.home_dir: Path = home_root / self.user_name
         self.home_dir.mkdir()
 
-        ssl_dir = importlib.resources.files("pytest_pixl") / "resources" / "ssl"
+        ssl_dir = importlib.resources.files("pytest-pixl") / "src" / "resources" / "ssl"
         self.certfile = Path(str(ssl_dir.joinpath("localhost.crt")))
         self.keyfile = Path(str(ssl_dir.joinpath("localhost.key")))
 
