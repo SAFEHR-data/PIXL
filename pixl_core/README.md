@@ -15,7 +15,7 @@ Specifically, it defines:
 - Pydantic models for [project configuration](./src/core/project_config/pixl_config_model.py)
 - [Secrets management](./src/core/project_config/secrets.py) via an Azure Key Vault.
 - Handling of [uploads over FTPS](./src/core/uploader/_ftps.py), used to transfer images and parquet files
-  to the DSH (Data Safe Haven)
+  to the relevant FTPS server (at UCL this is the DSH (Data Safe Haven))
 - [Uploading DICOM files to a DICOMWeb server](./src/core/uploader/_dicomweb.py)
 - [Uploading DICOM files to XNAT](./src/core/uploader/_xnat.py)
 
@@ -68,7 +68,7 @@ and export of stable DICOM to orthanc-anon while still pulling from the VNA.
 
 ### OMOP ES files
 
-Public parquet exports from OMOP ES that should be transferred outside the hospital are copied to
+Public parquet exports from OMOP ES that may be transferred outside the hospital are copied to
 the `exports` directory at the repository base.
 
 Within this directory each project has a directory, with all extracts stored in `all_extracts` and
@@ -98,7 +98,7 @@ for convenience `latest` is a symlink to the most recent extract.
 ## Project configuration
 
 The `project_config` module provides the functionality to handle
-[project configurations](../README.md#configure-a-new-project).
+[project configurations](../README.md#configure-a-new-project). <== SK comment I'm not sure this goes to exactly the right place OR the name in the # is misleading
 
 ### Design
 
@@ -114,7 +114,7 @@ such as the `FTPSUploader` implement the actual upload functionality. The creden
 uploading are queried from an **Azure Keyvault** instance (implemented in `core.project_config.secrets`), for which
 the setup instructions are in the [top-level README](../README.md#project-secrets)
 
-When an extract is ready to be published to the DSH, the PIXL pipeline will upload the **Public**
+When an extract is ready to be published to the relevant FTPS server (UCL DSH), the PIXL pipeline will upload the **Public**
 and **Radiology** [_parquet_ files](../docs/file_types/parquet_files.md) to the `<project-slug>` directory
 where the DICOM datasets are stored (see the directory structure below). The uploading is controlled
 by `upload_parquet_files` in [`upload.py`](./src/core/upload.py) which takes a `ParquetExport`
@@ -123,7 +123,7 @@ by the `export-patient-data` API endpoint defined in the
 [Export API](../pixl_export/src/pixl_export/main.py), which in turn is called by the `export_patient_data`
 command in the [PIXL CLI](../cli/README.md).
 
-Once the parquet files have been uploaded to the DSH, the directory structure will look like this:
+Once the parquet files have been uploaded, the directory structure will look like this:
 
 ```sh
 <project-slug>
@@ -219,7 +219,7 @@ with existing session and series data:
 
 ### XNAT testing setup
 
-For unit testing, we use [`xnat4tests`](https://github.com/Australian-Imaging-Service/xnat4tests) to spin up an XNAT
+For unit testing, we use the publicly available [`xnat4tests`](https://github.com/Australian-Imaging-Service/xnat4tests) to spin up an XNAT
 instance in a Docker container.
 
 Secrets are not used for these unit testing. Instead, the following environment variables are used to configure XNAT for testing:
@@ -233,3 +233,31 @@ Note, it can take several minutes for the server to start up.
 
 Once the server has started, you can log in by visiting `http://localhost:8080` with the username and password set
 in the `XNAT_USER_NAME` and `XNAT_PASSWORD` environment variables.
+
+## 'PIXL/pixl_core' Directory Contents
+
+<details>
+<summary>
+<h3> Subdirectories with links to the relevant README </h3> 
+
+</summary>
+
+[src](./src/README.md)
+
+[tests](./tests/README.md)
+
+</details>
+
+<details>
+<summary>
+<h3> Files </h3> 
+
+</summary>
+
+| **Configuration** | **User docs** |
+| :--- | :--- |
+| pyproject.toml | README.md |
+
+</details>
+
+

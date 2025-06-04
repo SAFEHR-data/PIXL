@@ -1,5 +1,6 @@
 ## 'PIXL/docs' Directory Contents
 
+
 <details>
 <summary>
 <h3> Subdirectories with links to the relevant README </h3> 
@@ -15,4 +16,5 @@
 [joss-publication](./joss-publication/README.md)
 
 </details>
+
 
