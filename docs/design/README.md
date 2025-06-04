@@ -1,10 +1,17 @@
 ## 'PIXL/docs/design' Directory Contents
 
-### Subdirectories
+<details>
+<summary>
+<h3> Subdirectories with links to the relevant README </h3> 
 
-[diagrams](./diagrams/README.md)
+</summary>
 
-### Files
+[decision-record](./decision-record/README.md)
 
-bigger_picture.md
+[details](./details/README.md)
+
+[images](./images/README.md)
+
+</details>
+
 

@@ -1,14 +1,20 @@
 ## 'PIXL/docs' Directory Contents
 
-### Subdirectories
+
+<details>
+<summary>
+<h3> Subdirectories with links to the relevant README </h3> 
+
+</summary>
+
+[archive](./archive/README.md)
 
 [design](./design/README.md)
 
-[file_types](./file_types/README.md)
+[developer](./developer/README.md)
 
 [joss-publication](./joss-publication/README.md)
 
-[services](./services/README.md)
+</details>
 
-[setup](./setup/README.md)
 
