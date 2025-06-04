@@ -22,6 +22,7 @@ from loguru import logger
 
 from pixl_cli._config import PIXL_ROOT, config
 
+
 # Required to allow passing unkown options to docker-compose
 # https://click.palletsprojects.com/en/8.1.x/advanced/#forwarding-unknown-options
 @click.command(context_settings={"ignore_unknown_options": True})

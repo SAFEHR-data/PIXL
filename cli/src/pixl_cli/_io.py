@@ -18,17 +18,20 @@ from __future__ import annotations
 import json
 from datetime import datetime
 from enum import StrEnum, auto
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
 from core.exports import ParquetExport
 from loguru import logger
+
 from pixl_cli._config import HOST_EXPORT_ROOT_DIR
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from core.db.models import Image
+
 
 def project_info(resources_path: Path) -> tuple[str, datetime]:
     """

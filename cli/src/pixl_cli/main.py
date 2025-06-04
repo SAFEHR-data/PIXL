@@ -25,12 +25,12 @@ import click
 import requests
 from core.exports import ParquetExport
 from core.patient_queue.producer import PixlProducer
-from decouple import RepositoryEnv, UndefinedValueError, AutoConfig
+from decouple import RepositoryEnv, UndefinedValueError
 from loguru import logger
 
 from pixl_cli._config import (
-    PIXL_ROOT,
     HOST_EXPORT_ROOT_DIR,
+    PIXL_ROOT,
     SERVICE_SETTINGS,
     api_config_for_queue,
     config,
@@ -49,6 +49,7 @@ from pixl_cli._message_processing import (
 
 # localhost needs to be added to the NO_PROXY environment variables on GAEs
 os.environ["NO_PROXY"] = os.environ["no_proxy"] = "localhost"
+
 
 @click.group()
 @click.option("--debug/--no-debug", default=False)
