@@ -81,8 +81,8 @@ the following environment variables:
 
 ```sh
 PIXL_ROOT=../
-HOST_EXPORT_ROOT_DIR=../projects/configs
-HOST_EXPORT_ROOT_DIR_MOUNT=./projects/configs
+HOST_EXPORT_ROOT_DIR=../projects/exports
+HOST_EXPORT_ROOT_DIR_MOUNT=./projects/exports
 ```
 
 The `PIXL_ROOT` directory must contain the `docker-compose.yml` file and `projects/configs` folders
