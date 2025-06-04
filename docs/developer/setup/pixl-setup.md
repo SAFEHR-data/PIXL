@@ -71,7 +71,7 @@ If your are running Docker Engine on Linux, listening on this socket should be
 ### Integration tests
 
 There are also integration tests in `PIXL/test/` directory that can be run using the `PIXL/test/run-system-test.sh`. See the
-[integration test docs](test/README.md) for more info.
+[integration test docs](../../../test/README.md) for more info.
 
 
 ### Workflow
@@ -99,18 +99,18 @@ To install the git pre-commit hook locally so it runs every time you make a comm
 pre-commit install
 ```
 
-The `pre-commit` configuration can be found in [`.pre-commit-config.yml`](../../.pre-commit-config.yaml).
+The `pre-commit` configuration can be found in [`.pre-commit-config.yml`](../../../.pre-commit-config.yaml).
 
 
 ## Environment variables
 
 Running the `pixl` pipeline and the tests requires a set of environment variables to be set. The `test/`
-directory contains a complete [`.env` file](../../test/.env) that can be used to run the pipeline and tests locally.
+directory contains a complete [`.env` file](../../../test/.env) that can be used to run the pipeline and tests locally.
 Either run any `pixl` commands from the `test/` directory, or copy the `test/.env` file to the root of the repository.
 
 ### Secrets
 
-PIXL uses an [Azure Keyvault](../../README.md#project-secrets) to store authentication details for
+PIXL uses an [Azure Keyvault](../azure-keyvault.md) to store authentication details for
 external services. We have a development keyvault for testing. Access to this keyvault is provided
 by a set of environment variables specified in `test/.secrets.env.sample`.
 To run the pipeline locally, you will need to copy this file to `test/.secrets.env` and fill out
