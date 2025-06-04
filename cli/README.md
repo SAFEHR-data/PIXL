@@ -41,7 +41,12 @@ pixl dc up
 will run `docker compose --project pixl_{pixl_env} up --wait --build --remove-orphans`, where `pixl_env`
 is determined by the `ENV` environment variable.
 
+Note, if your `.env` file is in a different directory from the `docker-compose.yml` file, you can pass in the
+path to you `.env` file using the `--env-file` argument.
+
 ### Configuration
+
+#### Rabbit MQ and PostgreSQL
 
 The `rabbitmq` and PIXL DB `postgres` services are configured by setting the following environment variables
 (default values shown):
@@ -68,6 +73,30 @@ PIXL_IMAGING_API_RATE=1
 ```
 
 where the `*_RATE` variables set the default querying rate for the message queues.
+
+#### Host directories
+
+The PIXL root and export directories on the host machine can be configured using
+the following environment variables:
+
+```sh
+PIXL_ROOT=../
+HOST_EXPORT_ROOT_DIR=../projects/configs
+HOST_EXPORT_ROOT_DIR_MOUNT=./projects/configs
+```
+
+The `PIXL_ROOT` directory must contain the `docker-compose.yml` file and `projects/configs` folders
+from the top-level directory of this repository. `PIXL_ROOT` must also contain the `.sample.env` file
+if you would like to use the `pixl check_env` command. This path can be absolute or relative to your
+`.env` file (which must be in your current working directory). This variable is used by the PIXL CLI
+when running PIXL.
+
+The `HOST_EXPORT_ROOT_DIR` is the directory on your host machine that data will be exported to. This path
+can be absolute or relative to your `.env` file. This variable is used by the PIXL CLI when running PIXL.
+
+The `HOST_EXPORT_ROOT_DIR_MOUNT` is the directory on your host machine that will be mounted for exporting data to.
+The path can be absolute or relative to the `PIXL_ROOT`. This variable is used by docker-compose to mount the
+export directory when starting PIXL.
 
 ### Running the pipeline
 
