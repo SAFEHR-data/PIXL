@@ -25,14 +25,19 @@ import click
 import requests
 from core.exports import ParquetExport
 from core.patient_queue.producer import PixlProducer
-from decouple import RepositoryEnv, UndefinedValueError, config
+from decouple import RepositoryEnv, UndefinedValueError, AutoConfig
 from loguru import logger
 
-from pixl_cli._config import SERVICE_SETTINGS, api_config_for_queue
+from pixl_cli._config import (
+    PIXL_ROOT,
+    HOST_EXPORT_ROOT_DIR,
+    SERVICE_SETTINGS,
+    api_config_for_queue,
+    config,
+)
 from pixl_cli._database import exported_images_for_project
 from pixl_cli._docker_commands import dc
 from pixl_cli._io import (
-    HOST_EXPORT_ROOT_DIR,
     make_radiology_linker_table,
     project_info,
     read_patient_info,
@@ -44,9 +49,6 @@ from pixl_cli._message_processing import (
 
 # localhost needs to be added to the NO_PROXY environment variables on GAEs
 os.environ["NO_PROXY"] = os.environ["no_proxy"] = "localhost"
-
-PIXL_ROOT = Path(__file__).parents[3].resolve()
-
 
 @click.group()
 @click.option("--debug/--no-debug", default=False)

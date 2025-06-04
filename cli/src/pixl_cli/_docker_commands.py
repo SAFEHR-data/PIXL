@@ -18,11 +18,9 @@ from pathlib import Path
 from typing import Optional
 
 import click
-from decouple import config
 from loguru import logger
 
-PIXL_ROOT = Path(__file__).parents[3].resolve()
-
+from pixl_cli._config import PIXL_ROOT, config
 
 # Required to allow passing unkown options to docker-compose
 # https://click.palletsprojects.com/en/8.1.x/advanced/#forwarding-unknown-options

@@ -13,6 +13,7 @@
 #  limitations under the License.
 """A ligthweight FTPS server supporting implicit SSL for use in PIXL tests."""
 
+import importlib.resources
 from pathlib import Path
 
 from decouple import config
@@ -89,8 +90,8 @@ class PixlFTPServer:
         self.home_dir: Path = home_root / self.user_name
         self.home_dir.mkdir()
 
-        self.certfile = Path(__file__).parents[1] / "resources" / "ssl" / "localhost.crt"
-        self.keyfile = Path(__file__).parents[1] / "resources" / "ssl" / "localhost.key"
+        self.certfile = importlib.resources.files("pytest-pixl") / "src" / "resources" / "ssl" / "localhost.crt"
+        self.keyfile = importlib.resources.files("pytest-pixl") / "src" / "resources" / "ssl" / "localhost.key"
 
         self.authorizer = DummyAuthorizer()
         self.handler = SSLImplicitFTPHandler
