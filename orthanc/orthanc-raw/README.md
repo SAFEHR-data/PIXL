@@ -22,7 +22,7 @@ available shortly when the service is started).
 
 ### Configuration
 
-- The Docker image is a deployment of `orthancteam/orthanc` with some extra configuration <--- is orthancteam/orthanc supposed to point to somewhere in the tree
+- The Orthanc Raw instance is a deployment of the [orthancteam/orthanc](https://hub.docker.com/r/orthancteam/orthanc) container with the following additional configuration:
   - `ORTHANC_RAW_MAXIMUM_STORAGE_SIZE` to limit the storage size
   - `ORTHANC_RAW_JOB_HISTORY_SIZE` has been increased so that while there is concurrent processing,
     the job should always exist for being able to query its status

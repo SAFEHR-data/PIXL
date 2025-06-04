@@ -1,6 +1,6 @@
 # Orthanc Anon
 
-_The Orthanc instance responsible for anonymising DICOM data from PACS/VNA and forwarding the images
+Orthanc Anon is responsible for anonymising DICOM data from PACS/VNA and forwarding the images
 to their final destination (at UCL/UCLH this is currently the UCL Data Safe Haven).
 
 ## Setup
@@ -24,8 +24,8 @@ The following assumptions are made:
 
 ### Configuration
 
-- The Docker image is based on `orthancteam/orthanc`. <--- This is unclear where is this?
-- Configuration is driven through customised JSON config. files stored in the [orthanc-anon/config](./config/)
+- Orthanc Anon is based on the Docker image: [orthancteam/orthanc](https://hub.docker.com/r/orthancteam/orthanc).
+- Orthanc Anon is configured via a customised JSON config files stored in the [orthanc-anon/config](./config/)
 directory.
 - The files are populated with values from environment variables and injected into the container as
 secrets. Orthanc interprets all `.json` files in the `/run/secrets` mount as config. files.
