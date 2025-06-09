@@ -33,11 +33,11 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     op.alter_column(
-        "image", "hashed_identifier", new_column_name="pseudo_study_uid", schema="pipeline"
+        "image", "hashed_identifier", new_column_name="pseudo_study_uid", schema="pixl_pipeline"
     )
 
 
 def downgrade() -> None:
     op.alter_column(
-        "image", "pseudo_study_uid", new_column_name="hashed_identifier", schema="pipeline"
+        "image", "pseudo_study_uid", new_column_name="hashed_identifier", schema="pixl_pipeline"
     )

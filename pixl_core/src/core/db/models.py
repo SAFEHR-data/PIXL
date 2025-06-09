@@ -27,7 +27,7 @@ from sqlalchemy.types import Date, DateTime
 class Base(DeclarativeBase):
     """sqlalchemy base class"""
 
-    metadata = MetaData(schema="pipeline")
+    metadata = MetaData(schema="pixl_pipeline")
 
 
 class Extract(Base):
