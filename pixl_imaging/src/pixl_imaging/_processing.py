@@ -93,7 +93,7 @@ async def _process_message(
 
     logger.info("Processing: {}. Querying {} archive.", study.message.identifier, archive.name)
 
-    study_query_id = await _find_study_in_archive_or_raise(
+    query_id = await _find_study_in_archive_or_raise(
         orthanc_raw=orthanc_raw,
         study=study,
         archive=archive,
@@ -102,25 +102,28 @@ async def _process_message(
     existing_local_resources = await _get_study_resources(
         orthanc_raw=orthanc_raw,
         study=study,
+        query_level=study.query_level,
     )
 
     if not existing_local_resources:
         await _retrieve_study(
             orthanc_raw=orthanc_raw,
-            study_query_id=study_query_id,
+            query_id=query_id,
         )
     else:
         await _retrieve_missing_instances(
             resources=existing_local_resources,
             orthanc_raw=orthanc_raw,
             study=study,
-            study_query_id=study_query_id,
+            query_id=query_id,
             modality=archive.value,
         )
 
+    # Always query as Study level so we always send study resources to Orthanc Anon
     resources = await _get_study_resources(
         orthanc_raw=orthanc_raw,
         study=study,
+        query_level="Study",
     )
 
     if not orthanc_raw.autoroute_to_anon:
@@ -130,6 +133,7 @@ async def _process_message(
     await orthanc_anon.notify_anon_to_retrieve_study_resources(
         orthanc_raw=orthanc_raw,
         resource_ids=resources,
+        series_uid=study.message.series_uid,
         project_name=study.message.project_name,
     )
 
@@ -137,9 +141,14 @@ async def _process_message(
 async def _get_study_resources(
     orthanc_raw: PIXLRawOrthanc,
     study: ImagingStudy,
+    query_level: str,
 ) -> list[str]:
-    """Get a list of existing resources for a study in Orthanc Raw."""
-    existing_resources: list[str] = await study.query_local(orthanc_raw)
+    """
+    Get a list of existing resources for a study in Orthanc Raw.
+
+    Note, resources may be either Studies or Series depending on the `study.query` level.
+    """
+    existing_resources: list[str] = await study.query_local(orthanc_raw, query_level=query_level)
 
     logger.debug(
         'Found {} existing resources for study "{}"',
@@ -210,7 +219,7 @@ async def _find_study_in_archive(
     query_response = None
     if study.message.study_uid:
         query_response = await orthanc_raw.query_remote(
-            data=study.orthanc_uid_query_dict,
+            data=study.orthanc_uid_query_by_level_dict,
             modality=modality,
         )
     if query_response is not None:
@@ -222,7 +231,7 @@ async def _find_study_in_archive(
         study.message.study_uid,
     )
     return await orthanc_raw.query_remote(
-        study.orthanc_query_dict,
+        study.orthanc_query_by_level_dict,
         modality=modality,
     )
 
@@ -243,9 +252,9 @@ def _is_weekend() -> bool:
     return datetime.datetime.now(tz=timezone).weekday() in (saturday, sunday)
 
 
-async def _retrieve_study(orthanc_raw: Orthanc, study_query_id: str) -> None:
-    """Retrieve all instances for a study from the VNA / PACS."""
-    job_id = await orthanc_raw.retrieve_study_from_remote(query_id=study_query_id)  # C-Move
+async def _retrieve_study(orthanc_raw: Orthanc, query_id: str) -> None:
+    """Retrieve instances for a study from the VNA / PACS."""
+    job_id = await orthanc_raw.retrieve_study_from_remote(query_id=query_id)  # C-Move
     await orthanc_raw.wait_for_job_success_or_raise(
         job_id, "c-move", timeout=orthanc_raw.dicom_timeout
     )
@@ -255,12 +264,15 @@ async def _retrieve_missing_instances(
     resources: list[str],
     orthanc_raw: Orthanc,
     study: ImagingStudy,
-    study_query_id: str,
+    query_id: str,
     modality: str,
 ) -> None:
     """Retrieve missing instances for a study from the VNA / PACS."""
     missing_instance_uids = await _get_missing_instances(
-        orthanc_raw=orthanc_raw, study=study, resources=resources, study_query_id=study_query_id
+        orthanc_raw=orthanc_raw,
+        study=study,
+        resources=resources,
+        query_id=query_id,
     )
     if not missing_instance_uids:
         return
@@ -276,7 +288,7 @@ async def _retrieve_missing_instances(
 
 
 async def _get_missing_instances(
-    orthanc_raw: Orthanc, study: ImagingStudy, resources: list[str], study_query_id: str
+    orthanc_raw: Orthanc, study: ImagingStudy, resources: list[str], query_id: str
 ) -> list[dict[str, str]]:
     """
     Check if any study instances are missing from Orthanc Raw.
@@ -286,11 +298,11 @@ async def _get_missing_instances(
     missing_instances: list[dict[str, str]] = []
 
     # First query the VNA / PACS for the study instances
-    study_query_answers = await orthanc_raw.get_remote_query_answers(study_query_id)
+    query_answers = await orthanc_raw.get_remote_query_answers(query_id)
     instances_queries_and_answers = []
-    for answer_id in study_query_answers:
+    for answer_id in query_answers:
         instances_query_id = await orthanc_raw.get_remote_query_answer_instances(
-            query_id=study_query_id, answer_id=answer_id
+            query_id=query_id, answer_id=answer_id
         )
         instances_query_answers = await orthanc_raw.get_remote_query_answers(instances_query_id)
         instances_queries_and_answers.extend(
@@ -299,9 +311,12 @@ async def _get_missing_instances(
     num_remote_instances = len(instances_queries_and_answers)
 
     num_local_instances = 0
+    resource_type = "studies" if study.query_level == "Study" else "series"
     for resource in resources:
-        study_statistics = await orthanc_raw.get_local_study_statistics(study_id=resource)
-        num_local_instances += int(study_statistics["CountInstances"])
+        statistics = await orthanc_raw.get_local_statistics(
+            resource_id=resource, resource_type=resource_type
+        )
+        num_local_instances += int(statistics["CountInstances"])
 
     if num_remote_instances == num_local_instances:
         logger.debug("No missing instances for study {}", study.message.study_uid)
@@ -310,9 +325,11 @@ async def _get_missing_instances(
     # Get all SOPInstanceUIDs for the study that are in Orthanc Raw
     orthanc_raw_sop_instance_uids = []
     for resource in resources:
-        study_instances = await orthanc_raw.get_local_study_instances(study_id=resource)
+        resource_instances = await orthanc_raw.get_local_instances(
+            resource_id=resource, resource_type=resource_type
+        )
         orthanc_raw_sop_instance_uids.extend(
-            [instance["MainDicomTags"]["0008,0018"] for instance in study_instances]
+            [instance["MainDicomTags"]["0008,0018"] for instance in resource_instances]
         )
 
     # If the SOPInstanceUID is not in the list of instances in Orthanc Raw
@@ -353,6 +370,10 @@ class ImagingStudy:
         return ImagingStudy(message=message)
 
     @property
+    def query_level(self) -> str:
+        return "Series" if self.message.series_uid else "Study"
+
+    @property
     def orthanc_uid_query_dict(self) -> dict:
         """Build a dictionary to query a study with a study UID."""
         return {
@@ -361,6 +382,26 @@ class ImagingStudy:
                 "StudyInstanceUID": self.message.study_uid,
             },
         }
+
+    @property
+    def orthanc_uid_query_by_series_dict(self) -> dict:
+        """Build a dictionary to query at the series level with a study and series UID."""
+        return {
+            "Level": "Series",
+            "Query": {
+                "StudyInstanceUID": self.message.study_uid,
+                "SeriesInstanceUID": self.message.series_uid,
+            },
+        }
+
+    @property
+    def orthanc_uid_query_by_level_dict(self) -> dict:
+        """Build a dictionary to query at the appropriate level with a study UID."""
+        return (
+            self.orthanc_uid_query_dict
+            if self.query_level == "Study"
+            else self.orthanc_uid_query_by_series_dict
+        )
 
     @property
     def orthanc_query_dict(self) -> dict:
@@ -373,10 +414,38 @@ class ImagingStudy:
             },
         }
 
-    async def query_local(self, node: Orthanc) -> Any:
+    @property
+    def orthanc_query_by_series_dict(self) -> dict:
+        """
+        Build a dictionary to query a study on MRN, accession number, and Series UID
+        at the Series level.
+        """
+        return {
+            "Level": "Series",
+            "Query": {
+                "PatientID": self.message.mrn,
+                "AccessionNumber": self.message.accession_number,
+                "SeriesInstanceUID": self.message.series_uid,
+            },
+        }
+
+    @property
+    def orthanc_query_by_level_dict(self) -> dict:
+        """Build a dictionary to query at the appropriate level with an MRN and accession number."""
+        return (
+            self.orthanc_query_dict
+            if self.query_level == "Study"
+            else self.orthanc_query_by_series_dict
+        )
+
+    async def query_local(self, node: Orthanc, query_level: str) -> Any:
         """Does this study exist in an Orthanc instance/node."""
         if self.message.study_uid:
-            uid_query = self.orthanc_uid_query_dict
+            uid_query = (
+                self.orthanc_uid_query_dict
+                if query_level == "Study"
+                else self.orthanc_uid_query_by_series_dict
+            )
 
             query_response = await node.query_local(uid_query)
             if query_response:
@@ -392,6 +461,8 @@ class ImagingStudy:
                 self.orthanc_query_dict,
             )
 
-        mrn_accession_query = self.orthanc_query_dict
+        mrn_accession_query = (
+            self.orthanc_query_dict if query_level == "Study" else self.orthanc_query_by_series_dict
+        )
 
         return await node.query_local(mrn_accession_query)

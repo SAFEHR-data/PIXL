@@ -64,14 +64,14 @@ class Orthanc:
         """Query local Orthanc instance for study."""
         return await self._get(f"/studies/{study_id}")
 
-    async def get_local_study_statistics(self, study_id: str) -> Any:
-        """Query local Orthanc instance for study statistics."""
-        return await self._get(f"/studies/{study_id}/statistics")
+    async def get_local_statistics(self, resource_type: str, resource_id: str) -> Any:
+        """Query local Orthanc instance for statistics on a study or series."""
+        return await self._get(f"/{resource_type}/{resource_id}/statistics")
 
-    async def get_local_study_instances(self, study_id: str) -> Any:
-        """Get the instances of a study."""
+    async def get_local_instances(self, resource_type: str, resource_id: str) -> Any:
+        """Get the instances of a study or series."""
         return await self._get(
-            f"/studies/{study_id}/instances?short=true",
+            f"/{resource_type}/{resource_id}/instances?short=true",
             timeout=self.dicom_timeout,  # this API call can sometimes take several minutes
         )
 
@@ -108,6 +108,9 @@ class Orthanc:
         return response["ID"]
 
     async def retrieve_study_from_remote(self, query_id: str) -> str:
+        # Note, if the query was performed at the Series level, only the relevant
+        # series will be retrieved. If performed at the Study level, all series
+        # will be retrieved.
         response = await self._post(
             f"/queries/{query_id}/retrieve",
             data={"TargetAet": self.aet, "Synchronous": False},
@@ -274,6 +277,7 @@ class PIXLAnonOrthanc(Orthanc):
         self,
         orthanc_raw: PIXLRawOrthanc,
         resource_ids: list[str],
+        series_uid: str,
         project_name: str,
     ) -> Any:
         """Notify Orthanc Anon of study resources to retrieve from Orthanc Raw."""
@@ -285,11 +289,14 @@ class PIXLAnonOrthanc(Orthanc):
         ]
         logger.debug("Notify Orthanc Anon to import resources {} from Orthanc Raw", resource_ids)
 
+        series_uids = series_uid.split("\\") if series_uid else []
+
         await self._post(
             path="/import-from-raw",
             data={
                 "ResourceIDs": resource_ids,
                 "StudyInstanceUIDs": study_uids,
+                "SeriesInstanceUIDs": series_uids,
                 "ProjectName": project_name,
             },
         )
