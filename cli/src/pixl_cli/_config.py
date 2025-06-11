@@ -21,6 +21,21 @@ from decouple import Config, RepositoryEmpty, RepositoryEnv
 env_file = Path.cwd() / ".env"
 config = Config(RepositoryEnv(env_file)) if env_file.exists() else Config(RepositoryEmpty())
 
+# The PIXL root and export root directories from the point of view of the docker host (which
+# is where the CLI runs). For the export directory within the export-api container, see
+# pixl_export/main.py: EXPORT_API_EXPORT_ROOT_DIR
+PIXL_ROOT = config(
+    "PIXL_ROOT",
+    default=Path(__file__).parents[3],
+    cast=Path,
+).resolve()
+
+HOST_EXPORT_ROOT_DIR = config(
+    "HOST_EXPORT_ROOT_DIR",
+    default=Path(__file__).parents[3] / "projects" / "exports",
+    cast=Path,
+).resolve()
+
 SERVICE_SETTINGS = {
     "rabbitmq": {
         "host": config("RABBITMQ_HOST"),

@@ -67,3 +67,7 @@ dev = [
     "nibabel==5.3.2",
 ]
 
+[tool.coverage.report]
+exclude_also = [
+  "if TYPE_CHECKING:"
+]

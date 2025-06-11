@@ -101,10 +101,8 @@ jobs:
                   enable-cache: true
 
             - name: Install Python dependencies
-              # Editable install required here due to the way the
-              # code determines the export directory. See issue #318.
               run: |
-                  uv sync
+                  uv sync --no-editable
 
             - name: Create .secrets.env
               run: touch test/.secrets.env
