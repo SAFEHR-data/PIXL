@@ -30,6 +30,18 @@ uv sync
 
 See each service's README for instructions for individual developing and testing instructions.
 
+### Non-editable installation
+
+By default, `uv` will install `pixl` and its workspace members in editable mode. To install in non-editable mode:
+
+```shell
+uv sync --no-editable
+```
+
+You will need to set the `PIXL_ROOT`, `HOST_EXPORT_ROOT_DIR`, and `HOST_EXPORT_ROOT_DIR_MOUNT` environment
+variables if you install PIXL in non-editable mode. See the [`cli` docs](../../cli/README.md#host-directories)
+for more info.
+
 ## Testing
 
 ### Module-level testing
