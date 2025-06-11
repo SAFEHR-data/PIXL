@@ -21,6 +21,7 @@ def test_serialise(mock_message) -> None:
     msg_body = mock_message.serialise(deserialisable=False)
     assert (
         msg_body == b'{"mrn": "111", "accession_number": "123", "study_uid": "1.2.3", '
+        b'"series_uid": "", '
         b'"study_date": "2022-11-22", '
         b'"procedure_occurrence_id": "234", '
         b'"project_name": "test project", '
