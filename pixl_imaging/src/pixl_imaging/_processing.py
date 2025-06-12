@@ -298,18 +298,40 @@ async def _get_missing_instances(
     missing_instances: list[dict[str, str]] = []
 
     # First query the VNA / PACS for the study instances
-    query_answers = await orthanc_raw.get_remote_query_answers(query_id)
+    # We previously used the `query-instances` endpoint to get all instances in a Study (or Series),
+    # but the new VNA complains that the query has not SeriesInstanceUID. So now we get all series,
+    # iterate over each series, and get all instances in each series.
+    # If the query was made at the Series level, we can query the series instances directly.
+    if study.query_level == "Series":
+        series_query_answers = await orthanc_raw.get_remote_query_answers(query_id)
+        series_queries_and_answers = [(query_id, answer) for answer in series_query_answers]
+    else:
+        series_queries_and_answers = []
+        study_query_answers = await orthanc_raw.get_remote_query_answers(query_id)
+        for study_answer_id in study_query_answers:
+            series_query_id = await orthanc_raw.get_remote_query_answer_series(
+                query_id=query_id,
+                answer_id=study_answer_id,
+            )
+            series_query_answers = await orthanc_raw.get_remote_query_answers(series_query_id)
+            series_queries_and_answers.extend(
+                [(series_query_id, answer) for answer in series_query_answers]
+            )
+
+    # For each series, get the instances
     instances_queries_and_answers = []
-    for answer_id in query_answers:
+    for series_query_id, series_answer_id in series_queries_and_answers:
         instances_query_id = await orthanc_raw.get_remote_query_answer_instances(
-            query_id=query_id, answer_id=answer_id
+            query_id=series_query_id, answer_id=series_answer_id
         )
         instances_query_answers = await orthanc_raw.get_remote_query_answers(instances_query_id)
         instances_queries_and_answers.extend(
             [(instances_query_id, answer) for answer in instances_query_answers]
         )
+
     num_remote_instances = len(instances_queries_and_answers)
 
+    # Get number of instances in Orthanc Raw
     num_local_instances = 0
     resource_type = "studies" if study.query_level == "Study" else "series"
     for resource in resources:
