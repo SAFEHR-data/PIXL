@@ -98,14 +98,19 @@ class Orthanc:
         """Get the content of a query answer"""
         return await self._get(f"/queries/{query_id}/answers/{answer_id}/content")
 
-    async def get_remote_query_answer_instances(self, query_id: str, answer_id: str) -> Any:
-        """Get the instances of a query answer, using DICOM timeout as can take a while"""
-        response = await self._post(
-            f"/queries/{query_id}/answers/{answer_id}/query-instances",
-            data={"Query": {}},
-            timeout=self.dicom_timeout,
+    async def get_remote_query_instances(self, query_id: str) -> Any:
+        """Get the instances of a query, using DICOM timeout as can take a while"""
+        modality = await self._get_text(f"/queries/{query_id}/modality")
+        original_query = await self._get(f"/queries/{query_id}/query")
+        data = {
+            "Level": "Instance",
+            "Query": {param["Name"]: param["Value"] for param in original_query.values()},
+        }
+
+        return await self.query_remote(
+            data=data,
+            modality=modality,
         )
-        return response["ID"]
 
     async def retrieve_study_from_remote(self, query_id: str) -> str:
         response = await self._post(
@@ -173,6 +178,19 @@ class Orthanc:
             ) as response,
         ):
             return await _deserialise(response)
+
+    async def _get_text(self, path: str, timeout: int | None = None) -> Any:
+        # Optionally override default http timeout
+        http_timeout = timeout or self.http_timeout
+        async with (
+            aiohttp.ClientSession() as session,
+            session.get(
+                f"{self._url}{path}",
+                auth=self._auth,
+                timeout=http_timeout,
+            ) as response,
+        ):
+            return await response.text()
 
     async def _post(self, path: str, data: dict, timeout: int | None = None) -> Any:
         # Optionally override default http timeout
