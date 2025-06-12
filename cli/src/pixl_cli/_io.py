@@ -94,7 +94,7 @@ def _load_csv(filepath: Path) -> pd.DataFrame:
     messages_df = pd.read_csv(filepath, header=0, dtype=str)
     messages_df = _map_columns(messages_df, MAP_CSV_TO_MESSAGE_KEYS)
     _raise_if_column_names_not_found(messages_df, [col.name for col in DF_COLUMNS])
-    messages_df["series_uid"] = messages_df["series_uid"].replace(np.nan, "").str.strip()
+    messages_df["series_uid"] = messages_df.get("series_uid", "").replace(np.nan, "").str.strip()
     messages_df["pseudo_patient_id"] = messages_df["pseudo_patient_id"].replace(np.nan, None)
 
     # Parse non string columns
@@ -168,7 +168,6 @@ class DF_COLUMNS(StrEnum):  # noqa: N801
     extract_generated_timestamp = auto()
     study_date = auto()
     study_uid = auto()
-    series_uid = auto()
     pseudo_patient_id = auto()
 
 

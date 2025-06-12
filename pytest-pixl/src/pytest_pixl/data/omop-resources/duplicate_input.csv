@@ -1,7 +1,7 @@
-procedure_id,mrn,accession_number,project_name,extract_generated_timestamp,study_date,study_uid,series_uid,participant_id
-1,mrn,123,i-am-a-project,2023-01-01T00:00:00Z,2023-01-01,1.2.3,,
-2,mrn,234,i-am-a-project,2023-01-01T00:00:00Z,2023-01-01,2.3.4,,
-3,mrn,345,i-am-a-project,2023-01-01T00:00:00Z,2023-01-01,3.4.5,,
-4,mrn,123,i-am-a-project,2024-01-01T00:00:00Z,2023-01-01,1.2.3,,
-5,mrn,234,i-am-a-project,2024-01-01T00:00:00Z,2023-01-01,2.3.4,,
-6,mrn,345,i-am-a-project,2024-01-01T00:00:00Z,2023-01-01,3.4.5,,
+procedure_id,mrn,accession_number,project_name,extract_generated_timestamp,study_date,study_uid,participant_id
+1,mrn,123,i-am-a-project,2023-01-01T00:00:00Z,2023-01-01,1.2.3,
+2,mrn,234,i-am-a-project,2023-01-01T00:00:00Z,2023-01-01,2.3.4,
+3,mrn,345,i-am-a-project,2023-01-01T00:00:00Z,2023-01-01,3.4.5,
+4,mrn,123,i-am-a-project,2024-01-01T00:00:00Z,2023-01-01,1.2.3,
+5,mrn,234,i-am-a-project,2024-01-01T00:00:00Z,2023-01-01,2.3.4,
+6,mrn,345,i-am-a-project,2024-01-01T00:00:00Z,2023-01-01,3.4.5,
