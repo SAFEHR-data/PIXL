@@ -286,6 +286,9 @@ async def _get_missing_instances(
     missing_instances: list[dict[str, str]] = []
 
     # First query the VNA / PACS for the study instances
+    # We previously used the `query-instances` endpoint to get all instances in a Study, but the
+    # new VNA complains that the query has not SeriesInstanceUID. So now we get all series, iterate
+    # over the series, and get all instances in each series.
     study_query_answers = await orthanc_raw.get_remote_query_answers(study_query_id)
     instances_queries_and_answers = []
     for study_answer_id in study_query_answers:
