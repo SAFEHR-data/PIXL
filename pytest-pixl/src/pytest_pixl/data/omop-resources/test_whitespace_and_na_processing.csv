@@ -1,5 +1,5 @@
-procedure_id,mrn,accession_number,project_name,extract_generated_timestamp,study_date,study_uid,participant_id
-0, patient_identifier , 123456789 , ms-pinpoint-test ,2023-01-01T00:01:00Z,2022-01-01, 1.2.3.4.5.6.7.8 ,
-1, patient_identifier , 123456789 , ms-pinpoint-test ,2023-01-01T00:01:00Z,2022-01-01, 1.2.3.4.5.6.7.8 ,
-2, whitespace_idenfifiers , ,ms-pinpoint-test,2023-01-01T00:01:00Z,2022-01-01, ,
-3, NA_idenfifiers ,,ms-pinpoint-test,2023-01-01T00:01:00Z,2022-01-01,,
+procedure_id,mrn,accession_number,project_name,extract_generated_timestamp,study_date,study_uid,series_uid,participant_id
+0, patient_identifier , 123456789 , ms-pinpoint-test ,2023-01-01T00:01:00Z,2022-01-01, 1.2.3.4.5.6.7.8 , ,
+1, patient_identifier , 123456789 , ms-pinpoint-test ,2023-01-01T00:01:00Z,2022-01-01, 1.2.3.4.5.6.7.8 , ,
+2, whitespace_idenfifiers , ,ms-pinpoint-test,2023-01-01T00:01:00Z,2022-01-01, , ,
+3, NA_idenfifiers ,,ms-pinpoint-test,2023-01-01T00:01:00Z,2022-01-01,,,

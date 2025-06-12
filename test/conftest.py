@@ -15,6 +15,7 @@
 
 # ruff: noqa: C408 dict() makes test data easier to read and write
 import os
+import shutil
 from collections.abc import Generator
 from pathlib import Path
 from typing import Any
@@ -50,6 +51,7 @@ def host_export_root_dir() -> Path:
 TEST_DIR = Path(__file__).parent
 RESOURCES_DIR = TEST_DIR / "resources"
 RESOURCES_OMOP_DIR = RESOURCES_DIR / "omop"
+RESOURCES_SERIES_CSV = RESOURCES_DIR / "series-level-querying" / "single-series.csv"
 RESOURCES_OMOP_DICOMWEB_DIR = RESOURCES_DIR / "omop-dicomweb"
 SECONDS_TO_WAIT_FOR_EXPORT = 301
 
@@ -166,6 +168,34 @@ def _setup_pixl_cli(ftps_server: PixlFTPServer, _populate_vna: None) -> Generato
 
 
 @pytest.fixture(scope="session")
+def _setup_pixl_cli_series(
+    request: pytest.FixtureRequest,
+    ftps_server: PixlFTPServer,
+    _populate_vna: None,
+) -> Generator:
+    """Run pixl populate/start. Cleanup intermediate export dir on exit."""
+    run_subprocess(
+        [
+            "pixl",
+            "populate",
+            "--num-retries",
+            "0",
+            str(RESOURCES_DIR / "series-level-querying" / request.param),
+        ],
+        TEST_DIR,
+        timeout=600,
+    )
+    # poll here to check for imaging to be processed, printing progress
+    wait_for_images_to_be_exported(SECONDS_TO_WAIT_FOR_EXPORT, 5, 15, min_studies=1)
+
+    yield
+
+    # cleanup export directory as other tests use the same FTPS server and export directory
+    output_dir = ftps_server.home_dir / "test-extract-uclh-omop-cdm"
+    shutil.rmtree(output_dir)
+
+
+@pytest.fixture(scope="session")
 def _setup_pixl_cli_dicomweb(_populate_vna: None) -> Generator:
     """Run pixl populate/start. Cleanup intermediate export dir on exit."""
     run_subprocess(
@@ -204,7 +234,7 @@ def _export_patient_data(_setup_pixl_cli) -> None:  # type: ignore [no-untyped-d
     run_subprocess(["pixl", "export-patient-data", str(RESOURCES_OMOP_DIR.absolute())], TEST_DIR)
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(autouse=True)
 def _cleanup_database() -> Generator:
     """
     Remove the test data from the database so we can re-run the tests.

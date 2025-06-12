@@ -216,6 +216,7 @@ def mock_message() -> Message:
         mrn="111",
         accession_number="123",
         study_uid="1.2.3",
+        series_uid="",
         study_date=datetime.date.fromisoformat("2022-11-22"),
         procedure_occurrence_id="234",
         project_name="test project",

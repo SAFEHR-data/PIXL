@@ -33,6 +33,7 @@ class Message:
     mrn: str
     accession_number: str
     study_uid: str
+    series_uid: str
     study_date: date
     procedure_occurrence_id: int
     project_name: str
@@ -41,9 +42,9 @@ class Message:
     @property
     def identifier(self) -> str:
         """Identifier for message"""
-        return f"Message({self.mrn=} {self.accession_number=} {self.study_uid=})".replace(
-            "self.", ""
-        )
+        return (
+            f"Message({self.mrn=} {self.accession_number=} {self.study_uid=} {self.series_uid=}"
+        ).replace("self.", "")
 
     def serialise(self, *, deserialisable: bool = True) -> bytes:
         """

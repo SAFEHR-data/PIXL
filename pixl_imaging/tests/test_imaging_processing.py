@@ -43,6 +43,7 @@ ACCESSION_NUMBER = "abc"
 PATIENT_ID = "a_patient"
 STUDY_UID = generate_uid(entropy_srcs=["12345678"])
 SERIES_UID = generate_uid(entropy_srcs=["12345678.1"])
+SERIES_UID_2 = generate_uid(entropy_srcs=["12345678.2"])
 SOP_INSTANCE_UID = "1.1.1.1.1.1.1111.1.1.1.1.1.11111111111111.11111"
 SOP_INSTANCE_UID_2 = "2.2.2.2.2.2.2222.2.2.2.2.2.22222222222222.22222"
 
@@ -62,6 +63,41 @@ def message() -> Message:
         mrn=PATIENT_ID,
         accession_number=ACCESSION_NUMBER,
         study_uid=STUDY_UID,
+        series_uid="",
+        study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
+            tzinfo=datetime.UTC
+        ),
+        procedure_occurrence_id=234,
+        project_name="test project",
+        extract_generated_timestamp=datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
+    )
+
+
+@pytest.fixture(scope="module")
+def message_with_series_uids() -> Message:
+    """A Message for querying a subset of series within a study."""
+    return Message(
+        mrn=PATIENT_ID,
+        accession_number=ACCESSION_NUMBER,
+        study_uid=STUDY_UID,
+        series_uid=f"{SERIES_UID}\\{SERIES_UID_2}",
+        study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
+            tzinfo=datetime.UTC
+        ),
+        procedure_occurrence_id=234,
+        project_name="test project",
+        extract_generated_timestamp=datetime.datetime.fromisoformat("1234-01-01 00:00:00"),
+    )
+
+
+@pytest.fixture(scope="module")
+def message_with_single_series_uid() -> Message:
+    """A Message for querying a subset of series within a study."""
+    return Message(
+        mrn=PATIENT_ID,
+        accession_number=ACCESSION_NUMBER,
+        study_uid=STUDY_UID,
+        series_uid=f"{SERIES_UID}",
         study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
             tzinfo=datetime.UTC
         ),
@@ -78,6 +114,7 @@ def no_uid_message() -> Message:
         mrn=PATIENT_ID,
         accession_number=ACCESSION_NUMBER,
         study_uid="",
+        series_uid="",
         study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
             tzinfo=datetime.UTC
         ),
@@ -94,6 +131,7 @@ def pacs_message() -> Message:
         mrn=PACS_PATIENT_ID,
         accession_number=PACS_ACCESSION_NUMBER,
         study_uid=PACS_STUDY_UID,
+        series_uid="",
         study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
             tzinfo=datetime.UTC
         ),
@@ -110,6 +148,7 @@ def pacs_no_uid_message() -> Message:
         mrn=PACS_PATIENT_ID,
         accession_number=PACS_ACCESSION_NUMBER,
         study_uid="ialsodontexist",
+        series_uid="",
         study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
             tzinfo=datetime.UTC
         ),
@@ -126,6 +165,7 @@ def missing_message() -> Message:
         mrn=MISSING_PATIENT_ID,
         accession_number=MISSING_ACCESSION_NUMBER,
         study_uid=MISSING_STUDY_UID,
+        series_uid="",
         study_date=datetime.datetime.strptime("01/01/1234 01:23:45", "%d/%m/%Y %H:%M:%S").replace(
             tzinfo=datetime.UTC
         ),
@@ -184,6 +224,7 @@ def _add_image_to_fake_vna(run_containers) -> Generator[None]:
     vna.upload(image_filename)
 
     instance_2_image_filename = "test_2.dcm"
+    ds.SeriesInstanceUID = SERIES_UID_2
     ds.SOPInstanceUID = SOP_INSTANCE_UID_2
     ds.save_as(instance_2_image_filename)
     vna.upload(instance_2_image_filename)
@@ -240,10 +281,10 @@ async def test_image_saved(orthanc_raw, message: Message) -> None:
 
     orthanc = await orthanc_raw
 
-    assert not await study.query_local(orthanc)
+    assert not await study.query_local(orthanc, query_level=study.query_level)
     await process_message(message, archive=DicomModality.primary)
 
-    studies = await study.query_local(orthanc)
+    studies = await study.query_local(orthanc, query_level=study.query_level)
     assert len(studies) == 1
 
     study_info = await orthanc._get(f"/studies/{studies[0]}")
@@ -254,7 +295,10 @@ async def test_image_saved(orthanc_raw, message: Message) -> None:
 
     series_info = await orthanc._get(f"/series/{study_info['Series'][0]}")
     with check:
-        assert series_info["MainDicomTags"]["SeriesInstanceUID"] == SERIES_UID
+        assert series_info["MainDicomTags"]["SeriesInstanceUID"] in (
+            SERIES_UID,
+            SERIES_UID_2,
+        )
 
     instance_info = await orthanc._get(f"/instances/{series_info['Instances'][0]}")
     with check:
@@ -262,6 +306,76 @@ async def test_image_saved(orthanc_raw, message: Message) -> None:
             SOP_INSTANCE_UID,
             SOP_INSTANCE_UID_2,
         )
+
+
+@pytest.mark.processing()
+@pytest.mark.asyncio()
+@pytest.mark.usefixtures("_add_image_to_fake_vna")
+async def test_message_with_series_uids(
+    orthanc_raw, message_with_series_uids: Message, caplog
+) -> None:
+    """
+    Given the VNA has a single study with 2 series, and Orthanc Raw has no images
+    When we run process_message
+    Then Orthanc Raw will contain both series from the study.
+    """
+    study = ImagingStudy.from_message(message_with_series_uids)
+    orthanc = await orthanc_raw
+
+    assert not await study.query_local(orthanc, query_level="Study")
+    await process_message(message_with_series_uids, archive=DicomModality.primary)
+
+    studies = await study.query_local(orthanc, query_level="Study")
+    assert len(studies) == 1
+
+    study_info = await orthanc._get(f"/studies/{studies[0]}")
+    with check:
+        assert study_info["MainDicomTags"]["AccessionNumber"] == ACCESSION_NUMBER
+        assert study_info["PatientMainDicomTags"]["PatientID"] == PATIENT_ID
+        assert study_info["MainDicomTags"]["StudyInstanceUID"] == STUDY_UID
+
+    assert len(study_info["Series"]) == 2
+
+    for series in study_info["Series"]:
+        series_info = await orthanc._get(f"/series/{series}")
+        with check:
+            assert series_info["MainDicomTags"]["SeriesInstanceUID"] in (
+                SERIES_UID,
+                SERIES_UID_2,
+            )
+
+
+@pytest.mark.processing()
+@pytest.mark.asyncio()
+@pytest.mark.usefixtures("_add_image_to_fake_vna")
+async def test_message_with_one_series_uid(
+    orthanc_raw, message_with_single_series_uid: Message, caplog
+) -> None:
+    """
+    Given the VNA has a single study with 2 series, and Orthanc Raw has no images
+    When we run process_message
+    Then Orthanc Raw will contain only the series included in the message.
+    """
+    study = ImagingStudy.from_message(message_with_single_series_uid)
+    orthanc = await orthanc_raw
+
+    assert not await study.query_local(orthanc, query_level="Study")
+    await process_message(message_with_single_series_uid, archive=DicomModality.primary)
+
+    studies = await study.query_local(orthanc, query_level="Study")
+    assert len(studies) == 1
+
+    study_info = await orthanc._get(f"/studies/{studies[0]}")
+    with check:
+        assert study_info["MainDicomTags"]["AccessionNumber"] == ACCESSION_NUMBER
+        assert study_info["PatientMainDicomTags"]["PatientID"] == PATIENT_ID
+        assert study_info["MainDicomTags"]["StudyInstanceUID"] == STUDY_UID
+
+    assert len(study_info["Series"]) == 1
+
+    series_info = await orthanc._get(f"/series/{study_info['Series'][0]}")
+    with check:
+        assert series_info["MainDicomTags"]["SeriesInstanceUID"] == SERIES_UID
 
 
 @pytest.mark.processing()
@@ -278,9 +392,9 @@ async def test_partial_retrieve(orthanc_raw, message: Message, caplog) -> None:
 
     orthanc = await orthanc_raw
 
-    assert not await study.query_local(orthanc)
+    assert not await study.query_local(orthanc, query_level=study.query_level)
     await process_message(message, archive=DicomModality.primary)
-    assert await study.query_local(orthanc)
+    assert await study.query_local(orthanc, query_level=study.query_level)
 
     all_instances = await orthanc._get("/instances")
     assert len(all_instances) == 2
@@ -319,7 +433,7 @@ async def test_existing_message_sent_twice(orthanc_raw, message: Message) -> Non
     orthanc = await orthanc_raw
 
     await process_message(message, archive=DicomModality.primary)
-    assert await study.query_local(orthanc)
+    assert await study.query_local(orthanc, query_level=study.query_level)
 
     query_for_update_time = {**study.orthanc_query_dict, "Expand": True}
     first_processing_resource = await orthanc.query_local(query_for_update_time)
@@ -332,7 +446,7 @@ async def test_existing_message_sent_twice(orthanc_raw, message: Message) -> Non
     # Check update time hasn't changed
     assert first_processing_resource[0]["LastUpdate"] == second_processing_resource[0]["LastUpdate"]
 
-    studies = await study.query_local(orthanc)
+    studies = await study.query_local(orthanc, query_level=study.query_level)
     assert len(studies) == 1
 
     study_info = await orthanc._get(f"/studies/{studies[0]}")
@@ -343,7 +457,10 @@ async def test_existing_message_sent_twice(orthanc_raw, message: Message) -> Non
 
     series_info = await orthanc._get(f"/series/{study_info['Series'][0]}")
     with check:
-        assert series_info["MainDicomTags"]["SeriesInstanceUID"] == SERIES_UID
+        assert series_info["MainDicomTags"]["SeriesInstanceUID"] in (
+            SERIES_UID,
+            SERIES_UID_2,
+        )
 
     instance_info = await orthanc._get(f"/instances/{series_info['Instances'][0]}")
     with check:
@@ -365,9 +482,9 @@ async def test_querying_without_uid(orthanc_raw, caplog, no_uid_message: Message
     study = ImagingStudy.from_message(no_uid_message)
     orthanc = await orthanc_raw
 
-    assert not await study.query_local(orthanc)
+    assert not await study.query_local(orthanc, query_level=study.query_level)
     await process_message(no_uid_message, archive=DicomModality.primary)
-    assert await study.query_local(orthanc)
+    assert await study.query_local(orthanc, query_level=study.query_level)
 
     expected_msg = (
         f"No study found in modality UCPRIMARYQR with UID '{study.message.study_uid}', "
@@ -408,7 +525,7 @@ async def test_querying_pacs_with_uid(
     study = ImagingStudy.from_message(pacs_message)
     orthanc = await orthanc_raw
 
-    assert not await study.query_local(orthanc)
+    assert not await study.query_local(orthanc, query_level=study.query_level)
 
     # PACS is not queried during the daytime nor at the weekend.
     # Set today to be a Monday at 2 am.
@@ -419,7 +536,7 @@ async def test_querying_pacs_with_uid(
             await process_message(pacs_message, archive=DicomModality.primary)
         await process_message(pacs_message, archive=DicomModality.secondary)
 
-    assert await study.query_local(orthanc)
+    assert await study.query_local(orthanc, query_level=study.query_level)
 
     expected_msg = (
         f"No study found in modality UCPRIMARYQR with UID '{study.message.study_uid}', "
@@ -448,7 +565,7 @@ async def test_querying_pacs_without_uid(
     study = ImagingStudy.from_message(pacs_no_uid_message)
     orthanc = await orthanc_raw
 
-    assert not await study.query_local(orthanc)
+    assert not await study.query_local(orthanc, query_level=study.query_level)
 
     # PACS is not queried during the daytime nor at the weekend.
     # Set today to be a Monday at 2 am.
@@ -459,7 +576,7 @@ async def test_querying_pacs_without_uid(
             await process_message(pacs_no_uid_message, archive=DicomModality.primary)
         await process_message(pacs_no_uid_message, archive=DicomModality.secondary)
 
-    assert await study.query_local(orthanc)
+    assert await study.query_local(orthanc, query_level=study.query_level)
 
     expected_msg = "No study found in modality UCPRIMARYQR with UID"
     assert expected_msg in caplog.text
@@ -482,7 +599,7 @@ async def test_querying_missing_image(orthanc_raw, monkeypatch, missing_message:
     study = ImagingStudy.from_message(missing_message)
     orthanc = await orthanc_raw
 
-    assert not await study.query_local(orthanc)
+    assert not await study.query_local(orthanc, query_level=study.query_level)
 
     # PACS is not queried during the daytime nor at the weekend.
     # Set today to be a Monday at 2 am.
@@ -518,7 +635,7 @@ async def test_querying_pacs_during_working_hours(
     study = ImagingStudy.from_message(missing_message)
     orthanc = await orthanc_raw
 
-    assert not await study.query_local(orthanc)
+    assert not await study.query_local(orthanc, query_level=study.query_level)
 
     match = "Not querying secondary archive during the daytime or on the weekend."
     with monkeypatch.context() as mp, pytest.raises(PixlOutOfHoursError, match=match):  # noqa: PT012
@@ -540,7 +657,7 @@ async def test_querying_pacs_not_defined(
     study = ImagingStudy.from_message(missing_message)
     orthanc = await orthanc_raw
 
-    assert not await study.query_local(orthanc)
+    assert not await study.query_local(orthanc, query_level=study.query_level)
 
     match = (
         "Failed to find study .* in primary archive "

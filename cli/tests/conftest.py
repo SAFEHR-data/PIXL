@@ -141,6 +141,7 @@ def _make_message(
         accession_number=accession_number,
         mrn=mrn,
         study_uid=study_uid,
+        series_uid="",
         study_date=STUDY_DATE,
         procedure_occurrence_id=1,
         extract_generated_timestamp=datetime.datetime.now(tz=ZoneInfo(os.environ["TZ"])),
