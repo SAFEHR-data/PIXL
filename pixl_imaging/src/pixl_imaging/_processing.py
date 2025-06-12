@@ -286,18 +286,29 @@ async def _get_missing_instances(
     missing_instances: list[dict[str, str]] = []
 
     # First query the VNA / PACS for the study instances
+    # We previously used the `query-instances` endpoint to get all instances in a Study, but the
+    # new VNA complains that the query has not SeriesInstanceUID. So now we get all series, iterate
+    # over the series, and get all instances in each series.
     study_query_answers = await orthanc_raw.get_remote_query_answers(study_query_id)
     instances_queries_and_answers = []
-    for answer_id in study_query_answers:
-        instances_query_id = await orthanc_raw.get_remote_query_answer_instances(
-            query_id=study_query_id, answer_id=answer_id
+    for study_answer_id in study_query_answers:
+        series_query_id = await orthanc_raw.get_remote_query_answer_series(
+            query_id=study_query_id,
+            answer_id=study_answer_id,
         )
-        instances_query_answers = await orthanc_raw.get_remote_query_answers(instances_query_id)
-        instances_queries_and_answers.extend(
-            [(instances_query_id, answer) for answer in instances_query_answers]
-        )
+        series_query_answers = await orthanc_raw.get_remote_query_answers(series_query_id)
+        for series_answer_id in series_query_answers:
+            instances_query_id = await orthanc_raw.get_remote_query_answer_instances(
+                query_id=series_query_id, answer_id=series_answer_id
+            )
+            instances_query_answers = await orthanc_raw.get_remote_query_answers(instances_query_id)
+            instances_queries_and_answers.extend(
+                [(instances_query_id, answer) for answer in instances_query_answers]
+            )
+
     num_remote_instances = len(instances_queries_and_answers)
 
+    # Get number of instances in Orthanc Raw
     num_local_instances = 0
     for resource in resources:
         study_statistics = await orthanc_raw.get_local_study_statistics(study_id=resource)
