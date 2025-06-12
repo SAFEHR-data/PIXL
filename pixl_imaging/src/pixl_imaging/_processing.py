@@ -286,11 +286,24 @@ async def _get_missing_instances(
     missing_instances: list[dict[str, str]] = []
 
     # First query the VNA / PACS for the study instances
-    instances_query_id = await orthanc_raw.get_remote_query_instances(
-        query_id=study_query_id,
-    )
-    instances_query_answers = await orthanc_raw.get_remote_query_answers(instances_query_id)
-    num_remote_instances = len(instances_query_answers)
+    study_query_answers = await orthanc_raw.get_remote_query_answers(study_query_id)
+    instances_queries_and_answers = []
+    for study_answer_id in study_query_answers:
+        series_query_id = await orthanc_raw.get_remote_query_answer_series(
+            query_id=study_query_id,
+            answer_id=study_answer_id,
+        )
+        series_query_answers = await orthanc_raw.get_remote_query_answers(series_query_id)
+        for series_answer_id in series_query_answers:
+            instances_query_id = await orthanc_raw.get_remote_query_answer_instances(
+                query_id=series_query_id, answer_id=series_answer_id
+            )
+            instances_query_answers = await orthanc_raw.get_remote_query_answers(instances_query_id)
+            instances_queries_and_answers.extend(
+                [(instances_query_id, answer) for answer in instances_query_answers]
+            )
+
+    num_remote_instances = len(instances_queries_and_answers)
 
     # Get number of instances in Orthanc Raw
     num_local_instances = 0
@@ -313,7 +326,7 @@ async def _get_missing_instances(
     # If the SOPInstanceUID is not in the list of instances in Orthanc Raw
     # retrieve the instance from the VNA / PACS
     query_tags = ["0020,000d", "0020,000e", "0008,0018"]
-    for instance_query_answer in instances_query_answers:
+    for instances_query_id, instance_query_answer in instances_queries_and_answers:
         instance_query_answer_content = await orthanc_raw.get_remote_query_answer_content(
             query_id=instances_query_id,
             answer_id=instance_query_answer,
