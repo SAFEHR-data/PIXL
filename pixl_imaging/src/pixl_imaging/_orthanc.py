@@ -98,6 +98,15 @@ class Orthanc:
         """Get the content of a query answer"""
         return await self._get(f"/queries/{query_id}/answers/{answer_id}/content")
 
+    async def get_remote_query_answer_series(self, query_id: str, answer_id: str) -> Any:
+        """Get the series of a query answer, using DICOM timeout as can take a while"""
+        response = await self._post(
+            f"/queries/{query_id}/answers/{answer_id}/query-series",
+            data={"Query": {}},
+            timeout=self.dicom_timeout,
+        )
+        return response["ID"]
+
     async def get_remote_query_answer_instances(self, query_id: str, answer_id: str) -> Any:
         """Get the instances of a query answer, using DICOM timeout as can take a while"""
         response = await self._post(

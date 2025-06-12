@@ -13,6 +13,7 @@
 #  limitations under the License.
 """A ligthweight FTPS server supporting implicit SSL for use in PIXL tests."""
 
+import importlib.resources
 from pathlib import Path
 
 from decouple import config
@@ -89,12 +90,12 @@ class PixlFTPServer:
         self.home_dir: Path = home_root / self.user_name
         self.home_dir.mkdir()
 
-        self.certfile = Path(__file__).parents[1] / "resources" / "ssl" / "localhost.crt"
-        self.keyfile = Path(__file__).parents[1] / "resources" / "ssl" / "localhost.key"
+        ssl_dir = importlib.resources.files("pytest-pixl") / "src" / "resources" / "ssl"
+        self.certfile = Path(str(ssl_dir.joinpath("localhost.crt")))
+        self.keyfile = Path(str(ssl_dir.joinpath("localhost.key")))
 
         self.authorizer = DummyAuthorizer()
         self.handler = SSLImplicitFTPHandler
-
         self._add_user()
         self._setup_TLS_handler()
         self._create_server()
@@ -116,8 +117,8 @@ class PixlFTPServer:
 
     def _check_ssl_files(self) -> None:
         # Make sure we have access to the SSL certificates
-        certfile_path = Path(self.certfile)
-        keyfile_path = Path(self.keyfile)
+        certfile_path = self.certfile
+        keyfile_path = self.keyfile
         assert certfile_path.exists(), f"Could not find certfile at {certfile_path.absolute()}"
         assert keyfile_path.exists(), f"Could not find keyfile at {keyfile_path.absolute()}"
 

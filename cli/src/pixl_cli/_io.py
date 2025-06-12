@@ -18,7 +18,6 @@ from __future__ import annotations
 import json
 from datetime import datetime
 from enum import StrEnum, auto
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -26,12 +25,12 @@ import pandas as pd
 from core.exports import ParquetExport
 from loguru import logger
 
-if TYPE_CHECKING:
-    from core.db.models import Image
+from pixl_cli._config import HOST_EXPORT_ROOT_DIR
 
-# The export root dir from the point of view of the docker host (which is where the CLI runs)
-# For the view from inside, see pixl_export/main.py: EXPORT_API_EXPORT_ROOT_DIR
-HOST_EXPORT_ROOT_DIR = Path(__file__).parents[3] / "projects" / "exports"
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from core.db.models import Image
 
 
 def project_info(resources_path: Path) -> tuple[str, datetime]:
