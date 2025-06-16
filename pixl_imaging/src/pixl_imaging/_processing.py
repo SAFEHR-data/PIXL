@@ -275,6 +275,7 @@ async def _retrieve_missing_instances(
         query_id=query_id,
     )
     if not missing_instance_uids:
+        logger.debug("No missing instances for study {}", study.message.study_uid)
         return
     logger.debug(
         "Retrieving {} missing instances for study {}",
@@ -341,7 +342,6 @@ async def _get_missing_instances(
         num_local_instances += int(statistics["CountInstances"])
 
     if (study.query_level == "Study") and (num_remote_instances == num_local_instances):
-        logger.debug("No missing instances for study {}", study.message.study_uid)
         return missing_instances
 
     # Get all SOPInstanceUIDs for the study that are in Orthanc Raw
