@@ -340,7 +340,7 @@ async def _get_missing_instances(
         )
         num_local_instances += int(statistics["CountInstances"])
 
-    if num_remote_instances == num_local_instances:
+    if (study.query_level == "Study") and (num_remote_instances == num_local_instances):
         logger.debug("No missing instances for study {}", study.message.study_uid)
         return missing_instances
 
