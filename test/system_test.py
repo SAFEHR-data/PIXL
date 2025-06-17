@@ -13,7 +13,9 @@
 #  limitations under the License.
 """Replacement for the 'interesting' bits of the system/E2E test"""
 
+from collections.abc import Generator
 from pathlib import Path
+from zipfile import ZipFile
 
 import pandas as pd
 import pydicom
@@ -53,6 +55,23 @@ def expected_studies() -> dict[int, dict]:
     }
 
 
+@pytest.fixture()
+def expected_instances_for_series_querying(request: pytest.FixtureRequest) -> set[tuple[str, str]]:
+    """Expected study metadata post-anonymisation when querying at the Series level."""
+    # tuple made up of (AccessionNumber, SeriesDescription)
+    # for AA12345601
+    instances = {
+        "single-series": {
+            ("ANONYMIZED", "AP"),
+        },
+        "all-series": {
+            ("ANONYMIZED", "AP"),
+            ("ANONYMIZED", "include123"),
+        },
+    }
+    return instances[request.param]
+
+
 class TestFtpsUpload:
     """tests adapted from ./scripts/check_ftps_upload.py"""
 
@@ -64,7 +83,7 @@ class TestFtpsUpload:
     expected_public_parquet_dir: Path
 
     @pytest.fixture(scope="class", autouse=True)
-    def _setup(self, ftps_server: PixlFTPServer) -> None:
+    def _setup(self, ftps_server: PixlFTPServer) -> Generator:
         """Shared test data for the two different kinds of FTP upload test"""
         TestFtpsUpload.ftp_home_dir = ftps_server.home_dir
         logger.info("ftp home dir: {}", TestFtpsUpload.ftp_home_dir)
@@ -80,7 +99,14 @@ class TestFtpsUpload:
         )
         logger.info("expected output dir: {}", TestFtpsUpload.expected_output_dir)
         logger.info("expected parquet files dir: {}", TestFtpsUpload.expected_public_parquet_dir)
-        # No cleanup of ftp uploads needed because it's in a temp dir
+
+        yield
+
+        # cleanup export directory as other tests use the same FTPS server and export directory
+        zip_files = list(TestFtpsUpload.expected_output_dir.glob("*.zip"))
+        for z in zip_files:
+            logger.info("Removing zip file: {}", z)
+            z.unlink()
 
     @pytest.mark.usefixtures("_export_patient_data")
     def test_ftps_parquet_upload(self) -> None:
@@ -171,6 +197,53 @@ class TestFtpsUpload:
         # check the basic info about the instances exactly matches
         with check:
             assert actual_instances == expected_study["instances"]
+
+
+@pytest.mark.parametrize(
+    ("_setup_pixl_cli_series", "expected_instances_for_series_querying"),
+    [
+        ("single-series.csv", "single-series"),
+        ("all-series.csv", "all-series"),
+    ],
+    indirect=True,
+)
+@pytest.mark.usefixtures("_setup_pixl_cli_series")
+def test_ftps_series_querying(
+    ftps_server: PixlFTPServer, expected_instances_for_series_querying: set[tuple[str, str]]
+) -> None:
+    """Test querying at the Series level and check that only the requested instances are present."""
+    expected_output_dir = ftps_server.home_dir / "test-extract-uclh-omop-cdm"
+    zip_files: list[Path] = []
+
+    def zip_file_list() -> str:
+        return f"zip files found: {zip_files}"
+
+    def one_zip_files_present() -> bool:
+        nonlocal zip_files
+        zip_files = list(expected_output_dir.glob("*.zip"))
+        # We expect 1 study to be uploaded
+        return len(zip_files) == 1
+
+    wait_for_condition(
+        one_zip_files_present,
+        seconds_max=SECONDS_TO_WAIT_FOR_CONDITION,
+        seconds_interval=5,
+        seconds_condition_stays_true_for=15,
+        progress_string_fn=zip_file_list,
+    )
+
+    zip_file = zip_files[0]
+    actual_instances = set()
+    with ZipFile(zip_file, "r") as zipped_study:
+        for file_info in zipped_study.infolist():
+            with zipped_study.open(file_info) as file:
+                dataset = pydicom.dcmread(file)
+                actual_instances.add(
+                    (dataset.get("AccessionNumber"), dataset.get("SeriesDescription"))
+                )
+    with check:
+        assert len(actual_instances) == len(expected_instances_for_series_querying)
+        assert actual_instances == expected_instances_for_series_querying
 
 
 @pytest.mark.usefixtures("_setup_pixl_cli_dicomweb")

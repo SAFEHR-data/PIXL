@@ -63,6 +63,7 @@ def read_patient_info(resources_path: Path) -> pd.DataFrame:
         messages_df = _load_csv(resources_path)
     else:
         messages_df = _load_parquet(resources_path)
+
     # Tidy up dataframe in case of whitespace or no way to identify images
     unique_columns = ["project_name", "mrn", "accession_number", "study_uid"]
     filtered_df = messages_df.dropna(subset=["accession_number", "study_uid"], how="all")
@@ -93,6 +94,9 @@ def _load_csv(filepath: Path) -> pd.DataFrame:
     messages_df = pd.read_csv(filepath, header=0, dtype=str)
     messages_df = _map_columns(messages_df, MAP_CSV_TO_MESSAGE_KEYS)
     _raise_if_column_names_not_found(messages_df, [col.name for col in DF_COLUMNS])
+    messages_df["series_uid"] = (
+        messages_df.get("series_uid", pd.Series("")).replace(np.nan, "").str.strip()
+    )
     messages_df["pseudo_patient_id"] = messages_df["pseudo_patient_id"].replace(np.nan, None)
 
     # Parse non string columns
@@ -129,6 +133,7 @@ def _load_parquet(
     messages_df["project_name"] = project_name
     messages_df["extract_generated_timestamp"] = extract_generated_timestamp
     messages_df["pseudo_patient_id"] = None
+    messages_df["series_uid"] = ""
 
     return messages_df
 
