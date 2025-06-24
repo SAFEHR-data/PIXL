@@ -170,7 +170,8 @@ class FTPSUploader(Uploader):
 def _connect_to_ftp(ftp_host: str, ftp_port: int, ftp_user: str, ftp_password: str) -> FTP_TLS:
     # Connect to the server and login
     try:
-        ftp = ImplicitFtpTls()
+        ctx = ssl._create_unverified_context(ssl.PROTOCOL_TLSv1_2)  # noqa: SLF001 S323
+        ftp = ImplicitFtpTls(context=ctx)
         ftp.connect(ftp_host, int(ftp_port))
         ftp.login(ftp_user, ftp_password)
         ftp.prot_p()
