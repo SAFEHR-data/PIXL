@@ -7,24 +7,26 @@ readme = "README.md"
 requires-python = ">=3.11"
 classifiers = ["Programming Language :: Python :: 3"]
 dependencies = [
-    "aio_pika==9.5.3",
-    "azure-identity==1.19.0",
-    "azure-keyvault==4.2.0",
-    "fastapi==0.115.6",
-    "jsonpickle==4.0.0",
-    "loguru==0.7.3",
-    "pandas==2.2.3",
-    "pika==1.3.2",
-    "psycopg2-binary==2.9.10",
-    "pyarrow==18.1.0",
-    "pydantic==2.10.3",
-    "python-decouple==3.8",
-    "python-slugify==8.0.4",
-    "PyYAML==6.0.2",
-    "requests==2.32.3",
-    "sqlalchemy==2.0.36",
-    "token-bucket==0.3.0",
-    "xnat==0.6.2",
+  "aio_pika==9.5.3",
+  "azure-identity==1.19.0",
+  "azure-keyvault==4.2.0",
+  "docker==7.1.0",
+  "fastapi==0.115.6",
+  "jsonpickle==4.0.0",
+  "loguru==0.7.3",
+  "pandas==2.2.3",
+  "paramiko==3.5.1",
+  "pika==1.3.2",
+  "psycopg2-binary==2.9.10",
+  "pyarrow==18.1.0",
+  "pydantic==2.10.3",
+  "python-decouple==3.8",
+  "python-slugify==8.0.4",
+  "PyYAML==6.0.2",
+  "requests==2.32.3",
+  "sqlalchemy==2.0.36",
+  "token-bucket==0.3.0",
+  "xnat==0.6.2",
 ]
 
 
@@ -33,9 +35,7 @@ requires = ["hatchling>=1.0.0"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-dev-mode-dirs = [
-    "src"
-]
+dev-mode-dirs = ["src"]
 
 
 [tool.pytest.ini_options]
@@ -50,16 +50,16 @@ extend = "../ruff.toml"
 
 [tool.coverage.report]
 exclude_also = [
-    "def __repr__",
-    "if self.debug:",
-    "if settings.DEBUG",
-    "except subprocess.CalledProcessError as exception:",
-    "raise AssertionError",
-    "raise NotImplementedError",
-    "if 0:",
-    "if __name__ == .__main__.:",
-    "if TYPE_CHECKING:",
-    "if typing.TYPE_CHECKING",
-    "class .*\\bProtocol\\):",
-    "@(abc\\.)?abstractmethod",
+  "def __repr__",
+  "if self.debug:",
+  "if settings.DEBUG",
+  "except subprocess.CalledProcessError as exception:",
+  "raise AssertionError",
+  "raise NotImplementedError",
+  "if 0:",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+  "if typing.TYPE_CHECKING",
+  "class .*\\bProtocol\\):",
+  "@(abc\\.)?abstractmethod",
 ]
