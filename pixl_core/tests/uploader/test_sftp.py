@@ -26,6 +26,7 @@ import paramiko
 import pytest
 from core.uploader._sftp import SFTPUploader
 from decouple import config
+from loguru import logger
 
 TEST_DIR = Path(__file__).parents[1]
 
@@ -38,12 +39,13 @@ os.environ["SFTP_PORT"] = "2222"
 class MockSFTPUploader(SFTPUploader):
     """Mock SFTPUploader for testing."""
 
-    def __init__(self) -> None:
+    def __init__(self, host_key_path: Path) -> None:
         """Initialise the mock uploader with hardcoded values for SFTP config."""
         self.host = os.environ["SFTP_HOST"]
         self.user = os.environ["SFTP_USERNAME"]
         self.password = os.environ["SFTP_PASSWORD"]
         self.port = int(os.environ["SFTP_PORT"])
+        self.host_key_path = host_key_path
         self.project_slug = "test-project"
 
     def _set_config(self) -> None:
@@ -53,12 +55,13 @@ class MockSFTPUploader(SFTPUploader):
 class PixlSFTPServer:
     """Docker-based SFTP server for testing"""
 
-    def __init__(self) -> None:
+    def __init__(self, host_key_path: Path) -> None:
         """Initialize the DockerSFTPServer"""
         self.username = config("SFTP_USERNAME", default="testuser")
         self.password = config("SFTP_PASSWORD", default="testpass")
         self.port = int(config("SFTP_PORT", default=2222))
         self.docker_client: docker.DockerClient = docker.from_env()
+        self.host_key_path = host_key_path
         self.container: Optional[docker.models.containers.Container] = None
         self.upload_dir: Optional[Path] = None
 
@@ -79,7 +82,13 @@ class PixlSFTPServer:
             "atmoz/sftp:alpine",
             command=f"{self.username}:{self.password}:::upload",
             ports={"22/tcp": self.port},
-            volumes={str(self.upload_dir): {"bind": f"/home/{self.username}/upload", "mode": "rw"}},
+            volumes={
+                str(self.upload_dir): {"bind": f"/home/{self.username}/upload", "mode": "rw"},
+                str(self.host_key_path / "ssh_host_rsa_key"): {
+                    "bind": "/etc/ssh/ssh_host_rsa_key",
+                    "mode": "ro",
+                },
+            },
             detach=True,
             remove=True,
         )
@@ -101,7 +110,7 @@ class PixlSFTPServer:
         while time.time() - start_time < timeout:
             try:
                 ssh = paramiko.SSHClient()
-                ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())  # noqa: S507
+                ssh.load_host_keys(self.host_key_path / "known_hosts")
                 ssh.connect(
                     "localhost",
                     port=self.port,
@@ -113,11 +122,13 @@ class PixlSFTPServer:
                 sftp.close()
                 ssh.close()
             except (paramiko.SSHException, OSError, ConnectionError):
+                logger.info("Retrying SFTP connection")
                 time.sleep(1)
             else:
                 return  # Connection successful
 
         err_str = f"SFTP server did not start within {timeout} seconds"
+        self.stop()
         raise TimeoutError(err_str)
 
     def stop(self) -> None:
@@ -142,10 +153,36 @@ class PixlSFTPServer:
             return self.container.status == "running"
 
 
-@pytest.fixture(scope="session")
-def sftp_server() -> Generator[PixlSFTPServer, None, None]:
+@pytest.fixture(scope="module")
+def host_keys(tmp_path_factory) -> Path:
+    """Generates host keys and stores them in a temporary directory"""
+    host_key_path = tmp_path_factory.mktemp("host_keys")
+
+    private_key = paramiko.RSAKey.generate(2048)
+    private_key_path = host_key_path / "ssh_host_rsa_key"
+    private_key.write_private_key_file(private_key_path)
+    Path.chmod(private_key_path, 0o600)
+
+    public_key = private_key.get_base64()
+    public_key_path = host_key_path / f"{private_key.get_name()}.pub"
+    public_key_path.write_text(f"{private_key.get_name()} {public_key}\n")
+    Path.chmod(public_key_path, 0o644)
+
+    # Generate the known_hosts file
+    known_hosts_path = host_key_path / "known_hosts"
+    port = os.environ["SFTP_PORT"]
+    known_hosts_path.write_text(f"localhost:{port} ssh-rsa {public_key}\n")
+    logger.debug(f"Generated known_hosts file at {known_hosts_path}")
+    logger.debug(f"known_hosts contents: {known_hosts_path.read_text()}")
+    Path.chmod(known_hosts_path, 0o644)
+
+    return host_key_path
+
+
+@pytest.fixture(scope="module")
+def sftp_server(host_keys) -> Generator[PixlSFTPServer, None, None]:
     """Return a running SFTP server container."""
-    server = PixlSFTPServer()
+    server = PixlSFTPServer(host_keys)
     server.start()
     yield server
     server.stop()
@@ -165,6 +202,6 @@ def zip_content() -> Generator:
         yield file_content
 
 
-def test_sftp_server_can_connect(sftp_server: PixlSFTPServer) -> None:
+def test_sftp_server_can_connect(sftp_server):
     """Tests that the SFTP server can be connected to."""
     assert sftp_server.is_running()
