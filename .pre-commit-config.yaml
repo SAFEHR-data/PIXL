@@ -32,9 +32,11 @@ repos:
                 [
                     "mypy==1.11.1",
                     "types-PyYAML",
-                    "types-requests",
-                    "types-python-slugify",
+                    "types-docker",
+                    "types-paramiko",
                     "types-psycopg2",
+                    "types-python-slugify",
+                    "types-requests",
                 ]
     - repo: https://github.com/python-jsonschema/check-jsonschema
       rev: 0.28.6
