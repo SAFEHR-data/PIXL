@@ -14,19 +14,13 @@
 """Test uploading files to an SFTP endpoint."""
 
 import os
-import shutil
-import tempfile
-import time
 from collections.abc import Generator
 from pathlib import Path
-from typing import Optional
 
-import docker
 import paramiko
 import pytest
 from core.uploader._sftp import SFTPUploader
-from decouple import config
-from loguru import logger
+from pixl_core.tests.uploader.helpers.sftpserver import SFTPServer
 
 TEST_DIR = Path(__file__).parents[1]
 
@@ -52,146 +46,25 @@ class MockSFTPUploader(SFTPUploader):
         """Override to avoid Azure Key Vault dependency in tests."""
 
 
-class PixlSFTPServer:
-    """Docker-based SFTP server for testing"""
-
-    def __init__(self, host_key_path: Path) -> None:
-        """Initialize the DockerSFTPServer"""
-        self.username = config("SFTP_USERNAME", default="testuser")
-        self.password = config("SFTP_PASSWORD", default="testpass")
-        self.port = int(config("SFTP_PORT", default=2222))
-        self.docker_client: docker.DockerClient = docker.from_env()
-        self.host_key_path = host_key_path
-        self.container: Optional[docker.models.containers.Container] = None
-        self.upload_dir: Optional[Path] = None
-
-    def start(self) -> dict:
-        """Start the SFTP server container"""
-        temp_dir = tempfile.mkdtemp()
-
-        # Create users.conf for the SFTP server
-        users_conf = f"{self.username}:{self.password}:1001:1001:upload"
-        users_conf_path = Path(temp_dir) / "users.conf"
-        users_conf_path.write_text(users_conf)
-
-        self.upload_dir = Path(temp_dir) / "upload"
-        self.upload_dir.mkdir(parents=True, exist_ok=True)
-
-        # Start container
-        self.container = self.docker_client.containers.run(
-            "atmoz/sftp:alpine",
-            command=f"{self.username}:{self.password}:::upload",
-            ports={"22/tcp": self.port},
-            volumes={
-                str(self.upload_dir): {"bind": f"/home/{self.username}/upload", "mode": "rw"},
-                str(self.host_key_path / "ssh_host_rsa_key"): {
-                    "bind": "/etc/ssh/ssh_host_rsa_key",
-                    "mode": "ro",
-                },
-            },
-            detach=True,
-            remove=True,
-        )
-
-        # Wait for container to be ready
-        self._wait_for_server()
-
-        return {
-            "host": "localhost",
-            "port": self.port,
-            "username": self.username,
-            "password": self.password,
-            "upload_dir": self.upload_dir,
-        }
-
-    def _wait_for_server(self, timeout: int = 30) -> None:
-        """Wait for SFTP server to be ready"""
-        start_time = time.time()
-        while time.time() - start_time < timeout:
-            try:
-                ssh = paramiko.SSHClient()
-                ssh.load_host_keys(self.host_key_path / "known_hosts")
-                ssh.connect(
-                    "localhost",
-                    port=self.port,
-                    username=self.username,
-                    password=self.password,
-                    timeout=5,
-                )
-                sftp = ssh.open_sftp()
-                sftp.close()
-                ssh.close()
-            except (paramiko.SSHException, OSError, ConnectionError):
-                logger.info("Retrying SFTP connection")
-                time.sleep(1)
-            else:
-                return  # Connection successful
-
-        err_str = f"SFTP server did not start within {timeout} seconds"
-        self.stop()
-        raise TimeoutError(err_str)
-
-    def stop(self) -> None:
-        """Stop the SFTP server container"""
-        if self.container:
-            self.container.stop()
-            self.container = None
-
-        if self.upload_dir:
-            shutil.rmtree(self.upload_dir, ignore_errors=True)
-            self.upload_dir = None
-
-    def is_running(self) -> bool:
-        """Check if the SFTP server is running"""
-        if not self.container:
-            return False
-        try:
-            self.container.reload()
-        except docker.errors.NotFound:
-            return False
-        else:
-            return self.container.status == "running"
-
-
 @pytest.fixture(scope="module")
 def host_keys(tmp_path_factory) -> Path:
-    """Generates host keys and stores them in a temporary directory"""
-    host_key_path = tmp_path_factory.mktemp("host_keys")
-
-    private_key = paramiko.RSAKey.generate(2048)
-    private_key_path = host_key_path / "ssh_host_rsa_key"
-    private_key.write_private_key_file(private_key_path)
-    Path.chmod(private_key_path, 0o600)
-
-    public_key = private_key.get_base64()
-    public_key_path = host_key_path / f"{private_key.get_name()}.pub"
-    public_key_path.write_text(f"{private_key.get_name()} {public_key}\n")
-    Path.chmod(public_key_path, 0o644)
-
-    # Generate the known_hosts file
-    known_hosts_path = host_key_path / "known_hosts"
-    port = os.environ["SFTP_PORT"]
-    known_hosts_path.write_text(f"localhost:{port} ssh-rsa {public_key}\n")
-    logger.debug(f"Generated known_hosts file at {known_hosts_path}")
-    logger.debug(f"known_hosts contents: {known_hosts_path.read_text()}")
-    Path.chmod(known_hosts_path, 0o644)
-
-    return host_key_path
+    """Creates temporary directory for host keys (will be populated by server)"""
+    return tmp_path_factory.mktemp("host_keys")
 
 
 @pytest.fixture(scope="module")
-def sftp_server(host_keys) -> Generator[PixlSFTPServer, None, None]:
+def sftp_server(host_keys) -> Generator[SFTPServer, None, None]:
     """Return a running SFTP server container."""
-    server = PixlSFTPServer(host_keys)
+    server = SFTPServer(host_keys)
     server.start()
     yield server
     server.stop()
 
 
 @pytest.fixture()
-def sftp_uploader() -> MockSFTPUploader:
+def sftp_uploader(host_keys) -> MockSFTPUploader:
     """Return a MockSFTPUploader object."""
-    return MockSFTPUploader()
+    return MockSFTPUploader(host_keys)
 
 
 @pytest.fixture()
@@ -202,6 +75,26 @@ def zip_content() -> Generator:
         yield file_content
 
 
-def test_sftp_server_can_connect(sftp_server):
+def test_sftp_server_can_connect(sftp_server, sftp_uploader):
     """Tests that the SFTP server can be connected to."""
     assert sftp_server.is_running()
+
+    # Test actual SFTP connection using the uploader
+    ssh_client = paramiko.SSHClient()
+    ssh_client.set_missing_host_key_policy(paramiko.RejectPolicy())
+    ssh_client.load_host_keys(str(sftp_uploader.host_key_path / "known_hosts"))
+
+    try:
+        ssh_client.connect(
+            sftp_uploader.host,
+            port=sftp_uploader.port,
+            username=sftp_uploader.user,
+            password=sftp_uploader.password,
+            timeout=5,
+        )
+        sftp_client = ssh_client.open_sftp()
+        sftp_client.close()
+        ssh_client.close()
+    except paramiko.SSHException as e:
+        ssh_client.close()
+        pytest.fail(f"Failed to connect to SFTP server: {e}")
