@@ -35,26 +35,31 @@ class SFTPServer:
         self.docker_client: docker.DockerClient = docker.from_env()
         self.host_key_path = host_key_path
         self.container: Optional[docker.models.containers.Container] = None
-        self.upload_dir: Optional[Path] = None
+        self.mounted_upload_dir: Optional[Path] = None
 
     def start(self) -> dict:
         """Start the SFTP server container"""
         temp_dir = tempfile.mkdtemp()
 
         # Create users.conf for the SFTP server
-        users_conf = f"{self.username}:{self.password}:1001:1001:upload"
+        users_conf = f"{self.username}:{self.password}:::upload"
         users_conf_path = Path(temp_dir) / "users.conf"
         users_conf_path.write_text(users_conf)
 
-        self.upload_dir = Path(temp_dir) / "upload"
-        self.upload_dir.mkdir(parents=True, exist_ok=True)
+        self.mounted_upload_dir = Path(temp_dir) / "upload"
+        self.mounted_upload_dir.mkdir(parents=True, exist_ok=True)
 
         # Start container
         self.container = self.docker_client.containers.run(
             "atmoz/sftp:alpine",
             command=f"{self.username}:{self.password}:::upload",
             ports={"22/tcp": self.port},
-            volumes={str(self.upload_dir): {"bind": f"/home/{self.username}/upload", "mode": "rw"}},
+            volumes={
+                str(self.mounted_upload_dir): {
+                    "bind": f"/home/{self.username}/upload",
+                    "mode": "rw",
+                }
+            },
             detach=True,
             remove=True,
         )
@@ -68,7 +73,7 @@ class SFTPServer:
             "port": self.port,
             "username": self.username,
             "password": self.password,
-            "upload_dir": self.upload_dir,
+            "upload_dir": self.mounted_upload_dir,
         }
 
     def _wait_for_server(self, timeout: int = 30) -> None:
@@ -111,7 +116,6 @@ class SFTPServer:
             exit_code, output = self.container.exec_run(f"cat /etc/ssh/{key_type}.pub")
             if exit_code == 0:
                 host_key_content = output.decode().strip()
-                logger.debug(f"Extracted {key_type}: {host_key_content}")
                 host_keys.append(host_key_content)
 
         if not host_keys:
@@ -132,8 +136,6 @@ class SFTPServer:
         known_hosts_path.write_text(known_hosts_content)
         Path.chmod(known_hosts_path, 0o644)
 
-        logger.debug(f"Created known_hosts file: {known_hosts_content}")
-
         # Also save the first public key for reference
         if host_keys:
             public_key_path = self.host_key_path / "ssh_host_key.pub"
@@ -146,9 +148,9 @@ class SFTPServer:
             self.container.stop()
             self.container = None
 
-        if self.upload_dir:
-            shutil.rmtree(self.upload_dir, ignore_errors=True)
-            self.upload_dir = None
+        if self.mounted_upload_dir:
+            shutil.rmtree(self.mounted_upload_dir, ignore_errors=True)
+            self.mounted_upload_dir = None
 
     def is_running(self) -> bool:
         """Check if the SFTP server is running"""
