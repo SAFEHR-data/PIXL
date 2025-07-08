@@ -107,10 +107,11 @@ def test_update_exported_and_save(rows_in_session) -> None:
     expected_export_time = datetime.now(tz=UTC)
 
     # ACT
-    update_exported_at(generate_uid(entropy_srcs=["not_yet_exported"]), expected_export_time)
+    pseudo_study_uid = generate_uid(entropy_srcs=["not_yet_exported"])
+    update_exported_at(pseudo_study_uid, expected_export_time)
     new_row = (
         rows_in_session.query(Image)
-        .filter(Image.pseudo_study_uid == generate_uid(entropy_srcs=["not_yet_exported"]))
+        .filter(Image.pseudo_study_uid == pseudo_study_uid)
         .one()
     )
     actual_export_time = new_row.exported_at.replace(tzinfo=UTC)
