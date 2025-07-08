@@ -141,7 +141,7 @@ def _sftp_create_remote_directory(sftp_client: paramiko.SFTPClient, directory: s
     """
     try:
         sftp_client.stat(directory)
-    except FileNotFoundError:
+    except (IOError, OSError):
         parent_dir = os.path.dirname(directory)  # noqa: PTH120
         _sftp_create_remote_directory(sftp_client, str(parent_dir))
         sftp_client.mkdir(directory)
