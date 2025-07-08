@@ -75,7 +75,7 @@ class SFTPUploader(Uploader):
 
     def upload_parquet_files(self, parquet_export: ParquetExport, remote_directory: str) -> None:
         """
-        Upload parquet to FTPS under <project name>/<extract datetime>/parquet.
+        Upload parquet to SFTP under <project name>/<extract datetime>/parquet.
         :param parquet_export: instance of the ParquetExport class
         The final directory structure will look like this:
         <project-slug>
@@ -141,7 +141,7 @@ def _sftp_create_remote_directory(sftp_client: paramiko.SFTPClient, directory: s
     """
     try:
         sftp_client.stat(directory)
-    except (IOError, OSError):
+    except OSError:
         parent_dir = os.path.dirname(directory)  # noqa: PTH120
         _sftp_create_remote_directory(sftp_client, str(parent_dir))
         sftp_client.mkdir(directory)
