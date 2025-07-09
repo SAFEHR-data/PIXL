@@ -99,7 +99,7 @@ class TreApiUploader(Uploader):
 
         # Create zip file
         zip_filename = f"{source_root_dir}.zip"
-        zip_file = _create_zip_archive(source_files, zip_filename)
+        zip_file = _create_zip_archive(source_files, source_root_dir, zip_filename)
 
         # Upload the zip file
         self.send_via_api(BytesIO(zip_file.read_bytes()), zip_file.name)

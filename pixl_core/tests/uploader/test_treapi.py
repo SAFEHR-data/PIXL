@@ -305,7 +305,7 @@ class TestUtilityFunctions:
         zip_filename = str(tmp_path / "empty.zip")
 
         # Act
-        zip_path = _create_zip_archive([], zip_filename)
+        zip_path = _create_zip_archive([], "root", zip_filename)
 
         # Assert
         assert zip_path.exists()
