@@ -78,7 +78,7 @@ def export_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
 @pytest.fixture(scope="module")
 def monkeymodule():
     """Module level monkey patch."""
-    from _pytest.monkeypatch import MonkeyPatch
+    from _pytest.monkeypatch import MonkeyPatch  # noqa: PLC0415
 
     monkeypatch = MonkeyPatch()
     yield monkeypatch

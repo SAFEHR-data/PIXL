@@ -53,7 +53,7 @@ class ImplicitFtpTls(ftplib.FTP_TLS):
         return self._sock
 
     @sock.setter
-    def sock(self, value: socket) -> None:
+    def sock(self, value: socket | None) -> None:
         """When modifying the socket, ensure that it is ssl wrapped."""
         if value is not None and not isinstance(value, ssl.SSLSocket):
             value = self.context.wrap_socket(value)
