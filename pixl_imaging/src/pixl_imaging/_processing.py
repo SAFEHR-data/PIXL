@@ -16,7 +16,7 @@ from __future__ import annotations
 import datetime
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 from zoneinfo import ZoneInfo
 
 from core.exceptions import PixlDiscardError, PixlOutOfHoursError, PixlStudyNotInPrimaryArchiveError
@@ -211,7 +211,7 @@ async def _find_study_in_archive(
     orthanc_raw: Orthanc,
     study: ImagingStudy,
     modality: str,
-) -> Optional[str]:
+) -> str | None:
     """
     Query the primary archive for the study using its UID.
     If UID is not available, query on MRN and accession number.

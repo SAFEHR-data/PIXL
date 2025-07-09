@@ -52,7 +52,7 @@ logger.warning("Running logging at level {}", logging_level)
 @app.on_event("startup")
 async def startup_event() -> None:
     """
-    task create: the coroutine submitted to run "in the background",
+    Task create: the coroutine submitted to run "in the background",
     i.e. concurrently with the current task and all other tasks,
     switching between them at await points
     the task is consumer.run and the callback is _processing.process_message

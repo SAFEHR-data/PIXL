@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from asyncio import sleep
 from time import time
-from typing import Any, Optional
+from typing import Any
 
 import aiohttp
 from core.exceptions import PixlDiscardError, PixlRequeueMessageError
@@ -75,7 +75,7 @@ class Orthanc:
             timeout=self.dicom_timeout,  # this API call can sometimes take several minutes
         )
 
-    async def query_remote(self, data: dict, modality: str) -> Optional[str]:
+    async def query_remote(self, data: dict, modality: str) -> str | None:
         """Query a particular modality, available from this node"""
         logger.debug("Running query on modality: {} with {}", modality, data)
 

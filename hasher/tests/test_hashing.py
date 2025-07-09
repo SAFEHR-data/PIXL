@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import pytest
+
 from hasher.hashing import Hasher  # type: ignore [import-untyped]
 
 TEST_MIN_LENGTHS = range(-10, 1)
@@ -21,7 +22,7 @@ TEST_MAX_LENGTHS = range(65, 100)
 TEST_PROJECT_SLUG = "test_project_slug"
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_hasher(_mock_hasher):
     return Hasher(TEST_PROJECT_SLUG)
 

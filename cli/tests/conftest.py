@@ -78,7 +78,7 @@ def export_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
 @pytest.fixture(scope="module")
 def monkeymodule():
     """Module level monkey patch."""
-    from _pytest.monkeypatch import MonkeyPatch
+    from _pytest.monkeypatch import MonkeyPatch  # noqa: PLC0415
 
     monkeypatch = MonkeyPatch()
     yield monkeypatch
@@ -108,7 +108,7 @@ def db_engine(monkeymodule) -> Engine:
     Base.metadata.drop_all(engine)
 
 
-@pytest.fixture()
+@pytest.fixture
 def db_session(db_engine) -> Generator[Session]:
     """
     Creates a session for interacting with an in memory database.
@@ -148,7 +148,7 @@ def _make_message(
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def example_messages() -> list[Message]:
     """Test input data."""
     return [
@@ -164,7 +164,7 @@ def example_messages() -> list[Message]:
     ]
 
 
-@pytest.fixture()
+@pytest.fixture
 def example_messages_df(example_messages):
     """Test input data in a DataFrame."""
     messages_df = pd.DataFrame.from_records([vars(im) for im in example_messages])
@@ -172,7 +172,7 @@ def example_messages_df(example_messages):
     return messages_df
 
 
-@pytest.fixture()
+@pytest.fixture
 def example_messages_multiple_projects() -> list[Message]:
     """Test input data."""
     return [
@@ -206,7 +206,7 @@ def example_messages_multiple_projects() -> list[Message]:
     ]
 
 
-@pytest.fixture()
+@pytest.fixture
 def example_messages_multiple_projects_df(example_messages_multiple_projects) -> pd.DataFrame:
     """Test input data."""
     messages_df = pd.DataFrame.from_records([vars(im) for im in example_messages_multiple_projects])
@@ -214,7 +214,7 @@ def example_messages_multiple_projects_df(example_messages_multiple_projects) ->
     return messages_df
 
 
-@pytest.fixture()
+@pytest.fixture
 def rows_in_session(db_session) -> Session:
     """Insert a test row for each table, returning the session for use in tests."""
     extract = Extract(slug="i-am-a-project")
@@ -243,7 +243,7 @@ def rows_in_session(db_session) -> Session:
     return db_session
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_publisher(mocker) -> Generator[Mock, None, None]:
     """Patched publisher that does nothing, returns MagicMock of the publish method."""
     mocker.patch.object(PixlProducer, "__init__", return_value=None)

@@ -13,6 +13,7 @@
 #  limitations under the License.
 
 import pytest
+
 from core.project_config.secrets import AzureKeyVault
 
 

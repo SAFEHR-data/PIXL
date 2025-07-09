@@ -16,10 +16,11 @@ from pathlib import Path
 
 import pytest
 import yaml
-from core.project_config import PixlConfig, load_project_config
-from core.project_config.tag_operations import load_tag_operations
 from decouple import config
 from pydantic import ValidationError
+
+from core.project_config import PixlConfig, load_project_config
+from core.project_config.tag_operations import load_tag_operations
 
 PROJECT_CONFIGS_DIR = Path(config("PROJECT_CONFIGS_DIR"))
 TEST_CONFIG = "test-extract-uclh-omop-cdm"
@@ -35,7 +36,7 @@ def test_config_from_file():
     assert project_config.destination.parquet == "ftps"
 
 
-@pytest.fixture()
+@pytest.fixture
 def base_yaml_data():
     """Good data (excluding optional fields)"""
     return {
@@ -125,7 +126,7 @@ def test_load_tag_operations_no_manufacturer_overrides(base_yaml_data):
     assert tag_operations.manufacturer_overrides == []
 
 
-@pytest.fixture()
+@pytest.fixture
 def invalid_base_tags(tmp_path_factory, base_yaml_data) -> PixlConfig:
     """TagOperations with invalid base tags."""
     base_tags = [

@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 from loguru import logger
 
@@ -33,7 +33,7 @@ class Uploader(ABC):
     """Upload strategy interface."""
 
     @abstractmethod
-    def __init__(self, project_slug: str, keyvault_alias: Optional[str]) -> None:
+    def __init__(self, project_slug: str, keyvault_alias: str | None) -> None:
         """
         Initialise the uploader for a specific project with the destination configuration and an
         AzureKeyvault instance. The keyvault is used to fetch the secrets required to connect to

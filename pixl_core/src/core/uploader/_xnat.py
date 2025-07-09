@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING, BinaryIO, Optional
+from typing import TYPE_CHECKING, BinaryIO
 
 import xnat
 
@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 class XNATUploader(Uploader):
     """Upload strategy for an XNAT server."""
 
-    def __init__(self, project_slug: str, keyvault_alias: Optional[str]) -> None:
+    def __init__(self, project_slug: str, keyvault_alias: str | None) -> None:
         """Create instance of parent class"""
         super().__init__(project_slug, keyvault_alias)
 
@@ -98,6 +98,6 @@ class XNATUploader(Uploader):
                 import_handler="DICOM-zip",
             )
 
-    def upload_parquet_files(self, parquet_export: ParquetExport) -> None:  # noqa: ARG002
+    def upload_parquet_files(self, parquet_export: ParquetExport) -> None:
         msg = "XNATUploader does not support parquet files"
         raise NotImplementedError(msg)

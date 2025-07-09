@@ -20,7 +20,7 @@ import ftplib
 import ssl
 from ftplib import FTP_TLS
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, BinaryIO, Optional
+from typing import TYPE_CHECKING, Any, BinaryIO
 
 from core.uploader.base import Uploader
 
@@ -53,7 +53,7 @@ class ImplicitFtpTls(ftplib.FTP_TLS):
         return self._sock
 
     @sock.setter
-    def sock(self, value: socket) -> None:
+    def sock(self, value: socket | None) -> None:
         """When modifying the socket, ensure that it is ssl wrapped."""
         if value is not None and not isinstance(value, ssl.SSLSocket):
             value = self.context.wrap_socket(value)
@@ -63,7 +63,7 @@ class ImplicitFtpTls(ftplib.FTP_TLS):
 class FTPSUploader(Uploader):
     """Upload strategy for an FTPS server."""
 
-    def __init__(self, project_slug: str, keyvault_alias: Optional[str]) -> None:
+    def __init__(self, project_slug: str, keyvault_alias: str | None) -> None:
         """Create instance of parent class"""
         super().__init__(project_slug, keyvault_alias)
 

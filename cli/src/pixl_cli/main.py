@@ -19,7 +19,7 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import click
 import requests
@@ -135,7 +135,7 @@ def populate(  # noqa: PLR0913 - too many args
     parquet_path: Path,
     *,
     queues: str,
-    rate: Optional[float],
+    rate: float | None,
     num_retries: int,
     start_processing: bool,
     priority: int,
@@ -225,7 +225,7 @@ def export_patient_data(parquet_dir: Path, timeout: int) -> None:
     default=None,
     help="Rate at which to process items from a queue (in items per second).",
 )
-def start(queues: str, rate: Optional[float]) -> None:
+def start(queues: str, rate: float | None) -> None:
     """Start consumers for a set of queues"""
     if rate == 0:
         msg = "Cannot start extract with a rate of 0. Must be >0"
@@ -247,18 +247,18 @@ def start(queues: str, rate: Optional[float]) -> None:
     required=True,
     help="Rate at which to process items from a queue (in items per second)",
 )
-def update(queues: str, rate: Optional[float]) -> None:
+def update(queues: str, rate: float | None) -> None:
     """Update one or a list of consumers with a defined rate"""
     _start_or_update_extract(queues=queues.split(","), rate=rate)
 
 
-def _start_or_update_extract(queues: list[str], rate: Optional[float]) -> None:
+def _start_or_update_extract(queues: list[str], rate: float | None) -> None:
     """Start or update the rate of extraction for a list of queue names"""
     for queue in queues:
         _update_extract_rate(queue_name=queue, rate=rate)
 
 
-def _update_extract_rate(queue_name: str, rate: Optional[float]) -> None:
+def _update_extract_rate(queue_name: str, rate: float | None) -> None:
     logger.info("Updating the extraction rate")
 
     api_config = api_config_for_queue(queue_name)

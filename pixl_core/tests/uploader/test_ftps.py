@@ -21,12 +21,13 @@ from pathlib import Path
 
 import pandas as pd
 import pytest
+from pydicom.uid import generate_uid
+from pytest_pixl.plugin import FtpHostAddress
+
 from core.db.models import Image
 from core.db.queries import update_exported_at
 from core.exports import ParquetExport
 from core.uploader._ftps import FTPSUploader
-from pydicom.uid import generate_uid
-from pytest_pixl.plugin import FtpHostAddress
 
 TEST_DIR = Path(__file__).parents[1]
 
@@ -42,13 +43,13 @@ class MockFTPSUploader(FTPSUploader):
         self.port = int(os.environ["FTP_PORT"])
 
 
-@pytest.fixture()
+@pytest.fixture
 def ftps_uploader() -> MockFTPSUploader:
     """Return a MockFTPSUploader object."""
     return MockFTPSUploader()
 
 
-@pytest.fixture()
+@pytest.fixture
 def ftps_home_dir(ftps_server) -> Path:
     """
     Return the FTPS server home directory, the ftps_server fixture already uses
@@ -63,7 +64,7 @@ def ftp_host_address():
     return FtpHostAddress.LOCALHOST
 
 
-@pytest.fixture()
+@pytest.fixture
 def zip_content() -> Generator:
     """Directory containing the test data for uploading to the ftp server."""
     test_zip_file = TEST_DIR / "data" / "public.zip"
@@ -107,7 +108,7 @@ def test_update_exported_and_save(rows_in_session) -> None:
     assert actual_export_time == expected_export_time
 
 
-@pytest.fixture()
+@pytest.fixture
 def parquet_export(export_dir) -> ParquetExport:
     """
     Return a ParquetExport object.

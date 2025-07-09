@@ -150,7 +150,7 @@ def exported_images_for_project(project_slug: str) -> list[Image]:
     PixlSession = sessionmaker(engine)
     with PixlSession() as session:
         return cast(
-            list[Image],
+            "list[Image]",
             session.query(Image)
             .join(Extract)
             .filter(Extract.slug == project_slug)

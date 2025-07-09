@@ -28,7 +28,7 @@ def _change_working_directory(monkeypatch) -> None:
     monkeypatch.chdir(PIXL_ROOT)
 
 
-@pytest.fixture()
+@pytest.fixture
 def default_args() -> list[str]:
     """Default arguments for the docker commands."""
     return ["--dry-run", "--env-file=test/.env"]

@@ -42,7 +42,7 @@ from utils import wait_for_images_to_be_exported
 pytest_plugins = "pytest_pixl"
 
 
-@pytest.fixture()
+@pytest.fixture
 def host_export_root_dir() -> Path:
     """Intermediate export dir as seen from the host"""
     return Path(__file__).parents[1] / "projects" / "exports"
@@ -228,7 +228,7 @@ def ftp_host_address() -> Any:
 @pytest.fixture(scope="session")
 def _export_patient_data(_setup_pixl_cli) -> None:  # type: ignore [no-untyped-def]
     """
-    run pixl export-patient-data. No subsequent wait is needed, because this API call
+    Run pixl export-patient-data. No subsequent wait is needed, because this API call
     is synchronous (whether that is itself wise is another matter).
     """
     run_subprocess(["pixl", "export-patient-data", str(RESOURCES_OMOP_DIR.absolute())], TEST_DIR)

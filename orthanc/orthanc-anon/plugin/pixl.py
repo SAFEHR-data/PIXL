@@ -106,7 +106,7 @@ def AzureAccessToken() -> str:
     response_json = response.json()
     # We may wish to make use of the "expires_in" (seconds) value
     # to refresh this token less aggressively
-    return cast(str, response_json["access_token"])
+    return cast("str", response_json["access_token"])
 
 
 TIMER = None
@@ -165,7 +165,7 @@ def AzureDICOMTokenRefresh() -> None:
         )
     except requests.exceptions.RequestException as e:
         orthanc.LogError("Failed to update DICOMweb token")
-        raise SystemExit(e)  # noqa: TRY200, B904
+        raise SystemExit(e)  # noqa: B904
 
     orthanc.LogWarning("Updated DICOMweb token")
 

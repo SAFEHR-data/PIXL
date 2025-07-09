@@ -1,59 +1,62 @@
 line-length = 100
 fix = true
 force-exclude = true
-namespace-packages = ["orthanc/orthanc-anon/plugin", "orthanc/orthanc-raw/plugin"]
+namespace-packages = [
+  "orthanc/orthanc-anon/plugin",
+  "orthanc/orthanc-raw/plugin",
+]
 lint.ignore = [
-    "ANN001", # missing type function argument
-    "ANN003", # missing type annotation **
-    "ANN101", # missng type annotation for `self`
-    "ANN102", # missing type annotation in classmethods
-    "ANN201", # missing return type annotation for public function
-    "ANN401", # dynamically typed expressions
-    "COM812", # trailing commas (ruff-format recommended)
-    "D205",   # 1 blank line required between summary and description
-    "D400",   # first line should end with a period
-    "D401",   # first lien of docstring should be imperative mood
-    "D404",   # first word of docsctring should not be "This"
-    "D415",   # first line should end with period, question mark or exclamation point
-    "D203", # no-blank-line-before-class
-    "D212", # multi-line-summary-first-line
-    "D407", # removed dashes lines under sections
-    "D417", # argument description in docstring (unreliable)
-    "ISC001", # simplify implicit str concatenation (ruff-format recommended)
-    "N802",   # Function name should be lowercase
-    "N806",   # Variable should be lowercase
-    "N803",   # Variable in function should be lowercase
-    "PLW0603", # Using the global statement is discouraged
-    "S311",   # Standard pseudo-random generators are not suitable for cryptographic purposes
-    "UP007",  # Use `X | Y` for type annotations
-    "TD002",  # missing author in #TODO
-    "TD004",  # missing colon in #TODO
-    "S608",   # possible SQL injection vectors (#FIXME)
+  "ANN001",   # missing type function argument
+  "ANN003",   # missing type annotation **
+  "ANN101",   # missng type annotation for `self`
+  "ANN102",   # missing type annotation in classmethods
+  "ANN201",   # missing return type annotation for public function
+  "ANN401",   # dynamically typed expressions
+  "ASYNC109", # Async function definition with a `timeout` parameter
+  "COM812",   # trailing commas (ruff-format recommended)
+  "D205",     # 1 blank line required between summary and description
+  "D400",     # first line should end with a period
+  "D401",     # first lien of docstring should be imperative mood
+  "D404",     # first word of docsctring should not be "This"
+  "D415",     # first line should end with period, question mark or exclamation point
+  "D203",     # no-blank-line-before-class
+  "D212",     # multi-line-summary-first-line
+  "D407",     # removed dashes lines under sections
+  "D417",     # argument description in docstring (unreliable)
+  "ISC001",   # simplify implicit str concatenation (ruff-format recommended)
+  "N802",     # Function name should be lowercase
+  "N806",     # Variable should be lowercase
+  "N803",     # Variable in function should be lowercase
+  "PLW0603",  # Using the global statement is discouraged
+  "S311",     # Standard pseudo-random generators are not suitable for cryptographic purposes
+  "UP007",    # Use `X | Y` for type annotations
+  "TD002",    # missing author in #TODO
+  "TD004",    # missing colon in #TODO
+  "S608",     # possible SQL injection vectors (#FIXME)
 ]
-lint.per-file-ignores = {"*test*" = [
-    "ARG001", # Unused function argument, fixtures can be used for their side effects
-    "INP001",
-    "S101",
+lint.per-file-ignores = { "*test*" = [
+  "ARG001", # Unused function argument, fixtures can be used for their side effects
+  "INP001",
+  "PT028",  # Test function parameter has default argument
+  "S101",
 ], "hooks*" = [
-    "INP001",
-    "T201",
+  "INP001",
+  "T201",
 ], "postgres/*" = [
-    "INP001",
-]}
-lint.select = [
-    "ALL",
-]
+  "INP001",
+] }
+lint.select = ["ALL"]
 target-version = "py311"
 lint.mccabe.max-complexity = 18
-exclude=["scripts"]
+exclude = ["scripts"]
 
 [lint.extend-per-file-ignores]
 "**/test*/*" = [
-    "PLR2004", #  Magic value used in comparison
-    "S105"  # harcoded password
+  "PLR2004", #  Magic value used in comparison
+  "S105",    # harcoded password
 ]
 "test/conftest.py" = [
-    "E402" # Module level import not at the top of the file
+  "E402", # Module level import not at the top of the file
 ]
 "hasher/tests/*" = ["ARG001"] #  unused function argument
 "env.py" = ["INP001", "E402", "ERA001"]

@@ -15,7 +15,6 @@
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Optional
 
 import click
 from loguru import logger
@@ -50,7 +49,7 @@ def _check_down_args(args: tuple[str, ...]) -> list:
     return list(args)
 
 
-def run_docker_compose(args: list, working_dir: Optional[Path]) -> None:
+def run_docker_compose(args: list, working_dir: Path | None) -> None:
     """Wrapper to run docker-compose through the CLI."""
     docker_cmd = shutil.which("docker")
 

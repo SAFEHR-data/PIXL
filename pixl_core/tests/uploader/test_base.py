@@ -15,12 +15,13 @@
 
 import pytest
 import sqlalchemy
+from loguru import logger
+from sqlalchemy.orm import sessionmaker
+
 from core.db.models import Image
 from core.uploader import DicomWebUploader, FTPSUploader, XNATUploader, get_uploader
 from core.uploader._orthanc import StudyTags
 from core.uploader.base import Uploader
-from loguru import logger
-from sqlalchemy.orm import sessionmaker
 
 
 class DumbUploader(Uploader):
