@@ -18,10 +18,10 @@ from __future__ import annotations
 
 import filecmp
 import zipfile
-from collections.abc import Generator
 from datetime import UTC, datetime
 from io import BytesIO
 from pathlib import Path
+from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
 import pandas as pd
@@ -32,6 +32,9 @@ from pydicom.uid import generate_uid
 from core.db.models import Image
 from core.db.queries import update_exported_at
 from core.uploader._treapi import TreApiUploader, _create_zip_archive
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 # Constants
 TEST_DIR = Path(__file__).parents[1]
@@ -105,7 +108,7 @@ def parquet_export(export_dir):
 
     Note: Import is done locally to avoid circular dependencies.
     """
-    from core.exports import ParquetExport
+    from core.exports import ParquetExport  # noqa: PLC0415
 
     return ParquetExport(
         project_name_raw="test-project",

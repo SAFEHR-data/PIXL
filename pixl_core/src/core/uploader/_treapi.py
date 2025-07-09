@@ -209,7 +209,8 @@ def _create_zip_archive(files: list[Path], root_dir: Path, zip_filename: str) ->
 
     Args:
         files: List of file paths to include in the archive
-        root_dir: Root directory for relative paths, used to preserve the directory structure of the input files
+        root_dir: Root directory for relative paths, used to preserve the
+            directory structure of the input files
         zip_filename: Filename for the output zip file
 
     Returns:
