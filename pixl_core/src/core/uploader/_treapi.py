@@ -98,7 +98,7 @@ class TreApiUploader(Uploader):
             raise FileNotFoundError(msg)
 
         # Create zip file
-        zip_filename = f"{source_root_dir}.zip"
+        zip_filename = f"{source_root_dir.name}.zip"
         zip_file = _create_zip_archive(source_files, source_root_dir, zip_filename)
 
         # Upload the zip file
