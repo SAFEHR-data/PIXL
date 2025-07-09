@@ -17,14 +17,17 @@
 import zipfile
 from io import BytesIO
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import requests
 
-from core.exports import ParquetExport
 from core.uploader._orthanc import StudyTags
 from core.uploader.base import Uploader
 
 from ._orthanc import get_study_zip_archive
+
+if TYPE_CHECKING:
+    from core.exports import ParquetExport
 
 TRE_API_URL = "https://api.tre.arc.ucl.ac.uk/v0"
 HTTP_OK = 200
@@ -56,7 +59,7 @@ class TreApiUploader(Uploader):
         self.send_via_api(zip_content, study_tags.pseudo_anon_image_id)
         self.flush()  # Not ideal, as this may cause multiple flushes in short period
 
-    def upload_parquet_files(self, parquet_export: ParquetExport) -> None:
+    def upload_parquet_files(self, parquet_export: "ParquetExport") -> None:
         """Upload parquet files as a zip archive to the ARC TRE API."""
         # Zip the files
         source_root_dir = parquet_export.current_extract_base
@@ -113,9 +116,9 @@ class TreApiUploader(Uploader):
             raise RuntimeError(msg)
 
 
-def _zip_files(files: list[Path], zip_filename: str) -> zipfile.Path:
+def _zip_files(files: list[Path], zip_filename: str) -> Path:
     """Create a zip file from a list of files."""
     with zipfile.ZipFile(zip_filename, "w", zipfile.ZIP_DEFLATED) as zipf:
         for file in files:
             zipf.write(file, arcname=file.name)
-    return zipfile.Path(zip_filename)
+    return Path(zip_filename)
