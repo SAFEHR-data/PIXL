@@ -13,8 +13,6 @@
 #  limitations under the License.
 """Patient queue tests"""
 
-# ruff: noqa: SLF001 allow accessing of private members for mocking
-
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

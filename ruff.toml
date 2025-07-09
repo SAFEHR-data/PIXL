@@ -39,6 +39,7 @@ lint.per-file-ignores = { "*test*" = [
   "INP001",
   "PT028",  # Test function parameter has default argument
   "S101",
+  "SLF001", # private member accessed
 ], "hooks*" = [
   "INP001",
   "T201",
