@@ -14,6 +14,8 @@
 
 """Uploader subclass for the ARC TRE API."""
 
+from __future__ import annotations
+
 import zipfile
 from io import BytesIO
 from pathlib import Path
@@ -21,104 +23,209 @@ from typing import TYPE_CHECKING
 
 import requests
 
-from core.uploader._orthanc import StudyTags
+from core.uploader._orthanc import StudyTags, get_study_zip_archive
 from core.uploader.base import Uploader
-
-from ._orthanc import get_study_zip_archive
 
 if TYPE_CHECKING:
     from core.exports import ParquetExport
 
+# API Configuration
 TRE_API_URL = "https://api.tre.arc.ucl.ac.uk/v0"
+REQUEST_TIMEOUT = 10
+
+# HTTP Status Codes
 HTTP_OK = 200
 HTTP_CREATED = 201
 
 
 class TreApiUploader(Uploader):
-    """Uploader subclass for the ARC TRE API."""
+    """
+    Uploader for the ARC TRE API.
 
-    def __init__(self, project_slug: str, keyvault_alias: str | None) -> None:
-        """Initialize the TreApiUploader with the given configuration."""
+    This uploader handles uploading DICOM images and parquet files to the ARC TRE
+    via their REST API. Files are uploaded to an airlock and then flushed to the
+    main project storage.
+    """
+
+    def __init__(self, project_slug: str, keyvault_alias: str | None = None) -> None:
+        """
+        Initialize the TRE API uploader.
+
+        Args:
+            project_slug: The project identifier
+            keyvault_alias: Optional Azure Key Vault alias for authentication
+
+        """
         super().__init__(project_slug, keyvault_alias)
         self.host = TRE_API_URL
 
     def _set_config(self) -> None:
+        """Set up authentication configuration from Azure Key Vault."""
         # Use the Azure KV alias as prefix if it exists, otherwise use the project name
-        az_prefix = self.keyvault_alias
-        az_prefix = az_prefix if az_prefix else self.project_slug
-        self.token = self.keyvault.fetch_secret(f"{az_prefix}--ftp--token")  # TRE API token
+        prefix = self.keyvault_alias or self.project_slug
+        self.token = self.keyvault.fetch_secret(f"{prefix}--ftp--token")
         self.headers = {"Authorization": f"Bearer {self.token}"}
 
-    def _upload_dicom_image(
-        self,
-        study_id: str,
-        study_tags: StudyTags,
-    ) -> None:
-        """Upload a DICOM image to the TRE API."""
+    def _upload_dicom_image(self, study_id: str, study_tags: StudyTags) -> None:
+        """
+        Upload a DICOM image to the TRE API.
+
+        Args:
+            study_id: The study identifier
+            study_tags: Study metadata containing the pseudo anonymized ID
+
+        """
         zip_content = get_study_zip_archive(study_id)
         self.send_via_api(zip_content, study_tags.pseudo_anon_image_id)
         self.flush()  # Not ideal, as this may cause multiple flushes in short period
 
-    def upload_parquet_files(self, parquet_export: "ParquetExport") -> None:
-        """Upload parquet files as a zip archive to the ARC TRE API."""
-        # Zip the files
+    def upload_parquet_files(self, parquet_export: ParquetExport) -> None:
+        """
+        Upload parquet files as a zip archive to the TRE API.
+
+        Args:
+            parquet_export: The parquet export containing files to upload
+
+        Raises:
+            FileNotFoundError: If no parquet files are found in the export
+
+        """
         source_root_dir = parquet_export.current_extract_base
-        source_files = [x for x in source_root_dir.rglob("*.parquet") if x.is_file()]
+        source_files = list(source_root_dir.rglob("*.parquet"))
+
         if not source_files:
-            msg = f"No files found in {source_root_dir}"
+            msg = f"No parquet files found in {source_root_dir}"
             raise FileNotFoundError(msg)
-        zip_file = _zip_files(source_files, f"{parquet_export.current_extract_base}.zip")
+
+        # Create zip file
+        zip_filename = f"{source_root_dir}.zip"
+        zip_file = _create_zip_archive(source_files, zip_filename)
 
         # Upload the zip file
         self.send_via_api(BytesIO(zip_file.read_bytes()), zip_file.name)
         self.flush()  # Not ideal, as this may cause multiple flushes in short period
 
     def send_via_api(self, data: BytesIO, filename: str) -> None:
-        """Upload data to the ARC TRE API."""
-        if self._token_info_status() != HTTP_OK:
+        """
+        Upload data to the TRE API.
+
+        Args:
+            data: The data to upload as a BytesIO stream
+            filename: The filename for the uploaded data
+
+        Raises:
+            RuntimeError: If the token is invalid or upload fails
+
+        """
+        if not self._is_token_valid():
             msg = f"Token invalid: {self.token}"
             raise RuntimeError(msg)
 
         self._upload_file(data, filename)
 
-    def _token_info_status(self) -> int:
-        """Get the status of the token."""
-        response = requests.get(url=f"{self.host}/tokens/info", headers=self.headers, timeout=10)
-        response.raise_for_status()
-        return response.status_code
+    def _is_token_valid(self) -> bool:
+        """
+        Check if the current token is valid.
+
+        Returns:
+            True if the token is valid, False otherwise
+
+        """
+        try:
+            response = requests.get(
+                url=f"{self.host}/tokens/info",
+                headers=self.headers,
+                timeout=REQUEST_TIMEOUT,
+            )
+            response.raise_for_status()
+        except requests.RequestException:
+            return False
+        else:
+            return response.status_code == HTTP_OK
 
     def _upload_file(self, content: BytesIO, filename: str) -> None:
-        """Upload a file into the TRE airlock."""
-        response = requests.post(
-            url=f"{self.host}/airlock/upload/{filename}",
-            headers=self.headers,
-            data=content,
-            timeout=10,
-        )
-        response.raise_for_status()
-        if response.status_code != HTTP_CREATED:
-            msg = f"Failed to upload file. Response: {response}"
-            raise RuntimeError(msg)
+        """
+        Upload a file to the TRE airlock.
+
+        Args:
+            content: The file content as a BytesIO stream
+            filename: The filename for the uploaded file
+
+        Raises:
+            RuntimeError: If the upload fails
+
+        """
+        try:
+            response = requests.post(
+                url=f"{self.host}/airlock/upload/{filename}",
+                headers=self.headers,
+                data=content,
+                timeout=REQUEST_TIMEOUT,
+            )
+            response.raise_for_status()
+
+            if response.status_code != HTTP_CREATED:
+                msg = f"Upload failed with status {response.status_code}: {response.text}"
+                raise RuntimeError(msg)
+
+        except requests.RequestException as e:
+            msg = f"Failed to upload file {filename}: {e}"
+            raise RuntimeError(msg) from e
 
     def flush(self) -> None:
         """
-        Flush the TRE airlock to move files into the main project storage.
-        Calling flush scans and moves the files in quarantine storage into
-        the associated project storage. This happens asynchronously
-        This is an *expensive* operation so please call with a delay suitable
-        for your project e.g. once per day.
-        NOTE: Files will be deleted if they aren't moved within 7 days
+        Flush the TRE airlock to move files to main project storage.
+
+        This operation scans and moves files from quarantine storage to the
+        associated project storage. The operation is asynchronous and expensive,
+        so it should be called sparingly (e.g., once per day).
+
+        Note: Files are automatically deleted if not moved within 7 days.
+
+        Raises:
+            RuntimeError: If the flush operation fails
+
         """
-        response = requests.put(f"{self.host}/airlock/flush", headers=self.headers, timeout=10)
-        response.raise_for_status()
-        if response.status_code != HTTP_CREATED:
-            msg = f"Failed to flush. Response: {response}"
-            raise RuntimeError(msg)
+        try:
+            response = requests.put(
+                url=f"{self.host}/airlock/flush",
+                headers=self.headers,
+                timeout=REQUEST_TIMEOUT,
+            )
+            response.raise_for_status()
+
+            if response.status_code != HTTP_CREATED:
+                msg = f"Flush failed with status {response.status_code}: {response.text}"
+                raise RuntimeError(msg)
+
+        except requests.RequestException as e:
+            msg = f"Failed to flush airlock: {e}"
+            raise RuntimeError(msg) from e
 
 
-def _zip_files(files: list[Path], zip_filename: str) -> Path:
-    """Create a zip file from a list of files."""
-    with zipfile.ZipFile(zip_filename, "w", zipfile.ZIP_DEFLATED) as zipf:
-        for file in files:
-            zipf.write(file, arcname=file.name)
-    return Path(zip_filename)
+def _create_zip_archive(files: list[Path], zip_filename: str) -> Path:
+    """
+    Create a zip archive from a list of files.
+
+    Args:
+        files: List of file paths to include in the archive
+        zip_filename: Filename for the output zip file
+
+    Returns:
+        Path to the created zip file
+
+    Raises:
+        OSError: If zip file creation fails
+
+    """
+    zip_path = Path(zip_filename)
+
+    try:
+        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
+            for file_path in files:
+                zipf.write(file_path, arcname=file_path.name)
+    except OSError as e:
+        msg = f"Failed to create zip file {zip_filename}: {e}"
+        raise OSError(msg) from e
+
+    return zip_path
