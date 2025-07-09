@@ -25,13 +25,14 @@ import pytest
 from core.exceptions import PixlDiscardError, PixlOutOfHoursError, PixlStudyNotInPrimaryArchiveError
 from core.patient_queue.message import Message
 from decouple import config
-from pixl_imaging._orthanc import Orthanc, PIXLRawOrthanc
-from pixl_imaging._processing import DicomModality, ImagingStudy, process_message
 from pydicom import dcmread
 from pydicom.data import get_testdata_file
 from pydicom.uid import generate_uid
 from pytest_check import check
 from pytest_pixl.helpers import run_subprocess
+
+from pixl_imaging._orthanc import Orthanc, PIXLRawOrthanc
+from pixl_imaging._processing import DicomModality, ImagingStudy, process_message
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -256,7 +257,7 @@ def _add_image_to_fake_pacs(run_containers) -> Generator[None]:
     pathlib.Path(image_filename).unlink(missing_ok=True)
 
 
-@pytest.fixture()
+@pytest.fixture
 async def orthanc_raw(run_containers) -> PIXLRawOrthanc:
     """Set up orthanc raw and remove all studies in teardown."""
     orthanc_raw = PIXLRawOrthanc()
@@ -268,8 +269,8 @@ async def orthanc_raw(run_containers) -> PIXLRawOrthanc:
             await orthanc_raw.delete(f"/studies/{study}")
 
 
-@pytest.mark.processing()
-@pytest.mark.asyncio()
+@pytest.mark.processing
+@pytest.mark.asyncio
 @pytest.mark.usefixtures("_add_image_to_fake_vna")
 async def test_image_saved(orthanc_raw, message: Message) -> None:
     """
@@ -308,8 +309,8 @@ async def test_image_saved(orthanc_raw, message: Message) -> None:
         )
 
 
-@pytest.mark.processing()
-@pytest.mark.asyncio()
+@pytest.mark.processing
+@pytest.mark.asyncio
 @pytest.mark.usefixtures("_add_image_to_fake_vna")
 async def test_message_with_series_uids(
     orthanc_raw, message_with_series_uids: Message, caplog
@@ -345,8 +346,8 @@ async def test_message_with_series_uids(
             )
 
 
-@pytest.mark.processing()
-@pytest.mark.asyncio()
+@pytest.mark.processing
+@pytest.mark.asyncio
 @pytest.mark.usefixtures("_add_image_to_fake_vna")
 async def test_message_with_one_series_uid(
     orthanc_raw, message_with_single_series_uid: Message, caplog
@@ -378,8 +379,8 @@ async def test_message_with_one_series_uid(
         assert series_info["MainDicomTags"]["SeriesInstanceUID"] == SERIES_UID
 
 
-@pytest.mark.processing()
-@pytest.mark.asyncio()
+@pytest.mark.processing
+@pytest.mark.asyncio
 @pytest.mark.usefixtures("_add_image_to_fake_vna")
 async def test_partial_retrieve(orthanc_raw, message: Message, caplog) -> None:
     """
@@ -420,8 +421,8 @@ async def test_partial_retrieve(orthanc_raw, message: Message, caplog) -> None:
     assert expected_msg in caplog.text
 
 
-@pytest.mark.processing()
-@pytest.mark.asyncio()
+@pytest.mark.processing
+@pytest.mark.asyncio
 @pytest.mark.usefixtures("_add_image_to_fake_vna")
 async def test_existing_message_sent_twice(orthanc_raw, message: Message) -> None:
     """
@@ -470,8 +471,8 @@ async def test_existing_message_sent_twice(orthanc_raw, message: Message) -> Non
         )
 
 
-@pytest.mark.processing()
-@pytest.mark.asyncio()
+@pytest.mark.processing
+@pytest.mark.asyncio
 @pytest.mark.usefixtures("_add_image_to_fake_vna")
 async def test_querying_without_uid(orthanc_raw, caplog, no_uid_message: Message) -> None:
     """
@@ -511,8 +512,8 @@ class Saturday2AM(datetime.datetime):
         return datetime.datetime(2024, 1, 6, 2, 0, tzinfo=tz)
 
 
-@pytest.mark.processing()
-@pytest.mark.asyncio()
+@pytest.mark.processing
+@pytest.mark.asyncio
 @pytest.mark.usefixtures("_add_image_to_fake_pacs")
 async def test_querying_pacs_with_uid(
     orthanc_raw, caplog, monkeypatch, pacs_message: Message
@@ -551,8 +552,8 @@ async def test_querying_pacs_with_uid(
     assert unexpected_msg not in caplog.text
 
 
-@pytest.mark.processing()
-@pytest.mark.asyncio()
+@pytest.mark.processing
+@pytest.mark.asyncio
 @pytest.mark.usefixtures("_add_image_to_fake_pacs")
 async def test_querying_pacs_without_uid(
     orthanc_raw, caplog, monkeypatch, pacs_no_uid_message: Message
@@ -588,8 +589,8 @@ async def test_querying_pacs_without_uid(
     assert expected_msg in caplog.text
 
 
-@pytest.mark.processing()
-@pytest.mark.asyncio()
+@pytest.mark.processing
+@pytest.mark.asyncio
 async def test_querying_missing_image(orthanc_raw, monkeypatch, missing_message: Message) -> None:
     """
     Given a message for a study that is missing in both the VNA and PACS,
@@ -615,8 +616,8 @@ async def test_querying_missing_image(orthanc_raw, monkeypatch, missing_message:
         await process_message(missing_message, archive=DicomModality.secondary)
 
 
-@pytest.mark.processing()
-@pytest.mark.asyncio()
+@pytest.mark.processing
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "query_date",
     [
@@ -643,8 +644,8 @@ async def test_querying_pacs_during_working_hours(
         await process_message(missing_message, archive=DicomModality.secondary)
 
 
-@pytest.mark.processing()
-@pytest.mark.asyncio()
+@pytest.mark.processing
+@pytest.mark.asyncio
 async def test_querying_pacs_not_defined(
     orthanc_raw, monkeypatch, missing_message: Message
 ) -> None:

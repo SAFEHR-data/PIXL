@@ -20,7 +20,7 @@ import ftplib
 import ssl
 from ftplib import FTP_TLS
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, BinaryIO, Optional
+from typing import TYPE_CHECKING, Any, BinaryIO
 
 from core.uploader.base import Uploader
 
@@ -63,7 +63,7 @@ class ImplicitFtpTls(ftplib.FTP_TLS):
 class FTPSUploader(Uploader):
     """Upload strategy for an FTPS server."""
 
-    def __init__(self, project_slug: str, keyvault_alias: Optional[str]) -> None:
+    def __init__(self, project_slug: str, keyvault_alias: str | None) -> None:
         """Create instance of parent class"""
         super().__init__(project_slug, keyvault_alias)
 

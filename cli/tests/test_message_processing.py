@@ -24,13 +24,13 @@ from core.patient_queue.producer import PixlProducer
 from pixl_cli._message_processing import retry_until_export_count_is_unchanged
 
 
-@pytest.fixture()
+@pytest.fixture
 def _zero_message_count(monkeypatch: MonkeyPatch) -> None:
     """Ensure that message count is always zero, so that we don't have to deal with rabbitmq"""
     monkeypatch.setattr("pixl_cli._message_processing._message_count", lambda _: 0)
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_publisher(mocker) -> Generator[Mock, None, None]:
     """Patched publisher that does nothing, returns MagicMock of the publish method."""
     mocker.patch.object(PixlProducer, "__init__", return_value=None)

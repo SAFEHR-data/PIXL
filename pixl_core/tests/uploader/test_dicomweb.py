@@ -19,9 +19,10 @@ import time
 
 import pytest
 import requests
+from decouple import config  # type ignore [import-untyped]
+
 from core.uploader._dicomweb import DicomWebUploader
 from core.uploader._orthanc import StudyTags
-from decouple import config  # type ignore [import-untyped]
 
 ORTHANC_ANON_URL = config("ORTHANC_ANON_URL")
 ORTHANC_USERNAME = config("ORTHANC_ANON_USERNAME")
@@ -51,7 +52,7 @@ class MockDicomWebUploader(DicomWebUploader):
         self.http_timeout = 30
 
 
-@pytest.fixture()
+@pytest.fixture
 def dicomweb_uploader() -> MockDicomWebUploader:
     """Fixture to return a mock DicomWebUploader."""
     return MockDicomWebUploader()

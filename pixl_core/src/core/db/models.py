@@ -16,8 +16,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 from sqlalchemy import MetaData
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.schema import ForeignKey
@@ -52,12 +50,12 @@ class Image(Base):
     accession_number: Mapped[str]
     study_date: Mapped[Date] = mapped_column(Date())
     mrn: Mapped[str]
-    study_uid: Mapped[Optional[str]]
-    pseudo_study_uid: Mapped[Optional[str]]
+    study_uid: Mapped[str | None]
+    pseudo_study_uid: Mapped[str | None]
     exported_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), nullable=True)
     extract: Mapped[Extract] = relationship()
     extract_id: Mapped[int] = mapped_column(ForeignKey("extract.extract_id"))
-    pseudo_patient_id: Mapped[Optional[str]]
+    pseudo_patient_id: Mapped[str | None]
 
     def __repr__(self) -> str:
         """Nice representation for printing."""

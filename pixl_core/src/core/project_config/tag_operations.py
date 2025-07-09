@@ -19,7 +19,7 @@ anonymisation together with a loader function.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 import yaml
 from pydantic import BaseModel, field_validator
@@ -61,7 +61,7 @@ class TagOperations(BaseModel):
     """
 
     base: list[list[dict]]
-    manufacturer_overrides: Optional[list[list[dict]]]
+    manufacturer_overrides: list[list[dict]] | None
 
     @field_validator("base")
     @classmethod
@@ -77,8 +77,8 @@ class TagOperations(BaseModel):
     @field_validator("manufacturer_overrides")
     @classmethod
     def _valid_manufacturer_overrides(
-        cls, manufacturer_overrides: Optional[list[list[dict]]]
-    ) -> Optional[list[list[dict]]]:
+        cls, manufacturer_overrides: list[list[dict]] | None
+    ) -> list[list[dict]] | None:
         if manufacturer_overrides is None:
             return None
         for manufacturer_override in manufacturer_overrides:

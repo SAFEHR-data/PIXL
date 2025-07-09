@@ -32,7 +32,7 @@ pytest_plugins = "pytest_pixl"
 SECONDS_TO_WAIT_FOR_CONDITION = 251
 
 
-@pytest.fixture()
+@pytest.fixture
 def expected_studies() -> dict[int, dict]:
     """Expected study metadata post-anonymisation."""
     return {
@@ -55,7 +55,7 @@ def expected_studies() -> dict[int, dict]:
     }
 
 
-@pytest.fixture()
+@pytest.fixture
 def expected_instances_for_series_querying(request: pytest.FixtureRequest) -> set[tuple[str, str]]:
     """Expected study metadata post-anonymisation when querying at the Series level."""
     # tuple made up of (AccessionNumber, SeriesDescription)

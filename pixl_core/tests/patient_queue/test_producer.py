@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import pytest
+
 from core.patient_queue.producer import PixlProducer
 
 TEST_QUEUE = "test_publish"

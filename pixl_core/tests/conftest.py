@@ -22,12 +22,13 @@ from typing import TYPE_CHECKING
 
 import pytest
 import requests
-from core.db.models import Base, Extract, Image
-from core.patient_queue.message import Message
 from pydicom.uid import generate_uid
 from pytest_pixl.helpers import run_subprocess
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
+
+from core.db.models import Base, Extract, Image
+from core.patient_queue.message import Message
 
 if TYPE_CHECKING:
     import subprocess
@@ -133,7 +134,7 @@ def db_engine(monkeymodule) -> Generator[Engine, None, None]:
     Base.metadata.drop_all(engine)
 
 
-@pytest.fixture()
+@pytest.fixture
 def db_session(db_engine) -> Generator[Session, None, None]:
     """
     Creates a session for interacting with an in memory database.
@@ -152,7 +153,7 @@ def db_session(db_engine) -> Generator[Session, None, None]:
     session.close()
 
 
-@pytest.fixture()
+@pytest.fixture
 def rows_in_session(db_session) -> Session:
     """Insert a test row for each table, returning the session for use in tests."""
     extract = Extract(slug="i-am-a-project")
@@ -181,7 +182,7 @@ def rows_in_session(db_session) -> Session:
     return db_session
 
 
-@pytest.fixture()
+@pytest.fixture
 def not_yet_exported_dicom_image(rows_in_session) -> Image:
     """Return a DICOM image from the database."""
     return (
@@ -191,7 +192,7 @@ def not_yet_exported_dicom_image(rows_in_session) -> Image:
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def already_exported_dicom_image(rows_in_session) -> Image:
     """Return a DICOM image from the database."""
     return (
@@ -209,7 +210,7 @@ def export_dir(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
     return export_dir
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_message() -> Message:
     """An example Message used for testing"""
     return Message(

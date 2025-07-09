@@ -19,4 +19,4 @@
 from core.project_config.pixl_config_model import PixlConfig, load_project_config
 from core.project_config.tag_operations import TagOperations, load_tag_operations
 
-__all__ = ["PixlConfig", "load_project_config", "TagOperations", "load_tag_operations"]
+__all__ = ["PixlConfig", "TagOperations", "load_project_config", "load_tag_operations"]

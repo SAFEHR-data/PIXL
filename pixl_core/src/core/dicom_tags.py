@@ -23,7 +23,7 @@ For now you will have to manually keep these in step.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 from pydicom import Dataset
 
@@ -52,7 +52,7 @@ class PrivateDicomTag:
     # LO = Long string max 64
     # https://dicom.nema.org/medical/dicom/current/output/chtml/part05/sect_6.2.html
     vr: str
-    unknown_value: Optional[str | bytes] = "__pixl_unknown_value__"
+    unknown_value: str | bytes | None = "__pixl_unknown_value__"
 
     def acceptable_private_block(self, actual_private_block: int) -> bool:
         """
@@ -68,7 +68,7 @@ class PrivateDicomTag:
 
 
 def add_private_tag(
-    dataset: Dataset, private_tag: PrivateDicomTag, value: Optional[str | bytes] = None
+    dataset: Dataset, private_tag: PrivateDicomTag, value: str | bytes | None = None
 ) -> PrivateBlock:
     """
     Add a private tag to an existing DICOM dataset.

@@ -16,6 +16,7 @@ from pathlib import Path
 
 import pytest
 from conftest import TEST_DIR
+
 from pytest_pixl.dicom import _create_default_json
 from pytest_pixl.plugin import FtpHostAddress
 

@@ -14,7 +14,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import psycopg2 as pypg
 from decouple import config
@@ -28,11 +28,11 @@ class Database:
 
     def __init__(
         self,
-        db_name: Optional[str] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
-        host: Optional[str] = None,
-        port: Optional[int] = 4567,
+        db_name: str | None = None,
+        username: str | None = None,
+        password: str | None = None,
+        host: str | None = None,
+        port: int | None = 4567,
     ) -> None:
         connection_string = (
             f"dbname={db_name} user={username} password={password} host={host} port={port}"
@@ -42,7 +42,7 @@ class Database:
 
 
 class QueryableDatabase(Database):
-    def execute(self, query: SQLQuery) -> Optional[tuple]:
+    def execute(self, query: SQLQuery) -> tuple | None:
         """Execute an sql query"""
         # logger.debug(f"Running query: \n"
         #             f"{self._cursor.mogrify(str(query), vars=query.values).decode()}")

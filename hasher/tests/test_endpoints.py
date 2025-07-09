@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 from fastapi.testclient import TestClient
+
 from hasher.main import app  # type: ignore [import-untyped]
 
 client = TestClient(app)

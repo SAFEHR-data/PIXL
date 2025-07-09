@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import requests
 from decouple import config  # type: ignore [import-untyped]
@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 class DicomWebUploader(Uploader):
     """Upload strategy for a DicomWeb server."""
 
-    def __init__(self, project_slug: str, keyvault_alias: Optional[str]) -> None:
+    def __init__(self, project_slug: str, keyvault_alias: str | None) -> None:
         """Create instance of parent class"""
         super().__init__(project_slug, keyvault_alias)
 

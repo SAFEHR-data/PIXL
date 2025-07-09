@@ -69,7 +69,7 @@ def ftps_server(
     ftps_server.server.close_all()
 
 
-@pytest.fixture()
+@pytest.fixture
 def omop_resources() -> Path:
     """Dummy OMOP resources for tests."""
     traversable = resources.files("pytest_pixl").joinpath("data/omop-resources")

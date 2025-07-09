@@ -19,7 +19,7 @@ from __future__ import annotations
 import re
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import yaml
 from decouple import Config, RepositoryEmpty, RepositoryEnv
@@ -58,7 +58,7 @@ def load_config_and_validate(filename: Path) -> PixlConfig | Any:
 
 class _Project(BaseModel):
     name: str
-    azure_kv_alias: Optional[str] = None
+    azure_kv_alias: str | None = None
     modalities: list[str]
 
 
@@ -76,7 +76,7 @@ class TagOperationFiles(BaseModel):
     """Tag operations files for a project. At least a base file is required."""
 
     base: list[Path]
-    manufacturer_overrides: Optional[list[Path]]
+    manufacturer_overrides: list[Path] | None
 
     @field_validator("base")
     @classmethod
@@ -98,7 +98,7 @@ class TagOperationFiles(BaseModel):
 
     @field_validator("manufacturer_overrides")
     @classmethod
-    def _valid_manufacturer_overrides(cls, tag_files: list[str]) -> Optional[list[Path]]:
+    def _valid_manufacturer_overrides(cls, tag_files: list[str]) -> list[Path] | None:
         if not tag_files:
             return None
 
@@ -144,8 +144,8 @@ class PixlConfig(BaseModel):
     """Project-specific configuration for Pixl."""
 
     project: _Project
-    min_instances_per_series: Optional[int] = 2
-    series_filters: Optional[list[str]] = []  # pydantic makes a deep copy of the empty default list
+    min_instances_per_series: int | None = 2
+    series_filters: list[str] | None = []  # pydantic makes a deep copy of the empty default list
     allowed_manufacturers: list[Manufacturer] = [Manufacturer()]
     tag_operation_files: TagOperationFiles
     destination: _Destination

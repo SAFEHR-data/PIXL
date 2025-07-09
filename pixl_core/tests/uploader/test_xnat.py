@@ -21,6 +21,7 @@ from pathlib import Path
 import pytest
 import xnat
 import xnat4tests
+
 from core.uploader._orthanc import StudyTags
 from core.uploader._xnat import XNATUploader
 
@@ -48,13 +49,13 @@ def xnat_project_slug() -> str:
     return "some-project-slug"
 
 
-@pytest.fixture()
+@pytest.fixture
 def xnat_uploader(xnat_project_slug) -> MockXNATUploader:
     """Return a MockXNATUploader object."""
     return MockXNATUploader(project_slug=xnat_project_slug)
 
 
-@pytest.fixture()
+@pytest.fixture
 def zip_parquet() -> Generator:
     """Directory containing parquet test data."""
     test_zip_file = TEST_DIR / "data" / "public.zip"
@@ -62,7 +63,7 @@ def zip_parquet() -> Generator:
         yield file_content
 
 
-@pytest.fixture()
+@pytest.fixture
 def zip_dicoms() -> Generator:
     """
     Zip file containing the test DICOMs for uploading to the XNAT instance.
