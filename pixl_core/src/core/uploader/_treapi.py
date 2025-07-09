@@ -203,12 +203,13 @@ class TreApiUploader(Uploader):
             raise RuntimeError(msg) from e
 
 
-def _create_zip_archive(files: list[Path], zip_filename: str) -> Path:
+def _create_zip_archive(files: list[Path], root_dir: Path, zip_filename: str) -> Path:
     """
     Create a zip archive from a list of files.
 
     Args:
         files: List of file paths to include in the archive
+        root_dir: Root directory for relative paths, used to preserve the directory structure of the input files
         zip_filename: Filename for the output zip file
 
     Returns:
@@ -223,7 +224,8 @@ def _create_zip_archive(files: list[Path], zip_filename: str) -> Path:
     try:
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
             for file_path in files:
-                zipf.write(file_path, arcname=file_path.name)
+                source_rel_path = file_path.relative_to(root_dir)
+                zipf.write(file_path, arcname=source_rel_path)
     except OSError as e:
         msg = f"Failed to create zip file {zip_filename}: {e}"
         raise OSError(msg) from e

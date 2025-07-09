@@ -16,6 +16,7 @@
 
 from __future__ import annotations
 
+import filecmp
 import zipfile
 from collections.abc import Generator
 from datetime import UTC, datetime
@@ -272,26 +273,31 @@ class TestDatabaseOperations:
 class TestUtilityFunctions:
     """Test suite for utility functions."""
 
-    def test_create_zip_archive(self, tmp_path) -> None:
-        """Test zip archive creation from files."""
+    def test_create_zip_archive_preserves_dir_structure(self, tmp_path) -> None:
+        """Test zip archive creation with directory structure."""
         # Arrange
         test_files = self._create_test_files(tmp_path)
-        zip_filename = str(tmp_path / "test_archive.zip")
+        zip_filename = str(tmp_path / "dir_structure.zip")
 
         # Act
-        zip_path = _create_zip_archive(test_files, zip_filename)
+        zip_path = _create_zip_archive(test_files, self.root_dir, zip_filename)
 
         # Assert
         assert zip_path.exists()
-        assert zip_path.name == "test_archive.zip"
         assert zipfile.is_zipfile(str(zip_path))
 
-        # Verify archive contents
+        # Extract archive and verify contents
+        extract_path = tmp_path / "extracted"
         with zipfile.ZipFile(str(zip_path), "r") as zipf:
-            archived_files = zipf.namelist()
-            assert "file1.txt" in archived_files
-            assert "file2.txt" in archived_files
-            assert len(archived_files) == 2
+            zipf.extractall(extract_path)
+
+        # Print difference report to aid debugging (it doesn't actually assert anything)
+        dc = filecmp.dircmp(tmp_path / self.root_dir, extract_path)
+        dc.report_full_closure()
+
+        assert extract_path.exists()
+        assert (extract_path / "dir1" / "file1.txt").exists()
+        assert (extract_path / "dir2" / "subdir" / "file2.txt").exists()
 
     def test_create_zip_archive_empty_files(self, tmp_path) -> None:
         """Test zip archive creation with empty file list."""
