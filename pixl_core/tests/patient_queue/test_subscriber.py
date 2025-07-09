@@ -53,8 +53,8 @@ async def test_create(mock_message) -> None:
         # Cancel before assertion so the task doesn't hang
         task.cancel()
         # need to close the connection and channel
-        await consumer._channel.close()  # noqa: SLF001
-        await consumer._connection.close()  # noqa: SLF001
+        await consumer._channel.close()
+        await consumer._connection.close()
         consume.assert_called_once()
     # Fail on purpose to check async test awaited
     raise ExpectedTestError
