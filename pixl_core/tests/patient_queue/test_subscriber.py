@@ -17,6 +17,7 @@ import asyncio
 from unittest.mock import AsyncMock
 
 import pytest
+
 from core.patient_queue.producer import PixlProducer
 from core.patient_queue.subscriber import PixlConsumer
 from core.token_buffer.tokens import TokenBucket
@@ -28,7 +29,7 @@ class ExpectedTestError(Exception):
     """Expected error for testing."""
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 @pytest.mark.usefixtures("run_containers")
 @pytest.mark.xfail(
     reason="Sanity check that async test gets run", strict=True, raises=ExpectedTestError

@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from core.rest_api.router import state
 from fastapi.testclient import TestClient
+
 from pixl_export.main import app
 
 AppState = state.__class__

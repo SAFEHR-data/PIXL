@@ -106,7 +106,7 @@ def AzureAccessToken() -> str:
     response_json = response.json()
     # We may wish to make use of the "expires_in" (seconds) value
     # to refresh this token less aggressively
-    return cast(str, response_json["access_token"])
+    return cast("str", response_json["access_token"])
 
 
 TIMER = None
@@ -165,7 +165,7 @@ def AzureDICOMTokenRefresh() -> None:
         )
     except requests.exceptions.RequestException as e:
         orthanc.LogError("Failed to update DICOMweb token")
-        raise SystemExit(e)  # noqa: TRY200, B904
+        raise SystemExit(e)  # noqa: B904
 
     orthanc.LogWarning("Updated DICOMweb token")
 
@@ -222,16 +222,22 @@ def ImportStudiesFromRaw(output, uri, **request):  # noqa: ARG001
     payload = json.loads(request["body"])
     study_resource_ids = payload["ResourceIDs"]
     study_uids = payload["StudyInstanceUIDs"]
+    series_to_keep = payload["SeriesInstanceUIDs"]
     project_name = payload["ProjectName"]
 
-    executor.submit(_import_studies_from_raw, study_resource_ids, study_uids, project_name)
+    executor.submit(
+        _import_studies_from_raw, study_resource_ids, study_uids, project_name, series_to_keep
+    )
 
     response = json.dumps({"Message": "Ok"})
     output.AnswerBuffer(response, "application/json")
 
 
 def _import_studies_from_raw(
-    study_resource_ids: list[str], study_uids: list[str], project_name: str
+    study_resource_ids: list[str],
+    study_uids: list[str],
+    project_name: str,
+    series_to_keep: list[str],
 ) -> None:
     """
     Import studies from Orthanc Raw.
@@ -250,7 +256,9 @@ def _import_studies_from_raw(
 
     for study_resource_id, study_uid in zip(study_resource_ids, study_uids, strict=False):
         logger.debug("Processing project '{}', study '{}' ", project_name, study_uid)
-        anonymised_uid = _anonymise_study_and_upload(study_resource_id, project_name)
+        anonymised_uid = _anonymise_study_and_upload(
+            study_resource_id, project_name, series_to_keep
+        )
         if anonymised_uid:
             anonymised_study_uids.append(anonymised_uid)
 
@@ -274,7 +282,11 @@ def _import_studies_from_raw(
         send_study(study_id=resource_id, project_name=project_name)
 
 
-def _anonymise_study_and_upload(study_resource_id: str, project_name: str) -> str | None:
+def _anonymise_study_and_upload(
+    study_resource_id: str,
+    project_name: str,
+    series_to_keep: list[str],
+) -> str | None:
     zipped_study_bytes = get_study_zip_archive_from_raw(resource_id=study_resource_id)
 
     study_info = _get_study_info_from_first_file(zipped_study_bytes)
@@ -286,6 +298,7 @@ def _anonymise_study_and_upload(study_resource_id: str, project_name: str) -> st
                 zipped_study=zipped_study,
                 study_info=study_info,
                 project_name=project_name,
+                series_to_keep=series_to_keep,
             )
         except PixlDiscardError as discard:
             logger.warning(
@@ -322,7 +335,10 @@ def _get_study_info_from_first_file(zipped_study_bytes) -> StudyInfo:
 
 
 def _anonymise_study_instances(
-    zipped_study: ZipFile, study_info: StudyInfo, project_name: str
+    zipped_study: ZipFile,
+    study_info: StudyInfo,
+    project_name: str,
+    series_to_keep: list[str],
 ) -> tuple[list[bytes], str]:
     """
     Iterate over all instances and anonymise them.
@@ -341,6 +357,16 @@ def _anonymise_study_instances(
         with zipped_study.open(file_info) as file:
             logger.debug("Reading file {}", file)
             dataset = dcmread(file)
+
+            if series_to_keep and dataset.SeriesInstanceUID not in series_to_keep:
+                logger.debug(
+                    "Skipping series {} for study {} as series not in series_to_keep",
+                    dataset.SeriesInstanceUID,
+                    study_info,
+                )
+                key = "DICOM instance discarded as series not requested"
+                skipped_instance_counts[key] += 1
+                continue
 
             if dataset.SeriesInstanceUID in series_to_skip:
                 logger.debug(

@@ -18,7 +18,7 @@ from __future__ import annotations
 import importlib.metadata
 import sys
 from datetime import (
-    datetime,  # noqa: TCH003, always import datetime otherwise pydantic throws error
+    datetime,  # noqa: TC003, always import datetime otherwise pydantic throws error
 )
 from pathlib import Path
 from typing import Annotated

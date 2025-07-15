@@ -42,7 +42,7 @@ def wait_for_images_to_be_exported(
         PixlSession = sessionmaker(engine)
         with PixlSession() as session:
             studies = cast(
-                list[Image],
+                "list[Image]",
                 session.query(Image).filter(not_(Image.exported_at.is_(None))).all(),
             )
         return len(studies) >= n_studies

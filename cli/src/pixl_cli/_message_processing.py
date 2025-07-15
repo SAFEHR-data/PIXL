@@ -47,6 +47,7 @@ def messages_from_df(
             mrn=row["mrn"],
             accession_number=row["accession_number"],
             study_uid=row["study_uid"],
+            series_uid=row["series_uid"],
             study_date=row["study_date"],
             procedure_occurrence_id=row["procedure_occurrence_id"],
             project_name=row["project_name"],
@@ -69,9 +70,9 @@ def retry_until_export_count_is_unchanged(
     # wait PIXL_DICOM_TRANSFER_TIMEOUT seconds if CLI_RETRY_SECONDS is not defined
     total_wait_seconds = config("PIXL_DICOM_TRANSFER_TIMEOUT", default=300, cast=int)
     total_wait_seconds = config("CLI_RETRY_SECONDS", default=total_wait_seconds, cast=int)
-    wait_to_display = f"{total_wait_seconds //60} minutes"
+    wait_to_display = f"{total_wait_seconds // 60} minutes"
     if total_wait_seconds % 60:
-        wait_to_display = f"{total_wait_seconds //60} minutes & {total_wait_seconds % 60} seconds"
+        wait_to_display = f"{total_wait_seconds // 60} minutes & {total_wait_seconds % 60} seconds"
 
     logger.info(
         "Retrying extraction every {} until no new extracts are found, max retries: {}",

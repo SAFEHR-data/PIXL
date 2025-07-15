@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import subprocess
 from time import sleep
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
@@ -28,7 +28,7 @@ from loguru import logger
 
 def run_subprocess(
     cmd: Sequence[Path | str],
-    working_dir: Optional[Path] = None,
+    working_dir: Path | None = None,
     *,
     shell: bool = False,
     timeout: int = 360,
@@ -64,8 +64,8 @@ def wait_for_condition(
     *,
     seconds_max: int = 1,
     seconds_interval: int = 1,
-    seconds_condition_stays_true_for: Optional[int] = None,
-    progress_string_fn: Optional[Callable[..., str]] = None,
+    seconds_condition_stays_true_for: int | None = None,
+    progress_string_fn: Callable[..., str] | None = None,
 ) -> None:
     """
     Repeatedly test for a condition for the specified amount of time.
