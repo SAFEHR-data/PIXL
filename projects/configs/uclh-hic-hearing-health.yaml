@@ -38,8 +38,18 @@ allowed_manufacturers:
         - 1000
         - 9000
         - 1151418
+  - regex: "afga"
+  - regex: "siemens"
+  - regex: "newtom"
+  - regex: "toshiba"
+  - regex: "morita"
+  - regex: "fonar"
+  - regex: "philips"
+  - regex: "canon"
+    exclude_series_numbers:
+        - 9000
 
-min_instances_per_series: 2
+min_instances_per_series: 6
 
 series_filters:
     - "localizer"
@@ -63,6 +73,7 @@ series_filters:
     - "sectra reconstruction"
     - "impax volume viewing"
     - "evidence documents"
+    - "export"
 
 destination:
     dicom: "ftps"
