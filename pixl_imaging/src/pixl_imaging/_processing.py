@@ -373,7 +373,7 @@ async def _get_missing_instances(
         logger.trace(
             "Instance {} is missing from study {}",
             sop_instance_uid,
-            study.message.study_uid,
+            str(study.message.study_uid),
         )
         missing_instances.append(uids_for_query)
 
