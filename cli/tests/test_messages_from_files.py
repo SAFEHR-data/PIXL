@@ -144,6 +144,86 @@ def test_messages_from_parquet(omop_resources: Path) -> None:
     assert messages == expected_messages
 
 
+def test_messages_from_batched_parquet(omop_resources: Path) -> None:
+    """
+    Given a valid OMOP ES batched extract with 6 radiology procedures.
+    When the messages are generated from the directory
+    Then 6 messages should be generated
+    """
+    # Arrange
+    omop_parquet_dir = omop_resources / "omop-batched"
+    messages_df = read_patient_info(omop_parquet_dir)
+    # Act
+    messages = messages_from_df(messages_df)
+    # Assert
+    assert all(isinstance(msg, Message) for msg in messages)
+
+    expected_messages = [
+        Message(
+            mrn="5020765",
+            accession_number="MIG0234560",
+            study_uid="1.2.840.114350.2.525.2.798268.2.110000014.1",
+            series_uid="",
+            study_date=datetime.date(2015, 5, 1),
+            procedure_occurrence_id=4.0,
+            project_name="test-extract-uclh-omop-cdm",
+            extract_generated_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
+        ),
+        Message(
+            mrn="987654321",
+            accession_number="ABC1234560",
+            study_uid="1.2.840.114350.2.525.2.798268.2.190000013.1",
+            series_uid="",
+            study_date=datetime.date(2020, 5, 1),
+            procedure_occurrence_id=3.0,
+            project_name="test-extract-uclh-omop-cdm",
+            extract_generated_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
+        ),
+        Message(
+            mrn="987654321",
+            accession_number="AA12345601",
+            study_uid="1.2.840.114350.2.525.2.798268.2.190000015.1",
+            series_uid="",
+            study_date=datetime.date(2020, 5, 23),
+            procedure_occurrence_id=5.0,
+            project_name="test-extract-uclh-omop-cdm",
+            extract_generated_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
+        ),
+        Message(
+            mrn="987654321",
+            accession_number="AA12345605",
+            study_uid="1.2.840.114350.2.525.2.798268.2.190000016.1",
+            series_uid="",
+            study_date=datetime.date(2020, 5, 23),
+            procedure_occurrence_id=6.0,
+            project_name="test-extract-uclh-omop-cdm",
+            extract_generated_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
+        ),
+        Message(
+            mrn="12345678",
+            accession_number="12345678",
+            study_uid="1.2.840.114350.2.525.2.798268.2.190000011.1",
+            series_uid="",
+            study_date=datetime.date(2021, 7, 1),
+            procedure_occurrence_id=1.0,
+            project_name="test-extract-uclh-omop-cdm",
+            extract_generated_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
+        ),
+        Message(
+            mrn="12345678",
+            accession_number="ABC1234567",
+            study_uid="1.2.840.114350.2.525.2.798268.2.190000012.1",
+            series_uid="",
+            study_date=datetime.date(2021, 7, 1),
+            procedure_occurrence_id=2.0,
+            project_name="test-extract-uclh-omop-cdm",
+            extract_generated_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
+        ),
+    ]
+
+    assert messages == expected_messages
+
+
 def test_batch_upload(omop_resources: Path, rows_in_session, mock_publisher) -> None:
     """
     GIVEN the database has a single Export entity, with one exported Image, one unexported Image
