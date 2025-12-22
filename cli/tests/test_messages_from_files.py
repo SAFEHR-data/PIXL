@@ -18,6 +18,7 @@ from __future__ import annotations
 import datetime
 from typing import TYPE_CHECKING
 
+import pytest
 from core.db.models import Image
 from core.patient_queue.message import Message
 from pixl_cli._io import read_patient_info
@@ -222,6 +223,18 @@ def test_messages_from_batched_parquet(omop_resources: Path) -> None:
     ]
 
     assert messages == expected_messages
+
+
+def test_input_directory_does_not_have_public_directory(omop_resources: Path) -> None:
+    """
+    Given a directory that does not have a public or private directory
+    When the messages are generated from the directory
+    Then a NotADirectoryError should be raised
+    """
+    # Arrange
+    omop_parquet_dir = omop_resources / "omop-batched" / "public"
+    with pytest.raises(NotADirectoryError):
+        read_patient_info(omop_parquet_dir)
 
 
 def test_batch_upload(omop_resources: Path, rows_in_session, mock_publisher) -> None:
