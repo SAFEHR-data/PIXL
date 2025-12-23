@@ -125,6 +125,7 @@ class _DestinationEnum(str, Enum):
     ftps = "ftps"
     dicomweb = "dicomweb"
     xnat = "xnat"
+    tre = "tre"
 
 
 class _Destination(BaseModel):
@@ -134,7 +135,7 @@ class _Destination(BaseModel):
     @field_validator("parquet")
     @classmethod
     def valid_parquet_destination(cls, v: str) -> str:
-        if v in ("dicomweb", "xnat"):
+        if v in ("dicomweb", "xnat", "tre"):
             msg = f"Parquet destination cannot be {v}"
             raise ValueError(msg)
         return v
