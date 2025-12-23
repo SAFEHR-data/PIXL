@@ -35,8 +35,6 @@ REQUEST_TIMEOUT = 10
 
 # HTTP Status Codes
 HTTP_OK = 200
-HTTP_CREATED = 201
-HTTP_ACCEPTED = 202
 
 
 class TreApiUploader(Uploader):
@@ -164,10 +162,6 @@ class TreApiUploader(Uploader):
             )
             response.raise_for_status()
 
-            if response.status_code != HTTP_ACCEPTED:
-                msg = f"Upload failed with status {response.status_code}: {response.text}"
-                raise RuntimeError(msg)
-
         except requests.RequestException as e:
             msg = f"Failed to upload file {filename}: {e}"
             raise RuntimeError(msg) from e
@@ -193,10 +187,6 @@ class TreApiUploader(Uploader):
                 timeout=REQUEST_TIMEOUT,
             )
             response.raise_for_status()
-
-            if response.status_code != HTTP_CREATED:
-                msg = f"Flush failed with status {response.status_code}: {response.text}"
-                raise RuntimeError(msg)
 
         except requests.RequestException as e:
             msg = f"Failed to flush airlock: {e}"
