@@ -145,7 +145,7 @@ def _load_parquet(
 
 
 def _parse_parquet(private_dir: Path, public_dir: Path) -> pd.DataFrame:
-    """Open a set ofparquet files and return joined data."""
+    """Open parquet files and return joined data."""
     parquet_dataset_dirs = [
         public_dir / "procedure_occurrence",
         private_dir / "person_links",
@@ -160,7 +160,7 @@ def _parse_parquet(private_dir: Path, public_dir: Path) -> pd.DataFrame:
 
 
 def _parse_parquet_files(private_dir: Path, public_dir: Path) -> pd.DataFrame:
-    """Open a set ofparquet files and return joined data."""
+    """Open a set of parquet files and return joined data."""
     # MRN in people.PrimaryMrn:
     people = pd.read_parquet(private_dir / "PERSON_LINKS.parquet")
     # accession number in accessions.AccessionNumber
