@@ -126,11 +126,11 @@ parquet_dir
 ├── private
 │   ├── person_links
 |   |   └── part-*.parquet    
-│   └── procedure_occurrence_links
+│   ├── procedure_occurrence_links
 |   |   └── part-*.parquet    
 └── public
     └── procedure_occurrence
-|   |   └── part-*.parquet    
+        └── part-*.parquet    
 ```
 
 Alternatively, the queue can be populated based on records in CSV files:

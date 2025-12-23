@@ -184,7 +184,7 @@ def _join_omop_data_and_filter_accessions(
 
 
 def _parse_parquet_dataset(private_dir: Path, public_dir: Path) -> pd.DataFrame:
-    """Open a set parquet datasets and return joined data."""
+    """Open a set of parquet datasets and return joined data."""
     # MRN in people.PrimaryMrn:
     people = ds.dataset(private_dir / "person_links", format="parquet").to_table().to_pandas()
     # accession number in accessions.AccessionNumber
