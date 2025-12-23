@@ -35,7 +35,6 @@ REQUEST_TIMEOUT = 10
 
 # HTTP Status Codes
 HTTP_OK = 200
-HTTP_CREATED = 201
 
 
 class TreApiUploader(Uploader):
@@ -63,7 +62,7 @@ class TreApiUploader(Uploader):
         """Set up authentication configuration from Azure Key Vault."""
         # Use the Azure KV alias as prefix if it exists, otherwise use the project name
         prefix = self.keyvault_alias or self.project_slug
-        self.token = self.keyvault.fetch_secret(f"{prefix}--ftp--token")
+        self.token = self.keyvault.fetch_secret(f"{prefix}--api--token")
         self.headers = {"Authorization": f"Bearer {self.token}"}
 
     def _upload_dicom_image(self, study_id: str, study_tags: StudyTags) -> None:
@@ -77,7 +76,6 @@ class TreApiUploader(Uploader):
         """
         zip_content = get_study_zip_archive(study_id)
         self.send_via_api(zip_content, study_tags.pseudo_anon_image_id)
-        self.flush()  # Not ideal, as this may cause multiple flushes in short period
 
     def upload_parquet_files(self, parquet_export: ParquetExport) -> None:
         """
@@ -164,10 +162,6 @@ class TreApiUploader(Uploader):
             )
             response.raise_for_status()
 
-            if response.status_code != HTTP_CREATED:
-                msg = f"Upload failed with status {response.status_code}: {response.text}"
-                raise RuntimeError(msg)
-
         except requests.RequestException as e:
             msg = f"Failed to upload file {filename}: {e}"
             raise RuntimeError(msg) from e
@@ -193,10 +187,6 @@ class TreApiUploader(Uploader):
                 timeout=REQUEST_TIMEOUT,
             )
             response.raise_for_status()
-
-            if response.status_code != HTTP_CREATED:
-                msg = f"Flush failed with status {response.status_code}: {response.text}"
-                raise RuntimeError(msg)
 
         except requests.RequestException as e:
             msg = f"Failed to flush airlock: {e}"
