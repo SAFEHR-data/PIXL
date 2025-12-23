@@ -63,7 +63,7 @@ class TreApiUploader(Uploader):
         """Set up authentication configuration from Azure Key Vault."""
         # Use the Azure KV alias as prefix if it exists, otherwise use the project name
         prefix = self.keyvault_alias or self.project_slug
-        self.token = self.keyvault.fetch_secret(f"{prefix}--ftp--token")
+        self.token = self.keyvault.fetch_secret(f"{prefix}--api--token")
         self.headers = {"Authorization": f"Bearer {self.token}"}
 
     def _upload_dicom_image(self, study_id: str, study_tags: StudyTags) -> None:
