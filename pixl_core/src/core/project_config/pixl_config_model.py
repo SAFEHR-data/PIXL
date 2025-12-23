@@ -135,7 +135,7 @@ class _Destination(BaseModel):
     @field_validator("parquet")
     @classmethod
     def valid_parquet_destination(cls, v: str) -> str:
-        if v in ("dicomweb", "xnat", "tre"):
+        if v in ("dicomweb", "xnat"):
             msg = f"Parquet destination cannot be {v}"
             raise ValueError(msg)
         return v
