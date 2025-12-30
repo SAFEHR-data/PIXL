@@ -225,16 +225,34 @@ def test_messages_from_batched_parquet(omop_resources: Path) -> None:
     assert messages == expected_messages
 
 
-def test_input_directory_does_not_have_public_directory(omop_resources: Path) -> None:
+@pytest.mark.parametrize("sub_directory", ["public", "private"])
+def test_input_directory_is_missing_subdirectory(
+    tmp_path_factory: pytest.TempPathFactory, sub_directory: str
+) -> None:
     """
     Given a directory that does not have a public or private directory
     When the messages are generated from the directory
     Then a NotADirectoryError should be raised
     """
     # Arrange
-    omop_parquet_dir = omop_resources / "omop-batched" / "public"
+    tmpdir = tmp_path_factory.mktemp("missing_sub")
+    (tmpdir / sub_directory).mkdir()
     with pytest.raises(NotADirectoryError):
-        read_patient_info(omop_parquet_dir)
+        read_patient_info(tmpdir)
+
+
+def test_subdirectories_are_empty(tmp_path_factory: pytest.TempPathFactory) -> None:
+    """
+    Given a directory that has an empty public and private directory
+    When the messages are generated from the directory
+    Then a FileNotFoundError should be raised
+    """
+    # Arrange
+    tmpdir = tmp_path_factory.mktemp("empty_sub")
+    for sub_directory in ["public", "private"]:
+        (tmpdir / sub_directory).mkdir()
+    with pytest.raises(FileNotFoundError):
+        read_patient_info(tmpdir)
 
 
 def test_batch_upload(omop_resources: Path, rows_in_session, mock_publisher) -> None:
