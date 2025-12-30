@@ -57,8 +57,6 @@ class TreApiUploader(Uploader):
 
         """
         super().__init__(project_slug, keyvault_alias)
-        self.host = TRE_API_URL
-        self.upload_timeout = int(config("HTTP_TIMEOUT", default=30))
 
     def _set_config(self) -> None:
         """Set up authentication configuration from Azure Key Vault."""
@@ -66,6 +64,8 @@ class TreApiUploader(Uploader):
         prefix = self.keyvault_alias or self.project_slug
         self.token = self.keyvault.fetch_secret(f"{prefix}--api--token")
         self.headers = {"Authorization": f"Bearer {self.token}"}
+        self.host = TRE_API_URL
+        self.upload_timeout = int(config("HTTP_TIMEOUT", default=30))
 
     def _upload_dicom_image(self, study_id: str, study_tags: StudyTags) -> None:
         """
