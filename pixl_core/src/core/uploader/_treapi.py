@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import requests
+from decouple import config
 
 from core.uploader._orthanc import StudyTags, get_study_zip_archive
 from core.uploader.base import Uploader
@@ -57,6 +58,7 @@ class TreApiUploader(Uploader):
         """
         super().__init__(project_slug, keyvault_alias)
         self.host = TRE_API_URL
+        self.upload_timeout = int(config("HTTP_TIMEOUT", default=30))
 
     def _set_config(self) -> None:
         """Set up authentication configuration from Azure Key Vault."""
@@ -158,7 +160,7 @@ class TreApiUploader(Uploader):
                 url=f"{self.host}/airlock/upload/{filename}",
                 headers=self.headers,
                 data=content,
-                timeout=REQUEST_TIMEOUT,
+                timeout=self.upload_timeout,
             )
             response.raise_for_status()
 
