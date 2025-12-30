@@ -22,6 +22,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
+import pyarrow.dataset as ds
 from core.exports import ParquetExport
 from loguru import logger
 
@@ -131,7 +132,12 @@ def _load_parquet(
     public_dir = dir_path / "public"
     private_dir = dir_path / "private"
 
-    messages_df = _check_and_parse_parquet(private_dir, public_dir)
+    for d in [public_dir, private_dir]:
+        if not d.is_dir():
+            err_str = f"{d} must exist and be a directory"
+            raise NotADirectoryError(err_str)
+
+    messages_df = _parse_parquet(private_dir, public_dir)
     messages_df = _map_columns(messages_df, MAP_PARQUET_TO_MESSAGE_KEYS)
 
     project_name, extract_generated_timestamp = copy_parquet_return_logfile_fields(dir_path)
@@ -143,12 +149,23 @@ def _load_parquet(
     return messages_df
 
 
-def _check_and_parse_parquet(private_dir: Path, public_dir: Path) -> pd.DataFrame:
-    for d in [public_dir, private_dir]:
-        if not d.is_dir():
-            err_str = f"{d} must exist and be a directory"
-            raise NotADirectoryError(err_str)
+def _parse_parquet(private_dir: Path, public_dir: Path) -> pd.DataFrame:
+    """Open parquet files and return joined data."""
+    parquet_dataset_dirs = [
+        public_dir / "procedure_occurrence",
+        private_dir / "person_links",
+        private_dir / "procedure_occurrence_links",
+    ]
 
+    if all(d.exists() and d.is_dir() for d in parquet_dataset_dirs):
+        messages_df = _parse_parquet_dataset(private_dir, public_dir)
+    else:
+        messages_df = _parse_parquet_files(private_dir, public_dir)
+    return messages_df
+
+
+def _parse_parquet_files(private_dir: Path, public_dir: Path) -> pd.DataFrame:
+    """Open a set of parquet files and return joined data."""
     # MRN in people.PrimaryMrn:
     people = pd.read_parquet(private_dir / "PERSON_LINKS.parquet")
     # accession number in accessions.AccessionNumber
@@ -156,15 +173,37 @@ def _check_and_parse_parquet(private_dir: Path, public_dir: Path) -> pd.DataFram
     # study_date is in procedure.procedure_date
     procedure = pd.read_parquet(public_dir / "PROCEDURE_OCCURRENCE.parquet")
 
-    # joining data together
+    return _join_omop_data_and_filter_accessions(people, accessions, procedure)
+
+
+def _join_omop_data_and_filter_accessions(
+    people: pd.DataFrame, accessions: pd.DataFrame, procedure: pd.DataFrame
+) -> pd.DataFrame:
+    """Join OMOP data together and filter to rows with an accession number."""
     people_procedures = people.merge(procedure, on="person_id")
     people_procedures_accessions = people_procedures.merge(accessions, on="procedure_occurrence_id")
-
-    # Filter out any rows where accession number is NA or an empty string
     return people_procedures_accessions[
         ~people_procedures_accessions["AccessionNumber"].isna()
         & (people_procedures_accessions["AccessionNumber"] != "")
     ]
+
+
+def _parse_parquet_dataset(private_dir: Path, public_dir: Path) -> pd.DataFrame:
+    """Open a set of parquet datasets and return joined data."""
+    # MRN in people.PrimaryMrn:
+    people = ds.dataset(private_dir / "person_links", format="parquet").to_table().to_pandas()
+    # accession number in accessions.AccessionNumber
+    accessions = (
+        ds.dataset(private_dir / "procedure_occurrence_links", format="parquet")
+        .to_table()
+        .to_pandas()
+    )
+    # study_date is in procedure.procedure_date
+    procedure = (
+        ds.dataset(public_dir / "procedure_occurrence", format="parquet").to_table().to_pandas()
+    )
+
+    return _join_omop_data_and_filter_accessions(people, accessions, procedure)
 
 
 class DF_COLUMNS(StrEnum):  # noqa: N801
@@ -221,8 +260,14 @@ def make_radiology_linker_table(parquet_dir: Path, images: list[Image]) -> pd.Da
     """
     public_dir = parquet_dir / "public"
     private_dir = parquet_dir / "private"
+
+    for d in [public_dir, private_dir]:
+        if not d.is_dir():
+            err_str = f"{d} must exist and be a directory"
+            raise NotADirectoryError(err_str)
+
     people_procedures_accessions = _map_columns(
-        _check_and_parse_parquet(private_dir, public_dir),
+        _parse_parquet(private_dir, public_dir),
         MAP_PARQUET_TO_MESSAGE_KEYS,
     )
 
