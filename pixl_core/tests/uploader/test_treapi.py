@@ -86,12 +86,6 @@ def _configure_success_responses(mock_get, mock_post, mock_put, mocker) -> None:
     upload_response.status_code = HTTP_CREATED
     mock_post.return_value = upload_response
 
-    # Flush response
-    flush_response = mocker.Mock()
-    flush_response.raise_for_status.return_value = None
-    flush_response.status_code = HTTP_CREATED
-    mock_put.return_value = flush_response
-
 
 @pytest.fixture
 def test_zip_content() -> Generator[BytesIO, None, None]:
@@ -165,7 +159,6 @@ class TestTreApiUploader:
             "core.uploader._treapi.get_study_zip_archive", return_value=mock_zip_content
         )
         mock_send_via_api = mocker.patch.object(mock_uploader, "send_via_api")
-        mock_flush = mocker.patch.object(mock_uploader, "flush")
 
         # Act
         mock_uploader._upload_dicom_image(study_id, study_tags)
@@ -173,7 +166,6 @@ class TestTreApiUploader:
         # Assert
         mock_get_study_zip.assert_called_once_with(study_id)
         mock_send_via_api.assert_called_once_with(mock_zip_content, study_tags.pseudo_anon_image_id)
-        mock_flush.assert_called_once()
 
     def test_token_validation_success(self, mock_uploader, mocker) -> None:
         """Test successful token validation."""
