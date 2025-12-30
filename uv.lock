@@ -602,15 +602,16 @@ wheels = [
 
 [[package]]
 name = "dicom-validator"
-version = "0.6.3"
+version = "0.7.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "lxml" },
     { name = "pydicom" },
+    { name = "pyparsing" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/16/40/64f155550f4c1dcf4efb840d24c253a27d69ec345d2e4ac45a8825c1e022/dicom_validator-0.6.3.tar.gz", hash = "sha256:9253daca2b028fa154116d8cd993f105682b59fdb57f7516391b6a03fada8642", size = 57175, upload-time = "2024-10-24T16:49:53.942Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a8/db/922c5d3c662aff47e1ab1a64fe9203b5ea813ea493b7b216c03b9bfb4676/dicom_validator-0.7.3.tar.gz", hash = "sha256:4ee8376688fb94ca33c48af34bc5a93dd3e3743abefdc1d16b70eba41c4aa542", size = 63526, upload-time = "2025-10-13T17:32:49.564Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/17/4d/7c925d169f1ea27c13a07ec54e8f5442e81f990a579ec34d197319ae0450/dicom_validator-0.6.3-py3-none-any.whl", hash = "sha256:4676b5c00b6181d4c44cda4cedfbeb9a44e0d82d6a35409c8d2de3c594e9f573", size = 65215, upload-time = "2024-10-24T16:49:52.941Z" },
+    { url = "https://files.pythonhosted.org/packages/6e/8d/b3401e93c7301e96315d4d816f5643815f5e6797a8c511e56e91e237b546/dicom_validator-0.7.3-py3-none-any.whl", hash = "sha256:2bffcdf2ae774ef18c521774561987098bfe8c157fdd1fa5bf04f552a195499f", size = 72200, upload-time = "2025-10-13T17:32:48.204Z" },
 ]
 
 [[package]]
@@ -1510,7 +1511,7 @@ requires-dist = [
     { name = "core", extras = ["dev"], marker = "extra == 'dev'", editable = "pixl_core" },
     { name = "core", extras = ["test"], marker = "extra == 'test'", editable = "pixl_core" },
     { name = "dicom-anonymizer", specifier = "==1.0.13.post1" },
-    { name = "dicom-validator", specifier = "==0.6.3" },
+    { name = "dicom-validator", specifier = "==0.7.3" },
     { name = "logger", specifier = "==1.4" },
     { name = "pydicom", specifier = "==2.4.4" },
     { name = "pydicom-data" },
@@ -1932,6 +1933,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/c1/d4/1067b82c4fc674d6f6e9e8d26b3dff978da46d351ca3bac171544693e085/pyopenssl-24.3.0.tar.gz", hash = "sha256:49f7a019577d834746bc55c5fce6ecbcec0f2b4ec5ce1cf43a9a173b8138bb36", size = 178944, upload-time = "2024-11-27T20:43:12.755Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/42/22/40f9162e943f86f0fc927ebc648078be87def360d9d8db346619fb97df2b/pyOpenSSL-24.3.0-py3-none-any.whl", hash = "sha256:e474f5a473cd7f92221cc04976e48f4d11502804657a08a989fb3be5514c904a", size = 56111, upload-time = "2024-11-27T20:43:21.112Z" },
+]
+
+[[package]]
+name = "pyparsing"
+version = "3.3.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/33/c1/1d9de9aeaa1b89b0186e5fe23294ff6517fce1bc69149185577cd31016b2/pyparsing-3.3.1.tar.gz", hash = "sha256:47fad0f17ac1e2cad3de3b458570fbc9b03560aa029ed5e16ee5554da9a2251c", size = 1550512, upload-time = "2025-12-23T03:14:04.391Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8b/40/2614036cdd416452f5bf98ec037f38a1afb17f327cb8e6b652d4729e0af8/pyparsing-3.3.1-py3-none-any.whl", hash = "sha256:023b5e7e5520ad96642e2c6db4cb683d3970bd640cdf7115049a6e9c3682df82", size = 121793, upload-time = "2025-12-23T03:14:02.103Z" },
 ]
 
 [[package]]
