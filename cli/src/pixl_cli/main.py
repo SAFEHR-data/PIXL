@@ -153,16 +153,16 @@ def populate(  # noqa: PLR0913 - too many args
             ├── public
             │   └── PROCEDURE_OCCURRENCE.parquet
             └── extract_summary.json
-        Or the structure will be from a set of parquet datasets:
+        Or the structure will be from a set of parquet arrow datasets, with multiple parts:
             PARQUET-DIR
             ├── private
             │   ├── person_links
             |   │   └── part-*.parquet
-            │   ├── procedure_occurrence_links
-            |   │   └── part-*.parquet
+            │   └── procedure_occurrence_links
+            |       └── part-*.parquet
             ├── public
-            │   ├── procedure_occurrence
-            |   │   └── part-*.parquet
+            │   └── procedure_occurrence
+            |       └── part-*.parquet
             └── extract_summary.json
     """
     queues_to_populate = queues.split(",")
