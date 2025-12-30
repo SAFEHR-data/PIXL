@@ -32,7 +32,7 @@ FROM pixl_orthanc_uv AS pixl_orthanc_with_spec
 # Do it in dead end build stage to discard this environment afterwards,
 # and because the spec is only needed in orthanc-anon.
 RUN uv venv
-RUN uv pip install dicom-validator
+RUN uv pip install dicom-validator==0.7.3
 COPY ./orthanc/orthanc-anon/plugin/download_dicom_spec.py /etc/orthanc/download_dicom_spec.py
 RUN --mount=type=cache,target=/root/.cache,id=dlspec \
     python3 /etc/orthanc/download_dicom_spec.py
