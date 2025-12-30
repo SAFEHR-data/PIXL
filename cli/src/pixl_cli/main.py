@@ -158,10 +158,10 @@ def populate(  # noqa: PLR0913 - too many args
             ├── private
             │   ├── person_links
             |   │   └── part-*.parquet
-            │   └── procedure_occurrence_links
+            │   ├── procedure_occurrence_links
             |   │   └── part-*.parquet
             ├── public
-            │   └── procedure_occurrence
+            │   ├── procedure_occurrence
             |   │   └── part-*.parquet
             └── extract_summary.json
     """
