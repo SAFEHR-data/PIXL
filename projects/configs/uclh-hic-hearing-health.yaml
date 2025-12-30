@@ -1,0 +1,80 @@
+#  Copyright (c) 2024 University College London Hospitals NHS Foundation Trust
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
+project:
+    name: "uclh-hic-hearing-health"
+    modalities:
+      - "CT"
+      - "MR"
+
+tag_operation_files:
+    base:
+        - "base.yaml"
+        - "ct.yaml"
+        - "mri.yaml"
+        - "diffusion-weighted-mri.yaml"
+    manufacturer_overrides: ["mri.yaml", "mri-diffusion.yaml"]
+
+allowed_manufacturers:
+  - regex: "^ge medical systems"
+    exclude_series_numbers:
+        - 1200
+        - 1201
+        - 1202
+        - 1203
+        - 1301
+        - 1501
+        - 1000
+        - 9000
+        - 1151418
+  - regex: "afga"
+  - regex: "siemens"
+  - regex: "newtom"
+  - regex: "toshiba"
+  - regex: "morita"
+  - regex: "fonar"
+  - regex: "philips"
+  - regex: "canon"
+    exclude_series_numbers:
+        - 9000
+
+min_instances_per_series: 6
+
+series_filters:
+    - "localizer"
+    - "localiser"
+    - "scout"
+    - "positioning"
+    - "mip"
+    - "fused"
+    - "save"
+    - "lungscreening result"
+    - "key_images"
+    - "color"
+    - "casc"
+    - "cascoring_docu_1"
+    - "dose"
+    - "patient protocol"
+    - "enhancement curve"
+    - "summary"
+    - "report"
+    - "medrad injection images"
+    - "sectra reconstruction"
+    - "impax volume viewing"
+    - "evidence documents"
+    - "export"
+
+destination:
+    dicom: "ftps"
+    parquet: "ftps"
