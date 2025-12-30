@@ -141,7 +141,7 @@ def populate(  # noqa: PLR0913 - too many args
     priority: int,
 ) -> None:
     """
-    Populate a (set of) queue(s) from a parquet file directory
+    Populate a (set of) queue(s) from a parquet file directory or a set of parquet datasets.
     PARQUET_DIR: Directory containing the public and private parquet input files and an
         extract_summary.json log file.
         It's expected that the directory structure will be:
@@ -152,6 +152,17 @@ def populate(  # noqa: PLR0913 - too many args
             │   └── PROCEDURE_OCCURRENCE_LINKS.parquet
             ├── public
             │   └── PROCEDURE_OCCURRENCE.parquet
+            └── extract_summary.json
+        Or the structure will be from a set of parquet arrow datasets, with multiple parts:
+            PARQUET-DIR
+            ├── private
+            │   ├── person_links
+            |   │   └── part-*.parquet
+            │   └── procedure_occurrence_links
+            |       └── part-*.parquet
+            ├── public
+            │   └── procedure_occurrence
+            |       └── part-*.parquet
             └── extract_summary.json
     """
     queues_to_populate = queues.split(",")
