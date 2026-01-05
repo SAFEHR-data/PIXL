@@ -77,7 +77,7 @@ class TreApiUploader(Uploader):
 
         """
         zip_content = get_study_zip_archive(study_id)
-        self.send_via_api(zip_content, study_tags.pseudo_anon_image_id)
+        self.send_via_api(zip_content, f"{study_tags.pseudo_anon_image_id}.zip")
 
     def upload_parquet_files(self, parquet_export: ParquetExport) -> None:
         """
