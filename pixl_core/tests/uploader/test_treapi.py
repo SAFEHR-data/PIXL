@@ -165,7 +165,9 @@ class TestTreApiUploader:
 
         # Assert
         mock_get_study_zip.assert_called_once_with(study_id)
-        mock_send_via_api.assert_called_once_with(mock_zip_content, study_tags.pseudo_anon_image_id)
+        mock_send_via_api.assert_called_once_with(
+            mock_zip_content, f"{study_tags.pseudo_anon_image_id}.zip"
+        )
 
     def test_token_validation_success(self, mock_uploader, mocker) -> None:
         """Test successful token validation."""
