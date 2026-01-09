@@ -118,7 +118,7 @@ class TreApiUploader(Uploader):
 
         """
         if not self._is_token_valid():
-            msg = f"Token invalid: {self.token}"
+            msg = f"Token invalid: '{self.token}'"
             raise RuntimeError(msg)
 
         self._upload_file(data, filename)
