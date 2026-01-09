@@ -134,7 +134,14 @@ class ParquetExport:
 
         else:
             uploader = get_uploader(self.project_slug)
-
-            msg = f"Uploading parquet files for project {self.project_slug} via '{destination}'"
-            logger.info(msg)
+            logger.info(
+                "Starting upload of parquet files for project {} via '{}'",
+                self.project_slug,
+                destination,
+            )
             uploader.upload_parquet_files(self)
+            logger.success(
+                "Finished uploading parquet files for project {} via '{}'",
+                self.project_slug,
+                destination,
+            )

@@ -125,6 +125,7 @@ class _DestinationEnum(str, Enum):
     ftps = "ftps"
     dicomweb = "dicomweb"
     xnat = "xnat"
+    tre = "tre"
 
 
 class _Destination(BaseModel):

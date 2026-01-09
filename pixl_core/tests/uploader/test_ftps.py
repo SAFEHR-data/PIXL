@@ -94,15 +94,14 @@ def test_update_exported_and_save(rows_in_session) -> None:
     """Tests that the exported_at field is updated when a file is uploaded"""
     # ARRANGE
     expected_export_time = datetime.now(tz=UTC)
+    uid = generate_uid(entropy_srcs=["not_yet_exported"])
 
-    # ACT
-    update_exported_at(generate_uid(entropy_srcs=["not_yet_exported"]), expected_export_time)
-    new_row = (
-        rows_in_session.query(Image)
-        .filter(Image.pseudo_study_uid == generate_uid(entropy_srcs=["not_yet_exported"]))
-        .one()
-    )
-    actual_export_time = new_row.exported_at.replace(tzinfo=UTC)
+    # Act
+    update_exported_at(uid, expected_export_time)
+
+    # Retrieve updated record
+    updated_record = rows_in_session.query(Image).filter(Image.pseudo_study_uid == uid).one()
+    actual_export_time = updated_record.exported_at.replace(tzinfo=UTC)
 
     # ASSERT
     assert actual_export_time == expected_export_time
@@ -129,7 +128,6 @@ def parquet_export(export_dir) -> ParquetExport:
 def test_upload_parquet(parquet_export, ftps_home_dir, ftps_uploader) -> None:
     """Tests that parquet files are uploaded to the correct location (but ignore their contents)"""
     # ARRANGE
-
     parquet_export.copy_to_exports(Path(__file__).parents[3] / "test" / "resources" / "omop")
     parquet_export.export_radiology_linker(pd.DataFrame(list("dummy"), columns=["D"]))
 
