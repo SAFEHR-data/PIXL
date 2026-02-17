@@ -29,19 +29,21 @@ from core.project_config import load_project_config
 
 from ._dicomweb import DicomWebUploader
 from ._ftps import FTPSUploader
+from ._treapi import TreApiUploader
 from ._xnat import XNATUploader
 
 if TYPE_CHECKING:
     from core.uploader.base import Uploader
 
 
-# Intenitonally defined in __init__.py to avoid circular imports
+# Intentionally defined in __init__.py to avoid circular imports
 def get_uploader(project_slug: str) -> Uploader:
     """Uploader Factory, returns uploader instance based on destination."""
     choices: dict[str, type[Uploader]] = {
         "ftps": FTPSUploader,
         "dicomweb": DicomWebUploader,
         "xnat": XNATUploader,
+        "tre": TreApiUploader,
     }
     project_config = load_project_config(project_slug)
     destination = project_config.destination.dicom

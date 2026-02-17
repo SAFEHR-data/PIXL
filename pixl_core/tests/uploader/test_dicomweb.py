@@ -60,7 +60,7 @@ def dicomweb_uploader() -> MockDicomWebUploader:
 
 def test_dicomweb_server_config(run_containers, dicomweb_uploader) -> None:
     """Tests that the DICOMWeb server is configured correctly in Orthanc"""
-    dicomweb_uploader._setup_dicomweb_credentials()  # noqa: SLF001, private method
+    dicomweb_uploader._setup_dicomweb_credentials()
     servers_response = requests.get(
         ORTHANC_ANON_URL + "/dicom-web/servers",
         auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD),
@@ -99,7 +99,7 @@ def test_upload_dicom_image(
         pseudo_anon_image_id=not_yet_exported_dicom_image.pseudo_study_uid,
         patient_id="patient",
     )
-    dicomweb_uploader._upload_dicom_image(  # noqa: SLF001
+    dicomweb_uploader._upload_dicom_image(
         study_id,
         study_tags,
     )
@@ -119,7 +119,7 @@ def test_dicomweb_upload_fails_with_wrong_credentials(
     dicomweb_uploader.endpoint_password = "wrong"
 
     with pytest.raises(requests.exceptions.ConnectionError):
-        dicomweb_uploader._setup_dicomweb_credentials()  # noqa: SLF001, private method
+        dicomweb_uploader._setup_dicomweb_credentials()
 
 
 def test_dicomweb_upload_fails_with_wrong_url(study_id, run_containers, dicomweb_uploader) -> None:
@@ -127,4 +127,4 @@ def test_dicomweb_upload_fails_with_wrong_url(study_id, run_containers, dicomweb
     dicomweb_uploader.endpoint_url = "http://wrong"
 
     with pytest.raises(requests.exceptions.ConnectionError):
-        dicomweb_uploader._setup_dicomweb_credentials()  # noqa: SLF001, private method
+        dicomweb_uploader._setup_dicomweb_credentials()
