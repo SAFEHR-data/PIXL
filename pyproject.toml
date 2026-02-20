@@ -52,19 +52,19 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
-    "mypy==1.13.0",
-    "pre-commit==4.0.1",
-    "pytest==8.3.4",
+    "mypy==1.19.1",
+    "pre-commit==4.5.1",
+    "pytest==8.4.2",
     "ruff>=0.11",
-    "pytest-mock==3.14.0",
+    "pytest-mock==3.15.1",
     "httpx==0.28.*",
-    "pytest-asyncio==0.24.0",
-    "pytest-check==2.4.1",
-    "pytest-cov==6.0.0",
+    "pytest-asyncio==0.26.0",
+    "pytest-check==2.6.2",
+    "pytest-cov==6.3.0",
     "pytest-pixl==0.2.0rc0",
-    "xnat4tests==0.3.12",
-    "dcm2niix==1.0.20220715",
-    "nibabel==5.3.2",
+    "xnat4tests==0.4.1",
+    "dcm2niix==1.0.20250506",
+    "nibabel==5.3.3",
 ]
 
 [tool.coverage.report]

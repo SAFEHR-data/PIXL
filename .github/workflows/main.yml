@@ -59,7 +59,7 @@ jobs:
             - name: Install uv
               uses: astral-sh/setup-uv@v4
               with:
-                  version: "0.5.10"
+                  version: "0.10.4"
                   python-version: "3.11"
                   enable-cache: true
 
@@ -79,7 +79,7 @@ jobs:
                   AZURE_KEY_VAULT_SECRET_NAME: test
 
             - name: Upload coverage reports to Codecov
-              uses: codecov/codecov-action@7f8b4b4bde536c465e797be725718b88c5d95e0e # v5.1.1
+              uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
               with:
                   directory: ${{ matrix.package_dir }}
               env:
@@ -96,7 +96,7 @@ jobs:
             - name: Install uv
               uses: astral-sh/setup-uv@v4
               with:
-                  version: "0.5.10"
+                  version: "0.10.4"
                   python-version: "3.11"
                   enable-cache: true
 
@@ -178,7 +178,7 @@ jobs:
 
 
             - name: Upload coverage reports to Codecov
-              uses: codecov/codecov-action@7f8b4b4bde536c465e797be725718b88c5d95e0e # v5.1.1
+              uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
               with:
                 directory: test
               env:
