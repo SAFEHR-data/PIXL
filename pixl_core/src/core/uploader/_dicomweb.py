@@ -39,7 +39,7 @@ class DicomWebUploader(Uploader):
     def _set_config(self) -> None:
         # Use the Azure KV alias as prefix if it exists, otherwise use the project name
         az_prefix = self.keyvault_alias
-        self.az_prefix = az_prefix if az_prefix else self.project_slug
+        self.az_prefix = az_prefix or self.project_slug
 
         self.orthanc_user = config("ORTHANC_ANON_USERNAME")
         self.orthanc_password = config("ORTHANC_ANON_PASSWORD")

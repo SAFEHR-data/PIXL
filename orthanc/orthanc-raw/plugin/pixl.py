@@ -26,9 +26,9 @@ from typing import TYPE_CHECKING
 
 from decouple import config
 from loguru import logger
+from pixl_dcmd.tagrecording import record_dicom_headers
 
 import orthanc
-from pixl_dcmd.tagrecording import record_dicom_headers
 
 if TYPE_CHECKING:
     from typing import Any

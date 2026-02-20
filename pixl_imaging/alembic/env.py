@@ -47,7 +47,7 @@ target_metadata = models.Base.metadata
 def include_name(name: str, type_: str, parent_names: str) -> bool:  # noqa: ARG001
     """Filtering of allowed table names"""
     if type_ == "schema":
-        return name in [target_metadata.schema]
+        return any(name == schema for schema in [target_metadata.schema])
     return True
 
 
