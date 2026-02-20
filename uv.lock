@@ -541,7 +541,7 @@ requires-dist = [
     { name = "requests", specifier = "==2.32.5" },
     { name = "sqlalchemy", specifier = "==2.0.46" },
     { name = "token-bucket", specifier = "==0.3.0" },
-    { name = "xnat", specifier = "==0.7.2" },
+    { name = "xnat", specifier = "==0.6.2" },
 ]
 
 [[package]]
@@ -2732,7 +2732,7 @@ wheels = [
 
 [[package]]
 name = "xnat"
-version = "0.7.2"
+version = "0.6.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
@@ -2745,9 +2745,9 @@ dependencies = [
     { name = "pyyaml" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/9a/04/1959d42ff1e0e3e83d8eba29b4a80701ffcaeca13ea03a3dfd8de76b3ec9/xnat-0.7.2.tar.gz", hash = "sha256:61b64997a96f86e86999e0bed0b8a466084812c4763987b43a6e8847165c0708", size = 116606, upload-time = "2025-05-28T13:12:35.277Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ab/2a/d46a441a7ad278278d92e29c58ad6b67b74c11a7720ba91b6247c1295d90/xnat-0.6.2.tar.gz", hash = "sha256:0d580323a267e8c70f7d2d961830be4c3874e82429e3a93871df5c923acbb6c8", size = 88915, upload-time = "2024-06-18T16:10:33.248Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/96/24/691d06314e5078c31662ceb1bf83d76c6a5fb11aeb17b5477cd26378b5de/xnat-0.7.2-py2.py3-none-any.whl", hash = "sha256:ad0d5006525be2834f50457d0dccb8e91356d31f3df3f13b56e6690443a8c62b", size = 113052, upload-time = "2025-05-28T13:12:33.947Z" },
+    { url = "https://files.pythonhosted.org/packages/ef/18/1862c8efb25c6ed92fab6202687c17d05e3f2dda49a1f4b0a0d3c5982d10/xnat-0.6.2-py3-none-any.whl", hash = "sha256:f7983a195a3ad5a12217e0922ade8416ee7101f6acc9116c1026fa4329b3b549", size = 105752, upload-time = "2024-06-18T16:10:28.231Z" },
 ]
 
 [[package]]
