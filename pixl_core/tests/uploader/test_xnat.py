@@ -89,7 +89,7 @@ def xnat_study_tags() -> StudyTags:
     )
 
 
-def _wait_for_xnat(uri: str, timeout: int = 300, interval: int = 10) -> None:
+def _wait_for_xnat(uri: str, timeout: int = 600, interval: int = 10) -> None:
     """Poll the XNAT auth endpoint until it responds with 200."""
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
