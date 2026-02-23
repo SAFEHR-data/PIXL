@@ -15,12 +15,15 @@
 
 import io
 import os
+import time
 from collections.abc import Generator
 from pathlib import Path
 
 import pytest
+import requests
 import xnat
 import xnat4tests
+from loguru import logger
 
 from core.uploader._orthanc import StudyTags
 from core.uploader._xnat import XNATUploader
@@ -86,6 +89,30 @@ def xnat_study_tags() -> StudyTags:
     )
 
 
+def _wait_for_xnat(uri: str, timeout: int = 300, interval: int = 10) -> None:
+    """Poll the XNAT auth endpoint until it responds with 200."""
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        try:
+            resp = requests.put(
+                f"{uri.rstrip('/')}/data/services/auth",
+                data=dict[str, str](
+                    username=os.environ["XNAT_USER_NAME"], password=os.environ["XNAT_PASSWORD"]
+                ),
+                timeout=10,
+            )
+            if resp.status_code == 200:
+                logger.success("XNAT server is ready.")
+                return
+        except requests.ConnectionError:
+            pass
+        remaining = int(deadline - time.monotonic())
+        logger.info(f"XNAT not ready yet, retrying… ({remaining}s remaining)")
+        time.sleep(interval)
+    msg = f"XNAT did not become ready at {uri} within {timeout}s"
+    raise TimeoutError(msg)
+
+
 @pytest.fixture(scope="session")
 def xnat_server(xnat_project_slug) -> Generator:
     """
@@ -100,11 +127,13 @@ def xnat_server(xnat_project_slug) -> Generator:
     config = xnat4tests.Config(
         xnat_port=os.environ["XNAT_PORT"],
         docker_host=os.environ["XNAT_HOST"],
-        build_args={
-            "xnat_version": "1.8.10.1",
-        },
+    )
+    logger.info(
+        "Starting XNAT server — this can take several minutes "
+        "while the Docker image is built and XNAT deploys..."
     )
     xnat4tests.start_xnat(config)
+    _wait_for_xnat(config.xnat_uri)
 
     # Create the project as well as a non-admin user to perform the upload
     with xnat.connect(
