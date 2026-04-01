@@ -89,8 +89,8 @@ def xnat_study_tags() -> StudyTags:
     )
 
 
-def _wait_for_xnat(uri: str, timeout: int = 600, interval: int = 10) -> None:
-    """Poll the XNAT auth endpoint until it responds with 200."""
+def _wait_for_xnat(uri: str, timeout: int = 300, interval: int = 10) -> None:
+    """Poll the XNAT auth endpoint until successfully authenticated."""
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         try:
@@ -101,11 +101,12 @@ def _wait_for_xnat(uri: str, timeout: int = 600, interval: int = 10) -> None:
                 ),
                 timeout=10,
             )
-            if resp.status_code == 200:
-                logger.success("XNAT server is ready.")
-                return
-        except requests.ConnectionError:
-            pass
+            resp.raise_for_status()
+        except requests.exceptions.RequestException:
+            logger.exception("Failed to connect to XNAT server")
+        else:
+            logger.success("XNAT server is ready.")
+            return
         remaining = int(deadline - time.monotonic())
         logger.info(f"XNAT not ready yet, retrying… ({remaining}s remaining)")
         time.sleep(interval)
