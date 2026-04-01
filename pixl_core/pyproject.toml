@@ -7,24 +7,24 @@ readme = "README.md"
 requires-python = ">=3.11"
 classifiers = ["Programming Language :: Python :: 3"]
 dependencies = [
-    "aio_pika==9.5.3",
-    "azure-identity==1.19.0",
+    "aio_pika==9.5.8",
+    "azure-identity==1.25.2",
     "azure-keyvault==4.2.0",
-    "fastapi==0.115.6",
-    "jsonpickle==4.0.0",
+    "fastapi==0.129.0",
+    "jsonpickle==4.1.1",
     "loguru==0.7.3",
-    "pandas==2.2.3",
+    "pandas==2.3.3",
     "pika==1.3.2",
-    "psycopg2-binary==2.9.10",
+    "psycopg2-binary==2.9.11",
     "pyarrow==18.1.0",
-    "pydantic==2.10.3",
+    "pydantic==2.12.5",
     "python-decouple==3.8",
     "python-slugify==8.0.4",
-    "PyYAML==6.0.2",
-    "requests==2.32.4",
-    "sqlalchemy==2.0.36",
+    "PyYAML==6.0.3",
+    "requests==2.32.5",
+    "sqlalchemy==2.0.46",
     "token-bucket==0.3.0",
-    "xnat==0.6.2",
+    "xnat==0.7.2",
 ]
 
 

@@ -16,8 +16,8 @@
 
 from __future__ import annotations
 
+import enum
 import re
-from enum import Enum
 from pathlib import Path
 from typing import Any
 
@@ -118,7 +118,7 @@ class TagOperationFiles(BaseModel):
         return tag_file_paths
 
 
-class _DestinationEnum(str, Enum):
+class _DestinationEnum(enum.StrEnum):
     """Defines the valid upload destinations."""
 
     none = "none"

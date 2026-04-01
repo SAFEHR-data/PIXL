@@ -238,7 +238,7 @@ services:
         restart: "always"
 
     queue:
-        image: rabbitmq:3.13.7-management@sha256:1c32767bb8f7afb93fe99b890c05a250936bc2836fa3fd0154058f3953207095
+        image: rabbitmq:4.2.5-management@sha256:23fe4f224d3d4d4e3c3904e82fb8a47824f0ee03412c33b7b21e6bf00b9852fa
         hostname: queue-host
         environment:
             RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}

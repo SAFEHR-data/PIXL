@@ -8,8 +8,8 @@ requires-python = ">=3.11"
 classifiers = ["Programming Language :: Python :: 3"]
 dependencies = [
     "core==0.2.0rc0",
-    "click==8.1.7",
-    "tqdm==4.67.1",
+    "click==8.3.1",
+    "tqdm==4.67.3",
 ]
 
 [project.optional-dependencies]

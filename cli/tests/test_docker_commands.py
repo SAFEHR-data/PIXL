@@ -53,7 +53,8 @@ def test_pixl_down_warns_on_volumes(monkeypatch, default_args):
     monkeypatch.setenv("ENV", "prod")
 
     runner = CliRunner()
-    result = runner.invoke(cli, args=["dc", *default_args, "down", "--volumes"])
+    # Add a newline to the input to simulate the user pressing enter
+    result = runner.invoke(cli, args=["dc", *default_args, "down", "--volumes"], input="n\n")
 
     assert result.exit_code == 0
     assert "WARNING: Attempting to remove volumes in production." in result.output

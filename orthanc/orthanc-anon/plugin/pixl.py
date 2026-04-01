@@ -39,9 +39,6 @@ from core.exceptions import PixlDiscardError, PixlSkipInstanceError
 from core.project_config.pixl_config_model import load_project_config
 from decouple import config
 from loguru import logger
-from pydicom import dcmread
-
-import orthanc
 from pixl_dcmd.dicom_helpers import get_study_info
 from pixl_dcmd.main import (
     anonymise_dicom_and_update_db,
@@ -49,12 +46,14 @@ from pixl_dcmd.main import (
     parse_validation_results,
     write_dataset_to_bytes,
 )
+from pydicom import dcmread
+
+import orthanc
 
 if TYPE_CHECKING:
     from typing import Any
 
     from core.project_config.pixl_config_model import PixlConfig
-
     from pixl_dcmd.dicom_helpers import StudyInfo
 
 ORTHANC_USERNAME = config("ORTHANC_USERNAME")
