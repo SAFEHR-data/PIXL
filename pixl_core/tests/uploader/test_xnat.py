@@ -92,13 +92,12 @@ def xnat_study_tags() -> StudyTags:
 def _wait_for_xnat(uri: str, timeout: int = 300, interval: int = 10) -> None:
     """Poll the XNAT auth endpoint until successfully authenticated."""
     deadline = time.monotonic() + timeout
+    default_credentials = {"username": "admin", "password": "admin"}
     while time.monotonic() < deadline:
         try:
             resp = requests.put(
                 f"{uri.rstrip('/')}/data/services/auth",
-                data=dict[str, str](
-                    username=os.environ["XNAT_USER_NAME"], password=os.environ["XNAT_PASSWORD"]
-                ),
+                data=default_credentials,
                 timeout=10,
             )
             resp.raise_for_status()
