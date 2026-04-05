@@ -22,7 +22,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get autoremove --yes && apt-get clean --yes && rm -rf /var/lib/apt/lists/*
 
 # install uv
-COPY --from=ghcr.io/astral-sh/uv:0.10.4@sha256:4cac394b6b72846f8a85a7a0e577c6d61d4e17fe2ccee65d9451a8b3c9efb4ac /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.11.3@sha256:90bbb3c16635e9627f49eec6539f956d70746c409209041800a0280b93152823 /uv /uvx /bin/
 ENV PYTHONPATH=/.venv/lib64/python3.11/site-packages/
 
 FROM pixl_orthanc_uv AS pixl_orthanc_with_spec
