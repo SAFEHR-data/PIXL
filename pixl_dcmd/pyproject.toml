@@ -10,7 +10,7 @@ dependencies = [
     "core==0.2.0rc0",
     "arrow==1.4.0",
     "dicom-anonymizer==1.0.13.post1",
-    "dicom-validator==0.8.1",
+    "dicom-validator==0.7.3",
     "logger==1.4",
     "pydicom==2.4.5",
     "pydicom-data",
