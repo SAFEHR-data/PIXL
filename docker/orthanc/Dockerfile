@@ -14,7 +14,7 @@
 FROM orthancteam/orthanc:26.4.0@sha256:9663604166fd6ba9b9e054b7a92d12945f14e1b8367725cd3c63e806901b8b4e AS pixl_orthanc_uv
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 
-# Create a virtual environment, recommended since python 3.13 and Debian bookworm based images
+# Create a virtual environment, recommended since python 3.11 and Debian bookworm based images
 # where you get a warning when installing system-wide packages.
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
