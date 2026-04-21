@@ -7,10 +7,10 @@ readme = "README.md"
 requires-python = ">=3.11"
 classifiers = ["Programming Language :: Python :: 3"]
 dependencies = [
-    "aio_pika==9.5.8",
-    "azure-identity==1.25.2",
+    "aio_pika==9.6.2",
+    "azure-identity==1.25.3",
     "azure-keyvault==4.2.0",
-    "fastapi==0.129.0",
+    "fastapi==0.135.3",
     "jsonpickle==4.1.1",
     "loguru==0.7.3",
     "pandas==2.3.3",
@@ -22,7 +22,7 @@ dependencies = [
     "python-slugify==8.0.4",
     "PyYAML==6.0.3",
     "requests==2.32.5",
-    "sqlalchemy==2.0.46",
+    "sqlalchemy==2.0.49",
     "token-bucket==0.3.0",
     "xnat==0.7.2",
 ]
