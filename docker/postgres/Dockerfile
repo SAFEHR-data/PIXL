@@ -16,7 +16,7 @@ FROM postgres:16-bookworm@sha256:5620f242bbc0e17478556102327e7efcf60ab48de3607c9
 # OS setup
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
-    apt-get install --yes --no-install-recommends procps ca-certificates locales python3 python3-pip python3.11-venv tzdata && \
+    apt-get install --yes --no-install-recommends procps ca-certificates locales python3 python3-pip python3.13-venv tzdata && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 RUN sed -i '/en_GB.UTF-8/s/^# //g' /etc/locale.gen && locale-gen

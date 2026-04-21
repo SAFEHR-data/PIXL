@@ -4,14 +4,14 @@ version = "0.2.0rc0"
 authors = [{ name = "PIXL authors" }]
 description = "PIXL image extractor"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 classifiers = ["Programming Language :: Python :: 3"]
 dependencies = [
     "core==0.2.0rc0",
     "aiohttp==3.13.3",
     "alembic==1.18.4",
-    "pydicom==2.4.4",
-    "uvicorn==0.41.0",
+    "pydicom==2.4.5",
+    "uvicorn==0.44.0",
 ]
 
 [project.optional-dependencies]

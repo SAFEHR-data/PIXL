@@ -7,8 +7,8 @@ Once you have installed `uv`, in the root of your source tree you can:
 
 Install the required Python version and create the venv (one-off task)
 ```
-uv python install 3.11
-uv venv --python 3.11
+uv python install 3.13
+uv venv --python 3.13
 ```
 Enter the venv (for the lifetime of the shell)
 ```
