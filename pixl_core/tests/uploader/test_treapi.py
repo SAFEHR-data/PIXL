@@ -88,7 +88,7 @@ def _configure_success_responses(mock_get, mock_post, mock_put, mocker) -> None:
 
 
 @pytest.fixture
-def test_zip_content() -> Generator[BytesIO, None, None]:
+def test_zip_content() -> Generator[BytesIO]:
     """Provide test zip file content."""
     test_zip_path = TEST_DIR / "data" / "public.zip"
     with test_zip_path.open("rb") as file_content:
