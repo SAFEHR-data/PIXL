@@ -6,7 +6,7 @@ Once a set of queues are populated the consumers can be started, updated and the
 stopped cleanly.
 
 ## Prerequisites
-* Python version 3.11 (matching python versions in [pixl-ci](../.github/workflows/main.yml) and [dev](../docs/setup/developer.md#installation-of-pixl-modules)).
+* Python version 3.13 (matching python versions in [pixl-ci](../.github/workflows/main.yml) and [dev](../docs/setup/developer.md#installation-of-pixl-modules)).
 * [Docker](https://docs.docker.com/get-docker/) with version `>=27.0.3`
 * [Docker Compose](https://docs.docker.com/compose/install/#installation-scenarios) with version `>=v2.28.1-desktop.1`
 * [uv](https://docs.astral.sh/uv/) to install PIXL in a virtual environment

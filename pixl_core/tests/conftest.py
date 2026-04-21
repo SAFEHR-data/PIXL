@@ -64,7 +64,7 @@ os.environ["XNAT_OVERWRITE"] = "none"
 
 
 @pytest.fixture(scope="package")
-def run_containers() -> Generator[subprocess.CompletedProcess[bytes], None, None]:
+def run_containers() -> Generator[subprocess.CompletedProcess[bytes]]:
     """Run docker containers for tests which require them."""
     run_subprocess(
         shlex.split("docker compose down --volumes"),
@@ -112,7 +112,7 @@ def monkeymodule():
 
 
 @pytest.fixture(autouse=True, scope="module")
-def db_engine(monkeymodule) -> Generator[Engine, None, None]:
+def db_engine(monkeymodule) -> Generator[Engine]:
     """
     Patches the database engine with an in memory database
 
@@ -135,7 +135,7 @@ def db_engine(monkeymodule) -> Generator[Engine, None, None]:
 
 
 @pytest.fixture
-def db_session(db_engine) -> Generator[Session, None, None]:
+def db_session(db_engine) -> Generator[Session]:
     """
     Creates a session for interacting with an in memory database.
 

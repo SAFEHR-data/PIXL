@@ -54,7 +54,7 @@ class FtpHostAddress(Enum):
 @pytest.fixture(scope="session")
 def ftps_server(
     tmp_path_factory: pytest.TempPathFactory, ftp_host_address: FtpHostAddress
-) -> Generator[PixlFTPServer, None, None]:
+) -> Generator[PixlFTPServer]:
     """
     Spins up an FTPS server in a separate process for testing. Configuration is controlled by the
     FTP_* environment variables.

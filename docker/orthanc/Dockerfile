@@ -11,7 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-FROM orthancteam/orthanc:24.12.0@sha256:31b5e84b5ce30e8c771337bdbb333999db90a9a53cf78f85b9a632ded0357b07 AS pixl_orthanc_uv
+FROM orthancteam/orthanc:26.4.0@sha256:9663604166fd6ba9b9e054b7a92d12945f14e1b8367725cd3c63e806901b8b4e AS pixl_orthanc_uv
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 
 # Create a virtual environment, recommended since python 3.11 and Debian bookworm based images
@@ -23,7 +23,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
 
 # install uv
 COPY --from=ghcr.io/astral-sh/uv:0.11.6@sha256:b1e699368d24c57cda93c338a57a8c5a119009ba809305cc8e86986d4a006754 /uv /uvx /bin/
-ENV PYTHONPATH=/.venv/lib64/python3.11/site-packages/
+ENV PYTHONPATH=/.venv/lib64/python3.13/site-packages/
 
 FROM pixl_orthanc_uv AS pixl_orthanc_with_spec
 # This part changes rarely, so do it nice and early to avoid redoing it every time we change our code.
