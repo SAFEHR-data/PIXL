@@ -15,7 +15,7 @@ dependencies = [
     "pydicom==2.4.5",
     "pydicom-data",
     "python-decouple==3.8",
-    "requests==2.32.5",
+    "requests==2.33.0",
     "setuptools", # pydicom needs this
     "types-requests~=2.28",
 ]
