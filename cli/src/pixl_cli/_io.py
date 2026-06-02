@@ -129,13 +129,7 @@ def _load_parquet(
 
     :param dir_path: Path for parquet directory containing private and public
     """
-    public_dir = dir_path / "public" / "omop"
-    private_dir = dir_path / "private"
-
-    for d in [public_dir, private_dir]:
-        if not d.is_dir():
-            err_str = f"{d} must exist and be a directory"
-            raise NotADirectoryError(err_str)
+    public_dir, private_dir = _get_and_validate_public_private_dirs(dir_path)
 
     messages_df = _parse_parquet(private_dir, public_dir)
     messages_df = _map_columns(messages_df, MAP_PARQUET_TO_MESSAGE_KEYS)
@@ -147,6 +141,17 @@ def _load_parquet(
     messages_df["series_uid"] = ""
 
     return messages_df
+
+
+def _get_and_validate_public_private_dirs(dir_path: Path) -> tuple[Path, Path]:
+    """Get and validate public and private directories exist."""
+    public_dir = dir_path / "public" / "omop"
+    private_dir = dir_path / "private"
+    for d in [public_dir, private_dir]:
+        if not d.is_dir():
+            err_str = f"{d} must exist and be a directory"
+            raise NotADirectoryError(err_str)
+    return public_dir, private_dir
 
 
 def _parse_parquet(private_dir: Path, public_dir: Path) -> pd.DataFrame:
@@ -258,13 +263,7 @@ def make_radiology_linker_table(parquet_dir: Path, images: list[Image]) -> pd.Da
     :param images: the images already processed by PIXL, from the DB
                         (this gives us: mrn+accession <-> pseudo_study_uid)
     """
-    public_dir = parquet_dir / "public"
-    private_dir = parquet_dir / "private"
-
-    for d in [public_dir, private_dir]:
-        if not d.is_dir():
-            err_str = f"{d} must exist and be a directory"
-            raise NotADirectoryError(err_str)
+    public_dir, private_dir = _get_and_validate_public_private_dirs(parquet_dir)
 
     people_procedures_accessions = _map_columns(
         _parse_parquet(private_dir, public_dir),
