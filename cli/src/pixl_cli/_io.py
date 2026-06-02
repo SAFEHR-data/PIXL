@@ -129,7 +129,7 @@ def _load_parquet(
 
     :param dir_path: Path for parquet directory containing private and public
     """
-    public_dir = dir_path / "public"
+    public_dir = dir_path / "public" / "omop"
     private_dir = dir_path / "private"
 
     for d in [public_dir, private_dir]:
