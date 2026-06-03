@@ -115,13 +115,14 @@ class FTPSUploader(Uploader):
         """
         Upload parquet to FTPS under <project name>/<extract datetime>/parquet.
         :param parquet_export: instance of the ParquetExport class
-        The final directory structure will look like this:
+        The final directory structure will look like this for un unbatched extract:
         <project-slug>
         ├── <extract_datetime_slug>
         │   └── parquet
         │       ├── omop
         │       │   └── public
-        │       │       └── PROCEDURE_OCCURRENCE.parquet
+        │       │       └── omop
+        │       │           └── PROCEDURE_OCCURRENCE.parquet
         │       └── radiology
         │           └── IMAGE_LINKER.parquet
         ├── <pseudonymised_ID_DICOM_dataset_1>.zip
