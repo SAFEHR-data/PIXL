@@ -121,7 +121,8 @@ class FTPSUploader(Uploader):
         │   └── parquet
         │       ├── omop
         │       │   └── public
-        │       │       └── PROCEDURE_OCCURRENCE.parquet
+        │       │       └── omop
+        │       │           └── PROCEDURE_OCCURRENCE.parquet
         │       └── radiology
         │           └── IMAGE_LINKER.parquet
         ├── <pseudonymised_ID_DICOM_dataset_1>.zip

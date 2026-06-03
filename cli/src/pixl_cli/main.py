@@ -151,7 +151,8 @@ def populate(  # noqa: PLR0913 - too many args
             │   ├── PERSON_LINKS.parquet
             │   └── PROCEDURE_OCCURRENCE_LINKS.parquet
             ├── public
-            │   └── PROCEDURE_OCCURRENCE.parquet
+            │   └── omop
+            │       └── PROCEDURE_OCCURRENCE.parquet
             └── extract_summary.json
         Or the structure will be from a set of parquet arrow datasets, with multiple parts:
             PARQUET-DIR

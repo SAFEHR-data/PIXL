@@ -115,7 +115,8 @@ parquet_dir
 │   ├── PERSON_LINKS.parquet
 │   └── PROCEDURE_OCCURRENCE_LINKS.parquet
 └── public
-    └── PROCEDURE_OCCURRENCE.parquet
+    └── omop 
+        └── PROCEDURE_OCCURRENCE.parquet
 ```
 
 Parquet files can also come in a batched extract. Which makes use of arrow datasets, with multiple parts. 
@@ -130,7 +131,7 @@ parquet_dir
 |   |   └── part-*.parquet    
 └── public
     └── omop 
-        └── omop procedure_occurrence
+        └── procedure_occurrence
             └── part-*.parquet    
     └── custom
 ```

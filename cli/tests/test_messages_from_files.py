@@ -251,6 +251,7 @@ def test_subdirectories_are_empty(tmp_path_factory: pytest.TempPathFactory) -> N
     tmpdir = tmp_path_factory.mktemp("empty_sub")
     for sub_directory in ["public", "private"]:
         (tmpdir / sub_directory).mkdir()
+    (tmpdir / "public" / "omop").mkdir()
     with pytest.raises(FileNotFoundError):
         read_patient_info(tmpdir)
 

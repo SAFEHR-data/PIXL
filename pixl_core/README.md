@@ -131,7 +131,8 @@ Once the parquet files have been uploaded to the DSH, the directory structure wi
     │   └── parquet
     │       ├── omop
     │       │   └── public
-    │       │       └── PROCEDURE_OCCURRENCE.parquet
+    │       │       └── omop
+    │       │           └── PROCEDURE_OCCURRENCE.parquet
     │       └── radiology
     │           └── radiology.parquet
     ├── <pseudonymised_ID_DICOM_dataset_1>.zip
