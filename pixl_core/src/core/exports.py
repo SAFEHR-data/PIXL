@@ -78,7 +78,8 @@ class ParquetExport:
                 │   └── <extract_datetime_slug>
                 │       ├── omop
                 │       │   └── public
-                │       │       └── PROCEDURE_OCCURRENCE.parquet
+                │       │       └── omop
+                │       │           └── PROCEDURE_OCCURRENCE.parquet
                 │       └── radiology
                 │           └── radiology.parquet
                 └── latest -> </symlink/to/latest/extract>
