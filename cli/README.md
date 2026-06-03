@@ -129,8 +129,10 @@ parquet_dir
 │   ├── procedure_occurrence_links
 |   |   └── part-*.parquet    
 └── public
-    └── procedure_occurrence
-        └── part-*.parquet    
+    └── omop 
+        └── omop procedure_occurrence
+            └── part-*.parquet    
+    └── custom
 ```
 
 Alternatively, the queue can be populated based on records in CSV files:

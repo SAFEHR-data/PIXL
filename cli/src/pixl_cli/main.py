@@ -160,9 +160,11 @@ def populate(  # noqa: PLR0913 - too many args
             |   │   └── part-*.parquet
             │   └── procedure_occurrence_links
             |       └── part-*.parquet
-            ├── public
-            │   └── procedure_occurrence
-            |       └── part-*.parquet
+            └── public
+                └── omop
+                    └── procedure_occurrence
+                        └── part-*.parquet
+                └── custom
             └── extract_summary.json
     """
     queues_to_populate = queues.split(",")

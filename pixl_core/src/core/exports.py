@@ -71,7 +71,7 @@ class ParquetExport:
         :raises FileNotFoundError: if there is no public subdirectory in `omop_dir`
         :returns str: the project slug, so this can be registered for export to the DSH
 
-        The final directory structure will look like this:
+        The final directory structure will look like this for an unbatched extract:
             exports
             └── <project_slug>
                 ├── all_extracts

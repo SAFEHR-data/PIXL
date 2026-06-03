@@ -72,7 +72,7 @@ Public parquet exports from OMOP ES that should be transferred outside the hospi
 the `exports` directory at the repository base.
 
 Within this directory each project has a directory, with all extracts stored in `all_extracts` and
-for convenience `latest` is a symlink to the most recent extract.
+for convenience `latest` is a symlink to the most recent extract. For an unbatched extract this looks like:
 
 ```sh
 └── project-1
@@ -123,7 +123,7 @@ by the `export-patient-data` API endpoint defined in the
 [Export API](../pixl_export/src/pixl_export/main.py), which in turn is called by the `export_patient_data`
 command in the [PIXL CLI](../cli/README.md).
 
-Once the parquet files have been uploaded to the DSH, the directory structure will look like this:
+Once the parquet files have been uploaded to the DSH, the directory structure will look like this for an unbatched extract:
 
 ```sh
 <project-slug>
