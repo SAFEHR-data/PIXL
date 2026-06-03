@@ -117,6 +117,7 @@ class TestFtpsUpload:
             TestFtpsUpload.expected_public_parquet_dir
             / "omop"
             / "public"
+            / "omop"
             / "PROCEDURE_OCCURRENCE.parquet"
         ).exists()
 

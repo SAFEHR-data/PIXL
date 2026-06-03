@@ -115,7 +115,8 @@ parquet_dir
 │   ├── PERSON_LINKS.parquet
 │   └── PROCEDURE_OCCURRENCE_LINKS.parquet
 └── public
-    └── PROCEDURE_OCCURRENCE.parquet
+    └── omop 
+        └── PROCEDURE_OCCURRENCE.parquet
 ```
 
 Parquet files can also come in a batched extract. Which makes use of arrow datasets, with multiple parts. 
@@ -129,8 +130,10 @@ parquet_dir
 │   ├── procedure_occurrence_links
 |   |   └── part-*.parquet    
 └── public
-    └── procedure_occurrence
-        └── part-*.parquet    
+    └── omop 
+        └── procedure_occurrence
+            └── part-*.parquet    
+    └── custom
 ```
 
 Alternatively, the queue can be populated based on records in CSV files:

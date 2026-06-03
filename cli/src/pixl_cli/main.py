@@ -151,7 +151,8 @@ def populate(  # noqa: PLR0913 - too many args
             │   ├── PERSON_LINKS.parquet
             │   └── PROCEDURE_OCCURRENCE_LINKS.parquet
             ├── public
-            │   └── PROCEDURE_OCCURRENCE.parquet
+            │   └── omop
+            │       └── PROCEDURE_OCCURRENCE.parquet
             └── extract_summary.json
         Or the structure will be from a set of parquet arrow datasets, with multiple parts:
             PARQUET-DIR
@@ -160,9 +161,11 @@ def populate(  # noqa: PLR0913 - too many args
             |   │   └── part-*.parquet
             │   └── procedure_occurrence_links
             |       └── part-*.parquet
-            ├── public
-            │   └── procedure_occurrence
-            |       └── part-*.parquet
+            └── public
+                └── omop
+                    └── procedure_occurrence
+                        └── part-*.parquet
+                └── custom
             └── extract_summary.json
     """
     queues_to_populate = queues.split(",")
