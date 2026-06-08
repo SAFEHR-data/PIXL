@@ -21,7 +21,11 @@ tag_operation_files:
         - "base.yaml" #Expected base config file for any project
         - "us.yaml"
         - "us-cts.yaml"
-    manufacturer_overrides: ["us.yaml"]
+    manufacturer_overrides: []
+
+image_operation_files:
+    deid-recipes:
+        - US: "us-deid.recipe"
 
 allowed_manufacturers:
   - regex: ".*"
