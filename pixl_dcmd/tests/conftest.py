@@ -230,3 +230,9 @@ def vanilla_dicom_image_DX() -> Dataset:
 @pytest.fixture(scope="module")
 def test_project_config() -> PixlConfig:
     return load_project_config(TEST_PROJECT_SLUG)
+
+
+@pytest.fixture(scope="module")
+def test_ultrasound_project_config() -> PixlConfig:
+    """Config for testing image data alterations"""
+    return load_project_config("us-cts")

@@ -20,7 +20,10 @@ from zipfile import ZipFile
 
 import requests
 from core.exceptions import PixlSkipInstanceError
-from core.project_config import load_tag_operations
+from core.project_config import (
+    load_tag_operations,
+    load_image_operations,
+)
 from decouple import config
 from dicomanonymizer.simpledicomanonymizer import (
     ActionsMapNameFunctions,
@@ -40,6 +43,8 @@ from pixl_dcmd.dicom_helpers import (
     get_study_info,
 )
 from pixl_dcmd._tag_schemes import _scheme_list_to_dict, merge_tag_schemes
+from deid.config import DeidRecipe
+from deid.dicom.pixels import clean_pixel_data, has_burned_pixels
 
 if typing.TYPE_CHECKING:
     from pixl_dcmd.dicom_helpers import StudyInfo
@@ -213,6 +218,41 @@ def anonymise_dicom(
 
     _enforce_allowlist(dataset, tag_scheme, recursive=True)
     _anonymise_dicom_from_scheme(dataset, config.project.name, tag_scheme)
+
+
+def clean_dicom_image_pixels(
+    dataset: Dataset,
+    config: PixlConfig,
+) -> None:
+    """
+    Cleans DICOM image pixels in-place by:
+    - locating burned-in pixels based on coordinates within SequenceOfUltrasoundRegions (for US data) given by:
+        - RegionLocationMinX0
+        - RegionLocationMinY0
+        - RegionLocationMaxX1
+        - RegionLocationMaxY1
+    - see: https://deid.readthedocs.io/en/latest/_modules/deid/dicom/pixels/detect.html#extract_coordinates
+    - setting located pixels to zero
+
+    Requires:
+        - deid recipe file specified in PixlConfig
+
+    :param dataset: DICOM dataset to cleaned, updated in place
+    :param config: Project config to use for pixel cleaning
+    """
+    study_info = get_study_info(dataset)
+    logger.debug(f"Cleaning pixels for project {config.project.name}:  {study_info}")
+
+    image_operations = load_image_operations(config)
+    deid_recipe_path = image_operations.deid_recipes
+    deid_recipe = DeidRecipe(
+        deid_recipe_path
+    )  # current implementation permits only one recipe file
+
+    burned_pixels = has_burned_pixels(dataset, deid=deid_recipe)
+    cleaned_pixels = clean_pixel_data(dicom_file=dataset, results=burned_pixels)
+
+    dataset.PixelData = cleaned_pixels.tobytes()
 
 
 def _anonymise_dicom_from_scheme(

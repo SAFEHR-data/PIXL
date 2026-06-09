@@ -43,6 +43,7 @@ from pixl_dcmd.main import (
     _anonymise_dicom_from_scheme,
     anonymise_and_validate_dicom,
     anonymise_dicom,
+    clean_dicom_image_pixels,
     get_series_to_skip,
     _enforce_allowlist,
     _should_exclude_series,
@@ -216,6 +217,40 @@ def test_anonymise_and_validate_as_external_user(
 
     assert validation_issues == {}
     assert dataset != pydicom.dcmread(dataset_path)
+
+
+def test_clean_dicom_image_pixels(
+    test_ultrasound_project_config: PixlConfig,
+) -> None:
+    """
+    GIVEN an Ultrasound DICOM file containing burned-in pixel data
+    WHEN a deid recipe is applied
+    THEN the burned-in pixel data should be cleaned (masked to 0) from the DICOM
+
+    Note: test below examines first 20 rows of test dataset for ease of test implementation
+    """
+    dataset_path = pydicom.data.get_testdata_file("gdcm-US-ALOKA-16.dcm", download=True)
+    dataset = pydicom.dcmread(dataset_path)
+    original_pixel_region = dataset.pixel_array[:20, :]
+
+    # check dataset contains burned-in pixel data
+    assert hasattr(dataset, "SequenceOfUltrasoundRegions")
+    assert hasattr(dataset.SequenceOfUltrasoundRegions[0], "RegionLocationMinX0")
+    assert hasattr(dataset.SequenceOfUltrasoundRegions[0], "RegionLocationMinY0")
+    assert hasattr(dataset.SequenceOfUltrasoundRegions[0], "RegionLocationMaxX1")
+    assert hasattr(dataset.SequenceOfUltrasoundRegions[0], "RegionLocationMaxY1")
+
+    clean_dicom_image_pixels(dataset, config=test_ultrasound_project_config)
+    cleaned_pixel_region = dataset.pixel_array[:20, :]
+
+    # check DICOM cleaning masks burned-in pixel data to zero
+    compare_clean_region_with_original = original_pixel_region == cleaned_pixel_region
+    assert not np.all(compare_clean_region_with_original)
+
+    compare_clean_region_with_zeros = (
+        np.zeros_like(cleaned_pixel_region) == cleaned_pixel_region
+    )
+    assert np.all(compare_clean_region_with_zeros)
 
 
 @pytest.fixture
