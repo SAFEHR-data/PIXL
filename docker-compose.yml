@@ -64,7 +64,7 @@ x-otel-common: &otel-common
     OTEL_EXPORTER_OTLP_PROTOCOL: grpc
     OTEL_LOGS_EXPORTER: otlp
     OTEL_TRACES_EXPORTER: otlp
-    OTEL_METRICS_EXPORTER: none
+    OTEL_METRICS_EXPORTER: otlp
 
 x-logs-volume: &logs-volume
     type: volume
