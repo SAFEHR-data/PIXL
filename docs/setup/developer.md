@@ -127,3 +127,23 @@ external services. We have a development keyvault for testing. Access to this ke
 by a set of environment variables specified in `test/.secrets.env.sample`.
 To run the pipeline locally, you will need to copy this file to `test/.secrets.env` and fill out
 the necessary values, which can be found in the `pixl-dev-secrets.env` shared LastPass note.
+
+## Observability
+
+PIXL can export structured logs and distributed traces to an
+[OpenTelemetry](https://opentelemetry.io/) (OTel) Collector. Observability is **opt-in**; all services can run as normal without it.
+
+### Enabling OTel in PIXL
+
+PIXL exports telemetry via the OpenTelemetry Protocol and works with any OTel-compatible observability stack (e.g. the Loki, Grafana Tempo Mimir
+[(LGTM) stack](https://grafana.com/docs/opentelemetry/docker-lgtm/), or
+other OTel-native platforms).
+
+To enable observability, set `OTEL_EXPORTER_OTLP_ENDPOINT` in the `.env` file to the gRPC endpoint of an OTel collector, e.g. localhost:4317 (4317 is the standard port for an OTel collector).
+
+After starting the PIXL services, logs should start to appear in your collector's UI.
+
+### Disabling OTel
+
+Leave `OTEL_EXPORTER_OTLP_ENDPOINT` empty (or unset) to disable all telemetry. No other configuration is needed — the services detect the absence of
+the endpoint and skip OTel initialisation.
