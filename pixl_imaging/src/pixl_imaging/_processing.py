@@ -41,17 +41,27 @@ async def process_message(message: Message, archive: DicomModality) -> None:
     We may receive multiple messages with same Patient + Acc Num, either as retries or because
     they are needed for multiple projects.
     """
-    logger.trace("Processing: {}. Querying {} archive.", message.identifier, archive.name)
+    # Bind the study identifiers so every log line in this processing scope is
+    # queryable by study/accession -- the keys used to follow a study across the
+    # pipeline (see ADR-0007). study_uid may be empty until resolved from the
+    # archive; accession_number is always present. MRN is deliberately omitted to
+    # keep raw patient identifiers out of exported logs.
+    with logger.contextualize(
+        accession_number=message.accession_number,
+        study_uid=message.study_uid,
+        project_name=message.project_name,
+    ):
+        logger.trace("Processing: {}. Querying {} archive.", message.identifier, archive.name)
 
-    study = ImagingStudy.from_message(message)
-    orthanc_raw = PIXLRawOrthanc()
-    orthanc_anon = PIXLAnonOrthanc()
-    await _process_message(
-        study=study,
-        orthanc_raw=orthanc_raw,
-        archive=archive,
-        orthanc_anon=orthanc_anon,
-    )
+        study = ImagingStudy.from_message(message)
+        orthanc_raw = PIXLRawOrthanc()
+        orthanc_anon = PIXLAnonOrthanc()
+        await _process_message(
+            study=study,
+            orthanc_raw=orthanc_raw,
+            archive=archive,
+            orthanc_anon=orthanc_anon,
+        )
 
 
 async def _process_message(

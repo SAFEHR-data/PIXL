@@ -100,6 +100,10 @@ def export_dicom_from_orthanc(
     Because we're post-anonymisation, the "StudyInstanceUID" tag returned is actually
     the Pseudo Study UID (a randomly selected, but consistent UID).
     """
-    uploader = get_uploader(project_name)
-    logger.debug("Sending {} via '{}'", study_id, type(uploader).__name__)
-    uploader.upload_dicom_and_update_database(study_id)
+    # orthanc_study_id is the orthanc-anon resource id that orthanc-anon bound
+    # when it notified us, linking this export scope back to the anon-side logs.
+    # See ADR-0007 for the end-to-end correlation strategy.
+    with logger.contextualize(project_name=project_name, orthanc_study_id=study_id):
+        uploader = get_uploader(project_name)
+        logger.debug("Sending {} via '{}'", study_id, type(uploader).__name__)
+        uploader.upload_dicom_and_update_database(study_id)

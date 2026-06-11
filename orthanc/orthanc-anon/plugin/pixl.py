@@ -287,27 +287,38 @@ def _anonymise_study_and_upload(
     zipped_study_bytes = get_study_zip_archive_from_raw(resource_id=study_resource_id)
 
     study_info = _get_study_info_from_first_file(zipped_study_bytes)
-    logger.info("Processing project '{}', {}", project_name, study_info)
 
-    with ZipFile(zipped_study_bytes) as zipped_study:
-        try:
-            anonymised_instances_bytes, anonymised_study_uid = _anonymise_study_instances(
-                zipped_study=zipped_study,
-                study_info=study_info,
-                project_name=project_name,
-                series_to_keep=series_to_keep,
-            )
-        except PixlDiscardError as discard:
-            logger.warning(
-                "Failed to anonymize project: '{}', {}: {}", project_name, study_info, discard
-            )
-            return None
-        except Exception:  # noqa: BLE001
-            logger.exception("Failed to anonymize project: '{}', {}", project_name, study_info)
-            return None
+    # Bind the identifiable study UID/accession for this scope. orthanc-anon is
+    # the one service that sees both identifiable and pseudonymised IDs, so the
+    # "Anonymised study" log below is the bridge that links the raw-side logs
+    # (study_uid) to the anon/export-side logs (pseudo_study_uid). See ADR-0007.
+    with logger.contextualize(
+        accession_number=study_info.accession_number,
+        study_uid=study_info.study_uid,
+        project_name=project_name,
+    ):
+        logger.info("Processing project '{}', {}", project_name, study_info)
 
-    _upload_instances(anonymised_instances_bytes)
-    return anonymised_study_uid
+        with ZipFile(zipped_study_bytes) as zipped_study:
+            try:
+                anonymised_instances_bytes, anonymised_study_uid = _anonymise_study_instances(
+                    zipped_study=zipped_study,
+                    study_info=study_info,
+                    project_name=project_name,
+                    series_to_keep=series_to_keep,
+                )
+            except PixlDiscardError as discard:
+                logger.warning(
+                    "Failed to anonymize project: '{}', {}: {}", project_name, study_info, discard
+                )
+                return None
+            except Exception:  # noqa: BLE001
+                logger.exception("Failed to anonymize project: '{}', {}", project_name, study_info)
+                return None
+
+        _upload_instances(anonymised_instances_bytes)
+        logger.bind(pseudo_study_uid=anonymised_study_uid).info("Anonymised and uploaded study")
+        return anonymised_study_uid
 
 
 def get_study_zip_archive_from_raw(resource_id: str) -> BytesIO:
@@ -469,9 +480,11 @@ def send_study(study_id: str, project_name: str) -> None:
     Send the resource to the appropriate destination.
     Throws an exception if the image has already been exported.
     """
-    msg = f"Sending {study_id}"
-    logger.debug(msg)
-    notify_export_api_of_readiness(study_id, project_name)
+    # study_id is the orthanc-anon resource id; bind it so these logs join to the
+    # export-api logs, which bind the same id as orthanc_study_id (see ADR-0007).
+    with logger.contextualize(orthanc_study_id=study_id, project_name=project_name):
+        logger.debug("Sending {}", study_id)
+        notify_export_api_of_readiness(study_id, project_name)
 
 
 def notify_export_api_of_readiness(study_id: str, project_name: str) -> None:
