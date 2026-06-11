@@ -37,8 +37,10 @@ import requests
 from core.exceptions import PixlDiscardError, PixlSkipInstanceError
 from core.logging import configure_logging
 from core.project_config.pixl_config_model import load_project_config
+from core.tracing import configure_tracing
 from decouple import config
 from loguru import logger
+from opentelemetry import trace
 from pixl_dcmd.dicom_helpers import get_study_info
 from pixl_dcmd.main import (
     anonymise_dicom_and_update_db,
@@ -71,6 +73,11 @@ logging_level = config("LOG_LEVEL")
 if not logging_level:
     logging_level = "INFO"
 configure_logging(level=logging_level)
+# Orthanc plugins cannot be wrapped by opentelemetry-instrument, so set up tracing
+# manually. This also gives the plugin's logs a trace_id/span_id (a per-study trace
+# local to orthanc-anon; it does not join the imaging trace -- see ADR-0007).
+configure_tracing()
+tracer = trace.get_tracer("pixl.orthanc_anon")
 logger.warning("Running logging at level {}", logging_level)
 
 # Set up a thread pool executor for non-blocking calls to Orthanc
@@ -249,34 +256,40 @@ def _import_studies_from_raw(
     - Notify the PIXL export-api to send the studies to the relevant endpoint for the project
 
     """
-    anonymised_study_uids = []
+    # Span covers the whole import; per-study child spans are created in
+    # _anonymise_study_and_upload. orthanc-anon is not wrapped by
+    # opentelemetry-instrument, so without this the plugin's logs carry no trace.
+    with tracer.start_as_current_span("import_studies_from_raw"):
+        anonymised_study_uids = []
 
-    for study_resource_id, study_uid in zip(study_resource_ids, study_uids, strict=False):
-        logger.debug("Processing project '{}', study '{}' ", project_name, study_uid)
-        anonymised_uid = _anonymise_study_and_upload(
-            study_resource_id, project_name, series_to_keep
+        for study_resource_id, study_uid in zip(study_resource_ids, study_uids, strict=False):
+            logger.debug("Processing project '{}', study '{}' ", project_name, study_uid)
+            anonymised_uid = _anonymise_study_and_upload(
+                study_resource_id, project_name, series_to_keep
+            )
+            if anonymised_uid:
+                anonymised_study_uids.append(anonymised_uid)
+
+        if not should_export():
+            logger.debug(
+                "Not exporting study {} as auto-routing is disabled", anonymised_study_uids
+            )
+            return
+
+        # ensure we only have unique resource ids by using a set
+        resource_ids = {
+            _get_study_resource_id(anonymised_study_uid)
+            for anonymised_study_uid in anonymised_study_uids
+        }
+
+        logger.debug(
+            "Notify export API to retrieve study resources. Original UID {} Anon UID: {}",
+            study_resource_ids,
+            resource_ids,
         )
-        if anonymised_uid:
-            anonymised_study_uids.append(anonymised_uid)
 
-    if not should_export():
-        logger.debug("Not exporting study {} as auto-routing is disabled", anonymised_study_uids)
-        return
-
-    # ensure we only have unique resource ids by using a set
-    resource_ids = {
-        _get_study_resource_id(anonymised_study_uid)
-        for anonymised_study_uid in anonymised_study_uids
-    }
-
-    logger.debug(
-        "Notify export API to retrieve study resources. Original UID {} Anon UID: {}",
-        study_resource_ids,
-        resource_ids,
-    )
-
-    for resource_id in resource_ids:
-        send_study(study_id=resource_id, project_name=project_name)
+        for resource_id in resource_ids:
+            send_study(study_id=resource_id, project_name=project_name)
 
 
 def _anonymise_study_and_upload(
@@ -292,10 +305,13 @@ def _anonymise_study_and_upload(
     # the one service that sees both identifiable and pseudonymised IDs, so the
     # "Anonymised study" log below is the bridge that links the raw-side logs
     # (study_uid) to the anon/export-side logs (pseudo_study_uid). See ADR-0007.
-    with logger.contextualize(
-        accession_number=study_info.accession_number,
-        study_uid=study_info.study_uid,
-        project_name=project_name,
+    with (
+        tracer.start_as_current_span("anonymise_study"),
+        logger.contextualize(
+            accession_number=study_info.accession_number,
+            study_uid=study_info.study_uid,
+            project_name=project_name,
+        ),
     ):
         logger.info("Processing project '{}', {}", project_name, study_info)
 

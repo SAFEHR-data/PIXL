@@ -24,8 +24,10 @@ import os
 from typing import TYPE_CHECKING
 
 from core.logging import configure_logging
+from core.tracing import configure_tracing
 from decouple import config
 from loguru import logger
+from opentelemetry import trace
 from pixl_dcmd.tagrecording import record_dicom_headers
 
 import orthanc
@@ -38,6 +40,10 @@ logging_level = config("LOG_LEVEL")
 if not logging_level:
     logging_level = "INFO"
 configure_logging(level=logging_level)
+# Orthanc plugins cannot be wrapped by opentelemetry-instrument, so set up tracing
+# manually; this also gives the plugin's logs a trace_id/span_id. See ADR-0007.
+configure_tracing()
+tracer = trace.get_tracer("pixl.orthanc_raw")
 logger.warning("Running logging at level {}", logging_level)
 
 
@@ -49,8 +55,12 @@ def OnHeartBeat(output, uri, **request):  # noqa: ARG001
 
 def ReceivedInstanceCallback(receivedDicom: bytes, origin: str) -> Any:  # noqa: ARG001
     """Optionally record headers from the received DICOM instance."""
+    # Span only around the header-recording work (an opt-in feature), not every
+    # received instance -- a per-instance span would be thousands of spans per
+    # study. This gives record_dicom_headers' logs trace context when enabled.
     if should_record_headers():
-        record_dicom_headers(receivedDicom)
+        with tracer.start_as_current_span("record_dicom_headers"):
+            record_dicom_headers(receivedDicom)
     return orthanc.ReceivedInstanceAction.KEEP_AS_IS, None
 
 
