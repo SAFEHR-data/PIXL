@@ -43,7 +43,9 @@ from decouple import config
 from loguru import logger
 from opentelemetry import trace
 from opentelemetry.instrumentation.requests import RequestsInstrumentor
+from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 from opentelemetry.propagate import extract
+from pixl_dcmd._database import engine as pixl_db_engine
 from pixl_dcmd.dicom_helpers import get_study_info
 from pixl_dcmd.main import (
     anonymise_dicom_and_update_db,
@@ -78,9 +80,12 @@ if not logging_level:
     logging_level = "INFO"
 configure_logging(level=logging_level)
 
-# Set up tracing to correlate traces and logs
+# Set up tracing to correlate traces and logs.
+# pixl_dcmd creates its engine at import time, so we need to pass the engine
+# explicitly to the SQLAlchemy instrumentor for it to be instrumented.
 if configure_tracing():
     RequestsInstrumentor().instrument()
+    SQLAlchemyInstrumentor().instrument(engine=pixl_db_engine)
 tracer = trace.get_tracer("pixl.orthanc_anon")
 
 logger.warning("Running logging at level {}", logging_level)
