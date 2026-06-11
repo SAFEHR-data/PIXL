@@ -28,6 +28,10 @@ if TYPE_CHECKING:
     from core.patient_queue.message import Message
 
 from loguru import logger
+from opentelemetry import trace
+
+# Get the global provider configured by opentelemetry-instrument.
+tracer = trace.get_tracer("pixl.imaging")
 
 
 class DicomModality(StrEnum):
@@ -41,15 +45,14 @@ async def process_message(message: Message, archive: DicomModality) -> None:
     We may receive multiple messages with same Patient + Acc Num, either as retries or because
     they are needed for multiple projects.
     """
-    # Bind the study identifiers so every log line in this processing scope is
-    # queryable by study/accession -- the keys used to follow a study across the
-    # pipeline (see ADR-0007). study_uid may be empty until resolved from the
-    # archive; accession_number is always present. MRN is deliberately omitted to
-    # keep raw patient identifiers out of exported logs.
-    with logger.contextualize(
-        accession_number=message.accession_number,
-        study_uid=message.study_uid,
-        project_name=message.project_name,
+    # Create a span for processing the message, binding study identifiers to every log message.
+    with (
+        tracer.start_as_current_span("process_message"),
+        logger.contextualize(
+            accession_number=message.accession_number,
+            study_uid=message.study_uid,
+            project_name=message.project_name,
+        ),
     ):
         logger.trace("Processing: {}. Querying {} archive.", message.identifier, archive.name)
 
