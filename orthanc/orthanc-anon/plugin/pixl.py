@@ -41,6 +41,7 @@ from core.tracing import configure_tracing
 from decouple import config
 from loguru import logger
 from opentelemetry import trace
+from opentelemetry.instrumentation.requests import RequestsInstrumentor
 from pixl_dcmd.dicom_helpers import get_study_info
 from pixl_dcmd.main import (
     anonymise_dicom_and_update_db,
@@ -76,7 +77,11 @@ configure_logging(level=logging_level)
 # Orthanc plugins cannot be wrapped by opentelemetry-instrument, so set up tracing
 # manually. This also gives the plugin's logs a trace_id/span_id (a per-study trace
 # local to orthanc-anon; it does not join the imaging trace -- see ADR-0007).
-configure_tracing()
+if configure_tracing():
+    # opentelemetry-instrument would normally call this for the wrapped services;
+    # here it makes the plugin's outbound `requests` calls (orthanc-raw, hasher,
+    # export-api) child spans of the per-study span.
+    RequestsInstrumentor().instrument()
 tracer = trace.get_tracer("pixl.orthanc_anon")
 logger.warning("Running logging at level {}", logging_level)
 
