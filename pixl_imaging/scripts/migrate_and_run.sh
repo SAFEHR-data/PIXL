@@ -25,4 +25,6 @@ else
     echo "Skipping alembic migrations"
 fi
 
-uvicorn pixl_imaging.main:app --host "0.0.0.0" --port 8000
+# `opentelemetry-instrument` is required to enable the auto-instrumentation libraries.
+# `exec` runs this as PID 1 so it receives SIGTERM for graceful shutdown and flushes the logs.
+exec opentelemetry-instrument uvicorn pixl_imaging.main:app --host "0.0.0.0" --port 8000

@@ -66,12 +66,13 @@ RUN --mount=type=cache,target=/root/.cache/uv,sharing=locked uv sync --package "
 # make uvicorn etc available
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Each container should be run with a different entry point
+# Each container should be run with a different entry point.
+# `opentelemetry-instrument` is required to enable the auto-instrumentation libraries.
 FROM pixl_python_base AS export_api
-ENTRYPOINT ["uvicorn", "pixl_export.main:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["opentelemetry-instrument", "uvicorn", "pixl_export.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
 FROM pixl_python_base AS hasher_api
-ENTRYPOINT ["uvicorn", "hasher.main:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["opentelemetry-instrument", "uvicorn", "hasher.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
 FROM pixl_python_base AS imaging_api
 ENTRYPOINT ["/app/pixl_imaging/scripts/migrate_and_run.sh"]
