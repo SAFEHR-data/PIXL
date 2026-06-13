@@ -25,8 +25,10 @@ import requests
 from core.exports import ParquetExport
 from core.logging import configure_logging
 from core.patient_queue.producer import PixlProducer
+from core.tracing import configure_tracing
 from decouple import RepositoryEnv, UndefinedValueError
 from loguru import logger
+from opentelemetry.instrumentation.pika import PikaInstrumentor
 
 from pixl_cli._config import (
     HOST_EXPORT_ROOT_DIR,
@@ -57,6 +59,9 @@ def cli(*, debug: bool) -> None:
     """PIXL command line interface"""
     logging_level = "INFO" if not debug else "DEBUG"
     configure_logging(level=logging_level)
+    if configure_tracing():
+        # Instrument pika so each message is traced as its own root span
+        PikaInstrumentor().instrument()
 
 
 cli.add_command(dc)
