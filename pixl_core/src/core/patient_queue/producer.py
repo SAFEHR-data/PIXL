@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from opentelemetry import trace
 from pika import BasicProperties, DeliveryMode
 
 from ._base import PixlBlockingInterface
@@ -25,6 +26,10 @@ if TYPE_CHECKING:
     from core.patient_queue.message import Message
 
 from loguru import logger
+
+# Get the global tracer so we can use the current trace id when creating spans for each message
+# published to the queue.
+tracer = trace.get_tracer("core.patient_queue.producer")
 
 
 class PixlProducer(PixlBlockingInterface):
@@ -39,19 +44,33 @@ class PixlProducer(PixlBlockingInterface):
         logger.info("Publishing {} messages to queue: {}", len(messages), self.queue_name)
         if len(messages) > 0:
             for msg in messages:
-                serialised_msg = msg.serialise()
-                self._channel.basic_publish(
-                    exchange="",
-                    routing_key=self.queue_name,
-                    body=serialised_msg,
-                    properties=BasicProperties(
-                        delivery_mode=DeliveryMode.Persistent,
-                        priority=priority,
+                with (
+                    tracer.start_as_current_span("publish_message") as span,
+                    logger.contextualize(
+                        study_uid=msg.study_uid,
+                        accession_number=msg.accession_number,
+                        project_name=msg.project_name,
                     ),
-                )
-                logger.debug(
-                    "Message {} published to queue {} with priority", msg, self.queue_name, priority
-                )
+                ):
+                    span.set_attribute("study_uid", msg.study_uid)
+                    span.set_attribute("accession_number", msg.accession_number)
+                    span.set_attribute("messaging.destination.name", self.queue_name)
+                    serialised_msg = msg.serialise()
+                    self._channel.basic_publish(
+                        exchange="",
+                        routing_key=self.queue_name,
+                        body=serialised_msg,
+                        properties=BasicProperties(
+                            delivery_mode=DeliveryMode.Persistent,
+                            priority=priority,
+                        ),
+                    )
+                    logger.debug(
+                        "Message {} published to queue {} with priority {}",
+                        msg,
+                        self.queue_name,
+                        priority,
+                    )
         else:
             logger.warning("List of messages is empty so nothing will be published to queue.")
 
