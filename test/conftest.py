@@ -24,12 +24,19 @@ from core.db.models import Base
 from sqlalchemy import URL, create_engine
 from sqlalchemy.orm import sessionmaker
 
-# Setting env variables before loading modules
+# Setting env variables for the CLI before loading modules
 os.environ["PIXL_DB_HOST"] = "localhost"
 os.environ["PIXL_DB_PORT"] = "7001"
 os.environ["PIXL_DB_USER"] = "pixl_db_username"
 os.environ["PIXL_DB_PASSWORD"] = "pixl_db_password"
 os.environ["PIXL_DB_NAME"] = "pixl"
+os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = "http://localhost:5081"
+os.environ["OTEL_EXPORTER_OTLP_HEADERS"] = (
+    "Authorization=Basic cGl4bC11c2VyQHRlc3QuY29tOmEtdGVzdC1wYXNzd29yZA==,"
+    "organization=default,stream-name=default"
+)
+os.environ["OTEL_SERVICE_NAME"] = "pixl-cli"
+
 
 import pytest
 import requests

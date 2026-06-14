@@ -13,11 +13,27 @@
 #  limitations under the License.
 volumes:
     vna-qr-data:
+    openobserve-data:
 
 networks:
     pixl-net:
 
 services:
+    # Observability backend for the integration tests
+    openobserve:
+        image: public.ecr.aws/zinclabs/openobserve:v0.90.3
+        environment:
+            ZO_ROOT_USER_EMAIL: "pixl-user@test.com"
+            ZO_ROOT_USER_PASSWORD: "a-test-password"
+            TZ: ${TZ:-Europe/London}
+        ports:
+            - "127.0.0.1:5080:5080" # UI + OTLP/HTTP
+            - "127.0.0.1:5081:5081" # OTLP/gRPC
+        volumes:
+            - openobserve-data:/data
+        networks:
+            pixl-net:
+
     vna-qr:
         image: orthancteam/orthanc:24.3.3
         platform: linux/amd64
