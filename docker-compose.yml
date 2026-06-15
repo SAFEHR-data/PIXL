@@ -62,6 +62,7 @@ x-azure-keyvault: &azure-keyvault
 x-otel-common: &otel-common
     OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
     OTEL_EXPORTER_OTLP_HEADERS: ${OTEL_EXPORTER_OTLP_HEADERS:-}  # can be used for auth headers
+    OTEL_RESOURCE_ATTRIBUTES: ${OTEL_RESOURCE_ATTRIBUTES:-}
     OTEL_EXPORTER_OTLP_PROTOCOL: grpc
     OTEL_LOGS_EXPORTER: none  # we define our own loguru sink for exporting logs
     OTEL_TRACES_EXPORTER: otlp
