@@ -172,7 +172,7 @@ class PixlConfig(BaseModel):
     series_filters: list[str] | None = []  # pydantic makes a deep copy of the empty default list
     allowed_manufacturers: list[Manufacturer] = [Manufacturer()]
     tag_operation_files: TagOperationFiles
-    image_operation_files: ImageOperationFiles
+    image_operation_files: ImageOperationFiles | None = None
     destination: _Destination
 
     def is_series_description_excluded(self, series_description: str | None) -> bool:

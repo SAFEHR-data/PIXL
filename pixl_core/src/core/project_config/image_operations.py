@@ -34,9 +34,11 @@ def load_image_operations(pixl_config: PixlConfig) -> ImageOperations:
     Load image operations for a project.
     :param pixl_config: Project configuration
     """
-    deid_recipes = pixl_config.image_operation_files.deid_recipes
+    image_operation_files = pixl_config.image_operation_files
 
-    return ImageOperations(deid_recipes=deid_recipes)
+    if image_operation_files is None:
+        return ImageOperations(deid_recipes=None)
+    return ImageOperations(deid_recipes=image_operation_files.deid_recipes)
 
 
 class ImageOperations(BaseModel):
