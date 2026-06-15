@@ -27,7 +27,7 @@ from opentelemetry.sdk._logs.export import (
 )
 from opentelemetry.sdk.resources import Resource
 
-from core.logging import OTelSink
+from core.logging import OTelSink, configure_logging
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -55,8 +55,14 @@ def otel_logger(
     logger.remove(handler_id)
 
 
+def test_configure_logging_creates_otel_sink() -> None:
+    """Test that configure_logging adds the OTel sink when the endpoint is set."""
+    configure_logging(level="INFO")
+    assert len(logger._core.handlers) == 2  # stderr and OTel sink
+
+
 @pytest.mark.usefixtures("otel_logger")
-def test_otel_sink(exporter: InMemoryLogRecordExporter) -> None:
+def test_otel_sink_logs_messages(exporter: InMemoryLogRecordExporter) -> None:
     """Test that loguru records are sent to the OTel exporter."""
     logger.info("A test message")
 
