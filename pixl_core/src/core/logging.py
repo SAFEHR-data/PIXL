@@ -62,8 +62,10 @@ class OTelSink:
         The provider is flushed on exit so we can include logs from short-lived processes,
         i.e. the CLI.
         """
+        exporter = OTLPLogExporter()
+        processor = BatchLogRecordProcessor(exporter)
         provider = LoggerProvider(resource=Resource.create())
-        provider.add_log_record_processor(BatchLogRecordProcessor(OTLPLogExporter()))
+        provider.add_log_record_processor(processor)
         set_logger_provider(provider)
         atexit.register(provider.shutdown)
         return provider
