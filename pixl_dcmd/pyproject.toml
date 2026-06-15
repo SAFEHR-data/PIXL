@@ -9,7 +9,7 @@ classifiers = ["Programming Language :: Python :: 3"]
 dependencies = [
     "core==0.2.0rc0",
     "arrow==1.4.0",
-    "deid==0.4.12",
+    "deid==0.3.25",
     "dicom-anonymizer==1.0.13.post1",
     "dicom-validator==0.7.3",
     "logger==1.4",
