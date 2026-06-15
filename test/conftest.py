@@ -30,11 +30,7 @@ os.environ["PIXL_DB_PORT"] = "7001"
 os.environ["PIXL_DB_USER"] = "pixl_db_username"
 os.environ["PIXL_DB_PASSWORD"] = "pixl_db_password"
 os.environ["PIXL_DB_NAME"] = "pixl"
-os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = "http://localhost:5081"
-os.environ["OTEL_EXPORTER_OTLP_HEADERS"] = (
-    "Authorization=Basic cGl4bC11c2VyQHRlc3QuY29tOmEtdGVzdC1wYXNzd29yZA==,"
-    "organization=pixl,stream-name=pixl"
-)
+os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = "http://localhost:4317"
 os.environ["OTEL_SERVICE_NAME"] = "pixl-cli"
 
 
