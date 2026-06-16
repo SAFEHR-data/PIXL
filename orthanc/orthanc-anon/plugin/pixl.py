@@ -23,7 +23,6 @@ from __future__ import annotations
 
 import json
 import os
-import sys
 import threading
 import traceback
 from collections import defaultdict
@@ -36,6 +35,7 @@ from zipfile import ZipFile
 import pydicom
 import requests
 from core.exceptions import PixlDiscardError, PixlSkipInstanceError
+from core.logging import configure_logging
 from core.project_config.pixl_config_model import load_project_config
 from decouple import config
 from loguru import logger
@@ -67,12 +67,8 @@ ORTHANC_RAW_URL = "http://orthanc-raw:8042"
 EXPORT_API_URL = "http://export-api:8000"
 
 # Set up logging as main entry point
-logger.remove()  # Remove all handlers added so far, including the default one.
-logging_level = config("LOG_LEVEL")
-if not logging_level:
-    logging_level = "INFO"
-logger.add(sys.stdout, level=logging_level)
-
+logging_level = config("LOG_LEVEL", default="INFO")
+configure_logging(level=logging_level)
 logger.warning("Running logging at level {}", logging_level)
 
 # Set up a thread pool executor for non-blocking calls to Orthanc
