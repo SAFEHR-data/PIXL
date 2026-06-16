@@ -103,7 +103,7 @@ def export_dicom_from_orthanc(
     """
     with logger.contextualize(
         project_name=project_name,
-        orthanc_study_id=study_id,
+        orthanc_resource_id=study_id,
     ):
         uploader = get_uploader(project_name)
         logger.debug("Sending {} via '{}'", study_id, type(uploader).__name__)

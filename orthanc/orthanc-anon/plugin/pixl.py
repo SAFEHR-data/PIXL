@@ -251,7 +251,7 @@ def _import_studies_from_raw(
         anonymised_study_uids = []
 
         for study_resource_id, study_uid in zip(study_resource_ids, study_uids, strict=False):
-            with logger.contextualize(study_uid=study_uid, orthanc_study_id=study_resource_id):
+            with logger.contextualize(study_uid=study_uid, orthanc_resource_id=study_resource_id):
                 logger.debug("Processing project '{}', study '{}' ", project_name, study_uid)
                 anonymised_uid = _anonymise_study_and_upload(
                     study_resource_id, project_name, series_to_keep
@@ -281,7 +281,7 @@ def _import_studies_from_raw(
         for resource_id, anonymised_study_uid in anonymised_study_uid_by_resource_ids.items():
             with logger.contextualize(
                 pseudo_study_uid=anonymised_study_uid,
-                orthanc_study_id=resource_id,
+                orthanc_resource_id=resource_id,
             ):
                 send_study(study_id=resource_id, project_name=project_name)
 
