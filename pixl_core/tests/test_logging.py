@@ -71,6 +71,25 @@ def test_otel_sink_logs_messages(exporter: InMemoryLogRecordExporter) -> None:
 
 
 @pytest.mark.usefixtures("otel_logger")
+def test_bound_fields_become_attributes(exporter: InMemoryLogRecordExporter) -> None:
+    """Test that bound fields are exported as top-level OTel log attributes."""
+    logger.bind(
+        project_name="test-project",
+        study_uid="1.2.3",
+    ).info("Processing study.")
+
+    record = exporter.get_finished_logs()[0].log_record
+    attributes = dict(record.attributes)
+
+    assert record.body == "Processing study."
+    assert attributes["study_uid"] == "1.2.3"
+    assert attributes["project_name"] == "test-project"
+    assert attributes["code.function"] == "test_bound_fields_become_attributes"
+    assert attributes["code.lineno"] > 0
+    assert str(attributes["code.filepath"]).endswith("test_logging.py")
+
+
+@pytest.mark.usefixtures("otel_logger")
 def test_severity_mapping(exporter: InMemoryLogRecordExporter) -> None:
     """Test loguru levels map correctly to the configured OTel severity name and number."""
     logger.trace("Trace message.")

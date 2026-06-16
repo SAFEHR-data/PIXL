@@ -151,3 +151,22 @@ collector's UI.
 Leave `OTEL_EXPORTER_OTLP_ENDPOINT` empty (or unset) to disable all telemetry. No
 other configuration is needed — the services detect the absence of the endpoint
 and skip OTel initialisation.
+
+### Adding context to logs
+
+To make logs filterable and to link related logs together (e.g. logs related
+given DICOM study), we attach structured *context fields* to them. Any field bound
+with loguru's `logger.contextualize()` or `logger.bind()` is exported as a
+top-level, queryable attribute on the OTel log record.
+
+When adding context:
+
+- Bind each field as soon as it is known, e.g. bind `pseudo_study_uid` as soon as
+  a study has been anonymised.
+- Bind fields at the start of a unit of work using `logger.contextualize(...)`.
+  For example, bind `study_uid` per study when iterating over studies, or
+  `orthanc_resource_id` when iterating over resources.
+- For a single log call, `logger.bind(...).info(...)` is preferable to the context manager.
+- Use the same field names across services so logs can be joined up
+- If a field has been pseudonymised, bind a new field prefixed with `pseudo_`, e.g.
+  `study_uid` becomes `pseudo_study_uid` after pseudonymisation

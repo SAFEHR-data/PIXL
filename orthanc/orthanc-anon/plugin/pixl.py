@@ -247,34 +247,43 @@ def _import_studies_from_raw(
     - Notify the PIXL export-api to send the studies to the relevant endpoint for the project
 
     """
-    anonymised_study_uids = []
+    with logger.contextualize(project_name=project_name):
+        anonymised_study_uids = []
 
-    for study_resource_id, study_uid in zip(study_resource_ids, study_uids, strict=False):
-        logger.debug("Processing project '{}', study '{}' ", project_name, study_uid)
-        anonymised_uid = _anonymise_study_and_upload(
-            study_resource_id, project_name, series_to_keep
+        for study_resource_id, study_uid in zip(study_resource_ids, study_uids, strict=False):
+            with logger.contextualize(study_uid=study_uid, orthanc_resource_id=study_resource_id):
+                logger.debug("Processing project '{}', study '{}' ", project_name, study_uid)
+                anonymised_uid = _anonymise_study_and_upload(
+                    study_resource_id, project_name, series_to_keep
+                )
+                if anonymised_uid:
+                    anonymised_study_uids.append(anonymised_uid)
+
+        if not should_export():
+            logger.info(
+                "Not exporting anonymised studies {} as auto-routing is disabled",
+                anonymised_study_uids,
+            )
+            return
+
+        # ensure we only have unique resource ids by using a set
+        anonymised_study_uid_by_resource_ids = {
+            _get_study_resource_id(anonymised_study_uid): anonymised_study_uid
+            for anonymised_study_uid in anonymised_study_uids
+        }
+
+        logger.debug(
+            "Notify export API to retrieve study resources. Original UID {} Anon UID: {}",
+            study_resource_ids,
+            list(anonymised_study_uid_by_resource_ids.values()),
         )
-        if anonymised_uid:
-            anonymised_study_uids.append(anonymised_uid)
 
-    if not should_export():
-        logger.debug("Not exporting study {} as auto-routing is disabled", anonymised_study_uids)
-        return
-
-    # ensure we only have unique resource ids by using a set
-    resource_ids = {
-        _get_study_resource_id(anonymised_study_uid)
-        for anonymised_study_uid in anonymised_study_uids
-    }
-
-    logger.debug(
-        "Notify export API to retrieve study resources. Original UID {} Anon UID: {}",
-        study_resource_ids,
-        resource_ids,
-    )
-
-    for resource_id in resource_ids:
-        send_study(study_id=resource_id, project_name=project_name)
+        for resource_id, anonymised_study_uid in anonymised_study_uid_by_resource_ids.items():
+            with logger.contextualize(
+                pseudo_study_uid=anonymised_study_uid,
+                orthanc_resource_id=resource_id,
+            ):
+                send_study(study_id=resource_id, project_name=project_name)
 
 
 def _anonymise_study_and_upload(
@@ -285,27 +294,35 @@ def _anonymise_study_and_upload(
     zipped_study_bytes = get_study_zip_archive_from_raw(resource_id=study_resource_id)
 
     study_info = _get_study_info_from_first_file(zipped_study_bytes)
-    logger.info("Processing project '{}', {}", project_name, study_info)
+    with logger.contextualize(
+        mrn=study_info.mrn,
+        accession_number=study_info.accession_number,
+        study_uid=study_info.study_uid,
+    ):
+        logger.info("Processing project '{}', {}", project_name, study_info)
 
-    with ZipFile(zipped_study_bytes) as zipped_study:
-        try:
-            anonymised_instances_bytes, anonymised_study_uid = _anonymise_study_instances(
-                zipped_study=zipped_study,
-                study_info=study_info,
-                project_name=project_name,
-                series_to_keep=series_to_keep,
-            )
-        except PixlDiscardError as discard:
-            logger.warning(
-                "Failed to anonymize project: '{}', {}: {}", project_name, study_info, discard
-            )
-            return None
-        except Exception:  # noqa: BLE001
-            logger.exception("Failed to anonymize project: '{}', {}", project_name, study_info)
-            return None
+        with ZipFile(zipped_study_bytes) as zipped_study:
+            try:
+                anonymised_instances_bytes, anonymised_study_uid = _anonymise_study_instances(
+                    zipped_study=zipped_study,
+                    study_info=study_info,
+                    project_name=project_name,
+                    series_to_keep=series_to_keep,
+                )
+            except PixlDiscardError as discard:
+                logger.warning(
+                    "Failed to anonymize project: '{}', {}: {}", project_name, study_info, discard
+                )
+                return None
+            except Exception:  # noqa: BLE001
+                logger.exception("Failed to anonymize project: '{}', {}", project_name, study_info)
+                return None
 
-    _upload_instances(anonymised_instances_bytes)
-    return anonymised_study_uid
+        with logger.contextualize(pseudo_study_uid=anonymised_study_uid):
+            _upload_instances(anonymised_instances_bytes)
+            logger.info("Anonymised and uploaded study")
+
+        return anonymised_study_uid
 
 
 def get_study_zip_archive_from_raw(resource_id: str) -> BytesIO:
@@ -394,19 +411,20 @@ def _anonymise_study_instances(
         message = f"All instances have been skipped for study: {dict(skipped_instance_counts)}"
         raise PixlDiscardError(message)
 
-    logger.debug(
-        "Project '{}' {}, skipped instances: {}",
-        project_name,
-        study_info,
-        dict(skipped_instance_counts),
-    )
-
-    if dicom_validation_errors:
-        logger.warning(
-            "The anonymisation introduced the following validation errors:\n{}",
-            parse_validation_results(dicom_validation_errors),
+    with logger.contextualize(pseudo_study_uid=anonymised_study_uid):
+        logger.debug(
+            "Project '{}' {}, skipped instances: {}",
+            project_name,
+            study_info,
+            dict(skipped_instance_counts),
         )
-    logger.success("Finished anonymising project: '{}', {}", project_name, study_info)
+
+        if dicom_validation_errors:
+            logger.warning(
+                "The anonymisation introduced the following validation errors:\n{}",
+                parse_validation_results(dicom_validation_errors),
+            )
+        logger.success("Finished anonymising project: '{}', {}", project_name, study_info)
     return anonymised_instances_bytes, anonymised_study_uid
 
 
@@ -467,8 +485,7 @@ def send_study(study_id: str, project_name: str) -> None:
     Send the resource to the appropriate destination.
     Throws an exception if the image has already been exported.
     """
-    msg = f"Sending {study_id}"
-    logger.debug(msg)
+    logger.debug("Sending {}", study_id)
     notify_export_api_of_readiness(study_id, project_name)
 
 
