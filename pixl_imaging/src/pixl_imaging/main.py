@@ -41,8 +41,6 @@ app.include_router(router)
 
 # Set up logging as main entry point
 logging_level = config("LOG_LEVEL", default="INFO")
-if not logging_level:
-    logging_level = "INFO"
 configure_logging(level=logging_level)
 logger.warning("Running logging at level {}", logging_level)
 

@@ -67,9 +67,7 @@ ORTHANC_RAW_URL = "http://orthanc-raw:8042"
 EXPORT_API_URL = "http://export-api:8000"
 
 # Set up logging as main entry point
-logging_level = config("LOG_LEVEL")
-if not logging_level:
-    logging_level = "INFO"
+logging_level = config("LOG_LEVEL", default="INFO")
 configure_logging(level=logging_level)
 logger.warning("Running logging at level {}", logging_level)
 

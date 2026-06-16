@@ -34,9 +34,7 @@ if TYPE_CHECKING:
     from typing import Any
 
 # Set up logging as main entry point
-logging_level = config("LOG_LEVEL")
-if not logging_level:
-    logging_level = "INFO"
+logging_level = config("LOG_LEVEL", default="INFO")
 configure_logging(level=logging_level)
 logger.warning("Running logging at level {}", logging_level)
 

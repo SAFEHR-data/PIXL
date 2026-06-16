@@ -89,7 +89,7 @@ class OTelSink:
         )
 
 
-def configure_logging(level: str = "INFO") -> None:
+def configure_logging(level: str) -> None:
     """
     Configure loguru for a PIXL service.
 
