@@ -79,12 +79,20 @@ class OTelSink:
         # loguru stores time in seconds; OTel expected it in nanoseconds
         timestamp_ns = int(record["time"].timestamp() * 1e9)
 
+        # Make bound fields top-level attributes so they can be directly queried when filtering
+        # logs.
+        attributes: dict[str, object] = dict(record["extra"])
+        attributes["code.filepath"] = record["file"].path
+        attributes["code.lineno"] = record["line"]
+        attributes["code.function"] = record["function"]
+
         exception = record["exception"]
         self.provider.get_logger(record["name"]).emit(
             timestamp=timestamp_ns,
             severity_number=severity_number,
             severity_text=severity_text,
             body=record["message"],
+            attributes=attributes,
             exception=exception.value if exception else None,
         )
 
