@@ -97,7 +97,12 @@ def test_exception_is_captured(exporter: InMemoryLogRecordExporter) -> None:
         raise ValueError(msg)
 
     try:
-        _bad_funcion()
+    def _bad_function() -> None:
+        msg = "big error"
+        raise ValueError(msg)
+
+    try:
+        _bad_function()
     except ValueError:
         logger.exception("failed")
 
