@@ -161,7 +161,7 @@ top-level, queryable attribute on the OTel log record.
 
 When adding context:
 
-- Bind each field as soon as it is known**, e.g. bind `pseudo_study_uid` as soon as
+- Bind each field as soon as it is known, e.g. bind `pseudo_study_uid` as soon as
   a study has been anonymised.
 - Bind fields at the start of a unit of work** using `logger.contextualize(...)`.
   For example, bind `study_uid` per study when iterating over studies, or
