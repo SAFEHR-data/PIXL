@@ -19,10 +19,12 @@ from __future__ import annotations
 import zipfile
 from io import BytesIO
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING
 
 import requests
 from decouple import config
+from loguru import logger
 
 from core.uploader._orthanc import StudyTags, get_study_zip_archive
 from core.uploader.base import Uploader
@@ -98,11 +100,12 @@ class TreApiUploader(Uploader):
             raise FileNotFoundError(msg)
 
         # Create zip file
-        zip_filename = f"{source_root_dir.name}.zip"
-        zip_file = _create_zip_archive(source_files, source_root_dir, zip_filename)
+        with TemporaryDirectory() as temp_dir:
+            zip_path = Path(temp_dir) / f"{source_root_dir.name}.zip"
+            _create_zip_archive(source_files, source_root_dir, zip_path)
 
-        # Upload the zip file
-        self.send_via_api(BytesIO(zip_file.read_bytes()), zip_file.name)
+            # Upload the zip file
+            self.send_via_api(BytesIO(zip_path.read_bytes()), zip_path.name)
         self.flush()  # Not ideal, as this may cause multiple flushes in short period
 
     def send_via_api(self, data: BytesIO, filename: str) -> None:
@@ -195,7 +198,7 @@ class TreApiUploader(Uploader):
             raise RuntimeError(msg) from e
 
 
-def _create_zip_archive(files: list[Path], root_dir: Path, zip_filename: str) -> Path:
+def _create_zip_archive(files: list[Path], root_dir: Path, zip_path: Path) -> None:
     """
     Create a zip archive from a list of files.
 
@@ -203,7 +206,7 @@ def _create_zip_archive(files: list[Path], root_dir: Path, zip_filename: str) ->
         files: List of file paths to include in the archive
         root_dir: Root directory for relative paths, used to preserve the
             directory structure of the input files
-        zip_filename: Filename for the output zip file
+        zip_path: Path for the zip archive
 
     Returns:
         Path to the created zip file
@@ -212,7 +215,7 @@ def _create_zip_archive(files: list[Path], root_dir: Path, zip_filename: str) ->
         OSError: If zip file creation fails
 
     """
-    zip_path = Path(zip_filename)
+    logger.debug("Creating zip archive at {}", zip_path)
 
     try:
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
@@ -220,7 +223,5 @@ def _create_zip_archive(files: list[Path], root_dir: Path, zip_filename: str) ->
                 source_rel_path = file_path.relative_to(root_dir)
                 zipf.write(file_path, arcname=source_rel_path)
     except OSError as e:
-        msg = f"Failed to create zip file {zip_filename}: {e}"
+        msg = f"Failed to create zip file {zip_path}: {e}"
         raise OSError(msg) from e
-
-    return zip_path
