@@ -44,6 +44,14 @@ For CI, there is also another subcommand to run pytest, reporting coverage
 ./run-system-test.sh coverage
 ```
 
+## Viewing telemetry
+
+The system tests run a [Grafana LGTM](https://github.com/grafana/docker-otel-lgtm) stack as the OpenTelemetry backend, configured by  (the `lgtm` service in [`docker-compose.yml`](./docker-compose.yml)). This means so the telemetry
+ PIXL exports during the tests run can be inspected.
+
+While the containers are up, open the Grafana UI at [http://localhost:3000](http://localhost:3000)
+and log in with the credentials set for the `lgtm` service in the [`docker-compose.yml`](./docker-compose.yml) file.
+
 ## The `pytest-pixl` plugin
 
 We provide a [`pytest` plugin](../pytest-pixl/README.md) with shared functionality for PIXL system
