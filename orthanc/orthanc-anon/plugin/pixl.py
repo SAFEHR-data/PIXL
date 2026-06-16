@@ -318,8 +318,10 @@ def _anonymise_study_and_upload(
                 logger.exception("Failed to anonymize project: '{}', {}", project_name, study_info)
                 return None
 
-        _upload_instances(anonymised_instances_bytes)
-        logger.bind(pseudo_study_uid=anonymised_study_uid).info("Anonymised and uploaded study")
+        with logger.contextualize(pseudo_study_uid=anonymised_study_uid):
+            _upload_instances(anonymised_instances_bytes)
+            logger.info("Anonymised and uploaded study")
+
         return anonymised_study_uid
 
 
@@ -409,19 +411,20 @@ def _anonymise_study_instances(
         message = f"All instances have been skipped for study: {dict(skipped_instance_counts)}"
         raise PixlDiscardError(message)
 
-    logger.debug(
-        "Project '{}' {}, skipped instances: {}",
-        project_name,
-        study_info,
-        dict(skipped_instance_counts),
-    )
-
-    if dicom_validation_errors:
-        logger.warning(
-            "The anonymisation introduced the following validation errors:\n{}",
-            parse_validation_results(dicom_validation_errors),
+    with logger.contextualize(pseudo_study_uid=anonymised_study_uid):
+        logger.debug(
+            "Project '{}' {}, skipped instances: {}",
+            project_name,
+            study_info,
+            dict(skipped_instance_counts),
         )
-    logger.success("Finished anonymising project: '{}', {}", project_name, study_info)
+
+        if dicom_validation_errors:
+            logger.warning(
+                "The anonymisation introduced the following validation errors:\n{}",
+                parse_validation_results(dicom_validation_errors),
+            )
+        logger.success("Finished anonymising project: '{}', {}", project_name, study_info)
     return anonymised_instances_bytes, anonymised_study_uid
 
 
