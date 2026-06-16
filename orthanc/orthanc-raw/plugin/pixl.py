@@ -21,9 +21,9 @@ This module provides:
 from __future__ import annotations
 
 import os
-import sys
 from typing import TYPE_CHECKING
 
+from core.logging import configure_logging
 from decouple import config
 from loguru import logger
 from pixl_dcmd.tagrecording import record_dicom_headers
@@ -34,12 +34,8 @@ if TYPE_CHECKING:
     from typing import Any
 
 # Set up logging as main entry point
-logger.remove()  # Remove all handlers added so far, including the default one.
-logging_level = config("LOG_LEVEL")
-if not logging_level:
-    logging_level = "INFO"
-logger.add(sys.stdout, level=logging_level)
-
+logging_level = config("LOG_LEVEL", default="INFO")
+configure_logging(level=logging_level)
 logger.warning("Running logging at level {}", logging_level)
 
 
