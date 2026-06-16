@@ -163,7 +163,7 @@ When adding context:
 
 - Bind each field as soon as it is known, e.g. bind `pseudo_study_uid` as soon as
   a study has been anonymised.
-- Bind fields at the start of a unit of work** using `logger.contextualize(...)`.
+- Bind fields at the start of a unit of work using `logger.contextualize(...)`.
   For example, bind `study_uid` per study when iterating over studies, or
   `orthanc_resource_id` when iterating over resources.
 - For a single log call, `logger.bind(...).info(...)` is preferable to the context manager.
