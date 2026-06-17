@@ -17,47 +17,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from opentelemetry.instrumentation.pika import PikaInstrumentor
+from loguru import logger
+from opentelemetry import trace
 from pika import BasicProperties, DeliveryMode
-
-from core.patient_queue.message import deserialise
 
 from ._base import PixlBlockingInterface
 
 if TYPE_CHECKING:
-    from opentelemetry.trace import Span
-
     from core.patient_queue.message import Message
 
-from loguru import logger
-
-
-def _enrich_pika_span(
-    span: Span,
-    body: bytes,
-    properties: BasicProperties,  # noqa: ARG001
-) -> None:
-    """Enrich the span PikaInstrumentor creates for a published message with its identifiers."""
-    msg = deserialise(body)
-    span.set_attributes(
-        {
-            "project_name": msg.project_name,
-            "mrn": msg.mrn,
-            "accession_number": msg.accession_number,
-            "study_uid": msg.study_uid,
-        }
-    )
-
-
-def instrument_pika_producer() -> None:
-    """
-    Instrument pika so each published message gets its own producer span, enriched with the
-    message's identifiers.
-
-    Call once at application start-up.
-    If tracing is not configured, the spans are no-ops.
-    """
-    PikaInstrumentor().instrument(publish_hook=_enrich_pika_span)
+tracer = trace.get_tracer("pixl_core.patient_queue.producer")
 
 
 class PixlProducer(PixlBlockingInterface):
@@ -75,7 +44,14 @@ class PixlProducer(PixlBlockingInterface):
 
         logger.info("Publishing {} messages to queue: {}", len(messages), self.queue_name)
         for msg in messages:
-            self._publish_message(msg, priority)
+            attributes = {
+                "project_name": msg.project_name,
+                "mrn": msg.mrn,
+                "accession_number": msg.accession_number,
+                "study_uid": msg.study_uid,
+            }
+            with tracer.start_as_current_span("publish_message", attributes=attributes):
+                self._publish_message(msg, priority)
 
     def _publish_message(self, message: Message, priority: int) -> None:
         """
