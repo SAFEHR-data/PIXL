@@ -17,14 +17,47 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from opentelemetry.instrumentation.pika import PikaInstrumentor
 from pika import BasicProperties, DeliveryMode
+
+from core.patient_queue.message import deserialise
 
 from ._base import PixlBlockingInterface
 
 if TYPE_CHECKING:
+    from opentelemetry.trace import Span
+
     from core.patient_queue.message import Message
 
 from loguru import logger
+
+
+def _enrich_pika_span(
+    span: Span,
+    body: bytes,
+    properties: BasicProperties,  # noqa: ARG001
+) -> None:
+    """Enrich the span PikaInstrumentor creates for a published message with its identifiers."""
+    msg = deserialise(body)
+    span.set_attributes(
+        {
+            "project_name": msg.project_name,
+            "mrn": msg.mrn,
+            "accession_number": msg.accession_number,
+            "study_uid": msg.study_uid,
+        }
+    )
+
+
+def instrument_pika_producer() -> None:
+    """
+    Instrument pika so each published message gets its own producer span, enriched with the
+    message's identifiers.
+
+    Call once at application start-up.
+    If tracing is not configured, the spans are no-ops.
+    """
+    PikaInstrumentor().instrument(publish_hook=_enrich_pika_span)
 
 
 class PixlProducer(PixlBlockingInterface):
@@ -36,32 +69,42 @@ class PixlProducer(PixlBlockingInterface):
         :param messages: list of messages to be sent to queue
         :param priority: priority of the messages, from 1 (lowest) to 5 (highest)
         """
-        logger.info("Publishing {} messages to queue: {}", len(messages), self.queue_name)
-        if len(messages) > 0:
-            for msg in messages:
-                serialised_msg = msg.serialise()
-                self._channel.basic_publish(
-                    exchange="",
-                    routing_key=self.queue_name,
-                    body=serialised_msg,
-                    properties=BasicProperties(
-                        delivery_mode=DeliveryMode.Persistent,
-                        priority=priority,
-                    ),
-                )
-                logger.bind(
-                    project_name=msg.project_name,
-                    mrn=msg.mrn,
-                    accession_number=msg.accession_number,
-                    study_uid=msg.study_uid,
-                ).debug(
-                    "Message {} published to queue {} with priority {}",
-                    msg,
-                    self.queue_name,
-                    priority,
-                )
-        else:
+        if len(messages) == 0:
             logger.warning("List of messages is empty so nothing will be published to queue.")
+            return
+
+        logger.info("Publishing {} messages to queue: {}", len(messages), self.queue_name)
+        for msg in messages:
+            self._publish_message(msg, priority)
+
+    def _publish_message(self, message: Message, priority: int) -> None:
+        """
+        Publish a single serialised message to a queue.
+        :param message: message to be sent to queue
+        :param priority: priority of the message, from 1 (lowest) to 5 (highest)
+        """
+        serialised_msg = message.serialise()
+        self._channel.basic_publish(
+            exchange="",
+            routing_key=self.queue_name,
+            body=serialised_msg,
+            properties=BasicProperties(
+                delivery_mode=DeliveryMode.Persistent,
+                priority=priority,
+            ),
+        )
+
+        logger.bind(
+            project_name=message.project_name,
+            mrn=message.mrn,
+            accession_number=message.accession_number,
+            study_uid=message.study_uid,
+        ).debug(
+            "Message {} published to queue {} with priority {}",
+            message,
+            self.queue_name,
+            priority,
+        )
 
     def clear_queue(self) -> None:
         """
