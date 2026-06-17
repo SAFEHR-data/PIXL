@@ -22,12 +22,20 @@ from typing import TYPE_CHECKING
 
 import pytest
 import requests
+from loguru import logger
+from opentelemetry.sdk._logs import LoggerProvider
+from opentelemetry.sdk._logs.export import (
+    InMemoryLogRecordExporter,
+    SimpleLogRecordProcessor,
+)
+from opentelemetry.sdk.resources import Resource
 from pydicom.uid import generate_uid
 from pytest_pixl.helpers import run_subprocess
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from core.db.models import Base, Extract, Image
+from core.logging import OTelSink
 from core.patient_queue.message import Message
 
 if TYPE_CHECKING:
@@ -226,3 +234,26 @@ def mock_message() -> Message:
             "Dec 7 2023 2:08PM", "%b %d %Y %I:%M%p"
         ).replace(tzinfo=datetime.UTC),
     )
+
+
+@pytest.fixture
+def log_exporter() -> InMemoryLogRecordExporter:
+    """In-memory exporter capturing the OTel log records the sink emits."""
+    return InMemoryLogRecordExporter()
+
+
+@pytest.fixture
+def otel_logger(
+    monkeypatch: pytest.MonkeyPatch,
+    log_exporter: InMemoryLogRecordExporter,
+) -> Generator[None]:
+    """Configure an OTelSink using the in-memory exporter."""
+    processor = SimpleLogRecordProcessor(log_exporter)
+    provider = LoggerProvider(resource=Resource.create({"service.name": "test"}))
+    provider.add_log_record_processor(processor)
+    monkeypatch.setattr(OTelSink, "_build_provider", lambda _: provider)
+
+    # Set catch=False so loguru doesn't swallow exceptions raised in the sink
+    handler_id = logger.add(OTelSink(), level="TRACE", catch=False)
+    yield
+    logger.remove(handler_id)
