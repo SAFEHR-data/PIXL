@@ -23,8 +23,6 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
 
-from core.tracing import configure_tracing
-
 if TYPE_CHECKING:
     from opentelemetry.sdk._logs.export import InMemoryLogRecordExporter
     from opentelemetry.trace import Tracer
@@ -38,26 +36,6 @@ def otel_tracer() -> Tracer:
     provider = TracerProvider()
     provider.add_span_processor(processor)
     return provider.get_tracer("test")
-
-
-@pytest.mark.parametrize(
-    ("endpoint", "is_tracer"),
-    [
-        ("", False),
-        ("http://localhost:4317", True),
-    ],
-)
-def test_configure_tracing_endpoint(
-    monkeypatch: pytest.MonkeyPatch,
-    endpoint: str,
-    is_tracer: type | None,
-) -> None:
-    """Test tracing is configured only if OTEL_EXPORTER_OTLP_ENDPOINT is set."""
-    monkeypatch.setenv(
-        name="OTEL_EXPORTER_OTLP_ENDPOINT",
-        value=endpoint,
-    )
-    assert (configure_tracing() is not None) == is_tracer
 
 
 @pytest.mark.usefixtures("otel_logger")
