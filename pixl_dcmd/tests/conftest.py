@@ -235,4 +235,4 @@ def test_project_config() -> PixlConfig:
 @pytest.fixture(scope="module")
 def ultrasound_project_config() -> PixlConfig:
     """Config for testing image data alterations"""
-    return load_project_config("us-cts")
+    return load_project_config("ultrasound-learning-for-timely-rapid-assessment-of-cts")

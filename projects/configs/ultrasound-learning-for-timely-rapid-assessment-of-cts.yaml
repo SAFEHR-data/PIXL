@@ -13,7 +13,7 @@
 #  limitations under the License.
 
 project:
-    name: "us-cts"
+    name: "ultrasound-learning-for-timely-rapid-assessment-of-cts"
     modalities: ["US"]
 
 tag_operation_files:
