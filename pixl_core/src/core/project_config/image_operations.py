@@ -25,10 +25,6 @@ if TYPE_CHECKING:
     from core.project_config.pixl_config_model import PixlConfig
 
 
-def _load_recipe(image_operation_file: Path) -> Any:
-    return image_operation_file.read_text()
-
-
 def load_image_operations(pixl_config: PixlConfig) -> ImageOperations:
     """
     Load image operations for a project.
@@ -52,6 +48,10 @@ class ImageOperations(BaseModel):
 
     deid_recipes: list[Path] | None
 
+    @staticmethod
+    def _load_recipe(image_operation_file: Path) -> Any:
+        return image_operation_file.read_text()
+
     @field_validator("deid_recipes")
     @classmethod
     def _valid_recipes(cls, recipes: list[Path]) -> list[Path] | None:
@@ -59,17 +59,17 @@ class ImageOperations(BaseModel):
             msg = "Recipes must be a list of Paths."
             raise TypeError(msg)
         for recipe in recipes:
-            _check_recipe(recipe)
+            _check_recipe(cls._load_recipe(recipe))
         return recipes
 
 
-def _check_recipe(recipe: Path) -> None:
+def _check_recipe(recipe_text: str) -> None:
     """
     Check recipe file.
 
     Note: currently assumes recipe uses SequenceOfUltrasoundRegions tag.
     These checks could be expanded for custom image operation files (e.g. not deid) in future.
     """
-    if "SequenceOfUltrasoundRegions" not in _load_recipe(recipe):
+    if "SequenceOfUltrasoundRegions" not in recipe_text:
         invalid_recipe_msg = "Recipe must contain SequenceOfUltrasoundRegions DICOM tag."
         raise ValueError(invalid_recipe_msg)
