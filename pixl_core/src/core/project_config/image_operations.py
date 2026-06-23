@@ -19,8 +19,6 @@ from __future__ import annotations
 from pathlib import Path  # noqa: TC003
 from typing import TYPE_CHECKING, Any
 
-from pydantic import BaseModel, field_validator
-
 if TYPE_CHECKING:
     from core.project_config.pixl_config_model import PixlConfig
 
@@ -37,24 +35,26 @@ def load_image_operations(pixl_config: PixlConfig) -> ImageOperations:
     return ImageOperations(deid_recipes=image_operation_files.deid_recipes)
 
 
-class ImageOperations(BaseModel):
+class ImageOperations:
     """
     Image operations for a project.
     Provides access to the image operation schemes for a project.
-
-    :param project_config: Project configuration
-    :param deid_recipes: deid recipes containing image alterations
     """
 
-    deid_recipes: list[Path] | None
+    def __init__(self, deid_recipes: list[Path] | None) -> None:
+        """
+        Initialise ImageOperations object and check validity of recipes.
+        :param deid_recipes: deid recipes containing image alterations
+        """
+        self._valid_recipes(deid_recipes)
+        self.deid_recipes = deid_recipes
 
     @staticmethod
     def _load_recipe(image_operation_file: Path) -> Any:
         return image_operation_file.read_text()
 
-    @field_validator("deid_recipes")
     @classmethod
-    def _valid_recipes(cls, recipes: list[Path]) -> list[Path] | None:
+    def _valid_recipes(cls, recipes: list[Path] | None) -> list[Path] | None:
         if recipes is None:
             return None
         if not isinstance(recipes, list):
