@@ -59,6 +59,15 @@ x-azure-keyvault: &azure-keyvault
     AZURE_TENANT_ID: ${EXPORT_AZ_TENANT_ID}
     AZURE_KEY_VAULT_NAME: ${EXPORT_AZ_KEY_VAULT_NAME}
 
+x-otel-common: &otel-common
+    OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+    OTEL_EXPORTER_OTLP_HEADERS: ${OTEL_EXPORTER_OTLP_HEADERS:-}
+    OTEL_RESOURCE_ATTRIBUTES: "service.namespace=pixl"
+    OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+    OTEL_LOGS_EXPORTER: none  # we define our own loguru sink for exporting logs
+    OTEL_TRACES_EXPORTER: otlp
+    OTEL_METRICS_EXPORTER: none
+
 x-logs-volume: &logs-volume
     type: volume
     source: logs
@@ -87,7 +96,8 @@ services:
                 PIXL_PACKAGE_DIR: hasher
                 <<: *build-args-common
         environment:
-            <<: [*proxy-common, *pixl-common-env]
+            <<: [*proxy-common, *pixl-common-env, *otel-common]
+            OTEL_SERVICE_NAME: "hasher-api"
             AZURE_CLIENT_ID: ${HASHER_API_AZ_CLIENT_ID}
             AZURE_CLIENT_SECRET: ${HASHER_API_AZ_CLIENT_PASSWORD}
             AZURE_TENANT_ID: ${HASHER_API_AZ_TENANT_ID}
@@ -120,7 +130,8 @@ services:
         command: /run/secrets
         restart: always
         environment:
-            <<: [*pixl-db, *proxy-common, *pixl-common-env, *azure-keyvault]
+            <<: [*pixl-db, *proxy-common, *pixl-common-env, *azure-keyvault, *otel-common]
+            OTEL_SERVICE_NAME: "orthanc-anon"
             ORTHANC_NAME: "PIXL: Anon"
             ORTHANC_USERNAME: ${ORTHANC_ANON_USERNAME}
             ORTHANC_PASSWORD: ${ORTHANC_ANON_PASSWORD}
@@ -193,7 +204,8 @@ services:
         platform: linux/amd64
         command: /run/secrets
         environment:
-            <<: [*orthanc-raw-db, *proxy-common, *pixl-common-env]
+            <<: [*orthanc-raw-db, *proxy-common, *pixl-common-env, *otel-common]
+            OTEL_SERVICE_NAME: "orthanc-raw"
             ORTHANC_NAME: "PIXL: Raw"
             ORTHANC_USERNAME: ${ORTHANC_RAW_USERNAME}
             ORTHANC_PASSWORD: ${ORTHANC_RAW_PASSWORD}
@@ -274,7 +286,9 @@ services:
                     *pixl-common-env,
                     *pixl-rabbit-mq,
                     *azure-keyvault,
+                    *otel-common,
                 ]
+            OTEL_SERVICE_NAME: "export-api"
             ORTHANC_ANON_URL: "http://orthanc-anon:8042"
             ORTHANC_ANON_USERNAME: ${ORTHANC_ANON_USERNAME}
             ORTHANC_ANON_PASSWORD: ${ORTHANC_ANON_PASSWORD}
@@ -330,7 +344,8 @@ services:
         networks:
             - pixl-net
         environment:
-            <<: [*pixl-rabbit-mq, *proxy-common, *pixl-common-env]
+            <<: [*pixl-rabbit-mq, *proxy-common, *pixl-common-env, *otel-common]
+            OTEL_SERVICE_NAME: "imaging-api"
             ORTHANC_RAW_URL: ${ORTHANC_RAW_URL}
             ORTHANC_RAW_USERNAME: ${ORTHANC_RAW_USERNAME}
             ORTHANC_RAW_PASSWORD: ${ORTHANC_RAW_PASSWORD}

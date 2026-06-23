@@ -17,13 +17,13 @@ from __future__ import annotations
 
 import json
 import os
-import sys
 from pathlib import Path
 from typing import Any
 
 import click
 import requests
 from core.exports import ParquetExport
+from core.logging import configure_logging
 from core.patient_queue.producer import PixlProducer
 from decouple import RepositoryEnv, UndefinedValueError
 from loguru import logger
@@ -55,9 +55,8 @@ os.environ["NO_PROXY"] = os.environ["no_proxy"] = "localhost"
 @click.option("--debug/--no-debug", default=False)
 def cli(*, debug: bool) -> None:
     """PIXL command line interface"""
-    logging_level = "INFO" if not debug else "DEBUG"
-    logger.remove()  # Remove all handlers
-    logger.add(sys.stderr, level=logging_level)
+    logging_level = "DEBUG" if debug else "INFO"
+    configure_logging(level=logging_level)
 
 
 cli.add_command(dc)

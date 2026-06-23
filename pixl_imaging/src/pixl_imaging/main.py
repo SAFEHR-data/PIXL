@@ -17,8 +17,8 @@ from __future__ import annotations
 
 import asyncio
 import importlib.metadata
-import sys
 
+from core.logging import configure_logging
 from core.patient_queue.subscriber import PixlConsumer
 from core.rest_api.router import router, state
 from decouple import config
@@ -40,12 +40,8 @@ app = FastAPI(
 app.include_router(router)
 
 # Set up logging as main entry point
-logger.remove()  # Remove all handlers added so far, including the default one.
 logging_level = config("LOG_LEVEL", default="INFO")
-if not logging_level:
-    logging_level = "INFO"
-logger.add(sys.stderr, level=logging_level)
-
+configure_logging(level=logging_level)
 logger.warning("Running logging at level {}", logging_level)
 
 
