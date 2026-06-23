@@ -16,10 +16,11 @@
 
 from __future__ import annotations
 
-from pathlib import Path  # noqa: TC003
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from core.project_config.pixl_config_model import PixlConfig
 
 
