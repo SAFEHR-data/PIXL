@@ -18,11 +18,12 @@ from __future__ import annotations
 
 import importlib
 import json
+import tempfile
 from pathlib import Path
 from typing import Any
 
 import numpy as np
-from pydicom import Sequence
+from pydicom import Sequence, dcmread
 from pydicom.datadict import dictionary_has_tag
 from pydicom.dataset import Dataset, FileMetaDataset
 
@@ -127,7 +128,11 @@ def generate_dicom_dataset(tag_values: dict = TAGS_DICT, **kwargs: Any) -> Datas
     if "Modality" in kwargs and "SOPClassUID" not in kwargs:
         ds.SOPClassUID = MODALITY_TO_CLASS_UID[kwargs["Modality"]]
 
-    return ds
+    # Convert Dataset to FileDataset
+    # Note: required for image operations using deid which requires FileDataset
+    with tempfile.NamedTemporaryFile(suffix=".dcm") as tmp:
+        ds.save_as(tmp.name, write_like_original=False)
+        return dcmread(tmp.name)
 
 
 def _generate_default_dicom_dataset() -> Dataset:

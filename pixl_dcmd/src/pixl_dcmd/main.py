@@ -207,6 +207,10 @@ def anonymise_dicom(
 
     logger.debug("Anonymising instance for: {}", study_info)
 
+    # Apply any pixel cleaning prior to tag anonymisation
+    # Do before anonymisation as some tag operations may rely on pixel data (e.g. burned in pixel detection).
+    _clean_dicom_image_pixels(dataset, config)
+
     # Merge tag schemes
     tag_operations = load_tag_operations(config)
     tag_scheme = merge_tag_schemes(tag_operations, manufacturer=dataset.Manufacturer)
@@ -220,7 +224,7 @@ def anonymise_dicom(
     _anonymise_dicom_from_scheme(dataset, config.project.name, tag_scheme)
 
 
-def clean_dicom_image_pixels(
+def _clean_dicom_image_pixels(
     dataset: Dataset,
     config: PixlConfig,
 ) -> None:
@@ -248,6 +252,12 @@ def clean_dicom_image_pixels(
     deid_recipe = DeidRecipe(
         deid_recipe_path
     )  # current implementation permits only one recipe file
+
+    if not deid_recipe_path:
+        logger.debug(
+            "No deid recipe provided for pixel cleaning, skipping pixel cleaning."
+        )
+        return
 
     burned_pixels = has_burned_pixels(dataset, deid=deid_recipe)
     cleaned_pixels = clean_pixel_data(dicom_file=dataset, results=burned_pixels)

@@ -55,6 +55,8 @@ class ImageOperations(BaseModel):
     @field_validator("deid_recipes")
     @classmethod
     def _valid_recipes(cls, recipes: list[Path]) -> list[Path] | None:
+        if recipes is None:
+            return None
         if not isinstance(recipes, list):
             msg = "Recipes must be a list of Paths."
             raise TypeError(msg)
