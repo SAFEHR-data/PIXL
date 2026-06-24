@@ -16,7 +16,6 @@
 from __future__ import annotations
 
 import importlib.metadata
-import sys
 from datetime import (
     datetime,  # noqa: TC003, always import datetime otherwise pydantic throws error
 )
@@ -24,6 +23,7 @@ from pathlib import Path
 from typing import Annotated
 
 from core.exports import ParquetExport
+from core.logging import configure_logging
 from core.rest_api.router import router
 from core.uploader import get_uploader
 from decouple import config  # type: ignore [import-untyped]
@@ -33,11 +33,8 @@ from loguru import logger
 from pydantic import BaseModel
 
 # Set up logging as main entry point
-logger.remove()  # Remove all handlers added so far, including the default one.
 logging_level = config("LOG_LEVEL", default="INFO")
-if not logging_level:
-    logging_level = "INFO"
-logger.add(sys.stderr, level=logging_level)
+configure_logging(level=logging_level)
 logger.warning("Running logging at level {}", logging_level)
 
 app = FastAPI(
@@ -72,19 +69,22 @@ def export_patient_data(export_params: ExportPatientData) -> None:
     NOTE: we can't check that all reports in the queue have been processed, so
     we are relying on the user waiting until processing has finished before running this.
     """
-    logger.info("Exporting Patient Data for '{}'", export_params.project_name)
+    with logger.contextualize(
+        project_name=export_params.project_name,
+    ):
+        logger.info("Exporting Patient Data for '{}'", export_params.project_name)
 
-    # Upload Parquet files to the appropriate endpoint
-    parquet_export = ParquetExport(
-        export_params.project_name, export_params.extract_datetime, export_params.output_dir
-    )
+        # Upload Parquet files to the appropriate endpoint
+        parquet_export = ParquetExport(
+            export_params.project_name, export_params.extract_datetime, export_params.output_dir
+        )
 
-    try:
-        parquet_export.upload()
-    except ValueError as e:
-        msg = "Destination for parquet files unavailable"
-        logger.exception(msg)
-        raise HTTPException(status_code=400, detail=msg) from e
+        try:
+            parquet_export.upload()
+        except ValueError as e:
+            msg = "Destination for parquet files unavailable"
+            logger.exception(msg)
+            raise HTTPException(status_code=400, detail=msg) from e
 
 
 @app.post(
@@ -101,6 +101,10 @@ def export_dicom_from_orthanc(
     Because we're post-anonymisation, the "StudyInstanceUID" tag returned is actually
     the Pseudo Study UID (a randomly selected, but consistent UID).
     """
-    uploader = get_uploader(project_name)
-    logger.debug("Sending {} via '{}'", study_id, type(uploader).__name__)
-    uploader.upload_dicom_and_update_database(study_id)
+    with logger.contextualize(
+        project_name=project_name,
+        orthanc_resource_id=study_id,
+    ):
+        uploader = get_uploader(project_name)
+        logger.debug("Sending {} via '{}'", study_id, type(uploader).__name__)
+        uploader.upload_dicom_and_update_database(study_id)

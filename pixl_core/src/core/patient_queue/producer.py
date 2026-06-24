@@ -49,8 +49,16 @@ class PixlProducer(PixlBlockingInterface):
                         priority=priority,
                     ),
                 )
-                logger.debug(
-                    "Message {} published to queue {} with priority", msg, self.queue_name, priority
+                logger.bind(
+                    project_name=msg.project_name,
+                    mrn=msg.mrn,
+                    accession_number=msg.accession_number,
+                    study_uid=msg.study_uid,
+                ).debug(
+                    "Message {} published to queue {} with priority {}",
+                    msg,
+                    self.queue_name,
+                    priority,
                 )
         else:
             logger.warning("List of messages is empty so nothing will be published to queue.")

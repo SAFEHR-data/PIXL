@@ -15,8 +15,7 @@
 
 from __future__ import annotations
 
-import sys
-
+from core.logging import configure_logging
 from decouple import config  # type: ignore [import-untyped]
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -45,12 +44,8 @@ app.add_middleware(
 app.include_router(router)
 
 # Set up logging as main entry point
-logger.remove()  # Remove all handlers added so far, including the default one.
 logging_level = config("LOG_LEVEL", default="INFO")
-if not logging_level:
-    logging_level = "INFO"
-logger.add(sys.stderr, level=logging_level)
-
+configure_logging(level=logging_level)
 logger.warning("Running logging at level {}", logging_level)
 
 logger.info("Starting {} hasher-api {}...", icon, __version__)
