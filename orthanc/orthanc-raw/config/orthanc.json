@@ -92,8 +92,8 @@
     "ThrottleDelay": 5,
 
     // Runs the plugin only at certain period of time.
-    // to run between 19AM and 2PM everyday 
-    // from 8PM to 12PM and 24h a day on the weekend:
+    // to run between 10AM and 2PM on weekdays 
+    // and 24h a day on the weekend:
     // "Schedule": {i
     //   "Monday": ["10-14"],
     //   "Tuesday": ["10-14"],
