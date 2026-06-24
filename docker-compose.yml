@@ -360,6 +360,7 @@ services:
     ################################################################################
     # Data Stores
     postgres:
+        shm_size: 1gb
         build:
             context: .
             dockerfile: ./docker/postgres/Dockerfile
