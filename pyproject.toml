@@ -12,6 +12,7 @@ dependencies = [
     "pixl_dcmd",
     "pixl_export",
     "pixl_imaging",
+    "setuptools<82",
 ]
 
 

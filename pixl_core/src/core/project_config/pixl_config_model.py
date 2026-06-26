@@ -118,6 +118,29 @@ class TagOperationFiles(BaseModel):
         return tag_file_paths
 
 
+class ImageOperationFiles(BaseModel):
+    """Image operations files for a project."""
+
+    deid_recipes: list[Path] | None
+
+    @field_validator("deid_recipes")
+    @classmethod
+    def _valid_img_operations(cls, img_ops_files: list[str]) -> list[Path] | None:
+        if not img_ops_files:
+            return None
+
+        # Pydantic does not appear to automatically check if the file exists
+        files = [
+            Path(config("PROJECT_CONFIGS_DIR")) / "image-operations" / img_op_file
+            for img_op_file in img_ops_files
+        ]
+        for f in files:
+            if not f.exists():
+                # For pydantic, you must raise a ValueError (or AssertionError)
+                raise ValueError from FileNotFoundError(f)
+        return files
+
+
 class _DestinationEnum(enum.StrEnum):
     """Defines the valid upload destinations."""
 
@@ -149,6 +172,7 @@ class PixlConfig(BaseModel):
     series_filters: list[str] | None = []  # pydantic makes a deep copy of the empty default list
     allowed_manufacturers: list[Manufacturer] = [Manufacturer()]
     tag_operation_files: TagOperationFiles
+    image_operation_files: ImageOperationFiles | None = None
     destination: _Destination
 
     def is_series_description_excluded(self, series_description: str | None) -> bool:

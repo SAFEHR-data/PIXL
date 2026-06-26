@@ -12,19 +12,15 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-"""Project-specific configuration for Pixl."""
-
-#
-# Avoid breaking older imports
-from core.project_config.image_operations import ImageOperations, load_image_operations
-from core.project_config.pixl_config_model import PixlConfig, load_project_config
-from core.project_config.tag_operations import TagOperations, load_tag_operations
-
-__all__ = [
-    "ImageOperations",
-    "PixlConfig",
-    "TagOperations",
-    "load_image_operations",
-    "load_project_config",
-    "load_tag_operations",
-]
+- name: Device Serial Number
+  group: 0x0018
+  element: 0x1000
+  op: keep
+- name: Software Versions
+  group: 0x0018
+  element: 0x1020
+  op: keep
+- name: Sequence of Ultrasound Regions
+  group: 0x0018
+  element: 0x6011
+  op: keep

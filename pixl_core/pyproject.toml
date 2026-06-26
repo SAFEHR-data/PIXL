@@ -32,7 +32,7 @@ dependencies = [
     "requests==2.33.0",
     "sqlalchemy==2.0.49",
     "token-bucket==0.3.0",
-    "xnat==0.7.2",
+    "xnat>=0.8",
 ]
 
 
