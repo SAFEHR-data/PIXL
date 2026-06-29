@@ -18,6 +18,8 @@ from __future__ import annotations
 import atexit
 import os
 
+from decouple import config
+from loguru import logger
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.resources import Resource
@@ -29,11 +31,20 @@ __all__ = ["configure_tracing"]
 
 def configure_tracing() -> None:
     """
-    Set up an OTLP span exporter when OTEL_EXPORTER_OTLP_ENDPOINT is set.
-
-    When the endpoint is not set, tracing and spans are no-ops.
+    Set up an OTLP span exporter when OTEL_SDK_DISABLED is false
+    and OTEL_EXPORTER_OTLP_ENDPOINT is set in the environment.
     """
-    if not os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT"):
+    disabled = config("OTEL_SDK_DISABLED", cast=bool)
+    if disabled:
+        logger.debug("OTEL_SDK_DISABLED is set, skipping OTel log configuration")
+        return
+
+    endpoint = config("OTEL_EXPORTER_OTLP_ENDPOINT")
+    if not endpoint:
+        logger.warning(
+            "OTEL_EXPORTER_OTLP_ENDPOINT is not set. Telemetry will not be sent to the collector."
+        )
+        os.environ["OTEL_SDK_DISABLED"] = "true"
         return
 
     exporter = OTLPSpanExporter()

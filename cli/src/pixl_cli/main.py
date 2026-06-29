@@ -62,10 +62,20 @@ def _configure_telemetry_env_vars() -> None:
 
     Load the config and set the relevant environment variables.
     """
-    endpoint = config("OTEL_EXPORTER_OTLP_ENDPOINT", default="")
-    if not endpoint:
+    disabled = config("OTEL_SDK_DISABLED", cast=bool)
+    if disabled:
+        os.environ["OTEL_SDK_DISABLED"] = "true"
         return
 
+    endpoint = config("OTEL_EXPORTER_OTLP_ENDPOINT")
+    if not endpoint:
+        logger.warning(
+            "OTEL_EXPORTER_OTLP_ENDPOINT is not set. Telemetry will not be sent to the collector."
+        )
+        os.environ["OTEL_SDK_DISABLED"] = "true"
+        return
+
+    os.environ["OTEL_SDK_DISABLED"] = "false"
     os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = endpoint
     os.environ["OTEL_SERVICE_NAME"] = "pixl-cli"
     os.environ["OTEL_RESOURCE_ATTRIBUTES"] = "service.namespace=pixl"

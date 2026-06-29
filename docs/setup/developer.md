@@ -139,18 +139,17 @@ PIXL can export structured logs to an
 PIXL exports telemetry via the OpenTelemetry Protocol (OTLP) and works with any
 OTel-compatible observability backend.
 
-To enable observability, set `OTEL_EXPORTER_OTLP_ENDPOINT` in the `.env` file to
-the gRPC endpoint of an OTel collector, e.g. `localhost:4317` (4317 is the
-standard OTLP gRPC port).
+To enable observability, set `OTEL_SDK_DISABLED` to `false` and define an `OTEL_EXPORTER_OTLP_ENDPOINT`
+in the `.env`. The endpoint be for the gRPC endpoint of an OTel collector, e.g.
+`localhost:4317` (4317 is the standard OTLP gRPC port).
 
 After starting the PIXL services, logs should start to appear in your
 collector's UI.
 
 ### Disabling OTel
 
-Leave `OTEL_EXPORTER_OTLP_ENDPOINT` empty (or unset) to disable all telemetry. No
-other configuration is needed — the services detect the absence of the endpoint
-and skip OTel initialisation.
+Set `OTEL_SDK_DISABLED` to `true` to disable all telemetry. No other configuration is
+needed.
 
 ### Adding context to logs
 

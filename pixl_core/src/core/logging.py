@@ -25,6 +25,7 @@ import os
 import sys
 from typing import TYPE_CHECKING
 
+from decouple import config
 from loguru import logger
 from opentelemetry._logs import SeverityNumber, set_logger_provider
 from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
@@ -107,6 +108,18 @@ def configure_logging(level: str) -> None:
     logger.remove()
     logger.add(sys.stderr, level=level.upper())
 
-    if os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT"):
-        sink = OTelSink()
-        logger.add(sink, level=level.upper())
+    disabled = config("OTEL_SDK_DISABLED", cast=bool)
+    if disabled:
+        logger.debug("OTEL_SDK_DISABLED is set, skipping OTel log configuration")
+        return
+
+    endpoint = config("OTEL_EXPORTER_OTLP_ENDPOINT")
+    if not endpoint:
+        logger.warning(
+            "OTEL_EXPORTER_OTLP_ENDPOINT is not set. Telemetry will not be sent to the collector."
+        )
+        os.environ["OTEL_SDK_DISABLED"] = "true"
+        return
+
+    sink = OTelSink()
+    logger.add(sink, level=level.upper())
