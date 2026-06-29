@@ -20,39 +20,11 @@ from typing import TYPE_CHECKING
 import pytest
 from loguru import logger
 from opentelemetry._logs import SeverityNumber
-from opentelemetry.sdk._logs import LoggerProvider
-from opentelemetry.sdk._logs.export import (
-    InMemoryLogRecordExporter,
-    SimpleLogRecordProcessor,
-)
-from opentelemetry.sdk.resources import Resource
 
-from core.logging import OTelSink, configure_logging
+from core.logging import configure_logging
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
-
-
-@pytest.fixture
-def exporter() -> InMemoryLogRecordExporter:
-    """In-memory exporter capturing the OTel log records the sink emits."""
-    return InMemoryLogRecordExporter()
-
-
-@pytest.fixture
-def otel_logger(
-    exporter: InMemoryLogRecordExporter,
-    monkeypatch: pytest.MonkeyPatch,
-) -> Generator[None]:
-    """Configure an OTelSink using the in-memory exporter."""
-    provider = LoggerProvider(resource=Resource.create({"service.name": "test"}))
-    provider.add_log_record_processor(SimpleLogRecordProcessor(exporter))
-    monkeypatch.setattr(OTelSink, "_build_provider", lambda _: provider)
-
-    # Set catch=False so loguru doesn't swallow exceptions raised in the sink
-    handler_id = logger.add(OTelSink(), level="TRACE", catch=False)
-    yield
-    logger.remove(handler_id)
+    from opentelemetry.sdk._logs.export import InMemoryLogRecordExporter
 
 
 def test_configure_logging_creates_otel_sink() -> None:
@@ -62,23 +34,23 @@ def test_configure_logging_creates_otel_sink() -> None:
 
 
 @pytest.mark.usefixtures("otel_logger")
-def test_otel_sink_logs_messages(exporter: InMemoryLogRecordExporter) -> None:
+def test_otel_sink_logs_messages(log_exporter: InMemoryLogRecordExporter) -> None:
     """Test that loguru records are sent to the OTel exporter."""
     logger.info("A test message")
 
-    record = exporter.get_finished_logs()[0].log_record
+    record = log_exporter.get_finished_logs()[0].log_record
     assert record.body == "A test message"
 
 
 @pytest.mark.usefixtures("otel_logger")
-def test_bound_fields_become_attributes(exporter: InMemoryLogRecordExporter) -> None:
+def test_bound_fields_become_attributes(log_exporter: InMemoryLogRecordExporter) -> None:
     """Test that bound fields are exported as top-level OTel log attributes."""
     logger.bind(
         project_name="test-project",
         study_uid="1.2.3",
     ).info("Processing study.")
 
-    record = exporter.get_finished_logs()[0].log_record
+    record = log_exporter.get_finished_logs()[0].log_record
     attributes = dict(record.attributes)
 
     assert record.body == "Processing study."
@@ -90,13 +62,13 @@ def test_bound_fields_become_attributes(exporter: InMemoryLogRecordExporter) -> 
 
 
 @pytest.mark.usefixtures("otel_logger")
-def test_severity_mapping(exporter: InMemoryLogRecordExporter) -> None:
+def test_severity_mapping(log_exporter: InMemoryLogRecordExporter) -> None:
     """Test loguru levels map correctly to the configured OTel severity name and number."""
     logger.trace("Trace message.")
     logger.info("This is informative.")
     logger.success("Well done!")
 
-    records = [data.log_record for data in exporter.get_finished_logs()]
+    records = [data.log_record for data in log_exporter.get_finished_logs()]
     assert [(r.severity_text, r.severity_number) for r in records] == [
         ("TRACE", SeverityNumber.TRACE),
         ("INFO", SeverityNumber.INFO),
@@ -105,7 +77,7 @@ def test_severity_mapping(exporter: InMemoryLogRecordExporter) -> None:
 
 
 @pytest.mark.usefixtures("otel_logger")
-def test_exception_is_captured(exporter: InMemoryLogRecordExporter) -> None:
+def test_exception_is_captured(log_exporter: InMemoryLogRecordExporter) -> None:
     """
     Test that exception type, message and attribute are recorded when calling
     logger.exception.
@@ -120,7 +92,7 @@ def test_exception_is_captured(exporter: InMemoryLogRecordExporter) -> None:
     except ValueError:
         logger.exception("failed")
 
-    record = exporter.get_finished_logs()[0].log_record
+    record = log_exporter.get_finished_logs()[0].log_record
     attributes = dict(record.attributes)
 
     assert record.severity_text == "ERROR"

@@ -60,8 +60,8 @@ x-azure-keyvault: &azure-keyvault
     AZURE_KEY_VAULT_NAME: ${EXPORT_AZ_KEY_VAULT_NAME}
 
 x-otel-common: &otel-common
+    OTEL_SDK_DISABLED: ${OTEL_SDK_DISABLED:-true}
     OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
-    OTEL_EXPORTER_OTLP_HEADERS: ${OTEL_EXPORTER_OTLP_HEADERS:-}
     OTEL_RESOURCE_ATTRIBUTES: "service.namespace=pixl"
     OTEL_EXPORTER_OTLP_PROTOCOL: grpc
     OTEL_LOGS_EXPORTER: none  # we define our own loguru sink for exporting logs

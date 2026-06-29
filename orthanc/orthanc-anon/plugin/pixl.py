@@ -37,8 +37,14 @@ import requests
 from core.exceptions import PixlDiscardError, PixlSkipInstanceError
 from core.logging import configure_logging
 from core.project_config.pixl_config_model import load_project_config
+from core.tracing import configure_tracing
 from decouple import config
 from loguru import logger
+from opentelemetry import trace
+from opentelemetry.instrumentation.requests import RequestsInstrumentor
+from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
+from opentelemetry.propagate import extract
+from pixl_dcmd._database import engine as pixl_db_engine
 from pixl_dcmd.dicom_helpers import get_study_info
 from pixl_dcmd.main import (
     anonymise_dicom_and_update_db,
@@ -54,6 +60,7 @@ if TYPE_CHECKING:
     from typing import Any
 
     from core.project_config.pixl_config_model import PixlConfig
+    from opentelemetry.context import Context
     from pixl_dcmd.dicom_helpers import StudyInfo
 
 ORTHANC_USERNAME = config("ORTHANC_USERNAME")
@@ -69,6 +76,15 @@ EXPORT_API_URL = "http://export-api:8000"
 # Set up logging as main entry point
 logging_level = config("LOG_LEVEL", default="INFO")
 configure_logging(level=logging_level)
+
+# Set up tracing to to correlate logs and traces.
+# pixl_dcmd creates its SQLAlchemy engine at import time, so the engine must be
+# passed explicitly to the instrumentor
+configure_tracing()
+SQLAlchemyInstrumentor().instrument(engine=pixl_db_engine)
+RequestsInstrumentor().instrument()
+tracer = trace.get_tracer("pixl.orthanc_anon")
+
 logger.warning("Running logging at level {}", logging_level)
 
 # Set up a thread pool executor for non-blocking calls to Orthanc
@@ -220,8 +236,18 @@ def ImportStudiesFromRaw(output, uri, **request):  # noqa: ARG001
     series_to_keep = payload["SeriesInstanceUIDs"]
     project_name = payload["ProjectName"]
 
+    # Extract the trace context injected into the request headers by the caller, and pass it to
+    # the thread pool job so the import continues the same trace
+    headers = {key.lower(): value for key, value in request.get("headers", {}).items()}
+    parent_context = extract(headers)
+
     executor.submit(
-        _import_studies_from_raw, study_resource_ids, study_uids, project_name, series_to_keep
+        _import_studies_from_raw,
+        study_resource_ids,
+        study_uids,
+        project_name,
+        series_to_keep,
+        parent_context,
     )
 
     response = json.dumps({"Message": "Ok"})
@@ -233,6 +259,7 @@ def _import_studies_from_raw(
     study_uids: list[str],
     project_name: str,
     series_to_keep: list[str],
+    parent_context: Context | None = None,
 ) -> None:
     """
     Import studies from Orthanc Raw.
@@ -240,6 +267,7 @@ def _import_studies_from_raw(
     Args:
         study_resource_ids: Resource IDs of the study in Orthanc Raw
         project_name: Name of the project
+        parent_context: Trace context extracted from the incoming request, to continue the trace
 
     - Pull studies from Orthanc Raw based on its resource ID
     - Iterate over instances and anonymise them
@@ -247,7 +275,11 @@ def _import_studies_from_raw(
     - Notify the PIXL export-api to send the studies to the relevant endpoint for the project
 
     """
-    with logger.contextualize(project_name=project_name):
+    # Continue the trace from the incoming request and bind the project to every log within it.
+    with (
+        tracer.start_as_current_span(name="import_studies_from_raw", context=parent_context),
+        logger.contextualize(project_name=project_name),
+    ):
         anonymised_study_uids = []
 
         for study_resource_id, study_uid in zip(study_resource_ids, study_uids, strict=False):
@@ -294,10 +326,13 @@ def _anonymise_study_and_upload(
     zipped_study_bytes = get_study_zip_archive_from_raw(resource_id=study_resource_id)
 
     study_info = _get_study_info_from_first_file(zipped_study_bytes)
-    with logger.contextualize(
-        mrn=study_info.mrn,
-        accession_number=study_info.accession_number,
-        study_uid=study_info.study_uid,
+    with (
+        tracer.start_as_current_span(name="anonymise_study"),
+        logger.contextualize(
+            mrn=study_info.mrn,
+            accession_number=study_info.accession_number,
+            study_uid=study_info.study_uid,
+        ),
     ):
         logger.info("Processing project '{}', {}", project_name, study_info)
 
