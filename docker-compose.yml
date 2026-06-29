@@ -60,6 +60,7 @@ x-azure-keyvault: &azure-keyvault
     AZURE_KEY_VAULT_NAME: ${EXPORT_AZ_KEY_VAULT_NAME}
 
 x-otel-common: &otel-common
+    OTEL_SDK_DISABLED: ${OTEL_SDK_DISABLED:-true}
     OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
     OTEL_RESOURCE_ATTRIBUTES: "service.namespace=pixl"
     OTEL_EXPORTER_OTLP_PROTOCOL: grpc
@@ -374,6 +375,7 @@ services:
     ################################################################################
     # Data Stores
     postgres:
+        shm_size: 1gb
         build:
             context: .
             dockerfile: ./docker/postgres/Dockerfile

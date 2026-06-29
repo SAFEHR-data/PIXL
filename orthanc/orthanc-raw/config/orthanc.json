@@ -64,5 +64,59 @@
   "PythonVerbose" : false,
   "Gdcm" : {
     "Enable" : true
+  },
+"Housekeeper": {
+
+    // Enables/disables the plugin
+    "Enable": true,
+
+    // the Global Prooperty ID in which the plugin progress
+    // is stored.  Must be > 1024 and must not be used by
+    // another plugin
+    "GlobalPropertyId": 1025,
+
+    // Forces execution even if the plugin did not detect
+    // any changes in configuration
+    "Force": false,
+
+    // New in 1.12.9
+    // If "Force" is set to true, forces the "ReconstructFiles"
+    // option when reconstructing resources even if the plugin
+    // did not detect any changes in the configuration that
+    // should trigger a Reconstruct.
+    "ForceReconstructFiles": false,
+
+    // Delay (in seconds) between reconstruction of 2 studies
+    // This avoids overloading Orthanc with the housekeeping
+    // process and leaves room for other operations.
+    "ThrottleDelay": 5,
+
+    // Runs the plugin only at certain period of time.
+    // to run between 10AM and 2PM on weekdays 
+    // and 24h a day on the weekend:
+    // "Schedule": {i
+    //   "Monday": ["10-14"],
+    //   "Tuesday": ["10-14"],
+    //   "Wednesday": ["10-14"],
+    //   "Thursday": ["10-14"],
+    //   "Friday": ["10-14"],
+    //   "Saturday": ["0-24"],
+    //   "Sunday": ["0-24"]
+    // },
+
+    // configure events that can trigger a housekeeping processing
+    "Triggers" : {
+      "StorageCompressionChange": true,
+      "MainDicomTagsChange": true,
+      "UnnecessaryDicomAsJsonFiles": true,
+      "IngestTranscodingChange": true,
+      "DicomWebCacheChange": true   // new in 1.12.2
+    },
+
+    // When rebuilding MainDicomTags, limit to a single level of resource
+    // which can greatly improve performances e.g. if you have only updated
+    // the Study level ExtraMainDicomTags.
+    // Allowed values: "Patient", "Study", "Series", "Instance", "All"
+    "LimitMainDicomTagsReconstructLevel": "All"
   }
 }

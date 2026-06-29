@@ -218,6 +218,51 @@ def test_anonymise_and_validate_as_external_user(
     assert dataset != pydicom.dcmread(dataset_path)
 
 
+def test_anonymise_with_clean_dicom_image_pixels(
+    ultrasound_project_config: PixlConfig,
+) -> None:
+    """
+    GIVEN an Ultrasound DICOM file containing burned-in pixel data
+    WHEN a deid recipe is applied
+    THEN the burned-in pixel data should be cleaned (masked to 0) from the DICOM
+       and standard DICOM anonymisation process should be applied
+
+    Note: test below examines first 20 rows of test dataset for ease of test implementation
+    """
+    dataset_path = pydicom.data.get_testdata_file("gdcm-US-ALOKA-16.dcm", download=True)
+    dataset = pydicom.dcmread(dataset_path)
+    original_pixel_region = dataset.pixel_array[:20, :]
+
+    # gather tags to check after anonymisation
+    orig_patient_id = dataset.PatientID
+    orig_patient_name = dataset.PatientName
+    orig_study_date = dataset.StudyDate
+
+    # check dataset contains burned-in pixel data
+    assert hasattr(dataset, "SequenceOfUltrasoundRegions")
+    assert hasattr(dataset.SequenceOfUltrasoundRegions[0], "RegionLocationMinX0")
+    assert hasattr(dataset.SequenceOfUltrasoundRegions[0], "RegionLocationMinY0")
+    assert hasattr(dataset.SequenceOfUltrasoundRegions[0], "RegionLocationMaxX1")
+    assert hasattr(dataset.SequenceOfUltrasoundRegions[0], "RegionLocationMaxY1")
+
+    anonymise_dicom(dataset, config=ultrasound_project_config)
+    cleaned_pixel_region = dataset.pixel_array[:20, :]
+
+    # check tag anonymisation
+    assert dataset.PatientID != orig_patient_id
+    assert dataset.PatientName != orig_patient_name
+    assert dataset.StudyDate != orig_study_date
+
+    # check DICOM cleaning masks burned-in pixel data to zero
+    compare_clean_region_with_original = original_pixel_region == cleaned_pixel_region
+    assert not np.all(compare_clean_region_with_original)
+
+    compare_clean_region_with_zeros = (
+        np.zeros_like(cleaned_pixel_region) == cleaned_pixel_region
+    )
+    assert np.all(compare_clean_region_with_zeros)
+
+
 @pytest.fixture
 def dummy_manufacturer() -> Manufacturer:
     return Manufacturer(regex="^company", exclude_series_numbers=[])
