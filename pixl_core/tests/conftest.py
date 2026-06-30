@@ -69,7 +69,7 @@ os.environ["XNAT_PASSWORD"] = "reallylongpassword"
 os.environ["XNAT_PORT"] = "8080"
 os.environ["XNAT_DESTINATION"] = "/archive"
 os.environ["XNAT_OVERWRITE"] = "none"
-os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = "http://localhost:4317"
+os.environ["OTEL_SDK_DISABLED"] = "true"
 
 
 @pytest.fixture(scope="package")
