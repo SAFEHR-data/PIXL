@@ -22,7 +22,8 @@ from loguru import logger
 from opentelemetry._logs import SeverityNumber
 from opentelemetry.sdk._logs import LoggerProvider
 
-from core.logging import OTelSink, configure_logging
+from core.logging import OTelSink
+from core.telemetry import configure_logging
 
 if TYPE_CHECKING:
     from opentelemetry.sdk._logs.export import InMemoryLogRecordExporter
