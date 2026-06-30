@@ -20,6 +20,7 @@ import pytest
 os.environ["LOG_LEVEL"] = "DEBUG"
 os.environ["AZURE_KEY_VAULT_SECRET_NAME"] = "test-key"
 os.environ["LOCAL_SALT_VALUE"] = "pixl_salt"
+os.environ["OTEL_SDK_DISABLED"] = "true"
 
 
 class MockKeyVault:
