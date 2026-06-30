@@ -27,7 +27,7 @@ from typing import TYPE_CHECKING
 
 from decouple import config
 from loguru import logger
-from opentelemetry._logs import SeverityNumber, set_logger_provider
+from opentelemetry._logs import SeverityNumber, get_logger_provider, set_logger_provider
 from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
 from opentelemetry.sdk._logs import LoggerProvider
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
@@ -58,11 +58,18 @@ class OTelSink:
 
     def _build_provider(self) -> LoggerProvider:
         """
-        Create a LoggerProvider for exporting logs via OTLP.
+        Return LoggerProvider for exporting logs via OTLP.
+
+        Re-use an existing provider if one has already been created. Otherwise, create
+        a new provider and set it as the global provider.
 
         The provider is flushed on exit so we can include logs from short-lived processes,
         i.e. the CLI.
         """
+        existing_provider = get_logger_provider()
+        if isinstance(existing_provider, LoggerProvider):
+            return existing_provider
+
         exporter = OTLPLogExporter()
         processor = BatchLogRecordProcessor(exporter)
         provider = LoggerProvider(resource=Resource.create())
