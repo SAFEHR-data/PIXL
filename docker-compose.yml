@@ -64,8 +64,7 @@ x-otel-common: &otel-common
     OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
     OTEL_RESOURCE_ATTRIBUTES: "service.namespace=pixl"
     OTEL_EXPORTER_OTLP_PROTOCOL: grpc
-    OTEL_PYTHON_LOG_AUTO_INSTRUMENTATION: "false"  # we define our own loguru sink for exporting logs
-    OTEL_LOGS_EXPORTER: none
+    OTEL_LOGS_EXPORTER: none  # we define our own loguru sink for exporting logs
     OTEL_TRACES_EXPORTER: otlp
     OTEL_METRICS_EXPORTER: none
 
