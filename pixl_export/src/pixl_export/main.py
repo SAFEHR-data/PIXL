@@ -23,8 +23,8 @@ from pathlib import Path
 from typing import Annotated
 
 from core.exports import ParquetExport
-from core.telemetry import configure_logging
 from core.rest_api.router import router
+from core.telemetry import configure_logging
 from core.uploader import get_uploader
 from decouple import config  # type: ignore [import-untyped]
 from fastapi import Body, FastAPI, HTTPException

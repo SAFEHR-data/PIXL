@@ -50,6 +50,7 @@ class OTelSink:
     """Send loguru records to an OTel logs exporter via OTLP."""
 
     def __init__(self) -> None:
+        """Initialise the OTel sink."""
         self.provider = self._build_provider()
 
     def _build_provider(self) -> LoggerProvider:
