@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """
-Configure loguru to emit structured logs to an OpenTelemetry collector via OTLP.
+Provides a loguru sink that forwards records to an OpenTelemetry collector via OTLP.
 
 Note, only loguru records are exported. Logs from third-party libraries are not
 forwarded to the OTel collector.
@@ -21,12 +21,8 @@ forwarded to the OTel collector.
 from __future__ import annotations
 
 import atexit
-import os
-import sys
 from typing import TYPE_CHECKING
 
-from decouple import config
-from loguru import logger
 from opentelemetry._logs import SeverityNumber, get_logger_provider, set_logger_provider
 from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
 from opentelemetry.sdk._logs import LoggerProvider
@@ -36,7 +32,7 @@ from opentelemetry.sdk.resources import Resource
 if TYPE_CHECKING:
     from loguru import Message
 
-__all__ = ["configure_logging"]
+__all__ = ["OTelSink"]
 
 # Map loguru level names to OTel severity
 LOGURU_TO_OTEL: dict[str, SeverityNumber] = {
@@ -103,30 +99,3 @@ class OTelSink:
             attributes=attributes,
             exception=exception.value if exception else None,
         )
-
-
-def configure_logging(level: str) -> None:
-    """
-    Configure loguru for a PIXL service.
-
-    Always logs to stderr, which will be viewable in the Docker logs. When
-    OTEL_EXPORTER_OTLP_ENDPOINT is set, also send logs to the OTel collector.
-    """
-    logger.remove()
-    logger.add(sys.stderr, level=level.upper())
-
-    disabled = config("OTEL_SDK_DISABLED", cast=bool)
-    if disabled:
-        logger.debug("OTEL_SDK_DISABLED is set, skipping OTel log configuration")
-        return
-
-    endpoint = config("OTEL_EXPORTER_OTLP_ENDPOINT")
-    if not endpoint:
-        logger.warning(
-            "OTEL_EXPORTER_OTLP_ENDPOINT is not set. Telemetry will not be sent to the collector."
-        )
-        os.environ["OTEL_SDK_DISABLED"] = "true"
-        return
-
-    sink = OTelSink()
-    logger.add(sink, level=level.upper())

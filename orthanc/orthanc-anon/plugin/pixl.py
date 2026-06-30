@@ -35,9 +35,8 @@ from zipfile import ZipFile
 import pydicom
 import requests
 from core.exceptions import PixlDiscardError, PixlSkipInstanceError
-from core.logging import configure_logging
 from core.project_config.pixl_config_model import load_project_config
-from core.tracing import configure_tracing
+from core.telemetry import configure_logging, configure_tracing
 from decouple import config
 from loguru import logger
 from opentelemetry import trace

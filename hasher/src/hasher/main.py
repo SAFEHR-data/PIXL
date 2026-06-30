@@ -15,7 +15,7 @@
 
 from __future__ import annotations
 
-from core.logging import configure_logging
+from core.telemetry import configure_logging
 from decouple import config  # type: ignore [import-untyped]
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware

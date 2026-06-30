@@ -23,8 +23,7 @@ from __future__ import annotations
 import os
 from typing import TYPE_CHECKING
 
-from core.logging import configure_logging
-from core.tracing import configure_tracing
+from core.telemetry import configure_logging, configure_tracing
 from decouple import config
 from loguru import logger
 from opentelemetry import trace
