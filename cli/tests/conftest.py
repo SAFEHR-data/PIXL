@@ -42,6 +42,7 @@ with (Path(__file__).parents[2] / "test/.env").open() as f:
             os.environ[key] = value
 
 # Set the remaining environment variables
+os.environ["OTEL_SDK_DISABLED"] = "true"
 os.environ["PROJECT_CONFIGS_DIR"] = str(Path(__file__).parents[2] / "projects/configs")
 
 os.environ["EXPORT_AZ_CLIENT_ID"] = "export client id"
