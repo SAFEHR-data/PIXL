@@ -248,6 +248,7 @@ def otel_logger(
     log_exporter: InMemoryLogRecordExporter,
 ) -> Generator[None]:
     """Configure an OTelSink using the in-memory exporter."""
+    monkeypatch.setenv("OTEL_SDK_DISABLED", "false")
     processor = SimpleLogRecordProcessor(log_exporter)
     provider = LoggerProvider(resource=Resource.create({"service.name": "test"}))
     provider.add_log_record_processor(processor)
