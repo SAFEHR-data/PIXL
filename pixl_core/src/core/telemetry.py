@@ -44,7 +44,7 @@ def telemetry_is_enabled() -> bool:
     """
     disabled = config("OTEL_SDK_DISABLED", cast=bool)
     if disabled:
-        logger.debug("OTEL_SDK_DISABLED is set, skipping OTel configuration")
+        logger.warning("OTEL_SDK_DISABLED is set, skipping OTel configuration")
         return False
 
     endpoint = config("OTEL_EXPORTER_OTLP_ENDPOINT")
@@ -83,6 +83,13 @@ def configure_tracing() -> None:
     and OTEL_EXPORTER_OTLP_ENDPOINT is set in the environment.
     """
     if not telemetry_is_enabled():
+        return
+
+    # If we have auto-instrumented the service, there's no way to tell the OTel SDK not to
+    # create the provider. So we have to reuse it here to avoid warnings in the logs.
+    # The provider created by the OTel SDK is equivalent to the one we create below.
+    existing_provider = trace.get_tracer_provider()
+    if isinstance(existing_provider, TracerProvider):
         return
 
     exporter = OTLPSpanExporter()

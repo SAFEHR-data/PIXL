@@ -63,6 +63,9 @@ class OTelSink:
         The provider is flushed on exit so we can include logs from short-lived processes,
         i.e. the CLI.
         """
+        # If we have auto-instrumented the service, there's no way to tell the OTel SDK not to
+        # create the provider. So we have to reuse it here to avoid warnings in the logs.
+        # The provider created by the OTel SDK is equivalent to the one we create below.
         existing_provider = get_logger_provider()
         if isinstance(existing_provider, LoggerProvider):
             return existing_provider
