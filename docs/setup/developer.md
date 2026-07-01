@@ -187,3 +187,17 @@ You can pass `attributes` to the metric that can later be used for filtering and
 aggregation, e.g. `project_name`. It's highly recommended to keep attribute values
 **low-cardinality** - each distinct combination of attribute values creates a separate
 time series, so avoid unbounded values like raw IDs or full tracebacks.
+
+### RabbitMQ queue metrics
+
+The RabbitMQ Docker image includes a Prometheus endpoint that exposes queue backlog depth metrics.
+We use this to scrape queue depth metrics for each queue in the PIXL RabbitMQ broker, rather
+than manually defining a metric within PIXL. This does, however, require defining a scrape job in
+the [Prometheus configuration](../../test/prometheus.yaml) of the OTel Collector,
+although the configuration is fairly minimal.
+
+Because metrics are scraped from the Prometheus endpoint, they are independent of
+`OTEL_SDK_DISABLED`. This means queue metrics will always be collected whenever
+something is scraping the endpoint.
+
+Note, queue depth is per-queue only, and cannot be broken down by project.

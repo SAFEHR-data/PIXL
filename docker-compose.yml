@@ -265,6 +265,7 @@ services:
         ports:
             - "127.0.0.1:${RABBITMQ_PORT}:5672"
             - "${RABBITMQ_ADMIN_PORT}:15672"
+            - "${RABBITMQ_METRICS_PORT}:15692"
         networks:
             - pixl-net
         volumes:
