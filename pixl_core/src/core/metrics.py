@@ -101,6 +101,7 @@ def record_study_deidentification_failure(
         project_name: The name of the project for which the de-identification failure occurred.
         failure_type: The type of the failure.
         message (str): The message for the de-identification failure.
+
     """
     if pixl_metrics.deidentification_failures is None:
         return
@@ -125,6 +126,7 @@ def record_instance_deidentification_failure(
         study_uid: The UID of the study for which the de-identification failure occurred.
         failure_type: The type of the failure.
         message (str): The message for the de-identification failure.
+
     """
     if pixl_metrics.instance_deidentification_failures is None:
         return
@@ -135,5 +137,6 @@ def record_instance_deidentification_failure(
             "project_name": project_name,
             "study_uid": study_uid,
             "type": failure_type,
-            "message": message},
+            "message": message,
+        },
     )

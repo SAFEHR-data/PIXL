@@ -91,5 +91,3 @@ def test_record_instance_deidentification_failure(mock_instruments: dict[str, Mo
             "message": "bad tag",
         },
     )
-
-
