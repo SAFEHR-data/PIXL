@@ -28,6 +28,7 @@ __all__ = [
 @dataclass
 class PixlMetrics:
     """Custom metrics for PIXL."""
+
     studies_exported: metrics.Counter | None = None
 
 
@@ -48,13 +49,14 @@ def initialise_metrics() -> None:
         unit="1",
     )
 
+
 def record_study_exported(project_name: str) -> None:
     """
     Record a study exported metric.
 
     Args:
         project_name (str): The name of the project for which the study was exported.
+
     """
     if pixl_metrics.studies_exported is not None:
         pixl_metrics.studies_exported.add(1, {"project_name": project_name})
-
