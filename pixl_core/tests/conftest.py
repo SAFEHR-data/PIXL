@@ -69,7 +69,7 @@ os.environ["XNAT_PASSWORD"] = "reallylongpassword"
 os.environ["XNAT_PORT"] = "8080"
 os.environ["XNAT_DESTINATION"] = "/archive"
 os.environ["XNAT_OVERWRITE"] = "none"
-os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = "http://localhost:4317"
+os.environ["OTEL_SDK_DISABLED"] = "true"
 
 
 @pytest.fixture(scope="package")
@@ -248,6 +248,7 @@ def otel_logger(
     log_exporter: InMemoryLogRecordExporter,
 ) -> Generator[None]:
     """Configure an OTelSink using the in-memory exporter."""
+    monkeypatch.setenv("OTEL_SDK_DISABLED", "false")
     processor = SimpleLogRecordProcessor(log_exporter)
     provider = LoggerProvider(resource=Resource.create({"service.name": "test"}))
     provider.add_log_record_processor(processor)

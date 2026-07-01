@@ -20,17 +20,37 @@ from typing import TYPE_CHECKING
 import pytest
 from loguru import logger
 from opentelemetry._logs import SeverityNumber
+from opentelemetry.sdk._logs import LoggerProvider
 
-from core.logging import configure_logging
+from core.logging import OTelSink
+from core.telemetry import configure_logging
 
 if TYPE_CHECKING:
     from opentelemetry.sdk._logs.export import InMemoryLogRecordExporter
 
 
-def test_configure_logging_creates_otel_sink() -> None:
-    """Test that configure_logging adds the OTel sink when the endpoint is set."""
+def test_build_provider_reuses_existing_provider(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test that OTelSink reuses a LoggerProvider already set by opentelemetry-instrument."""
+    existing = LoggerProvider()
+    monkeypatch.setattr("core.logging.get_logger_provider", lambda: existing)
+    sink = OTelSink()
+    assert sink.provider is existing
+
+
+def test_configure_logging_skips_otel_when_sdk_disabled() -> None:
+    """Test that configure_logging only adds stderr when OTEL_SDK_DISABLED is true."""
+    configure_logging(level="INFO")
+    assert len(logger._core.handlers) == 1  # stderr only
+    logger.remove()
+
+
+def test_configure_logging_creates_otel_sink(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test that configure_logging adds the OTel sink when telemetry is enabled."""
+    monkeypatch.setenv("OTEL_SDK_DISABLED", "false")
+    monkeypatch.setenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317")
     configure_logging(level="INFO")
     assert len(logger._core.handlers) == 2  # stderr and OTel sink
+    logger.remove()
 
 
 @pytest.mark.usefixtures("otel_logger")

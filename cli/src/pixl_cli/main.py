@@ -23,9 +23,8 @@ from typing import Any
 import click
 import requests
 from core.exports import ParquetExport
-from core.logging import configure_logging
 from core.patient_queue.producer import PixlProducer
-from core.tracing import configure_tracing
+from core.telemetry import configure_logging, configure_tracing, telemetry_is_enabled
 from decouple import RepositoryEnv, UndefinedValueError
 from loguru import logger
 from opentelemetry.instrumentation.pika import PikaInstrumentor
@@ -53,7 +52,7 @@ from pixl_cli._message_processing import (
 os.environ["NO_PROXY"] = os.environ["no_proxy"] = "localhost"
 
 
-def _configure_telemetry_env_vars() -> None:
+def _configure_telemetry(logging_level: str) -> None:
     """
     Set the OTel environment variables needed by the CLI.
 
@@ -62,13 +61,17 @@ def _configure_telemetry_env_vars() -> None:
 
     Load the config and set the relevant environment variables.
     """
-    endpoint = config("OTEL_EXPORTER_OTLP_ENDPOINT", default="")
-    if not endpoint:
+    if not telemetry_is_enabled():
         return
 
-    os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = endpoint
+    os.environ["OTEL_SDK_DISABLED"] = "false"
+    os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = config("OTEL_EXPORTER_OTLP_ENDPOINT")
     os.environ["OTEL_SERVICE_NAME"] = "pixl-cli"
     os.environ["OTEL_RESOURCE_ATTRIBUTES"] = "service.namespace=pixl"
+
+    configure_logging(level=logging_level)
+    configure_tracing()
+    PikaInstrumentor().instrument()
 
 
 @click.group()
@@ -76,10 +79,7 @@ def _configure_telemetry_env_vars() -> None:
 def cli(*, debug: bool) -> None:
     """PIXL command line interface"""
     logging_level = "DEBUG" if debug else "INFO"
-    _configure_telemetry_env_vars()
-    configure_logging(level=logging_level)
-    configure_tracing()
-    PikaInstrumentor().instrument()
+    _configure_telemetry(logging_level=logging_level)
 
 
 cli.add_command(dc)

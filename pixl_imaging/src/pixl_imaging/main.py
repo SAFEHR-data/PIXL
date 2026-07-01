@@ -18,9 +18,9 @@ from __future__ import annotations
 import asyncio
 import importlib.metadata
 
-from core.logging import configure_logging
 from core.patient_queue.subscriber import PixlConsumer
 from core.rest_api.router import router, state
+from core.telemetry import configure_logging
 from decouple import config
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
