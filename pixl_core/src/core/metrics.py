@@ -21,8 +21,8 @@ from opentelemetry import metrics
 
 __all__ = [
     "initialise_metrics",
-    "record_study_exported",
     "record_study_deidentification_failure",
+    "record_study_exported",
 ]
 
 
@@ -52,7 +52,9 @@ def initialise_metrics() -> None:
         unit="1",
     )
 
-    description = "Number of studies that failed to be de-identified, by project and failure reason."
+    description = (
+        "Number of studies that failed to be de-identified, by project and failure reason."
+    )
     pixl_metrics.deidentification_failures = meter.create_counter(
         name="pixl.studies.deidentification.failures",
         unit="1",
@@ -70,7 +72,7 @@ def record_study_exported(project_name: str) -> None:
     """
     if pixl_metrics.studies_exported is None:
         return
-    
+
     pixl_metrics.studies_exported.add(
         amount=1,
         attributes={"project_name": project_name},
@@ -84,10 +86,11 @@ def record_study_deidentification_failure(project_name: str, reason: str) -> Non
     Args:
         reason (str): The reason for the de-identification failure.
         project_name (str): The name of the project for which the de-identification failure occurred.
+
     """
     if pixl_metrics.deidentification_failures is None:
         return
-    
+
     pixl_metrics.deidentification_failures.add(
         amount=1,
         attributes={"reason": reason, "project_name": project_name},
