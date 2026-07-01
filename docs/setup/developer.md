@@ -169,3 +169,35 @@ When adding context:
 - Use the same field names across services so logs can be joined up
 - If a field has been pseudonymised, bind a new field prefixed with `pseudo_`, e.g.
   `study_uid` becomes `pseudo_study_uid` after pseudonymisation
+
+### Adding metrics
+
+Custom metrics are defined centrally in [`core.metrics`](../../pixl_core/src/core/metrics.py).
+To add a new metric:
+
+1. Add a field for it on the `PixlMetrics` dataclass, and create the instrument
+   (e.g. a counter) in `initialise_metrics()`. Metric names use dots as
+   separators, e.g. `pixl.studies.exported`.
+2. Add a `record_*` helper that records a value on the instrument. Guard against
+   the instrument being `None` (it is unset when telemetry is disabled) and
+   return early if so.
+3. Call the `record_*` helper from the relevant service(s).
+
+You can pass `attributes` to the metric that can later be used for filtering and
+aggregation, e.g. `project_name`. It's highly recommended to keep attribute values
+**low-cardinality** - each distinct combination of attribute values creates a separate
+time series, so avoid unbounded values like raw IDs or full tracebacks.
+
+### RabbitMQ queue metrics
+
+The RabbitMQ Docker image includes a Prometheus endpoint that exposes queue backlog depth metrics.
+We use this to scrape queue depth metrics for each queue in the PIXL RabbitMQ broker, rather
+than manually defining a metric within PIXL. This does, however, require defining a scrape job in
+the [Prometheus configuration](../../test/prometheus.yaml) of the OTel Collector,
+although the configuration is fairly minimal.
+
+Because metrics are scraped from the Prometheus endpoint, they are independent of
+`OTEL_SDK_DISABLED`. This means queue metrics will always be collected whenever
+something is scraping the endpoint.
+
+Note, queue depth is per-queue only, and cannot be broken down by project.

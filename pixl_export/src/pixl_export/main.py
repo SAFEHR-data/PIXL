@@ -23,8 +23,9 @@ from pathlib import Path
 from typing import Annotated
 
 from core.exports import ParquetExport
+from core.metrics import record_study_exported
 from core.rest_api.router import router
-from core.telemetry import configure_logging
+from core.telemetry import configure_logging, configure_metrics
 from core.uploader import get_uploader
 from decouple import config  # type: ignore [import-untyped]
 from fastapi import Body, FastAPI, HTTPException
@@ -36,6 +37,8 @@ from pydantic import BaseModel
 logging_level = config("LOG_LEVEL", default="INFO")
 configure_logging(level=logging_level)
 logger.warning("Running logging at level {}", logging_level)
+
+configure_metrics()
 
 app = FastAPI(
     title="export-api",
@@ -108,3 +111,4 @@ def export_dicom_from_orthanc(
         uploader = get_uploader(project_name)
         logger.debug("Sending {} via '{}'", study_id, type(uploader).__name__)
         uploader.upload_dicom_and_update_database(study_id)
+        record_study_exported(project_name)
