@@ -85,7 +85,7 @@ def record_study_deidentification_failure(project_name: str, reason: str) -> Non
 
     Args:
         reason (str): The reason for the de-identification failure.
-        project_name (str): The name of the project for which the de-identification failure occurred.
+        project_name (str): Name of the project for which the de-identification failure occurred.
 
     """
     if pixl_metrics.deidentification_failures is None:
