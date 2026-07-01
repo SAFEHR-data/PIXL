@@ -36,7 +36,10 @@ import pydicom
 import requests
 from sqlalchemy.exc import DBAPIError
 from core.exceptions import PixlDiscardError, PixlSkipInstanceError
-from core.metrics import record_study_deidentification_failure
+from core.metrics import (
+    record_instance_deidentification_failure,
+    record_study_deidentification_failure,
+)
 from core.project_config.pixl_config_model import load_project_config
 from core.telemetry import configure_logging, configure_metrics, configure_tracing
 from decouple import config
@@ -439,6 +442,12 @@ def _anonymise_study_instances(
                 )
                 key = "DICOM instance discarded as series not requested"
                 skipped_instance_counts[key] += 1
+                record_instance_deidentification_failure(
+                    project_name=project_name,
+                    study_uid=study_info.study_uid,
+                    failure_type="PixlSkipSeriesError",
+                    message=key,
+                )
                 continue
 
             if dataset.SeriesInstanceUID in series_to_skip:
@@ -449,6 +458,12 @@ def _anonymise_study_instances(
                 )
                 key = "DICOM instance discarded as series has too few instances"
                 skipped_instance_counts[key] += 1
+                record_instance_deidentification_failure(
+                    project_name=project_name,
+                    study_uid=study_info.study_uid,
+                    failure_type="PixlSkipSeriesError",
+                    message=key,
+                )
                 continue
 
             try:
@@ -463,6 +478,12 @@ def _anonymise_study_instances(
                     e,
                 )
                 skipped_instance_counts[str(e)] += 1
+                record_instance_deidentification_failure(
+                    project_name=project_name,
+                    study_uid=study_info.study_uid,
+                    failure_type="PixlSkipInstanceError",
+                    message=str(e),
+                )
             else:
                 anonymised_instances_bytes.append(anonymised_instance)
                 anonymised_study_uid = dataset[0x0020, 0x000D].value

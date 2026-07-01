@@ -21,6 +21,7 @@ from opentelemetry import metrics
 
 __all__ = [
     "initialise_metrics",
+    "record_instance_deidentification_failure",
     "record_study_deidentification_failure",
     "record_study_exported",
 ]
@@ -32,6 +33,7 @@ class PixlMetrics:
 
     studies_exported: metrics.Counter | None = None
     deidentification_failures: metrics.Counter | None = None
+    instance_deidentification_failures: metrics.Counter | None = None
 
 
 pixl_metrics = PixlMetrics()
@@ -61,6 +63,14 @@ def initialise_metrics() -> None:
         description=description,
     )
 
+    pixl_metrics.instance_deidentification_failures = meter.create_counter(
+        name="pixl.instances.deidentification.failures",
+        unit="1",
+        description=(
+            "Number of instances that failed to be de-identified, by project and failure reason."
+        ),
+    )
+
 
 def record_study_exported(project_name: str) -> None:
     """
@@ -85,7 +95,7 @@ def record_study_deidentification_failure(
     message: str,
 ) -> None:
     """
-    Record a de-identification failure metric.
+    Record a study de-identification failure metric.
 
     Args:
         project_name: The name of the project for which the de-identification failure occurred.
@@ -98,4 +108,32 @@ def record_study_deidentification_failure(
     pixl_metrics.deidentification_failures.add(
         amount=1,
         attributes={"project_name": project_name, "type": failure_type, "message": message},
+    )
+
+
+def record_instance_deidentification_failure(
+    project_name: str,
+    study_uid: str,
+    failure_type: str,
+    message: str,
+) -> None:
+    """
+    Record an instance de-identification failure metric.
+
+    Args:
+        project_name: The name of the project for which the de-identification failure occurred.
+        study_uid: The UID of the study for which the de-identification failure occurred.
+        failure_type: The type of the failure.
+        message (str): The message for the de-identification failure.
+    """
+    if pixl_metrics.instance_deidentification_failures is None:
+        return
+
+    pixl_metrics.instance_deidentification_failures.add(
+        amount=1,
+        attributes={
+            "project_name": project_name,
+            "study_uid": study_uid,
+            "type": failure_type,
+            "message": message},
     )
