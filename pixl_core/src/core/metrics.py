@@ -22,6 +22,7 @@ from opentelemetry import metrics
 __all__ = [
     "initialise_metrics",
     "record_study_exported",
+    "record_study_deidentification_failure",
 ]
 
 
@@ -30,6 +31,7 @@ class PixlMetrics:
     """Custom metrics for PIXL."""
 
     studies_exported: metrics.Counter | None = None
+    deidentification_failures: metrics.Counter | None = None
 
 
 pixl_metrics = PixlMetrics()
@@ -43,10 +45,18 @@ def initialise_metrics() -> None:
     otherwise the metrics will be no-ops.
     """
     meter = metrics.get_meter(__name__)
+
     pixl_metrics.studies_exported = meter.create_counter(
-        name="pixl_studies_exported",
+        name="pixl.studies.exported",
         description="Number of studies exported, by project.",
         unit="1",
+    )
+
+    description = "Number of studies that failed to be de-identified, by project and failure reason."
+    pixl_metrics.deidentification_failures = meter.create_counter(
+        name="pixl.studies.deidentification.failures",
+        unit="1",
+        description=description,
     )
 
 
@@ -58,5 +68,27 @@ def record_study_exported(project_name: str) -> None:
         project_name (str): The name of the project for which the study was exported.
 
     """
-    if pixl_metrics.studies_exported is not None:
-        pixl_metrics.studies_exported.add(1, {"project_name": project_name})
+    if pixl_metrics.studies_exported is None:
+        return
+    
+    pixl_metrics.studies_exported.add(
+        amount=1,
+        attributes={"project_name": project_name},
+    )
+
+
+def record_study_deidentification_failure(project_name: str, reason: str) -> None:
+    """
+    Record a de-identification failure metric.
+
+    Args:
+        reason (str): The reason for the de-identification failure.
+        project_name (str): The name of the project for which the de-identification failure occurred.
+    """
+    if pixl_metrics.deidentification_failures is None:
+        return
+    
+    pixl_metrics.deidentification_failures.add(
+        amount=1,
+        attributes={"reason": reason, "project_name": project_name},
+    )

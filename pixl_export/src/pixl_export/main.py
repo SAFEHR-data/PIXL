@@ -23,9 +23,9 @@ from pathlib import Path
 from typing import Annotated
 
 from core.exports import ParquetExport
-from core.metrics import configure_metrics, record_study_exported
+from core.metrics import record_study_exported
 from core.rest_api.router import router
-from core.telemetry import configure_logging
+from core.telemetry import configure_logging, configure_metrics
 from core.uploader import get_uploader
 from decouple import config  # type: ignore [import-untyped]
 from fastapi import Body, FastAPI, HTTPException

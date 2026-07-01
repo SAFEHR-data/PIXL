@@ -35,8 +35,9 @@ from zipfile import ZipFile
 import pydicom
 import requests
 from core.exceptions import PixlDiscardError, PixlSkipInstanceError
+from core.metrics import record_study_deidentification_failure
 from core.project_config.pixl_config_model import load_project_config
-from core.telemetry import configure_logging, configure_tracing
+from core.telemetry import configure_logging, configure_metrics, configure_tracing
 from decouple import config
 from loguru import logger
 from opentelemetry import trace
@@ -83,6 +84,8 @@ configure_tracing()
 SQLAlchemyInstrumentor().instrument(engine=pixl_db_engine)
 RequestsInstrumentor().instrument()
 tracer = trace.get_tracer("pixl.orthanc_anon")
+
+configure_metrics()
 
 logger.warning("Running logging at level {}", logging_level)
 
@@ -347,9 +350,17 @@ def _anonymise_study_and_upload(
                 logger.warning(
                     "Failed to anonymize project: '{}', {}: {}", project_name, study_info, discard
                 )
+                record_study_deidentification_failure(
+                    project_name=project_name,
+                    reason=type(discard).__name__,
+                )
                 return None
-            except Exception:  # noqa: BLE001
+            except Exception as e:  # noqa: BLE001
                 logger.exception("Failed to anonymize project: '{}', {}", project_name, study_info)
+                record_study_deidentification_failure(
+                    project_name=project_name,
+                    reason=type(e).__name__,
+                )
                 return None
 
         with logger.contextualize(pseudo_study_uid=anonymised_study_uid):
