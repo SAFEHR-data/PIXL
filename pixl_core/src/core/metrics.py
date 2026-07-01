@@ -79,19 +79,23 @@ def record_study_exported(project_name: str) -> None:
     )
 
 
-def record_study_deidentification_failure(project_name: str, reason: str) -> None:
+def record_study_deidentification_failure(
+    project_name: str,
+    failure_type: str,
+    message: str,
+) -> None:
     """
     Record a de-identification failure metric.
 
     Args:
-        reason (str): The reason for the de-identification failure.
-        project_name (str): Name of the project for which the de-identification failure occurred.
-
+        project_name: The name of the project for which the de-identification failure occurred.
+        failure_type: The type of the failure.
+        message (str): The message for the de-identification failure.
     """
     if pixl_metrics.deidentification_failures is None:
         return
 
     pixl_metrics.deidentification_failures.add(
         amount=1,
-        attributes={"reason": reason, "project_name": project_name},
+        attributes={"project_name": project_name, "type": failure_type, "message": message},
     )

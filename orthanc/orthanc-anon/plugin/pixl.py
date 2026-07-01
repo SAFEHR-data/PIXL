@@ -34,6 +34,7 @@ from zipfile import ZipFile
 
 import pydicom
 import requests
+from sqlalchemy.exc import DBAPIError
 from core.exceptions import PixlDiscardError, PixlSkipInstanceError
 from core.metrics import record_study_deidentification_failure
 from core.project_config.pixl_config_model import load_project_config
@@ -352,14 +353,29 @@ def _anonymise_study_and_upload(
                 )
                 record_study_deidentification_failure(
                     project_name=project_name,
-                    reason=type(discard).__name__,
+                    failure_type="PixlDiscardError",
+                    message="All instances have been skipped",
+                )
+                return None
+            except DBAPIError as e:
+                logger.exception(
+                    "Failed to anonymize project: '{}', {}: {}", project_name, study_info, e
+                )
+                # Keep only the first line of the error message as otherwise the message contains
+                # the entire SQL query that failed. This would make the message have too high cardinality
+                # for the metric to be useful, and would make it hard to query for specific failure messages.
+                record_study_deidentification_failure(
+                    project_name=project_name,
+                    failure_type=type(e.orig).__name__,
+                    message=str(e.orig).splitlines()[0],
                 )
                 return None
             except Exception as e:  # noqa: BLE001
                 logger.exception("Failed to anonymize project: '{}', {}", project_name, study_info)
                 record_study_deidentification_failure(
                     project_name=project_name,
-                    reason=type(e).__name__,
+                    failure_type=type(e).__name__,
+                    message=str(e).splitlines()[0],
                 )
                 return None
 
