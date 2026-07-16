@@ -35,8 +35,12 @@ from zipfile import ZipFile
 import pydicom
 import requests
 from core.exceptions import PixlDiscardError, PixlSkipInstanceError
+from core.metrics import (
+    record_instance_deidentification_failure,
+    record_study_deidentification_failure,
+)
 from core.project_config.pixl_config_model import load_project_config
-from core.telemetry import configure_logging, configure_tracing
+from core.telemetry import configure_logging, configure_metrics, configure_tracing
 from decouple import config
 from loguru import logger
 from opentelemetry import trace
@@ -52,6 +56,7 @@ from pixl_dcmd.main import (
     write_dataset_to_bytes,
 )
 from pydicom import dcmread
+from sqlalchemy.exc import DBAPIError
 
 import orthanc
 
@@ -83,6 +88,8 @@ configure_tracing()
 SQLAlchemyInstrumentor().instrument(engine=pixl_db_engine)
 RequestsInstrumentor().instrument()
 tracer = trace.get_tracer("pixl.orthanc_anon")
+
+configure_metrics()
 
 logger.warning("Running logging at level {}", logging_level)
 
@@ -347,9 +354,33 @@ def _anonymise_study_and_upload(
                 logger.warning(
                     "Failed to anonymize project: '{}', {}: {}", project_name, study_info, discard
                 )
+                record_study_deidentification_failure(
+                    project_name=project_name,
+                    failure_type="PixlDiscardError",
+                    message="All instances have been skipped",
+                )
                 return None
-            except Exception:  # noqa: BLE001
+            except DBAPIError as e:
+                logger.exception(
+                    "Failed to anonymize project: '{}', {}: {}", project_name, study_info, e
+                )
+                # Keep only the first line of the error message as otherwise the message contains
+                # the entire SQL query that failed. This would make the message have too high
+                # cardinality for the metric to be useful, and would make it hard to query for
+                # specific failure messages.
+                record_study_deidentification_failure(
+                    project_name=project_name,
+                    failure_type=type(e.orig).__name__,
+                    message=str(e.orig).splitlines()[0],
+                )
+                return None
+            except Exception as e:  # noqa: BLE001
                 logger.exception("Failed to anonymize project: '{}', {}", project_name, study_info)
+                record_study_deidentification_failure(
+                    project_name=project_name,
+                    failure_type=type(e).__name__,
+                    message=str(e).splitlines()[0],
+                )
                 return None
 
         with logger.contextualize(pseudo_study_uid=anonymised_study_uid):
@@ -412,6 +443,12 @@ def _anonymise_study_instances(
                 )
                 key = "DICOM instance discarded as series not requested"
                 skipped_instance_counts[key] += 1
+                record_instance_deidentification_failure(
+                    project_name=project_name,
+                    study_uid=study_info.study_uid,
+                    failure_type="PixlSkipSeriesError",
+                    message=key,
+                )
                 continue
 
             if dataset.SeriesInstanceUID in series_to_skip:
@@ -422,6 +459,12 @@ def _anonymise_study_instances(
                 )
                 key = "DICOM instance discarded as series has too few instances"
                 skipped_instance_counts[key] += 1
+                record_instance_deidentification_failure(
+                    project_name=project_name,
+                    study_uid=study_info.study_uid,
+                    failure_type="PixlSkipSeriesError",
+                    message=key,
+                )
                 continue
 
             try:
@@ -436,6 +479,12 @@ def _anonymise_study_instances(
                     e,
                 )
                 skipped_instance_counts[str(e)] += 1
+                record_instance_deidentification_failure(
+                    project_name=project_name,
+                    study_uid=study_info.study_uid,
+                    failure_type="PixlSkipInstanceError",
+                    message=str(e),
+                )
             else:
                 anonymised_instances_bytes.append(anonymised_instance)
                 anonymised_study_uid = dataset[0x0020, 0x000D].value

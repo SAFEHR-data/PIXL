@@ -21,16 +21,21 @@ import sys
 
 from decouple import config
 from loguru import logger
-from opentelemetry import trace
+from opentelemetry import metrics, trace
+from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.metrics import MeterProvider
+from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
 from core.logging import OTelSink
+from core.metrics import initialise_metrics
 
 __all__ = [
     "configure_logging",
+    "configure_metrics",
     "configure_tracing",
     "telemetry_is_enabled",
 ]
@@ -98,3 +103,28 @@ def configure_tracing() -> None:
     provider.add_span_processor(processor)
     trace.set_tracer_provider(provider)
     atexit.register(provider.shutdown)
+
+
+def configure_metrics() -> None:
+    """
+    Set up an OTLP metric exporter when OTEL_SDK_DISABLED is false
+    and OTEL_EXPORTER_OTLP_ENDPOINT is set in the environment.
+    """
+    if not telemetry_is_enabled():
+        return
+
+    # If we have auto-instrumented the service, there's no way to tell the OTel SDK not to
+    # create the provider. So we have to reuse it here to avoid warnings in the logs.
+    # The provider created by the OTel SDK is equivalent to the one we create below.
+    existing_provider = metrics.get_meter_provider()
+    if isinstance(existing_provider, MeterProvider):
+        logger.debug("Existing MeterProvider detected (auto-instrumentation). Re-using it.")
+        initialise_metrics()
+        return
+
+    exporter = OTLPMetricExporter()
+    reader = PeriodicExportingMetricReader(exporter)
+    provider = MeterProvider(resource=Resource.create(), metric_readers=[reader])
+    metrics.set_meter_provider(provider)
+    atexit.register(provider.shutdown)
+    initialise_metrics()
