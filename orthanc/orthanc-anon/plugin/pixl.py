@@ -24,9 +24,10 @@ from __future__ import annotations
 import json
 import multiprocessing
 import os
+import signal
 import threading
 import traceback
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO
 from time import sleep
 from typing import TYPE_CHECKING, cast
@@ -86,17 +87,30 @@ configure_metrics()
 logger.warning("Running logging at level {}", logging_level)
 
 # Thread pool: keep Orthanc's main thread free and overlap I/O across studies.
-# Process pool: run CPU-bound anonymisation outside the plugin GIL (spawn avoids
-# forking Orthanc's multi-threaded process).
+# Process pool: run CPU-bound anonymisation outside the plugin GIL.
+#
+# Orthanc embeds Python, so sys.executable is the Orthanc binary. ProcessPoolExecutor
+# with "spawn" re-execs that binary and workers die immediately ("child process
+# terminated abruptly"). Orthanc's documented approach is multiprocessing.Pool with
+# fork on Linux: https://orthanc.uclouvain.be/book/plugins/python.html#using-slave-processes
 max_workers = config("PIXL_MAX_MESSAGES_IN_FLIGHT", cast=int)
 executor = ThreadPoolExecutor(max_workers=max_workers)
-anonymise_executor = ProcessPoolExecutor(
-    max_workers=max_workers,
-    mp_context=multiprocessing.get_context("spawn"),
+
+
+def _anonymise_pool_initializer() -> None:
+    """Configure forked anonymisation workers."""
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
+    # Drop DB connections inherited from the parent; the child opens its own.
+    pixl_db_engine.dispose(close=False)
+
+
+anonymise_pool = multiprocessing.get_context("fork").Pool(
+    processes=max_workers,
+    initializer=_anonymise_pool_initializer,
 )
 
 logger.info(
-    "Using {} threads for study import and {} processes for anonymisation",
+    "Using {} threads for study import and {} forked processes for anonymisation",
     max_workers,
     max_workers,
 )
@@ -224,7 +238,8 @@ def OnChange(changeType, level, resource):  # noqa: ARG001
         if TIMER is not None:
             orthanc.LogWarning("Stopping the scheduler")
             TIMER.cancel()
-        anonymise_executor.shutdown(wait=False, cancel_futures=True)
+        anonymise_pool.terminate()
+        anonymise_pool.join()
 
 
 def OnHeartBeat(output, uri, **request) -> Any:  # noqa: ARG001
@@ -347,14 +362,11 @@ def _anonymise_study_and_upload(
         logger.info("Processing project '{}', {}", project_name, study_info)
 
         try:
-            # Run CPU-bound anonymisation in a separate process (own GIL).
-            anonymise_result = anonymise_executor.submit(
+            # Offload CPU-bound anonymisation to a forked slave process (own GIL).
+            anonymise_result = anonymise_pool.apply(
                 anonymise_study_zip,
-                zipped_study_bytes,
-                project_name,
-                series_to_keep,
-                study_info,
-            ).result()
+                (zipped_study_bytes, project_name, series_to_keep, study_info),
+            )
         except PixlDiscardError as discard:
             logger.warning(
                 "Failed to anonymize project: '{}', {}: {}", project_name, study_info, discard

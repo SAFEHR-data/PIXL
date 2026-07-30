@@ -63,7 +63,7 @@ it is based on the [asyncio event loop](https://docs.python.org/3/library/asynci
 
 We set the maximum number of message which can be being processed at once using the `PIXL_MAX_MESSAGES_IN_FLIGHT`
 variable in the `.env` file. The VNA allows for 5 DICOM transfers at a single point in time, so the default is 5.
-In `orthanc-anon` this also sizes the anonymisation `ProcessPoolExecutor` (one process per in-flight study),
+In `orthanc-anon` this also sizes the anonymisation process pool (one forked process per in-flight study),
 so CPU-bound de-identification is not limited by the Orthanc plugin GIL.
 We recommend allowing more concurrent jobs using `ORTHANC_CONCURRENT_JOBS`, to allow for resource modification
 and export of stable DICOM to orthanc-anon while still pulling from the VNA.

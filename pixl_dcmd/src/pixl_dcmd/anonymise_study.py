@@ -62,14 +62,13 @@ def anonymise_study_zip(
     """
     Anonymise every instance in a study zip archive.
 
-    Designed to run in a spawned subprocess so CPU-bound work is not limited by the
-    Orthanc plugin process GIL. Must not import or call the Orthanc Python API.
+    Designed to run in a forked Orthanc slave process so CPU-bound work is not limited by the
+    Orthanc plugin GIL. Must not import or call the Orthanc Python API.
     """
     config = load_project_config(project_name)
+    min_instances_per_series = int(config.min_instances_per_series)
     with ZipFile(BytesIO(zipped_study_bytes)) as zipped_study:
-        series_to_skip = get_series_to_skip(
-            zipped_study, config.min_instances_per_series
-        )
+        series_to_skip = get_series_to_skip(zipped_study, min_instances_per_series)
         anonymised_instances_bytes: list[bytes] = []
         skipped_instance_counts: dict[str, int] = defaultdict(int)
         dicom_validation_errors: dict = {}
