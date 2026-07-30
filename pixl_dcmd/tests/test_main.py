@@ -14,8 +14,10 @@
 from __future__ import annotations
 
 from importlib import resources
+import multiprocessing
 import pathlib
 import re
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 import logging
 import typing
@@ -37,7 +39,8 @@ from core.project_config import load_project_config, load_tag_operations
 from core.project_config.pixl_config_model import load_config_and_validate, Manufacturer
 from decouple import config
 
-from pixl_dcmd.dicom_helpers import get_study_info
+from pixl_dcmd.anonymise_study import anonymise_study_zip
+from pixl_dcmd.dicom_helpers import StudyInfo, get_study_info
 from pixl_dcmd.main import (
     anonymise_dicom_and_update_db,
     _anonymise_dicom_from_scheme,
@@ -82,6 +85,33 @@ def test_get_series_to_skip(
     """
     series_to_skip = get_series_to_skip(zipped_dicom_study, min_instances)
     assert len(series_to_skip) == expected_num_series_skipped
+
+
+def test_anonymise_study_zip_via_process_pool() -> None:
+    """
+    GIVEN a study zip and a series allow-list that matches nothing
+    WHEN anonymise_study_zip runs in a spawned ProcessPoolExecutor worker
+    THEN PixlDiscardError is raised in the parent (pickling / spawn path works)
+    """
+    study_zip_path = (
+        resources.files("pytest_pixl") / "data" / "dicom-study" / "study.zip"
+    )
+    zipped_study_bytes = study_zip_path.read_bytes()
+    study_info = StudyInfo(mrn="test", accession_number="test", study_uid="1.2.3")
+
+    with ProcessPoolExecutor(
+        max_workers=1,
+        mp_context=multiprocessing.get_context("spawn"),
+    ) as pool:
+        future = pool.submit(
+            anonymise_study_zip,
+            zipped_study_bytes,
+            TEST_PROJECT_SLUG,
+            ["series-uid-that-does-not-exist"],
+            study_info,
+        )
+        with pytest.raises(PixlDiscardError):
+            future.result()
 
 
 @pytest.fixture(scope="module")

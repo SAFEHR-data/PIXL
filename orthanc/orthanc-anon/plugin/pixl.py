@@ -22,24 +22,22 @@ This module:
 from __future__ import annotations
 
 import json
+import multiprocessing
 import os
 import threading
 import traceback
-from collections import defaultdict
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from io import BytesIO
 from time import sleep
 from typing import TYPE_CHECKING, cast
 from zipfile import ZipFile
 
-import pydicom
 import requests
-from core.exceptions import PixlDiscardError, PixlSkipInstanceError
+from core.exceptions import PixlDiscardError
 from core.metrics import (
     record_instance_deidentification_failure,
     record_study_deidentification_failure,
 )
-from core.project_config.pixl_config_model import load_project_config
 from core.telemetry import configure_logging, configure_metrics, configure_tracing
 from decouple import config
 from loguru import logger
@@ -48,13 +46,8 @@ from opentelemetry.instrumentation.requests import RequestsInstrumentor
 from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 from opentelemetry.propagate import extract
 from pixl_dcmd._database import engine as pixl_db_engine
+from pixl_dcmd.anonymise_study import anonymise_study_zip
 from pixl_dcmd.dicom_helpers import get_study_info
-from pixl_dcmd.main import (
-    anonymise_dicom_and_update_db,
-    get_series_to_skip,
-    parse_validation_results,
-    write_dataset_to_bytes,
-)
 from pydicom import dcmread
 from sqlalchemy.exc import DBAPIError
 
@@ -63,7 +56,6 @@ import orthanc
 if TYPE_CHECKING:
     from typing import Any
 
-    from core.project_config.pixl_config_model import PixlConfig
     from opentelemetry.context import Context
     from pixl_dcmd.dicom_helpers import StudyInfo
 
@@ -93,11 +85,21 @@ configure_metrics()
 
 logger.warning("Running logging at level {}", logging_level)
 
-# Set up a thread pool executor for non-blocking calls to Orthanc
+# Thread pool: keep Orthanc's main thread free and overlap I/O across studies.
+# Process pool: run CPU-bound anonymisation outside the plugin GIL (spawn avoids
+# forking Orthanc's multi-threaded process).
 max_workers = config("PIXL_MAX_MESSAGES_IN_FLIGHT", cast=int)
 executor = ThreadPoolExecutor(max_workers=max_workers)
+anonymise_executor = ProcessPoolExecutor(
+    max_workers=max_workers,
+    mp_context=multiprocessing.get_context("spawn"),
+)
 
-logger.info("Using {} threads for processing", max_workers)
+logger.info(
+    "Using {} threads for study import and {} processes for anonymisation",
+    max_workers,
+    max_workers,
+)
 
 
 def AzureAccessToken() -> str:
@@ -222,6 +224,7 @@ def OnChange(changeType, level, resource):  # noqa: ARG001
         if TIMER is not None:
             orthanc.LogWarning("Stopping the scheduler")
             TIMER.cancel()
+        anonymise_executor.shutdown(wait=False, cancel_futures=True)
 
 
 def OnHeartBeat(output, uri, **request) -> Any:  # noqa: ARG001
@@ -329,9 +332,10 @@ def _anonymise_study_and_upload(
     project_name: str,
     series_to_keep: list[str],
 ) -> str | None:
-    zipped_study_bytes = get_study_zip_archive_from_raw(resource_id=study_resource_id)
+    zipped_study_buffer = get_study_zip_archive_from_raw(resource_id=study_resource_id)
+    study_info = _get_study_info_from_first_file(zipped_study_buffer)
+    zipped_study_bytes = zipped_study_buffer.getvalue()
 
-    study_info = _get_study_info_from_first_file(zipped_study_bytes)
     with (
         tracer.start_as_current_span(name="anonymise_study"),
         logger.contextualize(
@@ -342,49 +346,59 @@ def _anonymise_study_and_upload(
     ):
         logger.info("Processing project '{}', {}", project_name, study_info)
 
-        with ZipFile(zipped_study_bytes) as zipped_study:
-            try:
-                anonymised_instances_bytes, anonymised_study_uid = _anonymise_study_instances(
-                    zipped_study=zipped_study,
-                    study_info=study_info,
-                    project_name=project_name,
-                    series_to_keep=series_to_keep,
-                )
-            except PixlDiscardError as discard:
-                logger.warning(
-                    "Failed to anonymize project: '{}', {}: {}", project_name, study_info, discard
-                )
-                record_study_deidentification_failure(
-                    project_name=project_name,
-                    failure_type="PixlDiscardError",
-                    message="All instances have been skipped",
-                )
-                return None
-            except DBAPIError as e:
-                logger.exception(
-                    "Failed to anonymize project: '{}', {}: {}", project_name, study_info, e
-                )
-                # Keep only the first line of the error message as otherwise the message contains
-                # the entire SQL query that failed. This would make the message have too high
-                # cardinality for the metric to be useful, and would make it hard to query for
-                # specific failure messages.
-                record_study_deidentification_failure(
-                    project_name=project_name,
-                    failure_type=type(e.orig).__name__,
-                    message=str(e.orig).splitlines()[0],
-                )
-                return None
-            except Exception as e:  # noqa: BLE001
-                logger.exception("Failed to anonymize project: '{}', {}", project_name, study_info)
-                record_study_deidentification_failure(
-                    project_name=project_name,
-                    failure_type=type(e).__name__,
-                    message=str(e).splitlines()[0],
-                )
-                return None
+        try:
+            # Run CPU-bound anonymisation in a separate process (own GIL).
+            anonymise_result = anonymise_executor.submit(
+                anonymise_study_zip,
+                zipped_study_bytes,
+                project_name,
+                series_to_keep,
+                study_info,
+            ).result()
+        except PixlDiscardError as discard:
+            logger.warning(
+                "Failed to anonymize project: '{}', {}: {}", project_name, study_info, discard
+            )
+            record_study_deidentification_failure(
+                project_name=project_name,
+                failure_type="PixlDiscardError",
+                message="All instances have been skipped",
+            )
+            return None
+        except DBAPIError as e:
+            logger.exception(
+                "Failed to anonymize project: '{}', {}: {}", project_name, study_info, e
+            )
+            # Keep only the first line of the error message as otherwise the message contains
+            # the entire SQL query that failed. This would make the message have too high
+            # cardinality for the metric to be useful, and would make it hard to query for
+            # specific failure messages.
+            record_study_deidentification_failure(
+                project_name=project_name,
+                failure_type=type(e.orig).__name__,
+                message=str(e.orig).splitlines()[0],
+            )
+            return None
+        except Exception as e:  # noqa: BLE001
+            logger.exception("Failed to anonymize project: '{}', {}", project_name, study_info)
+            record_study_deidentification_failure(
+                project_name=project_name,
+                failure_type=type(e).__name__,
+                message=str(e).splitlines()[0],
+            )
+            return None
 
+        for failure in anonymise_result.instance_failures:
+            record_instance_deidentification_failure(
+                project_name=project_name,
+                study_uid=study_info.study_uid,
+                failure_type=failure.failure_type,
+                message=failure.message,
+            )
+
+        anonymised_study_uid = anonymise_result.anonymised_study_uid
         with logger.contextualize(pseudo_study_uid=anonymised_study_uid):
-            _upload_instances(anonymised_instances_bytes)
+            _upload_instances(anonymise_result.instances_bytes)
             logger.info("Anonymised and uploaded study")
 
         return anonymised_study_uid
@@ -403,118 +417,12 @@ def get_study_zip_archive_from_raw(resource_id: str) -> BytesIO:
     return BytesIO(response.content)
 
 
-def _get_study_info_from_first_file(zipped_study_bytes) -> StudyInfo:
+def _get_study_info_from_first_file(zipped_study_bytes: BytesIO) -> StudyInfo:
     with ZipFile(zipped_study_bytes) as zipped_study:
         file_info = zipped_study.infolist()[0]
         with zipped_study.open(file_info) as file:
             dataset = dcmread(file)
             return get_study_info(dataset)
-
-
-def _anonymise_study_instances(
-    zipped_study: ZipFile,
-    study_info: StudyInfo,
-    project_name: str,
-    series_to_keep: list[str],
-) -> tuple[list[bytes], str]:
-    """
-    Iterate over all instances and anonymise them.
-
-    Skip an instance if a PixlSkipInstanceError is raised during anonymisation.
-
-    Return a list of the bytes of anonymised instances, and the anonymised StudyInstanceUID.
-    """
-    config = load_project_config(project_name)
-    series_to_skip = get_series_to_skip(zipped_study, config.min_instances_per_series)
-    anonymised_instances_bytes = []
-    skipped_instance_counts = defaultdict(int)
-    dicom_validation_errors = {}
-
-    for file_info in zipped_study.infolist():
-        with zipped_study.open(file_info) as file:
-            logger.debug("Reading file {}", file)
-            dataset = dcmread(file)
-
-            if series_to_keep and dataset.SeriesInstanceUID not in series_to_keep:
-                logger.debug(
-                    "Skipping series {} for study {} as series not in series_to_keep",
-                    dataset.SeriesInstanceUID,
-                    study_info,
-                )
-                key = "DICOM instance discarded as series not requested"
-                skipped_instance_counts[key] += 1
-                record_instance_deidentification_failure(
-                    project_name=project_name,
-                    study_uid=study_info.study_uid,
-                    failure_type="PixlSkipSeriesError",
-                    message=key,
-                )
-                continue
-
-            if dataset.SeriesInstanceUID in series_to_skip:
-                logger.debug(
-                    "Skipping series {} for study {} due to too few instances",
-                    dataset.SeriesInstanceUID,
-                    study_info,
-                )
-                key = "DICOM instance discarded as series has too few instances"
-                skipped_instance_counts[key] += 1
-                record_instance_deidentification_failure(
-                    project_name=project_name,
-                    study_uid=study_info.study_uid,
-                    failure_type="PixlSkipSeriesError",
-                    message=key,
-                )
-                continue
-
-            try:
-                anonymised_instance, instance_validation_errors = _anonymise_dicom_instance(
-                    dataset, config
-                )
-            except PixlSkipInstanceError as e:
-                logger.debug(
-                    "Skipping instance {} for {}: {}",
-                    dataset[0x0008, 0x0018].value,
-                    study_info,
-                    e,
-                )
-                skipped_instance_counts[str(e)] += 1
-                record_instance_deidentification_failure(
-                    project_name=project_name,
-                    study_uid=study_info.study_uid,
-                    failure_type="PixlSkipInstanceError",
-                    message=str(e),
-                )
-            else:
-                anonymised_instances_bytes.append(anonymised_instance)
-                anonymised_study_uid = dataset[0x0020, 0x000D].value
-                dicom_validation_errors |= instance_validation_errors
-
-    if not anonymised_instances_bytes:
-        message = f"All instances have been skipped for study: {dict(skipped_instance_counts)}"
-        raise PixlDiscardError(message)
-
-    with logger.contextualize(pseudo_study_uid=anonymised_study_uid):
-        logger.debug(
-            "Project '{}' {}, skipped instances: {}",
-            project_name,
-            study_info,
-            dict(skipped_instance_counts),
-        )
-
-        if dicom_validation_errors:
-            logger.warning(
-                "The anonymisation introduced the following validation errors:\n{}",
-                parse_validation_results(dicom_validation_errors),
-            )
-        logger.success("Finished anonymising project: '{}', {}", project_name, study_info)
-    return anonymised_instances_bytes, anonymised_study_uid
-
-
-def _anonymise_dicom_instance(dataset: pydicom.Dataset, config: PixlConfig) -> tuple[bytes, dict]:
-    """Anonymise a DICOM instance."""
-    validation_errors = anonymise_dicom_and_update_db(dataset, config=config)
-    return write_dataset_to_bytes(dataset), validation_errors
 
 
 def _upload_instances(instances_bytes: list[bytes]) -> None:
