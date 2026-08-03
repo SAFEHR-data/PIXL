@@ -38,6 +38,7 @@ from loguru import logger
 class ImplicitFtpTls(ftplib.FTP_TLS):
     """
     FTP_TLS subclass that automatically wraps sockets in SSL to support implicit FTPS.
+    Use explicit TLS where possible.
 
     https://stackoverflow.com/questions/12164470/python-ftp-implicit-tls-connection-issue
     """
@@ -171,7 +172,7 @@ class FTPSUploader(Uploader):
 def _connect_to_ftp(ftp_host: str, ftp_port: int, ftp_user: str, ftp_password: str) -> FTP_TLS:
     # Connect to the server and login
     try:
-        ftp = ImplicitFtpTls()
+        ftp = ftplib.FTP_TLS()
         ftp.connect(ftp_host, int(ftp_port))
         ftp.login(ftp_user, ftp_password)
         ftp.prot_p()
