@@ -210,6 +210,8 @@ def _create_and_set_as_cwd_multi_path(ftp: FTP_TLS, remote_multi_dir: Path) -> N
 
 
 def _create_and_set_as_cwd(ftp: FTP_TLS, project_dir: str) -> None:
+    logger.warning("cwd: {}", ftp.pwd())
+    logger.warning("contents: {}", ftp.list())
     try:
         ftp.mkd(project_dir)
     except ftplib.error_perm:
