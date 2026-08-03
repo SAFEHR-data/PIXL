@@ -28,7 +28,7 @@ from typing import TYPE_CHECKING
 from core.project_config import load_project_config
 
 from ._dicomweb import DicomWebUploader
-from ._ftps import FTPSUploader
+from ._ftps import FTPESUploader, FTPSUploader
 from ._treapi import TreApiUploader
 from ._xnat import XNATUploader
 
@@ -41,6 +41,7 @@ def get_uploader(project_slug: str) -> Uploader:
     """Uploader Factory, returns uploader instance based on destination."""
     choices: dict[str, type[Uploader]] = {
         "ftps": FTPSUploader,
+        "ftpes": FTPESUploader,
         "dicomweb": DicomWebUploader,
         "xnat": XNATUploader,
         "tre": TreApiUploader,

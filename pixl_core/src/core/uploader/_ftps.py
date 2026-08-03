@@ -64,6 +64,8 @@ class ImplicitFtpTls(ftplib.FTP_TLS):
 class FTPSUploader(Uploader):
     """Upload strategy for an FTPS server."""
 
+    ftp_tls_class: type[ftplib.FTP_TLS] = ImplicitFtpTls
+
     def __init__(self, project_slug: str, keyvault_alias: str | None) -> None:
         """Create instance of parent class"""
         super().__init__(project_slug, keyvault_alias)
@@ -96,7 +98,7 @@ class FTPSUploader(Uploader):
     ) -> None:
         """Send the zip content to the FTPS server."""
         # Create the remote directory if it doesn't exist
-        ftp = _connect_to_ftp(self.host, self.port, self.user, self.password)
+        ftp = _connect_to_ftp(self.host, self.port, self.user, self.password, self.ftp_tls_class)
         _create_and_set_as_cwd(ftp, remote_directory)
         command = f"STOR {pseudo_anon_image_id}.zip"
         logger.debug("Running {}", command)
@@ -134,7 +136,7 @@ class FTPSUploader(Uploader):
 
         source_root_dir = parquet_export.current_extract_base
         # Create the remote directory if it doesn't exist
-        ftp = _connect_to_ftp(self.host, self.port, self.user, self.password)
+        ftp = _connect_to_ftp(self.host, self.port, self.user, self.password, self.ftp_tls_class)
         _create_and_set_as_cwd(ftp, parquet_export.project_slug)
         _create_and_set_as_cwd(ftp, parquet_export.extract_time_slug)
         _create_and_set_as_cwd(ftp, "parquet")
@@ -169,10 +171,22 @@ class FTPSUploader(Uploader):
         logger.info("Finished FTPS upload of files for '{}'", parquet_export.project_slug)
 
 
-def _connect_to_ftp(ftp_host: str, ftp_port: int, ftp_user: str, ftp_password: str) -> FTP_TLS:
+class FTPESUploader(FTPSUploader):
+    """Upload strategy for an FTPES server (explicit rather than implicit TLS)."""
+
+    ftp_tls_class = ftplib.FTP_TLS
+
+
+def _connect_to_ftp(
+    ftp_host: str,
+    ftp_port: int,
+    ftp_user: str,
+    ftp_password: str,
+    ftp_tls_class: type[ftplib.FTP_TLS],
+) -> FTP_TLS:
     # Connect to the server and login
     try:
-        ftp = ftplib.FTP_TLS()
+        ftp = ftp_tls_class()
         ftp.connect(ftp_host, int(ftp_port))
         ftp.login(ftp_user, ftp_password)
         ftp.prot_p()
