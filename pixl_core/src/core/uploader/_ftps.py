@@ -209,4 +209,12 @@ def _create_and_set_as_cwd_multi_path(ftp: FTP_TLS, remote_multi_dir: Path) -> N
         _create_and_set_as_cwd(ftp, sd)
 
 
-def _create_and_set_as_cwd(ftp: FTP_TLS, project_dir: str) -> None: ...
+def _create_and_set_as_cwd(ftp: FTP_TLS, project_dir: str) -> None:
+    try:
+        ftp.mkd(project_dir)
+    except ftplib.error_perm:
+        logger.debug("'{}' exists on remote ftp, so moving into it", project_dir)
+    else:
+        logger.info("created '{}' on remote ftp and moving into it", project_dir)
+
+    ftp.cwd(project_dir)
