@@ -25,7 +25,7 @@ tag_operation_files: # DICOM tag anonymisation operations
     manufacturer_overrides: [] # Manufactuer-dependendent overrides
 
 allowed_manufacturers:
-  - regex: "*"
+  - regex: ".*"
     exclude_series_numbers: []
 
 # Filter out any series with a single instance (e.g. PACS reports, screenshots)
