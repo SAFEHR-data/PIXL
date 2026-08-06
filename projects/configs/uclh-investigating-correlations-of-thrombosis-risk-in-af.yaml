@@ -20,8 +20,8 @@ project:
 tag_operation_files: # DICOM tag anonymisation operations
     base:
         - "base.yaml" # Base schema
-	- "ct.yaml"
-	- "thrombosis-af.yaml"
+        - "ct.yaml"
+        - "thrombosis-af.yaml"
     manufacturer_overrides: [] # Manufactuer-dependendent overrides
 
 allowed_manufacturers:
