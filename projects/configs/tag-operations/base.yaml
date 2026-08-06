@@ -138,7 +138,7 @@
 - name: "Scan Options"
   group: 0x0018
   element: 0x0022
-  op: "replace"
+  op: "keep"
 #CT, MR, X-Ray
 - name: Slice Thickness
   group: 0x0018
