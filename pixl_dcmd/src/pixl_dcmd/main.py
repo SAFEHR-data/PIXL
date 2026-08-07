@@ -18,33 +18,34 @@ from functools import lru_cache
 from io import BytesIO
 from zipfile import ZipFile
 
+import pydicom
 import requests
 from core.exceptions import PixlSkipInstanceError
 from core.project_config import (
-    load_tag_operations,
     load_image_operations,
+    load_tag_operations,
 )
+from core.project_config.pixl_config_model import PixlConfig
 from decouple import config
+from deid.config import DeidRecipe
+from deid.dicom.pixels import clean_pixel_data, has_burned_pixels
 from dicomanonymizer.simpledicomanonymizer import (
     ActionsMapNameFunctions,
     anonymize_dataset,
 )
 from loguru import logger
 from pydicom import DataElement, Dataset, dcmread, dcmwrite
-import pydicom
 
-from core.project_config.pixl_config_model import PixlConfig
 from pixl_dcmd._database import (
-    get_uniq_pseudo_study_uid_and_update_db,
     get_pseudo_patient_id_and_update_db,
+    get_uniq_pseudo_study_uid_and_update_db,
+    record_skip_reasons_for_study,
 )
+from pixl_dcmd._tag_schemes import _scheme_list_to_dict, merge_tag_schemes
 from pixl_dcmd.dicom_helpers import (
     DicomValidator,
     get_study_info,
 )
-from pixl_dcmd._tag_schemes import _scheme_list_to_dict, merge_tag_schemes
-from deid.config import DeidRecipe
-from deid.dicom.pixels import clean_pixel_data, has_burned_pixels
 
 if typing.TYPE_CHECKING:
     from pixl_dcmd.dicom_helpers import StudyInfo
@@ -147,6 +148,23 @@ def anonymise_dicom_and_update_db(
         identifiable_study_info=identifiable_study_info,
     )
     return validation_errors
+
+
+def update_db_with_skip_failure_reason(
+    project_name: str,
+    study_info: StudyInfo,
+    skip_reasons: dict[str, int],
+) -> None:
+    """
+    Record a study de-identification failure in the database.
+
+    Args:
+        project_name: The name of the project for which the de-identification failure occurred.
+        study_info: Identifiable study info, used to look up the existing image record.
+        skip_reasons: Mapping of skip-reason message to the number of instances skipped for it.
+
+    """
+    record_skip_reasons_for_study(project_name, study_info, skip_reasons)
 
 
 def anonymise_and_validate_dicom(

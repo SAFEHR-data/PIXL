@@ -53,6 +53,7 @@ from pixl_dcmd.main import (
     anonymise_dicom_and_update_db,
     get_series_to_skip,
     parse_validation_results,
+    update_db_with_skip_failure_reason,
     write_dataset_to_bytes,
 )
 from pydicom import dcmread
@@ -492,6 +493,11 @@ def _anonymise_study_instances(
 
     if not anonymised_instances_bytes:
         message = f"All instances have been skipped for study: {dict(skipped_instance_counts)}"
+        update_db_with_skip_failure_reason(
+            project_name=project_name,
+            study_info=study_info,
+            skip_reasons=dict(skipped_instance_counts),
+        )
         raise PixlDiscardError(message)
 
     with logger.contextualize(pseudo_study_uid=anonymised_study_uid):
