@@ -280,7 +280,11 @@ def _clean_dicom_image_pixels(
     burned_pixels = has_burned_pixels(dataset, deid=deid_recipe)
     cleaned_pixels = clean_pixel_data(dicom_file=dataset, results=burned_pixels)
 
-    dataset.PixelData = cleaned_pixels.tobytes()
+    pixel_bytes = cleaned_pixels.tobytes()
+    if dataset.file_meta.TransferSyntaxUID.is_compressed:
+        dataset.PixelData = pydicom.encaps.encapsulate([pixel_bytes])
+    else:
+        dataset.PixelData = pixel_bytes
 
 
 def _anonymise_dicom_from_scheme(

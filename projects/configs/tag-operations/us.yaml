@@ -24,3 +24,47 @@
   group: 0x0018
   element: 0x6011
   op: keep
+- name: Region Spatial Format
+  group: 0x0018
+  element: 0x6012
+  op: keep
+- name: Region Data Type
+  group: 0x0018
+  element: 0x6014
+  op: keep
+- name: Region Flags
+  group: 0x0018
+  element: 0x6016
+  op: keep
+- name: Region Location Min X0
+  group: 0x0018
+  element: 0x6018
+  op: keep
+- name: Region Location Min Y0
+  group: 0x0018
+  element: 0x601A
+  op: keep
+- name: Region Location Max X1
+  group: 0x0018
+  element: 0x601C
+  op: keep
+- name: Region Location Max Y1
+  group: 0x0018
+  element: 0x601E
+  op: keep
+- name: Physical Units X Direction
+  group: 0x0018
+  element: 0x6024
+  op: keep
+- name: Physical Units Y Direction
+  group: 0x0018
+  element: 0x6026
+  op: keep
+- name: Physical Delta X
+  group: 0x0018
+  element: 0x602C
+  op: keep
+- name: Physical Delta Y
+  group: 0x0018
+  element: 0x602E
+  op: keep

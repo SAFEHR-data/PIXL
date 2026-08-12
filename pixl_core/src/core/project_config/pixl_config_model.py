@@ -146,6 +146,7 @@ class _DestinationEnum(enum.StrEnum):
 
     none = "none"
     ftps = "ftps"
+    ftpes = "ftpes"
     dicomweb = "dicomweb"
     xnat = "xnat"
     tre = "tre"
