@@ -39,10 +39,11 @@ engine = create_engine(url)
 
 def filter_exported_or_add_to_db(messages_df: pd.DataFrame) -> pd.DataFrame:
     """
-    Filter exported images for multiple projects, and adds missing extract and images to database.
+    Filter exported or previously skipped images for multiple projects, and adds missing
+    extract and images to database.
 
     :param messages: Initial messages to filter if they already exist
-    :return DataFrame of messages that have not been exported
+    :return DataFrame of messages that have not been exported or previously skipped
     """
     PixlSession = sessionmaker(engine)
     with PixlSession() as pixl_session, pixl_session.begin():
@@ -70,7 +71,7 @@ def _filter_exported_or_add_to_db_for_project(
     if extract:
         db_images_df = all_images_for_project(project_slug)
         missing_images_df = _filter_existing_images(messages_df, db_images_df)
-        messages_df = _filter_exported_messages(messages_df, db_images_df)
+        messages_df = _filter_exported_or_skipped_messages(messages_df, db_images_df)
     else:
         # We need to add the extract to the database and retrive it again so
         # we can access extract.extract_id (needed by session.bulk_save_objects(images))
@@ -95,10 +96,11 @@ def _filter_existing_images(
     return messages_df[keep_indices]
 
 
-def _filter_exported_messages(
+def _filter_exported_or_skipped_messages(
     messages_df: pd.DataFrame,
     images_df: pd.DataFrame,
 ) -> pd.DataFrame:
+    """Exclude messages already exported, or that previously failed anonymisation."""
     merged = messages_df.merge(
         images_df,
         on=["accession_number", "mrn", "study_uid"],
@@ -106,7 +108,7 @@ def _filter_exported_messages(
         validate="one_to_one",
         suffixes=(None, None),
     )
-    keep_indices = merged["exported_at"].isna().to_numpy()
+    keep_indices = (merged["exported_at"].isna() & merged["skip_reasons"].isna()).to_numpy()
     return merged[keep_indices][messages_df.columns]
 
 
@@ -131,7 +133,13 @@ def all_images_for_project(project_slug: str) -> pd.DataFrame:
     PixlSession = sessionmaker(engine)
 
     query = (
-        select(Image.accession_number, Image.study_uid, Image.mrn, Image.exported_at)
+        select(
+            Image.accession_number,
+            Image.study_uid,
+            Image.mrn,
+            Image.exported_at,
+            Image.skip_reasons,
+        )
         .join(Extract)
         .where(Extract.slug == project_slug)
     )

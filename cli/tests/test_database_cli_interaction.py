@@ -74,3 +74,42 @@ def test_processed_images_for_project(rows_in_session):
     processed = exported_images_for_project("i-am-a-project")
     assert len(processed) == 1
     assert processed[0].accession_number == "123"
+
+
+def test_reimport_of_previously_skipped_image(example_messages_df, rows_in_session):
+    """
+    GIVEN an image that previously had all instances skipped during anonymisation and has
+        skip_reasons recorded against it, but has not been exported
+    WHEN the same messages are re-imported (filtered again for the same project)
+    THEN no duplicate row should be added for that image (row-level filtering)
+        and the image should not be returned for reprocessing, as it previously failed
+        anonymisation (export-status filtering), with its recorded skip_reasons left untouched
+    """
+    extract = rows_in_session.query(Extract).one()
+    previously_skipped_image = (
+        rows_in_session.query(Image)
+        .filter(Image.extract == extract, Image.accession_number == "234")
+        .one()
+    )
+    skip_reasons = {"DICOM instance discarded as series has too few instances": 3}
+    previously_skipped_image.skip_reasons = skip_reasons
+    rows_in_session.commit()
+
+    output = filter_exported_or_add_to_db(example_messages_df)
+
+    # Row-level: re-importing must not create a duplicate row for the existing image
+    images = rows_in_session.query(Image).filter(Image.extract == extract).all()
+    assert len(images) == len(example_messages_df)
+
+    # Filtering-level: previously skipped images are not queued again,
+    # nor are already-exported images
+    assert "234" not in output.accession_number.to_numpy()
+    assert "123" not in output.accession_number.to_numpy()
+
+    # The recorded skip reasons must survive the re-import untouched
+    reloaded_image = (
+        rows_in_session.query(Image)
+        .filter(Image.extract == extract, Image.accession_number == "234")
+        .one()
+    )
+    assert reloaded_image.skip_reasons == skip_reasons
