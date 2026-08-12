@@ -39,5 +39,5 @@ series_filters:
     - "positioning"
 
 destination:
-    dicom: "ftps"
-    parquet: "ftps"
+    dicom: "ftpes"
+    parquet: "ftpes"
