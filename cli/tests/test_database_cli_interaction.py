@@ -103,8 +103,11 @@ def test_reimport_of_previously_skipped_image(example_messages_df, rows_in_sessi
 
     # Filtering-level: failed anonymisation images are not queued again,
     # nor are already-exported images
-    assert "234" not in output.accession_number.to_numpy()
-    assert "123" not in output.accession_number.to_numpy()
+    accession_numbers = output.accession_number.to_numpy()
+    assert "234" not in accession_numbers
+    assert "123" not in accession_numbers
+    assert "345" in accession_numbers
+    assert len(output) == 1
 
     # The recorded skip reasons must survive the re-import untouched
     reloaded_image = (

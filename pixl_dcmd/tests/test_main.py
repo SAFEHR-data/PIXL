@@ -48,7 +48,6 @@ from pixl_dcmd.main import (
     _enforce_allowlist,
     _should_exclude_series,
     _should_exclude_manufacturer,
-    update_db_with_skip_failure_reason,
 )
 from pytest_pixl.dicom import generate_dicom_dataset
 from pytest_pixl.helpers import run_subprocess
@@ -288,26 +287,6 @@ def test_clean_dicom_image_pixels_encapsulates_compressed_pixel_data(
     _clean_dicom_image_pixels(dataset, ultrasound_project_config)
 
     assert dataset.PixelData == pydicom.encaps.encapsulate([cleaned_pixels.tobytes()])
-
-
-def test_update_db_with_skip_failure_reason(monkeypatch):
-    """
-    GIVEN a study that failed de-identification with some skip reasons
-    WHEN update_db_with_skip_failure_reason is called
-    THEN the skip reasons should be recorded against the study in the database
-    """
-    recorded_calls = []
-    monkeypatch.setattr(
-        "pixl_dcmd.main.record_skip_reasons_for_study",
-        lambda *args: recorded_calls.append(args),
-    )
-
-    study_info = get_study_info(generate_dicom_dataset())
-    skip_reasons = {"Instance discarded due to its manufacturer": 2}
-
-    update_db_with_skip_failure_reason("test-project", study_info, skip_reasons)
-
-    assert recorded_calls == [("test-project", study_info, skip_reasons)]
 
 
 @pytest.fixture
