@@ -48,12 +48,12 @@ from opentelemetry.instrumentation.requests import RequestsInstrumentor
 from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 from opentelemetry.propagate import extract
 from pixl_dcmd._database import engine as pixl_db_engine
+from pixl_dcmd._database import record_skip_reasons_for_study
 from pixl_dcmd.dicom_helpers import get_study_info
 from pixl_dcmd.main import (
     anonymise_dicom_and_update_db,
     get_series_to_skip,
     parse_validation_results,
-    update_db_with_skip_failure_reason,
     write_dataset_to_bytes,
 )
 from pydicom import dcmread
@@ -494,7 +494,7 @@ def _anonymise_study_instances(
     if not anonymised_instances_bytes:
         message = f"All instances have been skipped for study: {dict(skipped_instance_counts)}"
         try:
-            update_db_with_skip_failure_reason(
+            record_skip_reasons_for_study(
                 project_name=project_name,
                 study_info=study_info,
                 skip_reasons=dict(skipped_instance_counts),
