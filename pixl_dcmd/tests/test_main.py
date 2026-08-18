@@ -41,6 +41,7 @@ from pixl_dcmd.dicom_helpers import get_study_info
 from pixl_dcmd.main import (
     anonymise_dicom_and_update_db,
     _anonymise_dicom_from_scheme,
+    _clean_dicom_image_pixels,
     anonymise_and_validate_dicom,
     anonymise_dicom,
     get_series_to_skip,
@@ -261,6 +262,31 @@ def test_anonymise_with_clean_dicom_image_pixels(
         np.zeros_like(cleaned_pixel_region) == cleaned_pixel_region
     )
     assert np.all(compare_clean_region_with_zeros)
+
+
+def test_clean_dicom_image_pixels_encapsulates_compressed_pixel_data(
+    monkeypatch, ultrasound_project_config
+):
+    """
+    GIVEN a DICOM dataset with a compressed transfer syntax
+    WHEN pixel cleaning is applied
+    THEN the cleaned pixel data should be written back in encapsulated (fragmented) form
+       rather than as a raw, native pixel data byte string
+    """
+    dataset = generate_dicom_dataset(Modality="US")
+    dataset.file_meta.TransferSyntaxUID = pydicom.uid.JPEGBaseline8Bit
+
+    cleaned_pixels = np.zeros((2, 2), dtype=np.uint8)
+    monkeypatch.setattr(
+        "pixl_dcmd.main.has_burned_pixels", lambda *args, **kwargs: object()
+    )
+    monkeypatch.setattr(
+        "pixl_dcmd.main.clean_pixel_data", lambda *args, **kwargs: cleaned_pixels
+    )
+
+    _clean_dicom_image_pixels(dataset, ultrasound_project_config)
+
+    assert dataset.PixelData == pydicom.encaps.encapsulate([cleaned_pixels.tobytes()])
 
 
 @pytest.fixture

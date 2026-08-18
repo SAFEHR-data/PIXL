@@ -18,33 +18,33 @@ from functools import lru_cache
 from io import BytesIO
 from zipfile import ZipFile
 
+import pydicom
 import requests
 from core.exceptions import PixlSkipInstanceError
 from core.project_config import (
-    load_tag_operations,
     load_image_operations,
+    load_tag_operations,
 )
+from core.project_config.pixl_config_model import PixlConfig
 from decouple import config
+from deid.config import DeidRecipe
+from deid.dicom.pixels import clean_pixel_data, has_burned_pixels
 from dicomanonymizer.simpledicomanonymizer import (
     ActionsMapNameFunctions,
     anonymize_dataset,
 )
 from loguru import logger
 from pydicom import DataElement, Dataset, dcmread, dcmwrite
-import pydicom
 
-from core.project_config.pixl_config_model import PixlConfig
 from pixl_dcmd._database import (
-    get_uniq_pseudo_study_uid_and_update_db,
     get_pseudo_patient_id_and_update_db,
+    get_uniq_pseudo_study_uid_and_update_db,
 )
+from pixl_dcmd._tag_schemes import _scheme_list_to_dict, merge_tag_schemes
 from pixl_dcmd.dicom_helpers import (
     DicomValidator,
     get_study_info,
 )
-from pixl_dcmd._tag_schemes import _scheme_list_to_dict, merge_tag_schemes
-from deid.config import DeidRecipe
-from deid.dicom.pixels import clean_pixel_data, has_burned_pixels
 
 if typing.TYPE_CHECKING:
     from pixl_dcmd.dicom_helpers import StudyInfo
