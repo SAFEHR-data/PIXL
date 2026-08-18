@@ -493,12 +493,14 @@ def _anonymise_study_instances(
 
     if not anonymised_instances_bytes:
         message = f"All instances have been skipped for study: {dict(skipped_instance_counts)}"
-        update_db_with_skip_failure_reason(
-            project_name=project_name,
-            study_info=study_info,
-            skip_reasons=dict(skipped_instance_counts),
-        )
-        raise PixlDiscardError(message)
+        try:
+            update_db_with_skip_failure_reason(
+                project_name=project_name,
+                study_info=study_info,
+                skip_reasons=dict(skipped_instance_counts),
+            )
+        except PixlDiscardError as e:
+            raise PixlDiscardError(message) from e
 
     with logger.contextualize(pseudo_study_uid=anonymised_study_uid):
         logger.debug(

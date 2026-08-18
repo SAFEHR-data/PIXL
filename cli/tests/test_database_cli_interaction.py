@@ -101,7 +101,7 @@ def test_reimport_of_previously_skipped_image(example_messages_df, rows_in_sessi
     images = rows_in_session.query(Image).filter(Image.extract == extract).all()
     assert len(images) == len(example_messages_df)
 
-    # Filtering-level: previously skipped images are not queued again,
+    # Filtering-level: failed anonymisation images are not queued again,
     # nor are already-exported images
     assert "234" not in output.accession_number.to_numpy()
     assert "123" not in output.accession_number.to_numpy()

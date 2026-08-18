@@ -39,11 +39,11 @@ engine = create_engine(url)
 
 def filter_exported_or_add_to_db(messages_df: pd.DataFrame) -> pd.DataFrame:
     """
-    Filter exported or previously skipped images for multiple projects, and adds missing
+    Filter exported or failed anonymisation images for multiple projects, and adds missing
     extract and images to database.
 
     :param messages: Initial messages to filter if they already exist
-    :return DataFrame of messages that have not been exported or previously skipped
+    :return DataFrame of messages that have not been exported or failed anonymisation
     """
     PixlSession = sessionmaker(engine)
     with PixlSession() as pixl_session, pixl_session.begin():
