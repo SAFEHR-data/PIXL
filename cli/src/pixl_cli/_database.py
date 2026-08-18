@@ -37,18 +37,18 @@ url = URL.create(
 engine = create_engine(url)
 
 
-def filter_exported_or_add_to_db(messages_df: pd.DataFrame) -> pd.DataFrame:
+def filter_exported_or_skipped_or_add_to_db(messages_df: pd.DataFrame) -> pd.DataFrame:
     """
-    Filter exported or failed anonymisation images for multiple projects, and adds missing
+    Filter exported or skipped images for multiple projects, and adds missing
     extract and images to database.
 
     :param messages: Initial messages to filter if they already exist
-    :return DataFrame of messages that have not been exported or failed anonymisation
+    :return DataFrame of messages that have not been exported or skipped
     """
     PixlSession = sessionmaker(engine)
     with PixlSession() as pixl_session, pixl_session.begin():
         messages_dfs = [
-            _filter_exported_or_add_to_db_for_project(
+            _filter_exported_or_skipped_or_add_to_db_for_project(
                 pixl_session, project_messages_df, project_slug
             )
             for project_slug, project_messages_df in messages_df.groupby("project_name")
@@ -56,16 +56,17 @@ def filter_exported_or_add_to_db(messages_df: pd.DataFrame) -> pd.DataFrame:
     return pd.concat(messages_dfs)
 
 
-def _filter_exported_or_add_to_db_for_project(
+def _filter_exported_or_skipped_or_add_to_db_for_project(
     session: Session, messages_df: pd.DataFrame, project_slug: str
 ) -> pd.DataFrame:
     """
-    Filter exported images for this project, and adds missing extract and images to database.
+    Filter exported or skipped images for this project, and adds missing extract and images
+    to database.
 
     :param session: SQLAlchemy session
     :param messages: Initial messages to filter if they already exist
     :param project_slug: project slug to query on
-    :return DataFrame of messages that have not been exported for this project
+    :return DataFrame of messages that have not been exported or skipped for this project
     """
     extract = session.query(Extract).filter(Extract.slug == project_slug).one_or_none()
     if extract:
@@ -100,7 +101,10 @@ def _filter_exported_or_skipped_messages(
     messages_df: pd.DataFrame,
     images_df: pd.DataFrame,
 ) -> pd.DataFrame:
-    """Exclude messages already exported, or that previously failed anonymisation."""
+    """
+    Exclude messages already exported, or that were previously skipped
+    (e.g. due to failed anonymisation).
+    """
     merged = messages_df.merge(
         images_df,
         on=["accession_number", "mrn", "study_uid"],
