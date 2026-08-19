@@ -39,6 +39,20 @@ url = URL.create(
 engine = create_engine(url)
 
 
+def record_skip_reasons_for_study(
+    project_slug: str, study_info: StudyInfo, skip_reasons: dict[str, int]
+) -> None:
+    """
+    Record the reasons (and instance counts) a study's instances were skipped for,
+    against the existing image record for that study.
+    """
+    PixlSession = sessionmaker(engine)
+    with PixlSession() as pixl_session, pixl_session.begin():
+        existing_image = get_unexported_image(project_slug, study_info, pixl_session)
+        existing_image.skip_reasons = skip_reasons
+        pixl_session.add(existing_image)
+
+
 def get_uniq_pseudo_study_uid_and_update_db(
     project_slug: str, original_study_info: StudyInfo
 ) -> UID:

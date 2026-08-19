@@ -27,7 +27,7 @@ from decouple import config
 from loguru import logger
 
 from pixl_cli._config import SERVICE_SETTINGS
-from pixl_cli._database import exported_images_for_project, filter_exported_or_add_to_db
+from pixl_cli._database import exported_images_for_project, filter_exported_or_skipped_or_add_to_db
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -142,14 +142,17 @@ def populate_queue_and_db(
 ) -> list[Message]:
     """
     Populate queues with messages,
-    for imaging queue update the database and filter out exported studies.
+    for imaging queue update the database and filter out exported or skipped studies.
     """
     output_messages = []
     for queue in queues:
-        # For imaging, we don't want to query again for images that have already been exported
+        # For imaging, we don't want to query again for images that have already been
+        # exported or skipped
         if "imaging" in queue and len(messages_df):
-            logger.info("Filtering out exported images and uploading new ones to the database")
-            messages_df = filter_exported_or_add_to_db(messages_df)
+            logger.info(
+                "Filtering out exported or skipped images and uploading new ones to the database"
+            )
+            messages_df = filter_exported_or_skipped_or_add_to_db(messages_df)
 
         messages = messages_from_df(messages_df)
         with PixlProducer(queue_name=queue, **SERVICE_SETTINGS["rabbitmq"]) as producer:

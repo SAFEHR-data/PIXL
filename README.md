@@ -180,7 +180,9 @@ The configuration file defines:
 - The endpoints used to upload the anonymised DICOM data and the public and radiology
   [parquet files](./docs/file_types/parquet_files.md). We currently support the following endpoints:
     - `"none"`: no upload
-    - `"ftps"`: a secure FTP server (for both _DICOM_ and _parquet_ files)
+    - `"ftps"`: a secure FTP server using implicit TLS (for both _DICOM_ and _parquet_ files), e.g. UCL DSH
+    - `"ftpes"`: a secure FTP server using explicit TLS (for both _DICOM_ and _parquet_ files)
+
     - `"dicomweb"`: a DICOMweb server (for _DICOM_ files only).
       Requires the `DICOMWEB_*` environment variables to be set in `.env`
     - `"xnat"`: an [XNAT](https://www.xnat.org/) instance (for _DICOM_ files only)

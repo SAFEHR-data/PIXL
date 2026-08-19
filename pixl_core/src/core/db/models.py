@@ -17,9 +17,10 @@
 from __future__ import annotations
 
 from sqlalchemy import MetaData
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.schema import ForeignKey
-from sqlalchemy.types import Date, DateTime
+from sqlalchemy.types import JSON, Date, DateTime
 
 
 class Base(DeclarativeBase):
@@ -56,6 +57,9 @@ class Image(Base):
     extract: Mapped[Extract] = relationship()
     extract_id: Mapped[int] = mapped_column(ForeignKey("extract.extract_id"))
     pseudo_patient_id: Mapped[str | None]
+    skip_reasons: Mapped[dict[str, int] | None] = mapped_column(
+        JSONB().with_variant(JSON(), "sqlite"), nullable=True
+    )
 
     def __repr__(self) -> str:
         """Nice representation for printing."""
