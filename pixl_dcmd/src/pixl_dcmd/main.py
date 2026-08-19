@@ -189,7 +189,7 @@ def anonymise_dicom(
     """
 
     study_info = get_study_info(dataset)
-    logger.debug(
+    logger.trace(
         f"Processing instance for project {config.project.name}:  {study_info}"
     )
 
@@ -205,7 +205,7 @@ def anonymise_dicom(
         msg = f"Dropping DICOM Modality: {dataset.Modality}"
         raise PixlSkipInstanceError(msg)
 
-    logger.debug("Anonymising instance for: {}", study_info)
+    logger.trace("Anonymising instance for: {}", study_info)
 
     # Apply any pixel cleaning prior to tag anonymisation
     # Do before anonymisation as some tag operations may rely on pixel data (e.g. burned in pixel detection).
@@ -245,7 +245,6 @@ def _clean_dicom_image_pixels(
     :param config: Project config to use for pixel cleaning
     """
     study_info = get_study_info(dataset)
-    logger.debug(f"Cleaning pixels for project {config.project.name}:  {study_info}")
 
     image_operations = load_image_operations(config)
     deid_recipe_path = image_operations.deid_recipes
@@ -254,11 +253,11 @@ def _clean_dicom_image_pixels(
     )  # current implementation permits only one recipe file
 
     if not deid_recipe_path:
-        logger.debug(
+        logger.trace(
             "No deid recipe provided for pixel cleaning, skipping pixel cleaning."
         )
         return
-
+    logger.debug(f"Cleaning pixels for project {config.project.name}:  {study_info}")
     burned_pixels = has_burned_pixels(dataset, deid=deid_recipe)
     cleaned_pixels = clean_pixel_data(dicom_file=dataset, results=burned_pixels)
 
@@ -330,8 +329,6 @@ def _secure_hash(
     el = tag[1]
 
     if tag in dataset:
-        message = f"Securely hashing: (0x{grp:04x},0x{el:04x})"
-        logger.debug(f"\t{message}")
         if dataset[grp, el].VR == "LO":
             pat_value = str(dataset[grp, el].value)
             hashed_value = _hash_values(pat_value, project_slug, hash_len=64)
@@ -348,6 +345,8 @@ def _hash_values(pat_value: str, project_slug: str, hash_len: int = 0) -> str:
     """
     Utility function for hashing values using the hasher API.
     """
+    message = f"Securely hashing: (0x{grp:04x},0x{el:04x})"
+    logger.debug(f"\t{message}")
     HASHER_API_AZ_NAME = config("HASHER_API_AZ_NAME")
     HASHER_API_PORT = config("HASHER_API_PORT")
     hasher_req_url = f"http://{HASHER_API_AZ_NAME}:{HASHER_API_PORT}/hash"
