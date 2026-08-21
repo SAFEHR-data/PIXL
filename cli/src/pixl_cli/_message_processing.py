@@ -129,6 +129,8 @@ def _message_count(queues_to_populate: list[str]) -> int:
     if "imaging-primary" in queues_to_populate:
         queues_to_count.add("imaging-secondary")
 
+    queues_to_count.add("anonymisation")
+
     messages_in_queues = 0
     for queue in queues_to_count:
         with PixlBlockingInterface(queue_name=queue, **SERVICE_SETTINGS["rabbitmq"]) as rabbitmq:
