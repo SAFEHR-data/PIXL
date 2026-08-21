@@ -18,9 +18,12 @@ from time import time
 from typing import Any
 
 import aiohttp
+from core.anon_queue.message import AnonymisationMessage
+from core.anon_queue.producer import AnonymisationProducer
 from core.exceptions import PixlDiscardError, PixlRequeueMessageError
 from decouple import config
 from loguru import logger
+from pixl_cli._config import SERVICE_SETTINGS
 
 
 class Orthanc:
@@ -300,12 +303,14 @@ class PIXLAnonOrthanc(Orthanc):
 
         series_uids = series_uid.split("\\") if series_uid else []
 
-        await self._post(
-            path="/import-from-raw",
-            data={
-                "ResourceIDs": resource_ids,
-                "StudyInstanceUIDs": study_uids,
-                "SeriesInstanceUIDs": series_uids,
-                "ProjectName": project_name,
-            },
+        message = AnonymisationMessage(
+            resource_ids=resource_ids,
+            series_uids=series_uids,
+            study_uids=study_uids,
+            project_name=project_name,
         )
+
+        with AnonymisationProducer(
+            queue_name="anonymisation", **SERVICE_SETTINGS["rabbitmq"]
+        ) as producer:
+            producer.publish(message)

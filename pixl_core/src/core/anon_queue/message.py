@@ -23,21 +23,21 @@ from loguru import logger
 
 
 @dataclass
-class Message:
+class AnonymisationMessage:
     """
     Representation of a RabbitMQ message containing the information
     to identify an anonymisation request.
     """
 
-    resource_id: str
-    study_uid: str
-    series_uid: str
+    resource_ids: list[str]
+    study_uids: list[str]
+    series_uids: list[str]
     project_name: str
 
     @property
     def identifier(self) -> str:
         """Identifier for message"""
-        return (f"Message({self.resource_id=} {self.study_uid=} {self.series_uid=}").replace(
+        return (f"Message({self.resource_ids=} {self.study_uids=} {self.series_uids=}").replace(
             "self.", ""
         )
 

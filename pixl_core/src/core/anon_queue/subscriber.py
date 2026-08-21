@@ -23,7 +23,7 @@ from decouple import config
 
 from core.anon_queue._base import PixlQueueInterface
 from core.anon_queue.message import deserialise
-from core.anon_queue.producer import PixlProducer
+from core.anon_queue.producer import AnonymisationProducer
 from core.exceptions import (
     PixlDiscardError,
     PixlOutOfHoursError,
@@ -37,20 +37,20 @@ if TYPE_CHECKING:
 
     from aio_pika.abc import AbstractIncomingMessage
 
-    from core.anon_queue.message import Message
+    from core.anon_queue.message import AnonymisationMessage
 
 import time
 
 from loguru import logger
 
 
-class PixlConsumer(PixlQueueInterface):
+class AnonymisationPixlConsumer(PixlQueueInterface):
     """Connector to RabbitMQ. Consumes messages from a queue"""
 
     def __init__(
         self,
         queue_name: str,
-        callback: Callable[[Message], Awaitable[None]],
+        callback: Callable[[AnonymisationMessage], Awaitable[None]],
     ) -> None:
         """Creating connection to RabbitMQ queue"""
         super().__init__(queue_name=queue_name)
@@ -76,7 +76,7 @@ class PixlConsumer(PixlQueueInterface):
 
     def _process_message(self, message: AbstractIncomingMessage) -> None:
 
-        pixl_message: Message = deserialise(message.body)
+        pixl_message: AnonymisationMessage = deserialise(message.body)
         logger.debug("Picked up from queue: {}", pixl_message.identifier)
         try:
             self._callback(pixl_message)
@@ -93,8 +93,8 @@ class PixlConsumer(PixlQueueInterface):
             )
             time.sleep(1)
             message.reject(requeue=False)
-            with PixlProducer(
-                queue_name="imaging-secondary",
+            with AnonymisationProducer(
+                queue_name="anonymisation",
                 host=config("RABBITMQ_HOST"),
                 port=config("RABBITMQ_PORT", cast=int),
                 username=config("RABBITMQ_USERNAME"),

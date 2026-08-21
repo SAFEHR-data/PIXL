@@ -24,15 +24,15 @@ from pika import BasicProperties, DeliveryMode
 from ._base import PixlBlockingInterface
 
 if TYPE_CHECKING:
-    from core.anon_queue.message import Message
+    from core.anon_queue.message import AnonymisationMessage
 
 tracer = trace.get_tracer("pixl_core.anon_queue.producer")
 
 
-class PixlProducer(PixlBlockingInterface):
-    """Generic publisher for RabbitMQ"""
+class AnonymisationProducer(PixlBlockingInterface):
+    """Anonymisation publisher for RabbitMQ"""
 
-    def publish(self, messages: list[Message]) -> None:
+    def publish(self, messages: list[AnonymisationMessage]) -> None:
         """
         Sends a list of serialised messages to a queue.
         :param messages: list of messages to be sent to queue
@@ -45,14 +45,14 @@ class PixlProducer(PixlBlockingInterface):
         for msg in messages:
             attributes = {
                 "project_name": msg.project_name,
-                "resource_id": msg.resource_id,
-                "series_uid": msg.series_uid,
-                "study_uid": msg.study_uid,
+                "resource_id": msg.resource_ids,
+                "series_uid": msg.series_uids,
+                "study_uid": msg.study_uids,
             }
             with tracer.start_as_current_span("publish_message", attributes=attributes):
                 self._publish_message(msg)
 
-    def _publish_message(self, message: Message) -> None:
+    def _publish_message(self, message: AnonymisationMessage) -> None:
         """
         Publish a single serialised message to a queue.
         :param message: message to be sent to queue
@@ -69,11 +69,11 @@ class PixlProducer(PixlBlockingInterface):
 
         logger.bind(
             project_name=message.project_name,
-            resource_id=message.resource_id,
-            series_uid=message.series_uid,
-            study_uid=message.study_uid,
+            resource_id=message.resource_ids,
+            series_uid=message.series_uids,
+            study_uid=message.study_uids,
         ).debug(
-            "Message {} published to queue {}",
+            "AnonymisationMessage {} published to queue {}",
             message,
             self.queue_name,
         )
