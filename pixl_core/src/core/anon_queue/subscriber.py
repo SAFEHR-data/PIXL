@@ -23,19 +23,15 @@ from decouple import config
 
 from core.anon_queue._base import PixlQueueInterface
 from core.anon_queue.message import deserialise
-from core.anon_queue.producer import AnonymisationProducer
 from core.exceptions import (
     PixlDiscardError,
     PixlOutOfHoursError,
     PixlRequeueMessageError,
-    PixlStudyNotInPrimaryArchiveError,
 )
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
     from typing import Self
-
-    from aio_pika.abc import AbstractIncomingMessage
 
     from core.anon_queue.message import AnonymisationMessage
 
@@ -45,7 +41,7 @@ from loguru import logger
 
 
 class AnonymisationPixlConsumer(PixlQueueInterface):
-    """Connector to RabbitMQ. Consumes messages from a queue"""
+    """Connector to RabbitMQ. Consumes messages from anonymisation queue"""
 
     def __init__(
         self,
@@ -74,7 +70,7 @@ class AnonymisationPixlConsumer(PixlQueueInterface):
         )
         return self
 
-    def _process_message(self, message: AbstractIncomingMessage) -> None:
+    def _process_message(self, message: Any) -> None:
 
         pixl_message: AnonymisationMessage = deserialise(message.body)
         logger.debug("Picked up from queue: {}", pixl_message.identifier)
@@ -84,23 +80,6 @@ class AnonymisationPixlConsumer(PixlQueueInterface):
             logger.trace("Requeue message: {} from {}", pixl_message.identifier, requeue)
             time.sleep(1)
             message.reject(requeue=True)
-        except PixlStudyNotInPrimaryArchiveError as discard:
-            logger.info(
-                "Discard message: {} from {}. Sending to secondary imaging queue with priority {}.",
-                pixl_message.identifier,
-                discard,
-                message.priority,
-            )
-            time.sleep(1)
-            message.reject(requeue=False)
-            with AnonymisationProducer(
-                queue_name="anonymisation",
-                host=config("RABBITMQ_HOST"),
-                port=config("RABBITMQ_PORT", cast=int),
-                username=config("RABBITMQ_USERNAME"),
-                password=config("RABBITMQ_PASSWORD"),
-            ) as producer:
-                producer.publish([pixl_message], priority=message.priority)
         except PixlOutOfHoursError as nack_requeue:
             logger.trace(
                 "Nack and requeue message: {} from {}", pixl_message.identifier, nack_requeue
@@ -122,7 +101,17 @@ class AnonymisationPixlConsumer(PixlQueueInterface):
 
     def run(self) -> None:
         """Processes messages from queue."""
-        self._queue.consume(self._process_message)
+        self._channel.basic_consume(
+            queue=self.queue_name,
+            on_message_callback=self._process_message,
+            auto_ack=False,
+        )
+        self._channel.start_consuming()
 
     def __exit__(self, *args: object, **kwargs: Any) -> None:
         """Requirement for the context manager"""
+        if self._channel is not None and self._channel.is_open:
+            self._channel.close()
+
+        if self._connection is not None and self._connection.is_open:
+            self._connection.close()
