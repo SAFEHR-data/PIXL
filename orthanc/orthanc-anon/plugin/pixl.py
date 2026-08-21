@@ -529,12 +529,14 @@ def _anonymise_study_instances(
         message = f"All instances have been skipped for study: {dict(skipped_instance_counts)}"
         try:
             record_skip_reasons_for_study(
-                project_name=project_name,
+                project_slug=project_name,
                 study_info=study_info,
                 skip_reasons=dict(skipped_instance_counts),
             )
         except PixlDiscardError as e:
             raise PixlDiscardError(message) from e
+        # Still raise the exception message
+        raise PixlDiscardError(message)
 
     with logger.contextualize(pseudo_study_uid=anonymised_study_uid):
         logger.debug(
