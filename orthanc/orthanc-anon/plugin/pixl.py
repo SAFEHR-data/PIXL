@@ -34,6 +34,7 @@ from zipfile import ZipFile
 
 import pydicom
 import requests
+from core.anon_queue.subscriber import AnonymisationPixlConsumer
 from core.exceptions import PixlDiscardError, PixlSkipInstanceError
 from core.metrics import (
     record_instance_deidentification_failure,
@@ -64,6 +65,7 @@ import orthanc
 if TYPE_CHECKING:
     from typing import Any
 
+    from core.anon_queue.message import AnonymisationMessage
     from core.project_config.pixl_config_model import PixlConfig
     from opentelemetry.context import Context
     from pixl_dcmd.dicom_helpers import StudyInfo
@@ -259,6 +261,38 @@ def ImportStudiesFromRaw(output, uri, **request):  # noqa: ARG001
 
     response = json.dumps({"Message": "Ok"})
     output.AnswerBuffer(response, "application/json")
+
+
+def process_anonymisation_message(message: AnonymisationMessage) -> None:
+    """
+    Import studies from Orthanc Raw.
+
+    Offload to a thread pool executor to avoid blocking the Orthanc main thread.
+    """
+    data = {
+        "resource_ids": message.resource_ids,
+        "series_uids": message.series_uids,
+        "study_uids": message.study_uids,
+        "project_name": message.project_name,
+    }
+
+    executor.submit(_import_studies_from_raw, data)
+
+
+def consume_anonymisation_queue() -> None:
+    """Consume anonymisation requests from RabbitMQ and submit them for processing."""
+    with AnonymisationPixlConsumer(
+        queue_name="anonymisation",
+        callback=process_anonymisation_message,
+    ) as consumer:
+        consumer.run()
+
+
+consumer_thread = threading.Thread(
+    target=consume_anonymisation_queue,
+    daemon=True,
+)
+consumer_thread.start()
 
 
 def _import_studies_from_raw(
