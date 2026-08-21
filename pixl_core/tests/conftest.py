@@ -34,6 +34,7 @@ from pytest_pixl.helpers import run_subprocess
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
+from core.anon_queue.message import AnonymisationMessage
 from core.db.models import Base, Extract, Image
 from core.logging import OTelSink
 from core.patient_queue.message import Message
@@ -233,6 +234,17 @@ def mock_message() -> Message:
         extract_generated_timestamp=datetime.datetime.strptime(
             "Dec 7 2023 2:08PM", "%b %d %Y %I:%M%p"
         ).replace(tzinfo=datetime.UTC),
+    )
+
+
+@pytest.fixture
+def mock_anon_message() -> AnonymisationMessage:
+    """An example AnonymisationMessage used for testing"""
+    return AnonymisationMessage(
+        resource_ids=["resource-1", "resource-2"],
+        study_uids=["1.2.3", "4.5.6"],
+        series_uids=["1.2.3.1", "1.2.3.2"],
+        project_name="test project",
     )
 
 

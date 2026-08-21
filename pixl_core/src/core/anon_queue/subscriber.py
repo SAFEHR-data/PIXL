@@ -63,9 +63,9 @@ class AnonymisationPixlConsumer(PixlQueueInterface):
         # Set number of messages in flight
         max_in_flight = config("PIXL_MAX_MESSAGES_IN_FLIGHT", cast=int)
         logger.info("Pika will consume up to {} messages concurrently", max_in_flight)
-        self._channel.set_qos(prefetch_count=max_in_flight)
-        self._queue = self._channel.declare_queue(
-            self.queue_name,
+        self._channel.basic_qos(prefetch_count=max_in_flight)
+        self._queue = self._channel.queue_declare(
+            queue=self.queue_name,
             durable=True,
         )
         return self
