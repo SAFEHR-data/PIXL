@@ -17,7 +17,7 @@ import pytest
 
 from core.anon_queue.producer import AnonymisationProducer
 
-TEST_QUEUE = "test_publish"
+TEST_QUEUE = "test_anon_publish"
 
 
 @pytest.mark.usefixtures("run_containers")

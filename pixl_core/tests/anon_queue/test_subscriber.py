@@ -19,7 +19,7 @@ import pytest
 
 from core.anon_queue.subscriber import AnonymisationPixlConsumer
 
-TEST_QUEUE = "test_consume"
+TEST_QUEUE = "test_anon_consume"
 
 
 class ExpectedTestError(Exception):
