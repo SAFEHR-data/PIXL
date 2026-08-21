@@ -45,9 +45,9 @@ class AnonymisationProducer(PixlBlockingInterface):
         for msg in messages:
             attributes = {
                 "project_name": msg.project_name,
-                "resource_id": msg.resource_ids,
-                "series_uid": msg.series_uids,
-                "study_uid": msg.study_uids,
+                "resource_ids": msg.resource_ids,
+                "series_uids": msg.series_uids,
+                "study_uids": msg.study_uids,
             }
             with tracer.start_as_current_span("publish_message", attributes=attributes):
                 self._publish_message(msg)

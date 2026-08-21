@@ -313,4 +313,4 @@ class PIXLAnonOrthanc(Orthanc):
         with AnonymisationProducer(
             queue_name="anonymisation", **SERVICE_SETTINGS["rabbitmq"]
         ) as producer:
-            producer.publish(message)
+            producer.publish([message])
