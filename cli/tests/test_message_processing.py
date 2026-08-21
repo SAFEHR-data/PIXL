@@ -21,7 +21,10 @@ from unittest.mock import Mock
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from core.patient_queue.producer import PixlProducer
-from pixl_cli._message_processing import retry_until_export_count_is_unchanged
+from pixl_cli._message_processing import (
+    _message_count,
+    retry_until_export_count_is_unchanged,
+)
 
 
 @pytest.fixture
@@ -98,3 +101,22 @@ def test_retry_with_image_exported_and_no_change_multiple_projects(
     )
 
     mock_publisher.assert_called_once()
+
+
+def test_message_count_includes_anonymisation(mocker) -> None:
+    """Checks that the anonymisation queue is included when counting messages."""
+    mock_rabbitmq = Mock()
+    mock_rabbitmq.message_count = 0
+
+    mock_interface = mocker.patch("pixl_cli._message_processing.PixlBlockingInterface")
+    mock_interface.return_value.__enter__.return_value = mock_rabbitmq
+
+    _message_count(["imaging-primary"])
+
+    queue_names = {call.kwargs["queue_name"] for call in mock_interface.call_args_list}
+
+    assert queue_names == {
+        "imaging-primary",
+        "imaging-secondary",
+        "anonymisation",
+    }
