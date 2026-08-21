@@ -23,7 +23,6 @@ from core.anon_queue.producer import AnonymisationProducer
 from core.exceptions import PixlDiscardError, PixlRequeueMessageError
 from decouple import config
 from loguru import logger
-from pixl_cli._config import SERVICE_SETTINGS
 
 
 class Orthanc:
@@ -310,7 +309,5 @@ class PIXLAnonOrthanc(Orthanc):
             project_name=project_name,
         )
 
-        with AnonymisationProducer(
-            queue_name="anonymisation", **SERVICE_SETTINGS["rabbitmq"]
-        ) as producer:
+        with AnonymisationProducer(queue_name="anonymisation") as producer:
             producer.publish([message])
