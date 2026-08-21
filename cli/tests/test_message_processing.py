@@ -16,15 +16,17 @@
 
 import os
 from collections.abc import Generator
-from unittest.mock import Mock
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
+from core.anon_queue.message import AnonymisationMessage
 from core.patient_queue.producer import PixlProducer
 from pixl_cli._message_processing import (
     _message_count,
     retry_until_export_count_is_unchanged,
 )
+from pixl_imaging._orthanc import PIXLAnonOrthanc
 
 
 @pytest.fixture
@@ -120,3 +122,43 @@ def test_message_count_includes_anonymisation(mocker) -> None:
         "imaging-secondary",
         "anonymisation",
     }
+
+
+@pytest.mark.asyncio
+async def test_notify_anon_publishes_anonymisation_message(monkeypatch) -> None:
+    """Checks that anonymisation requests are published to RabbitMQ."""
+    orthanc_raw = AsyncMock()
+    orthanc_raw.get_local_study.side_effect = [
+        {"MainDicomTags": {"StudyInstanceUID": "1.2.3"}},
+        {"MainDicomTags": {"StudyInstanceUID": "4.5.6"}},
+    ]
+
+    producer = Mock()
+    producer_context = Mock()
+    producer_context.__enter__ = Mock(return_value=producer)
+    producer_context.__exit__ = Mock(return_value=None)
+
+    monkeypatch.setattr(
+        "pixl_imaging._orthanc.AnonymisationProducer",
+        Mock(return_value=producer_context),
+    )
+
+    orthanc_anon = PIXLAnonOrthanc()
+
+    await orthanc_anon.notify_anon_to_retrieve_study_resources(
+        orthanc_raw=orthanc_raw,
+        resource_ids=["resource-1", "resource-2"],
+        series_uid="1.2.3.1\\1.2.3.2",
+        project_name="test project",
+    )
+
+    producer.publish.assert_called_once_with(
+        [
+            AnonymisationMessage(
+                resource_ids=["resource-1", "resource-2"],
+                series_uids=["1.2.3.1", "1.2.3.2"],
+                study_uids=["1.2.3", "4.5.6"],
+                project_name="test project",
+            )
+        ]
+    )
