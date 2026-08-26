@@ -50,14 +50,14 @@ def get_tags_by_study(study_id: str) -> StudyTags:
     BEWARE: post-anonymisation, the Study Instance UID is NOT
     the Study Instance UID, it's the pseudo-anonymised ID generated randomly.
     """
-    query = f"{ORTHANC_ANON_URL}/studies/{study_id}/shared-tags?simplify=true"
+    query = f"{ORTHANC_ANON_URL}/studies/{study_id}"
     fail_msg = "Could not query study for resource '%s'"
 
     response_study = _query_orthanc_anon(study_id, query, fail_msg)
     json_response = json.loads(response_study.content.decode())
     return StudyTags(
-        pseudo_anon_image_id=json_response["StudyInstanceUID"],
-        patient_id=json_response["PatientID"],
+        pseudo_anon_image_id=json_response["MainDicomTags"]["StudyInstanceUID"],
+        patient_id=json_response["PatientMainDicomTags"]["PatientID"],
     )
 
 
