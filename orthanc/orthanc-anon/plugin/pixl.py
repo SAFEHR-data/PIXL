@@ -386,7 +386,7 @@ def _anonymise_study_and_upload(
 
         with logger.contextualize(pseudo_study_uid=anonymised_study_uid):
             _upload_instances(anonymised_instances_bytes)
-            logger.info("Anonymised and uploaded study to Orthanc")
+            logger.success("Anonymised and uploaded study '{}', {}", project_name, study_info)
 
         return anonymised_study_uid
 
@@ -517,7 +517,7 @@ def _anonymise_study_instances(
                 "The anonymisation introduced the following validation errors:\n{}",
                 parse_validation_results(dicom_validation_errors),
             )
-        logger.success("Finished anonymising project: '{}', {}", project_name, study_info)
+        logger.info("Finished anonymising project '{}', {}", project_name, study_info)
     return anonymised_instances_bytes, anonymised_study_uid
 
 
