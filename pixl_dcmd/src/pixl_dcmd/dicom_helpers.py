@@ -30,6 +30,8 @@ from dicom_validator.spec_reader.edition_reader import EditionReader
 from dicom_validator.validator.iod_validator import IODValidator
 from pydicom import Dataset
 
+from core.exceptions import PixlSkipInstanceError
+
 if typing.TYPE_CHECKING:
     from loguru import Logger
 
@@ -46,38 +48,82 @@ class DicomValidator:
         json_path = Path(destination, "json")
         self.dicom_info = EditionReader.load_dicom_info(json_path)
 
-    def validate_original(self, dataset: Dataset) -> None:
-        self.original_errors = IODValidator(
+    def validate_original(self, dataset: Dataset) -> dict | None:
+        """Check pre-existing validation errors in a dataset.
+
+        Returns:
+            validation_errors: a dictionary of validation errors, or None
+                if dicom-validator raised a RuntimeError during validation.
+        """
+        validator = IODValidator(
             dataset,
             self.dicom_info,
             log_level=logging.ERROR,
-        ).validate()
-
-    def validate_anonymised(self, dataset: Dataset) -> dict:
-        # Check that the original dataset has been validated
+        )
         try:
-            orig_errors = self.original_errors
-        except AttributeError:
-            raise ValueError("Original dataset not yet validated")
+            errors = validator.validate()
+        except RuntimeError as error:
+            logger.warning(
+                "Cannot check for pre-existing validation errors. "
+                "dicom-validator raised a RuntimeError during validation: {}",
+                error,
+            )
+            errors = None
 
-        self.anon_errors = IODValidator(
+        return errors
+
+    def validate_anonymised(
+        self, dataset: Dataset, original_errors: dict | None
+    ) -> dict:
+        """Check validation errors introduced during de-identification.
+
+        Args:
+            original_errors: dict of errors returned by validate_original for
+                dataset before anonymisation, or None if the dataset hasn't
+                been validated for pre-existing errors.
+
+        Returns:
+            new_errors: dict of errors introduced by anonymisation. If
+                original_errors is None, all errors found after
+                anonymisation are returned, as it's not possible to tell
+                which of them pre-existed.
+
+        Raises:
+            PixlSkipInstanceError: If dicom-validator raises a RuntimeError
+                during validation.
+        """
+        validator = IODValidator(
             dataset,
             self.dicom_info,
             log_level=logging.ERROR,
-        ).validate()
-        self.diff_errors: dict = {}
+        )
+        try:
+            anon_errors = validator.validate()
+        except RuntimeError as error:
+            msg = f"dicom-validator raised a RuntimeError when validating the anonymised dataset: {error}"
+            raise PixlSkipInstanceError(msg) from error
 
-        for key in self.anon_errors.keys():
-            if key in self.original_errors.keys():
+        if original_errors is None:
+            logger.warning(
+                "Cannot determine whether validation errors were introduced by "
+                "anonymisation, as the original dataset was not validated. "
+                "Errors found after anonymisation: {}",
+                anon_errors,
+            )
+            return anon_errors
+
+        diff_errors: dict = {}
+        for key in anon_errors:
+            if key in original_errors:
                 # Keep only errors introduced after the anonymisation
                 # The keys of the dictionary containt the actual errors
-                diff = set(self.anon_errors[key].keys()) - set(orig_errors[key].keys())
+                diff = set(anon_errors[key]) - set(original_errors[key])
                 if diff:
-                    self.diff_errors[key] = diff
+                    diff_errors[key] = diff
             else:
-                self.diff_errors[key] = self.anon_errors[key]
+                diff_errors[key] = anon_errors[key]
 
-        return self.diff_errors
+        return diff_errors
 
 
 thread_local = threading.local()
