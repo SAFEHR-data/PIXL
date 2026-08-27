@@ -14,6 +14,16 @@
 volumes:
     vna-qr-data:
 
+    # Create a volume, allowing us to share the backup file with the container by mounting it
+    # See example at: https://github.com/nagyesta/lowkey-vault-example-docker/blob/main/docker-compose/docker-compose.yml
+    example-import:
+        driver: local
+        driver_opts:
+            type: "none"
+            o: "bind"
+            # set the ./import directory as volume root
+            device: "$PWD/import"
+
 networks:
     pixl-net:
 
@@ -87,3 +97,36 @@ services:
             retries: 2
             interval: 3s
             timeout: 2s
+
+    lowkey-vault:
+        container_name: system-test-lowkey-vault
+        image: nagyesta/lowkey-vault:7.3.74-ubi10-minimal
+        ports:
+          - "8443:8443"
+        volumes:
+          - ./keyvault/import:/import/:rw
+        environment:
+          # Example at: https://github.com/nagyesta/lowkey-vault-example-docker/blob/main/docker-compose/docker-compose.yml
+          # More details at: https://github.com/nagyesta/lowkey-vault/tree/main/lowkey-vault-app#startup-parameters
+          LOWKEY_ARGS: > 
+            --server.port=8443
+            --LOWKEY_DEBUG_REQUEST_LOG=true 
+            --LOWKEY_VAULT_NAMES=${EXPORT_AZ_KEY_VAULT_NAME}
+            --LOWKEY_IMPORT_LOCATION=/import/keyvault.json.hbs
+            --LOWKEY_IMPORT_TEMPLATE_HOST=localhost 
+            --LOWKEY_IMPORT_TEMPLATE_PORT=8443
+            --LOWKEY_EXPORT_LOCATION=/import/keyvault.json.hbs
+        networks:
+            pixl-net:
+
+
+    assumed-identity:
+        container_name: system-test-assumed-identity
+        image: nagyesta/assumed-identity:2.2.71
+        ports:
+            - "8080:8080"
+        environment:
+            # Set port number to the one we want to use on the host machine
+            ASSUMED_ID_PORT: "8080"
+        networks:
+            pixl-net:
