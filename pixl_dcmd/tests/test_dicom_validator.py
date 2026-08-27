@@ -97,7 +97,9 @@ def dicom_with_malformed_sequence_tag(vanilla_dicom_image_DX: Dataset) -> Datase
     A DICOM dataset with a non-conformant Derivation Code Sequence tag: it should
     have VR SQ, but instead has VR OB.
     """
-    vanilla_dicom_image_DX.add(DataElement(0x00089215, "OB", b"\x00" * 10))
+    vanilla_dicom_image_DX.add(
+        DataElement("DerivationCodeSequence", "OB", b"\x00" * 10)
+    )
     return vanilla_dicom_image_DX
 
 
@@ -127,7 +129,7 @@ def test_validate_anonymised_returns_all_errors_when_original_unknown(
     assert original_errors is None
 
     # delete problematic element
-    del dicom_with_malformed_sequence_tag[0x00089215]
+    del dicom_with_malformed_sequence_tag.DerivationCodeSequence
     # delete a required element to introduce an error
     del dicom_with_malformed_sequence_tag.PatientName
 
