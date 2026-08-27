@@ -15,9 +15,11 @@
 from __future__ import annotations
 
 import pytest
+from core.exceptions import PixlSkipInstanceError
 from pixl_dcmd.dicom_helpers import DicomValidator
 from pixl_dcmd.main import anonymise_dicom
 from pydicom import Dataset
+from pydicom.dataelem import DataElement
 
 
 def test_validation_check_works(vanilla_dicom_image_DX: Dataset) -> None:
@@ -27,8 +29,8 @@ def test_validation_check_works(vanilla_dicom_image_DX: Dataset) -> None:
     THEN no errors should be raised
     """
     validator = DicomValidator()
-    validator.validate_original(vanilla_dicom_image_DX)
-    assert not validator.validate_anonymised(vanilla_dicom_image_DX)
+    original_errors = validator.validate_original(vanilla_dicom_image_DX)
+    assert not validator.validate_anonymised(vanilla_dicom_image_DX, original_errors)
 
 
 def test_validation_after_anonymisation_works(
@@ -41,10 +43,10 @@ def test_validation_after_anonymisation_works(
     THEN no errors should be raised
     """
     validator = DicomValidator()
-    validator.validate_original(vanilla_dicom_image_DX)
+    original_errors = validator.validate_original(vanilla_dicom_image_DX)
     anonymise_dicom(vanilla_dicom_image_DX, config=test_project_config)
 
-    assert not validator.validate_anonymised(vanilla_dicom_image_DX)
+    assert not validator.validate_anonymised(vanilla_dicom_image_DX, original_errors)
 
 
 @pytest.fixture()
@@ -61,8 +63,8 @@ def test_validation_passes_for_non_compliant_dicom(non_compliant_dicom_image) ->
     THEN no errors should be raised
     """
     validator = DicomValidator()
-    validator.validate_original(non_compliant_dicom_image)
-    assert not validator.validate_anonymised(non_compliant_dicom_image)
+    original_errors = validator.validate_original(non_compliant_dicom_image)
+    assert not validator.validate_anonymised(non_compliant_dicom_image, original_errors)
 
 
 def test_validation_fails_after_invalid_tag_modification(
@@ -74,9 +76,11 @@ def test_validation_fails_after_invalid_tag_modification(
     THEN validation should return a non-empty list of errors
     """
     validator = DicomValidator()
-    validator.validate_original(vanilla_dicom_image_DX)
+    original_errors = validator.validate_original(vanilla_dicom_image_DX)
     del vanilla_dicom_image_DX.PatientName
-    validation_result = validator.validate_anonymised(vanilla_dicom_image_DX)
+    validation_result = validator.validate_anonymised(
+        vanilla_dicom_image_DX, original_errors
+    )
 
     assert len(validation_result) == 1
     assert "Patient" in validation_result.keys()
@@ -85,3 +89,66 @@ def test_validation_fails_after_invalid_tag_modification(
         "Tag (0010,0010) (Patient's Name) is missing"
         in validation_result["Patient"].keys()
     )
+
+
+@pytest.fixture()
+def dicom_with_malformed_sequence_tag(vanilla_dicom_image_DX: Dataset) -> Dataset:
+    """
+    A DICOM dataset with a non-conformant Derivation Code Sequence tag: it should
+    have VR SQ, but instead has VR OB.
+    """
+    vanilla_dicom_image_DX.add(DataElement(0x00089215, "OB", b"\x00" * 10))
+    return vanilla_dicom_image_DX
+
+
+def test_validate_original_survives_runtime_error(
+    dicom_with_malformed_sequence_tag: Dataset,
+) -> None:
+    """
+    GIVEN a DICOM dataset that makes dicom-validator raise a RuntimeError
+    WHEN the original dataset is validated
+    THEN None is returned rather than a dictionary of pre-existing errors
+    """
+    validator = DicomValidator()
+    original_errors = validator.validate_original(dicom_with_malformed_sequence_tag)
+    assert original_errors is None
+
+
+def test_validate_anonymised_returns_all_errors_when_original_unknown(
+    dicom_with_malformed_sequence_tag: Dataset,
+) -> None:
+    """
+    GIVEN an anonymised dataset that has not been validated for pre-existing errors
+    WHEN the anonymised dataset is validated
+    THEN all errors found are returned
+    """
+    validator = DicomValidator()
+    original_errors = validator.validate_original(dicom_with_malformed_sequence_tag)
+    assert original_errors is None
+
+    # delete problematic element
+    del dicom_with_malformed_sequence_tag[0x00089215]
+    # delte a required element to introduce an error
+    del dicom_with_malformed_sequence_tag.PatientName
+
+    validation_result = validator.validate_anonymised(
+        dicom_with_malformed_sequence_tag, original_errors
+    )
+    assert "Patient" in validation_result.keys()
+
+
+def test_validate_anonymised_raises_skip_instance_error_on_runtime_error(
+    dicom_with_malformed_sequence_tag: Dataset,
+) -> None:
+    """
+    GIVEN an anonymised dataset that causes dicom-validator to raise a RuntimeError
+    WHEN the anonymised dataset is validated
+    THEN a PixlSkipInstanceError is raised
+    """
+    validator = DicomValidator()
+    original_errors = validator.validate_original(dicom_with_malformed_sequence_tag)
+
+    with pytest.raises(PixlSkipInstanceError):
+        validator.validate_anonymised(
+            dicom_with_malformed_sequence_tag, original_errors
+        )
