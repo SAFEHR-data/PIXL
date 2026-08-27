@@ -61,7 +61,7 @@ class DicomValidator:
             log_level=logging.ERROR,
         )
         try:
-            errors = validator.validate()
+            errors: dict | None = validator.validate()
         except RuntimeError as error:
             logger.warning(
                 "Cannot check for pre-existing validation errors. "
@@ -98,7 +98,7 @@ class DicomValidator:
             log_level=logging.ERROR,
         )
         try:
-            anon_errors = validator.validate()
+            anon_errors: dict = validator.validate()
         except RuntimeError as error:
             msg = f"dicom-validator raised a RuntimeError when validating the anonymised dataset: {error}"
             raise PixlSkipInstanceError(msg) from error
