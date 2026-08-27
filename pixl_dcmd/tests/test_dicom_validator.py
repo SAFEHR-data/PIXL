@@ -128,7 +128,7 @@ def test_validate_anonymised_returns_all_errors_when_original_unknown(
 
     # delete problematic element
     del dicom_with_malformed_sequence_tag[0x00089215]
-    # delte a required element to introduce an error
+    # delete a required element to introduce an error
     del dicom_with_malformed_sequence_tag.PatientName
 
     validation_result = validator.validate_anonymised(
