@@ -111,11 +111,9 @@ services:
           LOWKEY_ARGS: > 
             --server.port=8443
             --LOWKEY_DEBUG_REQUEST_LOG=true 
-            --LOWKEY_VAULT_NAMES=${EXPORT_AZ_KEY_VAULT_NAME}
             --LOWKEY_IMPORT_LOCATION=/import/keyvault.json.hbs
             --LOWKEY_IMPORT_TEMPLATE_HOST=localhost 
             --LOWKEY_IMPORT_TEMPLATE_PORT=8443
-            --LOWKEY_EXPORT_LOCATION=/import/keyvault.json.hbs
         networks:
             pixl-net:
 
