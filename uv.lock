@@ -707,7 +707,7 @@ wheels = [
 
 [[package]]
 name = "deid"
-version = "0.3.25"
+version = "0.4.12"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "matplotlib" },
@@ -715,36 +715,36 @@ dependencies = [
     { name = "pydicom" },
     { name = "python-dateutil" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d9/9d/3726d4463e50d038a19c79f3c61b2d70fb23507b9e1a583d9e636cabb0c3/deid-0.3.25.tar.gz", hash = "sha256:92a8a3807c999026a88fae1d741752d38243ecb7dbc257a8d7158b5022a386c3", size = 50667, upload-time = "2024-10-02T16:44:25.066Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/72/e8/d81233da51fcbebfdfdb5396a700af98fc8ac819d7129b928f0aa8f8b05b/deid-0.4.12.tar.gz", hash = "sha256:76973e54dbf1d177de668c0badb72a8fee37121df1f47983d49a7af14f07978a", size = 55892, upload-time = "2026-01-12T16:52:54.279Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/3d/c2/71eaa892531f58ebcda2a852d2139db3f6f316080b21ce44862eb821531e/deid-0.3.25-py3-none-any.whl", hash = "sha256:dddb20dd4a67120020a072fc55784efb87c3d5ff5beeaadc35c815f71189e418", size = 94388, upload-time = "2024-10-02T16:44:23.562Z" },
+    { url = "https://files.pythonhosted.org/packages/5a/b8/3782cf106dae65884c0a727d099cd3eb3d60d01ec82e83a6843f2b9a780d/deid-0.4.12-py3-none-any.whl", hash = "sha256:2272d4bd8d9f9ba6ecb453eda8455acf7e4baa3c9f4533abf06aff6b5a11a632", size = 105369, upload-time = "2026-01-12T16:52:52.546Z" },
 ]
 
 [[package]]
 name = "dicom-anonymizer"
-version = "1.0.13.post1"
+version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pydicom" },
     { name = "tqdm" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c2/93/e84cf78f2317851d9d3443b8fcb4ba95c217355250fd211f4248a05ad888/dicom_anonymizer-1.0.13.post1.tar.gz", hash = "sha256:fc5763235c0115f47475acf1a84902c407ad781f5f9425ed65cd1322fb0d76f4", size = 30928, upload-time = "2024-09-17T11:24:19.569Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/bc/34/f99cddacbf74ab1272cb140f17b73451d5cf9430b78b007dd0f2a2725dbf/dicom_anonymizer-2.0.0.tar.gz", hash = "sha256:2cf2e6bf5c412163a2ab74e77ae917a1c7cffb9ab6dc730690f1862182547216", size = 35028, upload-time = "2026-07-10T09:36:22.196Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/7e/5e/c1f75bb8fd467269abc7f78abf0392ec2b7f7b303579bb1a8ea23419cdde/dicom_anonymizer-1.0.13.post1-py3-none-any.whl", hash = "sha256:cd4ddb656f96ebb67a987d2245a9de7d871f9e6942ab807989586a3131862392", size = 29962, upload-time = "2024-09-17T11:24:18.128Z" },
+    { url = "https://files.pythonhosted.org/packages/69/28/ddcdc5d1e41f1bab2dd642c4a4098a23330226c476a81b7c9d9d4b3050a8/dicom_anonymizer-2.0.0-py3-none-any.whl", hash = "sha256:bf1302e6ab423bdc08d8aedb836c57507722206ad1862efe5f9320b13a24b5c0", size = 34823, upload-time = "2026-07-10T09:36:21.014Z" },
 ]
 
 [[package]]
 name = "dicom-validator"
-version = "0.7.3"
+version = "0.8.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "lxml" },
     { name = "pydicom" },
     { name = "pyparsing" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a8/db/922c5d3c662aff47e1ab1a64fe9203b5ea813ea493b7b216c03b9bfb4676/dicom_validator-0.7.3.tar.gz", hash = "sha256:4ee8376688fb94ca33c48af34bc5a93dd3e3743abefdc1d16b70eba41c4aa542", size = 63526, upload-time = "2025-10-13T17:32:49.564Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/dd/d7/7ae7a25d260613118f6d63545a2a0454aa209d06600c319ed9455a2d2887/dicom_validator-0.8.3.tar.gz", hash = "sha256:7b92f809f892ad37954e7b3c8c12bf10512496d6ae9a36db2dab3c1da456260e", size = 77652, upload-time = "2026-08-28T16:15:17.711Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6e/8d/b3401e93c7301e96315d4d816f5643815f5e6797a8c511e56e91e237b546/dicom_validator-0.7.3-py3-none-any.whl", hash = "sha256:2bffcdf2ae774ef18c521774561987098bfe8c157fdd1fa5bf04f552a195499f", size = 72200, upload-time = "2025-10-13T17:32:48.204Z" },
+    { url = "https://files.pythonhosted.org/packages/e1/17/c4fc7e4cf99a8c9217bc1a3d40f2996f3ddece11d22ce27e9bd220b29342/dicom_validator-0.8.3-py3-none-any.whl", hash = "sha256:755e800f05df8357b38902debbdb0588dd9206a281828fc788d80aa79a993927", size = 89443, upload-time = "2026-08-28T16:15:16.354Z" },
 ]
 
 [[package]]
@@ -2148,11 +2148,11 @@ requires-dist = [
     { name = "core", editable = "pixl_core" },
     { name = "core", extras = ["dev"], marker = "extra == 'dev'", editable = "pixl_core" },
     { name = "core", extras = ["test"], marker = "extra == 'test'", editable = "pixl_core" },
-    { name = "deid", specifier = "==0.3.25" },
-    { name = "dicom-anonymizer", specifier = "==1.0.13.post1" },
-    { name = "dicom-validator", specifier = "==0.7.3" },
+    { name = "deid", specifier = "==0.4.12" },
+    { name = "dicom-anonymizer", specifier = "==2.0.0" },
+    { name = "dicom-validator", specifier = "==0.8.3" },
     { name = "logger", specifier = "==1.4" },
-    { name = "pydicom", specifier = "==2.4.5" },
+    { name = "pydicom", specifier = "==3.0.2" },
     { name = "pydicom-data" },
     { name = "pylibjpeg", specifier = ">=2.0" },
     { name = "pylibjpeg-libjpeg", specifier = ">=2.3" },
@@ -2219,7 +2219,7 @@ requires-dist = [
     { name = "core", editable = "pixl_core" },
     { name = "core", extras = ["dev"], marker = "extra == 'dev'", editable = "pixl_core" },
     { name = "core", extras = ["test"], marker = "extra == 'test'", editable = "pixl_core" },
-    { name = "pydicom", specifier = "==2.4.5" },
+    { name = "pydicom", specifier = "==3.0.2" },
     { name = "uvicorn", specifier = "==0.44.0" },
 ]
 provides-extras = ["test", "dev"]
@@ -2513,11 +2513,11 @@ wheels = [
 
 [[package]]
 name = "pydicom"
-version = "2.4.5"
+version = "3.0.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/cf/8b/6fca5f1f0cc74b2ad9ea0271d374bee2cb13ed3b2793fd93254678de1aba/pydicom-2.4.5.tar.gz", hash = "sha256:ba2077bd76cb49e05fe51c3e1e0b2d77218f50c6c231120b443d29b38ea6b7a8", size = 2018349, upload-time = "2026-03-20T14:39:26.931Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/7a/de/52aaf905f1f0ae7aba85996e2592ea2c1fe49157f3cfbcd1871965bdb51d/pydicom-3.0.2.tar.gz", hash = "sha256:5942bfc2d72c6fa4b3b5b62c527f54b7f2355f21d6f5d296df6bb30188df6a4f", size = 2886792, upload-time = "2026-03-19T21:46:20.935Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/db/5b/4e7d67d880b3344afff01708725a39717694a79391a32711fd40a8958bed/pydicom-2.4.5-py3-none-any.whl", hash = "sha256:35a594cc8ebae8dd40b1f632cd7c9f08ecaa147cb9305a9f9fbca2c03f5ccc93", size = 1771963, upload-time = "2026-03-20T14:39:24.178Z" },
+    { url = "https://files.pythonhosted.org/packages/46/e0/60466c6d712dad2cf807df315e39863e91609ffd1064ecb835994460bbda/pydicom-3.0.2-py3-none-any.whl", hash = "sha256:abf971a5440f84dbaf42c4b6758e30e62480902584f8b270b9a5d146e278a07b", size = 2376822, upload-time = "2026-03-19T21:46:19.042Z" },
 ]
 
 [[package]]
@@ -2744,7 +2744,7 @@ test = [
 requires-dist = [
     { name = "core", marker = "extra == 'test'", editable = "pixl_core" },
     { name = "core", extras = ["dev"], marker = "extra == 'dev'", editable = "pixl_core" },
-    { name = "pydicom", specifier = "==2.4.5" },
+    { name = "pydicom", specifier = "==3.0.2" },
     { name = "pyftpdlib", specifier = "==2.2.0" },
     { name = "pyopenssl", specifier = "==26.0.0" },
     { name = "pytest-loguru", specifier = "==0.4.0" },
