@@ -23,7 +23,7 @@ from typing import Any
 import click
 import requests
 from core.exports import ParquetExport
-from core.patient_queue.producer import PixlProducer
+from core.queue.producer import PixlProducer
 from core.telemetry import configure_logging, configure_tracing, telemetry_is_enabled
 from decouple import RepositoryEnv, UndefinedValueError
 from loguru import logger

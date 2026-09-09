@@ -25,7 +25,7 @@ from decouple import config
 from pixl_imaging._orthanc import Orthanc, PIXLAnonOrthanc, PIXLRawOrthanc
 
 if TYPE_CHECKING:
-    from core.patient_queue.message import Message
+    from core.queue.message import Message
 
 from loguru import logger
 

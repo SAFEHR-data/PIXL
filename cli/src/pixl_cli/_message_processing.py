@@ -20,9 +20,9 @@ from typing import TYPE_CHECKING
 
 import pandas as pd
 import tqdm
-from core.patient_queue._base import PixlBlockingInterface
-from core.patient_queue.message import Message
-from core.patient_queue.producer import PixlProducer
+from core.queue._base import PixlBlockingInterface
+from core.queue.message import Message
+from core.queue.producer import PixlProducer
 from decouple import config
 from loguru import logger
 

@@ -19,13 +19,13 @@ from typing import TYPE_CHECKING
 
 import pixl_cli._message_processing
 from click.testing import CliRunner
-from core.patient_queue.producer import PixlProducer
+from core.queue.producer import PixlProducer
 from pixl_cli.main import populate
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from core.patient_queue.message import Message
+    from core.queue.message import Message
 
 
 class MockProducer(PixlProducer):

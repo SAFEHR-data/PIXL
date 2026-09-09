@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 from core.db.models import Image
-from core.patient_queue.message import Message
+from core.queue.message import Message
 from pixl_cli._io import read_patient_info
 from pixl_cli._message_processing import messages_from_df, populate_queue_and_db
 

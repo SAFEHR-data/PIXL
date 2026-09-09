@@ -24,8 +24,8 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 import pytest
 from core.db.models import Base, Extract, Image
-from core.patient_queue.message import Message
-from core.patient_queue.producer import PixlProducer
+from core.queue.message import Message
+from core.queue.producer import PixlProducer
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 

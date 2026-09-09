@@ -23,7 +23,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 from core.exceptions import PixlDiscardError, PixlOutOfHoursError, PixlStudyNotInPrimaryArchiveError
-from core.patient_queue.message import Message
+from core.queue.message import Message
 from decouple import config
 from pydicom import dcmread
 from pydicom.data import get_testdata_file

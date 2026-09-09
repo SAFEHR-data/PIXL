@@ -21,7 +21,7 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from core.anon_queue.message import AnonymisationMessage
-from core.patient_queue.producer import PixlProducer
+from core.queue.producer import PixlProducer
 from pixl_cli._message_processing import (
     _message_count,
     retry_until_export_count_is_unchanged,
