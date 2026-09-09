@@ -25,8 +25,8 @@ services:
             GF_SECURITY_ADMIN_USER: pixl
             GF_SECURITY_ADMIN_PASSWORD: pixl_lgtm_password
         ports:
-            - "127.0.0.1:3000:3000" # Grafana UI
-            - "127.0.0.1:4317:4317" # OTLP gRPC
+            - "127.0.0.1:3001:3000" # Grafana UI (offset from standard port 3000)
+            - "127.0.0.1:4337:4317" # OTLP gRPC (apps use lgtm:4317 internally; host publish for debug)
         volumes:
             - ./prometheus.yaml:/otel-lgtm/prometheus.yaml:ro
         networks:
