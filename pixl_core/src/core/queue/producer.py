@@ -21,15 +21,76 @@ from loguru import logger
 from opentelemetry import trace
 from pika import BasicProperties, DeliveryMode
 
-from ._base import PixlBlockingInterface
+from ._base import PixlBlockingInterface, PixlBlockingInterfaceAnon
 
 if TYPE_CHECKING:
-    from core.anon_queue.message import AnonymisationMessage
+    from core.queue.message import AnonymisationMessage, Message
 
-tracer = trace.get_tracer("pixl_core.anon_queue.producer")
+tracer = trace.get_tracer("pixl_core.queue.producer")
 
 
-class AnonymisationProducer(PixlBlockingInterface):
+class PixlProducer(PixlBlockingInterface):
+    """Generic publisher for RabbitMQ"""
+
+    def publish(self, messages: list[Message], priority: int) -> None:
+        """
+        Sends a list of serialised messages to a queue.
+        :param messages: list of messages to be sent to queue
+        :param priority: priority of the messages, from 1 (lowest) to 5 (highest)
+        """
+        if len(messages) == 0:
+            logger.warning("List of messages is empty so nothing will be published to queue.")
+            return
+
+        logger.info("Publishing {} messages to queue: {}", len(messages), self.queue_name)
+        for msg in messages:
+            attributes = {
+                "project_name": msg.project_name,
+                "mrn": msg.mrn,
+                "accession_number": msg.accession_number,
+                "study_uid": msg.study_uid,
+            }
+            with tracer.start_as_current_span("publish_message", attributes=attributes):
+                self._publish_message(msg, priority)
+
+    def _publish_message(self, message: Message, priority: int) -> None:
+        """
+        Publish a single serialised message to a queue.
+        :param message: message to be sent to queue
+        :param priority: priority of the message, from 1 (lowest) to 5 (highest)
+        """
+        serialised_msg = message.serialise()
+        self._channel.basic_publish(
+            exchange="",
+            routing_key=self.queue_name,
+            body=serialised_msg,
+            properties=BasicProperties(
+                delivery_mode=DeliveryMode.Persistent,
+                priority=priority,
+            ),
+        )
+
+        logger.bind(
+            project_name=message.project_name,
+            mrn=message.mrn,
+            accession_number=message.accession_number,
+            study_uid=message.study_uid,
+        ).debug(
+            "Message {} published to queue {} with priority {}",
+            message,
+            self.queue_name,
+            priority,
+        )
+
+    def clear_queue(self) -> None:
+        """
+        Triggering a purge of all the messages currently in the queue. Mainly used to
+        clean after tests.
+        """
+        self._channel.queue_purge(queue=self.queue_name)
+
+
+class AnonymisationProducer(PixlBlockingInterfaceAnon):
     """Anonymisation publisher for RabbitMQ"""
 
     def publish(self, messages: list[AnonymisationMessage]) -> None:

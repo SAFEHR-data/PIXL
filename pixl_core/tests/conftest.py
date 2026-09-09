@@ -22,6 +22,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 import requests
+from core.anon_queue.message import AnonymisationMessage
 from loguru import logger
 from opentelemetry.sdk._logs import LoggerProvider
 from opentelemetry.sdk._logs.export import (
@@ -34,10 +35,9 @@ from pytest_pixl.helpers import run_subprocess
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from core.anon_queue.message import AnonymisationMessage
 from core.db.models import Base, Extract, Image
 from core.logging import OTelSink
-from core.patient_queue.message import Message
+from core.queue.message import Message
 
 if TYPE_CHECKING:
     import subprocess

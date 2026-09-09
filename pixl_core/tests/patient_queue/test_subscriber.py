@@ -18,8 +18,8 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from core.patient_queue.producer import PixlProducer
-from core.patient_queue.subscriber import PixlConsumer
+from core.queue.producer import PixlProducer
+from core.queue.subscriber import PixlConsumer
 from core.token_buffer.tokens import TokenBucket
 
 TEST_QUEUE = "test_consume"

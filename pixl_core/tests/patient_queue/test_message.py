@@ -13,7 +13,7 @@
 #  limitations under the License.
 from __future__ import annotations
 
-from core.patient_queue.message import deserialise
+from core.queue.message import deserialise
 
 
 def test_serialise(mock_message) -> None:
