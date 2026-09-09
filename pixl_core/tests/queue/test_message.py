@@ -13,11 +13,24 @@
 #  limitations under the License.
 from __future__ import annotations
 
-from core.anon_queue.message import deserialise
+from core.queue.message import deserialise
 
 
-def test_serialise(mock_anon_message) -> None:
-    """Checks that messages can be correctly serialised"""
+def test_serialise_imagingrequests(mock_message) -> None:
+    """Checks that imaging request messages can be correctly serialised"""
+    msg_body = mock_message.serialise(deserialisable=False)
+    assert (
+        msg_body == b'{"mrn": "111", "accession_number": "123", "study_uid": "1.2.3", '
+        b'"series_uid": "", '
+        b'"study_date": "2022-11-22", '
+        b'"procedure_occurrence_id": "234", '
+        b'"project_name": "test project", '
+        b'"extract_generated_timestamp": "2023-12-07T14:08:00+00:00"}'
+    )
+
+
+def test_serialise_anon(mock_anon_message) -> None:
+    """Checks that anon messages can be correctly serialised"""
     msg_body = mock_anon_message.serialise(deserialisable=False)
     assert (
         msg_body == b'{"resource_ids": ["resource-1", "resource-2"], '

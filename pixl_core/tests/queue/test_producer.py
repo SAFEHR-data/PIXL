@@ -15,9 +15,10 @@ from __future__ import annotations
 
 import pytest
 
-from core.queue.producer import PixlProducer
+from core.queue.producer import AnonymisationProducer, PixlProducer
 
 TEST_QUEUE = "test_publish"
+TEST_QUEUE_ANON = "test_anon_publish"
 
 
 @pytest.mark.usefixtures("run_containers")
@@ -38,4 +39,25 @@ def test_publish(mock_message) -> None:
         pp.publish(messages=[mock_message], priority=1)
 
     with PixlProducer(queue_name=TEST_QUEUE) as pp:
+        assert pp.message_count == 1
+
+
+@pytest.mark.usefixtures("run_containers")
+def test_create_pixl_producer_anon() -> None:
+    """Checks that AnonymisationProducer can be instantiated."""
+    with AnonymisationProducer(queue_name=TEST_QUEUE_ANON) as pp:
+        assert pp.connection_open
+
+
+@pytest.mark.usefixtures("run_containers")
+def test_publish_anon(mock_anon_message) -> None:
+    """
+    Checks that after publishing, there is one message in the queue.
+    Will only work if nothing has been added to queue before.
+    """
+    with AnonymisationProducer(queue_name=TEST_QUEUE_ANON) as pp:
+        pp.clear_queue()
+        pp.publish(messages=[mock_anon_message])
+
+    with AnonymisationProducer(queue_name=TEST_QUEUE_ANON) as pp:
         assert pp.message_count == 1

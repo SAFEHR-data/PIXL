@@ -14,15 +14,16 @@
 from __future__ import annotations
 
 import asyncio
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 
 from core.queue.producer import PixlProducer
-from core.queue.subscriber import PixlConsumer
+from core.queue.subscriber import AnonymisationPixlConsumer, PixlConsumer
 from core.token_buffer.tokens import TokenBucket
 
 TEST_QUEUE = "test_consume"
+TEST_QUEUE_ANON = "test_anon_consume"
 
 
 class ExpectedTestError(Exception):
@@ -58,3 +59,42 @@ async def test_create(mock_message) -> None:
         consume.assert_called_once()
     # Fail on purpose to check async test awaited
     raise ExpectedTestError
+
+
+@pytest.mark.usefixtures("run_containers")
+def test_run() -> None:
+    """Checks that the consumer starts consuming messages."""
+    callback = Mock()
+
+    with AnonymisationPixlConsumer(
+        queue_name=TEST_QUEUE,
+        callback=callback,
+    ) as consumer:
+        consumer._channel.basic_consume = Mock()
+        consumer._channel.start_consuming = Mock()
+
+        consumer.run()
+
+        consumer._channel.basic_consume.assert_called_once_with(
+            queue=TEST_QUEUE,
+            on_message_callback=consumer._process_message,
+            auto_ack=False,
+        )
+        consumer._channel.start_consuming.assert_called_once()
+
+
+@pytest.mark.usefixtures("run_containers")
+def test_process_message(mock_anon_message) -> None:
+    """Checks that a received message is passed to the callback."""
+    callback = Mock()
+
+    with AnonymisationPixlConsumer(
+        queue_name=TEST_QUEUE,
+        callback=callback,
+    ) as consumer:
+        message = Mock()
+        message.body = mock_anon_message.serialise()
+
+        consumer._process_message(message)
+
+        callback.assert_called_once_with(mock_anon_message)
