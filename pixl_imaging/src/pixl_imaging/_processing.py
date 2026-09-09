@@ -25,7 +25,7 @@ from decouple import config
 from pixl_imaging._orthanc import Orthanc, PIXLAnonOrthanc, PIXLRawOrthanc
 
 if TYPE_CHECKING:
-    from core.queue.message import Message
+    from core.queue.models import ImagingRequestMessage
 
 from loguru import logger
 
@@ -35,7 +35,7 @@ class DicomModality(StrEnum):
     secondary = config("SECONDARY_DICOM_SOURCE_MODALITY")
 
 
-async def process_message(message: Message, archive: DicomModality) -> None:
+async def process_message(message: ImagingRequestMessage, archive: DicomModality) -> None:
     """
     Process message from queue by retrieving a study with the given Patient and Accession Number.
     We may receive multiple messages with same Patient + Acc Num, either as retries or because
@@ -391,10 +391,10 @@ async def _get_missing_instances(
 class ImagingStudy:
     """Dataclass for DICOM study unique to a patient and imaging study"""
 
-    message: Message
+    message: ImagingRequestMessage
 
     @classmethod
-    def from_message(cls, message: Message) -> ImagingStudy:
+    def from_message(cls, message: ImagingRequestMessage) -> ImagingStudy:
         """Build an imaging study from a queue message."""
         return ImagingStudy(message=message)
 

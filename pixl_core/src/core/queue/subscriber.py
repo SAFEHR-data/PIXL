@@ -40,7 +40,7 @@ if TYPE_CHECKING:
 
     from aio_pika.abc import AbstractIncomingMessage
 
-    from core.queue.message import AnonymisationMessage, Message
+    from core.queue.models import AnonymisationMessage, ImagingRequestMessage
     from core.token_buffer.tokens import TokenBucket
 
 from loguru import logger
@@ -54,7 +54,7 @@ class PixlConsumer(PixlQueueInterface):
         queue_name: str,
         token_bucket: TokenBucket,
         token_bucket_key: str,
-        callback: Callable[[Message], Awaitable[None]],
+        callback: Callable[[ImagingRequestMessage], Awaitable[None]],
     ) -> None:
         """
         Creating connection to RabbitMQ queue
@@ -90,7 +90,7 @@ class PixlConsumer(PixlQueueInterface):
             await message.reject(requeue=True)
             return
 
-        pixl_message: Message = deserialise(message.body)
+        pixl_message: ImagingRequestMessage = deserialise(message.body)
         logger.debug("Picked up from queue: {}", pixl_message.identifier)
         try:
             await self._callback(pixl_message)

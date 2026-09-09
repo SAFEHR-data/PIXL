@@ -24,7 +24,7 @@ from pika import BasicProperties, DeliveryMode
 from ._base import PixlBlockingInterface, PixlBlockingInterfaceAnon
 
 if TYPE_CHECKING:
-    from core.queue.message import AnonymisationMessage, Message
+    from core.queue.modles import AnonymisationMessage, ImagingRequestMessage
 
 tracer = trace.get_tracer("pixl_core.queue.producer")
 
@@ -32,7 +32,7 @@ tracer = trace.get_tracer("pixl_core.queue.producer")
 class PixlProducer(PixlBlockingInterface):
     """Generic publisher for RabbitMQ"""
 
-    def publish(self, messages: list[Message], priority: int) -> None:
+    def publish(self, messages: list[ImagingRequestMessage], priority: int) -> None:
         """
         Sends a list of serialised messages to a queue.
         :param messages: list of messages to be sent to queue
@@ -53,7 +53,7 @@ class PixlProducer(PixlBlockingInterface):
             with tracer.start_as_current_span("publish_message", attributes=attributes):
                 self._publish_message(msg, priority)
 
-    def _publish_message(self, message: Message, priority: int) -> None:
+    def _publish_message(self, message: ImagingRequestMessage, priority: int) -> None:
         """
         Publish a single serialised message to a queue.
         :param message: message to be sent to queue
