@@ -20,7 +20,7 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
-from core.anon_queue.message import AnonymisationMessage
+from core.queue.models import AnonymisationMessage
 from core.queue.producer import PixlProducer
 from pixl_cli._message_processing import (
     _message_count,

@@ -34,13 +34,13 @@ from zipfile import ZipFile
 
 import pydicom
 import requests
-from core.anon_queue.subscriber import AnonymisationPixlConsumer
 from core.exceptions import PixlDiscardError, PixlSkipInstanceError
 from core.metrics import (
     record_instance_deidentification_failure,
     record_study_deidentification_failure,
 )
 from core.project_config.pixl_config_model import load_project_config
+from core.queue.subscriber import AnonymisationPixlConsumer
 from core.telemetry import configure_logging, configure_metrics, configure_tracing
 from decouple import config
 from loguru import logger
@@ -65,8 +65,8 @@ import orthanc
 if TYPE_CHECKING:
     from typing import Any
 
-    from core.anon_queue.message import AnonymisationMessage
     from core.project_config.pixl_config_model import PixlConfig
+    from core.queue.models import AnonymisationMessage
     from opentelemetry.context import Context
     from pixl_dcmd.dicom_helpers import StudyInfo
 

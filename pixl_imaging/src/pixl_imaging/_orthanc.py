@@ -18,9 +18,9 @@ from time import time
 from typing import Any
 
 import aiohttp
-from core.anon_queue.message import AnonymisationMessage
-from core.anon_queue.producer import AnonymisationProducer
 from core.exceptions import PixlDiscardError, PixlRequeueMessageError
+from core.queue.models import AnonymisationMessage
+from core.queue.producer import AnonymisationProducer
 from decouple import config
 from loguru import logger
 
