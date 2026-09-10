@@ -15,48 +15,9 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-from jsonpickle import decode, encode
-
-if TYPE_CHECKING:
-    from datetime import date, datetime
-
-from loguru import logger
-
-
-@dataclass
-class Message:
-    """Base class for a RabbitMQ message."""
-
-    mrn: str
-    accession_number: str
-    study_uid: str
-    series_uid: str
-    study_date: date
-    procedure_occurrence_id: int
-    project_name: str
-    extract_generated_timestamp: datetime
-
-    @property
-    def identifier(self) -> str:
-        """Identifier for message"""
-        return (
-            f"Message({self.mrn=} {self.accession_number=} {self.study_uid=} {self.series_uid=}"
-        ).replace("self.", "")
-
-    def serialise(self, *, deserialisable: bool = True) -> bytes:
-        """
-        Serialise the message into a JSON string and convert to bytes.
-
-        :param deserialisable: If True, the serialised message will be deserialisable, by setting
-            the unpicklable flag to False in jsonpickle.encode(), meaning that the original Message
-            object can be recovered by `deserialise()`. If False, calling `deserialise()` on the
-            serialised message will return a dictionary.
-        """
-        logger.trace("Serialising {}", self)
-        return str.encode(encode(self, unpicklable=deserialisable))
+from jsonpickle import decode
 
 
 def deserialise(serialised_msg: bytes) -> Any:

@@ -18,8 +18,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from jsonpickle import encode
+
 if TYPE_CHECKING:
     from datetime import date, datetime
+
+from loguru import logger
 
 
 @dataclass
@@ -42,6 +46,18 @@ class ImagingRequestMessage:
             f"Message({self.mrn=} {self.accession_number=} {self.study_uid=} {self.series_uid=}"
         ).replace("self.", "")
 
+    def serialise(self, *, deserialisable: bool = True) -> bytes:
+        """
+        Serialise the message into a JSON string and convert to bytes.
+
+        :param deserialisable: If True, the serialised message will be deserialisable, by setting
+            the unpicklable flag to False in jsonpickle.encode(), meaning that the original Message
+            object can be recovered by `deserialise()`. If False, calling `deserialise()` on the
+            serialised message will return a dictionary.
+        """
+        logger.trace("Serialising {}", self)
+        return str.encode(encode(self, unpicklable=deserialisable))
+
 
 @dataclass
 class AnonymisationMessage:
@@ -58,3 +74,15 @@ class AnonymisationMessage:
         return (f"Message({self.resource_ids=} {self.study_uids=} {self.series_uids=}").replace(
             "self.", ""
         )
+
+    def serialise(self, *, deserialisable: bool = True) -> bytes:
+        """
+        Serialise the message into a JSON string and convert to bytes.
+
+        :param deserialisable: If True, the serialised message will be deserialisable, by setting
+            the unpicklable flag to False in jsonpickle.encode(), meaning that the original Message
+            object can be recovered by `deserialise()`. If False, calling `deserialise()` on the
+            serialised message will return a dictionary.
+        """
+        logger.trace("Serialising {}", self)
+        return str.encode(encode(self, unpicklable=deserialisable))

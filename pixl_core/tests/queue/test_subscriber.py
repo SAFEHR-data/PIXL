@@ -62,12 +62,12 @@ async def test_create(mock_message) -> None:
 
 
 @pytest.mark.usefixtures("run_containers")
-def test_run() -> None:
+def test_run_anon() -> None:
     """Checks that the consumer starts consuming messages."""
     callback = Mock()
 
     with AnonymisationPixlConsumer(
-        queue_name=TEST_QUEUE,
+        queue_name=TEST_QUEUE_ANON,
         callback=callback,
     ) as consumer:
         consumer._channel.basic_consume = Mock()
@@ -76,7 +76,7 @@ def test_run() -> None:
         consumer.run()
 
         consumer._channel.basic_consume.assert_called_once_with(
-            queue=TEST_QUEUE,
+            queue=TEST_QUEUE_ANON,
             on_message_callback=consumer._process_message,
             auto_ack=False,
         )
@@ -84,12 +84,12 @@ def test_run() -> None:
 
 
 @pytest.mark.usefixtures("run_containers")
-def test_process_message(mock_anon_message) -> None:
+def test_process_message_anon(mock_anon_message) -> None:
     """Checks that a received message is passed to the callback."""
     callback = Mock()
 
     with AnonymisationPixlConsumer(
-        queue_name=TEST_QUEUE,
+        queue_name=TEST_QUEUE_ANON,
         callback=callback,
     ) as consumer:
         message = Mock()
