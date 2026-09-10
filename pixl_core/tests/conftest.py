@@ -36,7 +36,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from core.db.models import Base, Extract, Image
 from core.logging import OTelSink
-from core.patient_queue.message import Message
+from core.queue.models import AnonymisationMessage, ImagingRequestMessage
 
 if TYPE_CHECKING:
     import subprocess
@@ -220,9 +220,9 @@ def export_dir(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
 
 
 @pytest.fixture
-def mock_message() -> Message:
+def mock_message() -> ImagingRequestMessage:
     """An example Message used for testing"""
-    return Message(
+    return ImagingRequestMessage(
         mrn="111",
         accession_number="123",
         study_uid="1.2.3",
@@ -233,6 +233,17 @@ def mock_message() -> Message:
         extract_generated_timestamp=datetime.datetime.strptime(
             "Dec 7 2023 2:08PM", "%b %d %Y %I:%M%p"
         ).replace(tzinfo=datetime.UTC),
+    )
+
+
+@pytest.fixture
+def mock_anon_message() -> AnonymisationMessage:
+    """An example AnonymisationMessage used for testing"""
+    return AnonymisationMessage(
+        resource_ids=["resource-1", "resource-2"],
+        study_uids=["1.2.3", "4.5.6"],
+        series_uids=["1.2.3.1", "1.2.3.2"],
+        project_name="test project",
     )
 
 

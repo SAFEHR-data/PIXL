@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 from core.db.models import Image
-from core.patient_queue.message import Message
+from core.queue.models import ImagingRequestMessage
 from pixl_cli._io import read_patient_info
 from pixl_cli._message_processing import messages_from_df, populate_queue_and_db
 
@@ -40,10 +40,10 @@ def test_messages_from_csv(omop_resources: Path) -> None:
     # Act
     messages = messages_from_df(messages_df)
     # Assert
-    assert all(isinstance(msg, Message) for msg in messages)
+    assert all(isinstance(msg, ImagingRequestMessage) for msg in messages)
 
     expected_messages = [
-        Message(
+        ImagingRequestMessage(
             procedure_occurrence_id=0,
             mrn="patient_identifier",
             accession_number="123456789",
@@ -71,7 +71,7 @@ def test_whitespace_and_na_processing(omop_resources: Path) -> None:
     messages = messages_from_df(messages_df)
     # Assert
     assert messages == [
-        Message(
+        ImagingRequestMessage(
             procedure_occurrence_id=0,
             mrn="patient_identifier",
             accession_number="123456789",
@@ -117,10 +117,10 @@ def test_messages_from_parquet(omop_resources: Path) -> None:
     # Act
     messages = messages_from_df(messages_df)
     # Assert
-    assert all(isinstance(msg, Message) for msg in messages)
+    assert all(isinstance(msg, ImagingRequestMessage) for msg in messages)
 
     expected_messages = [
-        Message(
+        ImagingRequestMessage(
             mrn="987654321",
             accession_number="AA12345601",
             study_uid="1.3.6.1.4.1.14519.5.2.1.99.1071.12985477682660597455732044031486",
@@ -130,7 +130,7 @@ def test_messages_from_parquet(omop_resources: Path) -> None:
             project_name="test-extract-uclh-omop-cdm",
             extract_generated_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
         ),
-        Message(
+        ImagingRequestMessage(
             mrn="987654321",
             accession_number="AA12345605",
             study_uid="1.2.276.0.7230010.3.1.2.929116473.1.1710754859.579485",
@@ -157,10 +157,10 @@ def test_messages_from_batched_parquet(omop_resources: Path) -> None:
     # Act
     messages = messages_from_df(messages_df)
     # Assert
-    assert all(isinstance(msg, Message) for msg in messages)
+    assert all(isinstance(msg, ImagingRequestMessage) for msg in messages)
 
     expected_messages = [
-        Message(
+        ImagingRequestMessage(
             mrn="5020765",
             accession_number="MIG0234560",
             study_uid="1.2.840.114350.2.525.2.798268.2.110000014.1",
@@ -170,7 +170,7 @@ def test_messages_from_batched_parquet(omop_resources: Path) -> None:
             project_name="test-extract-uclh-omop-cdm",
             extract_generated_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
         ),
-        Message(
+        ImagingRequestMessage(
             mrn="987654321",
             accession_number="ABC1234560",
             study_uid="1.2.840.114350.2.525.2.798268.2.190000013.1",
@@ -180,7 +180,7 @@ def test_messages_from_batched_parquet(omop_resources: Path) -> None:
             project_name="test-extract-uclh-omop-cdm",
             extract_generated_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
         ),
-        Message(
+        ImagingRequestMessage(
             mrn="987654321",
             accession_number="AA12345601",
             study_uid="1.2.840.114350.2.525.2.798268.2.190000015.1",
@@ -190,7 +190,7 @@ def test_messages_from_batched_parquet(omop_resources: Path) -> None:
             project_name="test-extract-uclh-omop-cdm",
             extract_generated_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
         ),
-        Message(
+        ImagingRequestMessage(
             mrn="987654321",
             accession_number="AA12345605",
             study_uid="1.2.840.114350.2.525.2.798268.2.190000016.1",
@@ -200,7 +200,7 @@ def test_messages_from_batched_parquet(omop_resources: Path) -> None:
             project_name="test-extract-uclh-omop-cdm",
             extract_generated_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
         ),
-        Message(
+        ImagingRequestMessage(
             mrn="12345678",
             accession_number="12345678",
             study_uid="1.2.840.114350.2.525.2.798268.2.190000011.1",
@@ -210,7 +210,7 @@ def test_messages_from_batched_parquet(omop_resources: Path) -> None:
             project_name="test-extract-uclh-omop-cdm",
             extract_generated_timestamp=datetime.datetime.fromisoformat("2023-12-07T14:08:58"),
         ),
-        Message(
+        ImagingRequestMessage(
             mrn="12345678",
             accession_number="ABC1234567",
             study_uid="1.2.840.114350.2.525.2.798268.2.190000012.1",

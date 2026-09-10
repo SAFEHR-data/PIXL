@@ -90,3 +90,43 @@ class PixlBlockingInterface(PixlQueueInterface):
         except (ValueError, TypeError):
             logger.exception("Failed to determine the number of messages. Returning 0")
             return 0
+
+
+class PixlBlockingInterfaceAnon(PixlQueueInterface):
+    def __enter__(self) -> Any:
+        """Establishes connection to RabbitMQ service."""
+        params = pika.ConnectionParameters(
+            host=self._host,
+            port=self._port,
+            credentials=pika.PlainCredentials(self._username, self._password),
+        )
+
+        if self._connection is None or self._connection.is_closed:
+            self._connection = pika.BlockingConnection(params)
+
+            if self._channel is None or self._channel.is_closed:
+                self._channel = self._connection.channel()
+            self._queue = self._channel.queue_declare(
+                queue=self.queue_name,
+                durable=True,
+            )
+
+        logger.debug("Connected to {}", self.queue_name)
+        return self
+
+    def __exit__(self, *args: object, **kwargs: Any) -> None:
+        """Shutdown the connection to RabbitMQ service."""
+        self._channel.close()
+        self._connection.close()
+
+    @property
+    def connection_open(self) -> bool:
+        return bool(self._connection.is_open)
+
+    @property
+    def message_count(self) -> int:
+        try:
+            return int(self._queue.method.message_count)
+        except (ValueError, TypeError):
+            logger.exception("Failed to determine the number of messages. Returning 0")
+            return 0

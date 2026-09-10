@@ -24,8 +24,8 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 import pytest
 from core.db.models import Base, Extract, Image
-from core.patient_queue.message import Message
-from core.patient_queue.producer import PixlProducer
+from core.queue.models import ImagingRequestMessage
+from core.queue.producer import PixlProducer
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -136,8 +136,8 @@ def _make_message(
     accession_number: str,
     mrn: str,
     study_uid: str,
-) -> Message:
-    return Message(
+) -> ImagingRequestMessage:
+    return ImagingRequestMessage(
         project_name=project_name,
         accession_number=accession_number,
         mrn=mrn,
@@ -150,7 +150,7 @@ def _make_message(
 
 
 @pytest.fixture
-def example_messages() -> list[Message]:
+def example_messages() -> list[ImagingRequestMessage]:
     """Test input data."""
     return [
         _make_message(
@@ -174,7 +174,7 @@ def example_messages_df(example_messages):
 
 
 @pytest.fixture
-def example_messages_multiple_projects() -> list[Message]:
+def example_messages_multiple_projects() -> list[ImagingRequestMessage]:
     """Test input data."""
     return [
         _make_message(

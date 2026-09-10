@@ -19,6 +19,8 @@ from typing import Any
 
 import aiohttp
 from core.exceptions import PixlDiscardError, PixlRequeueMessageError
+from core.queue.models import AnonymisationMessage
+from core.queue.producer import AnonymisationProducer
 from decouple import config
 from loguru import logger
 
@@ -300,12 +302,12 @@ class PIXLAnonOrthanc(Orthanc):
 
         series_uids = series_uid.split("\\") if series_uid else []
 
-        await self._post(
-            path="/import-from-raw",
-            data={
-                "ResourceIDs": resource_ids,
-                "StudyInstanceUIDs": study_uids,
-                "SeriesInstanceUIDs": series_uids,
-                "ProjectName": project_name,
-            },
+        message = AnonymisationMessage(
+            resource_ids=resource_ids,
+            series_uids=series_uids,
+            study_uids=study_uids,
+            project_name=project_name,
         )
+
+        with AnonymisationProducer(queue_name="anonymisation") as producer:
+            producer.publish([message])

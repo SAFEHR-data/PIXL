@@ -19,13 +19,13 @@ from typing import TYPE_CHECKING
 
 import pixl_cli._message_processing
 from click.testing import CliRunner
-from core.patient_queue.producer import PixlProducer
+from core.queue.producer import PixlProducer
 from pixl_cli.main import populate
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from core.patient_queue.message import Message
+    from core.queue.models import ImagingRequestMessage
 
 
 class MockProducer(PixlProducer):
@@ -39,7 +39,7 @@ class MockProducer(PixlProducer):
         """Context exit point."""
         return
 
-    def publish(self, messages: list[Message], priority: int) -> None:  # noqa: ARG002 don't access messages or priority
+    def publish(self, messages: list[ImagingRequestMessage], priority: int) -> None:  # noqa: ARG002 don't access messages or priority
         """Dummy method for publish."""
         return
 

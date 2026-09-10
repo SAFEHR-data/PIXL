@@ -17,9 +17,11 @@
 from __future__ import annotations
 
 import asyncio
+import time
 from typing import TYPE_CHECKING, Any
 
 import aio_pika
+import pika
 from decouple import config
 
 from core.exceptions import (
@@ -28,9 +30,9 @@ from core.exceptions import (
     PixlRequeueMessageError,
     PixlStudyNotInPrimaryArchiveError,
 )
-from core.patient_queue._base import PixlQueueInterface
-from core.patient_queue.message import deserialise
-from core.patient_queue.producer import PixlProducer
+from core.queue._base import PixlQueueInterface
+from core.queue.message import deserialise
+from core.queue.producer import PixlProducer
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -38,7 +40,7 @@ if TYPE_CHECKING:
 
     from aio_pika.abc import AbstractIncomingMessage
 
-    from core.patient_queue.message import Message
+    from core.queue.models import AnonymisationMessage, ImagingRequestMessage
     from core.token_buffer.tokens import TokenBucket
 
 from loguru import logger
@@ -52,7 +54,7 @@ class PixlConsumer(PixlQueueInterface):
         queue_name: str,
         token_bucket: TokenBucket,
         token_bucket_key: str,
-        callback: Callable[[Message], Awaitable[None]],
+        callback: Callable[[ImagingRequestMessage], Awaitable[None]],
     ) -> None:
         """
         Creating connection to RabbitMQ queue
@@ -88,7 +90,7 @@ class PixlConsumer(PixlQueueInterface):
             await message.reject(requeue=True)
             return
 
-        pixl_message: Message = deserialise(message.body)
+        pixl_message: ImagingRequestMessage = deserialise(message.body)
         logger.debug("Picked up from queue: {}", pixl_message.identifier)
         try:
             await self._callback(pixl_message)
@@ -142,3 +144,80 @@ class PixlConsumer(PixlQueueInterface):
 
     async def __aexit__(self, *args: object, **kwargs: Any) -> None:
         """Requirement for the asynchronous context manager"""
+
+
+class AnonymisationPixlConsumer(PixlQueueInterface):
+    """Connector to RabbitMQ. Consumes messages from anonymisation queue"""
+
+    def __init__(
+        self,
+        queue_name: str,
+        callback: Callable[[AnonymisationMessage], Awaitable[None]],
+    ) -> None:
+        """Creating connection to RabbitMQ queue"""
+        super().__init__(queue_name=queue_name)
+        self._callback = callback
+
+    @property
+    def _url(self) -> str:
+        return f"amqp://{self._username}:{self._password}@{self._host}:{self._port}/"
+
+    def __enter__(self) -> Self:
+        """Establishes connection to queue."""
+        self._connection = pika.BlockingConnection(pika.URLParameters(self._url))
+        self._channel = self._connection.channel()
+        # Set number of messages in flight
+        max_in_flight = config("PIXL_MAX_MESSAGES_IN_FLIGHT", cast=int)
+        logger.info("Pika will consume up to {} messages concurrently", max_in_flight)
+        self._channel.basic_qos(prefetch_count=max_in_flight)
+        self._queue = self._channel.queue_declare(
+            queue=self.queue_name,
+            durable=True,
+        )
+        return self
+
+    def _process_message(self, message: Any) -> None:
+
+        pixl_message: AnonymisationMessage = deserialise(message.body)
+        logger.debug("Picked up from queue: {}", pixl_message.identifier)
+        try:
+            self._callback(pixl_message)
+        except PixlRequeueMessageError as requeue:
+            logger.trace("Requeue message: {} from {}", pixl_message.identifier, requeue)
+            time.sleep(1)
+            message.reject(requeue=True)
+        except PixlOutOfHoursError as nack_requeue:
+            logger.trace(
+                "Nack and requeue message: {} from {}", pixl_message.identifier, nack_requeue
+            )
+            time.sleep(10)
+            message.nack(requeue=True)
+        except PixlDiscardError as exception:
+            logger.warning("Failed message {}: {}", pixl_message.identifier, exception)
+            (message.ack())  # ack so that we can see rate of message processing in rabbitmq admin
+        except Exception:  # noqa: BLE001
+            logger.exception(
+                "Failed to process {}. Not re-queuing message",
+                pixl_message.identifier,
+            )
+            (message.ack())  # ack so that we can see rate of message processing in rabbitmq admin
+        else:
+            logger.success("Finished message {}", pixl_message.identifier)
+            message.ack()
+
+    def run(self) -> None:
+        """Processes messages from queue."""
+        self._channel.basic_consume(
+            queue=self.queue_name,
+            on_message_callback=self._process_message,
+            auto_ack=False,
+        )
+        self._channel.start_consuming()
+
+    def __exit__(self, *args: object, **kwargs: Any) -> None:
+        """Requirement for the context manager"""
+        if self._channel is not None and self._channel.is_open:
+            self._channel.close()
+
+        if self._connection is not None and self._connection.is_open:
+            self._connection.close()

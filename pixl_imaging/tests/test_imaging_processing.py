@@ -23,7 +23,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 from core.exceptions import PixlDiscardError, PixlOutOfHoursError, PixlStudyNotInPrimaryArchiveError
-from core.patient_queue.message import Message
+from core.queue.models import ImagingRequestMessage
 from decouple import config
 from pydicom import dcmread
 from pydicom.data import get_testdata_file
@@ -58,9 +58,9 @@ MISSING_STUDY_UID = "00000000"
 
 
 @pytest.fixture(scope="module")
-def message() -> Message:
-    """A Message with a valid study_uid."""
-    return Message(
+def message() -> ImagingRequestMessage:
+    """A ImagingRequestMessage with a valid study_uid."""
+    return ImagingRequestMessage(
         mrn=PATIENT_ID,
         accession_number=ACCESSION_NUMBER,
         study_uid=STUDY_UID,
@@ -75,9 +75,9 @@ def message() -> Message:
 
 
 @pytest.fixture(scope="module")
-def message_with_series_uids() -> Message:
-    """A Message for querying a subset of series within a study."""
-    return Message(
+def message_with_series_uids() -> ImagingRequestMessage:
+    """A ImagingRequestMessage for querying a subset of series within a study."""
+    return ImagingRequestMessage(
         mrn=PATIENT_ID,
         accession_number=ACCESSION_NUMBER,
         study_uid=STUDY_UID,
@@ -92,9 +92,9 @@ def message_with_series_uids() -> Message:
 
 
 @pytest.fixture(scope="module")
-def message_with_single_series_uid() -> Message:
-    """A Message for querying a subset of series within a study."""
-    return Message(
+def message_with_single_series_uid() -> ImagingRequestMessage:
+    """A ImagingRequestMessage for querying a subset of series within a study."""
+    return ImagingRequestMessage(
         mrn=PATIENT_ID,
         accession_number=ACCESSION_NUMBER,
         study_uid=STUDY_UID,
@@ -109,9 +109,9 @@ def message_with_single_series_uid() -> Message:
 
 
 @pytest.fixture(scope="module")
-def no_uid_message() -> Message:
-    """A Message with a valid study_uid."""
-    return Message(
+def no_uid_message() -> ImagingRequestMessage:
+    """A ImagingRequestMessage with a valid study_uid."""
+    return ImagingRequestMessage(
         mrn=PATIENT_ID,
         accession_number=ACCESSION_NUMBER,
         study_uid="",
@@ -126,9 +126,12 @@ def no_uid_message() -> Message:
 
 
 @pytest.fixture(scope="module")
-def pacs_message() -> Message:
-    """A Message with a valid study_uid for a study that exists in PACS but not VNA."""
-    return Message(
+def pacs_message() -> ImagingRequestMessage:
+    """
+    A ImagingRequestMessage with a valid study_uid for a study
+    that exists in PACS but not VNA.
+    """
+    return ImagingRequestMessage(
         mrn=PACS_PATIENT_ID,
         accession_number=PACS_ACCESSION_NUMBER,
         study_uid=PACS_STUDY_UID,
@@ -143,9 +146,12 @@ def pacs_message() -> Message:
 
 
 @pytest.fixture(scope="module")
-def pacs_no_uid_message() -> Message:
-    """A Message without a valid study_uid for a study that exists in PACS but not the VNA."""
-    return Message(
+def pacs_no_uid_message() -> ImagingRequestMessage:
+    """
+    A ImagingRequestMessage without a valid study_uid for a study
+    that exists in PACS but not the VNA.
+    """
+    return ImagingRequestMessage(
         mrn=PACS_PATIENT_ID,
         accession_number=PACS_ACCESSION_NUMBER,
         study_uid="ialsodontexist",
@@ -160,9 +166,9 @@ def pacs_no_uid_message() -> Message:
 
 
 @pytest.fixture(scope="module")
-def missing_message() -> Message:
-    """A Message for a study that does not exist in PACS nor the VNA."""
-    return Message(
+def missing_message() -> ImagingRequestMessage:
+    """A ImagingRequestMessage for a study that does not exist in PACS nor the VNA."""
+    return ImagingRequestMessage(
         mrn=MISSING_PATIENT_ID,
         accession_number=MISSING_ACCESSION_NUMBER,
         study_uid=MISSING_STUDY_UID,
@@ -272,7 +278,7 @@ async def orthanc_raw(run_containers) -> PIXLRawOrthanc:
 @pytest.mark.processing
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("_add_image_to_fake_vna")
-async def test_image_saved(orthanc_raw, message: Message) -> None:
+async def test_image_saved(orthanc_raw, message: ImagingRequestMessage) -> None:
     """
     Given the VNA has images, and orthanc raw has no images
     When we run process_message
@@ -313,7 +319,7 @@ async def test_image_saved(orthanc_raw, message: Message) -> None:
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("_add_image_to_fake_vna")
 async def test_message_with_series_uids(
-    orthanc_raw, message_with_series_uids: Message, caplog
+    orthanc_raw, message_with_series_uids: ImagingRequestMessage, caplog
 ) -> None:
     """
     Given the VNA has a single study with 2 series, and Orthanc Raw has no images
@@ -350,7 +356,7 @@ async def test_message_with_series_uids(
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("_add_image_to_fake_vna")
 async def test_message_with_one_series_uid(
-    orthanc_raw, message_with_single_series_uid: Message, caplog
+    orthanc_raw, message_with_single_series_uid: ImagingRequestMessage, caplog
 ) -> None:
     """
     Given the VNA has a single study with 2 series, and Orthanc Raw has no images
@@ -382,7 +388,7 @@ async def test_message_with_one_series_uid(
 @pytest.mark.processing
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("_add_image_to_fake_vna")
-async def test_partial_retrieve(orthanc_raw, message: Message, caplog) -> None:
+async def test_partial_retrieve(orthanc_raw, message: ImagingRequestMessage, caplog) -> None:
     """
     Given the VNA has a single study with 2 instances, and orthanc raw has the same study with
     1 instance
@@ -424,7 +430,7 @@ async def test_partial_retrieve(orthanc_raw, message: Message, caplog) -> None:
 @pytest.mark.processing
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("_add_image_to_fake_vna")
-async def test_existing_message_sent_twice(orthanc_raw, message: Message) -> None:
+async def test_existing_message_sent_twice(orthanc_raw, message: ImagingRequestMessage) -> None:
     """
     Given the VNA has images, and orthanc raw has no images
     When we run process_message on the same message twice
@@ -474,7 +480,9 @@ async def test_existing_message_sent_twice(orthanc_raw, message: Message) -> Non
 @pytest.mark.processing
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("_add_image_to_fake_vna")
-async def test_querying_without_uid(orthanc_raw, caplog, no_uid_message: Message) -> None:
+async def test_querying_without_uid(
+    orthanc_raw, caplog, no_uid_message: ImagingRequestMessage
+) -> None:
     """
     Given a message with non-existent study_uid
     When we query the VNA
@@ -516,7 +524,7 @@ class Saturday2AM(datetime.datetime):
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("_add_image_to_fake_pacs")
 async def test_querying_pacs_with_uid(
-    orthanc_raw, caplog, monkeypatch, pacs_message: Message
+    orthanc_raw, caplog, monkeypatch, pacs_message: ImagingRequestMessage
 ) -> None:
     """
     Given a message with study_uid exists in PACS but not VNA,
@@ -556,7 +564,7 @@ async def test_querying_pacs_with_uid(
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("_add_image_to_fake_pacs")
 async def test_querying_pacs_without_uid(
-    orthanc_raw, caplog, monkeypatch, pacs_no_uid_message: Message
+    orthanc_raw, caplog, monkeypatch, pacs_no_uid_message: ImagingRequestMessage
 ) -> None:
     """
     Given a message with non-existent study_uid exists in PACS but not VNA,
@@ -591,7 +599,9 @@ async def test_querying_pacs_without_uid(
 
 @pytest.mark.processing
 @pytest.mark.asyncio
-async def test_querying_missing_image(orthanc_raw, monkeypatch, missing_message: Message) -> None:
+async def test_querying_missing_image(
+    orthanc_raw, monkeypatch, missing_message: ImagingRequestMessage
+) -> None:
     """
     Given a message for a study that is missing in both the VNA and PACS,
     When we query the archives within the window of Monday-Friday 8pm to 8am,
@@ -626,7 +636,7 @@ async def test_querying_missing_image(orthanc_raw, monkeypatch, missing_message:
     ],
 )
 async def test_querying_pacs_during_working_hours(
-    orthanc_raw, query_date, monkeypatch, missing_message: Message
+    orthanc_raw, query_date, monkeypatch, missing_message: ImagingRequestMessage
 ) -> None:
     """
     Given a message for a study that is missing in both the VNA and PACS,
@@ -647,7 +657,7 @@ async def test_querying_pacs_during_working_hours(
 @pytest.mark.processing
 @pytest.mark.asyncio
 async def test_querying_pacs_not_defined(
-    orthanc_raw, monkeypatch, missing_message: Message
+    orthanc_raw, monkeypatch, missing_message: ImagingRequestMessage
 ) -> None:
     """
     Given a message for a study that is missing in the VNA and the SECONDARY_DICOM_SOURCE_AE_TITLE

@@ -40,6 +40,7 @@ from core.metrics import (
     record_study_deidentification_failure,
 )
 from core.project_config.pixl_config_model import load_project_config
+from core.queue.subscriber import AnonymisationPixlConsumer
 from core.telemetry import configure_logging, configure_metrics, configure_tracing
 from decouple import config
 from loguru import logger
@@ -65,6 +66,7 @@ if TYPE_CHECKING:
     from typing import Any
 
     from core.project_config.pixl_config_model import PixlConfig
+    from core.queue.models import AnonymisationMessage
     from opentelemetry.context import Context
     from pixl_dcmd.dicom_helpers import StudyInfo
 
@@ -231,34 +233,41 @@ def OnHeartBeat(output, uri, **request) -> Any:  # noqa: ARG001
     output.AnswerBuffer("OK\n", "text/plain")
 
 
-def ImportStudiesFromRaw(output, uri, **request):  # noqa: ARG001
+def process_anonymisation_message(message: AnonymisationMessage) -> None:
     """
     Import studies from Orthanc Raw.
 
     Offload to a thread pool executor to avoid blocking the Orthanc main thread.
     """
-    payload = json.loads(request["body"])
-    study_resource_ids = payload["ResourceIDs"]
-    study_uids = payload["StudyInstanceUIDs"]
-    series_to_keep = payload["SeriesInstanceUIDs"]
-    project_name = payload["ProjectName"]
-
     # Extract the trace context injected into the request headers by the caller, and pass it to
     # the thread pool job so the import continues the same trace
-    headers = {key.lower(): value for key, value in request.get("headers", {}).items()}
+    headers = {key.lower(): value for key, value in requests.request.get("headers", {}).items()}
     parent_context = extract(headers)
+    data = {
+        "resource_ids": message.resource_ids,
+        "series_uids": message.series_uids,
+        "study_uids": message.study_uids,
+        "project_name": message.project_name,
+        "parent_context": parent_context,
+    }
 
-    executor.submit(
-        _import_studies_from_raw,
-        study_resource_ids,
-        study_uids,
-        project_name,
-        series_to_keep,
-        parent_context,
-    )
+    executor.submit(_import_studies_from_raw, data)
 
-    response = json.dumps({"Message": "Ok"})
-    output.AnswerBuffer(response, "application/json")
+
+def consume_anonymisation_queue() -> None:
+    """Consume anonymisation requests from RabbitMQ and submit them for processing."""
+    with AnonymisationPixlConsumer(
+        queue_name="anonymisation",
+        callback=process_anonymisation_message,
+    ) as consumer:
+        consumer.run()
+
+
+consumer_thread = threading.Thread(
+    target=consume_anonymisation_queue,
+    daemon=True,
+)
+consumer_thread.start()
 
 
 def _import_studies_from_raw(
@@ -596,4 +605,3 @@ def notify_export_api_of_readiness(study_id: str, project_name: str) -> None:
 
 orthanc.RegisterOnChangeCallback(OnChange)
 orthanc.RegisterRestCallback("/heart-beat", OnHeartBeat)
-orthanc.RegisterRestCallback("/import-from-raw", ImportStudiesFromRaw)
