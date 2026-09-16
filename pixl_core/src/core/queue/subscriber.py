@@ -90,7 +90,7 @@ class PixlConsumer(PixlQueueInterface):
             await message.reject(requeue=True)
             return
 
-        pixl_message: ImagingRequestMessage = deserialise(message.body)
+        pixl_message: ImagingRequestMessage | AnonymisationMessage = deserialise(message.body)
         logger.debug("Picked up from queue: {}", pixl_message.identifier)
         try:
             await self._callback(pixl_message)
