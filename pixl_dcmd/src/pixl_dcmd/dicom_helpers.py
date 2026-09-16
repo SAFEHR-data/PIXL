@@ -44,9 +44,7 @@ class DicomValidator:
         standard_path = str(Path.home() / "dicom-validator")
         with _redirect_stdout_to_debug(logger):
             edition_reader = EditionReader(standard_path)
-            destination = edition_reader.get_revision(self.edition, False)
-        json_path = Path(destination, "json")
-        self.dicom_info = EditionReader.load_dicom_info(json_path)
+            self.dicom_info = edition_reader.dicom_info_for_edition(self.edition)
 
     def validate_original(self, dataset: Dataset) -> dict | None:
         """Check pre-existing validation errors in a dataset.
