@@ -735,16 +735,16 @@ wheels = [
 
 [[package]]
 name = "dicom-validator"
-version = "0.7.3"
+version = "0.8.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "lxml" },
     { name = "pydicom" },
     { name = "pyparsing" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a8/db/922c5d3c662aff47e1ab1a64fe9203b5ea813ea493b7b216c03b9bfb4676/dicom_validator-0.7.3.tar.gz", hash = "sha256:4ee8376688fb94ca33c48af34bc5a93dd3e3743abefdc1d16b70eba41c4aa542", size = 63526, upload-time = "2025-10-13T17:32:49.564Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/dd/d7/7ae7a25d260613118f6d63545a2a0454aa209d06600c319ed9455a2d2887/dicom_validator-0.8.3.tar.gz", hash = "sha256:7b92f809f892ad37954e7b3c8c12bf10512496d6ae9a36db2dab3c1da456260e", size = 77652, upload-time = "2026-08-28T16:15:17.711Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6e/8d/b3401e93c7301e96315d4d816f5643815f5e6797a8c511e56e91e237b546/dicom_validator-0.7.3-py3-none-any.whl", hash = "sha256:2bffcdf2ae774ef18c521774561987098bfe8c157fdd1fa5bf04f552a195499f", size = 72200, upload-time = "2025-10-13T17:32:48.204Z" },
+    { url = "https://files.pythonhosted.org/packages/e1/17/c4fc7e4cf99a8c9217bc1a3d40f2996f3ddece11d22ce27e9bd220b29342/dicom_validator-0.8.3-py3-none-any.whl", hash = "sha256:755e800f05df8357b38902debbdb0588dd9206a281828fc788d80aa79a993927", size = 89443, upload-time = "2026-08-28T16:15:16.354Z" },
 ]
 
 [[package]]
@@ -2150,7 +2150,7 @@ requires-dist = [
     { name = "core", extras = ["test"], marker = "extra == 'test'", editable = "pixl_core" },
     { name = "deid", specifier = "==0.4.12" },
     { name = "dicom-anonymizer", specifier = "==2.0.0" },
-    { name = "dicom-validator", specifier = "==0.7.3" },
+    { name = "dicom-validator", specifier = "==0.8.3" },
     { name = "logger", specifier = "==1.4" },
     { name = "pydicom", specifier = "==3.0.2" },
     { name = "pydicom-data" },
