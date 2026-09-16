@@ -11,14 +11,14 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-"""Data classes to represent imaging and anonymisation messages in their respective queues."""
+"""Classes to represent imaging and anonymisation messages in their respective queues."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from jsonpickle import encode
+from jsonpickle import decode, encode
 
 if TYPE_CHECKING:
     from datetime import date, datetime
@@ -86,3 +86,14 @@ class AnonymisationMessage:
         """
         logger.trace("Serialising {}", self)
         return str.encode(encode(self, unpicklable=deserialisable))
+
+
+def deserialise(serialised_msg: bytes) -> Any:
+    """
+    Deserialise a message from a bytes-encoded JSON string.
+    If the message was serialised with `deserialisable=True`, the original Message object will be
+    returned. Otherwise, a dictionary will be returned.
+
+    :param serialised_msg: The serialised message.
+    """
+    return decode(serialised_msg)  # noqa: S301, since we control the input, so no security risks

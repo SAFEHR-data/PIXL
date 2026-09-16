@@ -52,6 +52,26 @@ class PixlQueueInterface:
 
 
 class PixlBlockingInterface(PixlQueueInterface):
+    def __init__(  # noqa: PLR0913
+        self,
+        queue_name: str,
+        host: str = "localhost",
+        port: int = 5672,
+        username: str = "guest",
+        password: str = "guest",  # noqa: S107
+        max_priority: int | None = None,
+    ) -> None:
+        """
+        RabbitMQ interface using a blocking connection.
+
+        :param max_priority: If set, declares the queue as a priority queue with this
+            maximum priority. Must match the value used wherever else this queue is
+            declared, since RabbitMQ rejects redeclaring an existing queue with
+            different arguments.
+        """
+        super().__init__(queue_name, host, port, username, password)
+        self._max_priority = max_priority
+
     def __enter__(self) -> Any:
         """Establishes connection to RabbitMQ service."""
         params = pika.ConnectionParameters(
@@ -65,50 +85,13 @@ class PixlBlockingInterface(PixlQueueInterface):
 
             if self._channel is None or self._channel.is_closed:
                 self._channel = self._connection.channel()
-            self._queue = self._channel.queue_declare(
-                queue=self.queue_name,
-                durable=True,
-                arguments={"x-max-priority": 5},
+            arguments = (
+                {"x-max-priority": self._max_priority} if self._max_priority is not None else None
             )
-
-        logger.debug("Connected to {}", self.queue_name)
-        return self
-
-    def __exit__(self, *args: object, **kwargs: Any) -> None:
-        """Shutdown the connection to RabbitMQ service."""
-        self._channel.close()
-        self._connection.close()
-
-    @property
-    def connection_open(self) -> bool:
-        return bool(self._connection.is_open)
-
-    @property
-    def message_count(self) -> int:
-        try:
-            return int(self._queue.method.message_count)
-        except (ValueError, TypeError):
-            logger.exception("Failed to determine the number of messages. Returning 0")
-            return 0
-
-
-class PixlBlockingInterfaceAnon(PixlQueueInterface):
-    def __enter__(self) -> Any:
-        """Establishes connection to RabbitMQ service."""
-        params = pika.ConnectionParameters(
-            host=self._host,
-            port=self._port,
-            credentials=pika.PlainCredentials(self._username, self._password),
-        )
-
-        if self._connection is None or self._connection.is_closed:
-            self._connection = pika.BlockingConnection(params)
-
-            if self._channel is None or self._channel.is_closed:
-                self._channel = self._connection.channel()
             self._queue = self._channel.queue_declare(
                 queue=self.queue_name,
                 durable=True,
+                arguments=arguments,
             )
 
         logger.debug("Connected to {}", self.queue_name)

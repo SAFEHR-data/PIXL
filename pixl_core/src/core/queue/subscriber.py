@@ -31,7 +31,7 @@ from core.exceptions import (
     PixlStudyNotInPrimaryArchiveError,
 )
 from core.queue._base import PixlQueueInterface
-from core.queue.message import deserialise
+from core.queue.models import AnonymisationMessage, ImagingRequestMessage, deserialise
 from core.queue.producer import PixlProducer
 
 if TYPE_CHECKING:
@@ -40,13 +40,12 @@ if TYPE_CHECKING:
 
     from aio_pika.abc import AbstractIncomingMessage
 
-    from core.queue.models import AnonymisationMessage, ImagingRequestMessage
     from core.token_buffer.tokens import TokenBucket
 
 from loguru import logger
 
 
-class PixlConsumer(PixlQueueInterface):
+class PixlConsumer[PixlMessage: (ImagingRequestMessage, AnonymisationMessage)](PixlQueueInterface):
     """Connector to RabbitMQ. Consumes messages from a queue"""
 
     def __init__(
@@ -54,7 +53,7 @@ class PixlConsumer(PixlQueueInterface):
         queue_name: str,
         token_bucket: TokenBucket,
         token_bucket_key: str,
-        callback: Callable[[ImagingRequestMessage], Awaitable[None]],
+        callback: Callable[[PixlMessage], Awaitable[None]],
     ) -> None:
         """
         Creating connection to RabbitMQ queue
@@ -63,7 +62,7 @@ class PixlConsumer(PixlQueueInterface):
         super().__init__(queue_name=queue_name)
         self.token_bucket = token_bucket
         self.token_bucket_key = token_bucket_key
-        self._callback = callback
+        self._callback: Callable[[PixlMessage], Awaitable[None]] = callback
 
     @property
     def _url(self) -> str:
@@ -90,7 +89,7 @@ class PixlConsumer(PixlQueueInterface):
             await message.reject(requeue=True)
             return
 
-        pixl_message: ImagingRequestMessage | AnonymisationMessage = deserialise(message.body)
+        pixl_message: PixlMessage = deserialise(message.body)
         logger.debug("Picked up from queue: {}", pixl_message.identifier)
         try:
             await self._callback(pixl_message)

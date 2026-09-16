@@ -21,7 +21,7 @@ from loguru import logger
 from opentelemetry import trace
 from pika import BasicProperties, DeliveryMode
 
-from ._base import PixlBlockingInterface, PixlBlockingInterfaceAnon
+from ._base import PixlBlockingInterface
 
 if TYPE_CHECKING:
     from core.queue.modles import AnonymisationMessage, ImagingRequestMessage
@@ -90,7 +90,7 @@ class PixlProducer(PixlBlockingInterface):
         self._channel.queue_purge(queue=self.queue_name)
 
 
-class AnonymisationProducer(PixlBlockingInterfaceAnon):
+class AnonymisationProducer(PixlBlockingInterface):
     """Anonymisation publisher for RabbitMQ"""
 
     def publish(self, messages: list[AnonymisationMessage]) -> None:
