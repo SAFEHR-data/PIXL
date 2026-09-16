@@ -31,7 +31,8 @@ def test_validation_check_works(vanilla_dicom_image_DX: Dataset) -> None:
     """
     validator = DicomValidator()
     original_errors = validator.validate_original(vanilla_dicom_image_DX)
-    assert not validator.validate_anonymised(vanilla_dicom_image_DX, original_errors)
+    anon_errors = validator.validate_anonymised(vanilla_dicom_image_DX)
+    assert not validator.get_new_errors(original_errors, anon_errors)
 
 
 def test_validation_after_anonymisation_works(
@@ -47,7 +48,8 @@ def test_validation_after_anonymisation_works(
     original_errors = validator.validate_original(vanilla_dicom_image_DX)
     anonymise_dicom(vanilla_dicom_image_DX, config=test_project_config)
 
-    assert not validator.validate_anonymised(vanilla_dicom_image_DX, original_errors)
+    anon_errors = validator.validate_anonymised(vanilla_dicom_image_DX)
+    assert not validator.get_new_errors(original_errors, anon_errors)
 
 
 @pytest.fixture()
@@ -65,7 +67,8 @@ def test_validation_passes_for_non_compliant_dicom(non_compliant_dicom_image) ->
     """
     validator = DicomValidator()
     original_errors = validator.validate_original(non_compliant_dicom_image)
-    assert not validator.validate_anonymised(non_compliant_dicom_image, original_errors)
+    anon_errors = validator.validate_anonymised(non_compliant_dicom_image)
+    assert not validator.get_new_errors(original_errors, anon_errors)
 
 
 def test_validation_fails_after_invalid_tag_modification(
@@ -79,9 +82,8 @@ def test_validation_fails_after_invalid_tag_modification(
     validator = DicomValidator()
     original_errors = validator.validate_original(vanilla_dicom_image_DX)
     del vanilla_dicom_image_DX.PatientName
-    validation_result = validator.validate_anonymised(
-        vanilla_dicom_image_DX, original_errors
-    )
+    anon_errors = validator.validate_anonymised(vanilla_dicom_image_DX)
+    validation_result = validator.get_new_errors(original_errors, anon_errors)
 
     assert len(validation_result) == 1
     assert "Patient" in validation_result.keys()
@@ -131,7 +133,8 @@ def test_validate_anonymised_returns_all_errors_when_original_unknown(
     validator = DicomValidator()
     del vanilla_dicom_image_DX.PatientName
 
-    validation_result = validator.validate_anonymised(vanilla_dicom_image_DX, None)
+    anon_errors = validator.validate_anonymised(vanilla_dicom_image_DX)
+    validation_result = validator.get_new_errors(None, anon_errors)
     assert "Patient" in validation_result.keys()
 
 
@@ -166,4 +169,4 @@ def test_validate_anonymised_raises_skip_instance_error_when_dataset_cannot_be_v
     validator = DicomValidator()
 
     with pytest.raises(PixlSkipInstanceError):
-        validator.validate_anonymised(dicom_missing_sop_class_uid, None)
+        validator.validate_anonymised(dicom_missing_sop_class_uid)
