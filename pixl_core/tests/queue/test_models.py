@@ -13,6 +13,8 @@
 #  limitations under the License.
 from __future__ import annotations
 
+from core.queue.models import deserialise
+
 
 def test_serialise_imagingrequests(mock_message) -> None:
     """Checks that imaging request messages can be correctly serialised"""
@@ -36,3 +38,15 @@ def test_serialise_anon(mock_anon_message) -> None:
         b'"series_uids": ["1.2.3.1", "1.2.3.2"], '
         b'"project_name": "test project"}'
     )
+
+
+def test_deserialise(mock_message) -> None:
+    """Checks if deserialised messages are the same as the original"""
+    serialised_msg = mock_message.serialise()
+    assert deserialise(serialised_msg) == mock_message
+
+
+def test_deserialise_anon(mock_anon_message) -> None:
+    """Checks if deserialised anon messages are the same as the original"""
+    serialised_msg = mock_anon_message.serialise()
+    assert deserialise(serialised_msg) == mock_anon_message
