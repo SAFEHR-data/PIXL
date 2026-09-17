@@ -92,21 +92,17 @@ class DicomValidator:
 
         return result.module_errors
 
-    def validate_anonymised(
-        self, dataset: Dataset, original_errors: ModuleErrors | None
-    ) -> dict[str, set[str]]:
-        """Check validation errors introduced during de-identification.
+    def validate_anonymised(self, dataset: Dataset) -> ModuleErrors:
+        """Validate an anonymised dataset.
 
         Args:
-            original_errors: module_errors returned by validate_original for
-                the dataset before anonymisation, or None if the dataset
-                hasn't been validated for pre-existing errors.
+            dataset: the anonymised dataset to validate.
 
         Returns:
-            new_errors: human-readable errors introduced by anonymisation,
-                keyed by module name. If original_errors is None, all errors
-                found after anonymisation are returned, as it's not possible
-                to tell which of them pre-existed.
+            module_errors: all validation errors found in the anonymised
+                dataset, keyed by module name then DICOM tag. Use
+                get_new_errors to determine which of these were introduced
+                by anonymisation.
 
         Raises:
             PixlSkipInstanceError: If dicom-validator could not validate the
@@ -119,8 +115,26 @@ class DicomValidator:
                 f"dicom-validator returned status: {result.status}"
             )
             raise PixlSkipInstanceError(msg)
-        anon_errors = result.module_errors
+        return result.module_errors
 
+    def get_new_errors(
+        self, original_errors: ModuleErrors | None, anon_errors: ModuleErrors
+    ) -> dict[str, set[str]]:
+        """Compare validation errors before and after anonymisation.
+
+        Args:
+            original_errors: module_errors returned by validate_original for
+                the dataset before anonymisation, or None if the dataset
+                hasn't been validated for pre-existing errors.
+            anon_errors: module_errors returned by validate_anonymised for
+                the dataset after anonymisation.
+
+        Returns:
+            new_errors: human-readable errors introduced by anonymisation,
+                keyed by module name. If original_errors is None, all errors
+                found after anonymisation are returned, as it's not possible
+                to tell which of them pre-existed.
+        """
         if original_errors is None:
             logger.warning(
                 "Cannot determine whether validation errors were introduced by "

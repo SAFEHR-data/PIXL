@@ -169,8 +169,8 @@ def anonymise_and_validate_dicom(
     anonymise_dicom(dataset, config=config)
 
     # Validate the anonymised dataset
-    validation_errors = dicom_validator.validate_anonymised(dataset, original_errors)
-    return validation_errors
+    anon_errors = dicom_validator.validate_anonymised(dataset)
+    return dicom_validator.get_new_errors(original_errors, anon_errors)
 
 
 def anonymise_dicom(
