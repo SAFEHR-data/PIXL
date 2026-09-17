@@ -14,7 +14,7 @@
 from __future__ import annotations
 
 import asyncio
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import ANY, AsyncMock, Mock
 
 import pytest
 
@@ -85,16 +85,19 @@ def test_run_anon() -> None:
 
 @pytest.mark.usefixtures("run_containers")
 def test_process_message_anon(mock_anon_message) -> None:
-    """Checks that a received message is passed to the callback."""
+    """Checks that a received message is passed to the callback and acked."""
     callback = Mock()
 
     with AnonymisationPixlConsumer(
         queue_name=TEST_QUEUE_ANON,
         callback=callback,
     ) as consumer:
-        message = Mock()
-        message.body = mock_anon_message.serialise()
+        channel = Mock()
+        method = Mock(delivery_tag=1)
+        properties = Mock(headers={})
+        body = mock_anon_message.serialise()
 
-        consumer._process_message(message)
+        consumer._process_message(channel, method, properties, body)
 
-        callback.assert_called_once_with(mock_anon_message)
+        callback.assert_called_once_with(mock_anon_message, ANY)
+        channel.basic_ack.assert_called_once_with(delivery_tag=1)

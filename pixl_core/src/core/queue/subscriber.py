@@ -23,6 +23,7 @@ from typing import TYPE_CHECKING, Any
 import aio_pika
 import pika
 from decouple import config
+from opentelemetry.context import get_current
 
 from core.exceptions import (
     PixlDiscardError,
@@ -39,6 +40,9 @@ if TYPE_CHECKING:
     from typing import Self
 
     from aio_pika.abc import AbstractIncomingMessage
+    from opentelemetry.context import Context
+    from pika.adapters.blocking_connection import BlockingChannel
+    from pika.spec import Basic, BasicProperties
 
     from core.token_buffer.tokens import TokenBucket
 
@@ -151,11 +155,11 @@ class AnonymisationPixlConsumer(PixlQueueInterface):
     def __init__(
         self,
         queue_name: str,
-        callback: Callable[[AnonymisationMessage], Awaitable[None]],
+        callback: Callable[[AnonymisationMessage, Context | None], None],
     ) -> None:
         """Creating connection to RabbitMQ queue"""
         super().__init__(queue_name=queue_name)
-        self._callback = callback
+        self._callback: Callable[[AnonymisationMessage, Context | None], None] = callback
 
     @property
     def _url(self) -> str:
@@ -175,34 +179,44 @@ class AnonymisationPixlConsumer(PixlQueueInterface):
         )
         return self
 
-    def _process_message(self, message: Any) -> None:
-
-        pixl_message: AnonymisationMessage = deserialise(message.body)
+    def _process_message(
+        self,
+        channel: BlockingChannel,
+        method: Basic.Deliver,
+        properties: BasicProperties,  # noqa: ARG002
+        body: bytes,
+    ) -> None:
+        pixl_message: AnonymisationMessage = deserialise(body)
+        # PikaInstrumentor wraps this callback and extracts the trace context from the
+        # message headers into the current context, so we just need to read it back here.
+        parent_context = get_current()
         logger.debug("Picked up from queue: {}", pixl_message.identifier)
         try:
-            self._callback(pixl_message)
+            self._callback(pixl_message, parent_context)
         except PixlRequeueMessageError as requeue:
             logger.trace("Requeue message: {} from {}", pixl_message.identifier, requeue)
             time.sleep(1)
-            message.reject(requeue=True)
+            channel.basic_reject(delivery_tag=method.delivery_tag, requeue=True)
         except PixlOutOfHoursError as nack_requeue:
             logger.trace(
                 "Nack and requeue message: {} from {}", pixl_message.identifier, nack_requeue
             )
             time.sleep(10)
-            message.nack(requeue=True)
+            channel.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
         except PixlDiscardError as exception:
             logger.warning("Failed message {}: {}", pixl_message.identifier, exception)
-            (message.ack())  # ack so that we can see rate of message processing in rabbitmq admin
+            # ack so that we can see rate of message processing in rabbitmq admin
+            channel.basic_ack(delivery_tag=method.delivery_tag)
         except Exception:  # noqa: BLE001
             logger.exception(
                 "Failed to process {}. Not re-queuing message",
                 pixl_message.identifier,
             )
-            (message.ack())  # ack so that we can see rate of message processing in rabbitmq admin
+            # ack so that we can see rate of message processing in rabbitmq admin
+            channel.basic_ack(delivery_tag=method.delivery_tag)
         else:
             logger.success("Finished message {}", pixl_message.identifier)
-            message.ack()
+            channel.basic_ack(delivery_tag=method.delivery_tag)
 
     def run(self) -> None:
         """Processes messages from queue."""

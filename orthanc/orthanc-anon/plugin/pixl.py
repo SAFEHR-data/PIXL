@@ -45,9 +45,9 @@ from core.telemetry import configure_logging, configure_metrics, configure_traci
 from decouple import config
 from loguru import logger
 from opentelemetry import trace
+from opentelemetry.instrumentation.pika import PikaInstrumentor
 from opentelemetry.instrumentation.requests import RequestsInstrumentor
 from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
-from opentelemetry.propagate import extract
 from pixl_dcmd._database import engine as pixl_db_engine
 from pixl_dcmd._database import record_skip_reasons_for_study
 from pixl_dcmd.dicom_helpers import get_study_info
@@ -90,6 +90,10 @@ configure_logging(level=logging_level)
 configure_tracing()
 SQLAlchemyInstrumentor().instrument(engine=pixl_db_engine)
 RequestsInstrumentor().instrument()
+# orthanc-anon runs as a plugin inside Orthanc rather than via `opentelemetry-instrument`,
+# so pika isn't auto-instrumented and we need to do it explicitly to pick up the trace
+# context propagated from the message publisher.
+PikaInstrumentor().instrument()
 tracer = trace.get_tracer("pixl.orthanc_anon")
 
 configure_metrics()
@@ -233,25 +237,25 @@ def OnHeartBeat(output, uri, **request) -> Any:  # noqa: ARG001
     output.AnswerBuffer("OK\n", "text/plain")
 
 
-def process_anonymisation_message(message: AnonymisationMessage) -> None:
+def process_anonymisation_message(
+    message: AnonymisationMessage, parent_context: Context | None
+) -> None:
     """
     Import studies from Orthanc Raw.
 
     Offload to a thread pool executor to avoid blocking the Orthanc main thread.
-    """
-    # Extract the trace context injected into the request headers by the caller, and pass it to
-    # the thread pool job so the import continues the same trace
-    headers = {key.lower(): value for key, value in requests.request.get("headers", {}).items()}
-    parent_context = extract(headers)
-    data = {
-        "resource_ids": message.resource_ids,
-        "series_uids": message.series_uids,
-        "study_uids": message.study_uids,
-        "project_name": message.project_name,
-        "parent_context": parent_context,
-    }
 
-    executor.submit(_import_studies_from_raw, data)
+    :param parent_context: Trace context extracted from the queue message headers by
+        AnonymisationPixlConsumer, to continue the trace from the message's publisher.
+    """
+    executor.submit(
+        _import_studies_from_raw,
+        message.resource_ids,
+        message.study_uids,
+        message.project_name,
+        message.series_uids,
+        parent_context,
+    )
 
 
 def consume_anonymisation_queue() -> None:
