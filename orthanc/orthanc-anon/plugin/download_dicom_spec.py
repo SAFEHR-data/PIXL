@@ -20,6 +20,4 @@ from dicom_validator.spec_reader.edition_reader import EditionReader
 edition = "2024e"
 download_path = str(Path.home() / "dicom-validator")
 edition_reader = EditionReader(download_path)
-destination = edition_reader.get_revision(edition, recreate_json=False)
-json_path = Path(destination, "json")
-EditionReader.load_dicom_info(json_path)
+edition_reader.get_edition_path(edition)
