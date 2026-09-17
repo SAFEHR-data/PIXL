@@ -116,6 +116,9 @@ class PixlConsumer[PixlMessage: (ImagingRequestMessage, AnonymisationMessage)](P
                 port=config("RABBITMQ_PORT", cast=int),
                 username=config("RABBITMQ_USERNAME"),
                 password=config("RABBITMQ_PASSWORD"),
+                # Must match the max_priority PixlConsumer declares this queue with, since
+                # RabbitMQ rejects redeclaring an existing queue with different arguments.
+                max_priority=5,
             ) as producer:
                 producer.publish([pixl_message], priority=message.priority)
         except PixlOutOfHoursError as nack_requeue:

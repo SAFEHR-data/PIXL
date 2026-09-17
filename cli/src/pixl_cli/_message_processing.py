@@ -26,7 +26,7 @@ from core.queue.producer import PixlProducer
 from decouple import config
 from loguru import logger
 
-from pixl_cli._config import SERVICE_SETTINGS
+from pixl_cli._config import SERVICE_SETTINGS, max_priority_for_queue
 from pixl_cli._database import exported_images_for_project, filter_exported_or_skipped_or_add_to_db
 
 if TYPE_CHECKING:
@@ -133,7 +133,11 @@ def _message_count(queues_to_populate: list[str]) -> int:
 
     messages_in_queues = 0
     for queue in queues_to_count:
-        with PixlBlockingInterface(queue_name=queue, **SERVICE_SETTINGS["rabbitmq"]) as rabbitmq:
+        with PixlBlockingInterface(
+            queue_name=queue,
+            max_priority=max_priority_for_queue(queue),
+            **SERVICE_SETTINGS["rabbitmq"],
+        ) as rabbitmq:
             messages_in_queues += rabbitmq.message_count
 
     return messages_in_queues
@@ -157,7 +161,11 @@ def populate_queue_and_db(
             messages_df = filter_exported_or_skipped_or_add_to_db(messages_df)
 
         messages = messages_from_df(messages_df)
-        with PixlProducer(queue_name=queue, **SERVICE_SETTINGS["rabbitmq"]) as producer:
+        with PixlProducer(
+            queue_name=queue,
+            max_priority=max_priority_for_queue(queue),
+            **SERVICE_SETTINGS["rabbitmq"],
+        ) as producer:
             producer.publish(messages, priority=messages_priority)
         output_messages.extend(messages)
 

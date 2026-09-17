@@ -81,6 +81,21 @@ API_CONFIGS = {
 }
 
 
+PRIORITY_QUEUES = {"imaging-primary", "imaging-secondary"}
+MAX_QUEUE_PRIORITY = 5
+
+
+def max_priority_for_queue(queue_name: str) -> int | None:
+    """
+    Maximum message priority for a queue, or None if it isn't a priority queue.
+
+    Must match the value used by whatever consumer declares the queue (e.g.
+    pixl_imaging's PixlConsumer), since RabbitMQ rejects redeclaring an existing
+    queue with different arguments.
+    """
+    return MAX_QUEUE_PRIORITY if queue_name in PRIORITY_QUEUES else None
+
+
 def api_config_for_queue(queue_name: str) -> APIConfig:
     """Configuration for an API associated with a queue"""
     api_name = {
