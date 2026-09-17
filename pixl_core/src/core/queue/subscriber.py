@@ -164,13 +164,24 @@ class AnonymisationPixlConsumer(PixlQueueInterface):
         super().__init__(queue_name=queue_name)
         self._callback: Callable[[AnonymisationMessage, Context | None], None] = callback
 
-    @property
-    def _url(self) -> str:
-        return f"amqp://{self._username}:{self._password}@{self._host}:{self._port}/"
-
     def __enter__(self) -> Self:
-        """Establishes connection to queue."""
-        self._connection = pika.BlockingConnection(pika.URLParameters(self._url))
+        """
+        Establishes connection to queue.
+
+        Unlike PixlConsumer (which uses aio_pika.connect_robust and so retries the
+        initial connection automatically), pika's BlockingConnection has no built-in
+        retry, so we configure one here. Without it, a transient failure to connect
+        (e.g. RabbitMQ not quite ready yet at startup) kills the consumer thread
+        permanently, since nothing else restarts it.
+        """
+        params = pika.ConnectionParameters(
+            host=self._host,
+            port=self._port,
+            credentials=pika.PlainCredentials(self._username, self._password),
+            connection_attempts=10,
+            retry_delay=5,
+        )
+        self._connection = pika.BlockingConnection(params)
         self._channel = self._connection.channel()
         # Set number of messages in flight
         max_in_flight = config("PIXL_MAX_MESSAGES_IN_FLIGHT", cast=int)

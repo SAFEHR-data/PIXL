@@ -178,6 +178,8 @@ services:
         depends_on:
             postgres:
                 condition: service_healthy
+            queue:
+                condition: service_healthy
         healthcheck:
             test:
                 [
