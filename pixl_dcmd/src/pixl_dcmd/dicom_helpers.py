@@ -143,7 +143,7 @@ def _redirect_stdout_to_debug(_logger: Logger) -> Generator[None, None, None]:
     thread_local.stdout.seek(0)
     output = thread_local.stdout.readlines()
     for line in output:
-        _logger.debug(line.strip())
+        _logger.trace(line.strip())
 
 
 @dataclass

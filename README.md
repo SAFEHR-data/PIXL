@@ -130,7 +130,7 @@ To configure a new project, follow these steps:
     git switch -c <branch-name>
     ```
 
-1. Copy the `template_config.yaml` file to a new file in the `projects/config` directory and fill
+1. Copy the [template_config.yaml](./template_config.yaml) file to a new file in the `projects/config` directory and fill
    in the details.
 1. The filename of the project config should be `<project-slug>`.yaml
 
