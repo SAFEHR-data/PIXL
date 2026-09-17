@@ -16,7 +16,7 @@
 
 x-http-proxy: &http-proxy ${HTTP_PROXY}
 x-https-proxy: &https-proxy ${HTTPS_PROXY}
-x-no-proxy: &no-proxy localhost,0.0.0.0,127.0.0.1,uclvlddpragae07,hasher-api,orthanc-raw,export-api,orthanc-anon
+x-no-proxy: &no-proxy localhost,0.0.0.0,127.0.0.1,uclvlddpragae07,hasher-api,orthanc-raw,export-api,orthanc-anon,otel-agent
 x-proxy-common: &proxy-common
     HTTP_PROXY: *http-proxy
     http_proxy: *http-proxy
@@ -62,7 +62,7 @@ x-azure-keyvault: &azure-keyvault
 x-otel-common: &otel-common
     OTEL_SDK_DISABLED: ${OTEL_SDK_DISABLED:-true}
     OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
-    OTEL_RESOURCE_ATTRIBUTES: "service.namespace=pixl"
+    OTEL_RESOURCE_ATTRIBUTES: "service.namespace=pixl,deployment.environment=${ENV:-}"
     OTEL_EXPORTER_OTLP_PROTOCOL: grpc
     OTEL_LOGS_EXPORTER: none  # we define our own loguru sink for exporting logs
     OTEL_TRACES_EXPORTER: otlp
