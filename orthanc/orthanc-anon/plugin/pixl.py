@@ -32,6 +32,7 @@ from time import sleep
 from typing import TYPE_CHECKING, cast
 from zipfile import ZipFile
 
+import pika
 import pydicom
 import requests
 from core.exceptions import PixlDiscardError, PixlSkipInstanceError
@@ -258,13 +259,31 @@ def process_anonymisation_message(
     )
 
 
+RABBITMQ_RECONNECT_DELAY_SECONDS = 5
+
+
 def consume_anonymisation_queue() -> None:
-    """Consume anonymisation requests from RabbitMQ and submit them for processing."""
-    with AnonymisationPixlConsumer(
-        queue_name="anonymisation",
-        callback=process_anonymisation_message,
-    ) as consumer:
-        consumer.run()
+    """
+    Consume anonymisation requests from RabbitMQ and submit them for processing.
+
+    Runs for the lifetime of the process. AnonymisationPixlConsumer only retries the
+    initial connection; if RabbitMQ becomes unavailable afterwards (e.g. a restart),
+    pika.BlockingConnection raises out of consumer.run() and would otherwise kill this
+    thread permanently, since nothing else restarts it. So reconnect here instead.
+    """
+    while True:
+        try:
+            with AnonymisationPixlConsumer(
+                queue_name="anonymisation",
+                callback=process_anonymisation_message,
+            ) as consumer:
+                consumer.run()
+        except pika.exceptions.AMQPConnectionError:
+            logger.exception(
+                "Anonymisation consumer lost connection to RabbitMQ; reconnecting in {} seconds",
+                RABBITMQ_RECONNECT_DELAY_SECONDS,
+            )
+            sleep(RABBITMQ_RECONNECT_DELAY_SECONDS)
 
 
 consumer_thread = threading.Thread(
