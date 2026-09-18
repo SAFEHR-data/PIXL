@@ -18,6 +18,11 @@ from unittest.mock import ANY, AsyncMock, Mock
 
 import pytest
 
+from core.exceptions import (
+    PixlDiscardError,
+    PixlOutOfHoursError,
+    PixlRequeueMessageError,
+)
 from core.queue.producer import PixlProducer
 from core.queue.subscriber import AnonymisationPixlConsumer, PixlConsumer
 from core.token_buffer.tokens import TokenBucket
@@ -28,6 +33,16 @@ TEST_QUEUE_ANON = "test_anon_consume"
 
 class ExpectedTestError(Exception):
     """Expected error for testing."""
+
+
+# Shared by both PixlConsumer and AnonymisationPixlConsumer error-handling tests below,
+# so the two consumers' behaviour for a given error can't silently drift apart.
+ERROR_HANDLING_CASES = [
+    pytest.param(PixlRequeueMessageError, "reject", {"requeue": True}, id="requeue"),
+    pytest.param(PixlOutOfHoursError, "nack", {"requeue": True}, id="out_of_hours"),
+    pytest.param(PixlDiscardError, "ack", {}, id="discard"),
+    pytest.param(ExpectedTestError, "ack", {}, id="unexpected"),
+]
 
 
 @pytest.mark.asyncio
@@ -101,3 +116,51 @@ def test_process_message_anon(mock_anon_message) -> None:
 
         callback.assert_called_once_with(mock_anon_message, ANY)
         channel.basic_ack.assert_called_once_with(delivery_tag=1)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(("error", "method_name", "expected_kwargs"), ERROR_HANDLING_CASES)
+async def test_process_message_error_handling(  # noqa: PLR0913
+    monkeypatch,
+    mock_message,
+    mock_incoming_message,
+    error,
+    method_name,
+    expected_kwargs,
+) -> None:
+    """Each error type from the callback results in the correct ack/nack/reject call."""
+    monkeypatch.setattr(asyncio, "sleep", AsyncMock())
+    callback = AsyncMock(side_effect=error)
+    token_bucket = Mock(has_token=Mock(return_value=True))
+
+    consumer = PixlConsumer(
+        queue_name=TEST_QUEUE,
+        token_bucket=token_bucket,
+        token_bucket_key="primary",  # noqa: S106
+        callback=callback,
+    )
+    message = mock_incoming_message(mock_message.serialise())
+
+    await consumer._process_message(message)
+
+    getattr(message, method_name).assert_awaited_once_with(**expected_kwargs)
+
+
+@pytest.mark.parametrize(("error", "method_name", "expected_kwargs"), ERROR_HANDLING_CASES)
+def test_process_message_anon_error_handling(  # noqa: PLR0913
+    monkeypatch, mock_anon_message, anon_consumer, error, method_name, expected_kwargs
+) -> None:
+    """Each error type from the callback results in the correct ack/nack/reject call."""
+    monkeypatch.setattr("core.queue.subscriber.time.sleep", Mock())
+    callback = Mock(side_effect=error)
+    consumer = anon_consumer(TEST_QUEUE_ANON, callback)
+
+    channel = Mock()
+    method = Mock(delivery_tag=1)
+    properties = Mock(headers={})
+
+    consumer._process_message(channel, method, properties, mock_anon_message.serialise())
+
+    getattr(channel, f"basic_{method_name}").assert_called_once_with(
+        delivery_tag=1, **expected_kwargs
+    )
