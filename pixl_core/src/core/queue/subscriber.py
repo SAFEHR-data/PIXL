@@ -49,7 +49,7 @@ if TYPE_CHECKING:
 from loguru import logger
 
 
-class PixlConsumer[PixlMessage: (ImagingRequestMessage, AnonymisationMessage)](PixlQueueInterface):
+class PixlConsumer[PixlMessage: ImagingRequestMessage](PixlQueueInterface):
     """Connector to RabbitMQ. Consumes messages from a queue"""
 
     def __init__(
