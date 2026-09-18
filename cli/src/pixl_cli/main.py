@@ -62,6 +62,8 @@ def _configure_telemetry(logging_level: str) -> None:
 
     Load the config and set the relevant environment variables.
     """
+    configure_logging(level=logging_level)
+
     if not telemetry_is_enabled():
         return
 
@@ -70,7 +72,6 @@ def _configure_telemetry(logging_level: str) -> None:
     os.environ["OTEL_SERVICE_NAME"] = "pixl-cli"
     os.environ["OTEL_RESOURCE_ATTRIBUTES"] = "service.namespace=pixl"
 
-    configure_logging(level=logging_level)
     configure_tracing()
     PikaInstrumentor().instrument()
 
