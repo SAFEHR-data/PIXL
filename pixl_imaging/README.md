@@ -9,7 +9,7 @@ The imaging API has two queues:
 - `imaging-secondary`, for querying PACS
 
 The imaging API uses RabbitMQ to expose a single HTTP endpoint that expects a JSON-formatted message structured as
-defined by the [`Message`](../pixl_core/src/core/patient_queue/message.py) class in `pixl_core/patient_queue`.
+defined by the [`Message`](../pixl_core/src/core/queue/message.py) class in `pixl_core/queue`.
 
 Users should send messages to the `imaging-primary` queue only. On arrival of the input message, the imaging API
 will query the VNA for the requested study. If the study does not exist in the VNA, the input message will be sent
