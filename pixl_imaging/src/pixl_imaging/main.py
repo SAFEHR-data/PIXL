@@ -56,13 +56,13 @@ async def startup_event() -> None:
     """
     background_tasks = set()
     async with (
-        PixlConsumer[ImagingRequestMessage](
+        PixlConsumer(
             QUEUE_NAME,
             token_bucket=state.token_bucket,
             token_bucket_key="primary",  # noqa: S106
             callback=lambda message: process_message(message, archive=DicomModality.primary),
         ) as primary_consumer,
-        PixlConsumer[ImagingRequestMessage](
+        PixlConsumer(
             SECONDARY_QUEUE_NAME,
             token_bucket=state.token_bucket,
             token_bucket_key="secondary",  # noqa: S106
