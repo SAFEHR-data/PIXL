@@ -52,26 +52,6 @@ class PixlQueueInterface:
 
 
 class PixlBlockingInterface(PixlQueueInterface):
-    def __init__(  # noqa: PLR0913
-        self,
-        queue_name: str,
-        host: str = "localhost",
-        port: int = 5672,
-        username: str = "guest",
-        password: str = "guest",  # noqa: S107
-        max_priority: int | None = None,
-    ) -> None:
-        """
-        RabbitMQ interface using a blocking connection.
-
-        :param max_priority: If set, declares the queue as a priority queue with this
-            maximum priority. Must match the value used wherever else this queue is
-            declared, since RabbitMQ rejects redeclaring an existing queue with
-            different arguments.
-        """
-        super().__init__(queue_name, host, port, username, password)
-        self._max_priority = max_priority
-
     def __enter__(self) -> Any:
         """Establishes connection to RabbitMQ service."""
         params = pika.ConnectionParameters(
@@ -85,13 +65,10 @@ class PixlBlockingInterface(PixlQueueInterface):
 
             if self._channel is None or self._channel.is_closed:
                 self._channel = self._connection.channel()
-            arguments = (
-                {"x-max-priority": self._max_priority} if self._max_priority is not None else None
-            )
             self._queue = self._channel.queue_declare(
                 queue=self.queue_name,
                 durable=True,
-                arguments=arguments,
+                arguments={"x-max-priority": 5},
             )
 
         logger.debug("Connected to {}", self.queue_name)

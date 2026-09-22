@@ -52,7 +52,7 @@ ERROR_HANDLING_CASES = [
 )
 async def test_create(mock_message) -> None:
     """Checks consume is working."""
-    with PixlProducer(queue_name=TEST_QUEUE, max_priority=5) as producer:
+    with PixlProducer(queue_name=TEST_QUEUE) as producer:
         producer.publish(messages=[mock_message], priority=1)
 
     consume = AsyncMock()
