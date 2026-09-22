@@ -227,7 +227,6 @@ class AnonymisationPixlConsumer(PixlQueueInterface):
             # ack so that we can see rate of message processing in rabbitmq admin
             channel.basic_ack(delivery_tag=method.delivery_tag)
         else:
-            logger.success("Finished message {}", pixl_message.identifier)
             channel.basic_ack(delivery_tag=method.delivery_tag)
 
     def run(self) -> None:
