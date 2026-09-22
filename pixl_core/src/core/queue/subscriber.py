@@ -155,11 +155,11 @@ class AnonymisationPixlConsumer(PixlQueueInterface):
     def __init__(
         self,
         queue_name: str,
-        callback: Callable[[AnonymisationMessage, Context | None], None],
+        callback: Callable[[AnonymisationMessage, Context], None],
     ) -> None:
         """Creating connection to RabbitMQ queue"""
         super().__init__(queue_name=queue_name)
-        self._callback: Callable[[AnonymisationMessage, Context | None], None] = callback
+        self._callback: Callable[[AnonymisationMessage, Context], None] = callback
 
     def __enter__(self) -> Self:
         """

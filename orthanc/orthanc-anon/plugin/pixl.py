@@ -238,9 +238,7 @@ def OnHeartBeat(output, uri, **request) -> Any:  # noqa: ARG001
     output.AnswerBuffer("OK\n", "text/plain")
 
 
-def process_anonymisation_message(
-    message: AnonymisationMessage, parent_context: Context | None
-) -> None:
+def process_anonymisation_message(message: AnonymisationMessage, parent_context: Context) -> None:
     """
     Import studies from Orthanc Raw.
 
@@ -298,7 +296,7 @@ def _import_studies_from_raw(
     study_uids: list[str],
     project_name: str,
     series_to_keep: list[str],
-    parent_context: Context | None = None,
+    parent_context: Context,
 ) -> None:
     """
     Import studies from Orthanc Raw.
