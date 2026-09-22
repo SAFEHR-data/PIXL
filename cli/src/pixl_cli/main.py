@@ -35,7 +35,6 @@ from pixl_cli._config import (
     SERVICE_SETTINGS,
     api_config_for_queue,
     config,
-    max_priority_for_queue,
 )
 from pixl_cli._database import exported_images_for_project
 from pixl_cli._docker_commands import dc
@@ -351,11 +350,7 @@ def stop(queues: str, purge: bool) -> None:  # noqa: FBT001 bool argument
         _update_extract_rate(queue_name=queue, rate=0)
         if purge:
             logger.info("Purging queue {}", queue)
-            with PixlProducer(
-                queue_name=queue,
-                max_priority=max_priority_for_queue(queue),
-                **SERVICE_SETTINGS["rabbitmq"],
-            ) as producer:
+            with PixlProducer(queue_name=queue, **SERVICE_SETTINGS["rabbitmq"]) as producer:
                 producer.clear_queue()
 
 
