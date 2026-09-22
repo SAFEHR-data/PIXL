@@ -26,7 +26,6 @@ import os
 import threading
 import traceback
 from collections import defaultdict
-from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO
 from time import sleep
 from typing import TYPE_CHECKING, cast
@@ -46,6 +45,7 @@ from core.telemetry import configure_logging, configure_metrics, configure_traci
 from decouple import config
 from loguru import logger
 from opentelemetry import trace
+from opentelemetry.propagate import extract, inject
 from opentelemetry.instrumentation.pika import PikaInstrumentor
 from opentelemetry.instrumentation.requests import RequestsInstrumentor
 from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
@@ -60,6 +60,8 @@ from pixl_dcmd.main import (
 )
 from pydicom import dcmread
 from sqlalchemy.exc import DBAPIError
+import multiprocessing
+import signal
 
 import orthanc
 
@@ -101,11 +103,16 @@ configure_metrics()
 
 logger.warning("Running logging at level {}", logging_level)
 
-# Set up a thread pool executor for non-blocking calls to Orthanc
+# Set up a multiprocessing pool for non-blocking calls to Orthanc.
+# The pool itself is created at the bottom of this module, after the worker
+# functions are defined: ForkPool workers are snapshotted at Pool() time, so
+# they would not see later `def`s (pickle looks up functions by name).
 max_workers = config("PIXL_MAX_MESSAGES_IN_FLIGHT", cast=int)
-executor = ThreadPoolExecutor(max_workers=max_workers)
 
-logger.info("Using {} threads for processing", max_workers)
+
+def child_process_initializer():
+    # Ignore CTRL+C in the child processes
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 
 def AzureAccessToken() -> str:
@@ -239,24 +246,75 @@ def OnHeartBeat(output, uri, **request) -> Any:  # noqa: ARG001
 
 
 def process_anonymisation_message(
-    message: AnonymisationMessage, parent_context: Context | None
+    message: AnonymisationMessage, parent_context: Context
 ) -> None:
     """
     Import studies from Orthanc Raw.
 
-    Offload to a thread pool executor to avoid blocking the Orthanc main thread.
+    Offload to a multiprocessing pool to avoid blocking the Orthanc main thread.
 
     :param parent_context: Trace context extracted from the queue message headers by
         AnonymisationPixlConsumer, to continue the trace from the message's publisher.
     """
-    executor.submit(
-        _import_studies_from_raw,
-        message.resource_ids,
-        message.study_uids,
-        message.project_name,
-        message.series_uids,
-        parent_context,
+
+    def on_success(anonymised_study_uids: set[str]) -> None:
+        try:
+            _notify_export_of_anonymised_studies(anonymised_study_uids, message)
+        except Exception:  # noqa: BLE001
+            logger.exception(
+                "Failed to notify export-api after anonymising studies {}",
+                message.resource_ids,
+            )
+
+    # OpenTelemetry Context objects contain thread locks and cannot be pickled
+    # across the process boundary, so serialise the trace onto a dict carrier.
+    trace_carrier: dict[str, str] = {}
+    inject(trace_carrier, context=parent_context)
+
+    POOL.apply_async(
+        _pull_and_anonymise_study,
+        (
+            message.resource_ids,
+            message.study_uids,
+            message.project_name,
+            message.series_uids,
+            trace_carrier,
+        ),
+        callback=on_success,
+        error_callback=_log_anonymisation_worker_error,
     )
+
+
+def _notify_export_of_anonymised_studies(
+    anonymised_study_uids: set[str] | None,
+    message: AnonymisationMessage,
+) -> None:
+    """Look up Orthanc resource IDs and notify export-api. Must run in the parent process."""
+    if not anonymised_study_uids:
+        return
+
+    # ensure we only have unique resource ids by using a set
+    anonymised_study_uid_by_resource_ids = {
+        _get_study_resource_id(anonymised_study_uid): anonymised_study_uid
+        for anonymised_study_uid in anonymised_study_uids
+    }
+
+    logger.debug(
+        "Notify export API to retrieve study resources. Original UID {} Anon UID: {}",
+        message.resource_ids,
+        list(anonymised_study_uid_by_resource_ids.values()),
+    )
+
+    for resource_id, anonymised_study_uid in anonymised_study_uid_by_resource_ids.items():
+        with logger.contextualize(
+            pseudo_study_uid=anonymised_study_uid,
+            orthanc_resource_id=resource_id,
+        ):
+            send_study(study_id=resource_id, project_name=message.project_name)
+
+
+def _log_anonymisation_worker_error(error: BaseException) -> None:
+    logger.opt(exception=error).error("Anonymisation worker failed")
 
 
 RABBITMQ_RECONNECT_DELAY_SECONDS = 5
@@ -286,34 +344,28 @@ def consume_anonymisation_queue() -> None:
             sleep(RABBITMQ_RECONNECT_DELAY_SECONDS)
 
 
-consumer_thread = threading.Thread(
-    target=consume_anonymisation_queue,
-    daemon=True,
-)
-consumer_thread.start()
-
-
-def _import_studies_from_raw(
+def _pull_and_anonymise_study(
     study_resource_ids: list[str],
     study_uids: list[str],
     project_name: str,
     series_to_keep: list[str],
-    parent_context: Context | None = None,
-) -> None:
+    trace_carrier: dict[str, str],
+) -> set[str]:
     """
     Import studies from Orthanc Raw.
 
     Args:
         study_resource_ids: Resource IDs of the study in Orthanc Raw
         project_name: Name of the project
-        parent_context: Trace context extracted from the incoming request, to continue the trace
+        trace_carrier: W3C trace context injected by the parent process, to continue the trace
 
     - Pull studies from Orthanc Raw based on its resource ID
     - Iterate over instances and anonymise them
     - Upload the studies to orthanc-anon
-    - Notify the PIXL export-api to send the studies to the relevant endpoint for the project
+    - Return the anonymised StudyInstanceUIDs so the parent process can notify export-api
 
     """
+    parent_context = extract(trace_carrier)
     # Continue the trace from the incoming request and bind the project to every log within it.
     with (
         tracer.start_as_current_span(name="import_studies_from_raw", context=parent_context),
@@ -335,27 +387,8 @@ def _import_studies_from_raw(
                 "Not exporting anonymised studies {} as auto-routing is disabled",
                 anonymised_study_uids,
             )
-            return
-
-        # ensure we only have unique resource ids by using a set
-        anonymised_study_uid_by_resource_ids = {
-            _get_study_resource_id(anonymised_study_uid): anonymised_study_uid
-            for anonymised_study_uid in anonymised_study_uids
-        }
-
-        logger.debug(
-            "Notify export API to retrieve study resources. Original UID {} Anon UID: {}",
-            study_resource_ids,
-            list(anonymised_study_uid_by_resource_ids.values()),
-        )
-
-        for resource_id, anonymised_study_uid in anonymised_study_uid_by_resource_ids.items():
-            with logger.contextualize(
-                pseudo_study_uid=anonymised_study_uid,
-                orthanc_resource_id=resource_id,
-            ):
-                send_study(study_id=resource_id, project_name=project_name)
-
+            return set()
+        return set(anonymised_study_uids)
 
 def _anonymise_study_and_upload(
     study_resource_id: str,
@@ -594,6 +627,7 @@ def _get_study_resource_id(study_uid: str) -> str:
             },
         }
     )
+    # TODO run in main process
     study_resource_ids = json.loads(orthanc.RestApiPost("/tools/find", data))
     if not study_resource_ids:
         message = f"No study found with StudyInstanceUID {study_uid}"
@@ -625,6 +659,16 @@ def notify_export_api_of_readiness(study_id: str, project_name: str) -> None:
     response = requests.post(url, json=payload, timeout=timeout)
     response.raise_for_status()
 
+
+# Create the pool only once functions are defined in this module.
+POOL = multiprocessing.Pool(4, initializer=child_process_initializer)
+logger.info("Using {} processes for anonymisation", max_workers)
+
+consumer_thread = threading.Thread(
+    target=consume_anonymisation_queue,
+    daemon=True,
+)
+consumer_thread.start()
 
 orthanc.RegisterOnChangeCallback(OnChange)
 orthanc.RegisterRestCallback("/heart-beat", OnHeartBeat)
