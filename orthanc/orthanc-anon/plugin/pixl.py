@@ -259,7 +259,7 @@ def process_anonymisation_message(
 
     def on_success(anonymised_study_uids: set[str]) -> None:
         try:
-            _notify_export_of_anonymised_studies(anonymised_study_uids, message)
+            _get_study_resource_ids_and_notify_export_api(anonymised_study_uids, message)
         except Exception:  # noqa: BLE001
             logger.exception(
                 "Failed to notify export-api after anonymising studies {}",
@@ -280,12 +280,13 @@ def process_anonymisation_message(
             message.series_uids,
             trace_carrier,
         ),
+        kwds={"env": os.environ.copy()},
         callback=on_success,
         error_callback=_log_anonymisation_worker_error,
     )
 
 
-def _notify_export_of_anonymised_studies(
+def _get_study_resource_ids_and_notify_export_api(
     anonymised_study_uids: set[str] | None,
     message: AnonymisationMessage,
 ) -> None:
@@ -310,7 +311,7 @@ def _notify_export_of_anonymised_studies(
             pseudo_study_uid=anonymised_study_uid,
             orthanc_resource_id=resource_id,
         ):
-            send_study(study_id=resource_id, project_name=message.project_name)
+            _notify_export_api_of_readiness(study_id=resource_id, project_name=message.project_name)
 
 
 def _log_anonymisation_worker_error(error: BaseException) -> None:
@@ -627,7 +628,6 @@ def _get_study_resource_id(study_uid: str) -> str:
             },
         }
     )
-    # TODO run in main process
     study_resource_ids = json.loads(orthanc.RestApiPost("/tools/find", data))
     if not study_resource_ids:
         message = f"No study found with StudyInstanceUID {study_uid}"
@@ -638,21 +638,12 @@ def _get_study_resource_id(study_uid: str) -> str:
 
     return study_resource_ids[0]
 
-
-def send_study(study_id: str, project_name: str) -> None:
-    """
-    Send the resource to the appropriate destination.
-    Throws an exception if the image has already been exported.
-    """
-    logger.debug("Sending {}", study_id)
-    notify_export_api_of_readiness(study_id, project_name)
-
-
-def notify_export_api_of_readiness(study_id: str, project_name: str) -> None:
+def _notify_export_api_of_readiness(study_id: str, project_name: str) -> None:
     """
     Tell export-api that our data is ready and it should download it from us and upload
     as appropriate
     """
+    logger.debug("Sending {}", study_id)
     url = EXPORT_API_URL + "/export-dicom-from-orthanc"
     payload = {"study_id": study_id, "project_name": project_name}
     timeout: float = config("PIXL_DICOM_TRANSFER_TIMEOUT", default=30, cast=float)
