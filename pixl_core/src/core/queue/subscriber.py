@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import asyncio
 import time
+from functools import partial
 from typing import TYPE_CHECKING, Any
 
 import aio_pika
@@ -155,11 +156,17 @@ class AnonymisationPixlConsumer(PixlQueueInterface):
     def __init__(
         self,
         queue_name: str,
-        callback: Callable[[AnonymisationMessage, Context | None], None],
+        callback: Callable[
+            [AnonymisationMessage, Context | None, Callable[[], None], Callable[[], None]],
+            None,
+        ],
     ) -> None:
         """Creating connection to RabbitMQ queue"""
         super().__init__(queue_name=queue_name)
-        self._callback: Callable[[AnonymisationMessage, Context | None], None] = callback
+        self._callback: Callable[
+            [AnonymisationMessage, Context | None, Callable[[], None], Callable[[], None]],
+            None,
+        ] = callback
 
     def __enter__(self) -> Self:
         """
@@ -204,7 +211,15 @@ class AnonymisationPixlConsumer(PixlQueueInterface):
         parent_context = get_current()
         logger.debug("Picked up from queue: {}", pixl_message.identifier)
         try:
-            self._callback(pixl_message, parent_context)
+            # The callback settles the message later, from the pool thread, once
+            # anonymisation finishes. Ack and nack hop back onto this connection.
+            delivery_tag = method.delivery_tag
+            self._callback(
+                pixl_message,
+                parent_context,
+                partial(self.ack_message, delivery_tag),
+                partial(self.nack_message, delivery_tag),
+            )
         except PixlRequeueMessageError as requeue:
             logger.trace("Requeue message: {} from {}", pixl_message.identifier, requeue)
             time.sleep(1)
@@ -226,8 +241,24 @@ class AnonymisationPixlConsumer(PixlQueueInterface):
             )
             # ack so that we can see rate of message processing in rabbitmq admin
             channel.basic_ack(delivery_tag=method.delivery_tag)
-        else:
-            channel.basic_ack(delivery_tag=method.delivery_tag)
+
+    def ack_message(self, delivery_tag: int) -> None:
+        """Ack from another thread by running the call on the connection thread."""
+
+        def _ack() -> None:
+            if self._channel is not None and self._channel.is_open:
+                self._channel.basic_ack(delivery_tag=delivery_tag)
+
+        self._connection.add_callback_threadsafe(_ack)
+
+    def nack_message(self, delivery_tag: int) -> None:
+        """Nack from another thread by running the call on the connection thread."""
+
+        def _nack() -> None:
+            if self._channel is not None and self._channel.is_open:
+                self._channel.basic_nack(delivery_tag=delivery_tag, requeue=False)
+
+        self._connection.add_callback_threadsafe(_nack)
 
     def run(self) -> None:
         """Processes messages from queue."""

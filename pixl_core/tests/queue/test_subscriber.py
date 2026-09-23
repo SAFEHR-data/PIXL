@@ -100,7 +100,7 @@ def test_run_anon() -> None:
 
 @pytest.mark.usefixtures("run_containers")
 def test_process_message_anon(mock_anon_message) -> None:
-    """Checks that a received message is passed to the callback and acked."""
+    """A received message is passed to the callback and settled only when it asks."""
     callback = Mock()
 
     with AnonymisationPixlConsumer(
@@ -114,8 +114,25 @@ def test_process_message_anon(mock_anon_message) -> None:
 
         consumer._process_message(channel, method, properties, body)
 
-        callback.assert_called_once_with(mock_anon_message, ANY)
-        channel.basic_ack.assert_called_once_with(delivery_tag=1)
+        callback.assert_called_once_with(mock_anon_message, ANY, ANY, ANY)
+        channel.basic_ack.assert_not_called()
+        channel.basic_nack.assert_not_called()
+
+        ack, nack = callback.call_args.args[2:]
+        scheduled: list = []
+        consumer._connection.add_callback_threadsafe = Mock(side_effect=scheduled.append)
+        real_channel = consumer._channel
+        consumer._channel = Mock(is_open=True)
+        try:
+            ack()
+            scheduled[0]()
+            consumer._channel.basic_ack.assert_called_once_with(delivery_tag=1)
+
+            nack()
+            scheduled[1]()
+            consumer._channel.basic_nack.assert_called_once_with(delivery_tag=1, requeue=False)
+        finally:
+            consumer._channel = real_channel
 
 
 @pytest.mark.asyncio

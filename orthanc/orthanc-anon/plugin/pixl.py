@@ -66,6 +66,7 @@ import signal
 import orthanc
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from typing import Any
 
     from core.project_config.pixl_config_model import PixlConfig
@@ -246,15 +247,22 @@ def OnHeartBeat(output, uri, **request) -> Any:  # noqa: ARG001
 
 
 def process_anonymisation_message(
-    message: AnonymisationMessage, parent_context: Context
+    message: AnonymisationMessage,
+    parent_context: Context,
+    ack: Callable[[], None],
+    nack: Callable[[], None]
 ) -> None:
     """
     Import studies from Orthanc Raw.
 
     Offload to a multiprocessing pool to avoid blocking the Orthanc main thread.
+    The message stays unacked until the pool finishes: ``ack`` on success, ``nack``
+    if the worker raises.
 
     :param parent_context: Trace context extracted from the queue message headers by
         AnonymisationPixlConsumer, to continue the trace from the message's publisher.
+    :param ack: Schedule a RabbitMQ ack on the consumer thread.
+    :param nack: Schedule a RabbitMQ nack on the consumer thread.
     """
 
     def on_success(anonymised_study_uids: set[str]) -> None:
@@ -265,6 +273,11 @@ def process_anonymisation_message(
                 "Failed to notify export-api after anonymising studies {}",
                 message.resource_ids,
             )
+        ack()
+
+    def on_error(error: BaseException) -> None:
+        _log_anonymisation_worker_error(error)
+        nack()
 
     # OpenTelemetry Context objects contain thread locks and cannot be pickled
     # across the process boundary, so serialise the trace onto a dict carrier.
@@ -282,7 +295,7 @@ def process_anonymisation_message(
         ),
         kwds={"env": os.environ.copy()},
         callback=on_success,
-        error_callback=_log_anonymisation_worker_error,
+        error_callback=on_error,
     )
 
 
@@ -351,7 +364,7 @@ def _pull_and_anonymise_study(
     project_name: str,
     series_to_keep: list[str],
     trace_carrier: dict[str, str],
-    env: dict[str, str],
+    env: dict[str, str]
 ) -> set[str]:
     """
     Import studies from Orthanc Raw.
