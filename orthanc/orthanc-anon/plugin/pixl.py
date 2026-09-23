@@ -351,6 +351,7 @@ def _pull_and_anonymise_study(
     project_name: str,
     series_to_keep: list[str],
     trace_carrier: dict[str, str],
+    env: dict[str, str],
 ) -> set[str]:
     """
     Import studies from Orthanc Raw.
@@ -366,6 +367,7 @@ def _pull_and_anonymise_study(
     - Return the anonymised StudyInstanceUIDs so the parent process can notify export-api
 
     """
+    os.environ.update(env)
     parent_context = extract(trace_carrier)
     # Continue the trace from the incoming request and bind the project to every log within it.
     with (
