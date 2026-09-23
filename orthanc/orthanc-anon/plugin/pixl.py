@@ -21,6 +21,7 @@ This module:
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import threading
@@ -32,7 +33,7 @@ from time import sleep
 from typing import TYPE_CHECKING, cast
 from zipfile import ZipFile
 
-import pika
+import aio_pika
 import pydicom
 import requests
 from core.exceptions import PixlDiscardError, PixlSkipInstanceError
@@ -46,7 +47,7 @@ from core.telemetry import configure_logging, configure_metrics, configure_traci
 from decouple import config
 from loguru import logger
 from opentelemetry import trace
-from opentelemetry.instrumentation.pika import PikaInstrumentor
+from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 from opentelemetry.instrumentation.requests import RequestsInstrumentor
 from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 from pixl_dcmd._database import engine as pixl_db_engine
@@ -92,9 +93,9 @@ configure_tracing()
 SQLAlchemyInstrumentor().instrument(engine=pixl_db_engine)
 RequestsInstrumentor().instrument()
 # orthanc-anon runs as a plugin inside Orthanc rather than via `opentelemetry-instrument`,
-# so pika isn't auto-instrumented and we need to do it explicitly to pick up the trace
+# so aio-pika isn't auto-instrumented and we need to do it explicitly to pick up the trace
 # context propagated from the message publisher.
-PikaInstrumentor().instrument()
+AioPikaInstrumentor().instrument()
 tracer = trace.get_tracer("pixl.orthanc_anon")
 
 configure_metrics()
@@ -238,16 +239,22 @@ def OnHeartBeat(output, uri, **request) -> Any:  # noqa: ARG001
     output.AnswerBuffer("OK\n", "text/plain")
 
 
-def process_anonymisation_message(message: AnonymisationMessage, parent_context: Context) -> None:
+async def process_anonymisation_message(
+    message: AnonymisationMessage, parent_context: Context
+) -> None:
     """
     Import studies from Orthanc Raw.
 
-    Offload to a thread pool executor to avoid blocking the Orthanc main thread.
+    Offload to the thread pool executor, so we don't block the event loop from consuming
+    further messages, but await completion so the message is only acked by
+    AnonymisationPixlConsumer once processing has actually finished.
 
     :param parent_context: Trace context extracted from the queue message headers by
         AnonymisationPixlConsumer, to continue the trace from the message's publisher.
     """
-    executor.submit(
+    loop = asyncio.get_running_loop()
+    await loop.run_in_executor(
+        executor,
         _import_studies_from_raw,
         message.resource_ids,
         message.study_uids,
@@ -260,32 +267,39 @@ def process_anonymisation_message(message: AnonymisationMessage, parent_context:
 RABBITMQ_RECONNECT_DELAY_SECONDS = 5
 
 
-def consume_anonymisation_queue() -> None:
+async def consume_anonymisation_queue() -> None:
     """
     Consume anonymisation requests from RabbitMQ and submit them for processing.
 
-    Runs for the lifetime of the process. AnonymisationPixlConsumer only retries the
-    initial connection; if RabbitMQ becomes unavailable afterwards (e.g. a restart),
-    pika.BlockingConnection raises out of consumer.run() and would otherwise kill this
-    thread permanently, since nothing else restarts it. So reconnect here instead.
+    Runs for the lifetime of the process. Once connected, aio_pika's robust connection
+    automatically reconnects (and re-registers the consumer) if RabbitMQ becomes
+    unavailable, so we only need to retry here if the initial connection attempt fails
+    (e.g. RabbitMQ not quite ready yet at startup).
     """
     while True:
         try:
-            with AnonymisationPixlConsumer(
+            async with AnonymisationPixlConsumer(
                 queue_name="anonymisation",
                 callback=process_anonymisation_message,
             ) as consumer:
-                consumer.run()
-        except pika.exceptions.AMQPConnectionError:
+                await consumer.run()
+                # Keep this coroutine (and so the event loop) alive for the lifetime of
+                # the process, since messages are delivered via the running loop.
+                await asyncio.Event().wait()
+        except aio_pika.exceptions.AMQPConnectionError:
             logger.exception(
-                "Anonymisation consumer lost connection to RabbitMQ; reconnecting in {} seconds",
+                "Anonymisation consumer failed to connect to RabbitMQ; retrying in {} seconds",
                 RABBITMQ_RECONNECT_DELAY_SECONDS,
             )
-            sleep(RABBITMQ_RECONNECT_DELAY_SECONDS)
+            await asyncio.sleep(RABBITMQ_RECONNECT_DELAY_SECONDS)
+
+
+def _run_anonymisation_consumer() -> None:
+    asyncio.run(consume_anonymisation_queue())
 
 
 consumer_thread = threading.Thread(
-    target=consume_anonymisation_queue,
+    target=_run_anonymisation_consumer,
     daemon=True,
 )
 consumer_thread.start()

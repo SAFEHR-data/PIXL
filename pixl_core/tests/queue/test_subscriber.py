@@ -23,7 +23,7 @@ from core.exceptions import (
     PixlOutOfHoursError,
     PixlRequeueMessageError,
 )
-from core.queue.producer import PixlProducer
+from core.queue.producer import AnonymisationProducer, PixlProducer
 from core.queue.subscriber import AnonymisationPixlConsumer, PixlConsumer
 from core.token_buffer.tokens import TokenBucket
 
@@ -76,46 +76,43 @@ async def test_create(mock_message) -> None:
     raise ExpectedTestError
 
 
+@pytest.mark.asyncio
 @pytest.mark.usefixtures("run_containers")
-def test_run_anon() -> None:
+async def test_run_anon(mock_anon_message) -> None:
     """Checks that the consumer starts consuming messages."""
-    callback = Mock()
+    with AnonymisationProducer(queue_name=TEST_QUEUE_ANON) as producer:
+        producer.publish(messages=[mock_anon_message])
 
-    with AnonymisationPixlConsumer(
+    callback = AsyncMock()
+    async with AnonymisationPixlConsumer(
         queue_name=TEST_QUEUE_ANON,
         callback=callback,
     ) as consumer:
-        consumer._channel.basic_consume = Mock()
-        consumer._channel.start_consuming = Mock()
-
-        consumer.run()
-
-        consumer._channel.basic_consume.assert_called_once_with(
-            queue=TEST_QUEUE_ANON,
-            on_message_callback=consumer._process_message,
-            auto_ack=False,
-        )
-        consumer._channel.start_consuming.assert_called_once()
-
-
-@pytest.mark.usefixtures("run_containers")
-def test_process_message_anon(mock_anon_message) -> None:
-    """Checks that a received message is passed to the callback and acked."""
-    callback = Mock()
-
-    with AnonymisationPixlConsumer(
-        queue_name=TEST_QUEUE_ANON,
-        callback=callback,
-    ) as consumer:
-        channel = Mock()
-        method = Mock(delivery_tag=1)
-        properties = Mock(headers={})
-        body = mock_anon_message.serialise()
-
-        consumer._process_message(channel, method, properties, body)
-
+        # Create a Task to run consumer.run in the background
+        task = asyncio.create_task(consumer.run())
+        # Wait for a short time to allow consumer.run to start and pick up the message
+        await asyncio.sleep(1)
+        # Cancel before assertion so the task doesn't hang
+        task.cancel()
+        # need to close the connection and channel
+        await consumer._channel.close()
+        await consumer._connection.close()
         callback.assert_called_once_with(mock_anon_message, ANY)
-        channel.basic_ack.assert_called_once_with(delivery_tag=1)
+
+
+@pytest.mark.asyncio
+async def test_process_message_anon(
+    mock_anon_message, mock_incoming_message, anon_consumer
+) -> None:
+    """Checks that a received message is passed to the callback and acked."""
+    callback = AsyncMock()
+    consumer = anon_consumer(TEST_QUEUE_ANON, callback)
+    message = mock_incoming_message(mock_anon_message.serialise())
+
+    await consumer._process_message(message)
+
+    callback.assert_awaited_once_with(mock_anon_message, ANY)
+    message.ack.assert_awaited_once()
 
 
 @pytest.mark.asyncio
@@ -146,21 +143,23 @@ async def test_process_message_error_handling(  # noqa: PLR0913
     getattr(message, method_name).assert_awaited_once_with(**expected_kwargs)
 
 
+@pytest.mark.asyncio
 @pytest.mark.parametrize(("error", "method_name", "expected_kwargs"), ERROR_HANDLING_CASES)
-def test_process_message_anon_error_handling(  # noqa: PLR0913
-    monkeypatch, mock_anon_message, anon_consumer, error, method_name, expected_kwargs
+async def test_process_message_anon_error_handling(  # noqa: PLR0913
+    monkeypatch,
+    mock_anon_message,
+    mock_incoming_message,
+    anon_consumer,
+    error,
+    method_name,
+    expected_kwargs,
 ) -> None:
     """Each error type from the callback results in the correct ack/nack/reject call."""
-    monkeypatch.setattr("core.queue.subscriber.time.sleep", Mock())
-    callback = Mock(side_effect=error)
+    monkeypatch.setattr(asyncio, "sleep", AsyncMock())
+    callback = AsyncMock(side_effect=error)
     consumer = anon_consumer(TEST_QUEUE_ANON, callback)
+    message = mock_incoming_message(mock_anon_message.serialise())
 
-    channel = Mock()
-    method = Mock(delivery_tag=1)
-    properties = Mock(headers={})
+    await consumer._process_message(message)
 
-    consumer._process_message(channel, method, properties, mock_anon_message.serialise())
-
-    getattr(channel, f"basic_{method_name}").assert_called_once_with(
-        delivery_tag=1, **expected_kwargs
-    )
+    getattr(message, method_name).assert_awaited_once_with(**expected_kwargs)

@@ -17,11 +17,9 @@
 from __future__ import annotations
 
 import asyncio
-import time
 from typing import TYPE_CHECKING, Any
 
 import aio_pika
-import pika
 from decouple import config
 from opentelemetry.context import get_current
 
@@ -41,8 +39,6 @@ if TYPE_CHECKING:
 
     from aio_pika.abc import AbstractIncomingMessage
     from opentelemetry.context import Context
-    from pika.adapters.blocking_connection import BlockingChannel
-    from pika.spec import Basic, BasicProperties
 
     from core.token_buffer.tokens import TokenBucket
 
@@ -67,10 +63,6 @@ class PixlConsumer[PixlMessage: ImagingRequestMessage](PixlQueueInterface):
         self.token_bucket = token_bucket
         self.token_bucket_key = token_bucket_key
         self._callback: Callable[[PixlMessage], Awaitable[None]] = callback
-
-    @property
-    def _url(self) -> str:
-        return f"amqp://{self._username}:{self._password}@{self._host}:{self._port}/"
 
     async def __aenter__(self) -> Self:
         """Establishes connection to queue."""
@@ -155,94 +147,66 @@ class AnonymisationPixlConsumer(PixlQueueInterface):
     def __init__(
         self,
         queue_name: str,
-        callback: Callable[[AnonymisationMessage, Context], None],
+        callback: Callable[[AnonymisationMessage, Context], Awaitable[None]],
     ) -> None:
         """Creating connection to RabbitMQ queue"""
         super().__init__(queue_name=queue_name)
-        self._callback: Callable[[AnonymisationMessage, Context], None] = callback
+        self._callback: Callable[[AnonymisationMessage, Context], Awaitable[None]] = callback
 
-    def __enter__(self) -> Self:
-        """
-        Establishes connection to queue.
-
-        Unlike PixlConsumer (which uses aio_pika.connect_robust and so retries the
-        initial connection automatically), pika's BlockingConnection has no built-in
-        retry, so we configure one here. Without it, a transient failure to connect
-        (e.g. RabbitMQ not quite ready yet at startup) kills the consumer thread
-        permanently, since nothing else restarts it.
-        """
-        params = pika.ConnectionParameters(
-            host=self._host,
-            port=self._port,
-            credentials=pika.PlainCredentials(self._username, self._password),
-            connection_attempts=10,
-            retry_delay=5,
-        )
-        self._connection = pika.BlockingConnection(params)
-        self._channel = self._connection.channel()
+    async def __aenter__(self) -> Self:
+        """Establishes connection to queue."""
+        self._connection = await aio_pika.connect_robust(self._url)
+        self._channel = await self._connection.channel()
         # Set number of messages in flight
         max_in_flight = config("PIXL_MAX_MESSAGES_IN_FLIGHT", cast=int)
         logger.info("Pika will consume up to {} messages concurrently", max_in_flight)
-        self._channel.basic_qos(prefetch_count=max_in_flight)
-        self._queue = self._channel.queue_declare(
-            queue=self.queue_name,
+        await self._channel.set_qos(prefetch_count=max_in_flight)
+        self._queue = await self._channel.declare_queue(
+            self.queue_name,
             durable=True,
             arguments={"x-max-priority": 5},
         )
         return self
 
-    def _process_message(
-        self,
-        channel: BlockingChannel,
-        method: Basic.Deliver,
-        properties: BasicProperties,  # noqa: ARG002
-        body: bytes,
-    ) -> None:
-        pixl_message: AnonymisationMessage = deserialise(body)
-        # PikaInstrumentor wraps this callback and extracts the trace context from the
+    async def _process_message(self, message: AbstractIncomingMessage) -> None:
+        pixl_message: AnonymisationMessage = deserialise(message.body)
+        # AioPikaInstrumentor wraps this callback and extracts the trace context from the
         # message headers into the current context, so we just need to read it back here.
         parent_context = get_current()
         logger.debug("Picked up from queue: {}", pixl_message.identifier)
         try:
-            self._callback(pixl_message, parent_context)
+            # Awaiting the callback here (rather than firing-and-forgetting the work) means
+            # the message is only acked once processing has actually finished, so a crash
+            # part-way through doesn't silently lose the message.
+            await self._callback(pixl_message, parent_context)
         except PixlRequeueMessageError as requeue:
             logger.trace("Requeue message: {} from {}", pixl_message.identifier, requeue)
-            time.sleep(1)
-            channel.basic_reject(delivery_tag=method.delivery_tag, requeue=True)
+            await asyncio.sleep(1)
+            await message.reject(requeue=True)
         except PixlOutOfHoursError as nack_requeue:
             logger.trace(
                 "Nack and requeue message: {} from {}", pixl_message.identifier, nack_requeue
             )
-            time.sleep(10)
-            channel.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
+            await asyncio.sleep(10)
+            await message.nack(requeue=True)
         except PixlDiscardError as exception:
             logger.warning("Failed message {}: {}", pixl_message.identifier, exception)
             # ack so that we can see rate of message processing in rabbitmq admin
-            channel.basic_ack(delivery_tag=method.delivery_tag)
+            await message.ack()
         except Exception:  # noqa: BLE001
             logger.exception(
                 "Failed to process {}. Not re-queuing message",
                 pixl_message.identifier,
             )
             # ack so that we can see rate of message processing in rabbitmq admin
-            channel.basic_ack(delivery_tag=method.delivery_tag)
+            await message.ack()
         else:
             logger.success("Finished message {}", pixl_message.identifier)
-            channel.basic_ack(delivery_tag=method.delivery_tag)
+            await message.ack()
 
-    def run(self) -> None:
-        """Processes messages from queue."""
-        self._channel.basic_consume(
-            queue=self.queue_name,
-            on_message_callback=self._process_message,
-            auto_ack=False,
-        )
-        self._channel.start_consuming()
+    async def run(self) -> None:
+        """Processes messages from queue asynchronously."""
+        await self._queue.consume(self._process_message)
 
-    def __exit__(self, *args: object, **kwargs: Any) -> None:
-        """Requirement for the context manager"""
-        if self._channel is not None and self._channel.is_open:
-            self._channel.close()
-
-        if self._connection is not None and self._connection.is_open:
-            self._connection.close()
+    async def __aexit__(self, *args: object, **kwargs: Any) -> None:
+        """Requirement for the asynchronous context manager"""
