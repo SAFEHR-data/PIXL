@@ -441,7 +441,7 @@ def _anonymise_study_and_upload(
                     failure_type="PixlDiscardError",
                     message="All instances have been skipped",
                 )
-                return None
+                raise discard
             except DBAPIError as e:
                 logger.exception(
                     "Failed to anonymize project: '{}', {}: {}", project_name, study_info, e
@@ -455,7 +455,7 @@ def _anonymise_study_and_upload(
                     failure_type=type(e.orig).__name__,
                     message=str(e.orig).splitlines()[0],
                 )
-                return None
+                raise e
             except Exception as e:  # noqa: BLE001
                 logger.exception("Failed to anonymize project: '{}', {}", project_name, study_info)
                 record_study_deidentification_failure(
@@ -463,7 +463,7 @@ def _anonymise_study_and_upload(
                     failure_type=type(e).__name__,
                     message=str(e).splitlines()[0],
                 )
-                return None
+                raise e
 
         with logger.contextualize(pseudo_study_uid=anonymised_study_uid):
             _upload_instances(anonymised_instances_bytes)
