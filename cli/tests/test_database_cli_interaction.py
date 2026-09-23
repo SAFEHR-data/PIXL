@@ -116,3 +116,86 @@ def test_reimport_of_previously_skipped_image(example_messages_df, rows_in_sessi
         .one()
     )
     assert reloaded_image.skip_reasons == skip_reasons
+
+
+def test_retry_anonymisation_with_matching_pattern(example_messages_df, rows_in_session):
+    """
+    GIVEN an image that previously failed anonymisation with a recorded skip reason
+    WHEN the messages are re-imported with a `retry_anonymisation_pattern` matching
+        that skip reason
+    THEN the image should be returned for reprocessing
+    """
+    extract = rows_in_session.query(Extract).one()
+    previously_skipped_image = (
+        rows_in_session.query(Image)
+        .filter(Image.extract == extract, Image.accession_number == "234")
+        .one()
+    )
+    previously_skipped_image.skip_reasons = {"Dropping DICOM Modality: CT": 3}
+    rows_in_session.commit()
+
+    output = filter_exported_or_skipped_or_add_to_db(
+        example_messages_df, retry_anonymisation_pattern="Modality: CT"
+    )
+
+    accession_numbers = output.accession_number.to_numpy()
+    assert "234" in accession_numbers
+    assert "123" not in accession_numbers
+    assert "345" in accession_numbers
+    assert len(output) == 2
+
+
+def test_retry_anonymisation_with_non_matching_pattern(example_messages_df, rows_in_session):
+    """
+    GIVEN an image that previously failed anonymisation with a recorded skip reason
+    WHEN the messages are re-imported with a `retry_anonymisation_pattern` that doesn't
+        match that skip reason
+    THEN the image should still be excluded from reprocessing
+    """
+    extract = rows_in_session.query(Extract).one()
+    previously_skipped_image = (
+        rows_in_session.query(Image)
+        .filter(Image.extract == extract, Image.accession_number == "234")
+        .one()
+    )
+    previously_skipped_image.skip_reasons = {"Dropping DICOM Modality: CT": 3}
+    rows_in_session.commit()
+
+    output = filter_exported_or_skipped_or_add_to_db(
+        example_messages_df, retry_anonymisation_pattern="Modality: MR"
+    )
+
+    accession_numbers = output.accession_number.to_numpy()
+    assert "234" not in accession_numbers
+    assert "345" in accession_numbers
+    assert len(output) == 1
+
+
+def test_retry_anonymisation_with_wildcard_pattern_retries_all_failed(
+    example_messages_df, rows_in_session
+):
+    """
+    GIVEN images that previously failed anonymisation for different reasons
+    WHEN the messages are re-imported with a `retry_anonymisation_pattern` of '.*'
+    THEN all previously failed images should be returned for reprocessing
+    """
+    extract = rows_in_session.query(Extract).one()
+    previously_skipped_image = (
+        rows_in_session.query(Image)
+        .filter(Image.extract == extract, Image.accession_number == "234")
+        .one()
+    )
+    previously_skipped_image.skip_reasons = {
+        "DICOM instance discarded as series has too few instances": 3
+    }
+    rows_in_session.commit()
+
+    output = filter_exported_or_skipped_or_add_to_db(
+        example_messages_df, retry_anonymisation_pattern=".*"
+    )
+
+    accession_numbers = output.accession_number.to_numpy()
+    assert "234" in accession_numbers
+    assert "345" in accession_numbers
+    assert "123" not in accession_numbers
+    assert len(output) == 2
