@@ -36,6 +36,7 @@ os.environ["PROJECT_CONFIGS_DIR"] = str(Path(__file__).parents[2] / "projects/co
 os.environ["ORTHANC_ANON_USERNAME"] = "orthanc_anon_username"
 os.environ["ORTHANC_ANON_PASSWORD"] = "orthanc_anon_password"
 os.environ["ORTHANC_ANON_URL"] = "http://orthanc-anon:8042"
+os.environ["OTEL_SDK_DISABLED"] = "true"
 
 TEST_DIR = Path(__file__).parent
 

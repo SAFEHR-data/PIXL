@@ -127,3 +127,77 @@ external services. We have a development keyvault for testing. Access to this ke
 by a set of environment variables specified in `test/.secrets.env.sample`.
 To run the pipeline locally, you will need to copy this file to `test/.secrets.env` and fill out
 the necessary values, which can be found in the `pixl-dev-secrets.env` shared LastPass note.
+
+## Observability
+
+PIXL can export structured logs to an
+[OpenTelemetry](https://opentelemetry.io/) (OTel) Collector. Observability is
+**opt-in**; all services run as normal without it.
+
+### Enabling OTel in PIXL
+
+PIXL exports telemetry via the OpenTelemetry Protocol (OTLP) and works with any
+OTel-compatible observability backend.
+
+To enable observability, set `OTEL_SDK_DISABLED` to `false` and define an `OTEL_EXPORTER_OTLP_ENDPOINT`
+in the `.env`. The endpoint be for the gRPC endpoint of an OTel collector, e.g.
+`localhost:4317` (4317 is the standard OTLP gRPC port).
+
+After starting the PIXL services, logs should start to appear in your
+collector's UI.
+
+### Disabling OTel
+
+Set `OTEL_SDK_DISABLED` to `true` to disable all telemetry. No other configuration is
+needed.
+
+### Adding context to logs
+
+To make logs filterable and to link related logs together (e.g. logs related
+given DICOM study), we attach structured *context fields* to them. Any field bound
+with loguru's `logger.contextualize()` or `logger.bind()` is exported as a
+top-level, queryable attribute on the OTel log record.
+
+When adding context:
+
+- Bind each field as soon as it is known, e.g. bind `pseudo_study_uid` as soon as
+  a study has been anonymised.
+- Bind fields at the start of a unit of work using `logger.contextualize(...)`.
+  For example, bind `study_uid` per study when iterating over studies, or
+  `orthanc_resource_id` when iterating over resources.
+- For a single log call, `logger.bind(...).info(...)` is preferable to the context manager.
+- Use the same field names across services so logs can be joined up
+- If a field has been pseudonymised, bind a new field prefixed with `pseudo_`, e.g.
+  `study_uid` becomes `pseudo_study_uid` after pseudonymisation
+
+### Adding metrics
+
+Custom metrics are defined centrally in [`core.metrics`](../../pixl_core/src/core/metrics.py).
+To add a new metric:
+
+1. Add a field for it on the `PixlMetrics` dataclass, and create the instrument
+   (e.g. a counter) in `initialise_metrics()`. Metric names use dots as
+   separators, e.g. `pixl.studies.exported`.
+2. Add a `record_*` helper that records a value on the instrument. Guard against
+   the instrument being `None` (it is unset when telemetry is disabled) and
+   return early if so.
+3. Call the `record_*` helper from the relevant service(s).
+
+You can pass `attributes` to the metric that can later be used for filtering and
+aggregation, e.g. `project_name`. It's highly recommended to keep attribute values
+**low-cardinality** - each distinct combination of attribute values creates a separate
+time series, so avoid unbounded values like raw IDs or full tracebacks.
+
+### RabbitMQ queue metrics
+
+The RabbitMQ Docker image includes a Prometheus endpoint that exposes queue backlog depth metrics.
+We use this to scrape queue depth metrics for each queue in the PIXL RabbitMQ broker, rather
+than manually defining a metric within PIXL. This does, however, require defining a scrape job in
+the [Prometheus configuration](../../test/prometheus.yaml) of the OTel Collector,
+although the configuration is fairly minimal.
+
+Because metrics are scraped from the Prometheus endpoint, they are independent of
+`OTEL_SDK_DISABLED`. This means queue metrics will always be collected whenever
+something is scraping the endpoint.
+
+Note, queue depth is per-queue only, and cannot be broken down by project.

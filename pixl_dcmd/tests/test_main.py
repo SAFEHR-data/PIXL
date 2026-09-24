@@ -41,6 +41,7 @@ from pixl_dcmd.dicom_helpers import get_study_info
 from pixl_dcmd.main import (
     anonymise_dicom_and_update_db,
     _anonymise_dicom_from_scheme,
+    _clean_dicom_image_pixels,
     anonymise_and_validate_dicom,
     anonymise_dicom,
     get_series_to_skip,
@@ -216,6 +217,76 @@ def test_anonymise_and_validate_as_external_user(
 
     assert validation_issues == {}
     assert dataset != pydicom.dcmread(dataset_path)
+
+
+def test_anonymise_with_clean_dicom_image_pixels(
+    ultrasound_project_config: PixlConfig,
+) -> None:
+    """
+    GIVEN an Ultrasound DICOM file containing burned-in pixel data
+    WHEN a deid recipe is applied
+    THEN the burned-in pixel data should be cleaned (masked to 0) from the DICOM
+       and standard DICOM anonymisation process should be applied
+
+    Note: test below examines first 20 rows of test dataset for ease of test implementation
+    """
+    dataset_path = pydicom.data.get_testdata_file("gdcm-US-ALOKA-16.dcm", download=True)
+    dataset = pydicom.dcmread(dataset_path)
+    original_pixel_region = dataset.pixel_array[:20, :]
+
+    # gather tags to check after anonymisation
+    orig_patient_id = dataset.PatientID
+    orig_patient_name = dataset.PatientName
+    orig_study_date = dataset.StudyDate
+
+    # check dataset contains burned-in pixel data
+    assert hasattr(dataset, "SequenceOfUltrasoundRegions")
+    assert hasattr(dataset.SequenceOfUltrasoundRegions[0], "RegionLocationMinX0")
+    assert hasattr(dataset.SequenceOfUltrasoundRegions[0], "RegionLocationMinY0")
+    assert hasattr(dataset.SequenceOfUltrasoundRegions[0], "RegionLocationMaxX1")
+    assert hasattr(dataset.SequenceOfUltrasoundRegions[0], "RegionLocationMaxY1")
+
+    anonymise_dicom(dataset, config=ultrasound_project_config)
+    cleaned_pixel_region = dataset.pixel_array[:20, :]
+
+    # check tag anonymisation
+    assert dataset.PatientID != orig_patient_id
+    assert dataset.PatientName != orig_patient_name
+    assert dataset.StudyDate != orig_study_date
+
+    # check DICOM cleaning masks burned-in pixel data to zero
+    compare_clean_region_with_original = original_pixel_region == cleaned_pixel_region
+    assert not np.all(compare_clean_region_with_original)
+
+    compare_clean_region_with_zeros = (
+        np.zeros_like(cleaned_pixel_region) == cleaned_pixel_region
+    )
+    assert np.all(compare_clean_region_with_zeros)
+
+
+def test_clean_dicom_image_pixels_encapsulates_compressed_pixel_data(
+    monkeypatch, ultrasound_project_config
+):
+    """
+    GIVEN a DICOM dataset with a compressed transfer syntax
+    WHEN pixel cleaning is applied
+    THEN the cleaned pixel data should be written back in encapsulated (fragmented) form
+       rather than as a raw, native pixel data byte string
+    """
+    dataset = generate_dicom_dataset(Modality="US")
+    dataset.file_meta.TransferSyntaxUID = pydicom.uid.JPEGBaseline8Bit
+
+    cleaned_pixels = np.zeros((2, 2), dtype=np.uint8)
+    monkeypatch.setattr(
+        "pixl_dcmd.main.has_burned_pixels", lambda *args, **kwargs: object()
+    )
+    monkeypatch.setattr(
+        "pixl_dcmd.main.clean_pixel_data", lambda *args, **kwargs: cleaned_pixels
+    )
+
+    _clean_dicom_image_pixels(dataset, ultrasound_project_config)
+
+    assert dataset.PixelData == pydicom.encaps.encapsulate([cleaned_pixels.tobytes()])
 
 
 @pytest.fixture

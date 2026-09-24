@@ -62,22 +62,27 @@ class Uploader(ABC):
         :raise: if the image has already been exported
         """
         study_tags = self._get_tags_by_study(study_id)
-        self.check_already_exported(study_tags.pseudo_anon_image_id)
+        with logger.contextualize(
+            project_name=self.project_slug,
+            pseudo_mrn=study_tags.patient_id,
+            pseudo_study_uid=study_tags.pseudo_anon_image_id,
+        ):
+            self.check_already_exported(study_tags.pseudo_anon_image_id)
 
-        logger.info(
-            "Starting {} upload of '{}' for {}",
-            self.__class__.__name__.removesuffix("Uploader"),
-            study_tags.pseudo_anon_image_id,
-            self.project_slug,
-        )
-        self._upload_dicom_image(study_id, study_tags)
-        logger.success(
-            "Finished {} upload of '{}'",
-            self.__class__.__name__.removesuffix("Uploader"),
-            study_tags.pseudo_anon_image_id,
-        )
+            logger.info(
+                "Starting {} upload of '{}' for {}",
+                self.__class__.__name__.removesuffix("Uploader"),
+                study_tags.pseudo_anon_image_id,
+                self.project_slug,
+            )
+            self._upload_dicom_image(study_id, study_tags)
+            logger.success(
+                "Finished {} upload of '{}'",
+                self.__class__.__name__.removesuffix("Uploader"),
+                study_tags.pseudo_anon_image_id,
+            )
 
-        update_exported_at(study_tags.pseudo_anon_image_id, datetime.now(tz=UTC))
+            update_exported_at(study_tags.pseudo_anon_image_id, datetime.now(tz=UTC))
 
     @abstractmethod
     def _upload_dicom_image(

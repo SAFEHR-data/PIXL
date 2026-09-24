@@ -18,28 +18,33 @@ from functools import lru_cache
 from io import BytesIO
 from zipfile import ZipFile
 
+import pydicom
 import requests
 from core.exceptions import PixlSkipInstanceError
-from core.project_config import load_tag_operations
+from core.project_config import (
+    load_image_operations,
+    load_tag_operations,
+)
+from core.project_config.pixl_config_model import PixlConfig
 from decouple import config
+from deid.config import DeidRecipe
+from deid.dicom.pixels import clean_pixel_data, has_burned_pixels
 from dicomanonymizer.simpledicomanonymizer import (
     ActionsMapNameFunctions,
     anonymize_dataset,
 )
 from loguru import logger
 from pydicom import DataElement, Dataset, dcmread, dcmwrite
-import pydicom
 
-from core.project_config.pixl_config_model import PixlConfig
 from pixl_dcmd._database import (
-    get_uniq_pseudo_study_uid_and_update_db,
     get_pseudo_patient_id_and_update_db,
+    get_uniq_pseudo_study_uid_and_update_db,
 )
+from pixl_dcmd._tag_schemes import _scheme_list_to_dict, merge_tag_schemes
 from pixl_dcmd.dicom_helpers import (
     DicomValidator,
     get_study_info,
 )
-from pixl_dcmd._tag_schemes import _scheme_list_to_dict, merge_tag_schemes
 
 if typing.TYPE_CHECKING:
     from pixl_dcmd.dicom_helpers import StudyInfo
@@ -159,13 +164,13 @@ def anonymise_and_validate_dicom(
     """
     # Set up Dicom validator and validate the original dataset
     dicom_validator = DicomValidator(edition="2024e")
-    dicom_validator.validate_original(dataset)
+    original_errors = dicom_validator.validate_original(dataset)
 
     anonymise_dicom(dataset, config=config)
 
     # Validate the anonymised dataset
-    validation_errors = dicom_validator.validate_anonymised(dataset)
-    return validation_errors
+    anon_errors = dicom_validator.validate_anonymised(dataset)
+    return dicom_validator.get_new_errors(original_errors, anon_errors)
 
 
 def anonymise_dicom(
@@ -184,7 +189,7 @@ def anonymise_dicom(
     """
 
     study_info = get_study_info(dataset)
-    logger.debug(
+    logger.trace(
         f"Processing instance for project {config.project.name}:  {study_info}"
     )
 
@@ -200,7 +205,11 @@ def anonymise_dicom(
         msg = f"Dropping DICOM Modality: {dataset.Modality}"
         raise PixlSkipInstanceError(msg)
 
-    logger.debug("Anonymising instance for: {}", study_info)
+    logger.trace("Anonymising instance for: {}", study_info)
+
+    # Apply any pixel cleaning prior to tag anonymisation
+    # Do before anonymisation as some tag operations may rely on pixel data (e.g. burned in pixel detection).
+    _clean_dicom_image_pixels(dataset, config)
 
     # Merge tag schemes
     tag_operations = load_tag_operations(config)
@@ -213,6 +222,50 @@ def anonymise_dicom(
 
     _enforce_allowlist(dataset, tag_scheme, recursive=True)
     _anonymise_dicom_from_scheme(dataset, config.project.name, tag_scheme)
+
+
+def _clean_dicom_image_pixels(
+    dataset: Dataset,
+    config: PixlConfig,
+) -> None:
+    """
+    Cleans DICOM image pixels in-place by:
+    - locating burned-in pixels based on coordinates within SequenceOfUltrasoundRegions (for US data) given by:
+        - RegionLocationMinX0
+        - RegionLocationMinY0
+        - RegionLocationMaxX1
+        - RegionLocationMaxY1
+    - see: https://deid.readthedocs.io/en/latest/_modules/deid/dicom/pixels/detect.html#extract_coordinates
+    - setting located pixels to zero
+
+    Requires:
+        - deid recipe file specified in PixlConfig
+
+    :param dataset: DICOM dataset to cleaned, updated in place
+    :param config: Project config to use for pixel cleaning
+    """
+    study_info = get_study_info(dataset)
+
+    image_operations = load_image_operations(config)
+    deid_recipe_path = image_operations.deid_recipes
+    deid_recipe = DeidRecipe(
+        deid_recipe_path
+    )  # current implementation permits only one recipe file
+
+    if not deid_recipe_path:
+        logger.trace(
+            "No deid recipe provided for pixel cleaning, skipping pixel cleaning."
+        )
+        return
+    logger.debug(f"Cleaning pixels for project {config.project.name}:  {study_info}")
+    burned_pixels = has_burned_pixels(dataset, deid=deid_recipe)
+    cleaned_pixels = clean_pixel_data(dicom_file=dataset, results=burned_pixels)
+
+    pixel_bytes = cleaned_pixels.tobytes()
+    if dataset.file_meta.TransferSyntaxUID.is_compressed:
+        dataset.PixelData = pydicom.encaps.encapsulate([pixel_bytes])
+    else:
+        dataset.PixelData = pixel_bytes
 
 
 def _anonymise_dicom_from_scheme(
@@ -277,7 +330,7 @@ def _secure_hash(
 
     if tag in dataset:
         message = f"Securely hashing: (0x{grp:04x},0x{el:04x})"
-        logger.debug(f"\t{message}")
+        logger.trace(message)
         if dataset[grp, el].VR == "LO":
             pat_value = str(dataset[grp, el].value)
             hashed_value = _hash_values(pat_value, project_slug, hash_len=64)

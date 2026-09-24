@@ -17,16 +17,17 @@ from __future__ import annotations
 
 import json
 import os
-import sys
 from pathlib import Path
 from typing import Any
 
 import click
 import requests
 from core.exports import ParquetExport
-from core.patient_queue.producer import PixlProducer
+from core.queue.producer import PixlProducer
+from core.telemetry import configure_logging, configure_tracing, telemetry_is_enabled
 from decouple import RepositoryEnv, UndefinedValueError
 from loguru import logger
+from opentelemetry.instrumentation.pika import PikaInstrumentor
 
 from pixl_cli._config import (
     HOST_EXPORT_ROOT_DIR,
@@ -51,13 +52,35 @@ from pixl_cli._message_processing import (
 os.environ["NO_PROXY"] = os.environ["no_proxy"] = "localhost"
 
 
+def _configure_telemetry(logging_level: str) -> None:
+    """
+    Set the OTel environment variables needed by the CLI.
+
+    OTel is configured via environment variables, but the CLI gets its config from a .env in
+    the current working directory.
+
+    Load the config and set the relevant environment variables.
+    """
+    configure_logging(level=logging_level)
+
+    if not telemetry_is_enabled():
+        return
+
+    os.environ["OTEL_SDK_DISABLED"] = "false"
+    os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = config("OTEL_EXPORTER_OTLP_ENDPOINT")
+    os.environ["OTEL_SERVICE_NAME"] = "pixl-cli"
+    os.environ["OTEL_RESOURCE_ATTRIBUTES"] = "service.namespace=pixl"
+
+    configure_tracing()
+    PikaInstrumentor().instrument()
+
+
 @click.group()
 @click.option("--debug/--no-debug", default=False)
 def cli(*, debug: bool) -> None:
     """PIXL command line interface"""
-    logging_level = "INFO" if not debug else "DEBUG"
-    logger.remove()  # Remove all handlers
-    logger.add(sys.stderr, level=logging_level)
+    logging_level = "DEBUG" if debug else "INFO"
+    _configure_telemetry(logging_level=logging_level)
 
 
 cli.add_command(dc)
@@ -151,7 +174,8 @@ def populate(  # noqa: PLR0913 - too many args
             │   ├── PERSON_LINKS.parquet
             │   └── PROCEDURE_OCCURRENCE_LINKS.parquet
             ├── public
-            │   └── PROCEDURE_OCCURRENCE.parquet
+            │   └── omop
+            │       └── PROCEDURE_OCCURRENCE.parquet
             └── extract_summary.json
         Or the structure will be from a set of parquet arrow datasets, with multiple parts:
             PARQUET-DIR
@@ -160,9 +184,11 @@ def populate(  # noqa: PLR0913 - too many args
             |   │   └── part-*.parquet
             │   └── procedure_occurrence_links
             |       └── part-*.parquet
-            ├── public
-            │   └── procedure_occurrence
-            |       └── part-*.parquet
+            └── public
+                └── omop
+                    └── procedure_occurrence
+                        └── part-*.parquet
+                └── custom
             └── extract_summary.json
     """
     queues_to_populate = queues.split(",")

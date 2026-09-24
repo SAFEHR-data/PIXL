@@ -25,6 +25,7 @@ from pixl_dcmd._database import (
     get_unexported_image,
     get_uniq_pseudo_study_uid_and_update_db,
     get_pseudo_patient_id_and_update_db,
+    record_skip_reasons_for_study,
 )
 from pixl_dcmd.dicom_helpers import StudyInfo
 from sqlalchemy.orm import Session
@@ -168,6 +169,24 @@ def test_get_pseudo_patient_id_and_update_db(rows_for_database_testing, db_sessi
     )
     result = get_unexported_image(TEST_PROJECT_SLUG, PSEUDO_IDS_STUDY.input, db_session)
     assert result.pseudo_patient_id == PSEUDO_IDS_STUDY.db.pseudo_patient_id
+
+
+def test_record_skip_reasons_for_study(rows_for_database_testing, db_session):
+    """
+    GIVEN an existing, unexported image
+    WHEN record_skip_reasons_for_study is called with a mapping of skip reasons to counts
+    THEN the image record should be updated with those skip reasons.
+    """
+    skip_reasons = {"Instance discarded due to its manufacturer": 3}
+
+    record_skip_reasons_for_study(
+        TEST_PROJECT_SLUG, UNPROCESSED_STUDY.input, skip_reasons
+    )
+
+    result = get_unexported_image(
+        TEST_PROJECT_SLUG, UNPROCESSED_STUDY.input, db_session
+    )
+    assert result.skip_reasons == skip_reasons
 
 
 def test_get_unexported_image_fallback(rows_for_database_testing, db_session):

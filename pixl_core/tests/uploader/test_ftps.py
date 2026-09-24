@@ -144,7 +144,7 @@ def test_upload_parquet(parquet_export, ftps_home_dir, ftps_uploader) -> None:
     dc = filecmp.dircmp(parquet_export.current_extract_base, expected_public_parquet_dir)
     dc.report_full_closure()
     assert (
-        expected_public_parquet_dir / "omop" / "public" / "PROCEDURE_OCCURRENCE.parquet"
+        expected_public_parquet_dir / "omop" / "public" / "omop" / "PROCEDURE_OCCURRENCE.parquet"
     ).exists()
     assert (expected_public_parquet_dir / "radiology" / "IMAGE_LINKER.parquet").exists()
 

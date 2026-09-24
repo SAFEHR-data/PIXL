@@ -18,11 +18,12 @@ from __future__ import annotations
 
 import importlib
 import json
+import tempfile
 from pathlib import Path
 from typing import Any
 
 import numpy as np
-from pydicom import Sequence
+from pydicom import Sequence, dcmread
 from pydicom.datadict import dictionary_has_tag
 from pydicom.dataset import Dataset, FileMetaDataset
 
@@ -45,10 +46,10 @@ def write_volume(filename_pattern: str) -> None:
     variables = json.loads(dicom_variables_path.open("r").read())
     rng = np.random.default_rng(0)
     for i, slice_info in enumerate(variables):
-        slice_info["pixel_data"] = rng.random(size=(256, 256))
+        slice_info["pixel_data"] = (rng.random(size=(256, 256)) * 65535).astype(np.uint16)
         ds = generate_dicom_dataset(slice_info)
         file_name = filename_pattern.format(slice=i)
-        ds.save_as(file_name, write_like_original=False)
+        ds.save_as(file_name, enforce_file_format=True)
 
 
 TAGS_DICT = {
@@ -72,6 +73,7 @@ MODALITY_TO_CLASS_UID = {
     "RTDOSE": "1.2.840.10008.5.1.4.1.1.481.2",
     "RTSTRUCT": "1.2.840.10008.5.1.4.1.1.481.3",
     "RTPLAN": "1.2.840.10008.5.1.4.1.1.481.5",
+    "US": "1.2.840.10008.5.1.4.1.1.6.1",
 }
 
 
@@ -99,7 +101,7 @@ def generate_dicom_dataset(tag_values: dict = TAGS_DICT, **kwargs: Any) -> Datas
     pixel_data = tag_values["pixel_data"]
 
     if pixel_data is None:
-        pixel_data = np.zeros((256, 256))
+        pixel_data = np.zeros((256, 256), dtype=np.uint16)
 
     ds = _generate_default_dicom_dataset()
     ds.InstanceCreationTime = instance_creation_time
@@ -126,7 +128,12 @@ def generate_dicom_dataset(tag_values: dict = TAGS_DICT, **kwargs: Any) -> Datas
     if "Modality" in kwargs and "SOPClassUID" not in kwargs:
         ds.SOPClassUID = MODALITY_TO_CLASS_UID[kwargs["Modality"]]
 
-    return ds
+    # Convert Dataset to FileDataset
+    # Note: required for image operations using deid which requires FileDataset
+    with tempfile.NamedTemporaryFile(suffix=".dcm") as tmp:
+        # a from_json dataset has no transfer syntax, so state the encoding here
+        ds.save_as(tmp.name, enforce_file_format=True, implicit_vr=True, little_endian=True)
+        return dcmread(tmp.name)
 
 
 def _generate_default_dicom_dataset() -> Dataset:
@@ -138,11 +145,7 @@ def _generate_default_dicom_dataset() -> Dataset:
         "data/default_dicom_tags.json"
     )
     variables = json.loads(default_variables_path.open("r").read())
-    ds = Dataset.from_json(variables)
-    # Not sure why these weren't carried over to the JSON
-    ds.is_implicit_VR = True
-    ds.is_little_endian = True
-    return ds
+    return Dataset.from_json(variables)
 
 
 def _create_default_json(json_file: Path) -> None:  # noqa: PLR0915 (too many statements)
@@ -153,7 +156,7 @@ def _create_default_json(json_file: Path) -> None:  # noqa: PLR0915 (too many st
 
     :param json_file: The path to save the JSON file to.
     """
-    pixel_data = np.zeros((256, 256))
+    pixel_data = np.zeros((256, 256), dtype=np.uint16)
 
     # File meta info data elements
     file_meta = FileMetaDataset()
@@ -402,8 +405,6 @@ def _create_default_json(json_file: Path) -> None:  # noqa: PLR0915 (too many st
     ds.PixelData = pixel_data.tobytes()
 
     ds.file_meta = file_meta
-    ds.is_implicit_VR = True
-    ds.is_little_endian = True
 
     # Export as JSON dictionary
     with Path(json_file, encoding="utf-8").open("w") as f:

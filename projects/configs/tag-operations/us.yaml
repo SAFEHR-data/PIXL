@@ -1,0 +1,70 @@
+#  Copyright (c) University College London Hospitals NHS Foundation Trust
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
+- name: Device Serial Number
+  group: 0x0018
+  element: 0x1000
+  op: keep
+- name: Software Versions
+  group: 0x0018
+  element: 0x1020
+  op: keep
+- name: Sequence of Ultrasound Regions
+  group: 0x0018
+  element: 0x6011
+  op: keep
+- name: Region Spatial Format
+  group: 0x0018
+  element: 0x6012
+  op: keep
+- name: Region Data Type
+  group: 0x0018
+  element: 0x6014
+  op: keep
+- name: Region Flags
+  group: 0x0018
+  element: 0x6016
+  op: keep
+- name: Region Location Min X0
+  group: 0x0018
+  element: 0x6018
+  op: keep
+- name: Region Location Min Y0
+  group: 0x0018
+  element: 0x601A
+  op: keep
+- name: Region Location Max X1
+  group: 0x0018
+  element: 0x601C
+  op: keep
+- name: Region Location Max Y1
+  group: 0x0018
+  element: 0x601E
+  op: keep
+- name: Physical Units X Direction
+  group: 0x0018
+  element: 0x6024
+  op: keep
+- name: Physical Units Y Direction
+  group: 0x0018
+  element: 0x6026
+  op: keep
+- name: Physical Delta X
+  group: 0x0018
+  element: 0x602C
+  op: keep
+- name: Physical Delta Y
+  group: 0x0018
+  element: 0x602E
+  op: keep

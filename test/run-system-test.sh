@@ -60,7 +60,7 @@ else
     fi
     # Run the tests
     setup
-    pytest "${PYTEST_FLAGS[@]}"
+    uv run pytest "${PYTEST_FLAGS[@]}"
     echo FINISHED PYTEST COMMAND
     teardown
     echo SYSTEM TEST SUCCESSFUL

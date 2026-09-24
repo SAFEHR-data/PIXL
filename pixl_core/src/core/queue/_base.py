@@ -50,6 +50,10 @@ class PixlQueueInterface:
         self._channel: Any = None
         self._queue: Any = None
 
+    @property
+    def _url(self) -> str:
+        return f"amqp://{self._username}:{self._password}@{self._host}:{self._port}/"
+
 
 class PixlBlockingInterface(PixlQueueInterface):
     def __enter__(self) -> Any:

@@ -1,0 +1,19 @@
+FORMAT dicom
+
+### Image clean-up
+
+%filter whitelist
+
+LABEL Marked as Clean Catch All
+  contains BurnedInAnnotation No
+
+%filter graylist
+
+# Coordinates from fields
+
+LABEL Blank Image
+    coordinates all
+
+LABEL Clean Ultrasound Regions
+    present SequenceOfUltrasoundRegions
+    keepcoordinates from:SequenceOfUltrasoundRegions

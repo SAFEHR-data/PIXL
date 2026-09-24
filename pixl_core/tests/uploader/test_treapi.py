@@ -274,10 +274,10 @@ class TestUtilityFunctions:
         """Test zip archive creation with directory structure."""
         # Arrange
         test_files = self._create_test_files(tmp_path)
-        zip_filename = str(tmp_path / "dir_structure.zip")
+        zip_path = tmp_path / "dir_structure.zip"
 
         # Act
-        zip_path = _create_zip_archive(test_files, self.root_dir, zip_filename)
+        _create_zip_archive(test_files, self.root_dir, zip_path)
 
         # Assert
         assert zip_path.exists()
@@ -299,10 +299,10 @@ class TestUtilityFunctions:
     def test_create_zip_archive_empty_files(self, tmp_path) -> None:
         """Test zip archive creation with empty file list."""
         # Arrange
-        zip_filename = str(tmp_path / "empty.zip")
+        zip_path = tmp_path / "empty.zip"
 
         # Act
-        zip_path = _create_zip_archive([], "root", zip_filename)
+        _create_zip_archive([], "root", zip_path)
 
         # Assert
         assert zip_path.exists()

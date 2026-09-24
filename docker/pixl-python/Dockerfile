@@ -11,7 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-FROM python:3.13.6-slim-bullseye@sha256:e98b521460ee75bca92175c16247bdf7275637a8faaeb2bcfa19d879ae5c4b9a AS pixl_python_base
+FROM python:3.13.15-slim-trixie@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285 AS pixl_python_base
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 
 ARG TEST="false"
@@ -66,12 +66,12 @@ RUN --mount=type=cache,target=/root/.cache/uv,sharing=locked uv sync --package "
 # make uvicorn etc available
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Each container should be run with a different entry point
+# Each container should be run with a different entry point.
 FROM pixl_python_base AS export_api
-ENTRYPOINT ["uvicorn", "pixl_export.main:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["opentelemetry-instrument", "uvicorn", "pixl_export.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
 FROM pixl_python_base AS hasher_api
-ENTRYPOINT ["uvicorn", "hasher.main:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["opentelemetry-instrument", "uvicorn", "hasher.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
 FROM pixl_python_base AS imaging_api
 ENTRYPOINT ["/app/pixl_imaging/scripts/migrate_and_run.sh"]

@@ -21,11 +21,12 @@ This module provides:
 from __future__ import annotations
 
 import os
-import sys
 from typing import TYPE_CHECKING
 
+from core.telemetry import configure_logging, configure_tracing
 from decouple import config
 from loguru import logger
+from opentelemetry import trace
 from pixl_dcmd.tagrecording import record_dicom_headers
 
 import orthanc
@@ -34,11 +35,12 @@ if TYPE_CHECKING:
     from typing import Any
 
 # Set up logging as main entry point
-logger.remove()  # Remove all handlers added so far, including the default one.
-logging_level = config("LOG_LEVEL")
-if not logging_level:
-    logging_level = "INFO"
-logger.add(sys.stdout, level=logging_level)
+logging_level = config("LOG_LEVEL", default="INFO")
+configure_logging(level=logging_level)
+
+# Set up tracing to correlate traces and logs
+configure_tracing()
+tracer = trace.get_tracer("pixl.orthanc_raw")
 
 logger.warning("Running logging at level {}", logging_level)
 
@@ -52,7 +54,8 @@ def OnHeartBeat(output, uri, **request):  # noqa: ARG001
 def ReceivedInstanceCallback(receivedDicom: bytes, origin: str) -> Any:  # noqa: ARG001
     """Optionally record headers from the received DICOM instance."""
     if should_record_headers():
-        record_dicom_headers(receivedDicom)
+        with tracer.start_as_current_span(name="record_dicom_headers"):
+            record_dicom_headers(receivedDicom)
     return orthanc.ReceivedInstanceAction.KEEP_AS_IS, None
 
 

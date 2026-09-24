@@ -30,6 +30,10 @@ os.environ["PIXL_DB_PORT"] = "7001"
 os.environ["PIXL_DB_USER"] = "pixl_db_username"
 os.environ["PIXL_DB_PASSWORD"] = "pixl_db_password"
 os.environ["PIXL_DB_NAME"] = "pixl"
+os.environ["OTEL_SDK_DISABLED"] = "false"
+os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = "http://localhost:4317"
+os.environ["OTEL_RESOURCE_ATTRIBUTES"] = "service.namespace=pixl"
+os.environ["OTEL_SERVICE_NAME"] = "pixl-cli"
 
 import pytest
 import requests
@@ -138,8 +142,8 @@ def _upload_dicom_instance(dicom_dir: Path, **kwargs: Any) -> None:
         dicom_dir
         / f"{kwargs['PatientID']}_{kwargs['AccessionNumber']}_{kwargs['SeriesDescription']}.dcm"
     )
-    ds.save_as(str(test_dcm_file), write_like_original=False)
     # I think we can skip writing to disk!
+    ds.save_as(str(test_dcm_file), enforce_file_format=True)
     _upload_to_vna(test_dcm_file)
 
 
