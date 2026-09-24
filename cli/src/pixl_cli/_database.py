@@ -128,7 +128,7 @@ def _filter_exported_or_skipped_messages(
     )
     not_previously_skipped = merged["skip_reasons"].isna()
     if retry_anonymisation is not None:
-        not_previously_skipped |= merged["skip_reasons"].apply(
+        not_previously_skipped = not_previously_skipped | merged["skip_reasons"].apply(
             _skip_reasons_match_pattern, pattern=retry_anonymisation
         )
     keep_indices = (merged["exported_at"].isna() & not_previously_skipped).to_numpy()
