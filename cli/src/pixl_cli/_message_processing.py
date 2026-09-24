@@ -63,6 +63,7 @@ def retry_until_export_count_is_unchanged(
     num_retries: int,
     queues_to_populate: list[str],
     messages_priority: int,
+    retry_anonymisation: str | None = None,
 ) -> None:
     """Retry populating messages until there is no change in the number of exported studies."""
     last_exported_count = 0
@@ -109,7 +110,12 @@ def retry_until_export_count_is_unchanged(
             num_retries,
         )
         last_exported_count = new_last_exported_count
-        populate_queue_and_db(queues_to_populate, messages_df, messages_priority=messages_priority)
+        populate_queue_and_db(
+            queues_to_populate,
+            messages_df,
+            messages_priority=messages_priority,
+            retry_anonymisation=retry_anonymisation,
+        )
 
 
 def _wait_for_queues_to_empty(queues_to_populate: list[str]) -> None:
@@ -140,11 +146,17 @@ def _message_count(queues_to_populate: list[str]) -> int:
 
 
 def populate_queue_and_db(
-    queues: list[str], messages_df: pd.DataFrame, messages_priority: int
+    queues: list[str],
+    messages_df: pd.DataFrame,
+    messages_priority: int,
+    retry_anonymisation: str | None = None,
 ) -> list[ImagingRequestMessage]:
     """
     Populate queues with messages,
     for imaging queue update the database and filter out exported or skipped studies.
+
+    :param retry_anonymisation: if set, previously skipped images are re-queued
+        when at least one of their recorded skip reasons matches this regex pattern
     """
     output_messages = []
     for queue in queues:
@@ -154,7 +166,7 @@ def populate_queue_and_db(
             logger.info(
                 "Filtering out exported or skipped images and uploading new ones to the database"
             )
-            messages_df = filter_exported_or_skipped_or_add_to_db(messages_df)
+            messages_df = filter_exported_or_skipped_or_add_to_db(messages_df, retry_anonymisation)
 
         messages = messages_from_df(messages_df)
         with PixlProducer(queue_name=queue, **SERVICE_SETTINGS["rabbitmq"]) as producer:

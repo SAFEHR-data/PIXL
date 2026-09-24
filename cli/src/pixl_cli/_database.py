@@ -14,6 +14,7 @@
 
 """Interaction with the PIXL database."""
 
+import re
 from typing import cast
 
 import pandas as pd
@@ -37,19 +38,23 @@ url = URL.create(
 engine = create_engine(url)
 
 
-def filter_exported_or_skipped_or_add_to_db(messages_df: pd.DataFrame) -> pd.DataFrame:
+def filter_exported_or_skipped_or_add_to_db(
+    messages_df: pd.DataFrame, retry_anonymisation: str | None = None
+) -> pd.DataFrame:
     """
     Filter exported or skipped images for multiple projects, and adds missing
     extract and images to database.
 
     :param messages: Initial messages to filter if they already exist
+    :param retry_anonymisation: if set, previously skipped images are not filtered
+        out when at least one of their recorded skip reasons matches this regex pattern
     :return DataFrame of messages that have not been exported or skipped
     """
     PixlSession = sessionmaker(engine)
     with PixlSession() as pixl_session, pixl_session.begin():
         messages_dfs = [
             _filter_exported_or_skipped_or_add_to_db_for_project(
-                pixl_session, project_messages_df, project_slug
+                pixl_session, project_messages_df, project_slug, retry_anonymisation
             )
             for project_slug, project_messages_df in messages_df.groupby("project_name")
         ]
@@ -57,7 +62,10 @@ def filter_exported_or_skipped_or_add_to_db(messages_df: pd.DataFrame) -> pd.Dat
 
 
 def _filter_exported_or_skipped_or_add_to_db_for_project(
-    session: Session, messages_df: pd.DataFrame, project_slug: str
+    session: Session,
+    messages_df: pd.DataFrame,
+    project_slug: str,
+    retry_anonymisation: str | None = None,
 ) -> pd.DataFrame:
     """
     Filter exported or skipped images for this project, and adds missing extract and images
@@ -66,13 +74,17 @@ def _filter_exported_or_skipped_or_add_to_db_for_project(
     :param session: SQLAlchemy session
     :param messages: Initial messages to filter if they already exist
     :param project_slug: project slug to query on
+    :param retry_anonymisation: if set, previously skipped images are not filtered
+        out when at least one of their recorded skip reasons matches this regex pattern
     :return DataFrame of messages that have not been exported or skipped for this project
     """
     extract = session.query(Extract).filter(Extract.slug == project_slug).one_or_none()
     if extract:
         db_images_df = all_images_for_project(project_slug)
         missing_images_df = _filter_existing_images(messages_df, db_images_df)
-        messages_df = _filter_exported_or_skipped_messages(messages_df, db_images_df)
+        messages_df = _filter_exported_or_skipped_messages(
+            messages_df, db_images_df, retry_anonymisation
+        )
     else:
         # We need to add the extract to the database and retrive it again so
         # we can access extract.extract_id (needed by session.bulk_save_objects(images))
@@ -100,10 +112,12 @@ def _filter_existing_images(
 def _filter_exported_or_skipped_messages(
     messages_df: pd.DataFrame,
     images_df: pd.DataFrame,
+    retry_anonymisation: str | None = None,
 ) -> pd.DataFrame:
     """
     Exclude messages already exported, or that were previously skipped
-    (e.g. due to failed anonymisation).
+    (e.g. due to failed anonymisation), unless a skip reason matches
+    ``retry_anonymisation``.
     """
     merged = messages_df.merge(
         images_df,
@@ -112,8 +126,20 @@ def _filter_exported_or_skipped_messages(
         validate="one_to_one",
         suffixes=(None, None),
     )
-    keep_indices = (merged["exported_at"].isna() & merged["skip_reasons"].isna()).to_numpy()
+    not_previously_skipped = merged["skip_reasons"].isna()
+    if retry_anonymisation is not None:
+        not_previously_skipped = not_previously_skipped | merged["skip_reasons"].apply(
+            _skip_reasons_match_pattern, pattern=retry_anonymisation
+        )
+    keep_indices = (merged["exported_at"].isna() & not_previously_skipped).to_numpy()
     return merged[keep_indices][messages_df.columns]
+
+
+def _skip_reasons_match_pattern(skip_reasons: dict[str, int] | None, pattern: str) -> bool:
+    """Whether any recorded skip reason matches the given regex pattern."""
+    if not isinstance(skip_reasons, dict):
+        return False
+    return any(re.search(pattern, reason) for reason in skip_reasons)
 
 
 def _add_images_to_session(extract: Extract, images_df: pd.DataFrame, session: Session) -> None:

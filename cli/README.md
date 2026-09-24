@@ -177,6 +177,25 @@ pixl populate --priority 5 <path/to/file.csv>
 
 `priority` must be an integer between 1 and 5, with 5 being the highest priority.
 
+### Retrying failed anonymisation
+
+Images that fail anonymisation are recorded in the database with the reason(s) they were
+skipped, and are excluded from future `pixl populate` runs by default.
+
+To retry images that previously failed anonymisation, use the `--retry-anonymisation` argument
+with a regex pattern matched against the recorded skip reason(s):
+
+```bash
+pixl populate --retry-anonymisation 'Modality: CT' <path/to/file.csv>
+```
+
+Only images with a matching skip reason are re-queued; images skipped for other reasons remain
+excluded. To retry all previously failed images, use `.*` as the pattern:
+
+```bash
+pixl populate --retry-anonymisation '.*' <path/to/file.csv>
+```
+
 ## Development
 ### Help commands
 The CLI is created using [click](https://click.palletsprojects.com/en/8.0.x/). To see which commands
