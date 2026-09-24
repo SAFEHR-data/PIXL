@@ -22,6 +22,7 @@ import shlex
 from typing import TYPE_CHECKING
 
 import pytest
+import pytest_asyncio
 from core.exceptions import PixlDiscardError, PixlOutOfHoursError, PixlStudyNotInPrimaryArchiveError
 from core.queue.models import ImagingRequestMessage
 from decouple import config
@@ -263,7 +264,7 @@ def _add_image_to_fake_pacs(run_containers) -> Generator[None]:
     pathlib.Path(image_filename).unlink(missing_ok=True)
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def orthanc_raw(run_containers) -> PIXLRawOrthanc:
     """Set up orthanc raw and remove all studies in teardown."""
     orthanc_raw = PIXLRawOrthanc()
@@ -286,28 +287,26 @@ async def test_image_saved(orthanc_raw, message: ImagingRequestMessage) -> None:
     """
     study = ImagingStudy.from_message(message)
 
-    orthanc = await orthanc_raw
-
-    assert not await study.query_local(orthanc, query_level=study.query_level)
+    assert not await study.query_local(orthanc_raw, query_level=study.query_level)
     await process_message(message, archive=DicomModality.primary)
 
-    studies = await study.query_local(orthanc, query_level=study.query_level)
+    studies = await study.query_local(orthanc_raw, query_level=study.query_level)
     assert len(studies) == 1
 
-    study_info = await orthanc._get(f"/studies/{studies[0]}")
+    study_info = await orthanc_raw._get(f"/studies/{studies[0]}")
     with check:
         assert study_info["MainDicomTags"]["AccessionNumber"] == ACCESSION_NUMBER
         assert study_info["PatientMainDicomTags"]["PatientID"] == PATIENT_ID
         assert study_info["MainDicomTags"]["StudyInstanceUID"] == STUDY_UID
 
-    series_info = await orthanc._get(f"/series/{study_info['Series'][0]}")
+    series_info = await orthanc_raw._get(f"/series/{study_info['Series'][0]}")
     with check:
         assert series_info["MainDicomTags"]["SeriesInstanceUID"] in (
             SERIES_UID,
             SERIES_UID_2,
         )
 
-    instance_info = await orthanc._get(f"/instances/{series_info['Instances'][0]}")
+    instance_info = await orthanc_raw._get(f"/instances/{series_info['Instances'][0]}")
     with check:
         assert instance_info["MainDicomTags"]["SOPInstanceUID"] in (
             SOP_INSTANCE_UID,
@@ -327,15 +326,14 @@ async def test_message_with_series_uids(
     Then Orthanc Raw will contain both series from the study.
     """
     study = ImagingStudy.from_message(message_with_series_uids)
-    orthanc = await orthanc_raw
 
-    assert not await study.query_local(orthanc, query_level="Study")
+    assert not await study.query_local(orthanc_raw, query_level="Study")
     await process_message(message_with_series_uids, archive=DicomModality.primary)
 
-    studies = await study.query_local(orthanc, query_level="Study")
+    studies = await study.query_local(orthanc_raw, query_level="Study")
     assert len(studies) == 1
 
-    study_info = await orthanc._get(f"/studies/{studies[0]}")
+    study_info = await orthanc_raw._get(f"/studies/{studies[0]}")
     with check:
         assert study_info["MainDicomTags"]["AccessionNumber"] == ACCESSION_NUMBER
         assert study_info["PatientMainDicomTags"]["PatientID"] == PATIENT_ID
@@ -344,7 +342,7 @@ async def test_message_with_series_uids(
     assert len(study_info["Series"]) == 2
 
     for series in study_info["Series"]:
-        series_info = await orthanc._get(f"/series/{series}")
+        series_info = await orthanc_raw._get(f"/series/{series}")
         with check:
             assert series_info["MainDicomTags"]["SeriesInstanceUID"] in (
                 SERIES_UID,
@@ -364,15 +362,14 @@ async def test_message_with_one_series_uid(
     Then Orthanc Raw will contain only the series included in the message.
     """
     study = ImagingStudy.from_message(message_with_single_series_uid)
-    orthanc = await orthanc_raw
 
-    assert not await study.query_local(orthanc, query_level="Study")
+    assert not await study.query_local(orthanc_raw, query_level="Study")
     await process_message(message_with_single_series_uid, archive=DicomModality.primary)
 
-    studies = await study.query_local(orthanc, query_level="Study")
+    studies = await study.query_local(orthanc_raw, query_level="Study")
     assert len(studies) == 1
 
-    study_info = await orthanc._get(f"/studies/{studies[0]}")
+    study_info = await orthanc_raw._get(f"/studies/{studies[0]}")
     with check:
         assert study_info["MainDicomTags"]["AccessionNumber"] == ACCESSION_NUMBER
         assert study_info["PatientMainDicomTags"]["PatientID"] == PATIENT_ID
@@ -380,7 +377,7 @@ async def test_message_with_one_series_uid(
 
     assert len(study_info["Series"]) == 1
 
-    series_info = await orthanc._get(f"/series/{study_info['Series'][0]}")
+    series_info = await orthanc_raw._get(f"/series/{study_info['Series'][0]}")
     with check:
         assert series_info["MainDicomTags"]["SeriesInstanceUID"] == SERIES_UID
 
@@ -397,27 +394,25 @@ async def test_partial_retrieve(orthanc_raw, message: ImagingRequestMessage, cap
     """
     study = ImagingStudy.from_message(message)
 
-    orthanc = await orthanc_raw
-
-    assert not await study.query_local(orthanc, query_level=study.query_level)
+    assert not await study.query_local(orthanc_raw, query_level=study.query_level)
     await process_message(message, archive=DicomModality.primary)
-    assert await study.query_local(orthanc, query_level=study.query_level)
+    assert await study.query_local(orthanc_raw, query_level=study.query_level)
 
-    all_instances = await orthanc._get("/instances")
+    all_instances = await orthanc_raw._get("/instances")
     assert len(all_instances) == 2
 
     instance_info = {}
 
     with check:
         for instance in all_instances:
-            instance_info = await orthanc._get(f"/instances/{instance}")
+            instance_info = await orthanc_raw._get(f"/instances/{instance}")
             sop_instance_uid = instance_info["MainDicomTags"]["SOPInstanceUID"]
             assert sop_instance_uid in (SOP_INSTANCE_UID, SOP_INSTANCE_UID_2)
 
-    await orthanc.delete(f"/instances/{instance_info['ID']}")
+    await orthanc_raw.delete(f"/instances/{instance_info['ID']}")
 
     await process_message(message, archive=DicomModality.primary)
-    all_instances = await orthanc._get("/instances")
+    all_instances = await orthanc_raw._get("/instances")
     assert len(all_instances) == 2
 
     expected_msg = (
@@ -437,39 +432,38 @@ async def test_existing_message_sent_twice(orthanc_raw, message: ImagingRequestM
     Then orthanc raw will contain the new image, and it isn't updated on the second processing
     """
     study = ImagingStudy.from_message(message)
-    orthanc = await orthanc_raw
 
     await process_message(message, archive=DicomModality.primary)
-    assert await study.query_local(orthanc, query_level=study.query_level)
+    assert await study.query_local(orthanc_raw, query_level=study.query_level)
 
     query_for_update_time = {**study.orthanc_query_dict, "Expand": True}
-    first_processing_resource = await orthanc.query_local(query_for_update_time)
+    first_processing_resource = await orthanc_raw.query_local(query_for_update_time)
     assert len(first_processing_resource) == 1
 
     await process_message(message, archive=DicomModality.primary)
-    second_processing_resource = await orthanc.query_local(query_for_update_time)
+    second_processing_resource = await orthanc_raw.query_local(query_for_update_time)
     assert len(second_processing_resource) == 1
 
     # Check update time hasn't changed
     assert first_processing_resource[0]["LastUpdate"] == second_processing_resource[0]["LastUpdate"]
 
-    studies = await study.query_local(orthanc, query_level=study.query_level)
+    studies = await study.query_local(orthanc_raw, query_level=study.query_level)
     assert len(studies) == 1
 
-    study_info = await orthanc._get(f"/studies/{studies[0]}")
+    study_info = await orthanc_raw._get(f"/studies/{studies[0]}")
     with check:
         assert study_info["MainDicomTags"]["AccessionNumber"] == ACCESSION_NUMBER
         assert study_info["PatientMainDicomTags"]["PatientID"] == PATIENT_ID
         assert study_info["MainDicomTags"]["StudyInstanceUID"] == STUDY_UID
 
-    series_info = await orthanc._get(f"/series/{study_info['Series'][0]}")
+    series_info = await orthanc_raw._get(f"/series/{study_info['Series'][0]}")
     with check:
         assert series_info["MainDicomTags"]["SeriesInstanceUID"] in (
             SERIES_UID,
             SERIES_UID_2,
         )
 
-    instance_info = await orthanc._get(f"/instances/{series_info['Instances'][0]}")
+    instance_info = await orthanc_raw._get(f"/instances/{series_info['Instances'][0]}")
     with check:
         assert instance_info["MainDicomTags"]["SOPInstanceUID"] in (
             SOP_INSTANCE_UID,
@@ -489,11 +483,10 @@ async def test_querying_without_uid(
     Then the querying falls back to using the MRN and accession number
     """
     study = ImagingStudy.from_message(no_uid_message)
-    orthanc = await orthanc_raw
 
-    assert not await study.query_local(orthanc, query_level=study.query_level)
+    assert not await study.query_local(orthanc_raw, query_level=study.query_level)
     await process_message(no_uid_message, archive=DicomModality.primary)
-    assert await study.query_local(orthanc, query_level=study.query_level)
+    assert await study.query_local(orthanc_raw, query_level=study.query_level)
 
     expected_msg = (
         f"No study found in modality UCPRIMARYQR with UID '{study.message.study_uid}', "
@@ -532,9 +525,8 @@ async def test_querying_pacs_with_uid(
     Then the querying finds the study in PACS with the study_uid
     """
     study = ImagingStudy.from_message(pacs_message)
-    orthanc = await orthanc_raw
 
-    assert not await study.query_local(orthanc, query_level=study.query_level)
+    assert not await study.query_local(orthanc_raw, query_level=study.query_level)
 
     # PACS is not queried during the daytime nor at the weekend.
     # Set today to be a Monday at 2 am.
@@ -545,7 +537,7 @@ async def test_querying_pacs_with_uid(
             await process_message(pacs_message, archive=DicomModality.primary)
         await process_message(pacs_message, archive=DicomModality.secondary)
 
-    assert await study.query_local(orthanc, query_level=study.query_level)
+    assert await study.query_local(orthanc_raw, query_level=study.query_level)
 
     expected_msg = (
         f"No study found in modality UCPRIMARYQR with UID '{study.message.study_uid}', "
@@ -572,9 +564,8 @@ async def test_querying_pacs_without_uid(
     Then the querying falls back to using the MRN and accession number and finds the study in PACS
     """
     study = ImagingStudy.from_message(pacs_no_uid_message)
-    orthanc = await orthanc_raw
 
-    assert not await study.query_local(orthanc, query_level=study.query_level)
+    assert not await study.query_local(orthanc_raw, query_level=study.query_level)
 
     # PACS is not queried during the daytime nor at the weekend.
     # Set today to be a Monday at 2 am.
@@ -585,7 +576,7 @@ async def test_querying_pacs_without_uid(
             await process_message(pacs_no_uid_message, archive=DicomModality.primary)
         await process_message(pacs_no_uid_message, archive=DicomModality.secondary)
 
-    assert await study.query_local(orthanc, query_level=study.query_level)
+    assert await study.query_local(orthanc_raw, query_level=study.query_level)
 
     expected_msg = "No study found in modality UCPRIMARYQR with UID"
     assert expected_msg in caplog.text
@@ -608,9 +599,8 @@ async def test_querying_missing_image(
     Then the querying tries both the VNA and PACS and raises a PixlDiscardError
     """
     study = ImagingStudy.from_message(missing_message)
-    orthanc = await orthanc_raw
 
-    assert not await study.query_local(orthanc, query_level=study.query_level)
+    assert not await study.query_local(orthanc_raw, query_level=study.query_level)
 
     # PACS is not queried during the daytime nor at the weekend.
     # Set today to be a Monday at 2 am.
@@ -644,9 +634,8 @@ async def test_querying_pacs_during_working_hours(
     Then the querying tries only the VNA and raises a PixlDiscardError
     """
     study = ImagingStudy.from_message(missing_message)
-    orthanc = await orthanc_raw
 
-    assert not await study.query_local(orthanc, query_level=study.query_level)
+    assert not await study.query_local(orthanc_raw, query_level=study.query_level)
 
     match = "Not querying secondary archive during the daytime or on the weekend."
     with monkeypatch.context() as mp, pytest.raises(PixlOutOfHoursError, match=match):  # noqa: PT012
@@ -666,9 +655,8 @@ async def test_querying_pacs_not_defined(
     Then the querying tries the VNA and then raises a PixlDiscardError
     """
     study = ImagingStudy.from_message(missing_message)
-    orthanc = await orthanc_raw
 
-    assert not await study.query_local(orthanc, query_level=study.query_level)
+    assert not await study.query_local(orthanc_raw, query_level=study.query_level)
 
     match = (
         "Failed to find study .* in primary archive "
