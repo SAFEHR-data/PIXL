@@ -22,6 +22,7 @@ import shlex
 from typing import TYPE_CHECKING
 
 import pytest
+import pytest_asyncio
 from core.exceptions import PixlDiscardError, PixlOutOfHoursError, PixlStudyNotInPrimaryArchiveError
 from core.queue.models import ImagingRequestMessage
 from decouple import config
@@ -263,7 +264,7 @@ def _add_image_to_fake_pacs(run_containers) -> Generator[None]:
     pathlib.Path(image_filename).unlink(missing_ok=True)
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def orthanc_raw(run_containers) -> PIXLRawOrthanc:
     """Set up orthanc raw and remove all studies in teardown."""
     orthanc_raw = PIXLRawOrthanc()
