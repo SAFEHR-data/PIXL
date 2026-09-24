@@ -21,6 +21,7 @@ This module:
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import threading
@@ -32,6 +33,7 @@ from time import sleep
 from typing import TYPE_CHECKING, cast
 from zipfile import ZipFile
 
+import aio_pika
 import pydicom
 import requests
 from core.exceptions import PixlDiscardError, PixlSkipInstanceError
@@ -40,13 +42,14 @@ from core.metrics import (
     record_study_deidentification_failure,
 )
 from core.project_config.pixl_config_model import load_project_config
+from core.queue.subscriber import AnonymisationPixlConsumer
 from core.telemetry import configure_logging, configure_metrics, configure_tracing
 from decouple import config
 from loguru import logger
 from opentelemetry import trace
+from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 from opentelemetry.instrumentation.requests import RequestsInstrumentor
 from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
-from opentelemetry.propagate import extract
 from pixl_dcmd._database import engine as pixl_db_engine
 from pixl_dcmd._database import record_skip_reasons_for_study
 from pixl_dcmd.dicom_helpers import get_study_info
@@ -65,6 +68,7 @@ if TYPE_CHECKING:
     from typing import Any
 
     from core.project_config.pixl_config_model import PixlConfig
+    from core.queue.models import AnonymisationMessage
     from opentelemetry.context import Context
     from pixl_dcmd.dicom_helpers import StudyInfo
 
@@ -88,6 +92,10 @@ configure_logging(level=logging_level)
 configure_tracing()
 SQLAlchemyInstrumentor().instrument(engine=pixl_db_engine)
 RequestsInstrumentor().instrument()
+# orthanc-anon runs as a plugin inside Orthanc rather than via `opentelemetry-instrument`,
+# so aio-pika isn't auto-instrumented and we need to do it explicitly to pick up the trace
+# context propagated from the message publisher.
+AioPikaInstrumentor().instrument()
 tracer = trace.get_tracer("pixl.orthanc_anon")
 
 configure_metrics()
@@ -231,34 +239,70 @@ def OnHeartBeat(output, uri, **request) -> Any:  # noqa: ARG001
     output.AnswerBuffer("OK\n", "text/plain")
 
 
-def ImportStudiesFromRaw(output, uri, **request):  # noqa: ARG001
+async def process_anonymisation_message(
+    message: AnonymisationMessage, parent_context: Context
+) -> None:
     """
     Import studies from Orthanc Raw.
 
-    Offload to a thread pool executor to avoid blocking the Orthanc main thread.
+    Offload to the thread pool executor, so we don't block the event loop from consuming
+    further messages, but await completion so the message is only acked by
+    AnonymisationPixlConsumer once processing has actually finished.
+
+    :param parent_context: Trace context extracted from the queue message headers by
+        AnonymisationPixlConsumer, to continue the trace from the message's publisher.
     """
-    payload = json.loads(request["body"])
-    study_resource_ids = payload["ResourceIDs"]
-    study_uids = payload["StudyInstanceUIDs"]
-    series_to_keep = payload["SeriesInstanceUIDs"]
-    project_name = payload["ProjectName"]
-
-    # Extract the trace context injected into the request headers by the caller, and pass it to
-    # the thread pool job so the import continues the same trace
-    headers = {key.lower(): value for key, value in request.get("headers", {}).items()}
-    parent_context = extract(headers)
-
-    executor.submit(
+    loop = asyncio.get_running_loop()
+    await loop.run_in_executor(
+        executor,
         _import_studies_from_raw,
-        study_resource_ids,
-        study_uids,
-        project_name,
-        series_to_keep,
+        message.resource_ids,
+        message.study_uids,
+        message.project_name,
+        message.series_uids,
         parent_context,
     )
 
-    response = json.dumps({"Message": "Ok"})
-    output.AnswerBuffer(response, "application/json")
+
+RABBITMQ_RECONNECT_DELAY_SECONDS = 5
+
+
+async def consume_anonymisation_queue() -> None:
+    """
+    Consume anonymisation requests from RabbitMQ and submit them for processing.
+
+    Runs for the lifetime of the process. Once connected, aio_pika's robust connection
+    automatically reconnects (and re-registers the consumer) if RabbitMQ becomes
+    unavailable, so we only need to retry here if the initial connection attempt fails
+    (e.g. RabbitMQ not quite ready yet at startup).
+    """
+    while True:
+        try:
+            async with AnonymisationPixlConsumer(
+                queue_name="anonymisation",
+                callback=process_anonymisation_message,
+            ) as consumer:
+                await consumer.run()
+                # Keep this coroutine (and so the event loop) alive for the lifetime of
+                # the process, since messages are delivered via the running loop.
+                await asyncio.Event().wait()
+        except aio_pika.exceptions.AMQPConnectionError:
+            logger.exception(
+                "Anonymisation consumer failed to connect to RabbitMQ; retrying in {} seconds",
+                RABBITMQ_RECONNECT_DELAY_SECONDS,
+            )
+            await asyncio.sleep(RABBITMQ_RECONNECT_DELAY_SECONDS)
+
+
+def _run_anonymisation_consumer() -> None:
+    asyncio.run(consume_anonymisation_queue())
+
+
+consumer_thread = threading.Thread(
+    target=_run_anonymisation_consumer,
+    daemon=True,
+)
+consumer_thread.start()
 
 
 def _import_studies_from_raw(
@@ -266,7 +310,7 @@ def _import_studies_from_raw(
     study_uids: list[str],
     project_name: str,
     series_to_keep: list[str],
-    parent_context: Context | None = None,
+    parent_context: Context,
 ) -> None:
     """
     Import studies from Orthanc Raw.
@@ -596,4 +640,3 @@ def notify_export_api_of_readiness(study_id: str, project_name: str) -> None:
 
 orthanc.RegisterOnChangeCallback(OnChange)
 orthanc.RegisterRestCallback("/heart-beat", OnHeartBeat)
-orthanc.RegisterRestCallback("/import-from-raw", ImportStudiesFromRaw)
