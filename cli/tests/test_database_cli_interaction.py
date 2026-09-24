@@ -121,7 +121,7 @@ def test_reimport_of_previously_skipped_image(example_messages_df, rows_in_sessi
 def test_retry_anonymisation_with_matching_pattern(example_messages_df, rows_in_session):
     """
     GIVEN an image that previously failed anonymisation with a recorded skip reason
-    WHEN the messages are re-imported with a `retry_anonymisation_pattern` matching
+    WHEN the messages are re-imported with a `retry_anonymisation` matching
         that skip reason
     THEN the image should be returned for reprocessing
     """
@@ -135,7 +135,7 @@ def test_retry_anonymisation_with_matching_pattern(example_messages_df, rows_in_
     rows_in_session.commit()
 
     output = filter_exported_or_skipped_or_add_to_db(
-        example_messages_df, retry_anonymisation_pattern="Modality: CT"
+        example_messages_df, retry_anonymisation="Modality: CT"
     )
 
     accession_numbers = output.accession_number.to_numpy()
@@ -148,7 +148,7 @@ def test_retry_anonymisation_with_matching_pattern(example_messages_df, rows_in_
 def test_retry_anonymisation_with_non_matching_pattern(example_messages_df, rows_in_session):
     """
     GIVEN an image that previously failed anonymisation with a recorded skip reason
-    WHEN the messages are re-imported with a `retry_anonymisation_pattern` that doesn't
+    WHEN the messages are re-imported with a `retry_anonymisation` that doesn't
         match that skip reason
     THEN the image should still be excluded from reprocessing
     """
@@ -162,7 +162,7 @@ def test_retry_anonymisation_with_non_matching_pattern(example_messages_df, rows
     rows_in_session.commit()
 
     output = filter_exported_or_skipped_or_add_to_db(
-        example_messages_df, retry_anonymisation_pattern="Modality: MR"
+        example_messages_df, retry_anonymisation="Modality: MR"
     )
 
     accession_numbers = output.accession_number.to_numpy()
@@ -176,7 +176,7 @@ def test_retry_anonymisation_with_wildcard_pattern_retries_all_failed(
 ):
     """
     GIVEN images that previously failed anonymisation for different reasons
-    WHEN the messages are re-imported with a `retry_anonymisation_pattern` of '.*'
+    WHEN the messages are re-imported with a `retry_anonymisation` of '.*'
     THEN all previously failed images should be returned for reprocessing
     """
     extract = rows_in_session.query(Extract).one()
@@ -190,9 +190,7 @@ def test_retry_anonymisation_with_wildcard_pattern_retries_all_failed(
     }
     rows_in_session.commit()
 
-    output = filter_exported_or_skipped_or_add_to_db(
-        example_messages_df, retry_anonymisation_pattern=".*"
-    )
+    output = filter_exported_or_skipped_or_add_to_db(example_messages_df, retry_anonymisation=".*")
 
     accession_numbers = output.accession_number.to_numpy()
     assert "234" in accession_numbers
