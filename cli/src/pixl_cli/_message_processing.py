@@ -20,9 +20,9 @@ from typing import TYPE_CHECKING
 
 import pandas as pd
 import tqdm
-from core.patient_queue._base import PixlBlockingInterface
-from core.patient_queue.message import Message
-from core.patient_queue.producer import PixlProducer
+from core.queue._base import PixlBlockingInterface
+from core.queue.models import ImagingRequestMessage
+from core.queue.producer import PixlProducer
 from decouple import config
 from loguru import logger
 
@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 
 def messages_from_df(
     df: pd.DataFrame,
-) -> list[Message]:
+) -> list[ImagingRequestMessage]:
     """
     Reads patient information from a DataFrame and transforms that into messages.
 
@@ -43,7 +43,7 @@ def messages_from_df(
     """
     messages = []
     for _, row in df.iterrows():
-        message = Message(
+        message = ImagingRequestMessage(
             mrn=row["mrn"],
             accession_number=row["accession_number"],
             study_uid=row["study_uid"],
@@ -129,6 +129,8 @@ def _message_count(queues_to_populate: list[str]) -> int:
     if "imaging-primary" in queues_to_populate:
         queues_to_count.add("imaging-secondary")
 
+    queues_to_count.add("anonymisation")
+
     messages_in_queues = 0
     for queue in queues_to_count:
         with PixlBlockingInterface(queue_name=queue, **SERVICE_SETTINGS["rabbitmq"]) as rabbitmq:
@@ -139,7 +141,7 @@ def _message_count(queues_to_populate: list[str]) -> int:
 
 def populate_queue_and_db(
     queues: list[str], messages_df: pd.DataFrame, messages_priority: int
-) -> list[Message]:
+) -> list[ImagingRequestMessage]:
     """
     Populate queues with messages,
     for imaging queue update the database and filter out exported or skipped studies.

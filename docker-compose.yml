@@ -100,6 +100,9 @@ services:
             args:
                 PIXL_PACKAGE_DIR: hasher
                 <<: *build-args-common
+        depends_on:
+            queue:
+                condition: service_healthy
         environment:
             <<: [*proxy-common, *pixl-common-env, *otel-common]
             OTEL_SERVICE_NAME: "hasher-api"
@@ -145,6 +148,7 @@ services:
                     *pixl-common-env,
                     *azure-keyvault,
                     *otel-common,
+                    *pixl-rabbit-mq,
                 ]
             OTEL_SERVICE_NAME: "orthanc-anon"
             ORTHANC_NAME: "PIXL: Anon"
@@ -193,13 +197,15 @@ services:
         depends_on:
             postgres:
                 condition: service_healthy
+            queue:
+                condition: service_healthy
         healthcheck:
             test:
                 [
                     "CMD-SHELL",
                     "/probes/test-aliveness.py --user=$ORTHANC_USERNAME --pwd=$ORTHANC_PASSWORD",
                 ]
-            start_period: 10s
+            start_period: 90s
             retries: 10
             interval: 3s
             timeout: 2s
@@ -258,7 +264,7 @@ services:
                     "CMD-SHELL",
                     "/probes/test-aliveness.py --user=$ORTHANC_USERNAME --pwd=$ORTHANC_PASSWORD",
                 ]
-            start_period: 10s
+            start_period: 90s
             retries: 10
             interval: 3s
             timeout: 2s

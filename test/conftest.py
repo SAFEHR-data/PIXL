@@ -142,8 +142,8 @@ def _upload_dicom_instance(dicom_dir: Path, **kwargs: Any) -> None:
         dicom_dir
         / f"{kwargs['PatientID']}_{kwargs['AccessionNumber']}_{kwargs['SeriesDescription']}.dcm"
     )
-    ds.save_as(str(test_dcm_file), write_like_original=False)
     # I think we can skip writing to disk!
+    ds.save_as(str(test_dcm_file), enforce_file_format=True)
     _upload_to_vna(test_dcm_file)
 
 

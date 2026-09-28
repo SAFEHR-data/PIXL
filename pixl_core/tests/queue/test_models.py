@@ -13,11 +13,11 @@
 #  limitations under the License.
 from __future__ import annotations
 
-from core.patient_queue.message import deserialise
+from core.queue.models import deserialise
 
 
-def test_serialise(mock_message) -> None:
-    """Checks that messages can be correctly serialised"""
+def test_serialise_imagingrequests(mock_message) -> None:
+    """Checks that imaging request messages can be correctly serialised"""
     msg_body = mock_message.serialise(deserialisable=False)
     assert (
         msg_body == b'{"mrn": "111", "accession_number": "123", "study_uid": "1.2.3", '
@@ -29,7 +29,24 @@ def test_serialise(mock_message) -> None:
     )
 
 
+def test_serialise_anon(mock_anon_message) -> None:
+    """Checks that anon messages can be correctly serialised"""
+    msg_body = mock_anon_message.serialise(deserialisable=False)
+    assert (
+        msg_body == b'{"resource_ids": ["resource-1", "resource-2"], '
+        b'"study_uids": ["1.2.3", "4.5.6"], '
+        b'"series_uids": ["1.2.3.1", "1.2.3.2"], '
+        b'"project_name": "test project"}'
+    )
+
+
 def test_deserialise(mock_message) -> None:
     """Checks if deserialised messages are the same as the original"""
     serialised_msg = mock_message.serialise()
     assert deserialise(serialised_msg) == mock_message
+
+
+def test_deserialise_anon(mock_anon_message) -> None:
+    """Checks if deserialised anon messages are the same as the original"""
+    serialised_msg = mock_anon_message.serialise()
+    assert deserialise(serialised_msg) == mock_anon_message

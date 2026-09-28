@@ -18,7 +18,8 @@ from __future__ import annotations
 import asyncio
 import importlib.metadata
 
-from core.patient_queue.subscriber import PixlConsumer
+from core.queue.models import ImagingRequestMessage
+from core.queue.subscriber import PixlConsumer
 from core.rest_api.router import router, state
 from core.telemetry import configure_logging
 from decouple import config
@@ -55,13 +56,13 @@ async def startup_event() -> None:
     """
     background_tasks = set()
     async with (
-        PixlConsumer(
+        PixlConsumer[ImagingRequestMessage](
             QUEUE_NAME,
             token_bucket=state.token_bucket,
             token_bucket_key="primary",  # noqa: S106
             callback=lambda message: process_message(message, archive=DicomModality.primary),
         ) as primary_consumer,
-        PixlConsumer(
+        PixlConsumer[ImagingRequestMessage](
             SECONDARY_QUEUE_NAME,
             token_bucket=state.token_bucket,
             token_bucket_key="secondary",  # noqa: S106

@@ -19,7 +19,6 @@ import threading
 import typing
 from contextlib import contextmanager, redirect_stdout
 from dataclasses import dataclass
-import logging
 from io import StringIO
 from pathlib import Path
 from typing import Generator
@@ -27,8 +26,22 @@ from typing import Generator
 from loguru import logger
 
 from dicom_validator.spec_reader.edition_reader import EditionReader
+from dicom_validator.tag_tools import tag_name_from_id
+from dicom_validator.validator.error_handler import (
+    NullValidationResultHandler,
+    ValidationResultFormatter,
+)
 from dicom_validator.validator.iod_validator import IODValidator
+from dicom_validator.validator.validation_result import (
+    DicomTag,
+    ModuleErrors,
+    Status,
+    TagError,
+    ValidationResult,
+)
 from pydicom import Dataset
+
+from core.exceptions import PixlSkipInstanceError
 
 if typing.TYPE_CHECKING:
     from loguru import Logger
@@ -42,42 +55,115 @@ class DicomValidator:
         standard_path = str(Path.home() / "dicom-validator")
         with _redirect_stdout_to_debug(logger):
             edition_reader = EditionReader(standard_path)
-            destination = edition_reader.get_revision(self.edition, False)
-        json_path = Path(destination, "json")
-        self.dicom_info = EditionReader.load_dicom_info(json_path)
+            self.dicom_info = edition_reader.dicom_info_for_edition(self.edition)
 
-    def validate_original(self, dataset: Dataset) -> None:
-        self.original_errors = IODValidator(
+        # Used to format errors introduced by de-identification
+        self.formatter = ValidationResultFormatter(self.dicom_info.dictionary)
+
+    def _validate(self, dataset: Dataset) -> ValidationResult:
+        """Validate a pydicom Dataset using dicom-validator."""
+        return IODValidator(
             dataset,
             self.dicom_info,
-            log_level=logging.ERROR,
+            error_handler=NullValidationResultHandler(),
         ).validate()
 
-    def validate_anonymised(self, dataset: Dataset) -> dict:
-        # Check that the original dataset has been validated
-        try:
-            orig_errors = self.original_errors
-        except AttributeError:
-            raise ValueError("Original dataset not yet validated")
+    def _describe_error(self, tag: DicomTag, error: TagError) -> str:
+        tag_name = tag_name_from_id(tag.tag, self.dicom_info.dictionary)
+        return f"Tag {tag_name}{self.formatter.error_message(error)}"
 
-        self.anon_errors = IODValidator(
-            dataset,
-            self.dicom_info,
-            log_level=logging.ERROR,
-        ).validate()
-        self.diff_errors: dict = {}
+    def validate_original(self, dataset: Dataset) -> ModuleErrors | None:
+        """Check pre-existing validation errors in a dataset.
 
-        for key in self.anon_errors.keys():
-            if key in self.original_errors.keys():
-                # Keep only errors introduced after the anonymisation
-                # The keys of the dictionary containt the actual errors
-                diff = set(self.anon_errors[key].keys()) - set(orig_errors[key].keys())
-                if diff:
-                    self.diff_errors[key] = diff
+        Returns:
+            module_errors: pre-existing validation errors, keyed by module
+                name then DICOM tag, or None if dicom-validator could not
+                validate the dataset at all (e.g. missing or unrecognised
+                SOP Class UID).
+        """
+        result = self._validate(dataset)
+        if result.status not in (Status.Passed, Status.Failed):
+            logger.warning(
+                "Cannot check for pre-existing validation errors. "
+                "dicom-validator returned status: {}",
+                result.status,
+            )
+            return None
+
+        return result.module_errors
+
+    def validate_anonymised(self, dataset: Dataset) -> ModuleErrors:
+        """Validate an anonymised dataset.
+
+        Args:
+            dataset: the anonymised dataset to validate.
+
+        Returns:
+            module_errors: all validation errors found in the anonymised
+                dataset, keyed by module name then DICOM tag. Use
+                get_new_errors to determine which of these were introduced
+                by anonymisation.
+
+        Raises:
+            PixlSkipInstanceError: If dicom-validator could not validate the
+                anonymised dataset at all (e.g. missing SOP Class UID).
+        """
+        result = self._validate(dataset)
+        if result.status not in (Status.Passed, Status.Failed):
+            msg = (
+                "Cannot validate the anonymised dataset. "
+                f"dicom-validator returned status: {result.status}"
+            )
+            raise PixlSkipInstanceError(msg)
+        return result.module_errors
+
+    def get_new_errors(
+        self, original_errors: ModuleErrors | None, anon_errors: ModuleErrors
+    ) -> dict[str, set[str]]:
+        """Compare validation errors before and after anonymisation.
+
+        Args:
+            original_errors: module_errors returned by validate_original for
+                the dataset before anonymisation, or None if the dataset
+                hasn't been validated for pre-existing errors.
+            anon_errors: module_errors returned by validate_anonymised for
+                the dataset after anonymisation.
+
+        Returns:
+            new_errors: human-readable errors introduced by anonymisation,
+                keyed by module name. If original_errors is None, all errors
+                found after anonymisation are returned, as it's not possible
+                to tell which of them pre-existed.
+        """
+        if original_errors is None:
+            logger.warning(
+                "Cannot determine whether validation errors were introduced by "
+                "anonymisation, as the original dataset was not validated. "
+                "Errors found after anonymisation: {}",
+                anon_errors,
+            )
+            original_errors = ModuleErrors()
+
+        diff_errors: dict[str, set[str]] = {}
+        for module_name, anon_tag_errors in anon_errors.items():
+            if module_name in original_errors:
+                # keep tags with new errors or errors that have changed
+                original_tag_errors = original_errors[module_name]
+                new_tag_errors = {
+                    tag: error
+                    for tag, error in anon_tag_errors.items()
+                    if (tag, error) not in original_tag_errors.items()
+                }
             else:
-                self.diff_errors[key] = self.anon_errors[key]
+                new_tag_errors = anon_tag_errors
 
-        return self.diff_errors
+            if new_tag_errors:
+                diff_errors[module_name] = {
+                    self._describe_error(tag, error)
+                    for tag, error in new_tag_errors.items()
+                }
+
+        return diff_errors
 
 
 thread_local = threading.local()
@@ -97,7 +183,7 @@ def _redirect_stdout_to_debug(_logger: Logger) -> Generator[None, None, None]:
     thread_local.stdout.seek(0)
     output = thread_local.stdout.readlines()
     for line in output:
-        _logger.debug(line.strip())
+        _logger.trace(line.strip())
 
 
 @dataclass
