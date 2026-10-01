@@ -57,6 +57,7 @@ def test_no_retry_if_none_exported(example_messages_df, db_session, mock_publish
         example_messages_df,
         num_retries=5,
         queues_to_populate=["imaging-primary"],
+        queues_to_wait_for=["imaging-primary", "imaging-secondary", "anonymisation"],
         messages_priority=1,
     )
 
@@ -78,10 +79,14 @@ def test_retry_with_image_exported_and_no_change(
         example_messages_df,
         num_retries=5,
         queues_to_populate=["imaging-primary"],
+        queues_to_wait_for=["imaging-primary", "imaging-secondary", "anonymisation"],
         messages_priority=1,
     )
 
     mock_publisher.assert_called_once()
+    producer_init = PixlProducer.__init__
+    producer_init.assert_called_once()
+    assert producer_init.call_args.kwargs["queue_name"] == "imaging-primary"
 
 
 @pytest.mark.usefixtures("_zero_message_count")
@@ -99,29 +104,34 @@ def test_retry_with_image_exported_and_no_change_multiple_projects(
         example_messages_multiple_projects_df,
         num_retries=5,
         queues_to_populate=["imaging-primary"],
+        queues_to_wait_for=["imaging-primary", "imaging-secondary", "anonymisation"],
         messages_priority=1,
     )
 
     mock_publisher.assert_called_once()
+    
+    producer_init = PixlProducer.__init__
+    producer_init.assert_called_once()
+    assert producer_init.call_args.kwargs["queue_name"] == "imaging-primary"
 
 
-def test_message_count_includes_anonymisation(mocker) -> None:
-    """Checks that the anonymisation queue is included when counting messages."""
+def test_message_count_counts_only_the_given_queues(mocker) -> None:
+    """Checks that message counting does not add queues beyond those requested."""
     mock_rabbitmq = Mock()
-    mock_rabbitmq.message_count = 0
+    mock_rabbitmq.message_count = 1
 
     mock_interface = mocker.patch("pixl_cli._message_processing.PixlBlockingInterface")
     mock_interface.return_value.__enter__.return_value = mock_rabbitmq
 
-    _message_count(["imaging-primary"])
+    assert _message_count(["imaging-primary"]) == 1
+    queues_called = [call.kwargs["queue_name"] for call in mock_interface.call_args_list] 
+    
+    assert queues_called == ["imaging-primary"]
 
-    queue_names = {call.kwargs["queue_name"] for call in mock_interface.call_args_list}
-
-    assert queue_names == {
-        "imaging-primary",
-        "imaging-secondary",
-        "anonymisation",
-    }
+    mock_interface.reset_mock()
+    drain_queues = ["imaging-primary", "imaging-secondary", "anonymisation"]
+    _message_count(drain_queues)
+    assert [call.kwargs["queue_name"] for call in mock_interface.call_args_list] == drain_queues
 
 
 @pytest.mark.asyncio
