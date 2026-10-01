@@ -15,6 +15,6 @@
 
 from __future__ import annotations
 
-from .subscriber import PixlConsumer
+from .subscriber import AnonymisationPixlConsumer, PixlConsumer
 
-__all__ = ["PixlConsumer"]
+__all__ = ["AnonymisationPixlConsumer", "PixlConsumer"]

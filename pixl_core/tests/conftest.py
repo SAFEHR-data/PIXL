@@ -19,6 +19,7 @@ import pathlib
 import shlex
 from pathlib import Path
 from typing import TYPE_CHECKING
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 import requests
@@ -36,11 +37,12 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from core.db.models import Base, Extract, Image
 from core.logging import OTelSink
-from core.patient_queue.message import Message
+from core.queue.models import AnonymisationMessage, ImagingRequestMessage
+from core.queue.subscriber import AnonymisationPixlConsumer
 
 if TYPE_CHECKING:
     import subprocess
-    from collections.abc import Generator
+    from collections.abc import Callable, Generator
 
 pytest_plugins = "pytest_pixl"
 
@@ -220,9 +222,9 @@ def export_dir(tmp_path_factory: pytest.TempPathFactory) -> pathlib.Path:
 
 
 @pytest.fixture
-def mock_message() -> Message:
+def mock_message() -> ImagingRequestMessage:
     """An example Message used for testing"""
-    return Message(
+    return ImagingRequestMessage(
         mrn="111",
         accession_number="123",
         study_uid="1.2.3",
@@ -234,6 +236,41 @@ def mock_message() -> Message:
             "Dec 7 2023 2:08PM", "%b %d %Y %I:%M%p"
         ).replace(tzinfo=datetime.UTC),
     )
+
+
+@pytest.fixture
+def mock_anon_message() -> AnonymisationMessage:
+    """An example AnonymisationMessage used for testing"""
+    return AnonymisationMessage(
+        resource_ids=["resource-1", "resource-2"],
+        study_uids=["1.2.3", "4.5.6"],
+        series_uids=["1.2.3.1", "1.2.3.2"],
+        project_name="test project",
+    )
+
+
+@pytest.fixture
+def mock_incoming_message() -> Callable[..., Mock]:
+    """Factory for a mock aio_pika incoming message with async ack/nack/reject."""
+
+    def _make(body: bytes, priority: int = 1) -> Mock:
+        message = Mock(body=body, priority=priority)
+        message.reject = AsyncMock()
+        message.ack = AsyncMock()
+        message.nack = AsyncMock()
+        return message
+
+    return _make
+
+
+@pytest.fixture
+def anon_consumer() -> Callable[..., AnonymisationPixlConsumer]:
+    """Factory for an AnonymisationPixlConsumer, without connecting to a broker."""
+
+    def _make(queue_name: str, callback: Mock) -> AnonymisationPixlConsumer:
+        return AnonymisationPixlConsumer(queue_name=queue_name, callback=callback)
+
+    return _make
 
 
 @pytest.fixture
