@@ -120,13 +120,6 @@ def check_env(*, error: bool, sample_env_file: Path) -> None:
     "parquet-path", required=True, type=click.Path(path_type=Path, exists=True, file_okay=True)
 )
 @click.option(
-    "--queues",
-    default="imaging-primary",
-    show_default=True,
-    help="Comma seperated list of queues to populate with messages generated from the "
-    "input file(s)",
-)
-@click.option(
     "--start/--no-start",
     "start_processing",
     show_default=True,
@@ -154,17 +147,21 @@ def check_env(*, error: bool, sample_env_file: Path) -> None:
     default=1,
     help="Priority of the messages, from 1 (lowest) to 5 (highest)",
 )
-def populate(  # noqa: PLR0913 - too many args
+def populate(
     parquet_path: Path,
     *,
-    queues: str,
     rate: float | None,
     num_retries: int,
     start_processing: bool,
     priority: int,
 ) -> None:
     """
-    Populate a (set of) queue(s) from a parquet file directory or a set of parquet datasets.
+    Populate the imaging-primary queue from a parquet file directory or a set of parquet datasets.
+
+    Studies missing from the primary archive are forwarded to imaging-secondary by the imaging
+    consumer. Retries wait until imaging-primary, imaging-secondary, and anonymisation are empty
+    before republishing to imaging-primary.
+
     PARQUET_DIR: Directory containing the public and private parquet input files and an
         extract_summary.json log file.
         It's expected that the directory structure will be:
@@ -191,9 +188,11 @@ def populate(  # noqa: PLR0913 - too many args
                 └── custom
             └── extract_summary.json
     """
-    queues_to_populate = queues.split(",")
+    queues_to_populate = ["imaging-primary"]
+    queues_to_rate_limit = ["imaging-primary", "imaging-secondary"]
+    queues_to_wait_for = ["imaging-primary", "imaging-secondary", "anonymisation"]
     if start_processing:
-        _start_or_update_extract(queues=queues_to_populate, rate=rate)
+        _start_or_update_extract(queues=queues_to_rate_limit, rate=rate)
     else:
         logger.info("Starting to process messages disabled, setting `--num-retries` to 0")
         num_retries = 0
@@ -204,7 +203,11 @@ def populate(  # noqa: PLR0913 - too many args
     populate_queue_and_db(queues_to_populate, messages_df, messages_priority=priority)
     if num_retries != 0:
         retry_until_export_count_is_unchanged(
-            messages_df, num_retries, queues_to_populate, messages_priority=priority
+            messages_df,
+            num_retries,
+            queues_to_populate,
+            queues_to_wait_for,
+            messages_priority=priority,
         )
 
 

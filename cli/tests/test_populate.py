@@ -44,9 +44,7 @@ class MockProducer(PixlProducer):
         return
 
 
-def test_populate_queue_parquet(
-    monkeypatch, omop_resources: Path, queue_name: str = "test_populate"
-) -> None:
+def test_populate_queue_parquet(monkeypatch, omop_resources: Path) -> None:
     """Checks that patient queue can be populated without error."""
     omop_parquet_dir = str(omop_resources / "omop")
     runner = CliRunner()
@@ -55,14 +53,12 @@ def test_populate_queue_parquet(
 
     result = runner.invoke(
         populate,
-        args=[omop_parquet_dir, "--queues", queue_name, "--no-start", "--num-retries", "0"],
+        args=[omop_parquet_dir, "--no-start", "--num-retries", "0"],
     )
     assert result.exit_code == 0
 
 
-def test_populate_queue_and_start(
-    mocker, monkeypatch, omop_resources: Path, queue_name: str = "test_populate"
-) -> None:
+def test_populate_queue_and_start(mocker, monkeypatch, omop_resources: Path) -> None:
     """Checks that patient queue can be populated without error."""
     omop_parquet_dir = str(omop_resources / "omop")
     runner = CliRunner()
@@ -72,13 +68,11 @@ def test_populate_queue_and_start(
 
     result = runner.invoke(
         populate,
-        args=[omop_parquet_dir, "--queues", queue_name, "--no-start", "--num-retries", "0"],
+        args=[omop_parquet_dir, "--no-start", "--num-retries", "0"],
     )
     assert result.exit_code == 0
     mocked_start.assert_not_called()
 
-    result = runner.invoke(
-        populate, args=[omop_parquet_dir, "--queues", queue_name, "--num-retries", "0"]
-    )
+    result = runner.invoke(populate, args=[omop_parquet_dir, "--num-retries", "0"])
     assert result.exit_code == 0
-    mocked_start.assert_called_with(queues=queue_name.split(","), rate=None)
+    mocked_start.assert_called_with(queues=["imaging-primary", "imaging-secondary"], rate=None)

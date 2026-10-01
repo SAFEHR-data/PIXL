@@ -191,17 +191,15 @@ class AnonymisationPixlConsumer(PixlQueueInterface):
             await message.nack(requeue=True)
         except PixlDiscardError as exception:
             logger.warning("Failed message {}: {}", pixl_message.identifier, exception)
-            # ack so that we can see rate of message processing in rabbitmq admin
-            await message.ack()
+            await message.nack(requeue=False)
         except Exception:  # noqa: BLE001
             logger.exception(
                 "Failed to process {}. Not re-queuing message",
                 pixl_message.identifier,
             )
-            # ack so that we can see rate of message processing in rabbitmq admin
-            await message.ack()
+            await message.nack(requeue=False)
         else:
-            logger.success("Finished message {}", pixl_message.identifier)
+            logger.success("Anonymised and exported {}", pixl_message.identifier)
             await message.ack()
 
     async def run(self) -> None:
