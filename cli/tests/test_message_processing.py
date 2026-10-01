@@ -109,7 +109,7 @@ def test_retry_with_image_exported_and_no_change_multiple_projects(
     )
 
     mock_publisher.assert_called_once()
-    
+
     producer_init = PixlProducer.__init__
     producer_init.assert_called_once()
     assert producer_init.call_args.kwargs["queue_name"] == "imaging-primary"
@@ -124,8 +124,8 @@ def test_message_count_counts_only_the_given_queues(mocker) -> None:
     mock_interface.return_value.__enter__.return_value = mock_rabbitmq
 
     assert _message_count(["imaging-primary"]) == 1
-    queues_called = [call.kwargs["queue_name"] for call in mock_interface.call_args_list] 
-    
+    queues_called = [call.kwargs["queue_name"] for call in mock_interface.call_args_list]
+
     assert queues_called == ["imaging-primary"]
 
     mock_interface.reset_mock()
