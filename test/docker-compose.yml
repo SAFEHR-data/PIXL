@@ -14,8 +14,23 @@
 volumes:
     vna-qr-data:
 
+    # Create a volume, allowing us to share the backup file with the container by mounting it
+    # See example at: https://github.com/nagyesta/lowkey-vault-example-docker/blob/main/docker-compose/docker-compose.yml
+    example-import:
+        driver: local
+        driver_opts:
+            type: "none"
+            o: "bind"
+            # set the ./import directory as volume root
+            device: "$PWD/import"
+
 networks:
     pixl-net:
+    imds-net:
+        driver: bridge
+        ipam:
+            config:
+                - subnet: 169.254.169.0/24
 
 services:
     lgtm:
@@ -50,7 +65,11 @@ services:
         volumes:
             - ./vna_config/:/run/secrets:ro
         healthcheck:
-            test: ["CMD-SHELL", "/probes/test-aliveness.py --user=orthanc --pwd=orthanc"]
+            test:
+                [
+                    "CMD-SHELL",
+                    "/probes/test-aliveness.py --user=orthanc --pwd=orthanc",
+                ]
             start_period: 10s
             retries: 2
             interval: 3s
@@ -77,6 +96,7 @@ services:
             - ./dicomweb_config/:/run/secrets:ro
         networks:
             pixl-net:
+
         healthcheck:
             test:
                 [
@@ -87,3 +107,32 @@ services:
             retries: 2
             interval: 3s
             timeout: 2s
+
+    lowkey-vault:
+        container_name: system-test-lowkey-vault
+        image: nagyesta/lowkey-vault:7.3.74-ubi10-minimal
+        ports:
+            - "8443:8443"
+        volumes:
+            - ./keyvault/import:/import/:rw
+        environment:
+            # Example at: https://github.com/nagyesta/lowkey-vault-example-docker/blob/main/docker-compose/docker-compose.yml
+            # More details at: https://github.com/nagyesta/lowkey-vault/tree/main/lowkey-vault-app#startup-parameters
+            LOWKEY_ARGS: >
+                --server.port=8443
+                --LOWKEY_DEBUG_REQUEST_LOG=true 
+                --LOWKEY_IMPORT_LOCATION=/import/keyvault.json.hbs
+                --LOWKEY_IMPORT_TEMPLATE_HOST=localhost 
+                --LOWKEY_IMPORT_TEMPLATE_PORT=8443
+        networks:
+            pixl-net:
+                aliases:
+                    - test.localhost
+
+    assumed-identity:
+        container_name: system-test-assumed-identity
+        image: nagyesta/assumed-identity:2.2.71
+        networks:
+            pixl-net:
+            imds-net:
+                ipv4_address: 169.254.169.254

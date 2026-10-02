@@ -20,7 +20,7 @@ import subprocess
 from functools import lru_cache
 
 from azure.core.exceptions import ResourceNotFoundError
-from azure.identity import DefaultAzureCredential
+from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
 from azure.keyvault.secrets import SecretClient
 from decouple import config  # type: ignore [import-untyped]
 
@@ -82,7 +82,18 @@ def _check_system_envvar(var_name: str) -> None:
 
 
 def _setup_client(kv_name: str) -> SecretClient:
-    key_vault_uri = f"https://{kv_name}.vault.azure.net"
+    key_vault_uri_suffix = config("AZURE_KEY_VAULT_SUFFIX")
+    key_vault_uri = f"https://{kv_name}.{key_vault_uri_suffix}"
+
+    if config("ENV") == "test":
+        credentials = ManagedIdentityCredential()
+        return SecretClient(
+                vault_url=key_vault_uri,
+                credential=credentials,
+                verify_challenge_resource=False,
+                connection_verify=False
+        )
+
     credentials = DefaultAzureCredential()
     return SecretClient(vault_url=key_vault_uri, credential=credentials)
 
