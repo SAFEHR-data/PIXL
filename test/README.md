@@ -46,11 +46,43 @@ For CI, there is also another subcommand to run pytest, reporting coverage
 
 ## Viewing telemetry
 
-The system tests run a [Grafana LGTM](https://github.com/grafana/docker-otel-lgtm) stack as the OpenTelemetry backend, configured by  (the `lgtm` service in [`docker-compose.yml`](./docker-compose.yml)). This means so the telemetry
- PIXL exports during the tests run can be inspected.
+### Default: the bundled LGTM stack
 
-While the containers are up, open the Grafana UI at [http://localhost:3000](http://localhost:3000)
-and log in with the credentials set for the `lgtm` service in the [`docker-compose.yml`](./docker-compose.yml) file.
+By default the system tests are self-contained: the `lgtm` service (an all-in-one
+[Grafana LGTM](https://github.com/grafana/docker-otel-lgtm) stack) in
+[`docker-compose.yml`](./docker-compose.yml) is the observability backend, and it
+comes up automatically with `./run-system-test.sh`. PIXL services export to it as
+`http://lgtm:4317` (see [`test/.env`](./.env)), and it scrapes the RabbitMQ queue
+metrics via [`prometheus.yaml`](./prometheus.yaml).
+
+While the containers are up, open the Grafana UI at
+[http://localhost:3001](http://localhost:3001) and log in with the credentials set
+for the `lgtm` service in [`docker-compose.yml`](./docker-compose.yml).
+
+### Using the external telemetry stack instead
+
+Instead of the bundled LGTM you can export to the shared telemetry stack in the
+[`telemetry`](https://github.com/SAFEHR-data/telemetry) repo (PIXL → otel-agent →
+gateway → Grafana). Set that stack up first — see its `README.md` ("Running") and
+`sandbox/README.md` (`make -C sandbox up`) — then:
+
+1. Bring PIXL up (`./run-system-test.sh setup`) so this compose project's network
+   `system-test_pixl-net` exists.
+2. Start the telemetry otel-agent joined to that network via its host override. In
+   the `telemetry` repo's `otel-agent/` directory, set
+   `PIXL_NETWORK=system-test_pixl-net` and run:
+   ```bash
+   docker compose -f docker-compose.yml -f host_overrides/compose.gae14.override.yml up -d
+   ```
+   Compose exposes the agent on that network as `otel-agent`.
+3. Point PIXL at it: set `OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-agent:4317` —
+   edit [`test/.env`](./.env), or `export` it before running
+4. RabbitMQ metrics are then scraped by the agent's
+   `config/apps/rabbitmq-scrape.yaml` fragment rather than the bundled
+   `prometheus.yaml`. The bundled `lgtm` can be left running (the offset ports don't
+   clash) but is redundant on this path, or you can comment it out.
+
+Inspect the resulting telemetry in the telemetry stack's Grafana.
 
 ## The `pytest-pixl` plugin
 

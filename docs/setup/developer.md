@@ -146,6 +146,10 @@ in the `.env`. The endpoint be for the gRPC endpoint of an OTel collector, e.g.
 After starting the PIXL services, logs should start to appear in your
 collector's UI.
 
+The system tests default to a bundled all-in-one Grafana LGTM backend, and can be
+pointed at the shared external telemetry stack instead — see
+[Viewing telemetry](../../test/README.md#viewing-telemetry).
+
 ### Disabling OTel
 
 Set `OTEL_SDK_DISABLED` to `true` to disable all telemetry. No other configuration is
