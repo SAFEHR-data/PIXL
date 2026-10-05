@@ -115,15 +115,6 @@ jobs:
 
             - name: Run tests
               working-directory: test
-              env:
-                  EXPORT_AZ_CLIENT_ID: ${{ secrets.EXPORT_AZ_CLIENT_ID }}
-                  EXPORT_AZ_CLIENT_PASSWORD: ${{ secrets.EXPORT_AZ_CLIENT_PASSWORD }}
-                  EXPORT_AZ_TENANT_ID: ${{ secrets.EXPORT_AZ_TENANT_ID }}
-                  EXPORT_AZ_KEY_VAULT_NAME: ${{ secrets.EXPORT_AZ_KEY_VAULT_NAME }}
-                  HASHER_API_AZ_CLIENT_ID: ${{ secrets.EXPORT_AZ_CLIENT_ID }}
-                  HASHER_API_AZ_CLIENT_PASSWORD: ${{ secrets.EXPORT_AZ_CLIENT_PASSWORD }}
-                  HASHER_API_AZ_TENANT_ID: ${{ secrets.EXPORT_AZ_TENANT_ID }}
-                  HASHER_API_AZ_KEY_VAULT_NAME: ${{ secrets.EXPORT_AZ_KEY_VAULT_NAME }}
               run: |
                   uv run ./run-system-test.sh coverage
                   echo FINISHED SYSTEM TEST SCRIPT
