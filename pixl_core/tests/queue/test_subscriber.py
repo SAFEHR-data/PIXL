@@ -40,8 +40,8 @@ class ExpectedTestError(Exception):
 ERROR_HANDLING_CASES = [
     pytest.param(PixlRequeueMessageError, "reject", {"requeue": True}, id="requeue"),
     pytest.param(PixlOutOfHoursError, "nack", {"requeue": True}, id="out_of_hours"),
-    pytest.param(PixlDiscardError, "ack", {}, id="discard"),
-    pytest.param(ExpectedTestError, "ack", {}, id="unexpected"),
+    pytest.param(PixlDiscardError, "nack", {"requeue": False}, id="discard"),
+    pytest.param(ExpectedTestError, "nack", {"requeue": False}, id="unexpected"),
 ]
 
 
