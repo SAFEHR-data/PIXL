@@ -81,7 +81,7 @@ def test_populate_queue_and_start(
         populate, args=[omop_parquet_dir, "--queues", queue_name, "--num-retries", "0"]
     )
     assert result.exit_code == 0
-    mocked_start.assert_called_with(queues=queue_name.split(","), rate=None)
+    mocked_start.assert_called_with(queues=queue_name.split(","), rate=1)
 
 
 def test_populate_queue_with_retry_anonymisation(
