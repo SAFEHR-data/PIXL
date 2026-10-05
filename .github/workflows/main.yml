@@ -104,9 +104,6 @@ jobs:
               run: |
                   uv sync --no-editable
 
-            - name: Create .secrets.env
-              run: touch test/.secrets.env
-
             - name: Build test services
               working-directory: test
               run: |

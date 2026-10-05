@@ -56,7 +56,7 @@ pytest
 
 See the [Azure Key vault setup](../docs/setup/azure-keyvault.md) documentation for more information.
 
-Save the credentials in `.secrets.env` and a LastPass `Hasher API <environment> secrets` note.
+Save the credentials in `.env` and a LastPass `Hasher API <environment> secrets` note.
 
 ```
 HASHER_API_AZ_CLIENT_ID=<generated-app-ID>

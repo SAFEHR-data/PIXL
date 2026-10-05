@@ -28,7 +28,7 @@ setup() {
     # Warning: Requires to be run from the project root
     (
     	cd "${PACKAGE_DIR}"
-    	docker compose --env-file test/.env --env-file test/.secrets.env -p system-test up --wait -d --build
+    	docker compose --env-file test/.env -p system-test up --wait -d --build
     )
 }
 

@@ -127,7 +127,8 @@ services:
         networks:
             pixl-net:
                 aliases:
-                    - test.localhost
+                    - export-kv.localhost
+                    - hasher-kv.localhost
 
     assumed-identity:
         container_name: system-test-assumed-identity

@@ -71,7 +71,7 @@ az keyvault secret set --vault-name "<key-vault-name>" --name "<secret-name>" --
 
 ### Step 5
 
-Save credentials in `.secrets.env` and a LastPass `PIXL Keyvault <project-slug> secrets` note.
+Save credentials in `.env` and a LastPass `PIXL Keyvault <project-slug> secrets` note.
 
 ```
 EXPORT_AZ_CLIENT_ID=<generated-app-ID>

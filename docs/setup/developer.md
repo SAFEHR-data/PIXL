@@ -120,14 +120,6 @@ Running the `pixl` pipeline and the tests requires a set of environment variable
 directory contains a complete [`.env` file](../../test/.env) that can be used to run the pipeline and tests locally.
 Either run any `pixl` commands from the `test/` directory, or copy the `test/.env` file to the root of the repository.
 
-### Secrets
-
-PIXL uses an [Azure Keyvault](../../README.md#project-secrets) to store authentication details for
-external services. We have a development keyvault for testing. Access to this keyvault is provided
-by a set of environment variables specified in `test/.secrets.env.sample`.
-To run the pipeline locally, you will need to copy this file to `test/.secrets.env` and fill out
-the necessary values, which can be found in the `pixl-dev-secrets.env` shared LastPass note.
-
 ## Observability
 
 PIXL can export structured logs to an

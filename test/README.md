@@ -12,8 +12,6 @@ consumers started.
 
 ## Pre-requisites for running system tests
 
-Set up your [.secrets.env](/README.md#project-secrets)
-
 Make sure your [python virtual environment](/docs/setup/developer.md) has been set up, PIXL installed correctly,
 and the virtual environment activated.
 
