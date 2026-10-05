@@ -196,7 +196,7 @@ def populate(  # noqa: PLR0913
     """
     queues_to_populate = queues.split(",")
     if start_processing:
-        _start_or_update_extract(queues=queues_to_populate)
+        _start_or_update_extract(queues=queues_to_populate, rate=None)
     else:
         logger.info("Starting to process messages disabled, setting `--num-retries` to 0")
         num_retries = 0
