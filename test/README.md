@@ -60,7 +60,12 @@ to mock the FTP server used by the Data Safe Haven.
 
 ### Docker compose
 
-`./docker-compose.yml` contains the docker compose configuration for the system test.
+`./docker-compose.yml` contains the docker compose configuration for the system test
+services (mock VNA, DICOMweb, key vault, and assumed-identity).
+
+`./docker-compose-test.yml` is applied on top of the root `docker-compose.yml` when the
+system tests start the PIXL services. It attaches `hasher-api` and `export-api` to
+`imds-net`, and adds `host.docker.internal` for the test FTP server.
 
 ### Scripts
 

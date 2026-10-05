@@ -83,11 +83,6 @@ volumes:
 
 networks:
     pixl-net:
-    imds-net:
-        driver: bridge
-        ipam:
-            config:
-                - subnet: 169.254.169.0/24
 
 ################################################################################
 # Services
@@ -121,7 +116,6 @@ services:
             - *logs-volume
         networks:
             - pixl-net
-            - imds-net
         healthcheck:
             interval: 10s
             timeout: 30s
@@ -191,9 +185,6 @@ services:
             - ${PWD}/projects/configs:/${PROJECT_CONFIGS_DIR:-/projects/configs}:ro
         networks:
             - pixl-net
-        # needed for same reason as export-api
-        extra_hosts:
-            - "host.docker.internal:host-gateway"
         depends_on:
             postgres:
                 condition: service_healthy
@@ -338,11 +329,6 @@ services:
             retries: 5
         networks:
             - pixl-net
-            - imds-net
-        # needed for testing under GHA (linux), so this container
-        # can reach the test FTP server running on the docker host
-        extra_hosts:
-            - "host.docker.internal:host-gateway"
         volumes:
             - ${HOST_EXPORT_ROOT_DIR_MOUNT:-${PWD}/projects/exports}:/run/projects/exports
             - ${PWD}/projects/configs:/${PROJECT_CONFIGS_DIR:-/projects/configs}:ro

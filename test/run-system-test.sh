@@ -25,17 +25,29 @@ setup() {
 
     # Note: cannot run as single docker compose command due to different build contexts
     docker compose --env-file .env -p system-test up --wait -d --build --remove-orphans
-    # Warning: Requires to be run from the project root
+    # Warning: Requires to be run from the project root.
+    # docker-compose-test.yml adds the IMDS network and host.docker.internal
+    # entries used only by the system tests.
     (
     	cd "${PACKAGE_DIR}"
-    	docker compose --env-file test/.env -p system-test up --wait -d --build
+    	docker compose \
+            -f docker-compose.yml \
+            -f test/docker-compose-test.yml \
+            --env-file test/.env \
+            -p system-test \
+            up --wait -d --build
     )
 }
 
 teardown() {
     (
     	cd "${PACKAGE_DIR}"
-    	docker compose -f docker-compose.yml -f test/docker-compose.yml -p system-test down --volumes
+    	docker compose \
+            -f docker-compose.yml \
+            -f test/docker-compose-test.yml \
+            -f test/docker-compose.yml \
+            -p system-test \
+            down --volumes
     )
 }
 
