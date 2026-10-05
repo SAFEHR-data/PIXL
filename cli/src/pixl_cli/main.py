@@ -134,12 +134,6 @@ def check_env(*, error: bool, sample_env_file: Path) -> None:
     help="Start processing from the queues after population is complete",
 )
 @click.option(
-    "--rate",
-    type=float,
-    default=None,
-    help="Rate at which to process items from a queue (in items per second).",
-)
-@click.option(
     "--num-retries",
     "num_retries",
     type=int,
@@ -163,11 +157,10 @@ def check_env(*, error: bool, sample_env_file: Path) -> None:
     "anonymisation, e.g. 'Modality: CT'. Matching images are re-queued instead of being "
     "skipped. Use '.*' to retry all previously failed images.",
 )
-def populate(  # noqa: PLR0913 - too many args
+def populate(  # noqa: PLR0913
     parquet_path: Path,
     *,
     queues: str,
-    rate: float | None,
     num_retries: int,
     start_processing: bool,
     priority: int,
@@ -203,7 +196,7 @@ def populate(  # noqa: PLR0913 - too many args
     """
     queues_to_populate = queues.split(",")
     if start_processing:
-        _start_or_update_extract(queues=queues_to_populate, rate=rate)
+        _start_or_update_extract(queues=queues_to_populate)
     else:
         logger.info("Starting to process messages disabled, setting `--num-retries` to 0")
         num_retries = 0

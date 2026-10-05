@@ -127,7 +127,7 @@ def _filter_exported_or_skipped_messages(
         suffixes=(None, None),
     )
     not_previously_skipped = merged["skip_reasons"].isna()
-    if retry_anonymisation is not None:
+    if not retry_anonymisation:
         not_previously_skipped = not_previously_skipped | merged["skip_reasons"].apply(
             _skip_reasons_match_pattern, pattern=retry_anonymisation
         )
