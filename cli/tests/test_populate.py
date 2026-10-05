@@ -75,4 +75,35 @@ def test_populate_queue_and_start(mocker, monkeypatch, omop_resources: Path) -> 
 
     result = runner.invoke(populate, args=[omop_parquet_dir, "--num-retries", "0"])
     assert result.exit_code == 0
-    mocked_start.assert_called_with(queues=["imaging-primary", "imaging-secondary"], rate=None)
+    mocked_start.assert_called_with(queues=["imaging-primary", "imaging-secondary"], rate=1)
+
+
+
+def test_populate_queue_with_retry_anonymisation(
+    mocker, monkeypatch, omop_resources: Path, queue_name: str = "test_populate"
+) -> None:
+    """Checks that the `--retry-anonymisation` pattern is passed through to populate_queue_and_db"""
+    omop_parquet_dir = str(omop_resources / "omop")
+    runner = CliRunner()
+
+    monkeypatch.setattr(pixl_cli._message_processing, "PixlProducer", MockProducer)
+    mocked_populate_queue_and_db = mocker.patch(
+        "pixl_cli.main.populate_queue_and_db", return_value=[]
+    )
+
+    result = runner.invoke(
+        populate,
+        args=[
+            omop_parquet_dir,
+            "--queues",
+            queue_name,
+            "--no-start",
+            "--num-retries",
+            "0",
+            "--retry-anonymisation",
+            "Modality: CT",
+        ],
+    )
+    assert result.exit_code == 0
+    _, kwargs = mocked_populate_queue_and_db.call_args
+    assert kwargs["retry_anonymisation"] == "Modality: CT"

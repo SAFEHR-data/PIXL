@@ -127,12 +127,6 @@ def check_env(*, error: bool, sample_env_file: Path) -> None:
     help="Start processing from the queues after population is complete",
 )
 @click.option(
-    "--rate",
-    type=float,
-    default=None,
-    help="Rate at which to process items from a queue (in items per second).",
-)
-@click.option(
     "--num-retries",
     "num_retries",
     type=int,
@@ -147,13 +141,23 @@ def check_env(*, error: bool, sample_env_file: Path) -> None:
     default=1,
     help="Priority of the messages, from 1 (lowest) to 5 (highest)",
 )
+
+@click.option(
+    "--retry-anonymisation",
+    "retry_anonymisation",
+    default=None,
+    show_default=True,
+    help="Regex pattern matched against the recorded reasons for a previously failed "
+    "anonymisation, e.g. 'Modality: CT'. Matching images are re-queued instead of being "
+    "skipped. Use '.*' to retry all previously failed images.",
+)
 def populate(
     parquet_path: Path,
     *,
-    rate: float | None,
     num_retries: int,
     start_processing: bool,
     priority: int,
+    retry_anonymisation: str | None,
 ) -> None:
     """
     Populate the imaging-primary queue from a parquet file directory or a set of parquet datasets.
@@ -192,7 +196,7 @@ def populate(
     queues_to_rate_limit = ["imaging-primary", "imaging-secondary"]
     queues_to_wait_for = ["imaging-primary", "imaging-secondary", "anonymisation"]
     if start_processing:
-        _start_or_update_extract(queues=queues_to_rate_limit, rate=rate)
+        _start_or_update_extract(queues=queues_to_populate, rate=1)
     else:
         logger.info("Starting to process messages disabled, setting `--num-retries` to 0")
         num_retries = 0
@@ -200,7 +204,12 @@ def populate(
     logger.info("Populating queue(s) {} from {}", queues_to_populate, parquet_path)
     messages_df = read_patient_info(parquet_path)
 
-    populate_queue_and_db(queues_to_populate, messages_df, messages_priority=priority)
+    populate_queue_and_db(
+        queues_to_populate,
+        messages_df,
+        messages_priority=priority,
+        retry_anonymisation=retry_anonymisation,
+    )
     if num_retries != 0:
         retry_until_export_count_is_unchanged(
             messages_df,
@@ -208,6 +217,7 @@ def populate(
             queues_to_populate,
             queues_to_wait_for,
             messages_priority=priority,
+            retry_anonymisation=retry_anonymisation,
         )
 
 
