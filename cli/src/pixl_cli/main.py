@@ -192,9 +192,10 @@ def populate(
             └── extract_summary.json
     """
     queues_to_populate = ["imaging-primary"]
+    queues_to_rate_limit = ["imaging-primary", "imaging-secondary"]
     queues_to_wait_for = ["imaging-primary", "imaging-secondary", "anonymisation"]
     if start_processing:
-        _start_or_update_extract(queues=queues_to_populate, rate=1)
+        _start_or_update_extract(queues=queues_to_rate_limit, rate=1)
     else:
         logger.info("Starting to process messages disabled, setting `--num-retries` to 0")
         num_retries = 0
