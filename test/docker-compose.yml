@@ -133,6 +133,9 @@ services:
     assumed-identity:
         container_name: system-test-assumed-identity
         image: nagyesta/assumed-identity:2.2.71
+        # map to local port to allow for uploading secrets to the keyvault from same machine
+        ports:
+            - "127.0.0.1:8080:80"
         networks:
             pixl-net:
             imds-net:

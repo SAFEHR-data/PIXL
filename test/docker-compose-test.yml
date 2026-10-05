@@ -15,8 +15,8 @@
 #   docker compose -f docker-compose.yml -f test/docker-compose-test.yml ...
 #
 # imds-net gives hasher-api and export-api a link-local route to the
-# assumed-identity mock at 169.254.169.254. extra_hosts lets those
-# containers reach the test FTP server on the Docker host.
+# assumed-identity mock at 169.254.169.254. 
+# extra_hosts lets those containers reach the test FTP server on the Docker host.
 
 networks:
     imds-net:
