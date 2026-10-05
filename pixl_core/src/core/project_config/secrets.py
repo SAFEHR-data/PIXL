@@ -87,9 +87,10 @@ def _setup_client(kv_name: str) -> SecretClient:
 
     credentials = DefaultAzureCredential()
 
-    # bit of a hack to disable SSL verification for tests
+    # bit of a hack to use lowkey keyvault for tests
     test_karwgs = {}
     if config("ENV") == "system-test":
+        credentials = DefaultAzureCredential(exclude_environment_credential=True)
         test_karwgs = {"verify_challenge_resource": False, "connection_verify": False}
 
     return SecretClient(vault_url=key_vault_uri, credential=credentials, **test_karwgs)
