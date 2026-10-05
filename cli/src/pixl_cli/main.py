@@ -141,7 +141,6 @@ def check_env(*, error: bool, sample_env_file: Path) -> None:
     default=1,
     help="Priority of the messages, from 1 (lowest) to 5 (highest)",
 )
-
 @click.option(
     "--retry-anonymisation",
     "retry_anonymisation",
@@ -193,7 +192,6 @@ def populate(
             └── extract_summary.json
     """
     queues_to_populate = ["imaging-primary"]
-    queues_to_rate_limit = ["imaging-primary", "imaging-secondary"]
     queues_to_wait_for = ["imaging-primary", "imaging-secondary", "anonymisation"]
     if start_processing:
         _start_or_update_extract(queues=queues_to_populate, rate=1)

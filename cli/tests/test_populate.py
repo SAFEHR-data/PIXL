@@ -78,7 +78,6 @@ def test_populate_queue_and_start(mocker, monkeypatch, omop_resources: Path) -> 
     mocked_start.assert_called_with(queues=["imaging-primary", "imaging-secondary"], rate=1)
 
 
-
 def test_populate_queue_with_retry_anonymisation(
     mocker, monkeypatch, omop_resources: Path, queue_name: str = "test_populate"
 ) -> None:

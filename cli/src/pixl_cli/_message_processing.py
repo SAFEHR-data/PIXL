@@ -58,7 +58,7 @@ def messages_from_df(
     return messages
 
 
-def retry_until_export_count_is_unchanged(
+def retry_until_export_count_is_unchanged(  # noqa: PLR0913
     messages_df: pd.DataFrame,
     num_retries: int,
     queues_to_populate: list[str],
