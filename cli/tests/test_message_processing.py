@@ -23,6 +23,7 @@ from _pytest.monkeypatch import MonkeyPatch
 from core.queue.models import AnonymisationMessage
 from core.queue.producer import PixlProducer
 from pixl_cli._message_processing import (
+    MessageQueues,
     _message_count,
     retry_until_export_count_is_unchanged,
 )
@@ -56,8 +57,10 @@ def test_no_retry_if_none_exported(example_messages_df, db_session, mock_publish
     retry_until_export_count_is_unchanged(
         example_messages_df,
         num_retries=5,
-        queues_to_populate=["imaging-primary"],
-        queues_to_wait_for=["imaging-primary", "imaging-secondary", "anonymisation"],
+        queues=MessageQueues(
+            to_populate=["imaging-primary"],
+            to_wait_for=["imaging-primary", "imaging-secondary", "anonymisation"],
+        ),
         messages_priority=1,
     )
 
@@ -78,8 +81,10 @@ def test_retry_with_image_exported_and_no_change(
     retry_until_export_count_is_unchanged(
         example_messages_df,
         num_retries=5,
-        queues_to_populate=["imaging-primary"],
-        queues_to_wait_for=["imaging-primary", "imaging-secondary", "anonymisation"],
+        queues=MessageQueues(
+            to_populate=["imaging-primary"],
+            to_wait_for=["imaging-primary", "imaging-secondary", "anonymisation"],
+        ),
         messages_priority=1,
     )
 
@@ -103,8 +108,10 @@ def test_retry_with_image_exported_and_no_change_multiple_projects(
     retry_until_export_count_is_unchanged(
         example_messages_multiple_projects_df,
         num_retries=5,
-        queues_to_populate=["imaging-primary"],
-        queues_to_wait_for=["imaging-primary", "imaging-secondary", "anonymisation"],
+        queues=MessageQueues(
+            to_populate=["imaging-primary"],
+            to_wait_for=["imaging-primary", "imaging-secondary", "anonymisation"],
+        ),
         messages_priority=1,
     )
 

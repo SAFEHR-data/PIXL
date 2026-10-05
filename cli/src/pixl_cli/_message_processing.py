@@ -15,6 +15,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from time import sleep
 from typing import TYPE_CHECKING
 
@@ -31,6 +32,14 @@ from pixl_cli._database import exported_images_for_project, filter_exported_or_s
 
 if TYPE_CHECKING:
     import pandas as pd
+
+
+@dataclass
+class MessageQueues:
+    """Queues to publish imaging requests to, and queues that must drain before a retry."""
+
+    to_populate: list[str]
+    to_wait_for: list[str]
 
 
 def messages_from_df(
@@ -58,11 +67,10 @@ def messages_from_df(
     return messages
 
 
-def retry_until_export_count_is_unchanged(  # noqa: PLR0913
+def retry_until_export_count_is_unchanged(
     messages_df: pd.DataFrame,
     num_retries: int,
-    queues_to_populate: list[str],
-    queues_to_wait_for: list[str],
+    queues: MessageQueues,
     messages_priority: int,
     retry_anonymisation: str | None = None,
 ) -> None:
@@ -82,7 +90,7 @@ def retry_until_export_count_is_unchanged(  # noqa: PLR0913
         num_retries,
     )
     for i in range(1, num_retries + 1):
-        _wait_for_queues_to_empty(queues_to_wait_for)
+        _wait_for_queues_to_empty(queues.to_wait_for)
         logger.info("Waiting {} for new extracts to be found", wait_to_display)
         for _ in tqdm.tqdm(
             range(total_wait_seconds), desc="Waiting for series to be fully processed"
@@ -112,7 +120,7 @@ def retry_until_export_count_is_unchanged(  # noqa: PLR0913
         )
         last_exported_count = new_last_exported_count
         populate_queue_and_db(
-            queues_to_populate,
+            queues.to_populate,
             messages_df,
             messages_priority=messages_priority,
             retry_anonymisation=retry_anonymisation,
