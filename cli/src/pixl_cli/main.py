@@ -44,6 +44,7 @@ from pixl_cli._io import (
     read_patient_info,
 )
 from pixl_cli._message_processing import (
+    MessageQueues,
     populate_queue_and_db,
     retry_until_export_count_is_unchanged,
 )
@@ -120,13 +121,6 @@ def check_env(*, error: bool, sample_env_file: Path) -> None:
     "parquet-path", required=True, type=click.Path(path_type=Path, exists=True, file_okay=True)
 )
 @click.option(
-    "--queues",
-    default="imaging-primary",
-    show_default=True,
-    help="Comma seperated list of queues to populate with messages generated from the "
-    "input file(s)",
-)
-@click.option(
     "--start/--no-start",
     "start_processing",
     show_default=True,
@@ -157,17 +151,21 @@ def check_env(*, error: bool, sample_env_file: Path) -> None:
     "anonymisation, e.g. 'Modality: CT'. Matching images are re-queued instead of being "
     "skipped. Use '.*' to retry all previously failed images.",
 )
-def populate(  # noqa: PLR0913
+def populate(
     parquet_path: Path,
     *,
-    queues: str,
     num_retries: int,
     start_processing: bool,
     priority: int,
     retry_anonymisation: str | None,
 ) -> None:
     """
-    Populate a (set of) queue(s) from a parquet file directory or a set of parquet datasets.
+    Populate the imaging-primary queue from a parquet file directory or a set of parquet datasets.
+
+    Studies missing from the primary archive are forwarded to imaging-secondary by the imaging
+    consumer. Retries wait until imaging-primary, imaging-secondary, and anonymisation are empty
+    before republishing to imaging-primary.
+
     PARQUET_DIR: Directory containing the public and private parquet input files and an
         extract_summary.json log file.
         It's expected that the directory structure will be:
@@ -194,18 +192,22 @@ def populate(  # noqa: PLR0913
                 └── custom
             └── extract_summary.json
     """
-    queues_to_populate = queues.split(",")
+    queues = MessageQueues(
+        to_populate=["imaging-primary"],
+        to_wait_for=["imaging-primary", "imaging-secondary", "anonymisation"],
+    )
+    queues_to_rate_limit = ["imaging-primary", "imaging-secondary"]
     if start_processing:
-        _start_or_update_extract(queues=queues_to_populate, rate=1)
+        _start_or_update_extract(queues=queues_to_rate_limit, rate=1)
     else:
         logger.info("Starting to process messages disabled, setting `--num-retries` to 0")
         num_retries = 0
 
-    logger.info("Populating queue(s) {} from {}", queues_to_populate, parquet_path)
+    logger.info("Populating queue(s) {} from {}", queues.to_populate, parquet_path)
     messages_df = read_patient_info(parquet_path)
 
     populate_queue_and_db(
-        queues_to_populate,
+        queues.to_populate,
         messages_df,
         messages_priority=priority,
         retry_anonymisation=retry_anonymisation,
@@ -214,7 +216,7 @@ def populate(  # noqa: PLR0913
         retry_until_export_count_is_unchanged(
             messages_df,
             num_retries,
-            queues_to_populate,
+            queues,
             messages_priority=priority,
             retry_anonymisation=retry_anonymisation,
         )
