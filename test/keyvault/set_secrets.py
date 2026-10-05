@@ -1,3 +1,16 @@
+#  Copyright (c) University College London Hospitals NHS Foundation Trust
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
 """
 Populate a local Lowkey Vault instance with secrets from a YAML file.
 
@@ -8,6 +21,7 @@ below on purpose, which would be inappropriate against a real vault.
 
 import os
 from pathlib import Path
+from typing import Annotated
 
 import typer
 import yaml
@@ -21,24 +35,27 @@ from azure.keyvault.secrets import SecretClient
 
 
 def main(
-    secrets_file: Path = typer.Argument(
-        ...,
-        exists=True,
-        dir_okay=False,
-        readable=True,
-        help="Path to the YAML file containing secrets for the fake keyvault.",
-    ),
-    vault_url: str = typer.Option(
-        "https://test.localhost:8443",
-        help="Base URL of the Lowkey Vault instance.",
-    ),
+    secrets_file: Annotated[
+        Path,
+        typer.Argument(
+            exists=True,
+            dir_okay=False,
+            readable=True,
+            help="Path to the YAML file containing secrets for the fake keyvault.",
+        ),
+    ],
+    vault_url: Annotated[
+        str,
+        typer.Option(help="Base URL of the Lowkey Vault instance."),
+    ] = "https://export-kv.localhost:8443",
 ) -> None:
     """Read NAME: value pairs from a YAML file and set them as Lowkey Vault secrets."""
     with secrets_file.open() as handle:
         secrets = yaml.safe_load(handle)
 
     if not secrets:
-        raise typer.BadParameter(f"No secrets found in {secrets_file}. Check the path and its contents.")
+        msg = f"No secrets found in {secrets_file}. Check the path and its contents."
+        raise typer.BadParameter(msg)
 
     client = SecretClient(
         vault_url=vault_url,
