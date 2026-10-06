@@ -526,7 +526,7 @@ wheels = [
 
 [[package]]
 name = "core"
-version = "0.2.0rc0"
+version = "0.2.0"
 source = { editable = "pixl_core" }
 dependencies = [
     { name = "aio-pika" },
@@ -990,7 +990,7 @@ wheels = [
 
 [[package]]
 name = "hasher"
-version = "0.2.0rc0"
+version = "0.2.0"
 source = { editable = "hasher" }
 dependencies = [
     { name = "azure-identity" },
@@ -2036,7 +2036,7 @@ wheels = [
 
 [[package]]
 name = "pixl"
-version = "0.2.0rc0"
+version = "0.2.0"
 source = { editable = "." }
 dependencies = [
     { name = "core" },
@@ -2097,7 +2097,7 @@ dev = [
 
 [[package]]
 name = "pixl-cli"
-version = "0.2.0rc0"
+version = "0.2.0"
 source = { editable = "cli" }
 dependencies = [
     { name = "click" },
@@ -2125,7 +2125,7 @@ provides-extras = ["test", "dev"]
 
 [[package]]
 name = "pixl-dcmd"
-version = "0.2.0rc0"
+version = "0.2.0"
 source = { editable = "pixl_dcmd" }
 dependencies = [
     { name = "arrow" },
@@ -2177,7 +2177,7 @@ provides-extras = ["test", "dev"]
 
 [[package]]
 name = "pixl-export"
-version = "0.2.0rc0"
+version = "0.2.0"
 source = { editable = "pixl_export" }
 dependencies = [
     { name = "azure-storage-blob" },
@@ -2205,7 +2205,7 @@ provides-extras = ["test", "dev"]
 
 [[package]]
 name = "pixl-imaging"
-version = "0.2.0rc0"
+version = "0.2.0"
 source = { editable = "pixl_imaging" }
 dependencies = [
     { name = "aiohttp" },
@@ -2732,7 +2732,7 @@ wheels = [
 
 [[package]]
 name = "pytest-pixl"
-version = "0.2.0rc0"
+version = "0.2.0"
 source = { editable = "pytest-pixl" }
 dependencies = [
     { name = "pydicom" },
