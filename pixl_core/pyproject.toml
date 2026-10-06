@@ -1,6 +1,6 @@
 [project]
 name = "core"
-version = "0.2.0"
+version = "0.3.0rc0"
 authors = [{ name = "PIXL core functionality" }]
 description = ""
 readme = "README.md"
