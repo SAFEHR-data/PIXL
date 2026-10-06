@@ -107,7 +107,6 @@ services:
             AZURE_KEY_VAULT_NAME: ${HASHER_API_AZ_KEY_VAULT_NAME}
             AZURE_KEY_VAULT_SECRET_NAME: ${HASHER_API_AZ_KEY_VAULT_SECRET_NAME}
             AZURE_KEY_VAULT_SUFFIX: ${AZURE_KEY_VAULT_SUFFIX:-vault.azure.net}
-            ENV: ${ENV}
         env_file:
             - ./docker/common.env
         ports:
@@ -311,7 +310,6 @@ services:
             XNAT_OVERWRITE: ${XNAT_OVERWRITE}
             XNAT_DESTINATION: ${XNAT_DESTINATION}
             AZURE_KEY_VAULT_SUFFIX: ${AZURE_KEY_VAULT_SUFFIX:-vault.azure.net}
-            ENV: ${ENV}
         env_file:
             - ./docker/common.env
         depends_on:

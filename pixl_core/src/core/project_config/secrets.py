@@ -89,7 +89,7 @@ def _setup_client(kv_name: str) -> SecretClient:
 
     # bit of a hack to use lowkey keyvault for tests
     test_karwgs = {}
-    if config("ENV") == "system-test":
+    if key_vault_uri_suffix == "localhost:8443":
         credentials = DefaultAzureCredential(exclude_environment_credential=True)
         test_karwgs = {"verify_challenge_resource": False, "connection_verify": False}
 
