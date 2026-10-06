@@ -1,23 +1,23 @@
 [project]
 name = "pixl_cli"
-version = "0.2.0rc0"
+version = "0.2.00"
 authors = [{ name = "PIXL authors" }]
 description = "PIXL command line interface"
 readme = "README.md"
 requires-python = ">=3.13"
 classifiers = ["Programming Language :: Python :: 3"]
 dependencies = [
-    "core==0.2.0rc0",
+    "core==0.2.00",
     "click==8.3.2",
     "tqdm==4.67.3",
 ]
 
 [project.optional-dependencies]
 test = [
-    "core[test]==0.2.0rc0",
+    "core[test]==0.2.00",
 ]
 dev = [
-    "core[dev]==0.2.0rc0",
+    "core[dev]==0.2.00",
 ]
 
 [project.scripts]
