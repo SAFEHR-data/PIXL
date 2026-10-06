@@ -2,6 +2,8 @@
 
 _This is done for in the __UCLHSDE__ `prod` tenancy for production._
 
+System tests do not use this vault. They use the [Lowkey Vault test double](../../test/keyvault/README.md).
+
 This Key Vault and secret must persist any infrastructure changes so should be separate from disposable
 infrastructure services. A [Service Principal](https://learn.microsoft.com/en-us/azure/developer/python/sdk/authentication-on-premises-apps)
 is required to connect to the Key Vault.

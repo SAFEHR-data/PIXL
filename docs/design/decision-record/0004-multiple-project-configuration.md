@@ -29,6 +29,8 @@ How can we store the secrets.
 
 Chosen option: "azure keyvault", because its low hassle and gives us good control of secret access.
 
+System tests use a [Lowkey Vault test double](../../../test/keyvault/README.md) and do not need a real vault. 
+
 ### Positive Consequences <!-- optional -->
 
 * Single place for secrets, which multiple deployments can access
@@ -40,7 +42,8 @@ Chosen option: "azure keyvault", because its low hassle and gives us good contro
 
 * Requires other implementations to set up their own azure storage accounts or develop new secret management
 * Developers also have to update a `.env` file for running the system test
-* Slight increase in cost, can be slightly offset by caching credentials 
+* Slight increase in cost, can be slightly offset by caching credentials
+
 
 ## Pros and Cons of the Options <!-- optional -->
 

@@ -207,7 +207,9 @@ environment variables to be set so that PIXL can connect to the key vault:
 - `EXPORT_AZ_KEY_VAULT_NAME` the name of the key vault, used to connect to the correct key vault
 
 These variables can be set in the `.env` file.
-For dev purposes find the `pixl-dev-secrets.env` note on LastPass for the necessary values.
+For a deployed environment, find the `pixl-dev-secrets.env` note on LastPass for the necessary values.
+System tests use the [Lowkey Vault test double](./test/keyvault/README.md) and the placeholder values in [`test/.env`](./test/.env).
+Set `AZURE_KEY_VAULT_SUFFIX` (`vault.azure.net` by default; `localhost:8443` for system tests).
 
 If an Azure Keyvault hasn't been set up yet, follow [these instructions](./docs/setup/azure-keyvault.md).
 

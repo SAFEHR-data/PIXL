@@ -39,7 +39,7 @@ HASHER_API_AZ_TENANT_ID
 HASHER_API_AZ_KEY_VAULT_NAME
 ```
 
-See [below](#azure-setup) for instructions on how to set these up.
+See [below](#azure-setup) for a real vault. Unit tests mock the vault. System tests use the [Lowkey Vault test double](../test/keyvault/README.md).
 
 
 ### Test
