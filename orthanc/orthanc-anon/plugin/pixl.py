@@ -25,12 +25,10 @@ import asyncio
 import json
 import os
 import threading
-import traceback
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO
-from time import sleep
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 from zipfile import ZipFile
 
 import aio_pika
@@ -109,97 +107,6 @@ executor = ThreadPoolExecutor(max_workers=max_workers)
 logger.info("Using {} threads for processing", max_workers)
 
 
-def AzureAccessToken() -> str:
-    """
-    Send payload to oath2/token url and
-    return the response
-    """
-    AZ_DICOM_ENDPOINT_CLIENT_ID = config("AZ_DICOM_ENDPOINT_CLIENT_ID")
-    AZ_DICOM_ENDPOINT_CLIENT_SECRET = config("AZ_DICOM_ENDPOINT_CLIENT_SECRET")
-    AZ_DICOM_ENDPOINT_TENANT_ID = config("AZ_DICOM_ENDPOINT_TENANT_ID")
-
-    url = "https://login.microsoft.com/" + AZ_DICOM_ENDPOINT_TENANT_ID + "/oauth2/token"
-
-    payload = {
-        "client_id": AZ_DICOM_ENDPOINT_CLIENT_ID,
-        "grant_type": "client_credentials",
-        "client_secret": AZ_DICOM_ENDPOINT_CLIENT_SECRET,
-        "resource": "https://dicom.healthcareapis.azure.com",
-    }
-
-    response = requests.post(url, data=payload, timeout=10)
-
-    response_json = response.json()
-    # We may wish to make use of the "expires_in" (seconds) value
-    # to refresh this token less aggressively
-    return cast("str", response_json["access_token"])
-
-
-TIMER = None
-
-
-def AzureDICOMTokenRefresh() -> None:
-    """
-    Refresh Azure DICOM token
-    If this fails then wait 30s and try again
-    If successful then access_token can be used in
-    dicomweb_config to update DICOMweb token through API call
-    """
-    global TIMER
-    TIMER = None
-
-    orthanc.LogWarning("Refreshing Azure DICOM token")
-
-    AZ_DICOM_TOKEN_REFRESH_SECS = int(config("AZ_DICOM_TOKEN_REFRESH_SECS"))
-    AZ_DICOM_ENDPOINT_NAME = config("AZ_DICOM_ENDPOINT_NAME")
-    AZ_DICOM_ENDPOINT_URL = config("AZ_DICOM_ENDPOINT_URL")
-    AZ_DICOM_HTTP_TIMEOUT = int(config("HTTP_TIMEOUT"))
-
-    try:
-        access_token = AzureAccessToken()
-    except Exception:  # noqa: BLE001
-        orthanc.LogError(
-            "Failed to get an Azure access token. Retrying in 30 seconds\n" + traceback.format_exc()
-        )
-        sleep(30)
-        return AzureDICOMTokenRefresh()
-
-    bearer_str = "Bearer " + access_token
-
-    dicomweb_config = {
-        "Url": AZ_DICOM_ENDPOINT_URL,
-        "HttpHeaders": {
-            # downstream auth token
-            "Authorization": bearer_str,
-        },
-        "HasDelete": True,
-        "Timeout": AZ_DICOM_HTTP_TIMEOUT,
-    }
-
-    headers = {"content-type": "application/json"}
-
-    url = ORTHANC_URL + "/dicom-web/servers/" + AZ_DICOM_ENDPOINT_NAME
-    # dynamically defining an DICOMWeb endpoint in Orthanc
-
-    try:
-        requests.put(
-            url,
-            auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD),
-            headers=headers,
-            data=json.dumps(dicomweb_config),
-            timeout=10,
-        )
-    except requests.exceptions.RequestException as e:
-        orthanc.LogError("Failed to update DICOMweb token")
-        raise SystemExit(e)  # noqa: B904
-
-    orthanc.LogWarning("Updated DICOMweb token")
-
-    TIMER = threading.Timer(AZ_DICOM_TOKEN_REFRESH_SECS, AzureDICOMTokenRefresh)
-    TIMER.start()
-    return None
-
-
 def should_export() -> bool:
     """
     Checks whether ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT environment variable is
@@ -207,30 +114,6 @@ def should_export() -> bool:
     """
     logger.trace("Checking value of autoroute")
     return os.environ.get("ORTHANC_AUTOROUTE_ANON_TO_ENDPOINT", "false").lower() == "true"
-
-
-def _azure_available() -> bool:
-    # Check if AZ_DICOM_ENDPOINT_CLIENT_ID is set
-    return config("AZ_DICOM_ENDPOINT_CLIENT_ID", default="") != ""
-
-
-def OnChange(changeType, level, resource):  # noqa: ARG001
-    """
-    - If `should_export` returns `false`, the do nothing
-    - Otherwise:
-        - If orthanc has started then start a timer to refresh the Azure token every 30 seconds
-        - If orthanc has stopped then cancel the timer
-    """
-    if not should_export():
-        return
-
-    if changeType == orthanc.ChangeType.ORTHANC_STARTED and _azure_available():
-        orthanc.LogWarning("Starting the scheduler")
-        AzureDICOMTokenRefresh()
-    elif changeType == orthanc.ChangeType.ORTHANC_STOPPED:
-        if TIMER is not None:
-            orthanc.LogWarning("Stopping the scheduler")
-            TIMER.cancel()
 
 
 def OnHeartBeat(output, uri, **request) -> Any:  # noqa: ARG001
@@ -640,5 +523,4 @@ def notify_export_api_of_readiness(study_id: str, project_name: str) -> None:
     response.raise_for_status()
 
 
-orthanc.RegisterOnChangeCallback(OnChange)
 orthanc.RegisterRestCallback("/heart-beat", OnHeartBeat)
