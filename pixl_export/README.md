@@ -38,7 +38,3 @@ pytest
 ## Usage
 
 Usage should be from the CLI driver, which calls the HTTP endpoints.
-
-## Notes
-
-- The height/weight/GCS value is extracted only within a 24 h time window
