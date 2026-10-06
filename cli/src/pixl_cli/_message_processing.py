@@ -15,6 +15,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from time import sleep
 from typing import TYPE_CHECKING
 
@@ -31,6 +32,14 @@ from pixl_cli._database import exported_images_for_project, filter_exported_or_s
 
 if TYPE_CHECKING:
     import pandas as pd
+
+
+@dataclass
+class MessageQueues:
+    """Queues to publish imaging requests to, and queues that must drain before a retry."""
+
+    to_populate: list[str]
+    to_wait_for: list[str]
 
 
 def messages_from_df(
@@ -61,8 +70,9 @@ def messages_from_df(
 def retry_until_export_count_is_unchanged(
     messages_df: pd.DataFrame,
     num_retries: int,
-    queues_to_populate: list[str],
+    queues: MessageQueues,
     messages_priority: int,
+    retry_anonymisation: str | None = None,
 ) -> None:
     """Retry populating messages until there is no change in the number of exported studies."""
     last_exported_count = 0
@@ -80,7 +90,7 @@ def retry_until_export_count_is_unchanged(
         num_retries,
     )
     for i in range(1, num_retries + 1):
-        _wait_for_queues_to_empty(queues_to_populate)
+        _wait_for_queues_to_empty(queues.to_wait_for)
         logger.info("Waiting {} for new extracts to be found", wait_to_display)
         for _ in tqdm.tqdm(
             range(total_wait_seconds), desc="Waiting for series to be fully processed"
@@ -109,30 +119,28 @@ def retry_until_export_count_is_unchanged(
             num_retries,
         )
         last_exported_count = new_last_exported_count
-        populate_queue_and_db(queues_to_populate, messages_df, messages_priority=messages_priority)
+        populate_queue_and_db(
+            queues.to_populate,
+            messages_df,
+            messages_priority=messages_priority,
+            retry_anonymisation=retry_anonymisation,
+        )
 
 
-def _wait_for_queues_to_empty(queues_to_populate: list[str]) -> None:
+def _wait_for_queues_to_empty(queues_to_wait_for: list[str]) -> None:
     logger.info("Waiting for rabbitmq queues to be empty")
-    message_count = _message_count(queues_to_populate)
+    message_count = _message_count(queues_to_wait_for)
     while message_count != 0:
         logger.debug(f"{message_count=}, sleeping for a minute")
         sleep(60)
-        message_count = _message_count(queues_to_populate)
+        message_count = _message_count(queues_to_wait_for)
     logger.info("Queues are empty")
 
 
-def _message_count(queues_to_populate: list[str]) -> int:
-    # We don't want to modify the queues we're populating, but if we're populating imaging-primary
-    # we also need to wait for imaging-secondary to be empty
-    queues_to_count = set(queues_to_populate)
-    if "imaging-primary" in queues_to_populate:
-        queues_to_count.add("imaging-secondary")
-
-    queues_to_count.add("anonymisation")
-
+def _message_count(queues: list[str]) -> int:
+    """Return the total number of messages in the given queues."""
     messages_in_queues = 0
-    for queue in queues_to_count:
+    for queue in queues:
         with PixlBlockingInterface(queue_name=queue, **SERVICE_SETTINGS["rabbitmq"]) as rabbitmq:
             messages_in_queues += rabbitmq.message_count
 
@@ -140,21 +148,27 @@ def _message_count(queues_to_populate: list[str]) -> int:
 
 
 def populate_queue_and_db(
-    queues: list[str], messages_df: pd.DataFrame, messages_priority: int
+    queues: list[str],
+    messages_df: pd.DataFrame,
+    messages_priority: int,
+    retry_anonymisation: str | None = None,
 ) -> list[ImagingRequestMessage]:
     """
     Populate queues with messages,
     for imaging queue update the database and filter out exported or skipped studies.
+
+    :param retry_anonymisation: if set, previously skipped images are re-queued
+        when at least one of their recorded skip reasons matches this regex pattern
     """
     output_messages = []
     for queue in queues:
         # For imaging, we don't want to query again for images that have already been
         # exported or skipped
-        if "imaging" in queue and len(messages_df):
+        if queue == "imaging-primary" and len(messages_df):
             logger.info(
                 "Filtering out exported or skipped images and uploading new ones to the database"
             )
-            messages_df = filter_exported_or_skipped_or_add_to_db(messages_df)
+            messages_df = filter_exported_or_skipped_or_add_to_db(messages_df, retry_anonymisation)
 
         messages = messages_from_df(messages_df)
         with PixlProducer(queue_name=queue, **SERVICE_SETTINGS["rabbitmq"]) as producer:
