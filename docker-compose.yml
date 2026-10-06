@@ -64,7 +64,7 @@ x-otel-common: &otel-common
     OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
     OTEL_RESOURCE_ATTRIBUTES: "service.namespace=pixl"
     OTEL_EXPORTER_OTLP_PROTOCOL: grpc
-    OTEL_LOGS_EXPORTER: none  # we define our own loguru sink for exporting logs
+    OTEL_LOGS_EXPORTER: none # we define our own loguru sink for exporting logs
     OTEL_TRACES_EXPORTER: otlp
     OTEL_METRICS_EXPORTER: otlp
 
@@ -106,6 +106,7 @@ services:
             AZURE_TENANT_ID: ${HASHER_API_AZ_TENANT_ID}
             AZURE_KEY_VAULT_NAME: ${HASHER_API_AZ_KEY_VAULT_NAME}
             AZURE_KEY_VAULT_SECRET_NAME: ${HASHER_API_AZ_KEY_VAULT_SECRET_NAME}
+            AZURE_KEY_VAULT_SUFFIX: ${AZURE_KEY_VAULT_SUFFIX:-vault.azure.net}
         env_file:
             - ./docker/common.env
         ports:
@@ -133,7 +134,15 @@ services:
         command: /run/secrets
         restart: always
         environment:
-            <<: [*pixl-db, *proxy-common, *pixl-common-env, *azure-keyvault, *otel-common, *pixl-rabbit-mq]
+            <<:
+                [
+                    *pixl-db,
+                    *proxy-common,
+                    *pixl-common-env,
+                    *azure-keyvault,
+                    *otel-common,
+                    *pixl-rabbit-mq,
+                ]
             OTEL_SERVICE_NAME: "orthanc-anon"
             ORTHANC_NAME: "PIXL: Anon"
             ORTHANC_USERNAME: ${ORTHANC_ANON_USERNAME}
@@ -175,9 +184,6 @@ services:
             - ${PWD}/projects/configs:/${PROJECT_CONFIGS_DIR:-/projects/configs}:ro
         networks:
             - pixl-net
-        # needed for same reason as export-api
-        extra_hosts:
-            - "host.docker.internal:host-gateway"
         depends_on:
             postgres:
                 condition: service_healthy
@@ -303,6 +309,7 @@ services:
             HTTP_TIMEOUT: ${PIXL_DICOM_TRANSFER_TIMEOUT}
             XNAT_OVERWRITE: ${XNAT_OVERWRITE}
             XNAT_DESTINATION: ${XNAT_DESTINATION}
+            AZURE_KEY_VAULT_SUFFIX: ${AZURE_KEY_VAULT_SUFFIX:-vault.azure.net}
         env_file:
             - ./docker/common.env
         depends_on:
@@ -320,10 +327,6 @@ services:
             retries: 5
         networks:
             - pixl-net
-        # needed for testing under GHA (linux), so this container
-        # can reach the test FTP server running on the docker host
-        extra_hosts:
-            - "host.docker.internal:host-gateway"
         volumes:
             - ${HOST_EXPORT_ROOT_DIR_MOUNT:-${PWD}/projects/exports}:/run/projects/exports
             - ${PWD}/projects/configs:/${PROJECT_CONFIGS_DIR:-/projects/configs}:ro
@@ -402,7 +405,15 @@ services:
         ports:
             - "${CLI_PIXL_DB_PORT}:5432"
         healthcheck:
-            test: ["CMD", "pg_isready", "-U", "${ORTHANC_RAW_DB_USER}", "--dbname", "${ORTHANC_RAW_DB_NAME}"]
+            test:
+                [
+                    "CMD",
+                    "pg_isready",
+                    "-U",
+                    "${ORTHANC_RAW_DB_USER}",
+                    "--dbname",
+                    "${ORTHANC_RAW_DB_NAME}",
+                ]
             interval: 10s
             timeout: 30s
             retries: 5

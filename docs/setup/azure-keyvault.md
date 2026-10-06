@@ -1,7 +1,8 @@
 # Azure Keyvault setup
 
-_This is done for the \_UCLH_DIF\_ `dev` tenancy, will need to be done once in the __UCLHSDE__ `prod`
-tenancy when ready to deploy to production._
+_This is done for in the __UCLHSDE__ `prod` tenancy for production._
+
+System tests do not use this vault. They use the [Lowkey Vault test double](../../test/keyvault/README.md).
 
 This Key Vault and secret must persist any infrastructure changes so should be separate from disposable
 infrastructure services. A [Service Principal](https://learn.microsoft.com/en-us/azure/developer/python/sdk/authentication-on-premises-apps)
@@ -71,7 +72,7 @@ az keyvault secret set --vault-name "<key-vault-name>" --name "<secret-name>" --
 
 ### Step 5
 
-Save credentials in `.secrets.env` and a LastPass `PIXL Keyvault <project-slug> secrets` note.
+Save credentials in `.env` and a LastPass `PIXL Keyvault <project-slug> secrets` note.
 
 ```
 EXPORT_AZ_CLIENT_ID=<generated-app-ID>

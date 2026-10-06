@@ -164,6 +164,7 @@ so we can have different (or no) endpoints for different projects.
 
 For [testing](../test/README.md) we set up an additional Orthanc server that acts as a DICOMweb server,
 using the vanilla Orthanc Docker image with the DICOMWeb plugin enabled.
+Secrets come from the [Key Vault test double](../test/keyvault/README.md).
 
 ## Uploading to an XNAT instance
 
