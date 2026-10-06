@@ -26,8 +26,8 @@ setup() {
     # Note: cannot run as single docker compose command due to different build contexts
     docker compose --env-file .env -p system-test up --wait -d --build --remove-orphans
     # Warning: Requires to be run from the project root.
-    # docker-compose-test.yml adds the IMDS network and host.docker.internal
-    # entries used only by the system tests.
+    # docker-compose-test.yml extends the production docker-compose.yml for 
+    # running the system tests.
     (
     	cd "${PACKAGE_DIR}"
     	docker compose \
