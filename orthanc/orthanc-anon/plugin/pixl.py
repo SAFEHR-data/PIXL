@@ -430,7 +430,9 @@ def _anonymise_study_and_upload(
 
         with logger.contextualize(pseudo_study_uid=anonymised_study_uid):
             _upload_instances(anonymised_instances_bytes)
-            logger.success("Anonymised and uploaded study '{}', {}", project_name, study_info)
+            logger.info(
+                "Anonymised and uploaded study to orthanc-anon '{}', {}", project_name, study_info
+            )
 
         return anonymised_study_uid
 
