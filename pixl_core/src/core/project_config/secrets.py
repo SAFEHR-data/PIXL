@@ -82,9 +82,18 @@ def _check_system_envvar(var_name: str) -> None:
 
 
 def _setup_client(kv_name: str) -> SecretClient:
-    key_vault_uri = f"https://{kv_name}.vault.azure.net"
+    key_vault_uri_suffix = config("AZURE_KEY_VAULT_SUFFIX")
+    key_vault_uri = f"https://{kv_name}.{key_vault_uri_suffix}"
+
     credentials = DefaultAzureCredential()
-    return SecretClient(vault_url=key_vault_uri, credential=credentials)
+
+    # bit of a hack to use lowkey keyvault for tests
+    test_karwgs = {}
+    if key_vault_uri_suffix == "localhost:8443":
+        credentials = DefaultAzureCredential(exclude_environment_credential=True)
+        test_karwgs = {"verify_challenge_resource": False, "connection_verify": False}
+
+    return SecretClient(vault_url=key_vault_uri, credential=credentials, **test_karwgs)
 
 
 @lru_cache

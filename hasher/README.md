@@ -39,7 +39,7 @@ HASHER_API_AZ_TENANT_ID
 HASHER_API_AZ_KEY_VAULT_NAME
 ```
 
-See [below](#azure-setup) for instructions on how to set these up.
+See [below](#azure-setup) for a real vault. Unit tests mock the vault. System tests use the [Lowkey Vault test double](../test/keyvault/README.md).
 
 
 ### Test
@@ -56,7 +56,7 @@ pytest
 
 See the [Azure Key vault setup](../docs/setup/azure-keyvault.md) documentation for more information.
 
-Save the credentials in `.secrets.env` and a LastPass `Hasher API <environment> secrets` note.
+Save the credentials in `.env` and a LastPass `Hasher API <environment> secrets` note.
 
 ```
 HASHER_API_AZ_CLIENT_ID=<generated-app-ID>

@@ -12,8 +12,6 @@ consumers started.
 
 ## Pre-requisites for running system tests
 
-Set up your [.secrets.env](/README.md#project-secrets)
-
 Make sure your [python virtual environment](/docs/setup/developer.md) has been set up, PIXL installed correctly,
 and the virtual environment activated.
 
@@ -94,7 +92,13 @@ to mock the FTP server used by the Data Safe Haven.
 
 ### Docker compose
 
-`./docker-compose.yml` contains the docker compose configuration for the system test.
+`./docker-compose.yml` contains the docker compose configuration for the system test
+services (mock VNA, DICOMweb, [Lowkey Vault](./keyvault/README.md), and assumed-identity).
+Azure credentials are not required.
+
+`./docker-compose-test.yml` is applied on top of the root `docker-compose.yml` when the
+system tests start the PIXL services. It attaches `hasher-api` and `export-api` to
+`imds-net`, and adds `host.docker.internal` for the test FTP server.
 
 ### Scripts
 
@@ -116,3 +120,7 @@ but configured to upload to a [DICOMweb server](#dicomweb-config)
 ### DICOMWeb config
 
 `./dicomweb_config/` contains the Orthanc configuration files for the mock [DICOMweb server](../docs/services/dicomweb-server.md).
+
+### Key vault
+
+`./keyvault/` holds the [Lowkey Vault](./keyvault/README.md) test double config and secrets.

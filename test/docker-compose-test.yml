@@ -1,0 +1,41 @@
+#  Copyright (c) University College London Hospitals NHS Foundation Trust
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+# Applied on top of the root docker-compose.yml for system tests:
+#   docker compose -f docker-compose.yml -f test/docker-compose-test.yml ...
+#
+# imds-net gives hasher-api and export-api a link-local route to the
+# assumed-identity mock at 169.254.169.254. 
+# extra_hosts lets those containers reach the test FTP server on the Docker host.
+
+networks:
+    imds-net:
+        driver: bridge
+        ipam:
+            config:
+                - subnet: 169.254.169.0/24
+
+services:
+    hasher-api:
+        networks:
+            - imds-net
+
+    export-api:
+        networks:
+            - imds-net
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+
+    orthanc-anon:
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
