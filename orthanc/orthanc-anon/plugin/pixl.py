@@ -249,7 +249,7 @@ def _import_studies_from_raw(
                 pseudo_study_uid=anonymised_study_uid,
                 orthanc_resource_id=resource_id,
             ):
-                send_study(study_id=resource_id, project_name=project_name)
+                notify_export_api_of_readiness(study_id=resource_id, project_name=project_name)
 
 
 def _anonymise_study_and_upload(
@@ -502,23 +502,15 @@ def _get_study_resource_id(study_uid: str) -> str:
     return study_resource_ids[0]
 
 
-def send_study(study_id: str, project_name: str) -> None:
-    """
-    Send the resource to the appropriate destination.
-    Throws an exception if the image has already been exported.
-    """
-    logger.debug("Sending {}", study_id)
-    notify_export_api_of_readiness(study_id, project_name)
-
-
 def notify_export_api_of_readiness(study_id: str, project_name: str) -> None:
     """
-    Tell export-api that our data is ready and it should download it from us and upload
-    as appropriate
+    Tell export-api that our data is ready and it should download it from orthanc-anon
+    and upload to the relevant destination for the project
     """
+    logger.debug("Sending {}", study_id)
     url = EXPORT_API_URL + "/export-dicom-from-orthanc"
     payload = {"study_id": study_id, "project_name": project_name}
-    timeout: float = config("HTTP_TIMEOUT", default=30, cast=float)
+    timeout: float = config("PIXL_DICOM_TRANSFER_TIMEOUT", default=30, cast=float)
     response = requests.post(url, json=payload, timeout=timeout)
     response.raise_for_status()
 
