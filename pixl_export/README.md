@@ -7,32 +7,16 @@ It no longer accepts messages from rabbitmq.
 
 ## Installation
 
-First, make sure you have `postgresql` installed on your system.
+In production, the Export API runs in a Docker container (`export-api`) started by `uv run pixl dc up`,
+so it does not need to be installed on the host.
 
-On macOS:
-
-```bash
-brew install postgresql
-```
-
-On Ubuntu:
-
-```bash
-sudo apt install postgresql
-```
-
-On Windows, follow [these instructions](https://www.postgresqltutorial.com/postgresql-getting-started/install-postgresql/).
-
-Then install PIXL with:
-
-```bash
-uv sync
-```
+For local development and testing, this module is installed along with the rest of PIXL. See the
+[developer setup instructions](../docs/setup/developer.md#installation-of-pixl-modules).
 
 ## Test
 
 ```bash
-pytest
+uv run pytest
 ```
 
 ## Usage

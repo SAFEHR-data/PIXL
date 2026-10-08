@@ -41,16 +41,13 @@ assert dataset != pydicom.dcmread(dataset_path)
 
 ## Installation
 
-Install the Python dependencies from the `pixl_dcmd` directory:
-
-```bash
-uv sync
-```
+This module is installed along with the rest of PIXL. See the
+[developer setup instructions](../docs/setup/developer.md#installation-of-pixl-modules).
 
 ## Test
 
 ```bash
-pytest
+uv run pytest
 ```
 
 ## Tag scheme anonymisation
