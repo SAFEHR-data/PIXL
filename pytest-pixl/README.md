@@ -4,13 +4,12 @@ Installable `pytest` plugin module providing common test fixtures used throughou
 
 ## Installation
 
-```bash
-uv sync
-```
+This module is installed along with the rest of PIXL. See the
+[developer setup instructions](../docs/setup/developer.md#installation-of-pixl-modules).
 
 ## pytest-cov’s engine
 ```
-COV_CORE_SOURCE=src COV_CORE_CONFIG=.coveragerc COV_CORE_DATAFILE=.coverage.eager pytest --cov=src --cov-append --cov-report=xml --cov-report=term-missing
+COV_CORE_SOURCE=src COV_CORE_CONFIG=.coveragerc COV_CORE_DATAFILE=.coverage.eager uv run pytest --cov=src --cov-append --cov-report=xml --cov-report=term-missing
 ```
 
 ## Available fixtures

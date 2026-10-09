@@ -12,8 +12,7 @@ consumers started.
 
 ## Pre-requisites for running system tests
 
-Make sure your [python virtual environment](/docs/setup/developer.md) has been set up, PIXL installed correctly,
-and the virtual environment activated.
+Make sure PIXL has been installed following the [developer setup instructions](/docs/setup/developer.md).
 
 ## Running system tests
 
@@ -26,7 +25,7 @@ Or to do all the setup but not run any tests:
 ./run-system-test.sh setup
 ```
 
-You can then develop and run tests repeatedly with `pytest` or through your IDE.
+You can then develop and run tests repeatedly with `uv run pytest` or through your IDE.
 But you are responsible for knowing
 when to re-run the setup if something it depends on has changed.
 Currently, the postgres container doesn't get properly set/reset by the tests so you may have

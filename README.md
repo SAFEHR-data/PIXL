@@ -16,13 +16,19 @@ Please request access to Slab and add further details in a [new blank issue](htt
 
 ## Installation in production
 
-Install the PIXL Python modules by running the following commands from the top-level `PIXL/` directory:
+PIXL uses [uv](https://docs.astral.sh/uv/) to manage Python and its dependencies.
+
+Install the CLI by running the following command from the top-level `PIXL/` directory:
 
 ```shell
 uv sync --package pixl-cli
 ```
 
-Note, the CLI currently [needs to be installed in editable mode](https://github.com/SAFEHR-data/PIXL/issues/318).
+This also installs the required Python version if it isn't already available.
+Note, the CLI currently [needs to be installed in editable mode](https://github.com/SAFEHR-data/PIXL/issues/318),
+which is the `uv` default.
+
+PIXL commands are then run with `uv run`, e.g. `uv run pixl --help`.
 
 ## Developer setup
 
@@ -237,7 +243,7 @@ See the [hasher documentation](./hasher/README.md) for more information.
 From the _PIXL_ directory:
 
 ```shell
-pixl dc up
+uv run pixl dc up
 ```
 
 Once the services are running, you can interact with the services using the [`pixl` CLI](./cli/README.md).
@@ -247,7 +253,7 @@ Once the services are running, you can interact with the services using the [`pi
 From the _PIXL_ directory:
 
 ```shell
-pixl dc down  # --volumes to remove all data volumes
+uv run pixl dc down  # --volumes to remove all data volumes
 ```
 
 </details>
@@ -287,7 +293,7 @@ test/resources/omop/public /*.parquet
 
 ### OMOP ES extract dir (input to PIXL)
 
-EXTRACT_DIR is the directory passed to `pixl populate` as the input `PARQUET_PATH` argument.
+EXTRACT_DIR is the directory passed to `uv run pixl populate` as the input `PARQUET_PATH` argument.
 
 ```
 EXTRACT_DIR/public /*.parquet
