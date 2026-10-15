@@ -338,7 +338,15 @@ def _get_study_info_from_first_file(zipped_study_bytes) -> StudyInfo:
     with ZipFile(zipped_study_bytes) as zipped_study:
         file_info = zipped_study.infolist()[0]
         with zipped_study.open(file_info) as file:
-            dataset = dcmread(file)
+            dataset = dcmread(
+                file,
+                stop_before_pixels=True,
+                specific_tags=[
+                    "PatientID",
+                    "AccessionNumber",
+                    "StudyInstanceUID",
+                ],
+            )
             return get_study_info(dataset)
 
 

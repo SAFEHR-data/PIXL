@@ -86,6 +86,28 @@ def test_get_series_to_skip(
     assert len(series_to_skip) == expected_num_series_skipped
 
 
+def test_get_series_to_skip_reads_headers_only(
+    monkeypatch,
+    zipped_dicom_study: zipfile.ZipFile,
+) -> None:
+    """Counting series reads only the Series Instance UID from each file."""
+    read_options = []
+
+    def recording_dcmread(*args, **kwargs):
+        read_options.append(kwargs)
+        return pydicom.dcmread(*args, **kwargs)
+
+    monkeypatch.setattr("pixl_dcmd.main.dcmread", recording_dcmread)
+
+    get_series_to_skip(zipped_dicom_study, min_instances=2)
+
+    assert read_options
+    assert all(options["stop_before_pixels"] is True for options in read_options)
+    assert all(
+        options["specific_tags"] == ["SeriesInstanceUID"] for options in read_options
+    )
+
+
 @pytest.fixture(scope="module")
 def tag_scheme(test_project_config: PixlConfig) -> list[dict]:
     """Base tag scheme for testing."""
@@ -218,6 +240,21 @@ def test_anonymise_and_validate_as_external_user(
 
     assert validation_issues == {}
     assert dataset != pydicom.dcmread(dataset_path)
+
+
+def test_deid_recipe_is_not_parsed_when_absent(
+    monkeypatch,
+    vanilla_dicom_image_DX: pydicom.Dataset,
+    test_project_config: PixlConfig,
+) -> None:
+    """Projects without image operations do not construct a deid recipe."""
+
+    def unexpected_recipe(*args, **kwargs):
+        pytest.fail("DeidRecipe should not be called without configured recipes")
+
+    monkeypatch.setattr("pixl_dcmd.main.DeidRecipe", unexpected_recipe)
+
+    _clean_dicom_image_pixels(vanilla_dicom_image_DX, test_project_config)
 
 
 def test_anonymise_with_clean_dicom_image_pixels(
