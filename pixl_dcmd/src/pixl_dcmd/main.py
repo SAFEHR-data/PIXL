@@ -30,10 +30,7 @@ from dicomanonymizer.simpledicomanonymizer import anonymize_dataset
 from loguru import logger
 from pydicom import Dataset, dcmread, dcmwrite
 
-from pixl_dcmd._database import (
-    get_pseudo_patient_id_and_update_db,
-    get_uniq_pseudo_study_uid_and_update_db,
-)
+from pixl_dcmd._database import get_pseudo_identifiers_and_update_db
 from pixl_dcmd._tag_schemes import (
     _convert_schema_to_actions,
     enforce_allowlist,
@@ -57,6 +54,8 @@ class StudyAnonymisationState:
     """State shared while anonymising all instances in one study."""
 
     validation_attempted: bool = False
+    pseudo_study_uid: str | None = None
+    pseudo_patient_id: str | None = None
 
 
 def write_dataset_to_bytes(dataset: Dataset) -> bytes:
@@ -170,6 +169,7 @@ def anonymise_dicom_and_update_db(
         dataset=dataset,
         project_name=config.project.name,
         identifiable_study_info=identifiable_study_info,
+        study_state=study_state,
     )
     return validation_errors
 
@@ -345,9 +345,10 @@ def _generate_pseudo_uids_and_synchronise_pixl_db(
     dataset: Dataset,
     project_name: str,
     identifiable_study_info: StudyInfo,
+    study_state: StudyAnonymisationState,
 ) -> None:
     """
-    Synchronise the anonymisation with the pixl database.
+    Synchronise the anonymisation with the pixl database and update the study state.
 
     If the pixl database has a value for set for the pseudo identifier, then update the
     DICOM data with the value, otherwise save the anonymised data from the DICOM dataset
@@ -356,14 +357,21 @@ def _generate_pseudo_uids_and_synchronise_pixl_db(
     - pseudo_study_uid -> DICOM study uid tag
     - pseudo_patient_id -> DICOM patient identifier tag
     """
-    dataset[0x0020, 0x000D].value = get_uniq_pseudo_study_uid_and_update_db(
-        project_name,
-        identifiable_study_info,
-    )
+    if (
+        study_state.pseudo_study_uid is not None
+        and study_state.pseudo_patient_id is not None
+    ):
+        dataset[0x0020, 0x000D].value = study_state.pseudo_study_uid
+        dataset[0x0010, 0x0020].value = study_state.pseudo_patient_id
+        return
 
     anonymised_study_info = get_study_info(dataset)
-    dataset[0x0010, 0x0020].value = get_pseudo_patient_id_and_update_db(
+    pseudo_study_uid, pseudo_patient_id = get_pseudo_identifiers_and_update_db(
         project_name,
         identifiable_study_info,
         anonymised_study_info.mrn,
     )
+    dataset[0x0020, 0x000D].value = pseudo_study_uid
+    dataset[0x0010, 0x0020].value = pseudo_patient_id
+    study_state.pseudo_study_uid = pseudo_study_uid
+    study_state.pseudo_patient_id = pseudo_patient_id
