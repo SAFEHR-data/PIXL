@@ -17,6 +17,7 @@ import typing
 from dataclasses import dataclass
 from functools import lru_cache
 from io import BytesIO
+from pathlib import Path
 from zipfile import ZipFile
 
 import pydicom
@@ -93,7 +94,11 @@ def get_series_to_skip(zipped_study: ZipFile, min_instances: int) -> set[str]:
     for file_info in zipped_study.infolist():
         with zipped_study.open(file_info) as file:
             logger.debug("Reading file {}", file)
-            dataset = dcmread(file)
+            dataset = dcmread(
+                file,
+                stop_before_pixels=True,
+                specific_tags=["SeriesInstanceUID"],
+            )
             if dataset.SeriesInstanceUID not in series_instances:
                 series_instances[dataset.SeriesInstanceUID] = 1
                 continue
@@ -280,16 +285,14 @@ def _clean_dicom_image_pixels(
     study_info = get_study_info(dataset)
 
     image_operations = load_image_operations(config)
-    deid_recipe_path = image_operations.deid_recipes
-    deid_recipe = DeidRecipe(
-        deid_recipe_path
-    )  # current implementation permits only one recipe file
-
-    if not deid_recipe_path:
+    deid_recipe_paths = image_operations.deid_recipes
+    if not deid_recipe_paths:
         logger.trace(
             "No deid recipe provided for pixel cleaning, skipping pixel cleaning."
         )
         return
+
+    deid_recipe = _get_deid_recipe(tuple(deid_recipe_paths))
     logger.debug(f"Cleaning pixels for project {config.project.name}:  {study_info}")
     burned_pixels = has_burned_pixels(dataset, deid=deid_recipe)
     cleaned_pixels = clean_pixel_data(dicom_file=dataset, results=burned_pixels)
@@ -299,6 +302,12 @@ def _clean_dicom_image_pixels(
         dataset.PixelData = pydicom.encaps.encapsulate([pixel_bytes])
     else:
         dataset.PixelData = pixel_bytes
+
+
+@lru_cache(maxsize=100)
+def _get_deid_recipe(recipe_paths: tuple[Path, ...]) -> DeidRecipe:
+    """Parse each set of de-identification recipes once per process."""
+    return DeidRecipe(list(recipe_paths))
 
 
 def _anonymise_dicom_from_scheme(
