@@ -36,7 +36,13 @@ url = URL.create(
     database=config("PIXL_DB_NAME", default="None"),
 )
 
-engine = create_engine(url)
+max_workers = config("PIXL_MAX_MESSAGES_IN_FLIGHT", default=5, cast=int)
+engine = create_engine(
+    url,
+    pool_size=max_workers,
+    max_overflow=max_workers,
+)
+PixlSession = sessionmaker()
 
 
 def record_skip_reasons_for_study(
@@ -46,59 +52,62 @@ def record_skip_reasons_for_study(
     Record the reasons (and instance counts) a study's instances were skipped for,
     against the existing image record for that study.
     """
-    PixlSession = sessionmaker(engine)
-    with PixlSession() as pixl_session, pixl_session.begin():
+    with PixlSession(bind=engine) as pixl_session, pixl_session.begin():
         existing_image = get_unexported_image(project_slug, study_info, pixl_session)
         existing_image.skip_reasons = skip_reasons
         pixl_session.add(existing_image)
 
 
-def get_uniq_pseudo_study_uid_and_update_db(
-    project_slug: str, original_study_info: StudyInfo
+def get_pseudo_identifiers_and_update_db(
+    project_slug: str,
+    original_study_info: StudyInfo,
+    pseudo_patient_id: str,
+) -> tuple[UID, str]:
+    """Get or create both pseudo identifiers in one database transaction."""
+    with PixlSession(bind=engine) as pixl_session, pixl_session.begin():
+        existing_image = get_unexported_image(
+            project_slug,
+            original_study_info,
+            pixl_session,
+        )
+        pseudo_study_uid = _get_or_create_pseudo_study_uid(
+            existing_image,
+            pixl_session,
+        )
+        stored_patient_id = _get_or_create_pseudo_patient_id(
+            existing_image,
+            pseudo_patient_id,
+            pixl_session,
+        )
+        return pseudo_study_uid, stored_patient_id
+
+
+def _get_or_create_pseudo_study_uid(
+    existing_image: Image,
+    pixl_session: Session,
 ) -> UID:
-    """
-    Checks if record (by slug and study info) exists in the database,
-    gets the pseudo_study_uid if it is not None or records a new, unique one.
-    Returns the pseudo_study_uid.
-    """
-    PixlSession = sessionmaker(engine)
-    with PixlSession() as pixl_session, pixl_session.begin():
-        existing_image = get_unexported_image(
-            project_slug,
-            original_study_info,
-            pixl_session,
-        )
-        if existing_image.pseudo_study_uid is None:
+    """Get an image's pseudo study UID, creating it when absent."""
+    if existing_image.pseudo_study_uid is None:
+        pseudo_study_uid = generate_uid()
+        while not is_unique_pseudo_study_uid(pseudo_study_uid, pixl_session):
             pseudo_study_uid = generate_uid()
-            while not is_unique_pseudo_study_uid(pseudo_study_uid, pixl_session):
-                pseudo_study_uid = generate_uid()
-            add_pseudo_study_uid_to_db(existing_image, pseudo_study_uid, pixl_session)
-        else:
-            pseudo_study_uid = existing_image.pseudo_study_uid
-        return UID(pseudo_study_uid, validation_mode=pydicom.config.RAISE)
+        add_pseudo_study_uid_to_db(existing_image, pseudo_study_uid, pixl_session)
+    else:
+        pseudo_study_uid = existing_image.pseudo_study_uid
+    return UID(pseudo_study_uid, validation_mode=pydicom.config.RAISE)
 
 
-def get_pseudo_patient_id_and_update_db(
-    project_slug: str, original_study_info: StudyInfo, pseudo_patient_id: str
+def _get_or_create_pseudo_patient_id(
+    existing_image: Image,
+    pseudo_patient_id: str,
+    pixl_session: Session,
 ) -> str:
-    """
-    Checks if record (by slug and study info) exists in the database,
-    gets the pseudo_paitent_id if it is not None otherwise use the
-    patient ID from the DICOM dataset.
-    Returns the pseudo_paitent_id.
-    """
-    PixlSession = sessionmaker(engine)
-    with PixlSession() as pixl_session, pixl_session.begin():
-        existing_image = get_unexported_image(
-            project_slug,
-            original_study_info,
-            pixl_session,
-        )
-        if existing_image.pseudo_patient_id is None:
-            logger.debug("Adding pseudo patient ID to image")
-            add_pseudo_patient_id_to_db(existing_image, pseudo_patient_id, pixl_session)
-            return pseudo_patient_id  # type: ignore
-        return existing_image.pseudo_patient_id  # type: ignore
+    """Get an image's pseudo patient ID, creating it when absent."""
+    if existing_image.pseudo_patient_id is None:
+        logger.debug("Adding pseudo patient ID to image")
+        add_pseudo_patient_id_to_db(existing_image, pseudo_patient_id, pixl_session)
+        return pseudo_patient_id
+    return str(existing_image.pseudo_patient_id)
 
 
 def add_pseudo_study_uid_to_db(

@@ -14,33 +14,28 @@
 from __future__ import annotations
 
 import typing
+from dataclasses import dataclass
 from functools import lru_cache
 from io import BytesIO
+from pathlib import Path
 from zipfile import ZipFile
 
 import pydicom
-import requests
 from core.exceptions import PixlSkipInstanceError
-from core.project_config import (
-    load_image_operations,
-    load_tag_operations,
-)
+from core.project_config import load_image_operations
 from core.project_config.pixl_config_model import PixlConfig
-from decouple import config
 from deid.config import DeidRecipe
 from deid.dicom.pixels import clean_pixel_data, has_burned_pixels
-from dicomanonymizer.simpledicomanonymizer import (
-    ActionsMapNameFunctions,
-    anonymize_dataset,
-)
+from dicomanonymizer.simpledicomanonymizer import anonymize_dataset
 from loguru import logger
-from pydicom import DataElement, Dataset, dcmread, dcmwrite
+from pydicom import Dataset, dcmread, dcmwrite
 
-from pixl_dcmd._database import (
-    get_pseudo_patient_id_and_update_db,
-    get_uniq_pseudo_study_uid_and_update_db,
+from pixl_dcmd._database import get_pseudo_identifiers_and_update_db
+from pixl_dcmd._tag_schemes import (
+    _convert_schema_to_actions,
+    enforce_allowlist,
+    get_tag_scheme_and_actions,
 )
-from pixl_dcmd._tag_schemes import _scheme_list_to_dict, merge_tag_schemes
 from pixl_dcmd.dicom_helpers import (
     DicomValidator,
     get_study_info,
@@ -52,6 +47,15 @@ if typing.TYPE_CHECKING:
 
 # See: https://github.com/pydicom/pydicom/issues/2170
 pydicom.config.convert_wrong_length_to_UN = True
+
+
+@dataclass
+class StudyAnonymisationState:
+    """State shared while anonymising all instances in one study."""
+
+    validation_attempted: bool = False
+    pseudo_study_uid: str | None = None
+    pseudo_patient_id: str | None = None
 
 
 def write_dataset_to_bytes(dataset: Dataset) -> bytes:
@@ -85,7 +89,11 @@ def get_series_to_skip(zipped_study: ZipFile, min_instances: int) -> set[str]:
     for file_info in zipped_study.infolist():
         with zipped_study.open(file_info) as file:
             logger.debug("Reading file {}", file)
-            dataset = dcmread(file)
+            dataset = dcmread(
+                file,
+                stop_before_pixels=True,
+                specific_tags=["SeriesInstanceUID"],
+            )
             if dataset.SeriesInstanceUID not in series_instances:
                 series_instances[dataset.SeriesInstanceUID] = 1
                 continue
@@ -137,14 +145,31 @@ def anonymise_dicom_and_update_db(
     dataset: Dataset,
     *,
     config: PixlConfig,
+    study_state: StudyAnonymisationState,
 ) -> dict:
-    """Anonymise and validate a DICOM dataset and update the PIXL database."""
+    """
+    Anonymise and validate a DICOM dataset, update the PIXL database and return the first intance's validation errors.
+
+    :param dataset: DICOM dataset to be anonymised, updated in place
+    :param config: Project config to use for anonymisation
+    :param study_state: State of the study anonymisation
+    :return: dictionary of validation errors
+    """
     identifiable_study_info = get_study_info(dataset)
-    validation_errors = anonymise_and_validate_dicom(dataset, config=config)
+    _raise_if_should_skip(dataset, config)
+
+    if not study_state.validation_attempted:
+        validation_errors = _anonymise_and_validate_included_dicom(dataset, config)
+        study_state.validation_attempted = True
+    else:
+        _anonymise_included_dicom(dataset, config)
+        validation_errors = {}
+
     _generate_pseudo_uids_and_synchronise_pixl_db(
         dataset=dataset,
         project_name=config.project.name,
         identifiable_study_info=identifiable_study_info,
+        study_state=study_state,
     )
     return validation_errors
 
@@ -162,13 +187,20 @@ def anonymise_and_validate_dicom(
     :param config: Project config to use for anonymisation
     :return: dictionary of validation errors
     """
-    # Set up Dicom validator and validate the original dataset
-    dicom_validator = DicomValidator(edition="2024e")
+    _raise_if_should_skip(dataset, config)
+    return _anonymise_and_validate_included_dicom(dataset, config)
+
+
+def _anonymise_and_validate_included_dicom(
+    dataset: Dataset,
+    config: PixlConfig,
+) -> dict:
+    """Anonymise and validate a dataset that passed the project filters."""
+    dicom_validator = DicomValidator("2024e")
     original_errors = dicom_validator.validate_original(dataset)
 
-    anonymise_dicom(dataset, config=config)
+    _anonymise_included_dicom(dataset, config)
 
-    # Validate the anonymised dataset
     anon_errors = dicom_validator.validate_anonymised(dataset)
     return dicom_validator.get_new_errors(original_errors, anon_errors)
 
@@ -187,14 +219,12 @@ def anonymise_dicom(
     :param dataset: DICOM dataset to be anonymised, updated in place
     :param config: Project config to use for anonymisation
     """
+    _raise_if_should_skip(dataset, config)
+    _anonymise_included_dicom(dataset, config)
 
-    study_info = get_study_info(dataset)
-    logger.trace(
-        f"Processing instance for project {config.project.name}:  {study_info}"
-    )
 
-    # Do before anonymisation in case someone decides to delete the
-    # Series Description or Manufacturer tags as part of anonymisation.
+def _raise_if_should_skip(dataset: Dataset, config: PixlConfig) -> None:
+    """Raise when an instance is excluded by the project configuration."""
     if _should_exclude_manufacturer(dataset, config):
         msg = "DICOM instance discarded due to its manufacturer"
         raise PixlSkipInstanceError(msg)
@@ -205,23 +235,28 @@ def anonymise_dicom(
         msg = f"Dropping DICOM Modality: {dataset.Modality}"
         raise PixlSkipInstanceError(msg)
 
+
+def _anonymise_included_dicom(dataset: Dataset, config: PixlConfig) -> None:
+    """Anonymise a dataset that passed the project filters."""
+    study_info = get_study_info(dataset)
     logger.trace("Anonymising instance for: {}", study_info)
 
     # Apply any pixel cleaning prior to tag anonymisation
     # Do before anonymisation as some tag operations may rely on pixel data (e.g. burned in pixel detection).
     _clean_dicom_image_pixels(dataset, config)
 
-    # Merge tag schemes
-    tag_operations = load_tag_operations(config)
-    tag_scheme = merge_tag_schemes(tag_operations, manufacturer=dataset.Manufacturer)
+    tag_scheme, tag_actions = get_tag_scheme_and_actions(
+        config,
+        str(dataset.Manufacturer),
+    )
 
     logger.debug(
         f"Applying DICOM tag anonymisation according to {config.tag_operation_files}"
     )
     logger.trace(f"Tag scheme: {tag_scheme}")
 
-    _enforce_allowlist(dataset, tag_scheme, recursive=True)
-    _anonymise_dicom_from_scheme(dataset, config.project.name, tag_scheme)
+    enforce_allowlist(dataset, tag_scheme, recursive=True)
+    _anonymise_recursively(dataset, tag_actions)
 
 
 def _clean_dicom_image_pixels(
@@ -247,16 +282,14 @@ def _clean_dicom_image_pixels(
     study_info = get_study_info(dataset)
 
     image_operations = load_image_operations(config)
-    deid_recipe_path = image_operations.deid_recipes
-    deid_recipe = DeidRecipe(
-        deid_recipe_path
-    )  # current implementation permits only one recipe file
-
-    if not deid_recipe_path:
+    deid_recipe_paths = image_operations.deid_recipes
+    if not deid_recipe_paths:
         logger.trace(
             "No deid recipe provided for pixel cleaning, skipping pixel cleaning."
         )
         return
+
+    deid_recipe = _get_deid_recipe(tuple(deid_recipe_paths))
     logger.debug(f"Cleaning pixels for project {config.project.name}:  {study_info}")
     burned_pixels = has_burned_pixels(dataset, deid=deid_recipe)
     cleaned_pixels = clean_pixel_data(dicom_file=dataset, results=burned_pixels)
@@ -268,6 +301,12 @@ def _clean_dicom_image_pixels(
         dataset.PixelData = pixel_bytes
 
 
+@lru_cache(maxsize=100)
+def _get_deid_recipe(recipe_paths: tuple[Path, ...]) -> DeidRecipe:
+    """Parse each set of de-identification recipes once per process."""
+    return DeidRecipe(list(recipe_paths))
+
+
 def _anonymise_dicom_from_scheme(
     dataset: Dataset,
     project_slug: str,
@@ -276,7 +315,7 @@ def _anonymise_dicom_from_scheme(
     """
     Converts tag scheme to tag actions and calls _anonymise_recursively.
     """
-    tag_actions = _convert_schema_to_actions(dataset, project_slug, tag_scheme)
+    tag_actions = _convert_schema_to_actions(project_slug, tag_scheme)
 
     _anonymise_recursively(dataset, tag_actions)
 
@@ -294,93 +333,6 @@ def _anonymise_recursively(
                 _anonymise_recursively(item, tag_actions)
 
 
-def _convert_schema_to_actions(
-    dataset: Dataset, project_slug: str, tags_list: list[dict]
-) -> dict[tuple, typing.Callable]:
-    """
-    Convert the tag schema to actions (functions) for the anonymiser.
-    See https://github.com/KitwareMedical/dicom-anonymizer for more details.
-    Added custom function secure-hash for linking purposes. This function needs the MRN and
-    Accession Number, hence why the dataset is passed in as well.
-    """
-
-    tag_actions = {}
-    for tag in tags_list:
-        group_el = (tag["group"], tag["element"])
-        if tag["op"] == "secure-hash":
-            tag_actions[group_el] = lambda _dataset, _tag: _secure_hash(
-                _dataset, project_slug, _tag
-            )
-            continue
-        tag_actions[group_el] = ActionsMapNameFunctions[tag["op"]].value.function
-
-    return tag_actions
-
-
-def _secure_hash(
-    dataset: Dataset,
-    project_slug: str,
-    tag: tuple,
-) -> None:
-    """
-    Use the hasher API to consistently but securely hash ids later used for linking.
-    """
-    grp = tag[0]
-    el = tag[1]
-
-    if tag in dataset:
-        message = f"Securely hashing: (0x{grp:04x},0x{el:04x})"
-        logger.trace(message)
-        if dataset[grp, el].VR == "LO":
-            pat_value = str(dataset[grp, el].value)
-            hashed_value = _hash_values(pat_value, project_slug, hash_len=64)
-        else:
-            # This is because we currently only hash patient id specifically.
-            # Other types can be added easily if needed.
-            raise PixlSkipInstanceError(f"Tag {tag} is not an LO VR type, cannot hash.")
-
-        dataset[grp, el].value = hashed_value
-
-
-@lru_cache(maxsize=1000)
-def _hash_values(pat_value: str, project_slug: str, hash_len: int = 0) -> str:
-    """
-    Utility function for hashing values using the hasher API.
-    """
-    HASHER_API_AZ_NAME = config("HASHER_API_AZ_NAME")
-    HASHER_API_PORT = config("HASHER_API_PORT")
-    hasher_req_url = f"http://{HASHER_API_AZ_NAME}:{HASHER_API_PORT}/hash"
-    request_params: dict[str, str | int] = {
-        "project_slug": project_slug,
-        "message": pat_value,
-    }
-    if hash_len:
-        request_params["length"] = hash_len
-
-    response = requests.get(hasher_req_url, params=request_params)
-    logger.debug("RESPONSE = {}", response.text)
-    return response.text
-
-
-def _enforce_allowlist(
-    dataset: Dataset, tag_scheme: list[dict], recursive: bool
-) -> None:
-    """
-    Enforce the allowlist on the dataset.
-    """
-    dataset.walk(lambda ds, de: _allowlist_tag(ds, de, tag_scheme), recursive)
-
-
-def _allowlist_tag(dataset: Dataset, de: DataElement, tag_scheme: list[dict]) -> None:
-    """Delete element if it is not in the tagging schemе."""
-    tag_dict = _scheme_list_to_dict(tag_scheme)
-    if (de.tag.group, de.tag.element) in tag_dict and tag_dict[
-        (de.tag.group, de.tag.element)
-    ]["op"] != "delete":
-        return
-    del dataset[de.tag]
-
-
 def parse_validation_results(results: dict) -> str:
     """Parse the validation results into a human-readable string."""
     res_str = ""
@@ -393,9 +345,10 @@ def _generate_pseudo_uids_and_synchronise_pixl_db(
     dataset: Dataset,
     project_name: str,
     identifiable_study_info: StudyInfo,
+    study_state: StudyAnonymisationState,
 ) -> None:
     """
-    Synchronise the anonymisation with the pixl database.
+    Synchronise the anonymisation with the pixl database and update the study state.
 
     If the pixl database has a value for set for the pseudo identifier, then update the
     DICOM data with the value, otherwise save the anonymised data from the DICOM dataset
@@ -404,14 +357,21 @@ def _generate_pseudo_uids_and_synchronise_pixl_db(
     - pseudo_study_uid -> DICOM study uid tag
     - pseudo_patient_id -> DICOM patient identifier tag
     """
-    dataset[0x0020, 0x000D].value = get_uniq_pseudo_study_uid_and_update_db(
-        project_name,
-        identifiable_study_info,
-    )
+    if (
+        study_state.pseudo_study_uid is not None
+        and study_state.pseudo_patient_id is not None
+    ):
+        dataset[0x0020, 0x000D].value = study_state.pseudo_study_uid
+        dataset[0x0010, 0x0020].value = study_state.pseudo_patient_id
+        return
 
     anonymised_study_info = get_study_info(dataset)
-    dataset[0x0010, 0x0020].value = get_pseudo_patient_id_and_update_db(
+    pseudo_study_uid, pseudo_patient_id = get_pseudo_identifiers_and_update_db(
         project_name,
         identifiable_study_info,
         anonymised_study_info.mrn,
     )
+    dataset[0x0020, 0x000D].value = pseudo_study_uid
+    dataset[0x0010, 0x0020].value = pseudo_patient_id
+    study_state.pseudo_study_uid = pseudo_study_uid
+    study_state.pseudo_patient_id = pseudo_patient_id
