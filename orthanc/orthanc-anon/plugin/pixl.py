@@ -52,6 +52,7 @@ from pixl_dcmd._database import engine as pixl_db_engine
 from pixl_dcmd._database import record_skip_reasons_for_study
 from pixl_dcmd.dicom_helpers import get_study_info
 from pixl_dcmd.main import (
+    StudyAnonymisationState,
     anonymise_dicom_and_update_db,
     get_series_to_skip,
     parse_validation_results,
@@ -359,6 +360,7 @@ def _anonymise_study_instances(
     anonymised_instances_bytes = []
     skipped_instance_counts = defaultdict(int)
     dicom_validation_errors = {}
+    study_anonymisation_state = StudyAnonymisationState()
 
     for file_info in zipped_study.infolist():
         with zipped_study.open(file_info) as file:
@@ -399,7 +401,7 @@ def _anonymise_study_instances(
 
             try:
                 anonymised_instance, instance_validation_errors = _anonymise_dicom_instance(
-                    dataset, config
+                    dataset, config, study_anonymisation_state
                 )
             except PixlSkipInstanceError as e:
                 logger.debug(
@@ -450,9 +452,17 @@ def _anonymise_study_instances(
     return anonymised_instances_bytes, anonymised_study_uid
 
 
-def _anonymise_dicom_instance(dataset: pydicom.Dataset, config: PixlConfig) -> tuple[bytes, dict]:
+def _anonymise_dicom_instance(
+    dataset: pydicom.Dataset,
+    config: PixlConfig,
+    study_state: StudyAnonymisationState,
+) -> tuple[bytes, dict]:
     """Anonymise a DICOM instance."""
-    validation_errors = anonymise_dicom_and_update_db(dataset, config=config)
+    validation_errors = anonymise_dicom_and_update_db(
+        dataset,
+        config=config,
+        study_state=study_state,
+    )
     return write_dataset_to_bytes(dataset), validation_errors
 
 
