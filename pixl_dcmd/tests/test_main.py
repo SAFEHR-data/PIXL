@@ -37,6 +37,9 @@ from core.project_config import load_project_config, load_tag_operations
 from core.project_config.pixl_config_model import load_config_and_validate, Manufacturer
 from decouple import config
 
+from pixl_dcmd._tag_schemes import (
+    enforce_allowlist,
+)
 from pixl_dcmd.dicom_helpers import get_study_info
 from pixl_dcmd.main import (
     StudyAnonymisationState,
@@ -46,7 +49,6 @@ from pixl_dcmd.main import (
     anonymise_and_validate_dicom,
     anonymise_dicom,
     get_series_to_skip,
-    _enforce_allowlist,
     _should_exclude_series,
     _should_exclude_manufacturer,
 )
@@ -155,17 +157,6 @@ def mri_diffusion_dicom_image(test_project_config: PixlConfig) -> pydicom.Datase
         add_private_tag(ds, tag)
 
     return ds
-
-
-def test_enforce_allowlist_removes_overlay_plane() -> None:
-    """Checks that overlay planes are removed."""
-    ds = pydicom.data.get_testdata_file(
-        "MR-SIEMENS-DICOM-WithOverlays.dcm", read=True, download=True
-    )
-    assert (0x6000, 0x3000) in ds
-
-    _enforce_allowlist(ds, {}, recursive=True)
-    assert (0x6000, 0x3000) not in ds
 
 
 def test_anonymisation(
@@ -862,8 +853,7 @@ def test_allowlist_child_elements_deleted(sequenced_dicom_mock_db):
             "op": "keep",
         },
     ]
-    # Whitelist
-    _enforce_allowlist(sequenced_dicom_mock_db, tag_scheme, recursive=True)
+    enforce_allowlist(sequenced_dicom_mock_db, tag_scheme, recursive=True)
 
     # Check that the sequence tag is kept
     assert (0x0011, 0x0010) in sequenced_dicom_mock_db
