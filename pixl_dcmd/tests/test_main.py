@@ -39,6 +39,7 @@ from decouple import config
 
 from pixl_dcmd.dicom_helpers import get_study_info
 from pixl_dcmd.main import (
+    StudyAnonymisationState,
     anonymise_dicom_and_update_db,
     _anonymise_dicom_from_scheme,
     _clean_dicom_image_pixels,
@@ -390,6 +391,7 @@ def test_image_already_exported_throws(test_project_config, exported_dicom_datas
         anonymise_dicom_and_update_db(
             exported_dicom_dataset,
             config=test_project_config,
+            study_state=StudyAnonymisationState(),
         )
 
 
@@ -434,7 +436,9 @@ def test_pseudo_identifier_processing(
     print("fake_hash = ", fake_hash)
 
     anonymise_dicom_and_update_db(
-        not_exported_dicom_dataset, config=test_project_config
+        not_exported_dicom_dataset,
+        config=test_project_config,
+        study_state=StudyAnonymisationState(),
     )
 
     image = (
@@ -471,7 +475,9 @@ def test_pseudo_patient_id_processing(
     )
 
     anonymise_dicom_and_update_db(
-        not_exported_dicom_dataset, config=test_project_config
+        not_exported_dicom_dataset,
+        config=test_project_config,
+        study_state=StudyAnonymisationState(),
     )
 
     anonymised_image: Image = (
@@ -501,7 +507,9 @@ def test_no_pseudo_patient_id_processing(
     study_info = get_study_info(not_exported_dicom_dataset)
 
     anonymise_dicom_and_update_db(
-        not_exported_dicom_dataset, config=test_project_config
+        not_exported_dicom_dataset,
+        config=test_project_config,
+        study_state=StudyAnonymisationState(),
     )
 
     anonymised_image: Image = (
