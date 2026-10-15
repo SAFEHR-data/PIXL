@@ -19,6 +19,7 @@ anonymisation together with a loader function.
 
 from __future__ import annotations
 
+from functools import lru_cache
 from typing import TYPE_CHECKING, Any
 
 import yaml
@@ -39,14 +40,22 @@ def load_tag_operations(pixl_config: PixlConfig) -> TagOperations:
     Load tag operations for a project.
     :param pixl_config: Project configuration
     """
-    base = [_load_scheme(f) for f in pixl_config.tag_operation_files.base]
-    manufacturer_overrides = []
+    return _load_tag_operations(
+        tuple(pixl_config.tag_operation_files.base),
+        tuple(pixl_config.tag_operation_files.manufacturer_overrides or ()),
+    )
 
-    if pixl_config.tag_operation_files.manufacturer_overrides:
-        for override_file in pixl_config.tag_operation_files.manufacturer_overrides:
-            override_dict = _load_scheme(override_file)
-            manufacturer_overrides.append(override_dict)
 
+@lru_cache(maxsize=100)
+def _load_tag_operations(
+    base_files: tuple[Path, ...],
+    manufacturer_override_files: tuple[Path, ...],
+) -> TagOperations:
+    """Load and validate each set of tag-operation files once per process."""
+    base = [_load_scheme(tag_file) for tag_file in base_files]
+    manufacturer_overrides = [
+        _load_scheme(override_file) for override_file in manufacturer_override_files
+    ]
     return TagOperations(base=base, manufacturer_overrides=manufacturer_overrides)
 
 
