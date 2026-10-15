@@ -21,28 +21,24 @@ from pathlib import Path
 from zipfile import ZipFile
 
 import pydicom
-import requests
 from core.exceptions import PixlSkipInstanceError
-from core.project_config import (
-    load_image_operations,
-    load_tag_operations,
-)
+from core.project_config import load_image_operations
 from core.project_config.pixl_config_model import PixlConfig
-from decouple import config
 from deid.config import DeidRecipe
 from deid.dicom.pixels import clean_pixel_data, has_burned_pixels
-from dicomanonymizer.simpledicomanonymizer import (
-    ActionsMapNameFunctions,
-    anonymize_dataset,
-)
+from dicomanonymizer.simpledicomanonymizer import anonymize_dataset
 from loguru import logger
-from pydicom import DataElement, Dataset, dcmread, dcmwrite
+from pydicom import Dataset, dcmread, dcmwrite
 
 from pixl_dcmd._database import (
     get_pseudo_patient_id_and_update_db,
     get_uniq_pseudo_study_uid_and_update_db,
 )
-from pixl_dcmd._tag_schemes import _scheme_list_to_dict, merge_tag_schemes
+from pixl_dcmd._tag_schemes import (
+    _convert_schema_to_actions,
+    enforce_allowlist,
+    get_tag_scheme_and_actions,
+)
 from pixl_dcmd.dicom_helpers import (
     DicomValidator,
     get_study_info,
@@ -249,17 +245,18 @@ def _anonymise_included_dicom(dataset: Dataset, config: PixlConfig) -> None:
     # Do before anonymisation as some tag operations may rely on pixel data (e.g. burned in pixel detection).
     _clean_dicom_image_pixels(dataset, config)
 
-    # Merge tag schemes
-    tag_operations = load_tag_operations(config)
-    tag_scheme = merge_tag_schemes(tag_operations, manufacturer=dataset.Manufacturer)
+    tag_scheme, tag_actions = get_tag_scheme_and_actions(
+        config,
+        str(dataset.Manufacturer),
+    )
 
     logger.debug(
         f"Applying DICOM tag anonymisation according to {config.tag_operation_files}"
     )
     logger.trace(f"Tag scheme: {tag_scheme}")
 
-    _enforce_allowlist(dataset, tag_scheme, recursive=True)
-    _anonymise_dicom_from_scheme(dataset, config.project.name, tag_scheme)
+    enforce_allowlist(dataset, tag_scheme, recursive=True)
+    _anonymise_recursively(dataset, tag_actions)
 
 
 def _clean_dicom_image_pixels(
@@ -318,7 +315,7 @@ def _anonymise_dicom_from_scheme(
     """
     Converts tag scheme to tag actions and calls _anonymise_recursively.
     """
-    tag_actions = _convert_schema_to_actions(dataset, project_slug, tag_scheme)
+    tag_actions = _convert_schema_to_actions(project_slug, tag_scheme)
 
     _anonymise_recursively(dataset, tag_actions)
 
@@ -334,93 +331,6 @@ def _anonymise_recursively(
         if de.VR == "SQ":
             for item in de.value:
                 _anonymise_recursively(item, tag_actions)
-
-
-def _convert_schema_to_actions(
-    dataset: Dataset, project_slug: str, tags_list: list[dict]
-) -> dict[tuple, typing.Callable]:
-    """
-    Convert the tag schema to actions (functions) for the anonymiser.
-    See https://github.com/KitwareMedical/dicom-anonymizer for more details.
-    Added custom function secure-hash for linking purposes. This function needs the MRN and
-    Accession Number, hence why the dataset is passed in as well.
-    """
-
-    tag_actions = {}
-    for tag in tags_list:
-        group_el = (tag["group"], tag["element"])
-        if tag["op"] == "secure-hash":
-            tag_actions[group_el] = lambda _dataset, _tag: _secure_hash(
-                _dataset, project_slug, _tag
-            )
-            continue
-        tag_actions[group_el] = ActionsMapNameFunctions[tag["op"]].value.function
-
-    return tag_actions
-
-
-def _secure_hash(
-    dataset: Dataset,
-    project_slug: str,
-    tag: tuple,
-) -> None:
-    """
-    Use the hasher API to consistently but securely hash ids later used for linking.
-    """
-    grp = tag[0]
-    el = tag[1]
-
-    if tag in dataset:
-        message = f"Securely hashing: (0x{grp:04x},0x{el:04x})"
-        logger.trace(message)
-        if dataset[grp, el].VR == "LO":
-            pat_value = str(dataset[grp, el].value)
-            hashed_value = _hash_values(pat_value, project_slug, hash_len=64)
-        else:
-            # This is because we currently only hash patient id specifically.
-            # Other types can be added easily if needed.
-            raise PixlSkipInstanceError(f"Tag {tag} is not an LO VR type, cannot hash.")
-
-        dataset[grp, el].value = hashed_value
-
-
-@lru_cache(maxsize=1000)
-def _hash_values(pat_value: str, project_slug: str, hash_len: int = 0) -> str:
-    """
-    Utility function for hashing values using the hasher API.
-    """
-    HASHER_API_AZ_NAME = config("HASHER_API_AZ_NAME")
-    HASHER_API_PORT = config("HASHER_API_PORT")
-    hasher_req_url = f"http://{HASHER_API_AZ_NAME}:{HASHER_API_PORT}/hash"
-    request_params: dict[str, str | int] = {
-        "project_slug": project_slug,
-        "message": pat_value,
-    }
-    if hash_len:
-        request_params["length"] = hash_len
-
-    response = requests.get(hasher_req_url, params=request_params)
-    logger.debug("RESPONSE = {}", response.text)
-    return response.text
-
-
-def _enforce_allowlist(
-    dataset: Dataset, tag_scheme: list[dict], recursive: bool
-) -> None:
-    """
-    Enforce the allowlist on the dataset.
-    """
-    dataset.walk(lambda ds, de: _allowlist_tag(ds, de, tag_scheme), recursive)
-
-
-def _allowlist_tag(dataset: Dataset, de: DataElement, tag_scheme: list[dict]) -> None:
-    """Delete element if it is not in the tagging schemе."""
-    tag_dict = _scheme_list_to_dict(tag_scheme)
-    if (de.tag.group, de.tag.element) in tag_dict and tag_dict[
-        (de.tag.group, de.tag.element)
-    ]["op"] != "delete":
-        return
-    del dataset[de.tag]
 
 
 def parse_validation_results(results: dict) -> str:
