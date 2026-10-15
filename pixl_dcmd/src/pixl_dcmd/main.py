@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import typing
+from dataclasses import dataclass
 from functools import lru_cache
 from io import BytesIO
 from zipfile import ZipFile
@@ -52,6 +53,13 @@ if typing.TYPE_CHECKING:
 
 # See: https://github.com/pydicom/pydicom/issues/2170
 pydicom.config.convert_wrong_length_to_UN = True
+
+
+@dataclass
+class StudyAnonymisationState:
+    """State shared while anonymising all instances in one study."""
+
+    validation_attempted: bool = False
 
 
 def write_dataset_to_bytes(dataset: Dataset) -> bytes:
@@ -137,10 +145,26 @@ def anonymise_dicom_and_update_db(
     dataset: Dataset,
     *,
     config: PixlConfig,
+    study_state: StudyAnonymisationState,
 ) -> dict:
-    """Anonymise and validate a DICOM dataset and update the PIXL database."""
+    """
+    Anonymise and validate a DICOM dataset, update the PIXL database and return the first intance's validation errors.
+
+    :param dataset: DICOM dataset to be anonymised, updated in place
+    :param config: Project config to use for anonymisation
+    :param study_state: State of the study anonymisation
+    :return: dictionary of validation errors
+    """
     identifiable_study_info = get_study_info(dataset)
-    validation_errors = anonymise_and_validate_dicom(dataset, config=config)
+    _raise_if_should_skip(dataset, config)
+
+    if not study_state.validation_attempted:
+        validation_errors = _anonymise_and_validate_included_dicom(dataset, config)
+        study_state.validation_attempted = True
+    else:
+        _anonymise_included_dicom(dataset, config)
+        validation_errors = {}
+
     _generate_pseudo_uids_and_synchronise_pixl_db(
         dataset=dataset,
         project_name=config.project.name,
@@ -162,13 +186,20 @@ def anonymise_and_validate_dicom(
     :param config: Project config to use for anonymisation
     :return: dictionary of validation errors
     """
-    # Set up Dicom validator and validate the original dataset
-    dicom_validator = DicomValidator(edition="2024e")
+    _raise_if_should_skip(dataset, config)
+    return _anonymise_and_validate_included_dicom(dataset, config)
+
+
+def _anonymise_and_validate_included_dicom(
+    dataset: Dataset,
+    config: PixlConfig,
+) -> dict:
+    """Anonymise and validate a dataset that passed the project filters."""
+    dicom_validator = DicomValidator("2024e")
     original_errors = dicom_validator.validate_original(dataset)
 
-    anonymise_dicom(dataset, config=config)
+    _anonymise_included_dicom(dataset, config)
 
-    # Validate the anonymised dataset
     anon_errors = dicom_validator.validate_anonymised(dataset)
     return dicom_validator.get_new_errors(original_errors, anon_errors)
 
@@ -187,14 +218,12 @@ def anonymise_dicom(
     :param dataset: DICOM dataset to be anonymised, updated in place
     :param config: Project config to use for anonymisation
     """
+    _raise_if_should_skip(dataset, config)
+    _anonymise_included_dicom(dataset, config)
 
-    study_info = get_study_info(dataset)
-    logger.trace(
-        f"Processing instance for project {config.project.name}:  {study_info}"
-    )
 
-    # Do before anonymisation in case someone decides to delete the
-    # Series Description or Manufacturer tags as part of anonymisation.
+def _raise_if_should_skip(dataset: Dataset, config: PixlConfig) -> None:
+    """Raise when an instance is excluded by the project configuration."""
     if _should_exclude_manufacturer(dataset, config):
         msg = "DICOM instance discarded due to its manufacturer"
         raise PixlSkipInstanceError(msg)
@@ -205,6 +234,10 @@ def anonymise_dicom(
         msg = f"Dropping DICOM Modality: {dataset.Modality}"
         raise PixlSkipInstanceError(msg)
 
+
+def _anonymise_included_dicom(dataset: Dataset, config: PixlConfig) -> None:
+    """Anonymise a dataset that passed the project filters."""
+    study_info = get_study_info(dataset)
     logger.trace("Anonymising instance for: {}", study_info)
 
     # Apply any pixel cleaning prior to tag anonymisation
