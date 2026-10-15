@@ -62,8 +62,8 @@ git fetch
 git merge main
 git push --force origin FEATURE_BRANCH
 ```
-5. Run `pre-commit run -a` to tidy up code and documentation (this is also tested in [CI](https://github.com/SAFEHR-data/PIXL/blob/main/.github/workflows/main.yml)).
-6. If you are developing in your local host, please check that your code is properly tested with `pytest` (this is also tested in [CI](https://github.com/SAFEHR-data/PIXL/blob/main/.github/workflows/main.yml)).
+5. Run `uv run pre-commit run -a` to tidy up code and documentation (this is also tested in [CI](https://github.com/SAFEHR-data/PIXL/blob/main/.github/workflows/main.yml)).
+6. If you are developing in your local host, please check that your code is properly tested with `uv run pytest` (this is also tested in [CI](https://github.com/SAFEHR-data/PIXL/blob/main/.github/workflows/main.yml)).
 7. Request a PR review.
 See [collaborating-with-pull-requests](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests) for further details.
 8. Once your PRs has been approved, procced to merge it to main. See [Merging a pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/merging-a-pull-request)

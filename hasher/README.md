@@ -23,9 +23,8 @@ a new salt interactively.
 
 ### Installation
 
-```shell
-uv sync
-```
+This module is installed along with the rest of PIXL. See the
+[developer setup instructions](../docs/setup/developer.md#installation-of-pixl-modules).
 
 ### Setup
 
@@ -47,7 +46,7 @@ See [below](#azure-setup) for a real vault. Unit tests mock the vault. System te
 From this directory run:
 
 ```bash
-pytest
+uv run pytest
 ```
 
 ---

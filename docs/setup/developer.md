@@ -28,7 +28,15 @@ You can install all PIXL Python modules by running the following command from th
 uv sync
 ```
 
-See each service's README for instructions for individual developing and testing instructions.
+This will also install the required Python version (3.13) if it isn't already available, and any
+system-level dependencies (e.g. the PostgreSQL client library, via `psycopg2-binary`) are provided by
+the Python packages, so nothing else needs to be installed manually.
+
+There is no need to install modules individually. Note that running `uv sync --package <module>` will
+**remove** all other PIXL modules from the virtual environment.
+
+Run commands inside the virtual environment with `uv run`, e.g. `uv run pixl --help` or `uv run pytest`.
+Alternatively, activate the virtual environment for the lifetime of the shell with `source .venv/bin/activate`.
 
 ### Non-editable installation
 
@@ -46,17 +54,17 @@ for more info.
 
 ### Module-level testing
 
-Once you have installed each module, you can run the tests for a module using the `pytest` command, e.g.
+Once you have installed PIXL, you can run the tests for a module using `uv run pytest`, e.g.
 
 ```shell
 cd pixl_core/
-pytest
+uv run pytest
 ```
 
 Alternatively, you can run most of the module-level tests from the root of the repo with:
 
 ```shell
-pytest #to test all tests `testpaths` pytest.ini
+uv run pytest #to test all tests `testpaths` pytest.ini
 ```
 
 The `pytest.ini` file in the root of the repo contains the configuration for running most of the module-level tests at once.
@@ -103,12 +111,12 @@ We run [pre-commit](https://pre-commit.com/) as part of the GitHub Actions CI.
 
 To run it locally as a one-off:
 ```shell
-pre-commit run --all-files
+uv run pre-commit run --all-files
 ```
 
 To install the git pre-commit hook locally so it runs every time you make a commit:
 ```shell
-pre-commit install
+uv run pre-commit install
 ```
 
 The `pre-commit` configuration can be found in [`.pre-commit-config.yml`](../../.pre-commit-config.yaml).
@@ -119,7 +127,7 @@ The `pre-commit` configuration can be found in [`.pre-commit-config.yml`](../../
 Running the `pixl` pipeline and the tests requires a set of environment variables to be set. The `test/`
 directory contains a complete [`.env` file](../../test/.env) that can be used to run the pipeline and tests locally.
 The Azure client values in that file are placeholders for the [Key Vault test double](../../test/keyvault/README.md).
-Either run any `pixl` commands from the `test/` directory, or copy the `test/.env` file to the root of the repository.
+Either run any `uv run pixl` commands from the `test/` directory, or copy the `test/.env` file to the root of the repository.
 
 ## Observability
 

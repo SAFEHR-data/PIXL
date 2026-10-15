@@ -31,15 +31,14 @@ operation.
 
 ## Installation
 
-```bash
-uv sync
-```
+This module is installed along with the rest of PIXL. See the
+[developer setup instructions](../docs/setup/developer.md#installation-of-pixl-modules).
 
 ## Test
 
 ```bash
 cd pixl_imaging/tests
-pytest
+uv run pytest
 ```
 
 ## Usage

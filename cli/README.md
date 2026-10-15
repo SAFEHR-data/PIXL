@@ -5,13 +5,6 @@ required to run electronic health queries against the VNA image system.
 Once a set of queues are populated the consumers can be started, updated and the system extractions
 stopped cleanly.
 
-## Prerequisites
-* Python version 3.13 (matching python versions in [pixl-ci](../.github/workflows/main.yml) and [dev](../docs/setup/developer.md#installation-of-pixl-modules)).
-* [Docker](https://docs.docker.com/get-docker/) with version `>=27.0.3`
-* [Docker Compose](https://docs.docker.com/compose/install/#installation-scenarios) with version `>=v2.28.1-desktop.1`
-* [uv](https://docs.astral.sh/uv/) to install PIXL in a virtual environment
-See detailed instructions [here](../docs/setup/developer.md#setting-up-python-virtual-environment)
-
 ## Installation
 Activate your python virtual environment and install `PIXL` project in editable mode by running
 ```bash
@@ -26,16 +19,16 @@ This is done by spinning up the necessary Docker containers through `docker comp
 See general pixl commands and subcommands with:
 
 ```bash
-pixl --help
+uv run pixl --help
 ```
 
-For convenience, we provide the `pixl dc` command, which acts as a wrapper for `docker compose`,
+For convenience, we provide the `uv run pixl dc` command, which acts as a wrapper for `docker compose`,
 but takes care of some of the configuration for you.
 
 For example,
 
 ```bash
-pixl dc up
+uv run pixl dc up
 ```
 
 will run `docker compose --project pixl_{pixl_env} up --wait --build --remove-orphans`, where `pixl_env`
@@ -87,7 +80,7 @@ HOST_EXPORT_ROOT_DIR_MOUNT=./projects/exports
 
 The `PIXL_ROOT` directory must contain the `docker-compose.yml` file and `projects/configs` folders
 from the top-level directory of this repository. `PIXL_ROOT` must also contain the `.sample.env` file
-if you would like to use the `pixl check_env` command. This path can be absolute or relative to your
+if you would like to use the `uv run pixl check_env` command. This path can be absolute or relative to your
 `.env` file (which must be in your current working directory). This variable is used by the PIXL CLI
 when running PIXL.
 
@@ -103,7 +96,7 @@ export directory when starting PIXL.
 Populate queue for Imaging using parquet files:
 
 ```bash
-pixl populate </path/to/parquet_dir>
+uv run pixl populate </path/to/parquet_dir>
 ```
 
 where `parquet_dir` contains at least the following files:
@@ -139,29 +132,29 @@ parquet_dir
 Alternatively, the queue can be populated based on records in CSV files:
 
 ```bash
-pixl populate <path/to/file.csv>
+uv run pixl populate <path/to/file.csv>
 ```
 
 One advantage of using a CSV file is that multiple projects can be listed
 for export in the file. Using the parquet format, in contrast, only supports
-exporting a single project per call to `pixl populate`.
+exporting a single project per call to `uv run pixl populate`.
 
 Extraction will start automatically after populating the queues.  If granular
 customisation of the rate per queue is required or a queue should not be started
-then supply the argument `--no-start` and use `pixl start...` to launch
+then supply the argument `--no-start` and use `uv run pixl start...` to launch
 processing.
 
 Once the messages have been processed, the OMOP extracts (including radiology reports) can be
 exported to a `parquet file` using
 
 ```sh
-pixl export-patient-data </path/to/parquet_dir>
+uv run pixl export-patient-data </path/to/parquet_dir>
 ```
 
 Stop Imaging extraction
 
 ```bash
-pixl stop
+uv run pixl stop
 ```
 
 ### High-priority messages
@@ -172,7 +165,7 @@ To send to the queue with a different priority, you can use the `--priority` arg
 `populate`:
 
 ```bash
-pixl populate --priority 5 <path/to/file.csv>
+uv run pixl populate --priority 5 <path/to/file.csv>
 ```
 
 `priority` must be an integer between 1 and 5, with 5 being the highest priority.
@@ -180,26 +173,26 @@ pixl populate --priority 5 <path/to/file.csv>
 ### Retrying failed anonymisation
 
 Images that fail anonymisation are recorded in the database with the reason(s) they were
-skipped, and are excluded from future `pixl populate` runs by default.
+skipped, and are excluded from future `uv run pixl populate` runs by default.
 
 To retry images that previously failed anonymisation, use the `--retry-anonymisation` argument
 with a regex pattern matched against the recorded skip reason(s):
 
 ```bash
-pixl populate --retry-anonymisation 'Modality: CT' <path/to/file.csv>
+uv run pixl populate --retry-anonymisation 'Modality: CT' <path/to/file.csv>
 ```
 
 Only images with a matching skip reason are re-queued; images skipped for other reasons remain
 excluded. To retry all previously failed images, use `.*` as the pattern:
 
 ```bash
-pixl populate --retry-anonymisation '.*' <path/to/file.csv>
+uv run pixl populate --retry-anonymisation '.*' <path/to/file.csv>
 ```
 
 ## Development
 ### Help commands
 The CLI is created using [click](https://click.palletsprojects.com/en/8.0.x/). To see which commands
-are currently available, you can use the `pixl --help` command:
+are currently available, you can use the `uv run pixl --help` command:
 
 ### Local installation
 Activate your python environment and install project locally in editable mode with the development and testing dependencies by running
@@ -213,6 +206,6 @@ The CLI tests require a running instance of the `rabbitmq` service, for which we
 `run_containers` _pytest_ fixture. So to run the tests, run
 
 ```bash
-pytest -vs tests #for all tests
-pytest -vs tests/test_docker_commands.py #e.g., for particular tests
+uv run pytest -vs tests #for all tests
+uv run pytest -vs tests/test_docker_commands.py #e.g., for particular tests
 ```

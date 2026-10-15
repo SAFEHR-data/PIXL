@@ -21,14 +21,13 @@ Specifically, it defines:
 
 ## Installation
 
-```bash
-uv sync
-```
+This module is installed along with the rest of PIXL. See the
+[developer setup instructions](../docs/setup/developer.md#installation-of-pixl-modules).
 
 ## Testing
 
 ```bash
-pytest
+uv run pytest
 ```
 
 ## Token buffer
