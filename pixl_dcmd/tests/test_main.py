@@ -673,7 +673,7 @@ def test_can_nifti_convert_post_anonymisation(
 
 
 @pytest.fixture
-def sequenced_dicom_mock_db(monkeypatch):
+def sequenced_dicom_mock_db():
     """
     Create a DICOM dataset with
     a private sequence tag
@@ -682,8 +682,6 @@ def sequenced_dicom_mock_db(monkeypatch):
             (group=0x0011, offset=0x0011, creator="UCLH PIXL", VR="SH", value="nested_priv_tag) and
         a public child tag
             (group=0x0010, element=0x0020), VR="LO", value="987654321").
-
-    Also mock db functions
     """
     # Create a test DICOM with a sequence tag
     exported_dicom = pathlib.Path(__file__).parents[2] / "test/resources/Dicom1.dcm"
@@ -700,10 +698,6 @@ def sequenced_dicom_mock_db(monkeypatch):
     block = dataset.private_block(0x0011, "UCLH PIXL", create=True)
     block.add_new(0x0010, "SQ", [nested_ds])
 
-    # Mock the database functions
-    monkeypatch.setattr(
-        "pixl_dcmd.main.get_uniq_pseudo_study_uid_and_update_db", lambda *args: None
-    )
     return dataset
 
 
