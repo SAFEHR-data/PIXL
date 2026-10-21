@@ -37,15 +37,18 @@ from core.project_config import load_project_config, load_tag_operations
 from core.project_config.pixl_config_model import load_config_and_validate, Manufacturer
 from decouple import config
 
+from pixl_dcmd._tag_schemes import (
+    enforce_allowlist,
+)
 from pixl_dcmd.dicom_helpers import get_study_info
 from pixl_dcmd.main import (
+    StudyAnonymisationState,
     anonymise_dicom_and_update_db,
     _anonymise_dicom_from_scheme,
     _clean_dicom_image_pixels,
     anonymise_and_validate_dicom,
     anonymise_dicom,
     get_series_to_skip,
-    _enforce_allowlist,
     _should_exclude_series,
     _should_exclude_manufacturer,
 )
@@ -83,6 +86,28 @@ def test_get_series_to_skip(
     """
     series_to_skip = get_series_to_skip(zipped_dicom_study, min_instances)
     assert len(series_to_skip) == expected_num_series_skipped
+
+
+def test_get_series_to_skip_reads_headers_only(
+    monkeypatch,
+    zipped_dicom_study: zipfile.ZipFile,
+) -> None:
+    """Counting series reads only the Series Instance UID from each file."""
+    read_options = []
+
+    def recording_dcmread(*args, **kwargs):
+        read_options.append(kwargs)
+        return pydicom.dcmread(*args, **kwargs)
+
+    monkeypatch.setattr("pixl_dcmd.main.dcmread", recording_dcmread)
+
+    get_series_to_skip(zipped_dicom_study, min_instances=2)
+
+    assert read_options
+    assert all(options["stop_before_pixels"] is True for options in read_options)
+    assert all(
+        options["specific_tags"] == ["SeriesInstanceUID"] for options in read_options
+    )
 
 
 @pytest.fixture(scope="module")
@@ -132,17 +157,6 @@ def mri_diffusion_dicom_image(test_project_config: PixlConfig) -> pydicom.Datase
         add_private_tag(ds, tag)
 
     return ds
-
-
-def test_enforce_allowlist_removes_overlay_plane() -> None:
-    """Checks that overlay planes are removed."""
-    ds = pydicom.data.get_testdata_file(
-        "MR-SIEMENS-DICOM-WithOverlays.dcm", read=True, download=True
-    )
-    assert (0x6000, 0x3000) in ds
-
-    _enforce_allowlist(ds, {}, recursive=True)
-    assert (0x6000, 0x3000) not in ds
 
 
 def test_anonymisation(
@@ -217,6 +231,21 @@ def test_anonymise_and_validate_as_external_user(
 
     assert validation_issues == {}
     assert dataset != pydicom.dcmread(dataset_path)
+
+
+def test_deid_recipe_is_not_parsed_when_absent(
+    monkeypatch,
+    vanilla_dicom_image_DX: pydicom.Dataset,
+    test_project_config: PixlConfig,
+) -> None:
+    """Projects without image operations do not construct a deid recipe."""
+
+    def unexpected_recipe(*args, **kwargs):
+        pytest.fail("DeidRecipe should not be called without configured recipes")
+
+    monkeypatch.setattr("pixl_dcmd.main.DeidRecipe", unexpected_recipe)
+
+    _clean_dicom_image_pixels(vanilla_dicom_image_DX, test_project_config)
 
 
 def test_anonymise_with_clean_dicom_image_pixels(
@@ -390,6 +419,7 @@ def test_image_already_exported_throws(test_project_config, exported_dicom_datas
         anonymise_dicom_and_update_db(
             exported_dicom_dataset,
             config=test_project_config,
+            study_state=StudyAnonymisationState(),
         )
 
 
@@ -434,7 +464,9 @@ def test_pseudo_identifier_processing(
     print("fake_hash = ", fake_hash)
 
     anonymise_dicom_and_update_db(
-        not_exported_dicom_dataset, config=test_project_config
+        not_exported_dicom_dataset,
+        config=test_project_config,
+        study_state=StudyAnonymisationState(),
     )
 
     image = (
@@ -471,7 +503,9 @@ def test_pseudo_patient_id_processing(
     )
 
     anonymise_dicom_and_update_db(
-        not_exported_dicom_dataset, config=test_project_config
+        not_exported_dicom_dataset,
+        config=test_project_config,
+        study_state=StudyAnonymisationState(),
     )
 
     anonymised_image: Image = (
@@ -501,7 +535,9 @@ def test_no_pseudo_patient_id_processing(
     study_info = get_study_info(not_exported_dicom_dataset)
 
     anonymise_dicom_and_update_db(
-        not_exported_dicom_dataset, config=test_project_config
+        not_exported_dicom_dataset,
+        config=test_project_config,
+        study_state=StudyAnonymisationState(),
     )
 
     anonymised_image: Image = (
@@ -637,7 +673,7 @@ def test_can_nifti_convert_post_anonymisation(
 
 
 @pytest.fixture
-def sequenced_dicom_mock_db(monkeypatch):
+def sequenced_dicom_mock_db():
     """
     Create a DICOM dataset with
     a private sequence tag
@@ -646,8 +682,6 @@ def sequenced_dicom_mock_db(monkeypatch):
             (group=0x0011, offset=0x0011, creator="UCLH PIXL", VR="SH", value="nested_priv_tag) and
         a public child tag
             (group=0x0010, element=0x0020), VR="LO", value="987654321").
-
-    Also mock db functions
     """
     # Create a test DICOM with a sequence tag
     exported_dicom = pathlib.Path(__file__).parents[2] / "test/resources/Dicom1.dcm"
@@ -664,10 +698,6 @@ def sequenced_dicom_mock_db(monkeypatch):
     block = dataset.private_block(0x0011, "UCLH PIXL", create=True)
     block.add_new(0x0010, "SQ", [nested_ds])
 
-    # Mock the database functions
-    monkeypatch.setattr(
-        "pixl_dcmd.main.get_uniq_pseudo_study_uid_and_update_db", lambda *args: None
-    )
     return dataset
 
 
@@ -817,8 +847,7 @@ def test_allowlist_child_elements_deleted(sequenced_dicom_mock_db):
             "op": "keep",
         },
     ]
-    # Whitelist
-    _enforce_allowlist(sequenced_dicom_mock_db, tag_scheme, recursive=True)
+    enforce_allowlist(sequenced_dicom_mock_db, tag_scheme, recursive=True)
 
     # Check that the sequence tag is kept
     assert (0x0011, 0x0010) in sequenced_dicom_mock_db
