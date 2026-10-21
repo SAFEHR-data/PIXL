@@ -268,7 +268,7 @@ services:
             RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
             RABBITMQ_NODENAME: "rabbit@queue-host"
             TZ: ${TZ:-Europe/London}
-            # consumer_timeout is milliseconds, so 6000x seconds is 6x this timeout.
+            # consumer_timeout is milliseconds, so 6000x is 6x the DICOM timeout.
             PIXL_DICOM_TRANSFER_TIMEOUT: ${PIXL_DICOM_TRANSFER_TIMEOUT}
         # Compose cannot multiply, so set the Erlang arg before the official entrypoint.
         entrypoint: ["/bin/bash", "-c"]
