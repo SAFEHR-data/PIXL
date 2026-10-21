@@ -476,20 +476,15 @@ def _anonymise_dicom_instance(
 
 def _upload_instances(instances_bytes: list[bytes]) -> None:
     """Upload instances to Orthanc"""
-    files = []
     for index, dicom_bytes in enumerate(instances_bytes):
-        files.append(("file", (f"instance{index}.dcm", dicom_bytes, "application/dicom")))
-
-    # Using requests as doing:
-    # `upload_response = orthanc.RestApiPost(f"/instances", anonymised_files)`
-    # gives an error BadArgumentType error (orthanc.RestApiPost seems to only accept json)
-    upload_response = requests.post(
-        url=f"{ORTHANC_URL}/instances",
-        auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD),
-        files=files,
-        timeout=config("PIXL_DICOM_TRANSFER_TIMEOUT", default=180, cast=int),
-    )
-    upload_response.raise_for_status()
+        files = [("file", (f"instance{index}.dcm", dicom_bytes, "application/dicom"))]
+        upload_response = requests.post(
+            url=f"{ORTHANC_URL}/instances",
+            auth=(ORTHANC_USERNAME, ORTHANC_PASSWORD),
+            files=files,
+            timeout=config("PIXL_DICOM_TRANSFER_TIMEOUT", default=180, cast=int),
+        )
+        upload_response.raise_for_status()
 
 
 def _get_study_resource_id(study_uid: str) -> str:
