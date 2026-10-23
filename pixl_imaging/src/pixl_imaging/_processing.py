@@ -80,6 +80,9 @@ async def _process_message(
         - raise a PixlDiscardError
 
     Querying Orthanc Raw:
+    If FEATURE_PIXL_ALWAYS_QUERY_SOURCE_INSTANCES is True:
+        - retrieve the study from the VNA / PACS
+    Otherwise:
     If the study already exists in Orthanc Raw:
         - query the archive to determine whether any instances are missing
         - retrieve any missing instances
@@ -106,25 +109,31 @@ async def _process_message(
         archive=archive,
     )
 
-    existing_local_resources = await _get_study_resources(
-        orthanc_raw=orthanc_raw,
-        study=study,
-        query_level=study.query_level,
-    )
-
-    if not existing_local_resources:
+    if config("FEATURE_PIXL_ALWAYS_QUERY_SOURCE_INSTANCES", default=False, cast=bool):
         await _retrieve_study(
             orthanc_raw=orthanc_raw,
             query_id=query_id,
         )
     else:
-        await _retrieve_missing_instances(
-            resources=existing_local_resources,
+        existing_local_resources = await _get_study_resources(
             orthanc_raw=orthanc_raw,
             study=study,
-            query_id=query_id,
-            modality=archive.value,
+            query_level=study.query_level,
         )
+
+        if not existing_local_resources:
+            await _retrieve_study(
+                orthanc_raw=orthanc_raw,
+                query_id=query_id,
+            )
+        else:
+            await _retrieve_missing_instances(
+                resources=existing_local_resources,
+                orthanc_raw=orthanc_raw,
+                study=study,
+                query_id=query_id,
+                modality=archive.value,
+            )
 
     # Always query as Study level so we always send study resources to Orthanc Anon
     resources = await _get_study_resources(

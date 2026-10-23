@@ -66,7 +66,7 @@ def _query_orthanc_anon(resourceId: str, query: str, fail_msg: str) -> requests.
         response = requests.get(
             query,
             auth=(config("ORTHANC_ANON_USERNAME"), config("ORTHANC_ANON_PASSWORD")),
-            timeout=10,
+            timeout=config("HTTP_TIMEOUT", default=30, cast=int),
         )
         response.raise_for_status()
     except requests.exceptions.RequestException:
