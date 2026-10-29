@@ -109,7 +109,6 @@ services:
             timeout: 2s
 
     lowkey-vault:
-        container_name: system-test-lowkey-vault
         image: nagyesta/lowkey-vault:7.3.127-ubi10-minimal@sha256:7054023e114960c97025f2174149c3eafd3735422d7c6701d964bafcb5cf429c
         ports:
             - "8443:8443"
@@ -131,7 +130,6 @@ services:
                     - hasher-kv.localhost
 
     assumed-identity:
-        container_name: system-test-assumed-identity
         image: nagyesta/assumed-identity:2.2.71
         # map to local port to allow for uploading secrets to the keyvault from same machine
         ports:
