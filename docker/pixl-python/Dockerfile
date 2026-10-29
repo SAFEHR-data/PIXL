@@ -61,9 +61,7 @@ COPY ./pixl_core/ pixl_core/
 # the actual thing we are building
 COPY ./$PIXL_PACKAGE_DIR/ $PIXL_PACKAGE_DIR/
 RUN uv venv
-# --frozen is suggested by astral for dockerfiles to avoid unnecessary rebuilds
-# https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers
-RUN --mount=type=cache,target=/root/.cache/uv,sharing=locked uv sync --frozen --package "$PIXL_PACKAGE_DIR"
+RUN --mount=type=cache,target=/root/.cache/uv,sharing=locked uv sync --locked --package "$PIXL_PACKAGE_DIR"
 
 # make uvicorn etc available
 ENV PATH="/app/.venv/bin:$PATH"
