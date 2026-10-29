@@ -41,7 +41,7 @@ RUN --mount=type=cache,target=/root/.cache,id=dlspec \
 FROM pixl_orthanc_uv AS pixl_orthanc_base
 # Install our code
 # The workspace (root-level) project file
-COPY pyproject.toml .
+COPY pyproject.toml uv.lock .
 # All pyproject.toml files referenced by the root one must exist or uv will error
 COPY ./pixl_imaging/pyproject.toml pixl_imaging/pyproject.toml
 COPY ./pixl_export/pyproject.toml pixl_export/pyproject.toml
@@ -54,7 +54,9 @@ COPY ./pixl_dcmd/ pixl_dcmd
 RUN uv venv
 # Need --no-editable so that our packages are in
 # site-packages, so orthanc plugin manager can find them
-RUN --mount=type=cache,target=/root/.cache/uv,sharing=locked uv sync --no-editable --package pixl-dcmd
+# --frozen is suggested by astral for dockerfiles to avoid unnecessary rebuilds
+# https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers
+RUN --mount=type=cache,target=/root/.cache/uv,sharing=locked uv sync --no-editable --frozen --package pixl-dcmd
 
 ARG ORTHANC_DIR
 COPY ./orthanc/${ORTHANC_DIR}/plugin/pixl.py /etc/orthanc/pixl.py

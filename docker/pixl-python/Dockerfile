@@ -48,7 +48,7 @@ ARG PIXL_PACKAGE_DIR
 # then every change would trigger a rebuild of all containers.
 
 # The workspace project file
-COPY pyproject.toml .
+COPY pyproject.toml uv.lock .
 # All pyproject.toml files referenced by the root one must exist or uv will error
 COPY ./pixl_imaging/pyproject.toml pixl_imaging/pyproject.toml
 COPY ./pixl_export/pyproject.toml pixl_export/pyproject.toml
@@ -61,7 +61,9 @@ COPY ./pixl_core/ pixl_core/
 # the actual thing we are building
 COPY ./$PIXL_PACKAGE_DIR/ $PIXL_PACKAGE_DIR/
 RUN uv venv
-RUN --mount=type=cache,target=/root/.cache/uv,sharing=locked uv sync --package "$PIXL_PACKAGE_DIR"
+# --frozen is suggested by astral for dockerfiles to avoid unnecessary rebuilds
+# https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers
+RUN --mount=type=cache,target=/root/.cache/uv,sharing=locked uv sync --frozen --package "$PIXL_PACKAGE_DIR"
 
 # make uvicorn etc available
 ENV PATH="/app/.venv/bin:$PATH"

@@ -66,7 +66,8 @@ jobs:
 
             - name: Install Python dependencies
               run: |
-                  uv sync
+                  # --locked will fail if the lock file is not up to date with the pyproject.toml
+                  uv sync --locked
 
             - name: Run tests and generate coverage report
               working-directory: ${{ matrix.package_dir }}
@@ -102,7 +103,7 @@ jobs:
 
             - name: Install Python dependencies
               run: |
-                  uv sync --no-editable
+                  uv sync --no-editable --locked
 
             - name: Build test services
               working-directory: test
