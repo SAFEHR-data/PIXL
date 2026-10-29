@@ -110,7 +110,7 @@ services:
 
     lowkey-vault:
         container_name: system-test-lowkey-vault
-        image: nagyesta/lowkey-vault:7.3.74-ubi10-minimal
+        image: nagyesta/lowkey-vault:7.3.127-ubi10-minimal@sha256:7054023e114960c97025f2174149c3eafd3735422d7c6701d964bafcb5cf429c
         ports:
             - "8443:8443"
         volumes:
