@@ -302,60 +302,17 @@ wheels = [
 ]
 
 [[package]]
-name = "azure-keyvault"
-version = "4.2.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "azure-keyvault-certificates" },
-    { name = "azure-keyvault-keys" },
-    { name = "azure-keyvault-secrets" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/4e/8a/63cbc6b580d82ceb8e5f1fc740d5e85248110fcc3b1df02bc73ee19bd115/azure-keyvault-4.2.0.zip", hash = "sha256:731add108a3e29ab4fd501a3c477256c286c34d0996b383fb6a3945462933761", size = 13376, upload-time = "2022-03-29T18:48:49.419Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/7c/a1/38e3c3ed438fbe8b486e2a4b9c1be586eed9206319d995f8b304ea2501f4/azure_keyvault-4.2.0-py2.py3-none-any.whl", hash = "sha256:16b29039244cbe8b940c98a0d795626d76d2a579cb9b8c559983ad208082c0de", size = 4334, upload-time = "2022-03-29T18:48:47.525Z" },
-]
-
-[[package]]
-name = "azure-keyvault-certificates"
-version = "4.11.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "azure-core" },
-    { name = "isodate" },
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/40/59/8024c8b631baa2000bf0cb52f61688f9e9569646420a22da574b3949d4ad/azure_keyvault_certificates-4.11.1.tar.gz", hash = "sha256:734d9a65faa0f2bd45b9e162d317acadec71056934ebf4bbfe058b23d74bd073", size = 198750, upload-time = "2026-05-05T17:24:13.63Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/0d/27/e70bf2ad1008700736ace33a164629f5a46b62a15d3fbb5f44e00f3a2937/azure_keyvault_certificates-4.11.1-py3-none-any.whl", hash = "sha256:33dc110e4c265dec923f2c5490d30039d87b2c28a765f4f35459b0cc2c4cde9b", size = 162146, upload-time = "2026-05-05T17:24:15.209Z" },
-]
-
-[[package]]
-name = "azure-keyvault-keys"
-version = "4.11.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "azure-core" },
-    { name = "cryptography" },
-    { name = "isodate" },
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/f4/03/5ce6db28b545427d4ab572f6a4ef2a727b6b4e7bf6941cedddf98822535b/azure_keyvault_keys-4.11.1.tar.gz", hash = "sha256:90caa3a7b2c8f6b53c247ec115cf1c1dad7f107cc3aa9f35aff4838bbce7e562", size = 260915, upload-time = "2026-05-19T20:01:08.041Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/0c/3d/7bed91ae9268cf48124cf6990d8cd2c3daff7a2bb1e91a439d26ee90d705/azure_keyvault_keys-4.11.1-py3-none-any.whl", hash = "sha256:f46cdf6ee7a9baf27f70e6838327032886c8a087041dd56397773b1639da8fe2", size = 200651, upload-time = "2026-05-19T20:01:09.809Z" },
-]
-
-[[package]]
 name = "azure-keyvault-secrets"
-version = "4.11.0"
+version = "4.11.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "azure-core" },
     { name = "isodate" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f1/b8/03c7b4edd1e3355ad5fffb70e68af70cd09542963f45cf3a2aa9fb3930b5/azure_keyvault_secrets-4.11.0.tar.gz", hash = "sha256:ac14727b9159cca353173ec5a454d8d7b192a6f2f5e7eb540f9fbcf914fa0ca0", size = 112291, upload-time = "2026-04-17T00:52:12.422Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/57/a4/7b0e582c8b2c97e1ea91d67ef831fa0c5e566a0dda9f6aa45054be47720d/azure_keyvault_secrets-4.11.3.tar.gz", hash = "sha256:193ba3cf9912ae776fb1ba40d147aa3cbfcf5cda5e0e2e35ef8fbe4c78db1217", size = 132370, upload-time = "2026-10-02T21:35:42.783Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/78/76/41c513917c0e8dc68de0c33578c6a0668b4a09eb4dc3e2782d382dc2947f/azure_keyvault_secrets-4.11.0-py3-none-any.whl", hash = "sha256:d8543b710423569bd00ada2a2533fe83d52d8e1fe026e1c47f41a3bc0fc73ef5", size = 103148, upload-time = "2026-04-17T00:52:13.796Z" },
+    { url = "https://files.pythonhosted.org/packages/dc/8e/726acb7b6cd8d28cafd06531d6daf7e390667ebbbc4ff39f7cfc5bd75652/azure_keyvault_secrets-4.11.3-py3-none-any.whl", hash = "sha256:c77cc80f33d07e1b8cbbda5e7b6b8a1da1471ca917796f9895603a0c2b5f9c2f", size = 105234, upload-time = "2026-10-02T21:35:44.243Z" },
 ]
 
 [[package]]
@@ -573,7 +530,7 @@ source = { editable = "pixl_core" }
 dependencies = [
     { name = "aio-pika" },
     { name = "azure-identity" },
-    { name = "azure-keyvault" },
+    { name = "azure-keyvault-secrets" },
     { name = "fastapi" },
     { name = "jsonpickle" },
     { name = "loguru" },
@@ -603,7 +560,7 @@ dependencies = [
 requires-dist = [
     { name = "aio-pika", specifier = "==9.6.2" },
     { name = "azure-identity", specifier = "==1.25.3" },
-    { name = "azure-keyvault", specifier = "==4.2.0" },
+    { name = "azure-keyvault-secrets", specifier = "==4.11.3" },
     { name = "fastapi", specifier = "==0.135.3" },
     { name = "jsonpickle", specifier = "==4.1.1" },
     { name = "loguru", specifier = "==0.7.3" },
@@ -1036,7 +993,7 @@ version = "0.3.0rc0"
 source = { editable = "hasher" }
 dependencies = [
     { name = "azure-identity" },
-    { name = "azure-keyvault" },
+    { name = "azure-keyvault-secrets" },
     { name = "core" },
     { name = "fastapi" },
     { name = "hypothesis" },
@@ -1055,7 +1012,7 @@ test = [
 [package.metadata]
 requires-dist = [
     { name = "azure-identity", specifier = "==1.25.3" },
-    { name = "azure-keyvault", specifier = "==4.2.0" },
+    { name = "azure-keyvault-secrets", specifier = "==4.11.3" },
     { name = "core", editable = "pixl_core" },
     { name = "core", extras = ["dev"], marker = "extra == 'dev'", editable = "pixl_core" },
     { name = "core", extras = ["test"], marker = "extra == 'test'", editable = "pixl_core" },

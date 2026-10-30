@@ -9,7 +9,7 @@ classifiers = ["Programming Language :: Python :: 3"]
 dependencies = [
     "aio_pika==9.6.2",
     "azure-identity==1.25.3",
-    "azure-keyvault==4.2.0",
+    "azure-keyvault-secrets==4.11.3",
     "fastapi==0.135.3",
     "jsonpickle==4.1.1",
     "loguru==0.7.3",

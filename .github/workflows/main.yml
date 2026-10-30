@@ -66,7 +66,8 @@ jobs:
 
             - name: Install Python dependencies
               run: |
-                  uv sync
+                  # --locked will fail if the lock file is not up to date with the pyproject.toml
+                  uv sync --locked
 
             - name: Run tests and generate coverage report
               working-directory: ${{ matrix.package_dir }}
@@ -102,7 +103,7 @@ jobs:
 
             - name: Install Python dependencies
               run: |
-                  uv sync --no-editable
+                  uv sync --no-editable --locked
 
             - name: Build test services
               working-directory: test
@@ -164,6 +165,10 @@ jobs:
               run: |
                   docker logs -t system-test-dicomweb-server-1 2>&1
 
+            - name: Dump Lowkey vault docker logs for debugging
+              if: ${{ failure() }}
+              run: |
+                  docker logs -t system-test-lowkey-vault-1 2>&1
 
             - name: Upload coverage reports to Codecov
               uses: codecov/codecov-action@75cd11691c0faa626561e295848008c8a7dddffe # v5.5.4
