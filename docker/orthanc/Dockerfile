@@ -11,7 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-FROM orthancteam/orthanc:26.4.0@sha256:9663604166fd6ba9b9e054b7a92d12945f14e1b8367725cd3c63e806901b8b4e AS pixl_orthanc_uv
+FROM orthancteam/orthanc:26.9.1@sha256:d2705f2c56547e55ce9bc2250fd22d05d326493b3f3d9fa191ecb7db8ca6b5a2 AS pixl_orthanc_uv
 SHELL ["/bin/bash", "-o", "pipefail", "-e", "-u", "-x", "-c"]
 
 # Create a virtual environment, recommended since python 3.11 and Debian bookworm based images
