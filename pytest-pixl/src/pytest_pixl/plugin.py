@@ -63,10 +63,12 @@ def ftps_server(
     ftps_server = PixlFTPServer(
         home_root=tmp_home_dir_root, host_address=ftp_host_address.to_host_ip_address()
     )
-    thread = threading.Thread(target=ftps_server.server.serve_forever)
+    thread = threading.Thread(target=ftps_server.server.serve_forever, kwargs={"timeout": 1.0})
     thread.start()
     yield ftps_server
-    ftps_server.server.close_all()
+    ftps_server.server.ioloop.call_later(0, ftps_server.server.close_all)
+    thread.join(timeout=2.0)
+    assert not thread.is_alive(), "FTPS server thread did not stop"
 
 
 @pytest.fixture
