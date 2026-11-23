@@ -14,7 +14,7 @@
 from __future__ import annotations
 
 import typing
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import lru_cache
 from io import BytesIO
 from pathlib import Path
@@ -53,7 +53,7 @@ pydicom.config.convert_wrong_length_to_UN = True
 class StudyAnonymisationState:
     """State shared while anonymising all instances in one study."""
 
-    validation_attempted: bool = False
+    validated_series: set[str] = field(default_factory=set)
     pseudo_study_uid: str | None = None
     pseudo_patient_id: str | None = None
 
@@ -148,7 +148,8 @@ def anonymise_dicom_and_update_db(
     study_state: StudyAnonymisationState,
 ) -> dict:
     """
-    Anonymise and validate a DICOM dataset, update the PIXL database and return the first intance's validation errors.
+    Anonymise a DICOM dataset, update the PIXL database and return validation
+    errors for the first instance in each series.
 
     :param dataset: DICOM dataset to be anonymised, updated in place
     :param config: Project config to use for anonymisation
@@ -158,9 +159,10 @@ def anonymise_dicom_and_update_db(
     identifiable_study_info = get_study_info(dataset)
     _raise_if_should_skip(dataset, config)
 
-    if not study_state.validation_attempted:
+    series_uid = str(dataset.SeriesInstanceUID)
+    if series_uid not in study_state.validated_series:
         validation_errors = _anonymise_and_validate_included_dicom(dataset, config)
-        study_state.validation_attempted = True
+        study_state.validated_series.add(series_uid)
     else:
         _anonymise_included_dicom(dataset, config)
         validation_errors = {}

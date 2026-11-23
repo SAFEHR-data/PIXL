@@ -428,7 +428,8 @@ def _anonymise_study_instances(
             else:
                 anonymised_instances_bytes.append(anonymised_instance)
                 anonymised_study_uid = dataset[0x0020, 0x000D].value
-                dicom_validation_errors |= instance_validation_errors
+                for module_name, errors in instance_validation_errors.items():
+                    dicom_validation_errors.setdefault(module_name, set()).update(errors)
 
     if not anonymised_instances_bytes:
         message = f"All instances have been skipped for study: {dict(skipped_instance_counts)}"
