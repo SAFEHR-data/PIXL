@@ -20,7 +20,7 @@ from decouple import config
 from loguru import logger
 from pyftpdlib.authorizers import DummyAuthorizer
 from pyftpdlib.handlers import TLS_FTPHandler
-from pyftpdlib.servers import ThreadedFTPServer
+from pyftpdlib.servers import FTPServer
 
 # User permission
 # from https://pyftpdlib.readthedocs.io/en/latest/api.html#pyftpdlib.authorizers.DummyAuthorizer.add_user
@@ -122,12 +122,12 @@ class PixlFTPServer:
         assert certfile_path.exists(), f"Could not find certfile at {certfile_path.absolute()}"
         assert keyfile_path.exists(), f"Could not find keyfile at {keyfile_path.absolute()}"
 
-    def _create_server(self) -> ThreadedFTPServer:
+    def _create_server(self) -> FTPServer:
         """
         Creates the FTPS server and returns it. The server can be started with the `serve_forever`
         method.
         """
         address = (self.host, self.port)
         logger.info("Starting FTP server on {}:{}", self.host, self.port)
-        self.server = ThreadedFTPServer(address, self.handler)
+        self.server = FTPServer(address, self.handler)
         return self.server
