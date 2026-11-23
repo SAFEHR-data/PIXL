@@ -159,6 +159,17 @@ def mri_diffusion_dicom_image(test_project_config: PixlConfig) -> pydicom.Datase
     return ds
 
 
+def test_enforce_allowlist_removes_overlay_plane() -> None:
+    """Checks that overlay planes are removed."""
+    ds = pydicom.data.get_testdata_file(
+        "MR-SIEMENS-DICOM-WithOverlays.dcm", read=True, download=True
+    )
+    assert (0x6000, 0x3000) in ds
+
+    enforce_allowlist(ds, {}, recursive=True)
+    assert (0x6000, 0x3000) not in ds
+
+
 def test_anonymisation(
     vanilla_dicom_image_DX: pydicom.Dataset,
     test_project_config: PixlConfig,
