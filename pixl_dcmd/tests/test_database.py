@@ -22,9 +22,8 @@ import sqlalchemy
 from core.db.models import Extract, Image
 from core.exceptions import PixlDiscardError
 from pixl_dcmd._database import (
+    get_pseudo_identifiers_and_update_db,
     get_unexported_image,
-    get_uniq_pseudo_study_uid_and_update_db,
-    get_pseudo_patient_id_and_update_db,
     record_skip_reasons_for_study,
 )
 from pixl_dcmd.dicom_helpers import StudyInfo
@@ -144,31 +143,33 @@ def _image_from_study_data(study_data: StudyData, extract: Extract) -> Image:
     )
 
 
-def test_get_uniq_pseudo_study_uid_and_update_db(rows_for_database_testing, db_session):
-    """
-    GIVEN an existing image that already has a pseudo_study_uid
-    WHEN we query the database for that image
-    THEN the function should return the existing pseudo_study_uid.
-    """
-    pseudo_study_uid = get_uniq_pseudo_study_uid_and_update_db(
-        TEST_PROJECT_SLUG, PSEUDO_IDS_STUDY.input
+def test_get_pseudo_identifiers_and_update_db(rows_for_database_testing, db_session):
+    """Both pseudo identifiers are stored in one database operation."""
+    pseudo_study_uid, pseudo_patient_id = get_pseudo_identifiers_and_update_db(
+        TEST_PROJECT_SLUG,
+        UNPROCESSED_STUDY.input,
+        "hashed-patient-id",
     )
-    assert pseudo_study_uid == PSEUDO_IDS_STUDY.db.pseudo_study_uid
+
+    result = get_unexported_image(
+        TEST_PROJECT_SLUG,
+        UNPROCESSED_STUDY.input,
+        db_session,
+    )
+    assert result.pseudo_study_uid == pseudo_study_uid
+    assert result.pseudo_patient_id == pseudo_patient_id == "hashed-patient-id"
 
 
-def test_get_pseudo_patient_id_and_update_db(rows_for_database_testing, db_session):
-    """
-    GIVEN an existing image that already has pseudo_patient_id in the database
-    WHEN we query the dataset for that image
-    THEN the function should return the existing pseudo_patient_id
-    """
-    get_pseudo_patient_id_and_update_db(
+def test_get_pseudo_identifiers_returns_existing_values(rows_for_database_testing):
+    """Existing pseudo identifiers take precedence over proposed values."""
+    pseudo_study_uid, pseudo_patient_id = get_pseudo_identifiers_and_update_db(
         TEST_PROJECT_SLUG,
         PSEUDO_IDS_STUDY.input,
-        PSEUDO_IDS_STUDY.input.mrn,
+        "replacement-patient-id",
     )
-    result = get_unexported_image(TEST_PROJECT_SLUG, PSEUDO_IDS_STUDY.input, db_session)
-    assert result.pseudo_patient_id == PSEUDO_IDS_STUDY.db.pseudo_patient_id
+
+    assert pseudo_study_uid == PSEUDO_IDS_STUDY.db.pseudo_study_uid
+    assert pseudo_patient_id == PSEUDO_IDS_STUDY.db.pseudo_patient_id
 
 
 def test_record_skip_reasons_for_study(rows_for_database_testing, db_session):

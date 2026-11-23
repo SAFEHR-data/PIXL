@@ -99,9 +99,11 @@ def test_all_real_configs(yaml_file):
 
 
 def test_load_tag_operations():
-    """Test whether tag operations are correctly loaded."""
+    """Test whether tag operations are correctly loaded and cached"""
     project_config = load_project_config(TEST_CONFIG)
-    assert load_tag_operations(project_config)
+    tag_operations = load_tag_operations(project_config)
+    assert tag_operations
+    assert load_tag_operations(project_config) is tag_operations
 
 
 @pytest.mark.parametrize(
