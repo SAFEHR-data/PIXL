@@ -20,7 +20,7 @@ tag_operation_files:
     base:
         - "base.yaml" #Expected base config file for any project
         - "mri.yaml"
-        - "keep-acquisition-date.yaml"
+        - "keep-acquisition-date-time.yaml"
     manufacturer_overrides: ["mri.yaml", "mri-diffusion.yaml"]
 
 allowed_manufacturers:
