@@ -14,8 +14,7 @@
 
 project:
     name: "lung-impact"
-    modalities:
-      - "CT"
+    modalities:  ["DX", "CR", "CT"]
     # To remove once validated
     azure_kv_alias: "validate"
 
@@ -36,9 +35,9 @@ allowed_manufacturers:
         - 1501
   # to update once validated
   - regex: ".*"
-    exclude_series_numbers: []
+    exclude_series_numbers: [1000]
 
-min_instances_per_series: 10
+min_instances_per_series: 1
 
 series_filters:
     - "localizer"
