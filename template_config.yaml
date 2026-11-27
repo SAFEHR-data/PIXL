@@ -14,12 +14,12 @@
 
 project:
     name: "project-slug"
-    modalities: ["DX", "CR"] # DICOM dataset modalities to retain
+    modalities: ["CT", "PT"] # Currently available: DX, CR, CT, MR, PT, US
     azure_kv_alias: null # Optional field to allow for a common secret prefix to be used
 
 tag_operation_files: # DICOM tag anonymisation operations
     base:
-        - "base-tag-operations.yaml" # Base schema
+        - "base.yaml" # Base schema for all modalities
     manufacturer_overrides: [] # Manufactuer-dependendent overrides
 
 allowed_manufacturers:
@@ -40,7 +40,7 @@ allowed_manufacturers:
         - 1501
 
 # Filter out any series with a single instance (e.g. PACS reports, screenshots)
-min_instances_per_series: 2
+min_instances_per_series: 10
 
 series_filters:
     - "localizer"
@@ -50,5 +50,5 @@ series_filters:
     - "mip"  # for PET studies these series have PID
 
 destination:
-    dicom: "ftps" # alternatives: "dicomweb", "xnat", "none"
-    parquet: "ftps" # alternatives: "none"
+    dicom: "ftps" # options: "dicomweb", "ftpes", "ftps", "xnat", "none"
+    parquet: "ftps" # options: "ftpes", "ftps", "none"
